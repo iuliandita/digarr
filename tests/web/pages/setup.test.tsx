@@ -113,12 +113,12 @@ describe('SetupWizard', () => {
 
     fireEvent.click(screen.getByRole('button', { name: /lidarr/i }))
     await screen.findByText(/Connect(?:er)? Lidarr/i)
-    expect(screen.getByPlaceholderText('Votre clé API Lidarr')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Ta clé API Lidarr')).toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: /retour/i }))
     fireEvent.click(screen.getByRole('button', { name: /emby/i }))
     await screen.findByText(/Connect(?:er)? Emby/i)
-    expect(screen.getByPlaceholderText('Votre clé API Emby')).toBeInTheDocument()
+    expect(screen.getByPlaceholderText('Ta clé API Emby')).toBeInTheDocument()
     expect(screen.getByPlaceholderText('ID utilisateur Emby')).toBeInTheDocument()
   })
 
@@ -139,7 +139,7 @@ describe('SetupWizard', () => {
     await screen.findByText('Fournisseur IA')
     expect(
       screen.getByText(
-        /Vous connecterez vos sources d'écoute personnelles plus tard dans les paramètres/i,
+        /Tu connecteras tes sources d'écoute personnelles plus tard dans les paramètres/i,
       ),
     ).toBeInTheDocument()
   })

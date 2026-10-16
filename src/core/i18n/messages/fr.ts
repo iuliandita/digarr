@@ -16,30 +16,30 @@ export const fr = {
   'app.themeGroupStreaming': 'Diffusion en continu',
   'app.userMenu.logout': 'Se déconnecter',
   'app.userMenu.settings': 'Paramètres',
-  'auth.alreadyHaveAccount': 'Vous avez déjà un compte ? Se connecter',
+  'auth.alreadyHaveAccount': 'Tu as déjà un compte ? Se connecter',
   'auth.createAccount': 'Créer un compte',
   'auth.creatingAccount': 'Creation du compte...',
   'auth.credentialsRequired': "Le nom d'utilisateur et le mot de passe sont requis",
   'auth.invalidCredentials': 'Identifiants invalides',
   'auth.invalidInput': 'Entrée invalide',
   'auth.legacyTokenMigrationRequired':
-    "La connexion dans le navigateur par jeton d'accès n'est plus disponible. Connectez-vous avec votre compte ou via SSO.",
-  'auth.loginDescription': 'Connectez-vous avec votre compte.',
+    "La connexion dans le navigateur par jeton d'accès n'est plus disponible. Connecte-toi avec ton compte ou via SSO.",
+  'auth.loginDescription': 'Connecte-toi avec ton compte.',
   'auth.loginFailed': 'La connexion a échoué',
   'auth.or': 'ou',
   'auth.passwordMin': 'Mot de passe (min 12 caractères)',
   'auth.passwordMinError': 'Le mot de passe doit contenir au moins 12 caractères',
-  'auth.registerDescription': 'Créez le premier compte pour commencer.',
+  'auth.registerDescription': 'Crée le premier compte pour commencer.',
   'auth.sessionCookieRejected':
-    "Le navigateur n'a pas accepté le cookie de session. Vérifiez la configuration de l'URL publique et de HTTPS.",
+    "Le navigateur n'a pas accepté le cookie de session. Vérifie la configuration de l'URL publique et de HTTPS.",
   'auth.sessionCookieInsecureOrigin':
-    "Le navigateur n'a pas accepté le cookie de session. Cette page est servie en HTTP simple depuis une adresse autre que localhost, et le cookie de session porte l'attribut Secure : le navigateur le rejette donc. Servez Digarr en HTTPS, ou définissez DIGARR_ALLOW_INSECURE_COOKIES=true et ALLOWED_ORIGIN sur cette URL exacte, puis redémarrez.",
+    "Le navigateur n'a pas accepté le cookie de session. Cette page est servie en HTTP simple depuis une adresse autre que localhost, et le cookie de session porte l'attribut Secure : le navigateur le rejette donc. Sers Digarr en HTTPS, ou définis DIGARR_ALLOW_INSECURE_COOKIES=true et ALLOWED_ORIGIN sur cette URL exacte, puis redémarre.",
   'auth.sessionMigrationFailed':
-    "Votre session enregistrée dans le navigateur n'a pas pu être mise à niveau. Reconnectez-vous.",
+    "Ta session enregistrée dans le navigateur n'a pas pu être mise à niveau. Reconnecte-toi.",
   'auth.sessionVerificationFailed':
-    "La session n'a pas pu être vérifiée. Vérifiez votre connexion et réessayez.",
+    "La session n'a pas pu être vérifiée. Vérifie ta connexion et réessaie.",
   'auth.signIn': 'Se connecter',
-  'auth.signInWithSso': 'Connectez-vous avec SSO',
+  'auth.signInWithSso': 'Connecte-toi avec SSO',
   'auth.signingIn': 'Connexion...',
   'auth.username': "Nom d'utilisateur",
   'auth.usernameRequired': "Le nom d'utilisateur est requis",
@@ -75,7 +75,7 @@ export const fr = {
   'playlist.tracks': 'Pistes',
   'playlists.create': 'Créer une playlist',
   'playlists.empty':
-    'Aucune playlist pour le moment. Creez votre première playlist pour recevoir automatiquement des digests musicaux.',
+    'Aucune playlist pour le moment. Crée ta première playlist pour recevoir automatiquement des digests musicaux.',
   'playlists.title': 'Listes de lecture',
   'subscriptions.title': 'Abonnements',
   'subscriptions.new': 'Nouveau',
@@ -85,7 +85,7 @@ export const fr = {
   'dashboard.todaysPick': 'Le choix du jour',
   'dashboard.recentlyApproved': 'Récemment approuvé',
   'dashboard.viewAll': 'Voir tout',
-  'dashboard.discover': 'Découvrez',
+  'dashboard.discover': 'Découvre',
   'discover.all': 'Tout',
   'discover.kind.all': 'Tout',
   'discover.kind.artists': 'Artistes',
@@ -109,18 +109,18 @@ export const fr = {
   'discover.clearFilters': 'Effacer les filtres',
   'discover.pageRange': '{0}--{1} sur {2}',
   'discover.emptyAll':
-    "Aucune recommandation pour l'instant. Importez quelques artistes préférés ou lancez votre première analyse pour commencer.",
+    "Aucune recommandation pour l'instant. Importe quelques artistes préférés ou lance ta première analyse pour commencer.",
   'discover.emptyApproved':
-    "Vous n'avez encore approuvé aucun artiste. Vérifiez l'onglet En attente pour voir ce que Digarr a trouvé pour vous.",
+    "Tu n'as encore approuvé aucun artiste. Vérifie l'onglet En attente pour voir ce que Digarr a trouvé pour toi.",
   'discover.emptyAlbums': "Aucune recommandation d'album dans cette vue.",
   'discover.emptyAlbumsHelp':
-    "Une analyse normale recherche des artistes. Utilisez l'une des options ci-dessous pour générer des recommandations d'albums.",
-  'discover.emptyPending': 'Aucune recommandation en attente. Vous êtes tous rattrapés.',
+    "Une analyse normale recherche des artistes. Utilise l'une des options ci-dessous pour générer des recommandations d'albums.",
+  'discover.emptyPending': 'Aucune recommandation en attente. Tu es rattrapé.',
   'discover.emptyRejected': 'Aucune recommandation rejetée.',
   'genres.title': 'Genres musicaux',
-  'genres.subtitle': 'Parcourir les genres de votre bibliothèque',
+  'genres.subtitle': 'Parcourir les genres de ta bibliothèque',
   'genres.searchPlaceholder': 'Rechercher des genres...',
-  'genres.libraryGenres': 'Genres de votre bibliothèque',
+  'genres.libraryGenres': 'Genres de ta bibliothèque',
   'genreDetail.backToGenres': 'Retour aux genres',
   'genreDetail.createSubscription': 'Créer un abonnement',
   'analytics.title': 'Analyses',
@@ -164,33 +164,33 @@ export const fr = {
   'setup.connectEmby': 'Connecter Emby',
   'setup.connectLidarr': 'Connecter Lidarr',
   'setup.connectionTestsContinueEmby':
-    'Les tests de connexion sont disponibles dans les paramètres après la configuration. Continuez quand l URL, la clé API et l identifiant utilisateur semblent corrects.',
+    'Les tests de connexion sont disponibles dans les paramètres après la configuration. Continue quand l URL, la clé API et l identifiant utilisateur semblent corrects.',
   'setup.connectionTestsContinueLidarr':
-    'Les tests de connexion sont disponibles dans les paramètres après la configuration. Continuez quand l URL et la clé API semblent correctes.',
+    'Les tests de connexion sont disponibles dans les paramètres après la configuration. Continue quand l URL et la clé API semblent correctes.',
   'setup.discoveryModeDescription':
-    'Constituez une liste personnelle de recommandations. Exportez en JSON, CSV ou M3U.',
+    'Constitue une liste personnelle de recommandations. Exporte en JSON, CSV ou M3U.',
   'setup.discoveryOnly': 'Découverte uniquement',
   'setup.discoveryOnlyLabel': 'Découverte uniquement',
-  'setup.embyApiKeyPlaceholder': 'Votre clé API Emby',
+  'setup.embyApiKeyPlaceholder': 'Ta clé API Emby',
   'setup.embyDescription':
     'Emby gère la synchronisation de bibliothèque, le signal de goût et l export des playlists.',
   'setup.embyModeDescription':
-    "Synchronisez votre bibliothèque Emby, utilisez l'historique d'écoute à votre goût et repoussez les listes de lecture.",
+    "Synchronise ta bibliothèque Emby, utilise l'historique d'écoute à ton goût et repousse les listes de lecture.",
   'setup.embyUserIdHelp':
     "Trouvé sous Emby Dashboard -> Utilisateurs -> (sélectionner l'utilisateur). L'URL contient l'ID utilisateur.",
   'setup.embyUserIdPlaceholder': 'ID utilisateur Emby',
   'setup.embyUrl': "URL d'Emby",
-  'setup.failed': 'La configuration a échoué - veuillez réessayer',
+  'setup.failed': 'La configuration a échoué -- réessaie',
   'setup.getApiKey': 'Obtenir la clé API',
-  'setup.howManageMusic': 'Comment gerez-vous la musique ?',
+  'setup.howManageMusic': 'Comment gères-tu la musique ?',
   'setup.initialSetup': 'Configuration initiale',
-  'setup.lidarrApiKeyPlaceholder': 'Votre clé API Lidarr',
-  'setup.lidarrDescription': 'Lidarr gère votre bibliothèque musicale et vos téléchargements.',
+  'setup.lidarrApiKeyPlaceholder': 'Ta clé API Lidarr',
+  'setup.lidarrDescription': 'Lidarr gère ta bibliothèque musicale et tes téléchargements.',
   'setup.lidarrModeDescription':
     'Les artistes approuvés sont ajoutés à Lidarr pour un téléchargement automatique',
   'setup.lidarrUrl': 'URL Lidarr',
   'setup.listeningSourcesLater':
-    "Vous connecterez vos sources d'écoute personnelles plus tard dans les paramètres après connexion.",
+    "Tu connecteras tes sources d'écoute personnelles plus tard dans les paramètres après connexion.",
   'setup.mode': 'Mode choisi',
   'setup.model': 'Modèle',
   'setup.modelPlaceholder': 'nom-du-modèle',
@@ -204,7 +204,7 @@ export const fr = {
   'setup.providerOllama': 'Ollama',
   'setup.providerOpenAi': 'OpenAI',
   'setup.providerOpenAiCompatible': 'Compatible OpenAI',
-  'setup.readyDescription': 'Voici ce que vous avez configuré :',
+  'setup.readyDescription': 'Voici ce que tu as configuré :',
   'setup.readyTitle': 'Prêt',
   'setup.skipTlsVerification': 'Ignorer la vérification TLS',
   'setup.startDigging': 'Commencer',
@@ -213,7 +213,7 @@ export const fr = {
   'setup.subtitle': 'Cela determine comment les recommandations approuvees sont gerees.',
   'setup.userId': 'Identifiant utilisateur',
   'setup.verifyProviderLater':
-    'Vous pourrez vérifier le fournisseur dans les paramètres après la configuration. Continuez une fois les détails renseignes.',
+    'Tu pourras vérifier le fournisseur dans les paramètres après la configuration. Continue une fois les détails renseignes.',
   'common.importing': 'Importation...',
   'common.language': 'Langue',
   'common.loading': 'Chargement...',
@@ -226,9 +226,9 @@ export const fr = {
   'common.none': 'Aucun',
   'common.optional': 'optionnel',
   'common.previous': 'Precedent',
-  'common.pullToRefresh': 'Tirez pour actualiser',
+  'common.pullToRefresh': 'Tire pour actualiser',
   'common.refreshing': 'Actualisation...',
-  'common.releaseToRefresh': 'Relâchez pour actualiser',
+  'common.releaseToRefresh': 'Relâche pour actualiser',
   'common.schedule': 'Planification',
   'common.searching': 'Recherche...',
   'common.current': 'Actuel',
@@ -244,7 +244,7 @@ export const fr = {
   'dashboard.activityApproved': 'Approuvé',
   'dashboard.activityDiscovered': 'découvert',
   'dashboard.activityEmpty':
-    "Rien ici encore. L'activité apparaîtra au fur et à mesure que vous découvrirez et approuverez de nouveaux artistes.",
+    "Rien ici encore. L'activité apparaîtra au fur et à mesure que tu découvriras et approuveras de nouveaux artistes.",
   'dashboard.activityNew': 'nouveau',
   'dashboard.activityRejected': 'Rejeté',
   'dashboard.activityScan': 'Analyse',
@@ -254,17 +254,17 @@ export const fr = {
   'dashboard.approvedSuccess': 'Approuvé',
   'dashboard.connectAccount': 'Connecter un compte',
   'dashboard.connectListening':
-    'Connectez votre compte Last.fm ou ListenBrainz pour que Digarr puisse savoir ce que vous écoutez.',
+    'Connecte ton compte Last.fm ou ListenBrainz pour que Digarr puisse savoir ce que tu écoutes.',
   'dashboard.feedbackTip':
-    'Approuvez ou rejetez les recommandations pour enseigner votre goût à Digarr. Plus vous donnez de commentaires, meilleures seront vos futures recommandations.',
+    'Approuve ou rejette les recommandations pour enseigner ton goût à Digarr. Plus tu donnes de commentaires, meilleures seront tes futures recommandations.',
   'dashboard.foundLastRun': 'trouvé la dernière fois',
   'dashboard.genreCoverage': 'Données de genre disponibles : {0}/{1}',
   'dashboard.genreCoveragePending': 'Mises à jour des données de genre en attente : {0}',
   'dashboard.getStarted': 'Commencer',
   'dashboard.listeningEmpty':
-    "Aucun historique d'écoute pour cette période. Essayez une autre période.",
+    "Aucun historique d'écoute pour cette période. Essaie une autre période.",
   'dashboard.listeningFailed':
-    "Impossible de charger l'historique d'écoute. Vérifiez vos connexions ou réessayez.",
+    "Impossible de charger l'historique d'écoute. Vérifie tes connexions ou réessaie.",
   'dashboard.listeningHistory': "Historique d'écoute",
   'dashboard.recentPlays': 'Écoutes récentes',
   'dashboard.recentPlaysEmpty': 'Aucune écoute récente',
@@ -284,10 +284,10 @@ export const fr = {
   'dashboard.setUpAutomaticDiscovery': 'Configurer la découverte automatique',
   'dashboard.subscriptions': 'Abonnements',
   'dashboard.subscriptionsEmpty':
-    "Vous n'avez pas encore configuré de découverte automatique. Digarr peut trouver de nouveaux artistes pour vous selon un calendrier.",
+    "Tu n'as pas encore configuré de découverte automatique. Digarr peut trouver de nouveaux artistes pour toi selon un calendrier.",
   'dashboard.tasteEmpty':
-    "Au fur et à mesure que vous approuvez ou rejetez les recommandations d'artistes, Digarr apprend vos goûts et s'améliore pour trouver la musique que vous aimerez.",
-  'dashboard.yourTaste': 'Vos goûts',
+    "Au fur et à mesure que tu approuves ou rejettes les recommandations d'artistes, Digarr apprend tes goûts et s'améliore pour trouver la musique que tu aimeras.",
+  'dashboard.yourTaste': 'Tes goûts',
   'discover.actionApplied': 'Action appliquée.',
   'discover.approveAllAbove': 'Approuver tout ci-dessus',
   'discover.approvedCount': 'Approuvé',
@@ -301,7 +301,7 @@ export const fr = {
   'discover.clearedCount': 'Effacé',
   'discover.discoveryModes': 'Modes de découverte',
   'discover.discoveryModesDescription':
-    'Lancez une découverte ciblée avec un préréglage simple ou le formulaire avancé complet.',
+    'Lance une découverte ciblée avec un préréglage simple ou le formulaire avancé complet.',
   'discover.monitoringOptions': 'Options de suivi',
   'discover.monitorAllDescription': 'Surveiller et rechercher tous les albums',
   'discover.monitorNewDescription': 'Surveiller uniquement les nouvelles sorties à venir',
@@ -310,21 +310,21 @@ export const fr = {
   'discover.monitorPopular': 'Albums populaires',
   'discover.monitorPopularDescription': "Surveiller les 3 sorties d'album les plus populaires",
   'discover.monitorPopularUnavailable':
-    'Connectez Spotify ou Last.fm pour surveiller les albums populaires',
+    'Connecte Spotify ou Last.fm pour surveiller les albums populaires',
   'discover.popularAlbumsFailed':
-    'Impossible de déterminer les albums populaires pour cet artiste. Essayez une autre option de surveillance.',
+    'Impossible de déterminer les albums populaires pour cet artiste. Essaie une autre option de surveillance.',
   'discover.monitorNoneDescription': 'Ajouter sans surveillance (suivi uniquement)',
   'discover.discoveryRunStarted': "L'exécution de la découverte a démarré.",
   'discover.exportFailed': "Échec de l'exportation",
   'discover.exported': 'exporté',
   'discover.hideFeedbackInsights': 'Masquer les retours',
   'discover.moodTip':
-    "Astuce : décrivez avec vos propres mots, dans n'importe quelle langue, ce que vous avez envie d'écouter -- par exemple « jazz pour un jour de pluie » ou « pop entraînante des années 90 ».",
+    "Astuce : décris avec tes propres mots, dans n'importe quelle langue, ce que tu as envie d'écouter -- par exemple « jazz pour un jour de pluie » ou « pop entraînante des années 90 ».",
   'discover.noPendingAbove': 'Aucune recommandation en attente ci-dessus',
   'discover.noPendingBelow': 'Aucune recommandation en attente ci-dessous',
   'discover.noPendingToClear': 'Aucune recommandation en attente à effacer',
   'discover.notEnoughFeedback':
-    'Pas encore assez de données de feedback. Approuvez ou rejetez d’autres recommandations.',
+    'Pas encore assez de données de feedback. Approuve ou rejette d’autres recommandations.',
   'discover.queuedForRetry': 'En attente de nouvelle tentative',
   'discover.rated': 'noté',
   'discover.refreshData': 'Actualiser les données',
@@ -344,14 +344,14 @@ export const fr = {
   'discover.restoredToPending': 'Restauré en attente',
   'discover.retryFailed': 'La nouvelle tentative a échoué',
   'discover.scanAlreadyRunning': 'Le scan est déjà en cours',
-  'discover.scanStarted': 'Scan lancé - vérifiez le tableau de bord pour la progression',
-  'discover.scanQueued': 'Scan en attente (position {0}) - démarrera à la fin du scan en cours',
+  'discover.scanStarted': 'Scan lancé -- vérifie le tableau de bord pour la progression',
+  'discover.scanQueued': 'Scan en attente (position {0}) -- démarrera à la fin du scan en cours',
   'discover.scanStartFailed': "Échec du démarrage de l'analyse",
   'discover.select': 'Sélectionner',
   'discover.showFeedbackInsights': 'Afficher les retours',
-  'discover.swipeHint': 'Balayez vers la droite pour approuver, vers la gauche pour rejeter',
+  'discover.swipeHint': 'Balaie vers la droite pour approuver, vers la gauche pour rejeter',
   'discover.cardsTip':
-    'Cliquez sur une carte pour voir les albums et les liens de streaming, ou appuyez sur ? pour les raccourcis clavier.',
+    'Clique sur une carte pour voir les albums et les liens de streaming, ou appuie sur ? pour les raccourcis clavier.',
   'discover.thresholdPercentage': 'Pourcentage seuil',
   'discover.undo': 'Annuler',
   'discover.undoFailed': "Échec de l'annulation",
@@ -363,30 +363,30 @@ export const fr = {
   'genreDetail.artistSingular': 'artiste',
   'genreDetail.emptyDeepCuts':
     'Aucune perle rare trouvée. Elles apparaissent après un scan : artistes peu populaires ou avec peu de tags de genre.',
-  'genreDetail.emptyLibrary': 'Aucun artiste de ce genre dans votre bibliothèque.',
+  'genreDetail.emptyLibrary': 'Aucun artiste de ce genre dans ta bibliothèque.',
   'genreDetail.emptyRecommended':
-    "Aucun artiste recommandé pour le moment. Lancez un scan et approuvez d'abord quelques recommandations.",
+    "Aucun artiste recommandé pour le moment. Lance un scan et approuve d'abord quelques recommandations.",
   'genreDetail.emptyTrending':
-    'Aucune découverte récente dans ce genre. Lancez un scan pour trouver de nouveaux artistes.',
+    'Aucune découverte récente dans ce genre. Lance un scan pour trouver de nouveaux artistes.',
   'genreDetail.inQueue': 'Dans la file',
-  'genreDetail.inYourLibrary': 'dans votre bibliothèque',
+  'genreDetail.inYourLibrary': 'dans ta bibliothèque',
   'genreDetail.notFound': 'Genre introuvable.',
   'genreDetail.queue': '+ File',
   'genreDetail.queueHint':
-    'Utilisez + File pour ajouter des artistes à votre file de recommandations, à examiner sur la page Découvrir.',
+    'Utilise + File pour ajouter des artistes à ta file de recommandations, à examiner sur la page Découvrir.',
   'genreDetail.subGenres': 'Sous-genres',
   'genreDetail.tabDeepCuts': 'Perles rares',
   'genreDetail.tabDeepCutsDescription': 'Pepites peu connues et peu populaires',
-  'genreDetail.tabLibrary': 'Dans votre bibliothèque',
-  'genreDetail.tabLibraryDescription': 'Artistes déjà présents dans votre bibliothèque',
+  'genreDetail.tabLibrary': 'Dans ta bibliothèque',
+  'genreDetail.tabLibraryDescription': 'Artistes déjà présents dans ta bibliothèque',
   'genreDetail.tabRecommended': 'Recommandes',
   'genreDetail.tabRecommendedDescription': 'Artistes approuves correspondant a ce genre',
   'genreDetail.tabTrending': 'Tendance',
   'genreDetail.tabTrendingDescription':
     'Artistes récemment découverts dans ce genre (30 derniers jours)',
   'genres.browseTip':
-    'Parcourez les genres de votre bibliothèque et de votre historique de recommandations. Cliquez sur un genre pour voir les artistes recommandés, les découvertes récentes et les perles rares.',
-  'genres.empty': 'Aucun genre dans votre bibliothèque pour le moment.',
+    'Parcours les genres de ta bibliothèque et de ton historique de recommandations. Clique sur un genre pour voir les artistes recommandés, les découvertes récentes et les perles rares.',
+  'genres.empty': 'Aucun genre dans ta bibliothèque pour le moment.',
   'genres.forQuery': 'pour',
   'genres.genrePlural': 'genres',
   'genres.genreSingular': 'genre',
@@ -394,7 +394,7 @@ export const fr = {
   'genres.resultSingular': 'résultat',
   'genres.seed': 'Initialiser les genres',
   'genres.seedFailed': "Échec de l'initialisation des genres",
-  'genres.seedFromLibrary': 'Initialiser les genres depuis votre bibliothèque',
+  'genres.seedFromLibrary': 'Initialiser les genres depuis ta bibliothèque',
   'genres.seedStarted': 'Initialisation des genres lancée',
   'genres.seeding': 'Initialisation...',
   'jobHistory.all': 'Tout',
@@ -428,7 +428,7 @@ export const fr = {
   'libraryReconciliation.loadingArtists': 'Chargement des artistes non rapprochés...',
   'libraryReconciliation.noAlbums': 'Aucun album non rapproché.',
   'libraryReconciliation.noArtists':
-    'Aucun artiste non rapproché. Votre bibliothèque est entièrement associée.',
+    'Aucun artiste non rapproché. Ta bibliothèque est entièrement associée.',
   'libraryReconciliation.normalizedName': 'Nom normalisé : {0}',
   'libraryReconciliation.of': 'sur',
   'libraryReconciliation.page': 'Page de résultats',
@@ -436,22 +436,21 @@ export const fr = {
   'libraryReconciliation.pasteMbid': 'Coller le MBID (UUID)',
   'libraryReconciliation.pin': 'Épingler',
   'libraryReconciliation.reasonAmbiguousHelp':
-    'Plusieurs correspondances subsistent. Épinglez le bon MBID ou ignorez cet élément.',
+    'Plusieurs correspondances subsistent. Épingle le bon MBID ou ignore cet élément.',
   'libraryReconciliation.reasonAmbiguousLabel': 'Correspondance ambiguë',
   'libraryReconciliation.reasonLookupFailedHelp':
-    'MusicBrainz est inaccessible. Réessayez de synchroniser la bibliothèque plus tard.',
+    'MusicBrainz est inaccessible. Réessaie de synchroniser la bibliothèque plus tard.',
   'libraryReconciliation.reasonLookupFailedLabel': 'Échec de la recherche',
   'libraryReconciliation.reasonNeedsReviewHelp':
-    'La cause est antérieure au suivi des motifs. Relancez le rapprochement ou vérifiez-la manuellement.',
+    'La cause est antérieure au suivi des motifs. Relance le rapprochement ou vérifie-la manuellement.',
   'libraryReconciliation.reasonNeedsReviewLabel': 'À vérifier',
   'libraryReconciliation.reasonNoCandidateHelp':
-    'Aucune correspondance trouvée. Épinglez un MBID connu ou ignorez cet élément.',
+    'Aucune correspondance trouvée. Épingle un MBID connu ou ignore cet élément.',
   'libraryReconciliation.reasonNoCandidateLabel': 'Aucune correspondance',
   'libraryReconciliation.selectAlbum': 'Sélectionner l’album {0}',
   'libraryReconciliation.selectArtist': 'Sélectionner l’artiste {0}',
   'libraryReconciliation.selectedCount': 'Sélection : {0}',
-  'libraryReconciliation.selectionLimit':
-    'Vous pouvez sélectionner au maximum {0} éléments à la fois.',
+  'libraryReconciliation.selectionLimit': 'Tu peux sélectionner au maximum {0} éléments à la fois.',
   'libraryReconciliation.selectVisible': 'Sélectionner les éléments visibles',
   'libraryReconciliation.showing': 'Affichage',
   'libraryReconciliation.unknownType': 'Type inconnu',
@@ -471,11 +470,11 @@ export const fr = {
   'playlist.deleteFailed': 'Échec de la suppression de la playlist',
   'playlist.deleteWarning': 'Supprimer cette playlist ? Cette action est irréversible.',
   'playlist.deletedNamed': 'Playlist supprimée',
-  'playlist.detailHint': 'Générez cette playlist à partir de vos recommandations approuvées.',
+  'playlist.detailHint': 'Génère cette playlist à partir de tes recommandations approuvées.',
   'playlist.detailAuditionHint':
-    'Générez cette playlist à partir des artistes en attente pour les écouter avant de les approuver.',
+    'Génère cette playlist à partir des artistes en attente pour les écouter avant de les approuver.',
   'playlist.detailActionsHint':
-    'Après la génération, téléchargez les pistes au format M3U ou XSPF, ou ajoutez une cible de playlist pour envoyer automatiquement les prochaines générations vers Navidrome, Jellyfin ou Plex.',
+    'Après la génération, télécharge les pistes au format M3U ou XSPF, ou ajoute une cible de playlist pour envoyer automatiquement les prochaines générations vers Navidrome, Jellyfin ou Plex.',
   'playlist.disable': 'Désactiver la playlist',
   'playlist.download': 'Télécharger',
   'playlist.downloadFailed': 'Échec du téléchargement de la playlist',
@@ -486,7 +485,7 @@ export const fr = {
   'playlist.generateFailed': 'Échec du démarrage de la génération',
   'playlist.generateNow': 'Générer maintenant',
   'playlist.generatingNamed': 'Génération de la playlist lancée',
-  'playlist.noTracks': 'Aucune piste pour le moment. Generez la playlist pour la remplir.',
+  'playlist.noTracks': 'Aucune piste pour le moment. Génère la playlist pour la remplir.',
   'playlist.sourceDeezer': 'Deezer',
   'playlist.sourceLocal': 'Local',
   'playlist.sourceMusicbrainz': 'MusicBrainz',
@@ -504,7 +503,7 @@ export const fr = {
   'playlists.createFailed': 'Échec de la création de la playlist',
   'playlists.created': 'Liste de lecture créée',
   'playlists.emptyHint':
-    "Créez des playlists à partir d'artistes approuvés ou en attente, téléchargez-les en M3U ou XSPF, ou envoyez-les vers Spotify, Navidrome, Jellyfin, Emby ou Plex.",
+    "Crée des playlists à partir d'artistes approuvés ou en attente, télécharge-les en M3U ou XSPF, ou envoie-les vers Spotify, Navidrome, Jellyfin, Emby ou Plex.",
   'playlists.nextGeneration': 'Prochaine generation',
   'playlists.noScheduleConfigured': 'Aucune planification configuree',
   'playlists.playlistPlural': 'listes de lecture',
@@ -519,10 +518,10 @@ export const fr = {
   'playlistForm.titleEdit': 'Modifier la playlist',
   'playlistForm.namePlaceholder': 'Mon mix hebdomadaire',
   'playlistForm.strategy': 'Strategie',
-  'playlistForm.strategyWeeklyDigestDesc': 'Sélection soignée à partir de vos découvertes récentes',
+  'playlistForm.strategyWeeklyDigestDesc': 'Sélection soignée à partir de tes découvertes récentes',
   'playlistForm.strategyGenreFocusDesc': 'Explorer en profondeur un genre precis',
   'playlistForm.strategyMoodMixDesc': 'Titres adaptés à une ambiance précise',
-  'playlistForm.strategyRediscoverDesc': 'Retrouver des artistes que vous aviez peut-etre oublies',
+  'playlistForm.strategyRediscoverDesc': 'Retrouver des artistes que tu avais peut-etre oublies',
   'playlistForm.mood': 'Ambiance',
   'playlistForm.moodPlaceholder': 'trajet de nuit',
   'playlistForm.trackCount': 'Nombre de titres',
@@ -562,11 +561,11 @@ export const fr = {
   'subscriptionForm.sourceTypeGenre': 'Style musical',
   'subscriptionForm.sourceTypeGenreDesc': 'Découvrir des artistes dans un genre precis',
   'subscriptionForm.sourceTypeSimilar': 'Similaires',
-  'subscriptionForm.sourceTypeSimilarDesc': 'Trouver des artistes proches de vos favoris',
+  'subscriptionForm.sourceTypeSimilarDesc': 'Trouver des artistes proches de tes favoris',
   'subscriptionForm.sourceTypeDiscoveryModeDesc':
     'Utiliser un mode de découverte pour générer des artistes',
   'subscriptionForm.discoveryMode': 'Mode de découverte',
-  'subscriptionForm.selectDiscoveryMode': 'Selectionnez un mode de découverte a configurer.',
+  'subscriptionForm.selectDiscoveryMode': 'Selectionne un mode de découverte a configurer.',
   'subscriptionForm.discoveryModeSettingsRequired':
     'Les réglages du mode de découverte sont obligatoires',
   'subscriptionForm.genre': 'Style musical',
@@ -578,7 +577,7 @@ export const fr = {
   'subscriptionForm.seedArtistsRequired': 'Au moins un artiste de depart est requis',
   'subscriptionForm.configureInSettings': 'À configurer dans Paramètres > Connexions',
   'subscriptionForm.notConfigured': 'non configuré',
-  'subscriptionForm.selectAtLeastOneSource': 'Selectionnez au moins une source',
+  'subscriptionForm.selectAtLeastOneSource': 'Selectionne au moins une source',
   'subscriptionForm.sourceLockedHelp':
     'Le type de source et sa configuration ne peuvent pas etre modifies pour cet abonnement.',
   'subscriptionForm.maxArtistsPerRun': 'Nombre maximal d artistes par execution',
@@ -607,9 +606,9 @@ export const fr = {
   'subscriptions.updateFailed': 'Échec de la mise à jour des abonnements',
   'subscriptions.created': 'Abonnement créé',
   'subscriptions.introTip':
-    'Les abonnements découvrent automatiquement de nouveaux artistes selon un calendrier. Créez un abonnement à un genre ou à un artiste similaire pour développer votre bibliothèque pendant que vous dormez.',
+    'Les abonnements découvrent automatiquement de nouveaux artistes selon un calendrier. Crée un abonnement à un genre ou à un artiste similaire pour développer ta bibliothèque pendant que tu dors.',
   'subscriptions.emptyDescription':
-    'Importez vos artistes préférés pour commencer ou configurez la découverte automatique pour continuer à trouver de nouvelles musiques.',
+    'Importe tes artistes préférés pour commencer ou configure la découverte automatique pour continuer à trouver de nouvelles musiques.',
   'subscriptions.aiOnlyMode': 'Mode IA uniquement',
   'subscriptions.aiOnlyDescription':
     "La découverte s'exécute selon la planification du pipeline sans abonnement à des flux externes.",
@@ -620,7 +619,7 @@ export const fr = {
   'subscriptions.spotifyNotConnected': 'Spotify n est pas connecte',
   'subscriptionPresets.getStarted': 'Commencer avec un preset',
   'subscriptionPresets.intro':
-    'Choisissez un preset pour créer des abonnements automatiquement ou composez votre propre configuration.',
+    'Choisis un preset pour créer des abonnements automatiquement ou compose ta propre configuration.',
   'subscriptionPresets.casualTitle': 'Detendu',
   'subscriptionPresets.casualDescription': 'Recommandations hebdomadaires avec peu de bruit',
   'subscriptionPresets.deepDiverTitle': 'Exploration poussee',
@@ -629,7 +628,7 @@ export const fr = {
   'subscriptionPresets.discoveryOnlyTitle': 'Découverte uniquement',
   'subscriptionPresets.discoveryOnlyDescription': 'Pipeline seul, sans flux externes',
   'subscriptionPresets.customTitle': 'Personnalise',
-  'subscriptionPresets.customDescription': 'Composez votre propre combinaison d abonnements',
+  'subscriptionPresets.customDescription': 'Compose ta propre combinaison d abonnements',
   'subscriptionPresets.oneConnectedService': '1 service connecte',
   'subscriptionPresets.twoConnectedServices': '2 services connectes',
   'subscriptionPresets.requires': 'Necessite {0}',
@@ -648,7 +647,7 @@ export const fr = {
   'cronPicker.standardHint': 'Cron standard : minute heure jour-du-mois mois jour-de-la-semaine',
   'analytics.statusCompleted': 'Terminé',
   'analytics.noBatchesYet':
-    "Aucun lot pour l'instant. Exécutez une analyse pour générer des recommandations.",
+    "Aucun lot pour l'instant. Exécute une analyse pour générer des recommandations.",
   'analytics.recommendationsShort': 'recos',
   'analytics.approvedShort': 'approuvé',
   'analytics.noGenreData': "Aucune donnée sur le genre n'est disponible pour l'instant.",
@@ -660,7 +659,7 @@ export const fr = {
   'analytics.avgTimeToReject': 'Temps moyen avant rejet',
   'analytics.rejections': 'rejets',
   'analytics.introTip':
-    'Suivez les performances de votre pipeline de découverte au fil du temps. Des taux d’approbation plus élevés signifient que Digarr apprend bien vos goûts.',
+    'Suis les performances de ton pipeline de découverte au fil du temps. Des taux d’approbation plus élevés signifient que Digarr apprend bien tes goûts.',
   'analytics.totalRecs': 'Recs totales',
   'analytics.approvalRate': "Taux d'approbation",
   'analytics.avgScore': 'Score moyen',
@@ -669,14 +668,14 @@ export const fr = {
   'analytics.discoveryOverTime': 'Découverte dans le temps',
   'analytics.recommendationsPerBatch': 'Recommendations par lot (vert = approuve)',
   'analytics.noDiscoveryBatches':
-    "Aucun lot de découverte pour le moment. Lancez un scan pour voir l'historique ici.",
+    "Aucun lot de découverte pour le moment. Lance un scan pour voir l'historique ici.",
   'analytics.batchHistory': 'Historique des lots',
   'analytics.scoreDistribution': 'Distribution des scores',
   'analytics.noScoreData': 'Pas encore de donnees de score',
   'analytics.approvalRateTrend': "Evolution du taux d'approbation",
   'analytics.needMoreBatches': 'Il faut au moins 2 lots pour afficher la tendance',
   'analytics.timeToAct': "Temps d'action",
-  'analytics.noTimingData': 'Approuvez ou rejetez des recommandations pour voir ces donnees',
+  'analytics.noTimingData': 'Approuve ou rejette des recommandations pour voir ces donnees',
   'analytics.topGenresByApprovalRate': "Genres avec le meilleur taux d'approbation",
   'analytics.sourceEffectiveness': 'Efficacite des sources',
   'userManagement.userCreated': 'Utilisateur créé',
@@ -692,12 +691,12 @@ export const fr = {
     "Chaque utilisateur a ses propres recommandations, préférences et sources d'écoute. Les admins peuvent gérer les paramètres globaux.",
   'userManagement.noUsers': 'Aucun utilisateur trouvé.',
   'userManagement.adminBadge': 'administrateur',
-  'userManagement.cannotRemoveOwnAdmin': 'Impossible de retirer votre propre role admin',
-  'userManagement.lastAdminCannotRemove': 'Dernier admin - suppression impossible',
+  'userManagement.cannotRemoveOwnAdmin': 'Impossible de retirer ton propre role admin',
+  'userManagement.lastAdminCannotRemove': 'Dernier admin -- suppression impossible',
   'userManagement.removeAdmin': "Retirer l'admin",
   'userManagement.makeAdmin': 'Rendre admin',
-  'userManagement.cannotDeleteSelf': 'Impossible de vous supprimer',
-  'userManagement.lastAdminCannotDelete': 'Dernier admin - suppression impossible',
+  'userManagement.cannotDeleteSelf': 'Impossible de te supprimer',
+  'userManagement.lastAdminCannotDelete': 'Dernier admin -- suppression impossible',
   'userManagement.deleteUser': "Supprimer l'utilisateur",
   'userManagement.deleteUserPrompt': "Supprimer l'utilisateur",
   'recommendation.sourceGenre': 'Style musical',
@@ -721,7 +720,7 @@ export const fr = {
   'todaysPick.match': 'correspondance',
   'todaysPick.skipHint':
     'Passer affiche le prochain artiste sans le rejeter -- il reviendra lors de futurs scans.',
-  'todaysPick.skipTitle': "Passer pour l'instant - cet artiste reviendra plus tard",
+  'todaysPick.skipTitle': "Passer pour l'instant -- cet artiste reviendra plus tard",
   'pipeline.stage.collect': 'Lecture de la bibliothèque',
   'pipeline.stage.analyze': 'Construction du profil musical',
   'pipeline.stage.discover': 'Recherche de nouveaux artistes',
@@ -732,19 +731,19 @@ export const fr = {
   'pipeline.stage.complete': 'Terminé',
   'pipeline.description.collect': 'Vérification des artistes déjà présents',
   'pipeline.description.analyze':
-    "Analyse de vos préférences à partir de la bibliothèque et de l'historique d'écoute",
-  'pipeline.description.discover': 'Recherche de recommandations selon vos goûts',
+    "Analyse de tes préférences à partir de la bibliothèque et de l'historique d'écoute",
+  'pipeline.description.discover': 'Recherche de recommandations selon tes goûts',
   'pipeline.description.resolve': 'Récupération des détails, genres et images des artistes',
-  'pipeline.description.score': 'Évaluation de chaque artiste selon vos goûts',
+  'pipeline.description.score': 'Évaluation de chaque artiste selon tes goûts',
   'pipeline.description.filter': 'Filtrage des artistes déjà vus',
   'pipeline.description.store': 'Enregistrement des nouvelles recommandations',
-  'pipeline.description.complete': 'Vos nouvelles recommandations sont prêtes à être explorées !',
+  'pipeline.description.complete': 'Tes nouvelles recommandations sont prêtes à être explorées !',
   'pipeline.firstScanComplete':
-    'Vos premières recommandations sont prêtes ! Accédez à la page Découvrir pour voir ce que Digarr a trouvé.',
+    'Tes premières recommandations sont prêtes ! Accède à la page Découvrir pour voir ce que Digarr a trouvé.',
   'pipeline.firstScanDescription':
-    'Digarr analyse vos goûts musicaux et cherche des artistes qui pourraient vous plaire. Cela prend généralement 2 a 5 minutes au premier lancement.',
+    'Digarr analyse tes goûts musicaux et cherche des artistes qui pourraient te plaire. Cela prend généralement 2 a 5 minutes au premier lancement.',
   'pipeline.runningFor': 'En cours depuis',
-  'pipeline.stalled': 'Cela prend plus de temps que d’habitude - patientez',
+  'pipeline.stalled': 'Cela prend plus de temps que d’habitude -- patiente',
   'pipeline.stop': 'Arrêter le scan',
   'pipeline.stopping': 'Arrêt...',
   'pipeline.cancelled': 'Scan arrêté',
@@ -754,15 +753,15 @@ export const fr = {
   'libraryHealth.rescanningSoon': 'nouveau scan dans 30 s pour vérification',
   'libraryHealth.updated': 'Mis à jour',
   'libraryHealth.processed': 'Traité',
-  'libraryHealth.fixFailed': 'La correction a échoué - vérifiez la connexion Lidarr',
+  'libraryHealth.fixFailed': 'La correction a échoué -- vérifie la connexion Lidarr',
   'libraryHealth.rescan': 'Relancer le scan',
   'libraryHealth.introTip':
-    "La santé de la bibliothèque vérifie votre bibliothèque Lidarr : métadonnées, albums, images et liens Wikidata manquants, artistes non surveillés ou en double, et lacunes de genres. Elle s'exécute selon un planning ; utilisez « Synchroniser maintenant » pour vérifier à nouveau.",
+    "La santé de la bibliothèque vérifie ta bibliothèque Lidarr : métadonnées, albums, images et liens Wikidata manquants, artistes non surveillés ou en double, et lacunes de genres. Elle s'exécute selon un planning ; utilise « Synchroniser maintenant » pour vérifier à nouveau.",
   'libraryHealth.scanningBanner':
     'Analyse de la santé de la bibliothèque en cours : cela peut prendre plusieurs minutes pour les grosses bibliothèques. Les résultats apparaîtront à la fin.',
   'libraryHealth.pendingRescan': 'Un nouveau scan est programme pour vérifier les corrections...',
   'libraryHealth.noChecks':
-    'Aucun controle disponible. Lancez un scan pour inspecter votre bibliothèque.',
+    'Aucun controle disponible. Lance un scan pour inspecter ta bibliothèque.',
   'libraryHealth.syncNow': 'Synchroniser maintenant',
   'libraryHealth.snapshotTitle': 'Dernier instantane',
   'libraryHealth.lastSynced': 'Dernière synchronisation',
@@ -770,7 +769,7 @@ export const fr = {
   'libraryHealth.autoSyncEvery': 'Synchronisation automatique toutes les {0} h',
   'libraryHealth.statisticsTitle': 'Statistiques de la bibliothèque',
   'libraryHealth.statisticsUnavailable':
-    'Statistiques indisponibles. Vérifiez votre connexion Lidarr dans les paramètres.',
+    'Statistiques indisponibles. Vérifie ta connexion Lidarr dans les paramètres.',
   'libraryHealth.fix': 'Corriger',
   'libraryHealth.fixing': 'Correction...',
   'libraryHealth.showLess': 'Afficher moins',
@@ -803,7 +802,7 @@ export const fr = {
   'settings.connectDeezer': 'Connecter avec Deezer',
   'settings.deezer': 'Deezer',
   'settings.deezerConnectHelp':
-    'Connectez votre compte Deezer pour importer vos favoris, artistes suivis et données de playlists.',
+    'Connecte ton compte Deezer pour importer tes favoris, artistes suivis et données de playlists.',
   'settings.importFavorites': 'Importer les favoris',
   'settings.importFollowed': 'Importer les suivis',
   'settings.integrationCapabilities': "Capacités d'intégration",
@@ -821,14 +820,14 @@ export const fr = {
   'systemHealth.inMinutes': 'dans {0}m',
   'systemHealth.inHours': 'dans {0}h',
   'search.title': 'Recherche',
-  'search.subtitle': 'Trouvez des artistes sur les plateformes musicales',
+  'search.subtitle': 'Trouve des artistes sur les plateformes musicales',
   'search.placeholder': 'Rechercher des artistes...',
   'search.experimental': 'Expérimental',
   'search.sources': 'Sources',
   'search.sourcesActive': 'Sources ({0})',
   'search.clearFilters': 'Effacer les filtres',
-  'search.minChars': 'Tapez au moins 2 caractères pour rechercher',
-  'search.failed': 'Recherche échouée - réessayez',
+  'search.minChars': 'Tape au moins 2 caractères pour rechercher',
+  'search.failed': 'Recherche échouée -- réessaie',
   'search.noResultsFor': 'Aucun artiste trouvé pour',
   'discoveryMode.available': 'Disponible',
   'discoveryMode.unavailable': 'Indisponible',
@@ -840,77 +839,77 @@ export const fr = {
   'discoveryMode.notAvailableBecause': 'Indisponible car',
   'discoveryMode.addTag': '+ Ajouter un tag',
   'discoveryMode.removeTag': 'Supprimer le tag',
-  'discoveryMode.commaSeparatedValues': 'Entrez des valeurs séparées par des virgules',
+  'discoveryMode.commaSeparatedValues': 'Entre des valeurs séparées par des virgules',
   'discoveryMode.fieldRequired': '{0} est obligatoire',
   'discoveryMode.tagExamplePlaceholder': 'ex. trip hop',
   'discoveryMode.tagWeight': 'Poids',
   'discoveryMode.listenbrainz.label': 'ListenBrainz',
   'discoveryMode.listenbrainz.description':
-    'Découvrez à partir des données de graphe et des flux ListenBrainz',
+    'Découvre à partir des données de graphe et des flux ListenBrainz',
   'discoveryMode.artist-radio.label': 'Radio artiste',
   'discoveryMode.artist-radio.description':
-    'Découvrez des artistes similaires à un artiste de départ via la radio ListenBrainz',
+    'Découvre des artistes similaires à un artiste de départ via la radio ListenBrainz',
   'discoveryMode.user-radio.label': 'Radio utilisateur',
   'discoveryMode.user-radio.description':
-    "Découvrez des artistes via la radio basée sur l'artiste le plus écouté d'un utilisateur",
+    "Découvre des artistes via la radio basée sur l'artiste le plus écouté d'un utilisateur",
   'discoveryMode.similar-users-deep.label': 'Utilisateurs similaires (approfondi)',
   'discoveryMode.similar-users-deep.description':
-    'Découvrez à partir des artistes favoris des utilisateurs ListenBrainz ayant des goûts similaires',
+    'Découvre à partir des artistes favoris des utilisateurs ListenBrainz ayant des goûts similaires',
   'discoveryMode.tag-radio.label': 'Radio tags',
   'discoveryMode.tag-radio.description':
-    'Découvrez des artistes correspondant à des tags de genre via la radio ListenBrainz',
+    'Découvre des artistes correspondant à des tags de genre via la radio ListenBrainz',
   'discoveryMode.release-radar.label': 'Radar des sorties',
   'discoveryMode.release-radar.description':
-    'Découvrez à partir des nouvelles sorties liées à vos artistes suivis',
+    'Découvre à partir des nouvelles sorties liées à tes artistes suivis',
   'discoveryMode.similar-artist-web.label': "Réseau d'artistes similaires",
   'discoveryMode.similar-artist-web.description':
-    "Découvrez des artistes à partir de recherches dans le graphe web d'artistes similaires",
+    "Découvre des artistes à partir de recherches dans le graphe web d'artistes similaires",
   'discoveryMode.artist-relationships.label': 'Relations entre artistes',
   'discoveryMode.artist-relationships.description':
-    "Découvrez les collaborateurs, alias et connexions adjacentes dans le graphe d'artistes",
+    "Découvre les collaborateurs, alias et connexions adjacentes dans le graphe d'artistes",
   'discoveryMode.labels.label': 'Libelles',
   'discoveryMode.labels.description':
-    'Découvrez des artistes connectés via les catalogues de labels',
+    'Découvre des artistes connectés via les catalogues de labels',
   'discoveryMode.gap-fill.label': 'Complétion de bibliothèque',
   'discoveryMode.gap-fill.description':
-    'Trouvez les albums studio qui vous manquent parmi les artistes que vous suivez déjà',
+    'Trouve les albums studio qui te manquent parmi les artistes que tu suis déjà',
   'discoveryMode.charts.label': 'Charts',
   'discoveryMode.charts.description':
-    'Découvrez des artistes tendance dans les charts mondiaux ou régionaux',
+    'Découvre des artistes tendance dans les charts mondiaux ou régionaux',
   'discoveryMode.deezer-flow.label': 'Deezer Flow',
   'discoveryMode.deezer-flow.description':
-    'Découvrez des artistes depuis votre flux Deezer Flow personnalisé',
+    'Découvre des artistes depuis ton flux Deezer Flow personnalisé',
   'discoveryMode.spotify-saved-albums.label': 'Albums enregistrés Spotify',
   'discoveryMode.spotify-saved-albums.description':
-    'Découvrez des artistes à partir des albums que vous avez enregistrés sur Spotify',
+    'Découvre des artistes à partir des albums que tu as enregistrés sur Spotify',
   'discoveryMode.spotify-followed-artists.label': 'Artistes suivis Spotify',
   'discoveryMode.spotify-followed-artists.description':
-    'Découvrez à partir des artistes que vous suivez sur Spotify',
+    'Découvre à partir des artistes que tu suis sur Spotify',
   'discoveryMode.subsonic-starred.label': 'Favoris Subsonic',
   'discoveryMode.subsonic-starred.description':
-    'Découvrez des artistes similaires à ceux que vous avez mis en favoris sur votre serveur Subsonic',
+    'Découvre des artistes similaires à ceux que tu as mis en favoris sur ton serveur Subsonic',
   'discoveryMode.tidal-favorite-artists.label': 'Artistes favoris TIDAL',
   'discoveryMode.tidal-favorite-artists.description':
-    'Découvrez à partir des artistes de votre collection TIDAL',
-  'discoveryMode.reason.connectTidal': 'Connectez TIDAL pour utiliser ce mode.',
+    'Découvre à partir des artistes de ta collection TIDAL',
+  'discoveryMode.reason.connectTidal': 'Connecte TIDAL pour utiliser ce mode.',
   'discoveryMode.notImplementedYet': "Ce mode n'est pas encore implémenté.",
   'discoveryMode.notShippedYet': "Ce mode n'est pas encore disponible.",
-  'discoveryMode.reason.connectListenBrainz': 'Connectez ListenBrainz pour utiliser ce mode.',
+  'discoveryMode.reason.connectListenBrainz': 'Connecte ListenBrainz pour utiliser ce mode.',
   'discoveryMode.reason.connectReleaseRadarProviders':
-    'Connectez ListenBrainz, Spotify ou Last.fm pour utiliser ce mode.',
+    'Connecte ListenBrainz, Spotify ou Last.fm pour utiliser ce mode.',
   'discoveryMode.reason.connectListenBrainzOrLastfm':
-    'Connectez ListenBrainz ou Last.fm pour utiliser ce mode.',
-  'discoveryMode.reason.connectDiscogs': 'Connectez Discogs pour utiliser ce mode.',
-  'discoveryMode.reason.connectLastfm': 'Connectez Last.fm pour utiliser ce mode.',
-  'discoveryMode.reason.connectDeezer': 'Connectez Deezer pour utiliser ce mode.',
-  'discoveryMode.reason.connectSpotify': 'Connectez Spotify pour utiliser ce mode.',
+    'Connecte ListenBrainz ou Last.fm pour utiliser ce mode.',
+  'discoveryMode.reason.connectDiscogs': 'Connecte Discogs pour utiliser ce mode.',
+  'discoveryMode.reason.connectLastfm': 'Connecte Last.fm pour utiliser ce mode.',
+  'discoveryMode.reason.connectDeezer': 'Connecte Deezer pour utiliser ce mode.',
+  'discoveryMode.reason.connectSpotify': 'Connecte Spotify pour utiliser ce mode.',
   'discoveryMode.reason.reconnectSpotifyFollow':
-    'Reconnectez Spotify pour accorder l’accès aux artistes suivis.',
-  'discoveryMode.reason.connectSubsonic': 'Connectez Subsonic pour utiliser ce mode.',
+    'Reconnecte Spotify pour accorder l’accès aux artistes suivis.',
+  'discoveryMode.reason.connectSubsonic': 'Connecte Subsonic pour utiliser ce mode.',
   'discoveryMode.reason.releaseRadarFallback':
     'Utilisation de fournisseurs de secours pour la découverte des sorties.',
   'discoveryMode.reason.libraryRequired':
-    'Synchronisez d’abord une bibliothèque pour utiliser ce mode.',
+    'Synchronise d’abord une bibliothèque pour utiliser ce mode.',
   'discoveryMode.field.feed': 'Flux',
   'discoveryMode.field.artist': 'Artiste',
   'discoveryMode.field.adventurousness': 'Aventure',
@@ -928,13 +927,13 @@ export const fr = {
   'discoveryMode.field.maxArtistsPerRun': 'Artistes vérifiés par exécution',
   'discoveryMode.field.helpArtistSeed': "Nom d'artiste ou MBID pour amorcer la radio",
   'discoveryMode.field.helpConnectedAccount':
-    'Laissez ce champ vide pour utiliser votre compte connecté',
+    'Laisse ce champ vide pour utiliser ton compte connecté',
   'discoveryMode.field.helpSimilarUsers':
     "Nombre d'utilisateurs similaires dont extraire les artistes les plus écoutés (1-10)",
   'discoveryMode.field.helpTags':
-    'Tags de genre ou de style à découvrir. Ajoutez plusieurs tags avec des pondérations.',
+    'Tags de genre ou de style à découvrir. Ajoute plusieurs tags avec des pondérations.',
   'discoveryMode.field.helpRawTagExpression':
-    'Remplacez le générateur de tags par une syntaxe ListenBrainz brute, par exemple (trip hop):2:(ambient):1',
+    'Remplace le générateur de tags par une syntaxe ListenBrainz brute, par exemple (trip hop):2:(ambient):1',
   'discoveryMode.field.helpRecordingCount':
     'La valeur par défaut est 25. Une valeur plus élevée améliore la diversité, mais ralentit le traitement à cause de la limite de MusicBrainz (environ 1 seconde par enregistrement).',
   'discoveryMode.field.helpPopularityMin':
@@ -964,26 +963,26 @@ export const fr = {
   'discoveryMode.option.involvedWith': 'En couple avec',
   'importArtists.title': 'Importer des artistes',
   'importArtists.likedSongs': 'Titres aimés',
-  'importArtists.likedSongsDescription': 'Importez les artistes de vos titres aimés sur Spotify',
+  'importArtists.likedSongsDescription': 'Importe les artistes de tes titres aimés sur Spotify',
   'importArtists.spotifyPlaylist': 'Playlist Spotify',
   'importArtists.spotifyPlaylistDescription':
-    "Importez des artistes depuis n'importé quelle playlist Spotify",
+    "Importe des artistes depuis n'importé quelle playlist Spotify",
   'importArtists.csvFile': 'Fichier CSV',
-  'importArtists.csvDescription': "Téléchargez une liste de noms d'artistes depuis un fichier CSV",
+  'importArtists.csvDescription': "Télécharge une liste de noms d'artistes depuis un fichier CSV",
   'importArtists.import': 'Importer',
-  'importArtists.connectSpotifyFirst': "Connectez d'abord Spotify dans {0}",
+  'importArtists.connectSpotifyFirst': "Connecte d'abord Spotify dans {0}",
   'importArtists.uploading': 'Téléchargement...',
   'importArtists.chooseFile': 'Choisir un fichier',
   'importArtists.playlistPlaceholder': 'URL ou ID de la playlist',
   'importArtists.go': 'Lancer',
   'importArtists.importingLikedSongs':
-    'Importation de vos titres aimés - les nouveaux artistes apparaîtront bientôt sur la page Découvrir',
+    'Importation de tes titres aimés -- les nouveaux artistes apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingPlaylist':
-    'Importation des artistes de la playlist - ils apparaîtront bientôt sur la page Découvrir',
+    'Importation des artistes de la playlist -- ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingCsv':
-    'Importation de {0} artistes - ils apparaîtront bientôt sur la page Découvrir',
+    'Importation de {0} artistes -- ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.importingCsvTruncated':
-    'Importation de {0} artistes (limité à 500) - ils apparaîtront bientôt sur la page Découvrir',
+    'Importation de {0} artistes (limité à 500) -- ils apparaîtront bientôt sur la page Découvrir',
   'importArtists.failedImport': "Échec du démarrage de l'importation",
   'importArtists.failedPlaylist': "Échec du démarrage de l'importation de la playlist",
   'importArtists.failedCsv': "Échec de l'importation du fichier CSV",
@@ -992,7 +991,7 @@ export const fr = {
   'librarySources.syncStarted': 'Synchronisation démarrée',
   'librarySources.syncFailed': 'Échec de la synchronisation :',
   'librarySources.noSources':
-    'Aucune source de bibliothèque configurée. Ajoutez Lidarr, Plex, Jellyfin ou Emby dans les paramètres.',
+    'Aucune source de bibliothèque configurée. Ajoute Lidarr, Plex, Jellyfin ou Emby dans les paramètres.',
   'librarySources.neverSynced': 'jamais synchronisé',
   'librarySources.lastSynced': 'Dernière sync :',
   'librarySources.syncNow': 'Synchroniser maintenant',
@@ -1026,8 +1025,8 @@ export const fr = {
   'settings.groups.admin': 'Administration',
   'settings.globalSettings': 'Paramètres globaux',
   'settings.adminOnly': 'Seuls les administrateurs peuvent modifier les paramètres globaux.',
-  'settings.yourConnections': 'Vos connexions',
-  'settings.yourConnectionsDescription': "Sources d'écoute personnelles liées à votre compte.",
+  'settings.yourConnections': 'Tes connexions',
+  'settings.yourConnectionsDescription': "Sources d'écoute personnelles liées à ton compte.",
   'settings.testConnection': 'Tester la connexion',
   'settings.testing': 'Test en cours...',
   'settings.saving': 'Enregistrement...',
@@ -1041,11 +1040,11 @@ export const fr = {
   'settings.getPersonalAccessToken': "Obtenir un jeton d'accès personnel",
   'settings.connected': 'connecté',
   'settings.lidarrDescription':
-    'Gestionnaire de bibliothèque musicale - requis pour ajouter des artistes.',
+    'Gestionnaire de bibliothèque musicale -- requis pour ajouter des artistes.',
   'settings.lidarrPublicUrlHelp':
-    "URL accessible depuis le navigateur pour lier les pages d'artistes Lidarr. Laissez vide si l'URL de l'API est déjà accessible depuis votre navigateur.",
+    "URL accessible depuis le navigateur pour lier les pages d'artistes Lidarr. Laisse vide si l'URL de l'API est déjà accessible depuis ton navigateur.",
   'settings.aiTip':
-    "Choisissez le fournisseur d'IA qui suggère des artistes. Ollama ou tout serveur compatible OpenAI peut tourner en local ; les fournisseurs hébergés demandent une clé API.",
+    "Choisis le fournisseur d'IA qui suggère des artistes. Ollama ou tout serveur compatible OpenAI peut tourner en local ; les fournisseurs hébergés demandent une clé API.",
   'settings.aiDescription': 'Génère des recommandations musicales.',
   'settings.aiOpenAiCompatibleHelp':
     'Compatible avec Groq, OpenRouter, LiteLLM, LocalAI et tout endpoint compatible OpenAI. La clé API est optionnelle pour les services locaux.',
@@ -1056,42 +1055,42 @@ export const fr = {
   'settings.aiPrivacyBadgeLocal': 'Entièrement local',
   'settings.sending': 'Envoi...',
   'settings.connectionsTip':
-    "Connectez au moins une source d'écoute -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby ou Discogs. La découverte part des artistes que vous écoutez ou possédez déjà.",
+    "Connecte au moins une source d'écoute -- ListenBrainz, Last.fm, Spotify, Plex, Jellyfin, Emby ou Discogs. La découverte part des artistes que tu écoutes ou possèdes déjà.",
   'settings.listenbrainzDescription': "Suivi de l'historique d'écoute open source.",
   'settings.lastfmDescription': "Scrobbling et historique d'écoute.",
   'settings.spotifyDescription': "Historique d'écoute depuis Spotify.",
   'settings.spotifyImportDescription':
-    'Importez des artistes de votre compte Spotify pour alimenter vos recommandations.',
+    'Importe des artistes de ton compte Spotify pour alimenter tes recommandations.',
   'settings.importLikedSongs': 'Importer les titres aimés',
   'settings.importPlaylist': 'Importer une playlist',
   'settings.deezerDescription': 'Favoris, artistes suivis et playlists depuis Deezer.',
   'settings.deezerImportDescription':
-    'Importez des artistes de votre compte Deezer pour alimenter vos recommandations.',
+    'Importe des artistes de ton compte Deezer pour alimenter tes recommandations.',
   'settings.plexDescription': "Serveur multimédia avec historique d'écoute",
   'settings.jellyfinDescription': "Serveur multimédia open source avec historique d'écoute",
   'settings.jellyfinUserIdHelp':
-    "Votre nom d'utilisateur Jellyfin (recommandé) ou UUID. Le nom d'utilisateur est résolu automatiquement via l'API Jellyfin.",
+    "Ton nom d'utilisateur Jellyfin (recommandé) ou UUID. Le nom d'utilisateur est résolu automatiquement via l'API Jellyfin.",
   'settings.embyDescription': "Serveur multimédia avec historique d'écoute et export de playlists",
   'settings.subsonicDescription':
     'Serveur de musique auto-hébergé (Navidrome, Airsonic) pour la synchronisation de bibliothèque et la découverte',
   'settings.discogsDescription': 'Collection et liste de souhaits depuis Discogs.',
   'settings.tidalConnectDescription':
-    'Utilisez vos artistes favoris TIDAL comme source de découverte',
+    'Utilise tes artistes favoris TIDAL comme source de découverte',
   'settings.tidalConnectHelp':
-    'Connectez votre compte TIDAL pour lancer des découvertes à partir de vos artistes favoris.',
+    'Connecte ton compte TIDAL pour lancer des découvertes à partir de tes artistes favoris.',
   'settings.tidalAppNotConfigured':
     "Un administrateur doit d'abord configurer les identifiants de l'application TIDAL.",
   'settings.connectTidal': 'Connecter TIDAL',
   'settings.tidalConnected':
-    'Vos artistes favoris TIDAL sont disponibles comme source de découverte.',
+    'Tes artistes favoris TIDAL sont disponibles comme source de découverte.',
   'settings.tidalDisconnected': 'TIDAL déconnecté',
   'settings.tidalDisconnectFailed': 'Échec de la déconnexion de TIDAL',
   'settings.tidalAuthorizationFailed': "Échec du démarrage de l'autorisation TIDAL",
   'settings.tidalAppName': 'Application TIDAL',
   'settings.tidalDescription':
     "Source de recherche expérimentale utilisant l'accès par identifiants client TIDAL. Utilise des points de terminaison non documentés susceptibles de changer sans préavis.",
-  'settings.yourAccount': 'votre compte',
-  'settings.lidarrPreferences': 'Vos préférences Lidarr',
+  'settings.yourAccount': 'ton compte',
+  'settings.lidarrPreferences': 'Tes préférences Lidarr',
   'settings.lidarrPreferencesDescription':
     "Valeurs par défaut lors de l'approbation de recommandations dans Lidarr. Chaque utilisateur peut définir les siennes.",
   'settings.qualityProfile': 'Profil de qualité',
@@ -1100,7 +1099,7 @@ export const fr = {
   'settings.lidarrPreferencesSaved': 'Préférences Lidarr enregistrées',
   'settings.lidarrPreferencesFailed': "Échec de l'enregistrement des préférences Lidarr",
   'settings.targetsTip':
-    'Les cibles décident où vont les artistes approuvés : Lidarr ou slskd pour les téléchargements, Spotify ou votre serveur Navidrome, Jellyfin, Emby ou Plex pour les playlists, ou un export de fichier.',
+    'Les cibles décident où vont les artistes approuvés : Lidarr ou slskd pour les téléchargements, Spotify ou ton serveur Navidrome, Jellyfin, Emby ou Plex pour les playlists, ou un export de fichier.',
   'settings.addTarget': 'Ajouter une destination',
   'settings.noTargets':
     'Aucune destination configurée. Les recommandations approuvées seront enregistrées comme liste curatée.',
@@ -1119,7 +1118,7 @@ export const fr = {
   'errors.user.notFound': 'Utilisateur introuvable',
   'settings.targetUser': 'Utilisateur assigné',
   'settings.linkedTarget': 'Destination liee :',
-  'settings.selectTargetType': 'Sélectionnez un type de destination...',
+  'settings.selectTargetType': 'Sélectionne un type de destination...',
   'settings.adding': 'Ajout...',
   'settings.type': 'Categorie',
   'settings.name': 'Nom',
@@ -1139,7 +1138,7 @@ export const fr = {
   'settings.approvalActionLidarrSlskd':
     'Action d’approbation : mettre en file dans slskd et importer via Lidarr.',
   'settings.recommendationsTip':
-    'Les genres et le seuil de score décident de ce que vous voyez. Les pondérations du score, plus bas, décident du classement des candidats.',
+    'Les genres et le seuil de score décident de ce que tu vois. Les pondérations du score, plus bas, décident du classement des candidats.',
   'settings.scoreThreshold': 'Seuil de score',
   'settings.minScoreToShow': 'Score minimum pour afficher une recommandation',
   'settings.scoringWeights': 'Poids de notation',
@@ -1155,7 +1154,7 @@ export const fr = {
     "0 = ignorer la popularité, plus élevé = préférer les artistes populaires. Nécessite l'importation des métadonnées d'artistes.",
   'settings.autoApprove': 'Approbation automatique',
   'settings.autoApproveDescription':
-    'Ajouté automatiquement les recommandations les mieux notées à vos destinations après chaque scan. Ne fonctionne que si des destinations sont configurées.',
+    'Ajouté automatiquement les recommandations les mieux notées à tes destinations après chaque scan. Ne fonctionne que si des destinations sont configurées.',
   'settings.enableAutoApprove': "Activer l'approbation automatique",
   'settings.netNewAlbumDiscovery': 'Découverte de nouveaux albums',
   'settings.netNewAlbumDiscoveryHelp':
@@ -1171,7 +1170,7 @@ export const fr = {
   'settings.topArtistsLimit': "Limite d'artistes principaux",
   'settings.libraryDiscovery': 'Découverte depuis la bibliothèque',
   'settings.libraryDiscoveryHelp':
-    "Quelle proportion de la découverte est basée sur votre bibliothèque Lidarr par rapport à l'historique d'écoute. Des valeurs plus élevées trouvent des artistes similaires à ce que vous possédez déjà. Des valeurs plus basses s'appuient davantage sur ListenBrainz/Last.fm.",
+    "Quelle proportion de la découverte est basée sur ta bibliothèque Lidarr par rapport à l'historique d'écoute. Des valeurs plus élevées trouvent des artistes similaires à ce que tu possèdes déjà. Des valeurs plus basses s'appuient davantage sur ListenBrainz/Last.fm.",
   'settings.librarySeedRatio': "Ratio d'amorçage depuis la bibliothèque",
   'settings.imageSources': "Sources d'images",
   'settings.imageSourcesHelp':
@@ -1180,7 +1179,7 @@ export const fr = {
   'settings.audiodb.apiKeyPlaceholder': 'Laisser vide pour utiliser la clé publique gratuite',
   'settings.audiodb.proxyImages': 'Acheminer les images via Digarr',
   'settings.audiodb.proxyHint':
-    "Masque votre IP du CDN TheAudioDB en routant les requêtes d'images via ce serveur.",
+    "Masque ton IP du CDN TheAudioDB en routant les requêtes d'images via ce serveur.",
   'settings.wikidata.title': 'Enrichissement Wikidata',
   'settings.wikidata.enabled':
     "Afficher la biographie et les liens externes de l'artiste sur les cartes de recommandation",
@@ -1193,13 +1192,13 @@ export const fr = {
   'libraryHealth.artistsMissingWikidata.description':
     'Récupérer les descriptions et liens externes pour les artistes sans données Wikidata en cache.',
   'settings.metadataFallbackHelp':
-    "Utilisé quand le serveur de métadonnées de Lidarr est indisponible. Par défaut api.musicinfo.pro. Remplacez par l'URL de votre propre instance si vous l'hébergez vous-même.",
+    "Utilisé quand le serveur de métadonnées de Lidarr est indisponible. Par défaut api.musicinfo.pro. Remplace par l'URL de ta propre instance si tu l'héberges toi-même.",
   'settings.recommendationsSaved': 'Paramètres de recommandations enregistrés',
   'settings.recommendationsFailed': "Échec de l'enregistrement des paramètres",
   'settings.recommendationsPartiallySaved':
     'Les préférences personnelles ont été enregistrées, mais les paramètres globaux des métadonnées n’ont pas pu être enregistrés.',
   'settings.scheduleTip':
-    'Choisissez un préréglage ou saisissez une expression cron pour lancer la découverte automatiquement. Quotidien ou hebdomadaire convient à la plupart des bibliothèques.',
+    'Choisis un préréglage ou saisis une expression cron pour lancer la découverte automatiquement. Quotidien ou hebdomadaire convient à la plupart des bibliothèques.',
   'settings.librarySyncInterval': 'Sync bibliothèque',
   'settings.librarySyncIntervalHours': 'Intervalle de sync (heures)',
   'settings.librarySyncIntervalHelp':
@@ -1214,9 +1213,9 @@ export const fr = {
   'settings.logOut': 'Se déconnecter',
   'settings.email': 'E-mail',
   'settings.emailHelp':
-    'Enregistrez un e-mail de contact pour votre compte. Cela ne lie pas une identité SSO.',
+    'Enregistre un e-mail de contact pour ton compte. Cela ne lie pas une identité SSO.',
   'settings.emailAddress': 'Adresse e-mail',
-  'settings.emailPlaceholder': 'vous@exemple.com',
+  'settings.emailPlaceholder': 'nom@exemple.com',
   'settings.saveEmail': "Enregistrer l'e-mail",
   'settings.emailSaved': 'E-mail mis à jour',
   'settings.emailTaken': 'Cet e-mail est déjà utilisé',
@@ -1232,36 +1231,36 @@ export const fr = {
   'settings.currentPasswordIncorrect': 'Le mot de passe actuel est incorrect',
   'settings.language': 'Langue',
   'settings.tips': 'Astuces',
-  'settings.tipsDescription': 'Réaffichez les astuces que vous avez masquées.',
+  'settings.tipsDescription': 'Réaffiche les astuces que tu as masquées.',
   'settings.showTipsAgain': 'Réafficher les astuces',
   'settings.tipsRestored': "Les astuces s'afficheront à nouveau.",
   'settings.app': 'Application',
   'settings.installDigarr': 'Installer Digarr',
   'settings.installIosHint':
-    'Appuyez sur le bouton de partage, puis sur "Ajouter à l\'écran d\'accueil"',
-  'settings.installHint': "Ajoutez à votre écran d'accueil pour un accès rapide",
+    'Appuie sur le bouton de partage, puis sur "Ajouter à l\\\'écran d\\\'accueil"',
+  'settings.installHint': "Ajoute à ton écran d'accueil pour un accès rapide",
   'settings.install': 'Installer',
   'settings.oidcSso': 'OIDC / SSO',
   'settings.oidcLinkHelp':
-    'Liez votre identité SSO à ce compte. Votre mot de passe, votre rôle et vos données enregistrées restent inchangés.',
+    'Lie ton identité SSO à ce compte. Ton mot de passe, ton rôle et tes données enregistrées restent inchangés.',
   'settings.oidcLinkAction': 'Lier le compte SSO',
   'settings.oidcLinking': 'Connexion...',
   'settings.oidcLinked': 'SSO est lié à ce compte.',
   'settings.oidcLinkSuccess': 'Compte SSO lié.',
   'settings.oidcLinkFailed':
-    'Impossible de lier le compte SSO. Connectez-vous avec votre mot de passe et réessayez.',
+    'Impossible de lier le compte SSO. Connecte-toi avec ton mot de passe et réessaie.',
   'settings.oidcLinkIdentityInUse': 'Cette identité SSO est déjà liée à un autre compte.',
   'settings.oidcDescription':
-    'Configurez OpenID Connect pour l\'authentification unique. Après enregistrement, les utilisateurs verront un bouton "Connectez-vous avec SSO" sur la page de connexion.',
+    'Configure OpenID Connect pour l\\\'authentification unique. Après enregistrement, les utilisateurs verront un bouton "Connecte-toi avec SSO" sur la page de connexion.',
   'settings.authTip':
-    "Permettez la connexion via un fournisseur OpenID Connect comme Authentik ou Authelia, ou via un proxy inverse qui transmet l'utilisateur connecté.",
+    "Permets la connexion via un fournisseur OpenID Connect comme Authentik ou Authelia, ou via un proxy inverse qui transmet l'utilisateur connecté.",
   'settings.reverseProxyAuth': 'Authentification par proxy inverse',
   'settings.reverseProxyDescription':
     "Lorsqu'activé, Digarr fait confiance à un en-tête HTTP d'un proxy inverse configuré et provisionne automatiquement les utilisateurs à partir de celui-ci.",
   'settings.proxyEnabled':
     "L'authentification par proxy est activée. Les utilisateurs sont provisionnés automatiquement depuis l'en-tête configuré.",
   'settings.proxyDisabled':
-    "L'authentification par proxy est désactivée. Définissez PROXY_AUTH_ENABLED=true dans votre environnement pour l'activer.",
+    "L'authentification par proxy est désactivée. Définis PROXY_AUTH_ENABLED=true dans ton environnement pour l'activer.",
   'settings.loadingPreferences': 'Chargement des préférences...',
   'settings.spotifyLikedSongsStarted': 'Importation des titres aimés Spotify démarrée',
   'settings.importStartedAgain': 'Importation redémarrée',
@@ -1292,7 +1291,7 @@ export const fr = {
   'settings.fieldPersonalAccessToken': "Jeton d'accès personnel",
   'settings.fieldDigestCron': 'Planification du résumé (cron)',
   'settings.digestCronHelp':
-    'Envoie un résumé périodique de l’activité récente vers votre webhook. Laissez vide pour désactiver. Exemple : 0 6 * * 1 (lundi à 6h).',
+    'Envoie un résumé périodique de l’activité récente vers ton webhook. Laisse vide pour désactiver. Exemple : 0 6 * * 1 (lundi à 6h).',
   'settings.fieldPublicUrl': 'URL publique (optionnelle)',
   'settings.fieldIssuerUrl': "URL de l'émetteur",
   'settings.fieldScopes': 'Portées',
@@ -1301,7 +1300,7 @@ export const fr = {
   'settings.connectWithSpotify': 'Connecter avec Spotify',
   'settings.fieldRedirectUri': 'URI de redirection',
   'settings.redirectUriHelp':
-    'Ajoutez cette URL exacte aux URI de redirection de votre application Spotify avant de vous connecter.',
+    'Ajoute cette URL exacte aux URI de redirection de ton application Spotify avant de te connecter.',
   'settings.copyRedirectUri': "Copier l'URI de redirection",
   'settings.saved': 'enregistré',
   'settings.daily': 'Quotidien',
@@ -1309,26 +1308,26 @@ export const fr = {
   'settings.biweekly': 'Toutes les 2 semaines',
   'settings.monthly': 'Mensuel',
   'settings.embyUserIdHelp':
-    "Trouvable dans Emby Dashboard -> Utilisateurs -> (sélectionnez l'utilisateur). L'URL contient l'ID utilisateur.",
+    "Trouvable dans Emby Dashboard -> Utilisateurs -> (sélectionne l'utilisateur). L'URL contient l'ID utilisateur.",
   'settings.aiProviderTitle': 'Fournisseur IA',
   'settings.plexAccount': 'Auditeur Plex',
   'settings.plexAccountNone': 'Bibliothèque uniquement',
   'settings.plexAccountHint':
-    'Testez la connexion, sélectionnez votre auditeur Plex et enregistrez. Chaque utilisateur Digarr conserve son propre historique.',
+    'Teste la connexion, sélectionne ton auditeur Plex et enregistre. Chaque utilisateur Digarr conserve son propre historique.',
   'settings.slskdLidarrDownloadPath': 'Dossier des téléchargements vu par Lidarr',
   'settings.slskdLidarrDownloadPathHint':
-    'Pour les imports liés, indiquez le dossier des téléchargements terminés accessible à Lidarr.',
+    'Pour les imports liés, indique le dossier des téléchargements terminés accessible à Lidarr.',
   'settings.plexToken': 'Jeton Plex',
   'settings.plexLibrary': 'Bibliothèque musicale',
   'settings.plexLibraryAuto': 'Détection automatique (première bibliothèque musicale)',
   'settings.plexLibrarySection': 'Section nº {0}',
   'settings.plexLibraryHint':
-    'Si votre serveur Plex possède plusieurs bibliothèques de type musique (par exemple des livres audio), lancez le test de connexion et choisissez la bonne ici.',
+    'Si ton serveur Plex possède plusieurs bibliothèques de type musique (par exemple des livres audio), lance le test de connexion et choisis la bonne ici.',
   'settings.musicLibrary': 'Bibliotheque musicale',
   'settings.musicLibraryAll': 'Toutes les bibliothèques musicales',
   'settings.musicLibraryId': 'Bibliotheque {0}',
   'settings.musicLibraryHint':
-    'Si votre serveur possède plusieurs bibliothèques musicales, lancez "Tester la connexion" et choisissez-en une ici pour délimiter les données d\'écoute et la synchronisation.',
+    'Si ton serveur possède plusieurs bibliothèques musicales, lance "Tester la connexion" et choisis-en une ici pour délimiter les données d\\\'écoute et la synchronisation.',
   'settings.serviceConnectedToast': '{0} connecte',
   'settings.serviceUnreachableToast': '{0} est inaccessible',
   'settings.serviceSettingsSavedToast': 'Paramètres de {0} enregistrés',
@@ -1344,7 +1343,7 @@ export const fr = {
   'settings.deezerDisconnectFailed': 'Impossible de deconnecter Deezer',
   'settings.deezerAuthorizationFailed': "Impossible de lancer l'autorisation Deezer",
   'settings.reverseProxyConfigHint':
-    'Utilisez PROXY_AUTH_ENABLED et PROXY_AUTH_TRUSTED_PROXIES ; votre proxy doit envoyer X-Forwarded-User.',
+    'Utilise PROXY_AUTH_ENABLED et PROXY_AUTH_TRUSTED_PROXIES ; ton proxy doit envoyer X-Forwarded-User.',
   'settings.title': 'Paramètres',
   'service.connected': 'Connecte',
   'service.notConfigured': 'Non configuré',
@@ -1357,27 +1356,27 @@ export const fr = {
   'oauth.connectedBody': '{0} est maintenant connecté.',
   'oauth.failedTitle': 'Échec de la connexion',
   'oauth.error.codeLabel': 'Code du fournisseur',
-  'oauth.error.generic': "La connexion n'a pas pu aboutir. Relancez la connexion.",
+  'oauth.error.generic': "La connexion n'a pas pu aboutir. Relance la connexion.",
   'oauth.error.missingCodeOrState':
-    "Le fournisseur n'a pas renvoyé de code d'autorisation. Relancez la connexion.",
+    "Le fournisseur n'a pas renvoyé de code d'autorisation. Relance la connexion.",
   'oauth.error.noPendingAuth':
-    "Aucune connexion en attente ne correspond à cette réponse, généralement à cause d'un onglet périmé. Relancez la connexion.",
+    "Aucune connexion en attente ne correspond à cette réponse, généralement à cause d'un onglet périmé. Relance la connexion.",
   'oauth.error.stateExpired':
-    'La tentative de connexion a dépassé 10 minutes et a expiré. Relancez-la.',
+    'La tentative de connexion a dépassé 10 minutes et a expiré. Relance-la.',
   'oauth.error.browserMismatch':
-    "Terminez la connexion dans le navigateur où vous l'avez démarrée, puis réessayez.",
+    "Termine la connexion dans le navigateur où tu l'as démarrée, puis réessaie.",
   'oauth.error.missingCredentials':
-    "L'identifiant client ou le secret enregistré est manquant. Saisissez à nouveau les identifiants du fournisseur et réessayez.",
+    "L'identifiant client ou le secret enregistré est manquant. Saisis à nouveau les identifiants du fournisseur et réessaie.",
   'oauth.error.tokenExchangeUnreachable':
-    "Le fournisseur est injoignable. Vérifiez l'accès réseau sortant et réessayez.",
+    "Le fournisseur est injoignable. Vérifie l'accès réseau sortant et réessaie.",
   'oauth.error.tokenExchangeFailed':
-    "Le fournisseur a refusé la connexion. Vérifiez les identifiants client et l'URI de redirection enregistrée.",
+    "Le fournisseur a refusé la connexion. Vérifie les identifiants client et l'URI de redirection enregistrée.",
   'oauth.error.tokenExchangeMalformed':
-    'Le fournisseur a renvoyé une réponse illisible. Réessayez, et vérifiez son état si cela persiste.',
+    'Le fournisseur a renvoyé une réponse illisible. Réessaie, et vérifie son état si cela persiste.',
   'oauth.error.tokenExchangeNoToken':
-    "Le fournisseur n'a renvoyé aucun jeton d'accès. Vérifiez que l'application dispose des autorisations requises et réessayez.",
+    "Le fournisseur n'a renvoyé aucun jeton d'accès. Vérifie que l'application dispose des autorisations requises et réessaie.",
   'oauth.error.unknownProvider': "Ce fournisseur n'est pas pris en charge.",
-  'search.spotifyNotConnected': 'Connectez Spotify dans les Paramètres pour activer la recherche.',
+  'search.spotifyNotConnected': 'Connecte Spotify dans les Paramètres pour activer la recherche.',
   'search.tidalNotConfigured': "La recherche TIDAL n'est pas encore configuree.",
   'discover.moodPlaceholder': 'jazz pour jour de pluie, pop 90s entrainante, dark ambient...',
   'discover.discoverButton': 'Découvrir',
@@ -1421,7 +1420,7 @@ export const fr = {
   'jobHistory.sourceNotConfigured': "La source n'est pas configurée",
   'jobHistory.metadataLabel': 'Métadonnées :',
   'jobHistory.artists': 'artistes',
-  'recommendation.ownStudioAlbums': 'Vous possedez {0}/{1} albums studio',
+  'recommendation.ownStudioAlbums': 'Tu possedes {0}/{1} albums studio',
   'recommendation.owned': 'Possedes',
   'recommendation.missingAlbums': 'Manquants',
   'admin.backupRestore': 'Sauvegarde et restauration',
@@ -1433,7 +1432,7 @@ export const fr = {
   'admin.restoreFromBackup': 'Restaurer depuis la sauvegarde',
   'admin.restoreConfirmTitle': 'Restaurer la sauvegarde ?',
   'admin.restoreConfirmMessage':
-    "Cette opération remplace les données incluses dans la sauvegarde. Sauvegardez d'abord cette instance. Continuer ?",
+    "Cette opération remplace les données incluses dans la sauvegarde. Sauvegarde d'abord cette instance. Continuer ?",
   'admin.lastAutoBackup': 'Dernière sauvegarde auto :',
   'admin.backupDownloaded': 'Sauvegarde telechargee',
   'admin.backupFailed': 'Échec de la sauvegarde',
@@ -1465,11 +1464,11 @@ export const fr = {
   'admin.upToDate': 'À jour',
   'admin.restoreSummary': 'Restauration de {0} lignes dans {1} tables',
   'admin.restoreSummaryForce':
-    'Restauration de {0} lignes. Ressaisissez les identifiants des champs chiffres.',
+    'Restauration de {0} lignes. Ressaisis les identifiants des champs chiffrés.',
   'admin.encryptionMismatchMessage':
     'La sauvegarde a été créée avec une clé de chiffrement differente.',
   'admin.encryptionMismatchAffected': 'Ces champs devront etre ressaisis : {0}',
-  'admin.encryptionMismatchFallback': 'Certains champs chiffres devront peut-etre etre ressaisis.',
+  'admin.encryptionMismatchFallback': 'Certains champs chiffrés devront peut-etre etre ressaisis.',
   'admin.autoFixInProgress': 'Correction automatique en cours... ({0}/{1} corriges)',
   'admin.migrateBackend': 'Migrer le backend de base de données',
   'admin.migrateIntro':
@@ -1482,7 +1481,7 @@ export const fr = {
   'admin.migrateConnectionFailed': 'Connexion échouée',
   'admin.migrateErrUnreachable': 'Cible injoignable : l’hôte ou le port a refusé la connexion',
   'admin.migrateErrAuthFailed':
-    'Échec de l’authentification : vérifiez le nom d’utilisateur et le mot de passe',
+    'Échec de l’authentification : vérifie le nom d’utilisateur et le mot de passe',
   'admin.migrateErrTimeout': 'Délai de connexion dépassé',
   'admin.migrateErrDbMissing': 'La base de données n’existe pas sur la cible',
   'admin.migrateErrInvalidPath': 'Chemin PGlite non valide',
@@ -1491,7 +1490,7 @@ export const fr = {
   'admin.migrateRun': 'Migrer',
   'admin.migrateConfirmTitle': 'Migrer vers un nouveau backend ?',
   'admin.migrateConfirmMessage':
-    "Ceci copie toutes les données vers la cible. La base de données actuelle reste intacte. Une fois terminé, définissez la variable d'environnement indiquée et redémarrez.",
+    "Ceci copie toutes les données vers la cible. La base de données actuelle reste intacte. Une fois terminé, définis la variable d'environnement indiquée et redémarre.",
   'admin.migrateRunning': 'Migration en cours...',
   'admin.migrateSuccess': '{0} lignes migrées dans {1} tables',
   'admin.migrateVerifyFailed': 'Le nombre de lignes ne correspondait pas pour : {0}',
@@ -1537,7 +1536,7 @@ export const fr = {
     'Les raccourcis sont desactives lorsqu un champ texte est actif.',
   'recommendation.viewDetails': 'Voir les détails',
   'recommendation.noMore': 'Plus aucune recommandation',
-  'recommendation.runScanToDiscover': "Lancez un scan pour découvrir plus d'artistes",
+  'recommendation.runScanToDiscover': "Lance un scan pour découvrir plus d'artistes",
   'recommendation.previousCardNav': 'Carte précédente',
   'recommendation.nextCardNav': 'Carte suivante',
   'rejectionPicker.title': 'Pourquoi rejeter ?',
@@ -1602,12 +1601,12 @@ export const fr = {
   'approveDialog.loadingProfiles': 'Chargement des profils...',
   'approveDialog.title': 'Paramètres Lidarr pour cet artiste',
   'approveDialog.loadFailed':
-    'Échec du chargement des profils Lidarr. Vérifiez votre connexion Lidarr.',
+    'Échec du chargement des profils Lidarr. Vérifie ta connexion Lidarr.',
   'approveDialog.qualityProfile': 'Profil de qualité',
   'approveDialog.metadataProfile': 'Profil de métadonnées',
   'approveDialog.rootFolder': 'Dossier racine',
   'cardStack.counter': '{0} sur {1}',
-  'cardStack.swipeHint': 'Glissez à droite pour approuver, à gauche pour rejeter',
+  'cardStack.swipeHint': 'Glisse à droite pour approuver, à gauche pour rejeter',
   'serviceCard.testConnection': 'Tester la connexion',
   'preview.unavailableSummary': '{count} aperçus indisponibles sur {total} sélectionnés',
   'preview.reason.missing-links': 'Aucun lien d’aperçu',
@@ -1618,7 +1617,7 @@ export const fr = {
   'preview.reason.playback-failed': 'La lecture audio a échoué',
   'preview.reason.controller-unavailable': 'Lecteur Spotify indisponible',
   'preview.noPreviewAvailable': 'Aucun aperçu disponible pour cet artiste',
-  'preview.playbackBlocked': 'Lecture bloquée par le navigateur ; essayez de cliquer à nouveau',
+  'preview.playbackBlocked': 'Lecture bloquée par le navigateur ; essaie de cliquer à nouveau',
   'genres.noneFound': 'Aucun genre trouvé.',
   'common.dismiss': 'Ignorer',
   'hint.dismissHint': "Ignorer l'astuce",
@@ -1628,18 +1627,18 @@ export const fr = {
   'target.action.addToSpotifyPlaylist': 'Ajouter à la playlist Spotify',
   'target.action.sendTo': 'Envoyer à {0}',
   'target.action.addToLidarr': 'Ajouter à Lidarr',
-  'pipeline.message.loadingLibrary': 'Chargement de votre bibliothèque...',
+  'pipeline.message.loadingLibrary': 'Chargement de ta bibliothèque...',
   'pipeline.message.firstSyncBackground':
     "La première synchronisation de la bibliothèque s'exécute en arrière-plan -- on continue sans elle",
   'pipeline.message.loadedLibrarySingular':
     '{0} artistes de la bibliothèque chargés depuis {1} source',
   'pipeline.message.loadedLibraryPlural':
     '{0} artistes de la bibliothèque chargés depuis {1} sources',
-  'pipeline.message.buildingProfile': 'Construction de votre profil de goûts...',
+  'pipeline.message.buildingProfile': 'Construction de ton profil de goûts...',
   'pipeline.message.profiled': 'Profilé : {0} artistes principaux, {1} genres',
   'pipeline.message.findingSimilar': "Recherche d'artistes similaires depuis toutes les sources...",
   'pipeline.message.aiSourceFailed':
-    'Le fournisseur IA a échoué : {0} - poursuite sans suggestions IA',
+    'Le fournisseur IA a échoué : {0} -- poursuite sans suggestions IA',
   'pipeline.message.discovered': '{0} artistes candidats découverts',
   'pipeline.message.resolving': 'Résolution de {0} artistes via MusicBrainz...',
   'pipeline.message.scoring': 'Notation de {0} artistes résolus...',
@@ -1657,9 +1656,9 @@ export const fr = {
   'pipeline.message.resolvingArtist': 'Résolution de {0}...',
   'pipeline.message.searchingArtist': 'Recherche de {0}...',
   'pipeline.message.resolutionComplete': 'Résolution terminée',
-  'firstSyncBanner.title': 'Construction du catalogue de votre bibliothèque',
+  'firstSyncBanner.title': 'Construction du catalogue de ta bibliothèque',
   'firstSyncBanner.body':
-    "Digarr fait correspondre votre bibliothèque à MusicBrainz. La limite de débit de MusicBrainz autorise environ 60 artistes par minute, une bibliothèque de 5 000 artistes prend donc environ 80 minutes pour être entièrement réconciliée. Cela ne se produit qu'une seule fois -- les synchronisations suivantes utilisent le cache local et se terminent en quelques secondes.",
+    "Digarr fait correspondre ta bibliothèque à MusicBrainz. La limite de débit de MusicBrainz autorise environ 60 artistes par minute, une bibliothèque de 5 000 artistes prend donc environ 80 minutes pour être entièrement réconciliée. Cela ne se produit qu'une seule fois -- les synchronisations suivantes utilisent le cache local et se terminent en quelques secondes.",
   'librarySync.message.syncingSource': 'Synchronisation de {0}...',
   'errors.auth.invalidCredentials': 'Identifiants non valides',
   'errors.auth.notAuthenticated': 'Non authentifié',
@@ -1675,7 +1674,7 @@ export const fr = {
     "La génération de la liste de lecture ou la reprise de l'export est déjà en cours",
   'settings.channels.title': 'Canaux de notification',
   'settings.channels.description':
-    "Envoyez des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",
+    "Envoie des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",
   'settings.channels.add': 'Ajouter un canal',
   'settings.channels.empty': "Aucun canal configuré pour l'instant.",
   'settings.channels.type': 'Type de canal',
@@ -1707,11 +1706,11 @@ export const fr = {
   'settings.channels.typeApprise': 'Apprise',
   'settings.channels.saved': 'Notifications enregistrées',
   'settings.channels.saveFailed': "Échec de l'enregistrement des notifications",
-  'settings.channels.secretKeepPlaceholder': 'Laissez vide pour conserver la valeur enregistrée',
+  'settings.channels.secretKeepPlaceholder': 'Laisse vide pour conserver la valeur enregistrée',
   'settings.primaryGenres': 'Genres prioritaires (facultatif)',
   'settings.secondaryGenres': 'Autres genres préférés (facultatif)',
   'settings.genrePriorityHelp':
-    'Saisissez les noms exacts des genres séparés par des virgules. Les priorités placent les recommandations correspondantes en premier sans modifier les scores. Laissez vide pour une découverte variée.',
+    'Saisis les noms exacts des genres séparés par des virgules. Les priorités placent les recommandations correspondantes en premier sans modifier les scores. Laisse vide pour une découverte variée.',
   'discover.tasteOrdering': 'Ordre de découverte',
   'discover.tastePriority': 'Priorités des genres',
   'discover.primaryTaste': 'Genres prioritaires',

@@ -343,9 +343,9 @@ export const ptBR = {
   'discover.restoredToPending': 'Restaurado para pendente',
   'discover.retryFailed': 'Falha na nova tentativa',
   'discover.scanAlreadyRunning': 'A varredura já está em andamento',
-  'discover.scanStarted': 'Varredura iniciada - veja o Painel para acompanhar o progresso',
+  'discover.scanStarted': 'Varredura iniciada -- veja o Painel para acompanhar o progresso',
   'discover.scanQueued':
-    'Varredura na fila (posição {0}) - começará quando a execução atual terminar',
+    'Varredura na fila (posição {0}) -- começará quando a execução atual terminar',
   'discover.scanStartFailed': 'Falha ao iniciar a varredura',
   'discover.select': 'Selecione',
   'discover.showFeedbackInsights': 'Mostrar insights de feedback',
@@ -377,7 +377,7 @@ export const ptBR = {
   'genreDetail.subGenres': 'Subgêneros',
   'genreDetail.tabDeepCuts': 'Joias escondidas',
   'genreDetail.tabDeepCutsDescription':
-    'Joias escondidas - artistas de nicho com baixa popularidade',
+    'Joias escondidas -- artistas de nicho com baixa popularidade',
   'genreDetail.tabLibrary': 'Na sua biblioteca',
   'genreDetail.tabLibraryDescription': 'Artistas que já estão na sua biblioteca musical',
   'genreDetail.tabRecommended': 'Recomendados',
@@ -695,11 +695,11 @@ export const ptBR = {
   'userManagement.adminBadge': 'administrador',
   'userManagement.cannotRemoveOwnAdmin':
     'Não é possível remover sua própria função de administrador',
-  'userManagement.lastAdminCannotRemove': 'Último administrador – não é possível remover',
+  'userManagement.lastAdminCannotRemove': 'Último administrador -- não é possível remover',
   'userManagement.removeAdmin': 'Remover administrador',
   'userManagement.makeAdmin': 'Tornar administrador',
   'userManagement.cannotDeleteSelf': 'Não é possível excluir a si mesmo',
-  'userManagement.lastAdminCannotDelete': 'Último administrador – não é possível excluir',
+  'userManagement.lastAdminCannotDelete': 'Último administrador -- não é possível excluir',
   'userManagement.deleteUser': 'Excluir usuário',
   'userManagement.deleteUserPrompt': 'Excluir usuário',
   'recommendation.sourceGenre': 'Gênero',
@@ -723,7 +723,7 @@ export const ptBR = {
   'todaysPick.match': 'compatibilidade',
   'todaysPick.skipHint':
     'Skip mostra o próximo artista sem rejeitar -- os artistas ignorados voltarão em varreduras futuras.',
-  'todaysPick.skipTitle': 'Pule por enquanto - este artista voltará mais tarde',
+  'todaysPick.skipTitle': 'Pule por enquanto -- este artista voltará mais tarde',
   'pipeline.stage.collect': 'Lendo a biblioteca',
   'pipeline.stage.analyze': 'Construindo perfil de gosto',
   'pipeline.stage.discover': 'Encontrando novos artistas',
@@ -746,7 +746,7 @@ export const ptBR = {
   'pipeline.firstScanDescription':
     'Digarr está analisando seu gosto musical e encontrando artistas de que você possa gostar. Isso geralmente leva de 2 a 5 minutos na primeira execução.',
   'pipeline.runningFor': 'Em execução há',
-  'pipeline.stalled': 'Isso está demorando mais do que o normal - aguarde',
+  'pipeline.stalled': 'Isso está demorando mais do que o normal -- aguarde',
   'pipeline.stop': 'Parar varredura',
   'pipeline.stopping': 'Parando...',
   'pipeline.cancelled': 'Varredura interrompida',
@@ -756,12 +756,12 @@ export const ptBR = {
   'libraryHealth.rescanningSoon': 'nova verificação em 30s para verificar',
   'libraryHealth.updated': 'Atualizado',
   'libraryHealth.processed': 'Processado',
-  'libraryHealth.fixFailed': 'Falha na correção – verifique a conexão Lidarr',
+  'libraryHealth.fixFailed': 'Falha na correção -- verifique a conexão Lidarr',
   'libraryHealth.rescan': 'Nova verificação',
   'libraryHealth.introTip':
     'A saúde da biblioteca verifica sua biblioteca do Lidarr em busca de metadados, álbuns, imagens e links do Wikidata ausentes, artistas não monitorados ou duplicados e lacunas de gênero. Ela roda em um agendamento; use "Sincronizar agora" para verificar de novo.',
   'libraryHealth.scanningBanner':
-    'Verificando a integridade da biblioteca – isso pode levar vários minutos para bibliotecas grandes. Os resultados aparecerão quando concluído.',
+    'Verificando a integridade da biblioteca -- isso pode levar vários minutos para bibliotecas grandes. Os resultados aparecerão quando concluído.',
   'libraryHealth.pendingRescan':
     'Nova verificação automática agendada para verificar os resultados da correção...',
   'libraryHealth.noChecks':
@@ -830,7 +830,7 @@ export const ptBR = {
   'search.sourcesActive': 'Fontes ({0})',
   'search.clearFilters': 'Limpar filtros',
   'search.minChars': 'Digite pelo menos 2 caracteres para buscar',
-  'search.failed': 'Busca falhou - tente novamente',
+  'search.failed': 'Busca falhou -- tente novamente',
   'search.noResultsFor': 'Nenhum artista encontrado para',
   'discoveryMode.available': 'Disponível',
   'discoveryMode.unavailable': 'Indisponível',
@@ -974,13 +974,13 @@ export const ptBR = {
   'importArtists.playlistPlaceholder': 'URL ou ID da playlist',
   'importArtists.go': 'Ir',
   'importArtists.importingLikedSongs':
-    'Importando suas músicas curtidas - novos artistas aparecerão em breve na página Descobrir',
+    'Importando suas músicas curtidas -- novos artistas aparecerão em breve na página Descobrir',
   'importArtists.importingPlaylist':
-    'Importando artistas da playlist - eles aparecerão em breve na página Descobrir',
+    'Importando artistas da playlist -- eles aparecerão em breve na página Descobrir',
   'importArtists.importingCsv':
-    'Importando {0} artistas - eles aparecerão em breve na página Descobrir',
+    'Importando {0} artistas -- eles aparecerão em breve na página Descobrir',
   'importArtists.importingCsvTruncated':
-    'Importando {0} artistas (limite de 500) - eles aparecerão em breve na página Descobrir',
+    'Importando {0} artistas (limite de 500) -- eles aparecerão em breve na página Descobrir',
   'importArtists.failedImport': 'Falha ao iniciar a importação',
   'importArtists.failedPlaylist': 'Falha ao iniciar a importação da playlist',
   'importArtists.failedCsv': 'Falha ao importar o arquivo CSV',
@@ -1038,7 +1038,7 @@ export const ptBR = {
   'settings.getPersonalAccessToken': 'Obter token de acesso pessoal',
   'settings.connected': 'conectado',
   'settings.lidarrDescription':
-    'Gerenciador de biblioteca musical - necessário para adicionar artistas.',
+    'Gerenciador de biblioteca musical -- necessário para adicionar artistas.',
   'settings.lidarrPublicUrlHelp':
     'URL acessível pelo navegador para vincular às páginas de artistas do Lidarr. Deixe vazio se a URL da API já for acessível pelo navegador.',
   'settings.aiTip':
@@ -1609,7 +1609,7 @@ export const ptBR = {
   'preview.reason.playback-failed': 'Falha na reprodução de áudio',
   'preview.reason.controller-unavailable': 'Reprodutor do Spotify indisponível',
   'preview.noPreviewAvailable': 'Sem prévia disponível para este artista',
-  'preview.playbackBlocked': 'Reprodução bloqueada pelo navegador - tente clicar novamente',
+  'preview.playbackBlocked': 'Reprodução bloqueada pelo navegador -- tente clicar novamente',
   'genres.noneFound': 'Nenhum gênero encontrado.',
   'common.dismiss': 'Dispensar',
   'hint.dismissHint': 'Dispensar dica',
@@ -1628,7 +1628,7 @@ export const ptBR = {
   'pipeline.message.profiled': 'Perfilados {0} artistas principais, {1} gêneros',
   'pipeline.message.findingSimilar': 'Procurando artistas similares em todas as fontes...',
   'pipeline.message.aiSourceFailed':
-    'O provedor de IA falhou: {0} - continuando sem sugestões de IA',
+    'O provedor de IA falhou: {0} -- continuando sem sugestões de IA',
   'pipeline.message.discovered': '{0} artistas candidatos descobertos',
   'pipeline.message.resolving': 'Resolvendo {0} artistas via MusicBrainz...',
   'pipeline.message.scoring': 'Pontuando {0} artistas resolvidos...',

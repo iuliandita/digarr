@@ -90,7 +90,7 @@ Changes to this bootstrap need an actual macOS workflow run: verify PostgreSQL, 
 
 ## Translations
 
-Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations.
+Edit the authored locale catalogs following the [translation workflow](src/core/i18n/messages/README.md). Add each new English key to every shipped locale and run `bun run i18n:check` before submitting. English fallback at runtime does not replace complete translations. Changing an English value means updating its translations too, then running `bun run i18n:stamp`; the check fails until you do. Translations address the user informally and use `--` for dashes.
 
 ## Recommendation quality
 

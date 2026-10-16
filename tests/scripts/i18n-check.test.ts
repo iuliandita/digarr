@@ -4,8 +4,11 @@ import { describe, expect, it } from 'vitest'
 import {
   findAsciiMarkers,
   findCatalogIssues,
+  findDashIssues,
+  findFormalAddress,
   findHardcodedUiStrings,
 } from '../../scripts/i18n-check'
+import { computeSourceLock, findSourceLockDrift } from '../../scripts/i18n-source-lock'
 
 describe('i18n check catalog quality', () => {
   it('flags untranslated english values outside the allowlist', () => {
@@ -57,6 +60,43 @@ describe('i18n check catalog quality', () => {
       expect(findAsciiMarkers(locale, { example: good })).toEqual([])
     },
   )
+
+  it.each([
+    ['de', 'Wählen Sie Ihre Bibliothek', 'Wähle deine Bibliothek'],
+    ['fr', 'Connectez votre compte', 'Connecte ton compte'],
+    ['nl', 'Kies uw bibliotheek', 'Kies je bibliotheek'],
+    ['ru', 'Подключите ваш аккаунт', 'Подключи свой аккаунт'],
+    ['uk', 'Ви ще нічого не схвалили', 'Ти ще нічого не схвалив'],
+    ['ro', 'Conectați-vă cu contul dvs.', 'Conectează-te cu contul tău.'],
+  ])('flags formal address in %s and accepts the informal form', (locale, formal, informal) => {
+    expect(findFormalAddress(locale, { example: formal })).toEqual([`example: "${formal}"`])
+    expect(findFormalAddress(locale, { example: informal })).toEqual([])
+  })
+
+  it('flags em dashes, en dashes and a lone hyphen used as a dash', () => {
+    expect(
+      findDashIssues({
+        a: 'Fehler \u2013 erneut',
+        b: 'Failed - retry',
+        c: 'Failed -- retry',
+        d: '2-50 Zeichen',
+      }),
+    ).toEqual(['a: "Fehler \u2013 erneut"', 'b: "Failed - retry"'])
+  })
+})
+
+describe('i18n source lock', () => {
+  it('reports English edits, new keys and removed keys until stamped', () => {
+    const lock = computeSourceLock({ kept: 'Save', edited: 'Delete', gone: 'Old' })
+    const drift = findSourceLockDrift({ kept: 'Save', edited: 'Remove', fresh: 'New' }, lock)
+
+    expect(drift).toEqual({ changed: ['edited'], added: ['fresh'], removed: ['gone'] })
+    expect(findSourceLockDrift({ kept: 'Save' }, computeSourceLock({ kept: 'Save' }))).toEqual({
+      changed: [],
+      added: [],
+      removed: [],
+    })
+  })
 })
 
 describe('hardcoded UI string checks', () => {

@@ -344,9 +344,9 @@ export const it = {
   'discover.restoredToPending': 'Ripristinato in sospeso',
   'discover.retryFailed': 'Nuovo tentativo fallito',
   'discover.scanAlreadyRunning': 'Scansione già in corso',
-  'discover.scanStarted': 'Scansione avviata - controlla il Cruscotto per i progressi',
+  'discover.scanStarted': 'Scansione avviata -- controlla il Cruscotto per i progressi',
   'discover.scanQueued':
-    'Scansione in coda (posizione {0}) - partirà al termine della scansione corrente',
+    'Scansione in coda (posizione {0}) -- partirà al termine della scansione corrente',
   'discover.scanStartFailed': 'Impossibile avviare la scansione',
   'discover.select': 'Seleziona',
   'discover.showFeedbackInsights': 'Mostra gli insight del feedback',
@@ -378,7 +378,7 @@ export const it = {
   'genreDetail.subGenres': 'Sottogeneri',
   'genreDetail.tabDeepCuts': 'Chicche nascoste',
   'genreDetail.tabDeepCutsDescription':
-    'Chicche nascoste - artisti di nicchia con bassa popolarità',
+    'Chicche nascoste -- artisti di nicchia con bassa popolarità',
   'genreDetail.tabLibrary': 'Nella tua libreria',
   'genreDetail.tabLibraryDescription': 'Artisti già presenti nella tua libreria musicale',
   'genreDetail.tabRecommended': 'Consigliati',
@@ -747,7 +747,7 @@ export const it = {
   'pipeline.firstScanDescription':
     'Digarr sta analizzando i tuoi gusti musicali e trovando artisti che potrebbero piacerti. Di solito ci vogliono 2-5 minuti alla prima esecuzione.',
   'pipeline.runningFor': 'In esecuzione da',
-  'pipeline.stalled': 'Sta richiedendo più tempo del solito - attendi',
+  'pipeline.stalled': 'Sta richiedendo più tempo del solito -- attendi',
   'pipeline.stop': 'Ferma scansione',
   'pipeline.stopping': 'Arresto...',
   'pipeline.cancelled': 'Scansione interrotta',
@@ -832,7 +832,7 @@ export const it = {
   'search.sourcesActive': 'Fonti ({0})',
   'search.clearFilters': 'Cancella filtri',
   'search.minChars': 'Digita almeno 2 caratteri per cercare',
-  'search.failed': 'Ricerca non riuscita - riprova',
+  'search.failed': 'Ricerca non riuscita -- riprova',
   'search.noResultsFor': 'Nessun artista trovato per',
   'discoveryMode.available': 'Disponibile',
   'discoveryMode.unavailable': 'Non disponibile',
@@ -976,13 +976,13 @@ export const it = {
   'importArtists.playlistPlaceholder': 'URL o ID della playlist',
   'importArtists.go': 'Vai',
   'importArtists.importingLikedSongs':
-    'Importazione dei brani preferiti - i nuovi artisti appariranno a breve nella pagina Scopri',
+    'Importazione dei brani preferiti -- i nuovi artisti appariranno a breve nella pagina Scopri',
   'importArtists.importingPlaylist':
-    'Importazione degli artisti della playlist - appariranno a breve nella pagina Scopri',
+    'Importazione degli artisti della playlist -- appariranno a breve nella pagina Scopri',
   'importArtists.importingCsv':
-    'Importazione di {0} artisti - appariranno a breve nella pagina Scopri',
+    'Importazione di {0} artisti -- appariranno a breve nella pagina Scopri',
   'importArtists.importingCsvTruncated':
-    'Importazione di {0} artisti (limite 500) - appariranno a breve nella pagina Scopri',
+    'Importazione di {0} artisti (limite 500) -- appariranno a breve nella pagina Scopri',
   'importArtists.failedImport': "Impossibile avviare l'importazione",
   'importArtists.failedPlaylist': "Impossibile avviare l'importazione della playlist",
   'importArtists.failedCsv': 'Impossibile importare il file CSV',
@@ -1040,7 +1040,7 @@ export const it = {
   'settings.getPersonalAccessToken': 'Ottieni token di accesso personale',
   'settings.connected': 'connesso',
   'settings.lidarrDescription':
-    'Gestore della libreria musicale - necessario per aggiungere artisti.',
+    'Gestore della libreria musicale -- necessario per aggiungere artisti.',
   'settings.lidarrPublicUrlHelp':
     "URL accessibile dal browser per collegare le pagine degli artisti in Lidarr. Lascia vuoto se l'URL API è già raggiungibile dal browser.",
   'settings.aiTip':
@@ -1634,7 +1634,7 @@ export const it = {
   'pipeline.message.profiled': 'Profilati {0} artisti principali, {1} generi',
   'pipeline.message.findingSimilar': 'Ricerca di artisti simili da tutte le fonti...',
   'pipeline.message.aiSourceFailed':
-    'Provider IA non riuscito: {0} - si continua senza suggerimenti IA',
+    'Provider IA non riuscito: {0} -- si continua senza suggerimenti IA',
   'pipeline.message.discovered': '{0} artisti candidati scoperti',
   'pipeline.message.resolving': 'Risoluzione di {0} artisti tramite MusicBrainz...',
   'pipeline.message.scoring': 'Valutazione di {0} artisti risolti...',

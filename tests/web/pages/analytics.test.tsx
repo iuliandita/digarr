@@ -63,7 +63,7 @@ describe('AnalyticsPage', () => {
 
     expect(
       await screen.findByText(
-        'Suivez les performances de votre pipeline de découverte au fil du temps. Des taux d’approbation plus élevés signifient que Digarr apprend bien vos goûts.',
+        'Suis les performances de ton pipeline de découverte au fil du temps. Des taux d’approbation plus élevés signifient que Digarr apprend bien tes goûts.',
       ),
     ).toBeInTheDocument()
   })

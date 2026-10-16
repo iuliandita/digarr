@@ -278,7 +278,7 @@ describe('language switcher surfaces', () => {
     )
 
     expect(await screen.findByRole('button', { name: 'Créer un compte' })).toBeInTheDocument()
-    expect(screen.getByText('Vous avez déjà un compte ? Se connecter')).toBeInTheDocument()
+    expect(screen.getByText('Tu as déjà un compte ? Se connecter')).toBeInTheDocument()
   })
 
   it('uses translated SSO copy in French', async () => {
@@ -295,7 +295,7 @@ describe('language switcher surfaces', () => {
       </AuthGate>,
     )
 
-    expect(await screen.findByRole('link', { name: 'Connectez-vous avec SSO' })).toBeInTheDocument()
+    expect(await screen.findByRole('link', { name: 'Connecte-toi avec SSO' })).toBeInTheDocument()
   })
 
   it('renders a language switcher in the top bar for authenticated users', async () => {

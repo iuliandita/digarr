@@ -111,7 +111,7 @@ export const es = {
   'discover.emptyAll':
     'Aún no hay recomendaciones. Importa algunos de tus artistas favoritos o ejecuta tu primer escaneo para comenzar.',
   'discover.emptyApproved':
-    'Aún no has aprobado ningún artista. Consulte la pestaña Pendiente para ver qué encontró Digarr para usted.',
+    'Aún no has aprobado ningún artista. Consulta la pestaña Pendiente para ver qué encontró Digarr para ti.',
   'discover.emptyAlbums': 'No hay recomendaciones de álbumes en esta vista.',
   'discover.emptyAlbumsHelp':
     'Un análisis normal encuentra artistas. Usa una de las opciones siguientes para generar recomendaciones de álbumes.',
@@ -164,27 +164,27 @@ export const es = {
   'setup.connectEmby': 'Conectar Emby',
   'setup.connectLidarr': 'Conectar Lidarr',
   'setup.connectionTestsContinueEmby':
-    'Las pruebas de conexión están disponibles en Configuración después de la configuración. Continúe una vez que la URL, la clave API y la ID de usuario se vean correctas.',
+    'Las pruebas de conexión están disponibles en Configuración después de la configuración. Continúa una vez que la URL, la clave API y la ID de usuario se vean correctas.',
   'setup.connectionTestsContinueLidarr':
-    'Las pruebas de conexión están disponibles en Configuración después de la configuración. Continúe una vez que la URL y la clave API se vean correctas.',
+    'Las pruebas de conexión están disponibles en Configuración después de la configuración. Continúa una vez que la URL y la clave API se vean correctas.',
   'setup.discoveryModeDescription':
-    'Crea una lista personal de recomendaciones. Exporte como JSON, CSV o M3U.',
+    'Crea una lista personal de recomendaciones. Exporta como JSON, CSV o M3U.',
   'setup.discoveryOnly': 'Sólo descubrimiento',
   'setup.discoveryOnlyLabel': 'Solo descubrir',
-  'setup.embyApiKeyPlaceholder': 'Su clave API de Emby',
+  'setup.embyApiKeyPlaceholder': 'Tu clave API de Emby',
   'setup.embyDescription':
     'Emby potencia la sincronización de bibliotecas, la señal de sabor y la exportación de listas de reproducción.',
   'setup.embyModeDescription':
     'Sincroniza tu biblioteca de Emby, usa el historial de escucha para tu gusto y retrocede las listas de reproducción.',
   'setup.embyUserIdHelp':
-    'Se encuentra en Emby Dashboard -> Usuarios -> (seleccione usuario). La URL contiene la identificación del usuario.',
+    'Se encuentra en Emby Dashboard -> Usuarios -> (selecciona usuario). La URL contiene la identificación del usuario.',
   'setup.embyUserIdPlaceholder': 'ID de usuario de Emby',
   'setup.embyUrl': 'URL de Emby',
   'setup.failed': 'La configuración falló. Inténtalo de nuevo.',
   'setup.getApiKey': 'Obtener clave API',
   'setup.howManageMusic': '¿Cómo manejas la música?',
   'setup.initialSetup': 'Configuración inicial',
-  'setup.lidarrApiKeyPlaceholder': 'Su clave API de Lidarr',
+  'setup.lidarrApiKeyPlaceholder': 'Tu clave API de Lidarr',
   'setup.lidarrDescription': 'Lidarr gestiona tu biblioteca de música y tus descargas.',
   'setup.lidarrModeDescription':
     'Los artistas aprobados se agregan a Lidarr para su descarga automática.',
@@ -213,7 +213,7 @@ export const es = {
   'setup.subtitle': 'Esto determina cómo se manejan las recomendaciones aprobadas.',
   'setup.userId': 'ID de usuario',
   'setup.verifyProviderLater':
-    'Puede verificar el proveedor desde Configuración después de la configuración. Continúe una vez que se hayan completado los datos del proveedor.',
+    'Puedes verificar el proveedor desde Configuración después de la configuración. Continúa una vez que se hayan completado los datos del proveedor.',
   'common.importing': 'Importando...',
   'common.language': 'Idioma',
   'common.loading': 'Cargando...',
@@ -254,7 +254,7 @@ export const es = {
   'dashboard.approvedSuccess': 'Aprobado',
   'dashboard.connectAccount': 'Conectar una cuenta',
   'dashboard.connectListening':
-    'Conecte su cuenta de Last.fm o ListenBrainz para que Digarr pueda saber lo que escucha.',
+    'Conecta tu cuenta de Last.fm o ListenBrainz para que Digarr pueda saber lo que escuchas.',
   'dashboard.feedbackTip':
     'Aprueba o rechaza recomendaciones para enseñarle a Digarr tu gusto. Cuantos más comentarios proporciones, mejores serán tus recomendaciones futuras.',
   'dashboard.foundLastRun': 'encontró la última ejecución',
@@ -283,7 +283,7 @@ export const es = {
   'dashboard.setUpAutomaticDiscovery': 'Configurar el descubrimiento automático',
   'dashboard.subscriptions': 'Suscripciones',
   'dashboard.subscriptionsEmpty':
-    'Aún no has configurado ningún descubrimiento automático. Digarr puede encontrar nuevos artistas para usted según un cronograma.',
+    'Aún no has configurado ningún descubrimiento automático. Digarr puede encontrar nuevos artistas para ti según un cronograma.',
   'dashboard.tasteEmpty':
     'A medida que apruebas o rechazas recomendaciones de artistas, Digarr aprende tus gustos y mejora en la búsqueda de música que te guste.',
   'dashboard.yourTaste': 'Tu gusto musical',
@@ -300,7 +300,7 @@ export const es = {
   'discover.clearedCount': 'Borrado',
   'discover.discoveryModes': 'Modos de descubrimiento',
   'discover.discoveryModesDescription':
-    'Inicie una ejecución de descubrimiento dirigida ya sea con un ajuste preestablecido simple o con el formulario avanzado completo.',
+    'Inicia una ejecución de descubrimiento dirigida ya sea con un ajuste preestablecido simple o con el formulario avanzado completo.',
   'discover.monitoringOptions': 'Opciones de seguimiento',
   'discover.monitorAllDescription': 'Supervisa y busca todos los álbumes',
   'discover.monitorNewDescription': 'Solo supervisa los nuevos lanzamientos a partir de ahora',
@@ -343,9 +343,9 @@ export const es = {
   'discover.restoredToPending': 'Restaurado a pendiente',
   'discover.retryFailed': 'Reintentar falló',
   'discover.scanAlreadyRunning': 'El escaneo ya está en curso',
-  'discover.scanStarted': 'Escaneo iniciado - revisa el Panel para ver el progreso',
+  'discover.scanStarted': 'Escaneo iniciado -- revisa el Panel para ver el progreso',
   'discover.scanQueued':
-    'Escaneo en cola (posición {0}) - comenzará cuando termine la ejecución actual',
+    'Escaneo en cola (posición {0}) -- comenzará cuando termine la ejecución actual',
   'discover.scanStartFailed': 'No se pudo iniciar el escaneo',
   'discover.select': 'Seleccionar',
   'discover.showFeedbackInsights': 'Mostrar información de feedback',
@@ -376,7 +376,7 @@ export const es = {
     'Usa el botón + Cola para añadir artistas a tu cola de recomendaciones y revisarlos en la página Descubrir.',
   'genreDetail.subGenres': 'Subgéneros',
   'genreDetail.tabDeepCuts': 'Joyas ocultas',
-  'genreDetail.tabDeepCutsDescription': 'Joyas ocultas - artistas de nicho con poca popularidad',
+  'genreDetail.tabDeepCutsDescription': 'Joyas ocultas -- artistas de nicho con poca popularidad',
   'genreDetail.tabLibrary': 'En tu biblioteca',
   'genreDetail.tabLibraryDescription': 'Artistas que ya están en tu biblioteca musical',
   'genreDetail.tabRecommended': 'Recomendados',
@@ -649,7 +649,7 @@ export const es = {
   'cronPicker.monthlyFirst': 'Mensual (día 1)',
   'cronPicker.standardHint': 'Cron estándar: minuto hora día-del-mes mes día-de-la-semana',
   'analytics.statusCompleted': 'Completado',
-  'analytics.noBatchesYet': 'Aún no hay lotes. Ejecute un análisis para generar recomendaciones.',
+  'analytics.noBatchesYet': 'Aún no hay lotes. Ejecuta un análisis para generar recomendaciones.',
   'analytics.recommendationsShort': 'recom.',
   'analytics.approvedShort': 'aprobado',
   'analytics.noGenreData': 'Aún no hay datos de género disponibles.',
@@ -661,7 +661,7 @@ export const es = {
   'analytics.avgTimeToReject': 'Tiempo promedio para rechazar',
   'analytics.rejections': 'rechazos',
   'analytics.introTip':
-    'Realice un seguimiento del rendimiento de su canal de descubrimiento a lo largo del tiempo. Las tasas de aprobación más altas significan que Digarr está aprendiendo bien sus gustos.',
+    'Haz un seguimiento del rendimiento de tu canal de descubrimiento a lo largo del tiempo. Las tasas de aprobación más altas significan que Digarr está aprendiendo bien tus gustos.',
   'analytics.totalRecs': 'Recomendaciones totales',
   'analytics.approvalRate': 'Tasa de aprobación',
   'analytics.avgScore': 'Puntuación promedio',
@@ -670,7 +670,7 @@ export const es = {
   'analytics.discoveryOverTime': 'Descubrimiento a lo largo del tiempo',
   'analytics.recommendationsPerBatch': 'Recomendaciones por lote (verde = aprobado)',
   'analytics.noDiscoveryBatches':
-    'Aún no hay lotes de descubrimiento. Ejecute un escaneo para ver su historial aquí.',
+    'Aún no hay lotes de descubrimiento. Ejecuta un escaneo para ver tu historial aquí.',
   'analytics.batchHistory': 'Historial de lotes',
   'analytics.scoreDistribution': 'Distribución de puntuación',
   'analytics.noScoreData': 'Aún no hay datos de puntuación',
@@ -721,7 +721,7 @@ export const es = {
   'todaysPick.matchScore': 'Puntuación de coincidencia',
   'todaysPick.match': 'coincidencia',
   'todaysPick.skipHint':
-    'Saltar le muestra el siguiente artista sin rechazarlo; los artistas omitidos volverán en escaneos futuros.',
+    'Saltar te muestra el siguiente artista sin rechazarlo; los artistas omitidos volverán en escaneos futuros.',
   'todaysPick.skipTitle': 'Omitir por ahora: este artista volverá más tarde.',
   'pipeline.stage.collect': 'Leyendo la biblioteca',
   'pipeline.stage.analyze': 'Creando tu perfil de gustos',
@@ -745,7 +745,7 @@ export const es = {
   'pipeline.firstScanDescription':
     'Digarr analiza tus gustos musicales y encuentra artistas que te puedan gustar. Esto suele tardar entre 2 y 5 minutos en la primera ejecución.',
   'pipeline.runningFor': 'Activo durante',
-  'pipeline.stalled': 'Esto está tardando más de lo habitual - espera un momento',
+  'pipeline.stalled': 'Esto está tardando más de lo habitual -- espera un momento',
   'pipeline.stop': 'Detener escaneo',
   'pipeline.stopping': 'Deteniendo...',
   'pipeline.cancelled': 'Escaneo detenido',
@@ -755,7 +755,7 @@ export const es = {
   'libraryHealth.rescanningSoon': 'volver a escanear en 30 segundos para verificar',
   'libraryHealth.updated': 'Actualizado',
   'libraryHealth.processed': 'Procesado',
-  'libraryHealth.fixFailed': 'Error en la solución: verifique la conexión Lidarr',
+  'libraryHealth.fixFailed': 'Error en la solución: verifica la conexión Lidarr',
   'libraryHealth.rescan': 'Volver a escanear',
   'libraryHealth.introTip':
     'La salud de la biblioteca revisa tu biblioteca de Lidarr en busca de metadatos, álbumes, imágenes y enlaces de Wikidata que faltan, artistas sin supervisar o duplicados y huecos de género. Se ejecuta de forma programada; usa «Sincronizar ahora» para volver a revisar.',
@@ -764,7 +764,7 @@ export const es = {
   'libraryHealth.pendingRescan':
     'Nueva exploración automática programada para verificar los resultados de la reparación...',
   'libraryHealth.noChecks':
-    'No hay controles de salud disponibles. Ejecute un escaneo para inspeccionar su biblioteca.',
+    'No hay controles de salud disponibles. Ejecuta un escaneo para inspeccionar tu biblioteca.',
   'libraryHealth.syncNow': 'Sincronizar ahora',
   'libraryHealth.snapshotTitle': 'Última instantánea',
   'libraryHealth.lastSynced': 'Última sincronización',
@@ -772,7 +772,7 @@ export const es = {
   'libraryHealth.autoSyncEvery': 'Sincronización automática cada {0} h',
   'libraryHealth.statisticsTitle': 'Estadísticas de la biblioteca',
   'libraryHealth.statisticsUnavailable':
-    'Estadísticas de la biblioteca no disponibles. Verifique su conexión Lidarr en Configuración.',
+    'Estadísticas de la biblioteca no disponibles. Verifica tu conexión Lidarr en Configuración.',
   'libraryHealth.fix': 'Corregir',
   'libraryHealth.fixing': 'Corrigiendo...',
   'libraryHealth.showLess': 'Mostrar menos',
@@ -976,12 +976,12 @@ export const es = {
   'importArtists.playlistPlaceholder': 'URL o ID de la lista',
   'importArtists.go': 'Ir',
   'importArtists.importingLikedSongs':
-    'Importando tus canciones guardadas - los nuevos artistas aparecerán en Descubrir en breve',
+    'Importando tus canciones guardadas -- los nuevos artistas aparecerán en Descubrir en breve',
   'importArtists.importingPlaylist':
-    'Importando artistas de la lista - aparecerán en Descubrir en breve',
-  'importArtists.importingCsv': 'Importando {0} artistas - aparecerán en Descubrir en breve',
+    'Importando artistas de la lista -- aparecerán en Descubrir en breve',
+  'importArtists.importingCsv': 'Importando {0} artistas -- aparecerán en Descubrir en breve',
   'importArtists.importingCsvTruncated':
-    'Importando {0} artistas (límite de 500) - aparecerán en Descubrir en breve',
+    'Importando {0} artistas (límite de 500) -- aparecerán en Descubrir en breve',
   'importArtists.failedImport': 'Error al iniciar la importación',
   'importArtists.failedPlaylist': 'Error al iniciar la importación de la lista',
   'importArtists.failedCsv': 'Error al importar el archivo CSV',
@@ -1038,7 +1038,7 @@ export const es = {
   'settings.createSpotifyApp': 'Crear una app de Spotify para desarrolladores',
   'settings.getPersonalAccessToken': 'Obtener token de acceso personal',
   'settings.connected': 'conectado',
-  'settings.lidarrDescription': 'Gestor de biblioteca musical - necesario para añadir artistas.',
+  'settings.lidarrDescription': 'Gestor de biblioteca musical -- necesario para añadir artistas.',
   'settings.lidarrPublicUrlHelp':
     'URL accesible desde el navegador para enlazar a las páginas de artistas de Lidarr. Déjala vacía si la URL de la API ya es accesible desde tu navegador.',
   'settings.aiTip':
@@ -1633,7 +1633,7 @@ export const es = {
   'pipeline.message.profiled': '{0} artistas principales, {1} géneros perfilados',
   'pipeline.message.findingSimilar': 'Buscando artistas similares en todas las fuentes...',
   'pipeline.message.aiSourceFailed':
-    'El proveedor de IA falló: {0} - continuando sin sugerencias de IA',
+    'El proveedor de IA falló: {0} -- continuando sin sugerencias de IA',
   'pipeline.message.discovered': '{0} artistas candidatos descubiertos',
   'pipeline.message.resolving': 'Resolviendo {0} artistas a través de MusicBrainz...',
   'pipeline.message.scoring': 'Calificando {0} artistas resueltos...',

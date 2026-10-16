@@ -77,7 +77,7 @@ describe('GenresPage', () => {
 
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Initialiser les genres depuis votre bibliothèque',
+        name: 'Initialiser les genres depuis ta bibliothèque',
       }),
     )
 
@@ -93,7 +93,7 @@ describe('GenresPage', () => {
 
     fireEvent.click(
       await screen.findByRole('button', {
-        name: 'Initialiser les genres depuis votre bibliothèque',
+        name: 'Initialiser les genres depuis ta bibliothèque',
       }),
     )
 
@@ -109,7 +109,7 @@ describe('GenresPage', () => {
 
     expect(
       await screen.findByRole('button', {
-        name: 'Initialiser les genres depuis votre bibliothèque',
+        name: 'Initialiser les genres depuis ta bibliothèque',
       }),
     ).toBeTruthy()
   })
@@ -121,10 +121,10 @@ describe('GenresPage', () => {
 
     // Wait for the empty-state message to confirm the page rendered, then assert
     // neither the empty-state seed button nor the mobile FAB is present.
-    await screen.findByText('Aucun genre dans votre bibliothèque pour le moment.')
+    await screen.findByText('Aucun genre dans ta bibliothèque pour le moment.')
     expect(
       screen.queryByRole('button', {
-        name: 'Initialiser les genres depuis votre bibliothèque',
+        name: 'Initialiser les genres depuis ta bibliothèque',
       }),
     ).toBeNull()
     expect(screen.queryByRole('button', { name: 'Initialiser les genres' })).toBeNull()

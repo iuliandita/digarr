@@ -17,6 +17,7 @@ import { PROTECTED_I18N_TERMS } from '../src/core/i18n/protected-terms'
 import { REJECTION_REASONS } from '../src/core/recommendations/rejection-reasons'
 import { collectDiscoveryMessageKeys } from '../src/web/lib/discovery-i18n'
 import { validateTranslatedCatalog } from './i18n-machine-translate'
+import { findSourceLockDrift, readSourceLock } from './i18n-source-lock'
 
 // Markers that indicate stripped diacritics in the accented-language catalogs.
 // CI fails on any match so we cannot regress to ASCII-substituted spellings.
@@ -32,6 +33,29 @@ const ASCII_MARKERS: Record<string, RegExp> = {
   pl: /\b(sie|zakonczeniu|biezacego|zobacza|logowac|dostawce|feedow|najczesciej|sluchanego|gleboko|uzytkownikow|tagow|pasujacych|wydanicze|powiazane|sledzionymi|Siec|podobienstwa|wspolpracownikow|sasiednie|wytwornii|odsluchu|wydan|Odwaznosc|probkowania|wyrazenie|Popularnosc|celow|kazdym|Dziala|Wlacz|przyszle|sledzenie|istniejacych|sluchania|Wyzsze|wartosci|znajduja|Nizsze|Wspolczynnik|Zdjecia|pochodza|pelnia|uzyc|kierujac|zadania|zewnetrzne|dostepnego|Artysci|udalo|zapisac|ustawien|uruchamiac|tydzien|poniedzialek|Wlaczone|dostep|zrodel|Wlasny|podlaczona|usluga|haslo|Wlaczono|Usluga|dostepu|Haslo|hasla|miec|znakow|Nieprawidlowy)\b/,
   tr: /\b(Is Geçmişi|acma|yapilandirin|giris|dugmesini|gorecek|Kullanicilarin|saglayicisiyla|Sanatci|sanatci|sanatcilar|sanatcilari|araciligiyla|kesfet|dinledigi|kullanicilarinin|eslesen|ettigin|baglantili|yayinlari|tabanli|grafigi|Iliskileri|Isbirlikleri|yakin|sirketi|kataloglari|uzerinden|Kitapligi|studyo|albumlerini|Muzik|bolgesel|Kisisellestirilmis|henuz|uygulanmadi|kullanilabilir|baglayin|Once|kaynagi|Yayin|saglayicilar|kullaniliyor|Sinir|Orneklenecek|kayitlar|Populerlik|Baslangic|Iliskiler|Calisma|basina|Bolge|Hizli|Guvenli|Birlesik|onayi|etkinlestir|Izleme|Tum|Yalnizca|yayin|Hicbiri|yalnizca|Gelismis|Sinirlar|suresi|Kutuphane|Kesfi|Kesfin|kadari|kutuphanenizden|gecmisinizden|oldugunuza|guvenir|orani|Gorsel|gorselleri|oncelikle|kaynagindan|kullanilir|anahtari|bagli|Ucretsiz|icin|bos|birakin|yonlendirerek|karsisinda|zenginlestirmesi|Oneri|kartlarinda|baglantilari|goster|Aciklama|degil|onbelleginde|aciklamalar|kapaliyken|Varsayilan|barindiriyorsaniz|ornek|ayarlari|calistirmak|programi|ayarlayin|populer|Ozel|goruntule|Yukleniyor|Gecersiz|Baglantilariniz|Baglantıyi|Sifreyi|Guncelleme|Guncel|Uygulamasi|olustur|onerileri|baglantisi|sifre|Degistiriliyor|yukleniyor|Goruntu|onbellegini|degistirildi|olmalidir|sifreyi|sifreler|uyusmuyor|olusturma|yoksay|yapistir|Album)\b/,
 }
+
+// Every locale addresses the user informally, matching the casual English voice.
+// These are unambiguous formal pronouns; a legitimate use goes in the allowlist.
+const FORMAL_ADDRESS_MARKERS: Record<string, RegExp> = {
+  de: /(?<!\p{L})(Sie|Ihr|Ihre|Ihren|Ihrem|Ihrer|Ihres|Ihnen)(?!\p{L})/u,
+  fr: /(?<!\p{L})(vous|votre|vos)(?!\p{L})/iu,
+  es: /(?<!\p{L})(usted|ustedes)(?!\p{L})/iu,
+  it: /(?<!\p{L})(Lei|Suo|Sua|Suoi|Sue)(?!\p{L})/u,
+  nl: /(?<!\p{L})(u|uw)(?!\p{L})/u,
+  pl: /(?<!\p{L})(Pan|Pani|Państwo|Pana|Panu)(?!\p{L})/u,
+  ro: /(?<!\p{L})(dumneavoastră|dvs\.?)(?!\p{L})/iu,
+  ru: /(?<!\p{L})(вы|вас|вам|вами|ваш\p{L}*)(?!\p{L})/iu,
+  tr: /(?<!\p{L})(siz|sizin|size|sizi|sizde|sizden)(?!\p{L})/iu,
+  uk: /(?<!\p{L})(ви|вас|вам|вами|ваш\p{L}*)(?!\p{L})/iu,
+}
+
+// 'locale:key' entries where a formal-looking word is not addressing the user.
+const FORMAL_ADDRESS_ALLOWLIST = new Set<string>([
+  'de:genreDetail.emptyDeepCuts',
+  'de:libraryHealth.introTip',
+  'nl:systemHealth.inHours',
+  'nl:librarySources.hoursAgo',
+])
 
 const referenceLocale = 'en'
 const referenceMessages = getMessages(referenceLocale)
@@ -217,6 +241,23 @@ export function findAsciiMarkers(locale: string, messages: Record<string, string
   return hits
 }
 
+export function findFormalAddress(locale: string, messages: Record<string, string>): string[] {
+  const regex = FORMAL_ADDRESS_MARKERS[locale]
+  if (!regex) return []
+  return Object.entries(messages)
+    .filter(
+      ([key, value]) => regex.test(value) && !FORMAL_ADDRESS_ALLOWLIST.has(`${locale}:${key}`),
+    )
+    .map(([key, value]) => `${key}: "${value}"`)
+}
+
+// User-visible text uses -- as a dash: no em/en dashes and no lone " - ".
+export function findDashIssues(messages: Record<string, string>): string[] {
+  return Object.entries(messages)
+    .filter(([, value]) => /[–—]| - /.test(value))
+    .map(([key, value]) => `${key}: "${value}"`)
+}
+
 function collectSourceFiles(dir: string, out: string[]): void {
   for (const entry of readdirSync(dir)) {
     const full = join(dir, entry)
@@ -259,6 +300,8 @@ export async function main(): Promise<void> {
     )
     const untranslated = locale === referenceLocale ? [] : sameAsSource
     const asciiHits = findAsciiMarkers(locale, messages)
+    const formalHits = findFormalAddress(locale, messages)
+    const dashHits = findDashIssues(messages)
     let qualityError: string | null = null
     if (locale !== referenceLocale) {
       try {
@@ -274,6 +317,8 @@ export async function main(): Promise<void> {
       empty.length === 0 &&
       untranslated.length === 0 &&
       asciiHits.length === 0 &&
+      formalHits.length === 0 &&
+      dashHits.length === 0 &&
       qualityError == null
     ) {
       continue
@@ -286,7 +331,21 @@ export async function main(): Promise<void> {
     if (empty.length > 0) console.error(`  empty: ${empty.join(', ')}`)
     if (untranslated.length > 0) console.error(`  untranslated: ${untranslated.join(', ')}`)
     if (asciiHits.length > 0) console.error(`  ascii-stripped: ${asciiHits.join('; ')}`)
+    if (formalHits.length > 0) console.error(`  formal-address: ${formalHits.join('; ')}`)
+    if (dashHits.length > 0) console.error(`  dash-style: ${dashHits.join('; ')}`)
     if (qualityError) console.error(`  quality: ${qualityError}`)
+  }
+
+  const drift = findSourceLockDrift(referenceMessages, readSourceLock())
+  const unstamped = [...drift.changed, ...drift.added, ...drift.removed]
+  if (unstamped.length > 0) {
+    failed = true
+    console.error(
+      'English changed since the translations were last stamped. Update every locale, then run `bun run i18n:stamp`:',
+    )
+    for (const key of drift.changed) console.error(`  changed: ${key}`)
+    for (const key of drift.added) console.error(`  added: ${key}`)
+    for (const key of drift.removed) console.error(`  removed: ${key}`)
   }
 
   const orphans = await findOrphanedKeys(Object.keys(referenceMessages))
@@ -312,7 +371,7 @@ export async function main(): Promise<void> {
   }
 
   console.log(
-    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no catalog, quality, orphan, ASCII-marker, or hardcoded-UI issues.`,
+    `Validated ${SUPPORTED_LOCALES.length} locales against ${referenceLocale}; no catalog, quality, orphan, ASCII-marker, address, dash, source-lock, or hardcoded-UI issues.`,
   )
 }
 
