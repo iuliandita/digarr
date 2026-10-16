@@ -8,7 +8,11 @@
       "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/unraid/digarr.xml", "docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "deploy/unraid/digarr.xml",
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Compared current upstream blobs and PR status on October 15 after independently reviewed personal PR5 merged. Bundled and published personal XML explain paired initial-account settings and existing-account no-op. Community bootstrap help remains tracked in issue843 alongside pending PR697. No variable, image channel, port, volume, permission or WebUI URL changes.",
         "breaking": "none",
         "migration": "",
@@ -169,7 +173,7 @@
         "src/db/queries/oauth-pending.ts": "7857a14e93ecdf60f1d9d90e96e61844da20a22f1623efa22f71117e87607dd3",
         "src/db/queries/oauth-tokens.ts": "30c12c802d60c28e27764b40357d8f917ddfea4186594840cd234e5c7fade696",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
-        "src/db/queries/playlists.ts": "3de3f8bf446900d5f9b4ba3b058d4d4581231194a2b3b31a9a0f43378cbe8269",
+        "src/db/queries/playlists.ts": "a3b4f1921e3e8977e2be35cd0183746cb436845419170998d908f293cbf35189",
         "src/db/queries/recommendations.ts": "281c42caaf58ed087300c79b086de9c310da311e030673f324a135143c099a35",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
@@ -182,14 +186,14 @@
         "src/db/schema.ts": "aa0365573cac5ecce8d909c778c9cdab17a8c37fb0b7038b6e2c2c3a36a6d3ca",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "e8388206b1a3337aa3368ec4b20f38ab631c719dfc33e33844a5ec9f32002e25",
+      "digest": "3eaef62bf6077e2b36912da2762c54cfd760bbc12574e5aad90fda6f610facdf",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Pre-migration snapshot reads only the tables and columns present in the active schema, fails if no Digarr tables are found there, records omissions in an optional absentSchema field, and logs one actionable line before rethrowing a real backup failure. OPERATIONS and switching-backends say releases after v2.0.0 need no override for added columns or tables while v2.0.0 itself still does, and OPERATIONS notes that restoring an omitted-table snapshot into a database holding rows in that table is refused.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Deleted getPlaylistsDueForGeneration, a query with no production caller; no table, migration, backup or restore behavior changes.",
         "breaking": "none",
-        "migration": "Upgrade: no schema migration, and the backup format version and retention are unchanged; absentSchema is an optional additive field the restore path never reads, and absent tables are omitted entirely so a restore cannot clear them. Rollback: reverting restores the strict snapshot and its missing-column failure, so the native backup guidance for older schemas still applies.",
-        "digest": "e8388206b1a3337aa3368ec4b20f38ab631c719dfc33e33844a5ec9f32002e25"
+        "migration": "Deleted getPlaylistsDueForGeneration, a query with no production caller; no table, migration, backup or restore behavior changes.",
+        "digest": "3eaef62bf6077e2b36912da2762c54cfd760bbc12574e5aad90fda6f610facdf"
       }
     },
     "configuration": {
@@ -200,7 +204,12 @@
       "digest": "8076b80cdb5d50e0ae9aed883feca0fd380a1505edca54db9ad0e8214a247d09",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          ".env.example",
+          "docs/AUTHENTICATION.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Reviewed both environment examples and all deployment guides for paired initial-account values, 12-character password minimum, fail-closed fresh boot, existing-account no-op and manual registration. Bootstrap keeps raw credential bytes and never resets existing passwords or roles; no new setting or secret source is added.",
         "breaking": "An empty database with only one initial-account variable or a short initial password now exits before HTTP.",
         "migration": "",
@@ -246,7 +255,12 @@
       "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/AUTHENTICATION.md",
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Review the combined exact issuer/subject OIDC contract, locked historical-identity recovery, first-admin bootstrap before HTTP, account-first atomic setup and settings secret projection. Preserve local login, sessions and no email linking.",
         "breaking": "Legacy issuer-less SSO accounts remain unbound until verified operator recovery; partial or short initial-admin credentials stop empty-database startup.",
         "migration": "",
@@ -309,7 +323,11 @@
       "digest": "75221e5e2b2afb01ce5f514538aa03a5ed07e082b94d4a3cbca8cfba061b3c5b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "OIDC callback and link documentation describe issuer/subject matching and legacy quarantine; request bodies, callback URLs and cookies retain their contract.",
         "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
         "migration": "",
@@ -486,7 +504,9 @@
       "digest": "55ea49f3c2c5e21dcd73c46462091ea15b912b6a529efedaef12ea13c8f718a1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Restored stripped accents in French, Spanish, Dutch, Romanian, Turkish and Portuguese strings found by the new spell check",
         "breaking": "none",
         "migration": "",
@@ -512,7 +532,7 @@
         "src/core/clients/listenbrainz.ts": "7e594c0f1552692257561d54ee9c8383f47e142bb336b49672fc80dffd44d4f4",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "470f30a2e3389ed49f051d69dd8b0e594cb4dbbff611d24bff8989bc14126964",
+        "src/core/clients/musicbrainz.ts": "f84063f246b7b00bf2080a28d9f2006f7d952a9c3c8191b74ce796c731c80cab",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -524,7 +544,7 @@
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "e0c37f564313ef4726e2bcf17afb780d192ce5a5bb9fe79cadb4c04e2fbd48a7",
         "src/core/clients/wikidata.ts": "cf666ac82d396536a048a5200148989f336d3adc43db84a159c94d2c19bc0bed",
-        "src/core/csv/cell-safe.ts": "b39aca1fedab3144af43f096b07b2e1f7a7af65117a608d0c6b5a78c92c15a65",
+        "src/core/csv/cell-safe.ts": "7a4f2d011b406f7f15fb20f50ea7c1c293b54a749c7969c7fd9afb1f4f43c480",
         "src/core/db-errors.ts": "07b0d025afc00f8f39ab14ed46e133d49299eb6039016107cad01abbd61f1acc",
         "src/core/discovery-modes/availability.ts": "7e78cee14367ae43dad6abc82cf9a7f977159144a0db2bb49d90bae8f6074ac1",
         "src/core/discovery-modes/candidates.ts": "1411ad762dc9ccdfc0f0ed08e7348ac43d647e8b45f611441c6cf2f230100a24",
@@ -548,8 +568,8 @@
         "src/core/discovery-modes/request.ts": "8b59718d0c0943ec7307f758b73ea81668818f914a3034232411c456b182fa33",
         "src/core/discovery-modes/run.ts": "dee82abe155fdf92be5d0eff928a50703d0e78b583e6ff6fb4397f4fb99b6c4e",
         "src/core/discovery-modes/types.ts": "fa88f214d2b18499c825a3845320c500df04c425a174aa65f1234379a5411859",
-        "src/core/genre/service.ts": "bf109dc59b94f944191cea3efc86e2c4818540456daea8d21f539c0a452f0bdc",
-        "src/core/genre/types.ts": "e5dee85474cbb7815c9589f993b2870985ac6a65be5955b6bb66ec773ebb9ca1",
+        "src/core/genre/service.ts": "b7d025944b6b1a019417b275af7d6b2989a1c94ff65f576c1fec0875bb58f40b",
+        "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
         "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
@@ -568,7 +588,6 @@
         "src/core/library/sources/jellyfin.ts": "3b4cc00e211f7eee7db5e7ac85783377e0b8f00da61b988cc1288064d8835b0e",
         "src/core/library/sources/lidarr.ts": "3d74de8044a4a23a5d142080d1778f59eb8a3d9d610eef1667bd6e43b8b2ecdb",
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
-        "src/core/library/sources/registry.ts": "122fc34001db06061105a0cc6ec2df0fb406e7b23b3f99c76f5668df29c367ba",
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "45a27a9e01e825bb64828037ad0aec447eb9ab1937a66a495975242928a0c3c0",
@@ -611,7 +630,7 @@
         "src/core/playlists/strategies/types.ts": "e9017df7238bb1939845341c395bd2cf253f8101a93247b6c74dec30e5ad9bf8",
         "src/core/playlists/strategies/weekly-digest.ts": "ff51e16426ef4ce4b28e19c5f8c453573adc8e067d86dd3025d52af1a81389d5",
         "src/core/playlists/strategy-deps.ts": "1e1df71f3fc439f8574cc25f074c2abc7290cc89786f0bc989049e85e7bc6c73",
-        "src/core/playlists/track-resolver.ts": "a143f1b0a98251168c156da42c54df547c60cb9d610895bd68d45e1d21b4a503",
+        "src/core/playlists/track-resolver.ts": "356f2400061e0db6243450654367e002019a70dba0708c27d6d8aa6471071bc6",
         "src/core/playlists/types.ts": "103df693bced14be3b00f9fc407bfba267ba6562a20b3752ab8665eadd154aa2",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
         "src/core/plugins/emby.ts": "ad73fab18f531878937b7cbbcbb2c0c8ff13aff42fece578bbaef560d0469600",
@@ -645,6 +664,7 @@
         "src/core/search/sources/musicbrainz.ts": "db15c55baeb16490ea0bdab0456489742f9a8b36aee567ba00a93919b6bc69c1",
         "src/core/search/sources/spotify.ts": "539fa2146fb28d98489f61c35198ae5b7c8d35dff674ba186737c910aedbbd4e",
         "src/core/search/sources/tidal.ts": "9cb3766d9e888589153a75f904f49eee0d6586612ef078cd488e992e80f0ee38",
+        "src/core/sleep.ts": "3352e179fc1eba280f637324234c8dbed6e670bd0dc60ecb31fa9e2450ca7955",
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "29210e7098e3256ecdb129173a9546edb6d7ae08434a905bacd8407e780fa3c3",
         "src/core/slskd/match-engine.ts": "0a6d7b01d0dfd28dae865a867aada473339f691d2ec97bea0ce88aab135c0c84",
@@ -674,12 +694,11 @@
         "src/core/targets/export-xspf.ts": "c2e20b23a58ae57697aa1d6d9f9cb993fb5336cd199a2c59683b37bd8b600f02",
         "src/core/targets/jellyfin-family-playlist.ts": "039a2b15c06f40db2188098433d936056761e252081a20d11af109bf2a6b6195",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
-        "src/core/targets/lidarr.ts": "24a9539290d668a3843015dbbbdad1161ca436d55060d0d0031e4b5fc5cadb4c",
+        "src/core/targets/lidarr.ts": "78b933016fb81d35e6c4b8093ea51792c3f122335d78100995e1c1c8f30516ea",
         "src/core/targets/navidrome-playlist.ts": "741a779ec29b7c46275aeb842acbed635da30264278b16ef97b11c0f2e8c0022",
         "src/core/targets/playlist-match.ts": "051b1bedde97c023449b349903f915360dbad5d211bc7b9051438bd08785e375",
         "src/core/targets/playlist-scope.ts": "e9d9c18cd05fcc1b9637b7ceccf6e7ff0bde629e27652da1ac785a84f810268e",
         "src/core/targets/plex-playlist.ts": "09c9697f163d860f9c1d390a24b12a7ededc31c501bc57d02a2ebb663da0eea6",
-        "src/core/targets/registry.ts": "2a6c7377dd6bc956e617b945d943f397a186809e2dfa5b2a521186ece00e904d",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "2157514d26cefd55b05c6d5f4ebe4caa380065cfc24d331061b50d2140a08c13",
         "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
@@ -691,14 +710,16 @@
         "src/index.ts": "e22e7ac52cd9764df034e09ac629db44f183ed25349aae4fcdee247d8c597140",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f",
+      "digest": "685fc0004935315a57a971a5162bca36e17562fae0d22b11393b8e9deeaee80d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Review combined complete MusicBrainz pagination and coverage selection, owner-scoped discovery, cooperative cancellation, per-channel digest retries and saved playlist exports. Remove the unused create-only orchestrator without changing active failure aggregation or file exports.",
-        "breaking": "Incomplete provider pages and uncertain playlist destinations fail explicitly; album coverage can decrease and hung cancellation remains busy. See combined migration and rollback precautions for persisted state.",
+        "docs": [
+          "docs/ARCHITECTURE.md"
+        ],
+        "note": "Removed the unused LibrarySourceRegistry and TargetRegistry classes and other test-only helpers; ARCHITECTURE.md no longer names LibrarySourceRegistry and describes how library sources are built.",
+        "breaking": "none",
         "migration": "",
-        "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f"
+        "digest": "685fc0004935315a57a971a5162bca36e17562fae0d22b11393b8e9deeaee80d"
       }
     },
     "deployment": {
@@ -756,7 +777,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "0c28f0a1e9c93e819f791ac130bbc0cea349678885ffbdc1d2a2fefeff204e0c",
+        ".github/workflows/ci.yml": "6b62969221b3c289145271ee9272d95eb05888d5f502f84ce6718f3cdc1bd5a3",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -771,14 +792,14 @@
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa",
+      "digest": "3320c773b33a23182e54944218b0cfcbd8cd0e7ffb4861be05d80f1b2cf3134a",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Adds a non-blocking CI job for the translation spell check and its package script; no version or image change",
+        "note": "CI Postgres job now runs more test files and sets DIGARR_REQUIRE_TEST_DB; no release workflow, versioning, image or tagging behavior changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa"
+        "digest": "3320c773b33a23182e54944218b0cfcbd8cd0e7ffb4861be05d80f1b2cf3134a"
       }
     },
     "maintenance": {
@@ -812,7 +833,9 @@
       "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "New i18n:spell and i18n:translate --stale scripts and the advisory i18n-spell CI job; usage is documented in the i18n messages README and the changelog",
         "breaking": "none",
         "migration": "",
