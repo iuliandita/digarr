@@ -1474,6 +1474,7 @@ export const tr = {
   'admin.purgeExpiredSessionsDesc': 'Süresi dolan giriş oturumlarını sil.',
   'admin.currentVersion': 'Mevcut sürüm',
   'admin.pendingMigrations': 'Bekleyen taşımalar',
+  'admin.pendingCount': '{count} bekliyor',
   'admin.upToDate': 'Güncel',
   'admin.restoreSummary': '{1} tabloda {0} satır geri yüklendi',
   'admin.restoreSummaryForce':

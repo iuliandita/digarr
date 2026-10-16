@@ -1487,6 +1487,7 @@ export const pl = {
   'admin.purgeExpiredSessionsDesc': 'Usuń wygasłe sesje logowania.',
   'admin.currentVersion': 'Aktualna wersja',
   'admin.pendingMigrations': 'Oczekujące migracje',
+  'admin.pendingCount': 'Oczekujące: {count}',
   'admin.upToDate': 'Aktualny',
   'admin.restoreSummary': 'Przywrócono {0} wierszy w {1} tabelach',
   'admin.restoreSummaryForce':

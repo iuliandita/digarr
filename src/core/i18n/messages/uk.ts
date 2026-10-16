@@ -1490,6 +1490,7 @@ export const uk = {
   'admin.purgeExpiredSessionsDesc': 'Видалити протерміновані сесії входу.',
   'admin.currentVersion': 'Поточна версія',
   'admin.pendingMigrations': 'Очікуючі міграції',
+  'admin.pendingCount': 'Очікують: {count}',
   'admin.upToDate': 'Актуально',
   'admin.restoreSummary': '{0} рядків відновлено у {1} таблицях',
   'admin.restoreSummaryForce':

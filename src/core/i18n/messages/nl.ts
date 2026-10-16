@@ -1491,6 +1491,7 @@ export const nl = {
   'admin.purgeExpiredSessionsDesc': 'Verlopen inlogsessies verwijderen.',
   'admin.currentVersion': 'Huidige versie',
   'admin.pendingMigrations': 'Openstaande migraties',
+  'admin.pendingCount': '{count} in afwachting',
   'admin.upToDate': 'Up-to-date',
   'admin.restoreSummary': '{0} rijen hersteld in {1} tabellen',
   'admin.restoreSummaryForce':

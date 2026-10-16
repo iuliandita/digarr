@@ -100,13 +100,19 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
                   <option value="none">{t('common.none')}</option>
                   <option value="new">{t('settings.monitorNew')}</option>
                   <option value="all">{t('settings.monitorAll')}</option>
+                  {/* The approve menu only offers Popular when a source supports it. */}
+                  {monitorOption === 'popular' && (
+                    <option value="popular">{t('discover.monitorPopular')}</option>
+                  )}
                 </select>
                 <span className="block text-[11px] text-muted mt-1">
                   {monitor === 'all'
                     ? t('discover.monitorAllDescription')
                     : monitor === 'new'
                       ? t('discover.monitorNewDescription')
-                      : t('discover.monitorNoneDescription')}
+                      : monitor === 'popular'
+                        ? t('discover.monitorPopularDescription')
+                        : t('discover.monitorNoneDescription')}
                 </span>
               </label>
               <label className="block">

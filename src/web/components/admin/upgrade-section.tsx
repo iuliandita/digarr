@@ -18,7 +18,9 @@ export function UpgradeSection() {
     <div className="space-y-3 pt-2">
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted">{t('admin.currentVersion')}</span>
-        <span className="text-sm font-mono text-text">{data.currentVersion ?? 'none'}</span>
+        <span className="text-sm font-mono text-text">
+          {data.currentVersion ?? t('common.none')}
+        </span>
       </div>
 
       <div className="flex items-center justify-between">
@@ -32,7 +34,7 @@ export function UpgradeSection() {
               onClick={() => setExpanded(!expanded)}
               className="text-accent underline"
             >
-              {data.pendingCount} pending
+              {t('admin.pendingCount').replace('{count}', String(data.pendingCount))}
             </button>
           )}
         </span>

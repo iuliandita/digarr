@@ -1475,6 +1475,7 @@ export const ja = {
   'admin.purgeExpiredSessionsDesc': '期限切れのログインセッションを削除します。',
   'admin.currentVersion': '現在のバージョン',
   'admin.pendingMigrations': '保留中のマイグレーション',
+  'admin.pendingCount': '{count} 件保留中',
   'admin.upToDate': '最新',
   'admin.restoreSummary': '{1} テーブルで {0} 行を復元しました',
   'admin.restoreSummaryForce':

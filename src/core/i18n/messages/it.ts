@@ -1499,6 +1499,7 @@ export const it = {
   'admin.purgeExpiredSessionsDesc': 'Elimina le sessioni di accesso scadute.',
   'admin.currentVersion': 'Versione attuale',
   'admin.pendingMigrations': 'Migrazioni in sospeso',
+  'admin.pendingCount': '{count} in sospeso',
   'admin.upToDate': 'Aggiornato',
   'admin.restoreSummary': 'Ripristinate {0} righe in {1} tabelle',
   'admin.restoreSummaryForce':

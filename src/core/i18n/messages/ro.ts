@@ -1494,6 +1494,7 @@ export const ro = {
   'admin.purgeExpiredSessionsDesc': 'Șterge sesiunile de autentificare expirate.',
   'admin.currentVersion': 'Versiunea curentă',
   'admin.pendingMigrations': 'Migrări în așteptare',
+  'admin.pendingCount': '{count} în așteptare',
   'admin.upToDate': 'La zi',
   'admin.restoreSummary': '{0} rânduri restaurate în {1} tabele',
   'admin.restoreSummaryForce':

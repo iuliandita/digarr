@@ -1496,6 +1496,7 @@ export const ru = {
   'admin.purgeExpiredSessionsDesc': 'Удалить истекшие сессии входа.',
   'admin.currentVersion': 'Текущая версия',
   'admin.pendingMigrations': 'Ожидающие миграции',
+  'admin.pendingCount': 'Ожидают: {count}',
   'admin.upToDate': 'Актуально',
   'admin.restoreSummary': 'Восстановлено {0} строк в {1} таблицах',
   'admin.restoreSummaryForce':

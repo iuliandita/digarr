@@ -1494,6 +1494,7 @@ export const ptBR = {
   'admin.purgeExpiredSessionsDesc': 'Excluir sessões de login expiradas.',
   'admin.currentVersion': 'Versão atual',
   'admin.pendingMigrations': 'Migrações pendentes',
+  'admin.pendingCount': '{count} pendentes',
   'admin.upToDate': 'Atualizado',
   'admin.restoreSummary': '{0} linhas restauradas em {1} tabelas',
   'admin.restoreSummaryForce':

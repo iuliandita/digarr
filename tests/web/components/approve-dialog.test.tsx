@@ -103,3 +103,29 @@ describe('ApproveDialog', () => {
     expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ rootFolderId: 1 }))
   })
 })
+
+describe('ApproveDialog monitor option', () => {
+  it('shows and submits Popular when opened with it', async () => {
+    vi.mocked(getLidarrApproveOptions).mockResolvedValue({
+      qualityProfiles: [{ id: 2, name: 'Standard' }],
+      metadataProfiles: [{ id: 3, name: 'Standard' }],
+      rootFolders: [{ id: 5, path: '/music' }],
+    })
+    const onConfirm = vi.fn()
+    renderWithProviders(
+      <ApproveDialog
+        defaults={{ qualityProfileId: 2, metadataProfileId: 3, rootFolderId: 5 }}
+        monitorOption="popular"
+        onConfirm={onConfirm}
+        onCancel={vi.fn()}
+      />,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /add to lidarr/i })).not.toBeDisabled()
+    })
+    expect(screen.getByDisplayValue('Popular albums')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /add to lidarr/i }))
+    expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ monitorOption: 'popular' }))
+  })
+})

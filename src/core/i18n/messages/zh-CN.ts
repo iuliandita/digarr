@@ -1371,6 +1371,7 @@ export const zhCN = {
   'admin.purgeExpiredSessionsDesc': '删除过期的登录会话。',
   'admin.currentVersion': '当前版本',
   'admin.pendingMigrations': '待处理的迁移',
+  'admin.pendingCount': '{count} 个待处理',
   'admin.upToDate': '已是最新',
   'admin.restoreSummary': '已在 {1} 张表中恢复 {0} 行',
   'admin.restoreSummaryForce': '已恢复 {0} 行。请重新输入加密字段的凭据。',

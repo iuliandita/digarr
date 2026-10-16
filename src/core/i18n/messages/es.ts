@@ -1496,6 +1496,7 @@ export const es = {
   'admin.purgeExpiredSessionsDesc': 'Eliminar sesiones de inicio caducadas.',
   'admin.currentVersion': 'Versión actual',
   'admin.pendingMigrations': 'Migraciones pendientes',
+  'admin.pendingCount': '{count} pendientes',
   'admin.upToDate': 'Actualizado',
   'admin.restoreSummary': 'Se restauraron {0} filas en {1} tablas',
   'admin.restoreSummaryForce':

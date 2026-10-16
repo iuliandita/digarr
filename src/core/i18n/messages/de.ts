@@ -1506,6 +1506,7 @@ export const de = {
   'admin.purgeExpiredSessionsDesc': 'Abgelaufene Anmeldesitzungen löschen.',
   'admin.currentVersion': 'Aktuelle Version',
   'admin.pendingMigrations': 'Ausstehende Migrationen',
+  'admin.pendingCount': '{count} ausstehend',
   'admin.upToDate': 'Aktuell',
   'admin.restoreSummary': '{0} Zeilen in {1} Tabellen wiederhergestellt',
   'admin.restoreSummaryForce':

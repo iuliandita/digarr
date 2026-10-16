@@ -1496,6 +1496,7 @@ export const en = {
   'admin.purgeExpiredSessionsDesc': 'Delete expired login sessions.',
   'admin.currentVersion': 'Current version',
   'admin.pendingMigrations': 'Pending migrations',
+  'admin.pendingCount': '{count} pending',
   'admin.upToDate': 'Up to date',
   'admin.restoreSummary': 'Restored {0} rows across {1} tables',
   'admin.restoreSummaryForce': 'Restored {0} rows. Re-enter credentials for encrypted fields.',

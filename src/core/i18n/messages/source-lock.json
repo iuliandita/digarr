@@ -46,6 +46,7 @@
   "admin.migrateTargetBackend": "7165714e06ad",
   "admin.migrateTestConnection": "5bcf311b19d8",
   "admin.migrateVerifyFailed": "47bf963e3c15",
+  "admin.pendingCount": "bc608dfbf45c",
   "admin.pendingMigrations": "4c87839f1792",
   "admin.purgeExpiredSessions": "14e3ed5009a3",
   "admin.purgeExpiredSessionsDesc": "e60b48ecd65e",

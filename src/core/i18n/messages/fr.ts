@@ -1500,6 +1500,7 @@ export const fr = {
   'admin.purgeExpiredSessionsDesc': 'Supprimer les sessions de connexion expirées.',
   'admin.currentVersion': 'Version actuelle',
   'admin.pendingMigrations': 'Migrations en attente',
+  'admin.pendingCount': '{count} en attente',
   'admin.upToDate': 'À jour',
   'admin.restoreSummary': 'Restauration de {0} lignes dans {1} tables',
   'admin.restoreSummaryForce':

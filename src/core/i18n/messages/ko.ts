@@ -1454,6 +1454,7 @@ export const ko = {
   'admin.purgeExpiredSessionsDesc': '만료된 로그인 세션을 삭제합니다.',
   'admin.currentVersion': '현재 버전',
   'admin.pendingMigrations': '대기 중인 마이그레이션',
+  'admin.pendingCount': '{count}개 대기 중',
   'admin.upToDate': '최신',
   'admin.restoreSummary': '{1}개 테이블에서 {0}개 행을 복원했습니다',
   'admin.restoreSummaryForce':
