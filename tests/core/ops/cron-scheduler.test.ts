@@ -46,4 +46,35 @@ describe('CronScheduler', () => {
       error,
     )
   })
+
+  it.each([
+    ['the same schedule', false],
+    ['a replaced schedule', true],
+  ])('never overlaps a slow run with %s', async (_label, reschedule) => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+    vi.spyOn(console, 'log').mockImplementation(() => {})
+    const scheduler = createScheduler()
+    let active = 0
+    let maxActive = 0
+    let release = () => {}
+    const fn = vi.fn(async () => {
+      active++
+      maxActive = Math.max(maxActive, active)
+      await new Promise<void>((resolve) => {
+        release = resolve
+      })
+      active--
+    })
+    scheduler.schedule('slow', '* * * * * *', fn)
+    await vi.advanceTimersByTimeAsync(1100)
+    if (reschedule) scheduler.schedule('slow', '* * * * * *', fn)
+    await vi.advanceTimersByTimeAsync(3000)
+
+    expect(fn).toHaveBeenCalledTimes(1)
+    release()
+    await vi.advanceTimersByTimeAsync(1000)
+    expect(fn).toHaveBeenCalledTimes(2)
+    expect(maxActive).toBe(1)
+  })
 })

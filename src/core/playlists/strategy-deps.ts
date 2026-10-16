@@ -1,9 +1,22 @@
-import { and, desc, eq, gte, inArray, lt, max } from 'drizzle-orm'
+import { and, desc, eq, gte, inArray, lt, max, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { artists, recommendations } from '@/db/schema'
 import type { StrategyArtist, StrategyDeps } from './strategies/types'
 
 const APPROVED_STATUSES = ['approved', 'added_to_lidarr']
+
+// Filtering before LIMIT keeps a genre outside the top-scored approvals reachable.
+function genreSubstring(genre: string) {
+  return sql`EXISTS (SELECT 1 FROM unnest(${artists.genres}) g
+    WHERE strpos(lower(g), lower(${genre})) > 0)`
+}
+
+// Same normalization as the mood-mix strategy: lowercase, '&' as 'and', other
+// punctuation collapsed to single spaces.
+function genreKeywordMatch(keywords: string[]) {
+  return sql`EXISTS (SELECT 1 FROM unnest(${artists.genres}) g, unnest(${sql.param(keywords)}::text[]) k
+    WHERE strpos(trim(regexp_replace(replace(lower(g), '&', ' and '), '[^a-z0-9]+', ' ', 'g')), k) > 0)`
+}
 
 export function buildStrategyDeps(db: Database, userId: number | null): StrategyDeps {
   return {
@@ -27,6 +40,7 @@ export function buildStrategyDeps(db: Database, userId: number | null): Strategy
     },
 
     async getApprovedArtists(opts): Promise<StrategyArtist[]> {
+      if (userId == null) return []
       const rows = await db
         .select({
           name: artists.name,
@@ -40,28 +54,24 @@ export function buildStrategyDeps(db: Database, userId: number | null): Strategy
           and(
             inArray(recommendations.status, APPROVED_STATUSES),
             opts.since ? gte(recommendations.actedOnAt, opts.since) : undefined,
-            userId != null ? eq(recommendations.userId, userId) : undefined,
+            eq(recommendations.userId, userId),
+            opts.genre ? genreSubstring(opts.genre) : undefined,
+            opts.genreKeywords?.length ? genreKeywordMatch(opts.genreKeywords) : undefined,
           ),
         )
         .orderBy(desc(recommendations.score))
         .limit(opts.limit ?? 200)
 
-      let result: StrategyArtist[] = rows.map((r) => ({
+      return rows.map((r) => ({
         name: r.name,
         mbid: r.mbid,
         score: r.score,
         genres: r.genres ?? [],
       }))
-
-      if (opts.genre) {
-        const g = opts.genre.toLowerCase()
-        result = result.filter((a) => a.genres?.some((genre) => genre.toLowerCase().includes(g)))
-      }
-
-      return result
     },
 
     async getOlderApprovedArtists(opts): Promise<StrategyArtist[]> {
+      if (userId == null) return []
       const rows = await db
         .select({
           name: artists.name,
@@ -75,7 +85,7 @@ export function buildStrategyDeps(db: Database, userId: number | null): Strategy
           and(
             inArray(recommendations.status, APPROVED_STATUSES),
             lt(recommendations.actedOnAt, opts.olderThan),
-            userId != null ? eq(recommendations.userId, userId) : undefined,
+            eq(recommendations.userId, userId),
           ),
         )
         .orderBy(desc(recommendations.score))

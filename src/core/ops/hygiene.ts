@@ -33,53 +33,33 @@ export async function purgeSessions(db: OpsDb): Promise<HygieneResult> {
 // ── Complex Hygiene ────────────────────────────
 
 export async function dedupeRepair(db: OpsDb): Promise<HygieneResult> {
-  // Find duplicate (userId, artistId) groups
-  const dupeGroups = await db
-    .select({
-      userId: recommendations.userId,
-      artistId: recommendations.artistId,
-      cnt: sql<number>`count(*)::int`,
-    })
-    .from(recommendations)
-    .groupBy(recommendations.userId, recommendations.artistId)
-    .having(sql`count(*) > 1`)
+  // Only pending rows are candidates: acted-on rows record user decisions, and album
+  // recs for different release groups by one artist are distinct recommendations.
+  const result = await db.execute<{ id: number; group_key: string }>(sql`
+    WITH ranked AS (
+      SELECT id,
+        concat_ws(':', coalesce(user_id::text, ''), artist_id, kind,
+          coalesce(recommended_release_group_id, '')) AS group_key,
+        row_number() OVER (
+          PARTITION BY user_id, artist_id, kind, coalesce(recommended_release_group_id, '')
+          ORDER BY score DESC, id ASC
+        ) AS rn
+      FROM ${recommendations}
+      WHERE status = 'pending'
+    )
+    UPDATE ${recommendations} AS r
+    SET status = 'duplicate'
+    FROM ranked
+    WHERE r.id = ranked.id AND ranked.rn > 1 AND r.status = 'pending'
+    RETURNING ranked.id, ranked.group_key
+  `)
 
-  let removed = 0
-
-  for (const group of dupeGroups) {
-    // Get all recs in this group, ordered by score desc
-    const recs = await db
-      .select({
-        id: recommendations.id,
-        score: recommendations.score,
-        sources: recommendations.sources,
-        status: recommendations.status,
-      })
-      .from(recommendations)
-      .where(
-        and(
-          group.userId != null
-            ? eq(recommendations.userId, group.userId)
-            : sql`${recommendations.userId} IS NULL`,
-          eq(recommendations.artistId, group.artistId),
-        ),
-      )
-      .orderBy(sql`${recommendations.score} DESC`)
-
-    if (recs.length <= 1) continue
-
-    // Keep the highest-scored one, mark rest as duplicate
-    const duplicateIds = recs.slice(1).map((r: { id: number }) => r.id)
-
-    await db
-      .update(recommendations)
-      .set({ status: 'duplicate' })
-      .where(inArray(recommendations.id, duplicateIds))
-
-    removed += duplicateIds.length
+  const rows = result.rows as Array<{ id: number; group_key: string }>
+  return {
+    tool: 'dedupe',
+    duplicateGroups: new Set(rows.map((row) => row.group_key)).size,
+    removed: rows.length,
   }
-
-  return { tool: 'dedupe', duplicateGroups: dupeGroups.length, removed }
 }
 
 // ── Rebuild Genres ──────────────────────────────
@@ -99,54 +79,45 @@ export async function rebuildGenres(db: OpsDb): Promise<HygieneResult> {
     db.select({ spotifyGenres: artistMetadata.spotifyGenres }).from(artistMetadata),
   ])
 
-  const genreCounts = new Map<string, number>()
-
-  for (const row of artistRows) {
-    const allGenres = [...(row.tags ?? []), ...(row.genres ?? [])]
-    for (const g of allGenres) {
-      const normalized = g.toLowerCase().trim()
-      if (normalized) genreCounts.set(normalized, (genreCounts.get(normalized) ?? 0) + 1)
+  // Names that slugify alike ("hip hop", "hip-hop") share one row; a second row per
+  // slug in one INSERT ... ON CONFLICT would abort the whole rebuild.
+  const bySlug = new Map<string, { count: number; names: Map<string, number> }>()
+  function countRow(rowGenres: string[]) {
+    const seen = new Map<string, string>()
+    for (const g of rowGenres) {
+      const name = g.toLowerCase().trim()
+      const slug = slugify(name)
+      if (slug && !seen.has(slug)) seen.set(slug, name)
+    }
+    for (const [slug, name] of seen) {
+      const entry = bySlug.get(slug) ?? { count: 0, names: new Map<string, number>() }
+      entry.count += 1
+      entry.names.set(name, (entry.names.get(name) ?? 0) + 1)
+      bySlug.set(slug, entry)
     }
   }
+  for (const row of artistRows) countRow([...(row.tags ?? []), ...(row.genres ?? [])])
+  for (const row of metaRows) countRow(row.spotifyGenres ?? [])
 
-  for (const row of metaRows) {
-    for (const g of row.spotifyGenres ?? []) {
-      const normalized = g.toLowerCase().trim()
-      if (normalized) genreCounts.set(normalized, (genreCounts.get(normalized) ?? 0) + 1)
-    }
-  }
+  const cachedAt = new Date()
+  const rows = Array.from(bySlug, ([slug, entry]) => {
+    const [name] = [...entry.names].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))[0] ?? [
+      slug,
+    ]
+    return { name, slug, source: 'rebuild', artistCount: entry.count, cachedAt }
+  })
 
-  // Clear and rebuild
-  await db.delete(genres)
-
-  if (genreCounts.size > 0) {
-    const rows = Array.from(genreCounts, ([name, count]) => ({
-      name,
-      slug: slugify(name),
-      source: 'rebuild',
-      artistCount: count,
-      cachedAt: new Date(),
-    }))
+  await db.transaction(async (tx) => {
+    await tx.delete(genres)
     // genres has ~6 columns; 2000 rows = ~12k params, safely under the 65535 cap.
     const CHUNK = 2000
     for (let i = 0; i < rows.length; i += CHUNK) {
-      const chunk = rows.slice(i, i + CHUNK)
-      await db
-        .insert(genres)
-        .values(chunk)
-        .onConflictDoUpdate({
-          target: genres.slug,
-          set: {
-            artistCount: sql`excluded.artist_count`,
-            cachedAt: sql`excluded.cached_at`,
-            source: sql`excluded.source`,
-          },
-        })
+      await tx.insert(genres).values(rows.slice(i, i + CHUNK))
     }
-  }
+  })
 
   const elapsed = ((Date.now() - start) / 1000).toFixed(1)
-  return { tool: 'rebuild-genres', genres: genreCounts.size, elapsed: `${elapsed}s` }
+  return { tool: 'rebuild-genres', genres: rows.length, elapsed: `${elapsed}s` }
 }
 
 // ── Rescore Recommendations ─────────────────────
@@ -273,71 +244,78 @@ export async function aiReasoningAudit(
   }
   auditState = { flaggedIds: [], fixedIds: [], inProgress: true }
 
-  const recs = await db
-    .select({
-      recId: recommendations.id,
-      aiReasoning: recommendations.aiReasoning,
-      artistName: artists.name,
-      artistTags: artists.tags,
-      artistGenres: artists.genres,
-    })
-    .from(recommendations)
-    .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .where(isNotNull(recommendations.aiReasoning))
+  // Only a started background auto-fix may keep the lock past this call.
+  let keepLock = false
+  try {
+    const recs = await db
+      .select({
+        recId: recommendations.id,
+        aiReasoning: recommendations.aiReasoning,
+        artistName: artists.name,
+        artistTags: artists.tags,
+        artistGenres: artists.genres,
+      })
+      .from(recommendations)
+      .innerJoin(artists, eq(recommendations.artistId, artists.id))
+      .where(isNotNull(recommendations.aiReasoning))
 
-  const flaggedIds: number[] = []
+    const flaggedIds: number[] = []
 
-  for (const rec of recs) {
-    const reasoning = (rec.aiReasoning as string).toLowerCase()
-    const name = (rec.artistName as string).toLowerCase()
-    const allGenres = [...(rec.artistTags ?? []), ...(rec.artistGenres ?? [])].map((g: string) =>
-      g.toLowerCase(),
-    )
+    for (const rec of recs) {
+      const reasoning = (rec.aiReasoning as string).toLowerCase()
+      const name = (rec.artistName as string).toLowerCase()
+      const allGenres = [...(rec.artistTags ?? []), ...(rec.artistGenres ?? [])].map((g: string) =>
+        g.toLowerCase(),
+      )
 
-    const namePresent = reasoning.includes(name)
-    const genreOverlap = allGenres.some((g: string) => reasoning.includes(g))
+      const namePresent = reasoning.includes(name)
+      const genreOverlap = allGenres.some((g: string) => reasoning.includes(g))
 
-    if (!namePresent && !genreOverlap) {
-      flaggedIds.push(rec.recId as number)
-    }
-  }
-
-  const autoFixStarted = !!(autoFix?.enabled && flaggedIds.length > 0)
-
-  auditState = { flaggedIds, fixedIds: [], inProgress: autoFixStarted }
-
-  if (autoFixStarted) {
-    ;(async () => {
-      for (const id of flaggedIds) {
-        try {
-          const rec = recs.find((r: { recId: number }) => r.recId === id)
-          if (!rec) continue
-          const allGenres = [...(rec.artistTags ?? []), ...(rec.artistGenres ?? [])]
-          if (!autoFix) continue
-          const newReasoning = await autoFix.generateReasoning(
-            rec.artistName as string,
-            allGenres as string[],
-          )
-          await db
-            .update(recommendations)
-            .set({ aiReasoning: newReasoning })
-            .where(eq(recommendations.id, id))
-          auditState.fixedIds.push(id)
-        } catch (err) {
-          console.error(`[hygiene] Failed to regenerate reasoning for rec ${id}:`, err)
-        }
+      if (!namePresent && !genreOverlap) {
+        flaggedIds.push(rec.recId as number)
       }
-      auditState.inProgress = false
-    })().catch((err) => {
-      console.error('[hygiene] AI audit auto-fix failed:', err)
-      auditState.inProgress = false
-    })
-  }
+    }
 
-  return {
-    scanned: recs.length,
-    flagged: flaggedIds.length,
-    flaggedIds,
-    autoFixStarted,
+    const autoFixStarted = !!(autoFix?.enabled && flaggedIds.length > 0)
+
+    auditState = { flaggedIds, fixedIds: [], inProgress: autoFixStarted }
+    keepLock = autoFixStarted
+
+    if (autoFixStarted) {
+      ;(async () => {
+        for (const id of flaggedIds) {
+          try {
+            const rec = recs.find((r: { recId: number }) => r.recId === id)
+            if (!rec) continue
+            const allGenres = [...(rec.artistTags ?? []), ...(rec.artistGenres ?? [])]
+            if (!autoFix) continue
+            const newReasoning = await autoFix.generateReasoning(
+              rec.artistName as string,
+              allGenres as string[],
+            )
+            await db
+              .update(recommendations)
+              .set({ aiReasoning: newReasoning })
+              .where(eq(recommendations.id, id))
+            auditState.fixedIds.push(id)
+          } catch (err) {
+            console.error(`[hygiene] Failed to regenerate reasoning for rec ${id}:`, err)
+          }
+        }
+        auditState.inProgress = false
+      })().catch((err) => {
+        console.error('[hygiene] AI audit auto-fix failed:', err)
+        auditState.inProgress = false
+      })
+    }
+
+    return {
+      scanned: recs.length,
+      flagged: flaggedIds.length,
+      flaggedIds,
+      autoFixStarted,
+    }
+  } finally {
+    if (!keepLock) auditState.inProgress = false
   }
 }

@@ -324,7 +324,8 @@ releases from the same artist in one scan window.
 
 The library gap-fill executor iterates a rotated, bounded slice of the user's
 tracked artists. Its cursor is `library_artists.last_gap_check_at`, ordered
-`asc nulls first` so never-checked artists go first. The default slice is 25
+`asc nulls first` so never-checked artists go first. Library snapshot replacement
+carries the cursor over for rows whose source artist ID and MBID are unchanged. The default slice is 25
 artists per run, overridable through the mode's `maxArtistsPerRun` setting. A
 p-queue walks the slice with concurrency 2 and a 200ms interval so large libraries
 do not starve the event loop.

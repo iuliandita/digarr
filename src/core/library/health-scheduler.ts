@@ -6,6 +6,8 @@ export type LibraryHealthSchedulerDeps = {
   libraryHealth: {
     startScan: () => void
   }
+  // Scheduled scans are Lidarr-only; discovery-only installs skip them instead of failing every tick.
+  isConfigured: () => Promise<boolean>
 }
 
 function buildCronPattern(intervalHours: number): string {
@@ -19,12 +21,13 @@ export function startLibraryHealthScheduler(deps: LibraryHealthSchedulerDeps): C
   console.log(
     `[library-health-scheduler] started, interval=${deps.intervalHours}h, pattern="${pattern}"`,
   )
-  return new Cron(pattern, () => {
+  return new Cron(pattern, async () => {
     if (isMaintenance()) {
       console.log('[library-health-scheduler] tick skipped: maintenance in progress')
       return
     }
     try {
+      if (!(await deps.isConfigured())) return
       deps.libraryHealth.startScan()
     } catch (err: unknown) {
       console.error('[library-health-scheduler] tick failed:', err)

@@ -5,6 +5,8 @@ import { pickBestTrackMatch } from './playlist-match'
 import { createPlaylistScope, playlistEndpoint } from './playlist-scope'
 import type { DestinationTarget, PlaylistItem, PlaylistResult, TargetType } from './types'
 
+const PLAYLIST_WRITE_CHUNK = 100
+
 export type JellyfinFamilyPlaylistConfig = {
   url: string
   apiKey: string
@@ -246,14 +248,23 @@ export function createJellyfinFamilyPlaylistTarget(
                   throw new Error(`${serviceName} returned incomplete playlist entries`)
                 }
               }
-              if (entryIds.length) {
-                const params = new URLSearchParams({ EntryIds: entryIds.join(',') })
+              // Add before removing so a failed add leaves the old entries in place, and
+              // chunk both so long playlists stay under server query-length limits.
+              for (let i = 0; i < itemIds.length; i += PLAYLIST_WRITE_CHUNK) {
+                const params = new URLSearchParams({
+                  Ids: itemIds.slice(i, i + PLAYLIST_WRITE_CHUNK).join(','),
+                  UserId: userId,
+                })
+                await client.postVoid(`/Playlists/${encodedId}/Items?${params}`, undefined, {
+                  retries: 0,
+                })
+              }
+              for (let i = 0; i < entryIds.length; i += PLAYLIST_WRITE_CHUNK) {
+                const params = new URLSearchParams({
+                  EntryIds: entryIds.slice(i, i + PLAYLIST_WRITE_CHUNK).join(','),
+                })
                 await client.delete(`/Playlists/${encodedId}/Items?${params}`, { retries: 0 })
               }
-              const params = new URLSearchParams({ Ids: itemIds.join(','), UserId: userId })
-              await client.postVoid(`/Playlists/${encodedId}/Items?${params}`, undefined, {
-                retries: 0,
-              })
               return success(playlistId, playlist.Name ?? '')
             } catch (error) {
               if (error instanceof HttpError) {

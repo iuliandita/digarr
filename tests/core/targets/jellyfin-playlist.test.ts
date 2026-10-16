@@ -267,22 +267,24 @@ describe('Jellyfin scheduled playlist session', () => {
       itemsSkipped: 1,
     })
     const writes = mutations(fetchMock)
-    expect(writes.map(([, init]) => init.method)).toEqual(['DELETE', 'POST'])
-    expect(new URL(writes[0]?.[0]).searchParams.get('EntryIds')).toBe('entry-1')
-    expect(new URL(writes[1]?.[0]).searchParams.get('Ids')).toBe('track-1')
+    expect(writes.map(([, init]) => init.method)).toEqual(['POST', 'DELETE'])
+    expect(new URL(writes[0]?.[0]).searchParams.get('Ids')).toBe('track-1')
+    expect(new URL(writes[1]?.[0]).searchParams.get('EntryIds')).toBe('entry-1')
     expect(writes.every(([url]) => new URL(url).pathname === '/Playlists/playlist-1/Items')).toBe(
       true,
     )
   })
 
-  it('collects every page before removing any item', async () => {
+  it('collects every page before changing anything and removes old entries in chunks', async () => {
     const fetchMock = exportFetch()
+    const entries = Array.from({ length: 250 }, (_, index) => `entry-${index}`)
     mockFetch.mockImplementation(async (url: string, init: RequestInit) => {
       const request = new URL(url)
       if (request.pathname === '/Playlists/playlist-1/Items' && init.method === 'GET') {
         expect(mutations(fetchMock)).toHaveLength(0)
-        const entry = request.searchParams.get('StartIndex') === '0' ? 'entry-1' : 'entry-2'
-        return ok({ Items: [{ PlaylistItemId: entry }], TotalRecordCount: 2 })
+        const start = Number(request.searchParams.get('StartIndex'))
+        const page = entries.slice(start, start + 200).map((id) => ({ PlaylistItemId: id }))
+        return ok({ Items: page, TotalRecordCount: entries.length })
       }
       return fetchMock(url, init)
     })
@@ -290,8 +292,10 @@ describe('Jellyfin scheduled playlist session', () => {
       EXPORT_ITEMS,
     )
     expect((await session?.replacePlaylist('playlist-1', 'Picks'))?.success).toBe(true)
-    const writes = mutations(fetchMock)
-    expect(new URL(writes[0]?.[0]).searchParams.get('EntryIds')).toBe('entry-1,entry-2')
+    const deletes = mutations(fetchMock).filter(([, init]) => init.method === 'DELETE')
+    const removed = deletes.map(([url]) => new URL(url).searchParams.get('EntryIds')?.split(','))
+    expect(removed.map((ids) => ids?.length)).toEqual([100, 100, 50])
+    expect(removed.flat()).toEqual(entries)
   })
 
   it.each([
@@ -345,7 +349,7 @@ describe('Jellyfin scheduled playlist session', () => {
   })
 
   it.each([404, 403, 500])(
-    'retains the ID on update failure %i and never creates a replacement',
+    'retains the ID and the old entries on add failure %i and never creates a replacement',
     async (status) => {
       const fetchMock = exportFetch({ addStatus: status })
       mockFetch.mockImplementation(fetchMock)
@@ -356,12 +360,12 @@ describe('Jellyfin scheduled playlist session', () => {
         success: false,
         playlistId: 'playlist-1',
       })
-      expect(mutations(fetchMock)).toHaveLength(2)
+      expect(mutations(fetchMock)).toHaveLength(1)
       expect(await session?.replacePlaylist('playlist-1', 'Picks')).toMatchObject({
         success: false,
         playlistId: 'playlist-1',
       })
-      expect(mutations(fetchMock)).toHaveLength(4)
+      expect(mutations(fetchMock).map(([, init]) => init.method)).toEqual(['POST', 'POST'])
       expect(
         mutations(fetchMock).every(
           ([url]) => new URL(url).pathname === '/Playlists/playlist-1/Items',

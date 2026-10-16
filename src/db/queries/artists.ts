@@ -176,7 +176,7 @@ export async function getGenreEnrichments(
             ORDER BY ar.name
             LIMIT ${exampleLimit}
           ) sub
-          WHERE g.source = 'library'`,
+          WHERE g.source IN ('library', 'rebuild')`,
     ),
     db.execute<{ genre_name: string; cnt: string }>(
       sql`SELECT g.name AS genre_name, count(*)::text AS cnt
@@ -184,7 +184,7 @@ export async function getGenreEnrichments(
           JOIN artists ar ON EXISTS (
             SELECT 1 FROM unnest(ar.genres) ag WHERE lower(ag) = lower(g.name)
           )
-          WHERE g.source = 'library'
+          WHERE g.source IN ('library', 'rebuild')
           GROUP BY g.name`,
     ),
   ])

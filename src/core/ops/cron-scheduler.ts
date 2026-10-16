@@ -5,6 +5,9 @@ type ScheduledJob = { name: string; cron: Cron; expression: string }
 
 export class CronScheduler {
   private jobs = new Map<string, ScheduledJob>()
+  // Keyed by name rather than croner's per-instance `protect`, so a run that is still
+  // going when its schedule is replaced also blocks the replacement's ticks.
+  private running = new Set<string>()
 
   constructor(private readonly logPrefix: string) {}
 
@@ -15,10 +18,17 @@ export class CronScheduler {
         console.log(`${this.logPrefix} tick skipped: maintenance in progress`)
         return
       }
+      if (this.running.has(name)) {
+        console.log(`${this.logPrefix} Job '${name}' tick skipped: previous run still in progress`)
+        return
+      }
+      this.running.add(name)
       try {
         await fn()
       } catch (err: unknown) {
         console.error(`${this.logPrefix} Job '${name}' (${cronExpression}) failed:`, err)
+      } finally {
+        this.running.delete(name)
       }
     })
     this.jobs.set(name, { name, cron, expression: cronExpression })

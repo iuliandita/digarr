@@ -873,6 +873,11 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 | DELETE | `/api/v1/library/overrides/:source/:sourceArtistId` | Admin | Remove a saved manual artist override |
 | POST | `/api/v1/library/reconcile` | Admin | Trigger a background reconcile pass after override changes |
 
+**Library health** notes:
+- Lidarr reads fail when Lidarr is not configured, so a manual scan records that error instead of saving empty checks, and `GET /api/v1/library/stats` fails; scheduled scans are skipped while Lidarr is not configured
+- When some per-artist album lookups fail, the scan saves its checks with `lastError` noting that missing-album counts are partial; when all fail, the scan fails, keeps the previous checks, and records `lastError`
+- `POST /api/v1/library/health/:checkId/fix` uses the last persisted scan after a restart and returns 400 when no scan results exist for that check
+
 **GET /api/v1/library/sources** response notes:
 - `lastSyncCounts.albumsSynced` is present for album-capable sources after a successful sync
 - Lidarr, Plex, and Jellyfin source rows now include artist sync counts plus the number of reconciled album rows written for that source snapshot
@@ -962,6 +967,7 @@ Album override notes:
 - Set `correctAlbumMbid` to `null` or `""` to store an ignore decision instead of a correction
 - `correctAlbumMbid`, when present, must be a valid release-group UUID
 - Album overrides persist in the separate `library_album_match_overrides` table keyed by `(userId, source, sourceAlbumId)`
+- Corrections and ignores apply to that user's owned albums (album coverage and Gap-Fill) as soon as they are saved; the synced library rows, including shared Lidarr rows, keep the source match
 
 **GET /api/v1/library/album-coverage/:artistMbid** notes:
 - `artistMbid` must be a valid UUID

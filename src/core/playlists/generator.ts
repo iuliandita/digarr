@@ -42,6 +42,23 @@ export function getStrategy(strategy: PlaylistStrategy): PlaylistStrategyImpl {
   }
 }
 
+/**
+ * Why a regeneration should keep the previously saved tracks, or null when it is
+ * usable. An empty selection (no approvals yet) is a legitimate empty playlist.
+ */
+export function playlistGenerationFailure(resolution: PlaylistGenerationSummary): string | null {
+  const requested = resolution.requestedArtistCount
+  if (requested === 0) return null
+  const errors = resolution.outcomes.filter((outcome) => outcome.status === 'error').length
+  if (resolution.trackCount === 0) {
+    return `No tracks resolved for ${requested} artists (${errors} resolver errors)`
+  }
+  if (errors * 2 > requested) {
+    return `Track resolution failed for ${errors} of ${requested} artists`
+  }
+  return null
+}
+
 export async function generatePlaylist(
   strategy: PlaylistStrategy,
   config: Partial<PlaylistConfig> | null | undefined,

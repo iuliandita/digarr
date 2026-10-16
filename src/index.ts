@@ -48,7 +48,7 @@ import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
 import { withPlaylistLock } from './core/playlists/generation-lock'
-import { generatePlaylist } from './core/playlists/generator'
+import { generatePlaylist, playlistGenerationFailure } from './core/playlists/generator'
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
@@ -135,6 +135,7 @@ import {
 import * as jobQueries from './db/queries/jobs'
 import {
   getLibraryHealthState,
+  markLibraryHealthScanFailed,
   markLibraryHealthScanStarted,
   saveLibraryHealthState,
 } from './db/queries/library-health'
@@ -511,29 +512,24 @@ const genreService = new GenreService({
 // LibraryHealthService uses a lazy Lidarr client that reads current settings per call.
 // This avoids the chicken-and-egg problem of needing settings at construction time.
 function makeLazyLidarrClient() {
+  // Reads throw too: an empty library would make an unconfigured Lidarr look healthy.
   async function getClient() {
     const s = await getSettings(db)
     if (s?.lidarrUrl && s?.lidarrApiKey) {
       return createLidarrClient(s.lidarrUrl, s.lidarrApiKey, s.skipTlsVerify ?? false)
     }
-    return null
+    throw new Error('Lidarr not configured')
   }
 
   return {
-    getArtists: async () => (await getClient())?.getArtists() ?? [],
-    getAlbums: async (artistId: number) => (await getClient())?.getAlbums(artistId) ?? [],
-    lookupArtist: async (term: string) => (await getClient())?.lookupArtist(term) ?? [],
-    setArtistsMonitored: async (artistIds: number[], monitored: boolean) => {
-      const client = await getClient()
-      if (!client) throw new Error('Lidarr not configured')
-      return client.setArtistsMonitored(artistIds, monitored)
-    },
-    triggerCommand: async (name: string, body?: Record<string, unknown>) => {
-      const client = await getClient()
-      if (!client) throw new Error('Lidarr not configured')
-      return client.triggerCommand(name, body)
-    },
-    getRootFolders: async () => (await getClient())?.getRootFolders() ?? [],
+    getArtists: async () => (await getClient()).getArtists(),
+    getAlbums: async (artistId: number) => (await getClient()).getAlbums(artistId),
+    lookupArtist: async (term: string) => (await getClient()).lookupArtist(term),
+    setArtistsMonitored: async (artistIds: number[], monitored: boolean) =>
+      (await getClient()).setArtistsMonitored(artistIds, monitored),
+    triggerCommand: async (name: string, body?: Record<string, unknown>) =>
+      (await getClient()).triggerCommand(name, body),
+    getRootFolders: async () => (await getClient()).getRootFolders(),
   }
 }
 
@@ -570,6 +566,7 @@ const libraryHealth = new LibraryHealthService({
     markScanStarted: () => markLibraryHealthScanStarted(db),
     save: ({ checks, lastCompletedAt, lastError }) =>
       saveLibraryHealthState(db, { checks, lastCompletedAt, lastError }),
+    markScanFailed: (error) => markLibraryHealthScanFailed(db, error),
   },
 })
 
@@ -1065,8 +1062,12 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
       },
     })
 
-    const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
-    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId ?? null)
+    // Approvals are per user; an ownerless playlist would regenerate empty.
+    if (playlist.userId == null) {
+      throw new Error('Playlist has no owner; kept the previous tracks')
+    }
+    const strategyDeps = buildStrategyDeps(db, playlist.userId)
+    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId)
     const generation = await generatePlaylist(
       playlist.strategy as import('./db/schema').PlaylistStrategy,
       playlist.config,
@@ -1085,17 +1086,21 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
       position: index,
     }))
 
-    await replacePlaylistTracks(db, playlist.id, trackInserts)
-    await updatePlaylistRow(db, playlist.id, {
-      lastGeneratedAt: new Date(),
-      trackCount: generation.tracks.length,
-    })
-
     if (jobId != null) {
       await jobQueries.updateJobMetadata(db, jobId, {
         playlistResolution: generation.resolution,
       })
     }
+
+    // A resolver outage would otherwise replace a good playlist with an empty or thin one.
+    const failure = playlistGenerationFailure(generation.resolution)
+    if (failure) throw new Error(`${failure}; kept the previous tracks`)
+
+    await replacePlaylistTracks(db, playlist.id, trackInserts)
+    await updatePlaylistRow(db, playlist.id, {
+      lastGeneratedAt: new Date(),
+      trackCount: generation.tracks.length,
+    })
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
       const userId = playlist.userId
@@ -1217,6 +1222,10 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   libraryHealthCron = startLibraryHealthScheduler({
     intervalHours,
     libraryHealth,
+    isConfigured: async () => {
+      const s = await getSettings(db)
+      return Boolean(s?.lidarrUrl && s?.lidarrApiKey)
+    },
   })
 }
 
