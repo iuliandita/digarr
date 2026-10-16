@@ -8,11 +8,7 @@
       "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/unraid/digarr.xml",
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["deploy/unraid/digarr.xml", "docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Compared current upstream blobs and PR status on October 15 after independently reviewed personal PR5 merged. Bundled and published personal XML explain paired initial-account settings and existing-account no-op. Community bootstrap help remains tracked in issue843 alongside pending PR697. No variable, image channel, port, volume, permission or WebUI URL changes.",
         "breaking": "none",
         "migration": "",
@@ -189,11 +185,7 @@
       "digest": "e8388206b1a3337aa3368ec4b20f38ab631c719dfc33e33844a5ec9f32002e25",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
         "note": "Pre-migration snapshot reads only the tables and columns present in the active schema, fails if no Digarr tables are found there, records omissions in an optional absentSchema field, and logs one actionable line before rethrowing a real backup failure. OPERATIONS and switching-backends say releases after v2.0.0 need no override for added columns or tables while v2.0.0 itself still does, and OPERATIONS notes that restoring an omitted-table snapshot into a database holding rows in that table is refused.",
         "breaking": "none",
         "migration": "Upgrade: no schema migration, and the backup format version and retention are unchanged; absentSchema is an optional additive field the restore path never reads, and absent tables are omitted entirely so a restore cannot clear them. Rollback: reverting restores the strict snapshot and its missing-column failure, so the native backup guidance for older schemas still applies.",
@@ -208,12 +200,7 @@
       "digest": "8076b80cdb5d50e0ae9aed883feca0fd380a1505edca54db9ad0e8214a247d09",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          ".env.example",
-          "docs/AUTHENTICATION.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Reviewed both environment examples and all deployment guides for paired initial-account values, 12-character password minimum, fail-closed fresh boot, existing-account no-op and manual registration. Bootstrap keeps raw credential bytes and never resets existing passwords or roles; no new setting or secret source is added.",
         "breaking": "An empty database with only one initial-account variable or a short initial password now exits before HTTP.",
         "migration": "",
@@ -259,12 +246,7 @@
       "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/AUTHENTICATION.md",
-          "docs/API.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Review the combined exact issuer/subject OIDC contract, locked historical-identity recovery, first-admin bootstrap before HTTP, account-first atomic setup and settings secret projection. Preserve local login, sessions and no email linking.",
         "breaking": "Legacy issuer-less SSO accounts remain unbound until verified operator recovery; partial or short initial-admin credentials stop empty-database startup.",
         "migration": "",
@@ -327,11 +309,7 @@
       "digest": "75221e5e2b2afb01ce5f514538aa03a5ed07e082b94d4a3cbca8cfba061b3c5b",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "OIDC callback and link documentation describe issuer/subject matching and legacy quarantine; request bodies, callback URLs and cookies retain their contract.",
         "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
         "migration": "",
@@ -489,10 +467,7 @@
       "digest": "4d383b41655884e98eaa371018abc21f38a45216147c468dbd8e318739a67542",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/SCREENSHOTS.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
         "note": "Foundation of the UI refresh: self-hosted Roboto Flex, type/radius/elevation/focus tokens derived per theme, theme-token status colors, Disclosure keeps content mounted, Dashboard page title and empty/error states, reduced motion. Changelog entry added; screenshot doc notes the captures predate the refresh and will be recaptured at the end of #889. README and OPERATIONS unaffected: no setup, config, or behavior contract changes.",
         "breaking": "none",
         "migration": "",
@@ -700,12 +675,7 @@
       "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "docs/ARCHITECTURE.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Review combined complete MusicBrainz pagination and coverage selection, owner-scoped discovery, cooperative cancellation, per-channel digest retries and saved playlist exports. Remove the unused create-only orchestrator without changing active failure aggregation or file exports.",
         "breaking": "Incomplete provider pages and uncertain playlist destinations fail explicitly; album coverage can decrease and hung cancellation remains busy. See combined migration and rollback precautions for persisted state.",
         "migration": "",
@@ -785,12 +755,7 @@
       "digest": "de2a09a9b218749ad9ef067a3d70624e609f7d3e83204af8f7eedf47bdbc887c",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "README.md",
-          "docs/ROADMAP.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md", "docs/OPERATIONS.md"],
         "note": "Patch release v2.0.1 bumps every class A surface together: package.json, chart, changelog section, roadmap header and highlights, README banner and pin example, API header, Compose pin comments. No workflow, channel or promotion change; image pins stay at 2.0.0 until digest sync.",
         "breaking": "none",
         "migration": "",
@@ -825,9 +790,7 @@
       "digest": "418414657afba2313f551b8aa0f553d39bbc3a176c69d326300f7530231b9e4f",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/MAINTENANCE.md"
-        ],
+        "docs": ["docs/MAINTENANCE.md"],
         "note": "Require copyable Compose and README version examples plus the API reference version to match package.json before tagging, while actual published Helm and Unraid pins retain their post-publication lag. Document the release checklist and preserve immutable published tags.",
         "breaking": "none",
         "migration": "",
