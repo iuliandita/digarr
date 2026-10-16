@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { useI18n } from '../lib/i18n'
 import { clampVolume, readStoredVolume, writeStoredVolume } from '../lib/preview-volume'
@@ -200,6 +200,20 @@ export function usePreview() {
     currentMbidRef.current = null
     setStateAndRef(() => INITIAL_STATE)
   }, [issueSpotifyCommand, setStateAndRef])
+
+  // Persistent in AppShell: release audio and invalidate in-flight requests on unmount.
+  useEffect(
+    () => () => {
+      requestIdRef.current += 1
+      const audio = audioRef.current
+      if (audio) {
+        audio.pause()
+        audio.src = ''
+        audioRef.current = null
+      }
+    },
+    [],
+  )
 
   const onSpotifyPlaybackStarted = useCallback(() => {
     setStateAndRef((current) =>

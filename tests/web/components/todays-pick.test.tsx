@@ -102,4 +102,31 @@ describe('TodaysPick', () => {
 
     expect(screen.getByText('Popular albums')).toBeInTheDocument()
   })
+
+  it('shows the next pick image after the previous one failed to load', () => {
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const pick = (id: number, imageUrl: string) => (
+      <MemoryRouter>
+        <I18nProvider>
+          <QueryClientProvider client={client}>
+            <TodaysPick
+              rec={{ ...rec, id, artist: { ...rec.artist, imageUrl } }}
+              loading={false}
+              onApprove={vi.fn()}
+              onReject={vi.fn()}
+              onSkip={vi.fn()}
+              onRunScan={vi.fn()}
+            />
+          </QueryClientProvider>
+        </I18nProvider>
+      </MemoryRouter>
+    )
+    const { rerender } = render(pick(1, 'https://img.example/a.jpg'))
+    fireEvent.error(screen.getByAltText('Radiohead'))
+    expect(screen.queryByAltText('Radiohead')).not.toBeInTheDocument()
+
+    rerender(pick(2, 'https://img.example/b.jpg'))
+
+    expect(screen.getByAltText('Radiohead')).toHaveAttribute('src', 'https://img.example/b.jpg')
+  })
 })

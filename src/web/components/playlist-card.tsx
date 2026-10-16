@@ -93,6 +93,10 @@ type PlaylistCardProps = {
   onRefetch: () => void
 }
 
+function stopBubble(e: { stopPropagation: () => void }) {
+  e.stopPropagation()
+}
+
 export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps) {
   const { locale, t } = useI18n()
   const [generating, setGenerating] = useState(false)
@@ -250,16 +254,19 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
         <p className="text-micro text-muted/60 text-center -mt-1">{t('common.disabled')}</p>
       )}
       {showDeleteConfirm && (
-        <ConfirmDialog
-          title={t('playlist.delete')}
-          message={t('playlist.deleteWarning')}
-          confirmLabel={t('playlist.delete')}
-          onConfirm={() => {
-            setShowDeleteConfirm(false)
-            handleDelete()
-          }}
-          onCancel={() => setShowDeleteConfirm(false)}
-        />
+        // Dialog events bubble through the React tree to the card's navigate handlers
+        <div role="none" onClick={stopBubble} onKeyDown={stopBubble}>
+          <ConfirmDialog
+            title={t('playlist.delete')}
+            message={t('playlist.deleteWarning')}
+            confirmLabel={t('playlist.delete')}
+            onConfirm={() => {
+              setShowDeleteConfirm(false)
+              handleDelete()
+            }}
+            onCancel={() => setShowDeleteConfirm(false)}
+          />
+        </div>
       )}
     </div>
   )

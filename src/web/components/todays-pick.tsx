@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, Sparkles } from 'lucide-react'
-import { Fragment, useRef, useState } from 'react'
+import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
@@ -61,6 +61,12 @@ export function TodaysPick({
   const [coverError, setCoverError] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+  const imageUrl = rec?.artist.imageUrl
+  // biome-ignore lint/correctness/useExhaustiveDependencies: reset failure flags whenever the pick's image changes
+  useEffect(() => {
+    setImgError(false)
+    setCoverError(false)
+  }, [rec?.id, imageUrl])
   const actionableTargets = (targets ?? []).filter((target) =>
     canApproveArtistToTarget(target.type),
   )

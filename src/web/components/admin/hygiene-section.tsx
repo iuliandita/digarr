@@ -56,7 +56,8 @@ export function HygieneSection() {
   const { data: auditStatus } = useQuery({
     queryKey: ['aiAuditStatus'],
     queryFn: getAiAuditResults,
-    refetchInterval: running === 'ai-audit' ? 3000 : false,
+    refetchInterval: (query) =>
+      running === 'ai-audit' || query.state.data?.inProgress ? 3000 : false,
   })
 
   async function handleRun(tool: ToolDef) {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   type BlockedArtistApi,
@@ -15,6 +15,9 @@ export function BlockedArtistsTab() {
   const [q, setQ] = useState('')
   const [loading, setLoading] = useState(false)
   const [reload, setReload] = useState(0)
+  const qRef = useRef(q)
+  const loadingMoreRef = useRef(false)
+  qRef.current = q
 
   // Debounced search: each keystroke schedules a fetch 250ms later, prior
   // schedule is cancelled by `active` flag + clearTimeout cleanup. `reload` is
@@ -23,6 +26,7 @@ export function BlockedArtistsTab() {
   // biome-ignore lint/correctness/useExhaustiveDependencies: reload is intentionally a refetch trigger
   useEffect(() => {
     let active = true
+    loadingMoreRef.current = false
     setLoading(true)
     const handle = setTimeout(async () => {
       try {
@@ -43,10 +47,22 @@ export function BlockedArtistsTab() {
   }, [q, reload, t])
 
   const loadMore = async () => {
-    if (!cursor) return
-    const r = await listArtistBlocks({ cursor, q: q || undefined })
-    setItems((prev) => [...prev, ...r.items])
-    setCursor(r.nextCursor)
+    if (!cursor || loadingMoreRef.current) return
+    loadingMoreRef.current = true
+    const term = q
+    try {
+      const r = await listArtistBlocks({ cursor, q: term || undefined })
+      if (qRef.current !== term) return
+      setItems((prev) => {
+        const seen = new Set(prev.map((x) => x.artistId))
+        return [...prev, ...r.items.filter((x) => !seen.has(x.artistId))]
+      })
+      setCursor(r.nextCursor)
+    } catch {
+      toast.error(t('settings.blocked.error'))
+    } finally {
+      loadingMoreRef.current = false
+    }
   }
 
   const unblock = async (row: BlockedArtistApi) => {
