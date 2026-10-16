@@ -119,6 +119,8 @@ Selecting a backup in Settings > Administration opens a replacement confirmation
 | Synology NAS | [`docs/guides/synology.md`](docs/guides/synology.md) | DSM 7.1+ (Docker/Container Manager). SSH or GUI. |
 | Docker Desktop | [`docs/guides/docker-desktop.md`](docs/guides/docker-desktop.md) | macOS and Windows (WSL 2 or PowerShell). |
 
+Any PostgreSQL you supply yourself must be version 15 or newer: migrations create `NULLS NOT DISTINCT` unique indexes. The bundled stacks use PostgreSQL 17.
+
 Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-image-signatures) before running a release.
 
 ## Documentation

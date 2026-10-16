@@ -65,7 +65,7 @@ export const openapiDoc = {
     title: 'digarr API',
     version: VERSION,
     description:
-      'Backend API for Digarr. Central errors use RFC 9457 problem+json; route-specific JSON errors are documented per operation. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
+      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. Central errors use RFC 9457 problem+json; some routes still return plain JSON `{error}` bodies, documented per operation where covered. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
   },
   servers: [{ url: '/', description: 'Current deployment' }],
   components: {
@@ -831,6 +831,7 @@ export const openapiDoc = {
         tags: ['Jobs'],
         operationId: 'listJobs',
         summary: 'List job runs with offset pagination',
+        description: 'Admin only.',
         security: authSecurity,
         parameters: [
           {
@@ -871,6 +872,7 @@ export const openapiDoc = {
         tags: ['Jobs'],
         operationId: 'getJob',
         summary: 'Get one job run',
+        description: 'Admin only.',
         security: authSecurity,
         parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'integer' } }],
         responses: {
@@ -890,6 +892,7 @@ export const openapiDoc = {
         tags: ['Jobs'],
         operationId: 'getJobHealth',
         summary: 'Get job system health',
+        description: 'Admin only.',
         security: authSecurity,
         responses: {
           '200': {
@@ -907,6 +910,7 @@ export const openapiDoc = {
         tags: ['Library'],
         operationId: 'listUnreconciledLibraryArtists',
         summary: 'List unreconciled library artists',
+        description: 'Admin only.',
         security: authSecurity,
         responses: {
           '200': {
@@ -923,6 +927,7 @@ export const openapiDoc = {
         tags: ['Library'],
         operationId: 'listUnreconciledLibraryAlbums',
         summary: 'List unreconciled library albums',
+        description: 'Admin only.',
         security: authSecurity,
         responses: {
           '200': {
@@ -939,6 +944,7 @@ export const openapiDoc = {
         tags: ['Library'],
         operationId: 'bulkIgnoreLibraryArtists',
         summary: 'Ignore unreconciled library artists',
+        description: 'Admin only.',
         security: unsafeAuthSecurity,
         requestBody: {
           required: true,
@@ -959,6 +965,7 @@ export const openapiDoc = {
         tags: ['Library'],
         operationId: 'bulkIgnoreLibraryAlbums',
         summary: 'Ignore unreconciled library albums',
+        description: 'Admin only.',
         security: unsafeAuthSecurity,
         requestBody: {
           required: true,
@@ -1015,7 +1022,7 @@ export const openapiDoc = {
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
         description:
-          'Send a JSON object ({} for saved credentials where supported). An absent payload currently returns 500. Where supported, non-empty connection and credential strings override saved values; empty strings reuse saved values, so probe success may validate the previous configuration. Plex sectionId and Jellyfin/Emby libraryId clear with an empty string (null falls back), while Plex accountId clears with null; Lidarr skipTlsVerify defaults to false rather than the saved setting, so send it explicitly when required. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
+          'Admin only, except probing your own Plex connection. Send a JSON object ({} for saved credentials where supported); a missing, malformed, or non-object payload returns 400 problem+json before saved credentials are read. Where supported, non-empty connection and credential strings override saved values; empty strings reuse saved values, so probe success may validate the previous configuration. Plex sectionId and Jellyfin/Emby libraryId clear with an empty string (null falls back), while Plex accountId clears with null. Lidarr skipTlsVerify uses the saved setting when omitted (false when none is saved); send it explicitly to override, and send a boolean. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
         security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },
@@ -1028,7 +1035,7 @@ export const openapiDoc = {
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
           '500': {
-            description: 'Missing JSON payload or an unexpected probe failure.',
+            description: 'Unexpected probe failure.',
             content: { [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } } },
           },
           '502': { $ref: '#/components/responses/ProbeFailed' },
