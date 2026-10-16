@@ -68,11 +68,14 @@ export const moodMixStrategy: PlaylistStrategyImpl = {
     // Fetch a generous pool so we have enough to filter down from.
     const poolLimit = Math.ceil(config.size / TRACKS_PER_ARTIST) * 5
 
-    const artists = await deps.getApprovedArtists({ limit: poolLimit })
+    const mood = config.mood
+    const artists = await deps.getApprovedArtists({
+      limit: poolLimit,
+      genreKeywords: mood ? getMoodKeywords(mood) : undefined,
+    })
 
     const artistLimit = Math.ceil(config.size / TRACKS_PER_ARTIST)
 
-    const mood = config.mood
     if (!mood) {
       return artists.sort((a, b) => b.score - a.score).slice(0, artistLimit)
     }

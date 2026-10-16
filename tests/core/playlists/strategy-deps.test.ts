@@ -53,3 +53,54 @@ describe('audition artist selection', () => {
     expect(await buildStrategyDeps(db, null).getPendingArtists({ limit: 2 })).toEqual([])
   })
 })
+
+describe('approved artist selection', () => {
+  it('filters by genre before the limit and returns nothing without a user', async () => {
+    const result = await makeTestDb()
+    close = result.close
+    const db = result.db as unknown as Database
+    const [listener] = await db
+      .insert(users)
+      .values({ username: 'listener', passwordHash: 'hash' })
+      .returning()
+    const [batch] = await db.insert(recommendationBatches).values({}).returning()
+    const records = await db
+      .insert(artists)
+      .values([
+        ...Array.from({ length: 300 }, (_, index) => ({
+          name: `Popular ${index}`,
+          mbid: `00000000-0000-0000-0000-${String(index).padStart(12, '0')}`,
+          genres: ['pop'],
+        })),
+        {
+          name: 'Niche',
+          mbid: '00000000-0000-0000-0001-000000000000',
+          genres: ['Dream Pop', 'Dungeon-Synth'],
+        },
+      ])
+      .returning()
+    if (!listener || !batch) throw new Error('Fixture insert did not return all rows')
+    await db.insert(recommendations).values(
+      records.map((artist, index) => ({
+        userId: listener.id,
+        batchId: batch.id,
+        artistId: artist.id,
+        status: 'approved',
+        score: artist.name === 'Niche' ? 0.01 : 0.5 + index / 1000,
+      })),
+    )
+    const deps = buildStrategyDeps(db, listener.id)
+
+    for (const opts of [{ genre: 'dream' }, { genreKeywords: ['dungeon synth'] }]) {
+      const selected = await deps.getApprovedArtists({ ...opts, limit: 10 })
+      expect(selected.map((artist) => artist.name)).toEqual(['Niche'])
+    }
+    expect(await buildStrategyDeps(db, null).getApprovedArtists({ limit: 10 })).toEqual([])
+    expect(
+      await buildStrategyDeps(db, null).getOlderApprovedArtists({
+        olderThan: new Date(),
+        limit: 10,
+      }),
+    ).toEqual([])
+  })
+})

@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { generatePlaylist, getStrategy } from '@/core/playlists/generator'
+import {
+  generatePlaylist,
+  getStrategy,
+  playlistGenerationFailure,
+} from '@/core/playlists/generator'
 import type { StrategyArtist, StrategyDeps } from '@/core/playlists/strategies/types'
 import type { TrackResolverDeps } from '@/core/playlists/types'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
@@ -604,4 +608,35 @@ describe('audition playlists', () => {
       )
     },
   )
+})
+
+describe('playlistGenerationFailure()', () => {
+  const outcome = (status: 'resolved' | 'error' | 'unmatched', tracks: number) => ({
+    artistName: 'A',
+    status,
+    resolvedTrackCount: tracks,
+    includedTrackCount: tracks,
+  })
+  const summary = (outcomes: ReturnType<typeof outcome>[]) => ({
+    requestedArtistCount: outcomes.length,
+    resolvedArtistCount: outcomes.filter((o) => o.resolvedTrackCount > 0).length,
+    includedArtistCount: outcomes.filter((o) => o.includedTrackCount > 0).length,
+    trackCount: outcomes.reduce((total, o) => total + o.includedTrackCount, 0),
+    outcomes,
+  })
+
+  it.each([
+    ['no selected artists', [], null],
+    ['mostly resolved', [outcome('resolved', 3), outcome('error', 0)], null],
+    ['zero resolved tracks', [outcome('unmatched', 0)], 'No tracks resolved for 1 artists'],
+    [
+      'mostly resolver errors',
+      [outcome('resolved', 3), outcome('error', 0), outcome('error', 0)],
+      'Track resolution failed for 2 of 3 artists',
+    ],
+  ])('%s', (_label, outcomes, expected) => {
+    const failure = playlistGenerationFailure(summary(outcomes))
+    if (expected === null) expect(failure).toBeNull()
+    else expect(failure).toContain(expected)
+  })
 })

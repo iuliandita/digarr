@@ -47,7 +47,7 @@ import type { StoreDb } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
 import { withPlaylistLock } from './core/playlists/generation-lock'
-import { generatePlaylist } from './core/playlists/generator'
+import { generatePlaylist, playlistGenerationFailure } from './core/playlists/generator'
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
@@ -1076,17 +1076,21 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
       position: index,
     }))
 
-    await replacePlaylistTracks(db, playlist.id, trackInserts)
-    await updatePlaylistRow(db, playlist.id, {
-      lastGeneratedAt: new Date(),
-      trackCount: generation.tracks.length,
-    })
-
     if (jobId != null) {
       await jobQueries.updateJobMetadata(db, jobId, {
         playlistResolution: generation.resolution,
       })
     }
+
+    // A resolver outage would otherwise replace a good playlist with an empty or thin one.
+    const failure = playlistGenerationFailure(generation.resolution)
+    if (failure) throw new Error(`${failure}; kept the previous tracks`)
+
+    await replacePlaylistTracks(db, playlist.id, trackInserts)
+    await updatePlaylistRow(db, playlist.id, {
+      lastGeneratedAt: new Date(),
+      trackCount: generation.tracks.length,
+    })
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
       const userId = playlist.userId
