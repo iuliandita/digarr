@@ -1,5 +1,4 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Download, Filter as FilterIcon, MoreHorizontal, RefreshCw, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -11,6 +10,13 @@ import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { DiscoverTabs } from '../components/discover-tabs'
+import {
+  type Decade,
+  DiscoverMoreMenu,
+  FiltersPopover,
+  type TasteOrdering,
+  type ViewMode,
+} from '../components/discover-toolbar'
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
@@ -22,7 +28,6 @@ import { Button } from '../components/ui/button'
 import { EmptyState as UiEmptyState } from '../components/ui/empty-state'
 import { Notice } from '../components/ui/notice'
 import { Skeleton } from '../components/ui/skeleton'
-import { useClickOutside } from '../hooks/use-click-outside'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
 import type { PreviewFailureReason } from '../hooks/use-preview'
@@ -32,7 +37,6 @@ import {
   approveRecommendation,
   approveToTarget,
   bulkAction,
-  exportRecommendations,
   getAuthStatus,
   getFeedbackSummary,
   getRecommendations,
@@ -49,9 +53,6 @@ import { usePreviewContext } from '../lib/preview-context'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
-type ViewMode = 'grid' | 'list' | 'stack'
-type TasteOrdering = 'priority' | 'primary' | 'secondary' | 'score'
-type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
 
 const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
   'missing-links': 'preview.reason.missing-links',
@@ -62,8 +63,6 @@ const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
   'playback-failed': 'preview.reason.playback-failed',
   'controller-unavailable': 'preview.reason.controller-unavailable',
 }
-
-const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s+']
 
 const VIEW_MODE_KEY = 'digarr:discover-view'
 
@@ -96,8 +95,6 @@ const KIND_FILTERS: KindFilter[] = ['all', 'artist', 'album']
 function initialKindFromParam(value: string | null): KindFilter {
   return value === 'artist' || value === 'album' ? value : 'all'
 }
-
-const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const PAGE_SIZE = 50
 const CLEAR_ALL_BATCH_SIZE = 200
@@ -301,27 +298,20 @@ function FeedbackInsights() {
   const [genreRates, setGenreRates] = useState<
     Array<{ genre: string; rate: number; total: number }>
   >([])
-  const [open, setOpen] = useState(false)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    if (open && genreRates.length === 0) {
-      getFeedbackSummary()
-        .then((r) => setGenreRates(r.summary))
-        .catch(() => {})
-    }
-  }, [open, genreRates.length])
+    getFeedbackSummary()
+      .then((r) => setGenreRates(r.summary))
+      .catch(() => {})
+      .finally(() => setLoaded(true))
+  }, [])
 
+  if (!loaded) return null
   return (
     <div className="mb-4">
-      <button
-        type="button"
-        onClick={() => setOpen(!open)}
-        className="text-xs text-muted hover:text-text transition-colors"
-      >
-        {open ? t('discover.hideFeedbackInsights') : t('discover.showFeedbackInsights')}
-      </button>
-      {open && genreRates.length > 0 && (
-        <div className="mt-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+      {genreRates.length > 0 ? (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {genreRates.slice(0, 12).map((g) => (
             <div key={g.genre} className="bg-surface border border-border rounded px-2 py-1.5">
               <div className="text-xs font-medium text-text truncate">{g.genre}</div>
@@ -342,189 +332,8 @@ function FeedbackInsights() {
             </div>
           ))}
         </div>
-      )}
-      {open && genreRates.length === 0 && (
-        <p className="text-xs text-muted mt-2">{t('discover.notEnoughFeedback')}</p>
-      )}
-    </div>
-  )
-}
-
-// Decade filter popover — replaces always-visible decade pill row
-
-function DecadeFilterButton({
-  active,
-  onToggle,
-  onClear,
-}: {
-  active: Set<Decade>
-  onToggle: (d: Decade) => void
-  onClear: () => void
-}) {
-  const { t } = useI18n()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useClickOutside(ref, () => setOpen(false), open)
-
-  const count = active.size
-  const label =
-    count > 0 ? t('discover.filtersActive').replace('{0}', String(count)) : t('discover.filters')
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className={`flex items-center gap-1.5 px-3 py-1.5 border rounded text-sm font-medium transition-colors ${
-          count > 0
-            ? 'bg-accent/10 border-accent/40 text-accent'
-            : 'bg-surface border-border text-muted hover:text-text'
-        }`}
-      >
-        <FilterIcon size={14} aria-hidden="true" />
-        {label}
-      </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg p-3 min-w-[260px]">
-          <div className="text-xs uppercase tracking-wide text-muted mb-2">
-            {t('discover.decadesLabel')}
-          </div>
-          <div className="flex flex-wrap gap-1">
-            {DECADES.map((decade) => (
-              <button
-                key={decade}
-                type="button"
-                onClick={() => onToggle(decade)}
-                className={`px-2 py-1 rounded-full text-xs font-medium transition-colors ${
-                  active.has(decade)
-                    ? 'bg-accent text-accent-fg'
-                    : 'bg-bg border border-border text-muted hover:text-text'
-                }`}
-              >
-                {decade}
-              </button>
-            ))}
-          </div>
-          {count > 0 && (
-            <button
-              type="button"
-              onClick={() => {
-                onClear()
-                setOpen(false)
-              }}
-              className="mt-3 text-xs text-muted hover:text-text transition-colors"
-            >
-              {t('common.clear')}
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
-// Overflow menu — Refresh / Export / Clear All
-
-function MoreMenu({
-  filter,
-  onRefresh,
-  onClearAll,
-  showClearAll,
-}: {
-  filter?: string
-  onRefresh?: () => void
-  onClearAll: () => void
-  showClearAll: boolean
-}) {
-  const { t } = useI18n()
-  const [open, setOpen] = useState(false)
-  const [exporting, setExporting] = useState<string | null>(null)
-  const ref = useRef<HTMLDivElement>(null)
-  useClickOutside(ref, () => setOpen(false), open)
-
-  async function handleExport(format: 'json' | 'csv' | 'm3u') {
-    setExporting(format)
-    try {
-      await exportRecommendations(format, filter ? { status: filter } : undefined)
-      toast.success(`${format.toUpperCase()} ${t('discover.exported')}`)
-    } catch {
-      toast.error(t('discover.exportFailed'))
-    } finally {
-      setExporting(null)
-      setOpen(false)
-    }
-  }
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        aria-label={t('discover.moreActions')}
-        title={t('discover.moreActions')}
-        className="p-1.5 bg-surface border border-border rounded text-muted hover:text-text transition-colors"
-      >
-        <MoreHorizontal size={16} aria-hidden="true" />
-      </button>
-      {open && (
-        <div
-          role="menu"
-          className="absolute right-0 top-full mt-1 z-20 bg-surface border border-border rounded-lg shadow-lg py-1 min-w-[200px]"
-        >
-          {onRefresh && (
-            <>
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  onRefresh()
-                  setOpen(false)
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors"
-              >
-                <RefreshCw size={14} aria-hidden="true" />
-                {t('discover.refreshData')}
-              </button>
-              <div className="my-1 border-t border-border" />
-            </>
-          )}
-          {(['json', 'csv', 'm3u'] as const).map((fmt) => (
-            <button
-              key={fmt}
-              type="button"
-              role="menuitem"
-              onClick={() => handleExport(fmt)}
-              disabled={exporting === fmt}
-              className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-text hover:bg-bg transition-colors disabled:opacity-50"
-            >
-              <Download size={14} aria-hidden="true" />
-              {exporting === fmt
-                ? t('discover.exporting')
-                : `${t('discover.export')} ${fmt.toUpperCase()}`}
-            </button>
-          ))}
-          {showClearAll && (
-            <>
-              <div className="my-1 border-t border-border" />
-              <button
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  onClearAll()
-                  setOpen(false)
-                }}
-                className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-reject hover:bg-reject/10 transition-colors"
-              >
-                <Trash2 size={14} aria-hidden="true" />
-                {t('discover.clearAll')}
-              </button>
-            </>
-          )}
-        </div>
+      ) : (
+        <p className="text-xs text-muted">{t('discover.notEnoughFeedback')}</p>
       )}
     </div>
   )
@@ -558,6 +367,7 @@ export function DiscoverPage() {
   const [albumPickerRecId, setAlbumPickerRecId] = useState<number | null>(null)
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
   const [activeDecades, setActiveDecades] = useState<Set<Decade>>(new Set())
+  const [insightsOpen, setInsightsOpen] = useState(false)
   const [approveDialogState, setApproveDialogState] = useState<{
     recId: number
     monitorOption: MonitorOption
@@ -657,6 +467,12 @@ export function DiscoverPage() {
     artist: t('discover.kind.artists'),
     album: t('discover.kind.albums'),
   }
+
+  const VIEW_OPTIONS = [
+    { mode: 'grid' as ViewMode, Icon: GridIcon, label: t('discover.viewGrid') },
+    { mode: 'list' as ViewMode, Icon: ListIcon, label: t('discover.viewList') },
+    { mode: 'stack' as ViewMode, Icon: StackIcon, label: t('discover.viewStack') },
+  ]
 
   // Errors and filter-caused emptiness must not read as an exhausted queue.
   const emptyContent = loadError ? (
@@ -1221,15 +1037,16 @@ export function DiscoverPage() {
         </div>
       )}
 
-      {/* Sticky filter + toolbar bar */}
-      <div className="sticky top-0 z-10 bg-bg border-b border-border px-6 pt-4 pb-3 -mx-0">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Filter tabs */}
-          <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1">
+      {/* Daily controls in one row; bulk and rare tools live in More */}
+      <div className="sticky top-0 z-20 bg-bg border-b border-border px-6 pt-4 pb-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <fieldset className="flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-surface border border-border bg-surface p-1 [scrollbar-width:none] md:w-auto">
+            <legend className="sr-only">{t('discover.statusFilter')}</legend>
             {(Object.keys(FILTER_LABELS) as FilterTab[]).map((tab) => (
               <button
                 key={tab}
                 type="button"
+                aria-pressed={filter === tab}
                 onClick={() => {
                   setFilter(tab)
                   setExpandedId(null)
@@ -1237,35 +1054,29 @@ export function DiscoverPage() {
                   setPage(0)
                   setCheckedIds(new Set())
                 }}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                className={`shrink-0 whitespace-nowrap px-3 py-1.5 rounded-control text-body font-medium transition-colors focus-ring ${
                   filter === tab ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'
                 }`}
               >
                 {FILTER_LABELS[tab]}
-                {tab !== 'all' && counts[tab] > 0 && (
+                {counts[tab] > 0 && (
                   <span
-                    className={`ml-1.5 text-xs ${filter === tab ? 'opacity-70' : 'text-muted'}`}
+                    className={`ml-1.5 text-caption ${filter === tab ? 'opacity-70' : 'text-muted'}`}
                   >
                     {counts[tab]}
                   </span>
                 )}
-                {tab === 'all' && counts.all > 0 && (
-                  <span
-                    className={`ml-1.5 text-xs ${filter === tab ? 'opacity-70' : 'text-muted'}`}
-                  >
-                    {counts.all}
-                  </span>
-                )}
               </button>
             ))}
-          </div>
+          </fieldset>
 
-          {/* Kind filter: All / Artists / Albums */}
-          <div className="flex items-center gap-1 bg-surface border border-border rounded-lg p-1">
+          <fieldset className="flex items-center gap-1 rounded-surface border border-border bg-surface p-1">
+            <legend className="sr-only">{t('discover.kindFilter')}</legend>
             {KIND_FILTERS.map((kind) => (
               <button
                 key={kind}
                 type="button"
+                aria-pressed={kindFilter === kind}
                 onClick={() => {
                   setKindFilter(kind)
                   setExpandedId(null)
@@ -1288,190 +1099,111 @@ export function DiscoverPage() {
                     { replace: true },
                   )
                 }}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
+                className={`whitespace-nowrap px-3 py-1.5 rounded-control text-body font-medium transition-colors focus-ring ${
                   kindFilter === kind ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'
                 }`}
               >
                 {KIND_LABELS[kind]}
               </button>
             ))}
-          </div>
+          </fieldset>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            <label htmlFor="taste-ordering" className="flex items-center gap-2 text-sm text-muted">
-              {t('discover.tasteOrdering')}
-              <select
-                id="taste-ordering"
-                value={tasteOrdering}
-                aria-label={t('discover.tasteOrdering')}
-                onChange={(e) => {
-                  setTasteOrdering(e.target.value as TasteOrdering)
-                  setPage(0)
-                  setSelectedId(null)
-                }}
-                className="bg-surface border border-border rounded text-sm text-text px-2 py-1.5"
-              >
-                <option value="priority" disabled={!hasPrimaryGenres && !hasSecondaryGenres}>
-                  {t('discover.tastePriority')}
-                </option>
-                <option value="primary" disabled={!hasPrimaryGenres}>
-                  {t('discover.primaryTaste')}
-                </option>
-                <option value="secondary" disabled={!hasSecondaryGenres}>
-                  {t('discover.secondaryTaste')}
-                </option>
-                <option value="score">{t('discover.scoreOrder')}</option>
-              </select>
-            </label>
-            {/* View mode switcher */}
-            <div className="flex items-center gap-0.5 bg-surface border border-border rounded-lg p-1">
-              {(
-                [
-                  { mode: 'grid' as ViewMode, Icon: GridIcon, label: t('discover.viewGrid') },
-                  { mode: 'list' as ViewMode, Icon: ListIcon, label: t('discover.viewList') },
-                  { mode: 'stack' as ViewMode, Icon: StackIcon, label: t('discover.viewStack') },
-                ] as const
-              ).map(({ mode, Icon, label }) => (
+          <div className="ml-auto flex items-center gap-2">
+            <fieldset className="hidden items-center gap-0.5 rounded-surface border border-border bg-surface p-1 md:flex">
+              <legend className="sr-only">{t('discover.viewLabel')}</legend>
+              {VIEW_OPTIONS.map(({ mode, Icon, label }) => (
                 <button
                   key={mode}
                   type="button"
                   onClick={() => handleSetViewMode(mode)}
                   aria-label={label}
+                  aria-pressed={viewMode === mode}
                   title={label}
-                  className={`p-1.5 rounded transition-colors ${
+                  className={`p-1.5 rounded-control transition-colors focus-ring ${
                     viewMode === mode ? 'bg-accent text-accent-fg' : 'text-muted hover:text-text'
                   }`}
                 >
                   <Icon />
                 </button>
               ))}
-            </div>
-
-            {/* Approve All Above + Select - hidden in stack mode */}
-            {viewMode !== 'stack' && (
-              <>
-                <select
-                  value={approveThreshold}
-                  onChange={(e) => setApproveThreshold(Number(e.target.value))}
-                  className="bg-surface border border-border rounded text-sm text-text px-2 py-1.5"
-                  aria-label={t('discover.thresholdPercentage')}
-                >
-                  {APPROVE_THRESHOLD_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}%
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={handleApproveAbove}
-                  disabled={pendingAboveThreshold === 0}
-                  className="px-3 py-1.5 bg-approve/20 text-approve border border-approve/40 rounded text-sm font-medium hover:bg-approve/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('discover.approveAllAbove')}
-                  {pendingAboveThreshold > 0 && (
-                    <span className="ml-1.5 text-xs opacity-70">({pendingAboveThreshold})</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleRejectBelow}
-                  disabled={pendingBelowThreshold === 0}
-                  className="px-3 py-1.5 bg-reject/20 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('discover.rejectAllBelow')}
-                  {pendingBelowThreshold > 0 && (
-                    <span className="ml-1.5 text-xs opacity-70">({pendingBelowThreshold})</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleAudition}
-                  disabled={auditionEligible === 0}
-                  className="px-3 py-1.5 bg-accent/10 text-accent border border-accent/40 rounded text-sm font-medium hover:bg-accent/20 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-                >
-                  {t('discover.auditionAll')}
-                  {auditionEligible > 0 && (
-                    <span className="ml-1.5 text-xs opacity-70">({auditionEligible})</span>
-                  )}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleToggleBulkMode}
-                  className={`px-3 py-1.5 border rounded text-sm font-medium transition-colors ${
-                    bulkMode
-                      ? 'bg-accent text-accent-fg border-accent'
-                      : 'bg-surface border-border text-muted hover:text-text'
-                  }`}
-                >
-                  {bulkMode ? t('common.cancel') : t('discover.select')}
-                </button>
-                <DecadeFilterButton
-                  active={activeDecades}
-                  onToggle={(decade) => {
-                    setActiveDecades((prev) => {
-                      const next = new Set(prev)
-                      if (next.has(decade)) {
-                        next.delete(decade)
-                      } else {
-                        next.add(decade)
-                      }
-                      return next
-                    })
-                    setPage(0)
-                  }}
-                  onClear={() => {
-                    setActiveDecades(new Set())
-                    setPage(0)
-                  }}
-                />
-                <MoreMenu
-                  filter={statusParam}
-                  onRefresh={
-                    isAdmin
-                      ? () => {
-                          toast.promise(rescanArtists(), {
-                            loading: t('discover.refreshingArtistData'),
-                            success: (r) =>
-                              t('discover.rescanComplete')
-                                .replace('{0}', String(r.updated))
-                                .replace('{1}', String(r.attempted))
-                                .replace('{2}', String(r.failed)),
-                            error: t('discover.rescanFailed'),
-                          })
-                          setTimeout(refetch, 3000)
-                        }
-                      : undefined
+            </fieldset>
+            <FiltersPopover
+              ordering={tasteOrdering}
+              onOrderingChange={(ordering) => {
+                setTasteOrdering(ordering)
+                setPage(0)
+                setSelectedId(null)
+              }}
+              hasPrimaryGenres={hasPrimaryGenres}
+              hasSecondaryGenres={hasSecondaryGenres}
+              decades={activeDecades}
+              onToggleDecade={(decade) => {
+                setActiveDecades((prev) => {
+                  const next = new Set(prev)
+                  if (next.has(decade)) {
+                    next.delete(decade)
+                  } else {
+                    next.add(decade)
                   }
-                  onClearAll={() => setShowClearAllConfirm(true)}
-                  showClearAll={filter === 'pending'}
-                />
-              </>
-            )}
+                  return next
+                })
+                setPage(0)
+              }}
+              onClearDecades={() => {
+                setActiveDecades(new Set())
+                setPage(0)
+              }}
+            />
+            <DiscoverMoreMenu
+              viewMode={viewMode}
+              viewOptions={VIEW_OPTIONS}
+              onViewModeChange={handleSetViewMode}
+              bulk={
+                viewMode === 'stack'
+                  ? undefined
+                  : {
+                      threshold: approveThreshold,
+                      onThresholdChange: setApproveThreshold,
+                      aboveCount: pendingAboveThreshold,
+                      belowCount: pendingBelowThreshold,
+                      auditionCount: auditionEligible,
+                      onApproveAbove: handleApproveAbove,
+                      onRejectBelow: handleRejectBelow,
+                      onAudition: handleAudition,
+                      bulkMode,
+                      onToggleBulkMode: handleToggleBulkMode,
+                    }
+              }
+              exportStatus={statusParam}
+              onRefresh={
+                isAdmin
+                  ? () => {
+                      toast.promise(rescanArtists(), {
+                        loading: t('discover.refreshingArtistData'),
+                        success: (r) =>
+                          t('discover.rescanComplete')
+                            .replace('{0}', String(r.updated))
+                            .replace('{1}', String(r.attempted))
+                            .replace('{2}', String(r.failed)),
+                        error: t('discover.rescanFailed'),
+                      })
+                      setTimeout(refetch, 3000)
+                    }
+                  : undefined
+              }
+              onClearAll={filter === 'pending' ? () => setShowClearAllConfirm(true) : undefined}
+              insightsOpen={insightsOpen}
+              onToggleInsights={() => setInsightsOpen((v) => !v)}
+            />
           </div>
         </div>
       </div>
 
       {/* Content area */}
       <div className="px-6">
-        {/* Keyboard hint (hidden on small screens, swipe hint shown instead) */}
+        {/* Shortcut keys are listed in the ? dialog; touch users get the swipe hint */}
         {!bulkMode && viewMode !== 'stack' && (
-          <>
-            <p className="text-xs text-muted hidden sm:block mb-4">
-              {t('discover.shortcutsLabel')}{' '}
-              <kbd className="px-1 bg-surface border border-border rounded">j/k</kbd>{' '}
-              {t('discover.navigate')}{' '}
-              <kbd className="px-1 bg-surface border border-border rounded">a</kbd>{' '}
-              {t('discover.shortcutApprove')}{' '}
-              <kbd className="px-1 bg-surface border border-border rounded">r</kbd>{' '}
-              {t('discover.shortcutReject')}{' '}
-              <kbd className="px-1 bg-surface border border-border rounded">d</kbd>{' '}
-              {t('discover.shortcutExpand')}{' '}
-              <kbd className="px-1 bg-surface border border-border rounded">?</kbd>{' '}
-              {t('discover.shortcuts')}
-            </p>
-            <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
-          </>
+          <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
         )}
 
         <MoodPromptBar existingArtistNames={existingArtistNames} onQueued={refetch} />
@@ -1480,7 +1212,7 @@ export function DiscoverPage() {
           {t('discover.moodTip')}
         </Hint>
 
-        <FeedbackInsights />
+        {insightsOpen && <FeedbackInsights />}
 
         {/* Stack view */}
         {viewMode === 'stack' &&
@@ -1656,6 +1388,13 @@ export function DiscoverPage() {
             {t('common.none')}
           </button>
           <div className="w-px h-4 bg-border" />
+          <button
+            type="button"
+            onClick={handleToggleBulkMode}
+            className="text-xs text-muted hover:text-text"
+          >
+            {t('common.cancel')}
+          </button>
           <button
             type="button"
             onClick={handleBulkApprove}

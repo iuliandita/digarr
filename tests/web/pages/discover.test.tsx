@@ -208,6 +208,7 @@ describe('DiscoverPage', () => {
       secondaryGenres: ['ambient'],
     })
     renderWithQuery(<DiscoverPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Filters' }))
     const select = await screen.findByRole('combobox', { name: 'Discovery order' })
     expect(select).toHaveValue('score')
     await waitFor(() =>
@@ -233,9 +234,11 @@ describe('DiscoverPage', () => {
     rec.artist.streamingUrls = { spotify: '' }
     setupMockApi([rec, makeRec({ id: 2, status: 'approved' })])
     renderWithQuery(<DiscoverPage />)
-    const button = await screen.findByRole('button', { name: /Audition/ })
-    await waitFor(() => expect(button).toBeEnabled())
-    fireEvent.click(button)
+    await waitFor(() => expect(screen.getAllByText('Test Artist').length).toBeGreaterThan(0))
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    const item = await screen.findByRole('menuitem', { name: /Audition/ })
+    expect(item).not.toHaveAttribute('aria-disabled')
+    fireEvent.click(item)
     expect(noopPreview.audition.start).toHaveBeenCalledWith([
       {
         mbid: rec.artist.mbid,
@@ -395,6 +398,21 @@ describe('DiscoverPage', () => {
     })
   })
 
+  it('suspends approve and reject shortcuts while the More menu is open', async () => {
+    setupMockApi([makeRec()])
+    renderWithQuery(<DiscoverPage />)
+    await screen.findByText('Test Artist')
+
+    fireEvent.keyDown(window, { key: 'j' })
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await screen.findByRole('menu')
+    fireEvent.keyDown(window, { key: 'a' })
+    fireEvent.keyDown(window, { key: 'r' })
+
+    expect(mockUpdateRecommendation).not.toHaveBeenCalled()
+    expect(screen.queryByRole('dialog', { name: 'Why are you rejecting?' })).toBeNull()
+  })
+
   it('clicking a card expands it', async () => {
     setupMockApi()
     renderWithQuery(<DiscoverPage />)
@@ -460,7 +478,8 @@ describe('DiscoverPage', () => {
       expect(screen.getAllByText('Test Artist')).toHaveLength(2)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /approve all above/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
 
     await waitFor(() => {
       // Only rec id=1 qualifies (85% >= 70%)
@@ -484,7 +503,8 @@ describe('DiscoverPage', () => {
       expect(screen.getAllByText('Test Artist')).toHaveLength(5)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /reject all below/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /reject all below/i }))
 
     expect(mockBulkAction).not.toHaveBeenCalled()
     const dialog = await screen.findByRole('dialog', { name: 'Why are you rejecting?' })
@@ -669,7 +689,10 @@ describe('DiscoverPage', () => {
     setupMockApi()
     renderWithQuery(<DiscoverPage />)
 
-    expect(await screen.findByRole('button', { name: 'Afficher les retours' })).toBeInTheDocument()
+    fireEvent.click(await screen.findByRole('button', { name: "Plus d'actions" }))
+    expect(
+      await screen.findByRole('menuitem', { name: 'Afficher les retours' }),
+    ).toBeInTheDocument()
   })
 
   it('uses translated view switcher labels in French', async () => {

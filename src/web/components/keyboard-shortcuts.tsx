@@ -14,8 +14,8 @@ const SHORTCUTS: { key: string; labelKey: MessageKey }[] = [
   { key: 'r', labelKey: 'keyboardShortcuts.rejectFocusedCard' },
   { key: 'd', labelKey: 'keyboardShortcuts.toggleDetailView' },
   { key: '?', labelKey: 'keyboardShortcuts.toggleShortcuts' },
-  { key: '\u2190', labelKey: 'keyboardShortcuts.previousCardStack' },
-  { key: '\u2192', labelKey: 'keyboardShortcuts.nextCardStack' },
+  { key: '\u2190', labelKey: 'keyboardShortcuts.rejectCardStack' },
+  { key: '\u2192', labelKey: 'keyboardShortcuts.approveCardStack' },
 ]
 
 export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
