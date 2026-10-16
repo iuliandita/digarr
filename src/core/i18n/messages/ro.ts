@@ -289,6 +289,9 @@ export const ro = {
     'Pe măsură ce aprobi sau respingi recomandările de artiști, Digarr îți învață gusturile și devine mai bun la a găsi muzica care ți-ar plăcea.',
   'dashboard.yourTaste': 'Gustul tău muzical',
   'discover.actionApplied': 'Acțiune aplicată.',
+  'discover.undoApproved': '{name} aprobat',
+  'discover.undoRejected': '{name} respins',
+  'discover.undoBlocked': '{name} respins și blocat',
   'discover.approveAllAbove': 'Aprobă toate cele de mai sus',
   'discover.approvedCount': 'Aprobat',
   'discover.approvePartial': 'Adăugat la {0} din {1} ținte. Eșuate: {2}',
@@ -587,6 +590,7 @@ export const ro = {
   'subscriptionForm.scoringPresetDefault': 'Implicit',
   'subscriptionForm.scoringPresetGenre': 'Optimizat pentru gen',
   'subscriptions.likedSongs': 'Cântece plăcute',
+  'subscriptions.genreWeeklyName': '{genre} săptămânal',
   'subscriptions.addToRecommendations': 'Adaugă la recomandări',
   'subscriptions.collapseRunHistory': 'Restrânge istoricul rulării',
   'subscriptions.expandRunHistory': 'Extinde istoricul rulării',
@@ -710,6 +714,7 @@ export const ro = {
   'recommendation.select': 'Selectează',
   'recommendation.startWith': 'Începe cu',
   'recommendation.albumBadge': 'Album',
+  'recommendation.albumByArtist': '{album} de {artist}',
   'recommendation.metadataCached': 'Metadatele stocate în cache',
   'recommendation.warmingCache': 'Se încălzește memoria cache...',
   'recommendation.match': 'potrivire',
@@ -1128,6 +1133,7 @@ export const ro = {
   'settings.targetTypeJellyfinPlaylist': 'Playlist Jellyfin',
   'settings.targetTypePlexPlaylist': 'Playlist Plex',
   'settings.targetTypeNavidromePlaylist': 'Playlist Navidrome',
+  'settings.targetTypeSpotifyPlaylist': 'Playlist Spotify',
   'settings.slskdModeHelp':
     'slskd poate pune lansările la coadă, dar automatizarea completă necesită o destinație Lidarr conectată.',
   'settings.slskdReleasePolicy':

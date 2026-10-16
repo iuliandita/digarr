@@ -33,6 +33,8 @@ type AddTargetType = {
   value: string
   label: string
   fields: AddTargetField[]
+  // Created by a provider connection, not from this form; still editable.
+  creatable?: false
 }
 
 function getTargetTypes(
@@ -169,6 +171,12 @@ function getTargetTypes(
         },
       ],
     },
+    {
+      value: 'spotify-playlist',
+      label: t('settings.targetTypeSpotifyPlaylist'),
+      fields: [],
+      creatable: false,
+    },
   ]
 }
 
@@ -209,6 +217,20 @@ function normalizeTargetConfig(
   }
 
   return normalizedConfig
+}
+
+// The server merges PATCH config into the stored one, so an edit sends only the
+// fields this form renders; stored non-string values (skipTlsVerify) stay typed.
+function buildTargetConfigPatch(
+  targetType: AddTargetType,
+  config: Record<string, string>,
+): Record<string, unknown> | undefined {
+  if (targetType.fields.length === 0) return undefined
+  const editable = new Set(targetType.fields.map((field) => field.key))
+  return normalizeTargetConfig(
+    targetType.value,
+    Object.fromEntries(Object.entries(config).filter(([key]) => editable.has(key))),
+  )
 }
 
 function serializeTargetConfigForForm(config: Record<string, unknown>): Record<string, string> {
@@ -271,11 +293,12 @@ function AddTargetDialog({
     setSaving(true)
     try {
       if (initialTarget) {
+        const configPatch = buildTargetConfigPatch(selectedType, config)
         await updateTargetApi(initialTarget.id, {
           name: name || selectedType.label,
           enabled,
           userId,
-          config: normalizeTargetConfig(type, config),
+          ...(configPatch ? { config: configPatch } : {}),
         })
         toast.success(t('settings.targetUpdated'))
       } else {
@@ -315,11 +338,13 @@ function AddTargetDialog({
               className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
             >
               <option value="">{t('settings.selectTargetType')}</option>
-              {targetTypes.map((tt) => (
-                <option key={tt.value} value={tt.value}>
-                  {tt.label}
-                </option>
-              ))}
+              {targetTypes
+                .filter((tt) => tt.creatable !== false)
+                .map((tt) => (
+                  <option key={tt.value} value={tt.value}>
+                    {tt.label}
+                  </option>
+                ))}
             </select>
           </label>
         </div>
@@ -561,7 +586,7 @@ export function TargetsTab() {
                     {t('settings.targetUser')}:{' '}
                     {usersQuery.data?.find((user) => user.id === target.userId)?.username ??
                       target.userId ??
-                      '--'}
+                      t('common.notAvailable')}
                   </span>
                 )}
               </div>

@@ -247,7 +247,8 @@ export function NotificationChannelsCard({
         preferences: {
           ...(settings.preferences ?? {}),
           channels: channels.map((c) => applyStoredSecrets(c, hadSecret)),
-          digestCron: digestCron || undefined,
+          // '' (not undefined) so clearing the field actually disables the digest server-side.
+          digestCron: digestCron.trim(),
         },
       })
       toast.success(t('settings.channels.saved'))

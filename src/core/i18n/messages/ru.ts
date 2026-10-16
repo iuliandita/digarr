@@ -287,6 +287,9 @@ export const ru = {
     'Когда ты одобряешь или отклоняешь рекомендации исполнителя, Digarr изучает твой вкус и становится лучше в поиске музыки, которая тебе нравится.',
   'dashboard.yourTaste': 'Твой музыкальный вкус',
   'discover.actionApplied': 'Действие применено.',
+  'discover.undoApproved': 'Утверждено: {name}',
+  'discover.undoRejected': 'Отклонено: {name}',
+  'discover.undoBlocked': 'Отклонено и заблокировано: {name}',
   'discover.approveAllAbove': 'Одобрить все вышеперечисленное',
   'discover.approvedCount': 'Утверждено',
   'discover.approvePartial': 'Добавлено в {0} из {1} целей. Неудачные: {2}',
@@ -586,6 +589,7 @@ export const ru = {
   'subscriptionForm.scoringPresetDefault': 'По умолчанию',
   'subscriptionForm.scoringPresetGenre': 'Оптимизировано под жанр',
   'subscriptions.likedSongs': 'Понравившиеся песни',
+  'subscriptions.genreWeeklyName': '{genre}: еженедельно',
   'subscriptions.addToRecommendations': 'Добавить в рекомендации',
   'subscriptions.collapseRunHistory': 'Свернуть историю запусков',
   'subscriptions.expandRunHistory': 'Развернуть историю запусков',
@@ -709,6 +713,7 @@ export const ru = {
   'recommendation.select': 'Выбрать',
   'recommendation.startWith': 'Начни с',
   'recommendation.albumBadge': 'Альбом',
+  'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Метаданные кэшируются',
   'recommendation.warmingCache': 'Потепление кэша...',
   'recommendation.match': 'совпадение',
@@ -1128,6 +1133,7 @@ export const ru = {
   'settings.targetTypeJellyfinPlaylist': 'Плейлист Jellyfin',
   'settings.targetTypePlexPlaylist': 'Плейлист Plex',
   'settings.targetTypeNavidromePlaylist': 'Плейлист Navidrome',
+  'settings.targetTypeSpotifyPlaylist': 'Плейлист Spotify',
   'settings.slskdModeHelp':
     'slskd может ставить релизы в очередь, но для полной автоматизации нужна связанная цель Lidarr.',
   'settings.slskdReleasePolicy':

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { useI18n } from '../lib/i18n'
 
 type CronPickerProps = {
@@ -14,6 +15,11 @@ const PRESETS = [
   { labelKey: 'cronPicker.everyTwoWeeks', cron: '0 8 1,15 * *' },
   { labelKey: 'cronPicker.monthlyFirst', cron: '0 8 1 * *' },
 ] as const
+
+export function describeCron(t: (key: MessageKey) => string, cron: string): string {
+  const preset = PRESETS.find((p) => p.cron === cron.trim())
+  return preset ? t(preset.labelKey) : cron
+}
 
 export function CronPicker({ value, onChange }: CronPickerProps) {
   const { t } = useI18n()

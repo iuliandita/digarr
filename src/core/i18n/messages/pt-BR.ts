@@ -288,6 +288,9 @@ export const ptBR = {
     'À medida que você aprova ou rejeita recomendações de artistas, Digarr aprende seu gosto e fica melhor em encontrar músicas que você gosta.',
   'dashboard.yourTaste': 'Seu gosto musical',
   'discover.actionApplied': 'Ação aplicada.',
+  'discover.undoApproved': '{name} aprovado',
+  'discover.undoRejected': '{name} rejeitado',
+  'discover.undoBlocked': '{name} rejeitado e bloqueado',
   'discover.approveAllAbove': 'Aprovar tudo acima',
   'discover.approvedCount': 'Aprovado',
   'discover.approvePartial': 'Adicionado a {0} de {1} destinos. Falhas: {2}',
@@ -588,6 +591,7 @@ export const ptBR = {
   'subscriptionForm.scoringPresetDefault': 'Padrão',
   'subscriptionForm.scoringPresetGenre': 'Otimizado para gênero',
   'subscriptions.likedSongs': 'Músicas curtidas',
+  'subscriptions.genreWeeklyName': '{genre} semanal',
   'subscriptions.addToRecommendations': 'Adicionar às recomendações',
   'subscriptions.collapseRunHistory': 'Recolher histórico de execução',
   'subscriptions.expandRunHistory': 'Expandir histórico de execução',
@@ -712,6 +716,7 @@ export const ptBR = {
   'recommendation.select': 'Selecione',
   'recommendation.startWith': 'Comece com',
   'recommendation.albumBadge': 'Álbum',
+  'recommendation.albumByArtist': '{album} de {artist}',
   'recommendation.metadataCached': 'Metadados armazenados em cache',
   'recommendation.warmingCache': 'Aquecendo cache...',
   'recommendation.match': 'compatibilidade',
@@ -1126,6 +1131,7 @@ export const ptBR = {
   'settings.targetTypeJellyfinPlaylist': 'Playlist do Jellyfin',
   'settings.targetTypePlexPlaylist': 'Playlist do Plex',
   'settings.targetTypeNavidromePlaylist': 'Playlist do Navidrome',
+  'settings.targetTypeSpotifyPlaylist': 'Playlist do Spotify',
   'settings.slskdModeHelp':
     'O slskd pode enfileirar lançamentos, mas a automação completa exige um destino Lidarr vinculado.',
   'settings.slskdReleasePolicy':

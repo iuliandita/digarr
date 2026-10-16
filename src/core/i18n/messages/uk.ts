@@ -287,6 +287,9 @@ export const uk = {
     'Коли ти схвалюєш або відхиляєш рекомендації виконавців, Digarr вивчає твій смак і краще знаходить музику, яка тобі сподобається.',
   'dashboard.yourTaste': 'Твій музичний смак',
   'discover.actionApplied': 'Дію застосовано.',
+  'discover.undoApproved': 'Затверджено: {name}',
+  'discover.undoRejected': 'Відхилено: {name}',
+  'discover.undoBlocked': 'Відхилено й заблоковано: {name}',
   'discover.approveAllAbove': 'Підтвердити все вище',
   'discover.approvedCount': 'Затверджено',
   'discover.approvePartial': 'Додано до {0} з {1} цілей. Невдалі: {2}',
@@ -583,6 +586,7 @@ export const uk = {
   'subscriptionForm.scoringPresetDefault': 'Типовий',
   'subscriptionForm.scoringPresetGenre': 'Оптимізовано для жанру',
   'subscriptions.likedSongs': 'Вподобані пісні',
+  'subscriptions.genreWeeklyName': '{genre}: щотижня',
   'subscriptions.addToRecommendations': 'Додати до рекомендацій',
   'subscriptions.collapseRunHistory': 'Згорнути історію виконання',
   'subscriptions.expandRunHistory': 'Розгорнути історію виконання',
@@ -706,6 +710,7 @@ export const uk = {
   'recommendation.select': 'Вибери',
   'recommendation.startWith': 'Почни з',
   'recommendation.albumBadge': 'Альбом',
+  'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Метадані кешовані',
   'recommendation.warmingCache': 'Розігрів кешу...',
   'recommendation.match': 'збіг',
@@ -1122,6 +1127,7 @@ export const uk = {
   'settings.targetTypeJellyfinPlaylist': 'Плейлист Jellyfin',
   'settings.targetTypePlexPlaylist': 'Плейлист Plex',
   'settings.targetTypeNavidromePlaylist': 'Плейлист Navidrome',
+  'settings.targetTypeSpotifyPlaylist': 'Плейлист Spotify',
   'settings.slskdModeHelp':
     'slskd може ставити релізи в чергу, але для повної автоматизації потрібна пов’язана ціль Lidarr.',
   'settings.slskdReleasePolicy':

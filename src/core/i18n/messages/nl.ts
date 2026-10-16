@@ -289,6 +289,9 @@ export const nl = {
     'Terwijl je aanbevelingen van artiesten goedkeurt of afwijst, leert Digarr je smaak kennen en wordt hij beter in het vinden van muziek die je leuk vindt.',
   'dashboard.yourTaste': 'Jouw muzieksmaak',
   'discover.actionApplied': 'Actie toegepast.',
+  'discover.undoApproved': '{name} goedgekeurd',
+  'discover.undoRejected': '{name} afgewezen',
+  'discover.undoBlocked': '{name} afgewezen en geblokkeerd',
   'discover.approveAllAbove': 'Keur alles hierboven goed',
   'discover.approvedCount': 'Goedgekeurd',
   'discover.approvePartial': 'Toegevoegd aan {0} van {1} bestemmingen. Mislukt: {2}',
@@ -586,6 +589,7 @@ export const nl = {
   'subscriptionForm.scoringPresetDefault': 'Standaard',
   'subscriptionForm.scoringPresetGenre': 'Geoptimaliseerd voor genres',
   'subscriptions.likedSongs': 'Gelikte nummers',
+  'subscriptions.genreWeeklyName': '{genre} wekelijks',
   'subscriptions.addToRecommendations': 'Voeg toe aan aanbevelingen',
   'subscriptions.collapseRunHistory': 'De uitvoeringsgeschiedenis samenvouwen',
   'subscriptions.expandRunHistory': 'Vouw de uitvoeringsgeschiedenis uit',
@@ -709,6 +713,7 @@ export const nl = {
   'recommendation.select': 'Selecteer',
   'recommendation.startWith': 'Begin met',
   'recommendation.albumBadge': 'Album',
+  'recommendation.albumByArtist': '{album} van {artist}',
   'recommendation.metadataCached': 'Metagegevens in cache',
   'recommendation.warmingCache': 'Opwarmende cache...',
   'recommendation.match': 'overeenkomst',
@@ -1120,6 +1125,7 @@ export const nl = {
   'settings.targetTypeJellyfinPlaylist': 'Jellyfin-afspeellijst',
   'settings.targetTypePlexPlaylist': 'Plex-afspeellijst',
   'settings.targetTypeNavidromePlaylist': 'Navidrome-afspeellijst',
+  'settings.targetTypeSpotifyPlaylist': 'Spotify-afspeellijst',
   'settings.slskdModeHelp':
     'slskd kan releases in de wachtrij zetten, maar volledige automatisering vereist een gekoppeld Lidarr-doel.',
   'settings.slskdReleasePolicy':

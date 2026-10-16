@@ -5,13 +5,7 @@ import { Field } from '../../components/field'
 import { Button } from '../../components/ui/button'
 import { Disclosure } from '../../components/ui/disclosure'
 import { Select } from '../../components/ui/select'
-import {
-  getLidarrMetadataProfiles,
-  getLidarrProfiles,
-  getLidarrRootFolders,
-  getUserPreferences,
-  updateUserPreferences,
-} from '../../lib/api'
+import { getLidarrApproveOptions, getUserPreferences, updateUserPreferences } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
 
 export function LidarrPreferencesSection() {
@@ -21,18 +15,14 @@ export function LidarrPreferencesSection() {
     queryKey: ['user-preferences'],
     queryFn: getUserPreferences,
   })
-  const { data: qualityProfiles } = useQuery({
-    queryKey: ['lidarrProfiles'],
-    queryFn: getLidarrProfiles,
+  // approve-options is the non-admin-safe projection; the per-type endpoints are admin-only.
+  const { data: lidarrOptions } = useQuery({
+    queryKey: ['lidarrApproveOptions'],
+    queryFn: getLidarrApproveOptions,
   })
-  const { data: metadataProfiles } = useQuery({
-    queryKey: ['lidarrMetadataProfiles'],
-    queryFn: getLidarrMetadataProfiles,
-  })
-  const { data: rootFolders } = useQuery({
-    queryKey: ['lidarrRootFolders'],
-    queryFn: getLidarrRootFolders,
-  })
+  const qualityProfiles = lidarrOptions?.qualityProfiles
+  const metadataProfiles = lidarrOptions?.metadataProfiles
+  const rootFolders = lidarrOptions?.rootFolders
 
   const [qualityProfileId, setQualityProfileId] = useState('1')
   const [metadataProfileId, setMetadataProfileId] = useState('1')

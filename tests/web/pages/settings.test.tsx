@@ -58,9 +58,7 @@ vi.mock('@/web/lib/api', () => ({
     oidcEnabled: false,
     isAdmin: true,
   }),
-  getLidarrProfiles: vi.fn(),
-  getLidarrMetadataProfiles: vi.fn(),
-  getLidarrRootFolders: vi.fn(),
+  getLidarrApproveOptions: vi.fn(),
   getPipelineStatus: vi.fn().mockResolvedValue({ running: false }),
   getDashboardGenreCoverage: vi.fn().mockResolvedValue({
     coveredArtists: 18,
@@ -185,9 +183,7 @@ import {
   getAuthMeta,
   getCurrentUser,
   getJobHealth,
-  getLidarrMetadataProfiles,
-  getLidarrProfiles,
-  getLidarrRootFolders,
+  getLidarrApproveOptions,
   getOAuthStatus,
   getPipelineStatus,
   getPlexSections,
@@ -213,9 +209,7 @@ const mockGetPipelineStatus = getPipelineStatus as ReturnType<typeof vi.fn>
 const mockUpdateSettings = updateSettings as ReturnType<typeof vi.fn>
 const mockTestService = testService as ReturnType<typeof vi.fn>
 const mockTestNotificationChannel = testNotificationChannel as ReturnType<typeof vi.fn>
-const mockGetLidarrProfiles = getLidarrProfiles as ReturnType<typeof vi.fn>
-const mockGetLidarrMetadataProfiles = getLidarrMetadataProfiles as ReturnType<typeof vi.fn>
-const mockGetLidarrRootFolders = getLidarrRootFolders as ReturnType<typeof vi.fn>
+const mockGetLidarrApproveOptions = getLidarrApproveOptions as ReturnType<typeof vi.fn>
 const mockGetOAuthStatus = getOAuthStatus as ReturnType<typeof vi.fn>
 const mockImportSpotifyLikedSongs = importSpotifyLikedSongs as ReturnType<typeof vi.fn>
 const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
@@ -257,9 +251,11 @@ const mockSettings = {
 
 function setupMocks(settings: Record<string, unknown> = mockSettings) {
   mockGetSettings.mockResolvedValue(settings)
-  mockGetLidarrProfiles.mockResolvedValue([{ id: 1, name: 'Any' }])
-  mockGetLidarrMetadataProfiles.mockResolvedValue([{ id: 1, name: 'Standard' }])
-  mockGetLidarrRootFolders.mockResolvedValue([{ id: 1, path: '/data/music' }])
+  mockGetLidarrApproveOptions.mockResolvedValue({
+    qualityProfiles: [{ id: 1, name: 'Any' }],
+    metadataProfiles: [{ id: 1, name: 'Standard' }],
+    rootFolders: [{ id: 1, path: '/data/music' }],
+  })
 }
 
 // ---------------------------------------------------------------------------
@@ -891,9 +887,11 @@ describe('SettingsPage', () => {
 
   it('snaps stale per-user Lidarr preference ids before saving', async () => {
     setupMocks()
-    mockGetLidarrProfiles.mockResolvedValue([{ id: 3, name: 'Stefan' }])
-    mockGetLidarrMetadataProfiles.mockResolvedValue([{ id: 4, name: 'Standard' }])
-    mockGetLidarrRootFolders.mockResolvedValue([{ id: 10, path: '/music' }])
+    mockGetLidarrApproveOptions.mockResolvedValue({
+      qualityProfiles: [{ id: 3, name: 'Stefan' }],
+      metadataProfiles: [{ id: 4, name: 'Standard' }],
+      rootFolders: [{ id: 10, path: '/music' }],
+    })
 
     renderWithQuery(<SettingsPage />)
 

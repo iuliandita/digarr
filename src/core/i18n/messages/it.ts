@@ -289,6 +289,9 @@ export const it = {
     'Man mano che approvi o rifiuti i consigli degli artisti, Digarr apprende i tuoi gusti e migliora nel trovare la musica che ti piacerà.',
   'dashboard.yourTaste': 'I tuoi gusti musicali',
   'discover.actionApplied': 'Azione applicata.',
+  'discover.undoApproved': '{name} approvato',
+  'discover.undoRejected': '{name} rifiutato',
+  'discover.undoBlocked': '{name} rifiutato e bloccato',
   'discover.approveAllAbove': 'Approva tutto sopra',
   'discover.approvedCount': 'Approvato',
   'discover.approvePartial': 'Aggiunto a {0} di {1} destinazioni. Falliti: {2}',
@@ -589,6 +592,7 @@ export const it = {
   'subscriptionForm.scoringPresetDefault': 'Predefinito',
   'subscriptionForm.scoringPresetGenre': 'Ottimizzato per genere',
   'subscriptions.likedSongs': 'Canzoni piaciute',
+  'subscriptions.genreWeeklyName': '{genre} settimanale',
   'subscriptions.addToRecommendations': 'Aggiungi ai consigli',
   'subscriptions.collapseRunHistory': 'Comprimi la cronologia delle esecuzioni',
   'subscriptions.expandRunHistory': 'Espandi la cronologia delle corse',
@@ -713,6 +717,7 @@ export const it = {
   'recommendation.select': 'Seleziona',
   'recommendation.startWith': 'Inizia con',
   'recommendation.albumBadge': 'Album',
+  'recommendation.albumByArtist': '{album} di {artist}',
   'recommendation.metadataCached': 'Metadati memorizzati nella cache',
   'recommendation.warmingCache': 'Riscaldamento della cache...',
   'recommendation.match': 'affinità',
@@ -1129,6 +1134,7 @@ export const it = {
   'settings.targetTypeJellyfinPlaylist': 'Playlist Jellyfin',
   'settings.targetTypePlexPlaylist': 'Playlist Plex',
   'settings.targetTypeNavidromePlaylist': 'Playlist Navidrome',
+  'settings.targetTypeSpotifyPlaylist': 'Playlist Spotify',
   'settings.slskdModeHelp':
     'slskd può mettere in coda le release, ma l’automazione completa richiede un target Lidarr collegato.',
   'settings.slskdReleasePolicy':

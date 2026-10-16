@@ -285,6 +285,9 @@ export const tr = {
     'Sanatçı önerilerini onayladıkça veya reddettikçe Digarr zevkini öğrenir ve beğeneceğin müziği bulma konusunda daha iyi hale gelir.',
   'dashboard.yourTaste': 'Müzik zevkin',
   'discover.actionApplied': 'İşlem uygulandı.',
+  'discover.undoApproved': '{name} onaylandı',
+  'discover.undoRejected': '{name} reddedildi',
+  'discover.undoBlocked': '{name} reddedildi ve engellendi',
   'discover.approveAllAbove': 'Yukarıdakilerin Tümünü Onayla',
   'discover.approvedCount': 'Onaylandı',
   'discover.approvePartial': '{1} hedeften {0} tanesine eklendi. Başarısız: {2}',
@@ -575,6 +578,7 @@ export const tr = {
   'subscriptionForm.scoringPresetDefault': 'Varsayılan',
   'subscriptionForm.scoringPresetGenre': 'Türe göre optimize edildi',
   'subscriptions.likedSongs': 'Beğenilen Şarkılar',
+  'subscriptions.genreWeeklyName': '{genre} haftalık',
   'subscriptions.addToRecommendations': 'Önerilere ekle',
   'subscriptions.collapseRunHistory': 'Çalıştırma geçmişini daralt',
   'subscriptions.expandRunHistory': 'Çalıştırma geçmişini genişlet',
@@ -698,6 +702,7 @@ export const tr = {
   'recommendation.select': 'Seç',
   'recommendation.startWith': 'Şununla başla:',
   'recommendation.albumBadge': 'Albüm',
+  'recommendation.albumByArtist': '{artist} - {album}',
   'recommendation.metadataCached': 'Meta veriler önbelleğe alındı',
   'recommendation.warmingCache': 'Önbellek ısınıyor...',
   'recommendation.match': 'eşleşme',
@@ -1106,6 +1111,7 @@ export const tr = {
   'settings.targetTypeJellyfinPlaylist': 'Jellyfin çalma listesi',
   'settings.targetTypePlexPlaylist': 'Plex çalma listesi',
   'settings.targetTypeNavidromePlaylist': 'Navidrome çalma listesi',
+  'settings.targetTypeSpotifyPlaylist': 'Spotify çalma listesi',
   'settings.slskdModeHelp':
     'slskd sürümleri kuyruğa alabilir, ancak tam otomasyon için bağlı bir Lidarr hedefi gerekir.',
   'settings.slskdReleasePolicy':

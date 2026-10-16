@@ -492,15 +492,8 @@ export const getApprovalTrend = () => fetchApi<ApprovalTrend[]>('/analytics/tren
 export const getTimeToAct = () => fetchApi<TimeToAct[]>('/analytics/time-to-act')
 
 // Lidarr
-export const getLidarrProfiles = () =>
-  fetchApi<Array<{ id: number; name: string }>>('/lidarr/profiles')
-export const getLidarrMetadataProfiles = () =>
-  fetchApi<Array<{ id: number; name: string }>>('/lidarr/metadataprofiles')
-export const getLidarrRootFolders = () =>
-  fetchApi<Array<{ id: number; path: string; freeSpace?: number }>>('/lidarr/rootfolders')
-// Non-admin-safe picker data for the approve dialog: profile names + root-folder
-// paths only, no freeSpace/structure. The three fns above stay for the admin
-// settings screen, which is allowed to see the full payloads.
+// Non-admin-safe picker data: profile names + root-folder paths only, no
+// freeSpace/structure. Used by the approve dialog and per-user Lidarr defaults.
 export const getLidarrApproveOptions = () =>
   fetchApi<{
     qualityProfiles: Array<{ id: number; name: string }>
@@ -971,7 +964,19 @@ export const createSubscriptionApi = (data: {
     body: JSON.stringify(data),
   })
 
-export const updateSubscriptionApi = (id: number, data: Partial<Subscription>) =>
+// Mirrors the server's strict PATCH schema; source identity is fixed at creation.
+export type SubscriptionUpdate = Partial<
+  Pick<
+    Subscription,
+    'name' | 'enabled' | 'sourceConfig' | 'maxArtistsPerRun' | 'cron' | 'scoringWeightPreset'
+  >
+> & {
+  listenerRange?: { min?: number; max?: number }
+  scoreThreshold?: number
+  scoringWeightOverrides?: Record<string, number>
+}
+
+export const updateSubscriptionApi = (id: number, data: SubscriptionUpdate) =>
   fetchApi<void>(`/subscriptions/${id}`, {
     method: 'PATCH',
     body: JSON.stringify(data),

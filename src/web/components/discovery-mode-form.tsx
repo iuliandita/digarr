@@ -33,6 +33,9 @@ function serializeValue(field: DiscoveryConfigField, value: unknown): DiscoveryM
     if (Array.isArray(value)) return value.map((item) => String(item)).join(', ')
     return String(value ?? '')
   }
+  if (field.type === 'tags') {
+    return Array.isArray(value) ? JSON.stringify(value) : getDefaultValue(field)
+  }
   return String(value ?? '')
 }
 
