@@ -460,21 +460,33 @@
         "src/web/pages/playlist-detail.tsx": "06117a594780600420f29371ba6d656c152115c57dca1b3e4882412969be1e18",
         "src/web/pages/playlists.tsx": "3acb26a4750e56f15592d2a3773212b6acbb1ea88e500dc8e0b8545605aff72e",
         "src/web/pages/search.tsx": "18ad8db6096eb9000508d3b5f7884010376f74122f66b32cd51f25ee2f31e6e6",
-        "src/web/pages/settings.tsx": "6eb156609eb5ef2b50227aa036f1a4eb4e9d119ea669f3ac0d7063f9ba6a4af4",
+        "src/web/pages/settings/account-tab.tsx": "16f6ee00966196433bdb6c3dac01b10b93992e96fcb713572b823081bf38f242",
+        "src/web/pages/settings/auth-tab.tsx": "76cf646fe89494f95a60b75a0752fc41f1314955e4c9d7236be7985c368da3ea",
+        "src/web/pages/settings/connections-tab.tsx": "efc1dc064a62526c1d0fa23da0751af92eabc89cc507d1bb31d3d7e8bb0b6867",
+        "src/web/pages/settings/index.tsx": "e7a8060d56eaba97e42f2e4301d2d14321e97afb1c7149844f090ffeeb8a39ef",
+        "src/web/pages/settings/lidarr-preferences.tsx": "9064ec0131df280ec7e057c2891caaa991301216a5011d751b3a4eedf0850745",
+        "src/web/pages/settings/notification-channels.tsx": "778bfa31011c37f37695941f89bfeefec1d177687adad78c6a3b26eec196a8f5",
+        "src/web/pages/settings/recommendations-tab.tsx": "9922617b1298d3e2be3f32f752ededcb046fe6e3a658e2992f22dfa754ad1eee",
+        "src/web/pages/settings/schedule-tab.tsx": "f435906eaa503ce4aaa122b635887e83406a093191a7477799972cf636970b3d",
+        "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
+        "src/web/pages/settings/tab-bar.tsx": "2d152bd4eae0b62eb2b76932ef726f8eb8d4add1f04169b3e1edb7272950eaac",
+        "src/web/pages/settings/tabs.ts": "2666e0c40b224e77518a9dc372dff74b6bf7cf989cd15800784464093e4b5d6a",
+        "src/web/pages/settings/targets-tab.tsx": "47f275dd39a2a674efcf86ce51fd50a966194f4f0a4e8841583c28b38d74f1fa",
+        "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
         "src/web/pages/setup.tsx": "cba0ff2704ff8632057da9872035ebdc0ba9f57b1ea160ba8e7a6a2b7cd39ee0",
         "src/web/pages/subscriptions.tsx": "0c07ddd0f7129050e63448747000157953525918cd26c99518e5a1917e1258d2",
         "src/web/pages/user-management.tsx": "b1fadab3ef2599afe6aa78d68f92689a7cd9b2d9bbefdba75d712e2d446a1d1f",
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "85e7d8913ffdc2b883dd409d98141aa2c044a5f58219fab1ca4f3244c6201bb9",
+      "digest": "ce9a2f0f170c653ef795692f813120c0a1bfd5c9b4312423adf52aad7464f1e6",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
-        "note": "Navigation regrouped from one config: daily pages in the top and bottom bars, Discover sub-tabs for Recommendations, Genres and Discovery Modes, admin Tools menu, Settings as a header button (in the mobile menu below 640px), keyboard-accessible menus, shortcut isolation including modifier keys, /users admin guard, globe language menu with native names (right-aligned on sign-in). Routes and URLs unchanged. Changelog entry added and the screenshot doc's Discovery Modes location updated; AUTHENTICATION's Discover > Discovery Modes path stays accurate.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Settings split from one 4,254-line file into src/web/pages/settings/ modules with no visual change (pixel diff of all 11 tabs identical apart from the displayed dev port); tab links validated against a typed tab model after the role loads (#888), changelog Fixed entry added. Range also carries the stacked navigation change already documented in CHANGELOG and docs/SCREENSHOTS.md.",
         "breaking": "none",
         "migration": "",
-        "digest": "85e7d8913ffdc2b883dd409d98141aa2c044a5f58219fab1ca4f3244c6201bb9"
+        "digest": "ce9a2f0f170c653ef795692f813120c0a1bfd5c9b4312423adf52aad7464f1e6"
       }
     },
     "features": {

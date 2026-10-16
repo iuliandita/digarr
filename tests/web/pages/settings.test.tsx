@@ -192,6 +192,7 @@ import {
   linkOidcAccount,
   listJobs,
   listTargets,
+  listUsers,
   testNotificationChannel,
   testService,
   updatePreferredLocale,
@@ -520,6 +521,20 @@ describe('SettingsPage', () => {
       ),
     )
   })
+
+  it.each(['users', 'administration', 'jobs', 'system-health', 'nonsense'])(
+    'falls back to Connections when a member opens ?tab=%s',
+    async (tab) => {
+      setupMocks()
+      mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'listener', isAdmin: false })
+      renderWithQuery(<SettingsPage />, [`/settings?tab=${tab}`])
+      expect(await screen.findByRole('button', { name: 'Connections' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      )
+      expect(listUsers).not.toHaveBeenCalled()
+    },
+  )
 
   it('saves member recommendation preferences without global controls or writes', async () => {
     setupMocks()

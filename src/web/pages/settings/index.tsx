@@ -1,0 +1,113 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useSearchParams } from 'react-router-dom'
+import { AdministrationTab } from '../../components/admin/administration-tab'
+import { BlockedAlbumsTab } from '../../components/blocked-albums-tab'
+import { BlockedArtistsTab } from '../../components/blocked-artists-tab'
+import { OAuthCallbackNotice } from '../../components/oauth-callback-notice'
+import { SystemHealthCard } from '../../components/system-health-card'
+import { Button } from '../../components/ui/button'
+import { Skeleton } from '../../components/ui/skeleton'
+import { getCurrentUser, getSettings } from '../../lib/api'
+import { useI18n } from '../../lib/i18n'
+import JobHistoryPage from '../job-history'
+import { UserManagementPage } from '../user-management'
+import { AccountTab } from './account-tab'
+import { AuthTab } from './auth-tab'
+import { ConnectionsTab } from './connections-tab'
+import { RecommendationsTab } from './recommendations-tab'
+import { ScheduleTab } from './schedule-tab'
+import { TabBar } from './tab-bar'
+import { resolveTab, type Tab } from './tabs'
+import { TargetsTab } from './targets-tab'
+
+function SettingsSkeleton() {
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-1 border-b border-border mb-6">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <Skeleton key={i} className="h-9 w-28 mb-1" />
+        ))}
+      </div>
+      {[1, 2, 3].map((i) => (
+        <Skeleton key={i} className="h-40 w-full rounded-lg" />
+      ))}
+    </div>
+  )
+}
+
+export function SettingsPage() {
+  const { t } = useI18n()
+  const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const { data: currentUser, isPending: userPending } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+  })
+  const isAdmin = currentUser?.isAdmin ?? false
+  // Resolve only once the role is known, or admin deep links would fall back while it loads
+  const tab = resolveTab(searchParams.get('tab'), isAdmin)
+  const {
+    data,
+    isLoading: loading,
+    error,
+  } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  })
+
+  function refetch() {
+    queryClient.invalidateQueries({ queryKey: ['settings'] })
+  }
+
+  function handleTabChange(nextTab: Tab) {
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', nextTab)
+    setSearchParams(nextParams, { replace: true })
+  }
+
+  if (loading || userPending) {
+    return (
+      <div className="p-6 space-y-6 max-w-6xl mx-auto">
+        <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+        <SettingsSkeleton />
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="p-6 max-w-6xl mx-auto text-reject">
+        <p>
+          {t('errorBoundary.title')}: {error?.message ?? t('common.unknownError')}
+        </p>
+        <Button variant="outline" size="sm" onClick={refetch} className="mt-3">
+          {t('errorBoundary.retry')}
+        </Button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+      <OAuthCallbackNotice />
+      <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
+      {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
+      {tab === 'targets' && <TargetsTab />}
+      {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
+      {tab === 'blocked' && (
+        <div className="space-y-8">
+          <BlockedArtistsTab />
+          <BlockedAlbumsTab />
+        </div>
+      )}
+      {tab === 'schedule' && <ScheduleTab settings={data} />}
+      {tab === 'account' && <AccountTab />}
+      {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
+      {tab === 'users' && <UserManagementPage />}
+      {tab === 'administration' && <AdministrationTab />}
+      {tab === 'jobs' && <JobHistoryPage embedded />}
+      {tab === 'system-health' && <SystemHealthCard embedded />}
+    </div>
+  )
+}

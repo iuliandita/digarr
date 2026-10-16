@@ -1,0 +1,490 @@
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
+import { toast } from 'sonner'
+import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
+import { setAudiodbProxyFlag } from '../../components/artist-thumb'
+import { Field } from '../../components/field'
+import { Hint } from '../../components/hint'
+import { Button } from '../../components/ui/button'
+import { Disclosure } from '../../components/ui/disclosure'
+import { Input } from '../../components/ui/input'
+import {
+  getSettings,
+  getUserPreferences,
+  updateSettings,
+  updateUserPreferences,
+} from '../../lib/api'
+import { useI18n } from '../../lib/i18n'
+import { prefersReducedMotion } from '../../lib/utils'
+import { SliderField } from './shared'
+import type { Settings } from './types'
+
+export function RecommendationsTab({ isAdmin }: { isAdmin: boolean }) {
+  const { t } = useI18n()
+  const queryClient = useQueryClient()
+  const { data: prefs, isLoading: prefsLoading } = useQuery({
+    queryKey: ['user-preferences'],
+    queryFn: getUserPreferences,
+  })
+  const { data: settings } = useQuery({
+    queryKey: ['settings'],
+    queryFn: getSettings,
+  })
+
+  useEffect(() => {
+    if (!settings) return
+    const proxy = (settings as { audiodbProxyImages?: boolean }).audiodbProxyImages
+    if (typeof proxy === 'boolean') setAudiodbProxyFlag(proxy)
+  }, [settings])
+
+  if (prefsLoading || !prefs) {
+    return <div className="text-sm text-muted">{t('settings.loadingPreferences')}</div>
+  }
+
+  return (
+    <RecommendationsTabInner
+      prefs={prefs}
+      settings={(settings ?? {}) as Settings}
+      queryClient={queryClient}
+      isAdmin={isAdmin}
+    />
+  )
+}
+
+function RecommendationsTabInner({
+  prefs,
+  settings,
+  queryClient,
+  isAdmin,
+}: {
+  prefs: Record<string, unknown>
+  settings: Settings
+  queryClient: ReturnType<typeof useQueryClient>
+  isAdmin: boolean
+}) {
+  const { t } = useI18n()
+  const { hash } = useLocation()
+  const targetsNetNewAlbumDiscovery = hash === '#net-new-album-discovery'
+  const weights =
+    (prefs.scoringWeights as Preferences['scoringWeights']) ?? DEFAULT_PREFERENCES.scoringWeights
+
+  const [scoreThreshold, setScoreThreshold] = useState((prefs.scoreThreshold as number) ?? 0.5)
+  const [primaryGenres, setPrimaryGenres] = useState(
+    ((prefs.primaryGenres as string[] | undefined) ?? []).join(', '),
+  )
+  const [secondaryGenres, setSecondaryGenres] = useState(
+    ((prefs.secondaryGenres as string[] | undefined) ?? []).join(', '),
+  )
+  const [consensus, setConsensus] = useState(weights.consensus)
+  const [similarity, setSimilarity] = useState(weights.similarity)
+  const [genreOverlap, setGenreOverlap] = useState(weights.genreOverlap)
+  const [aiConfidence, setAiConfidence] = useState(weights.aiConfidence)
+  const [feedbackBoost, setFeedbackBoost] = useState(weights.feedbackBoost)
+  const [popularity, setPopularity] = useState(weights.popularity ?? 0)
+  const [rejectionCooldown, setRejectionCooldown] = useState(
+    String((prefs.rejectionCooldownDays as number) ?? 90),
+  )
+  const [topArtistsLimit, setTopArtistsLimit] = useState(
+    String((prefs.topArtistsLimit as number) ?? 30),
+  )
+  const [librarySeedRatio, setLibrarySeedRatio] = useState(
+    (prefs.librarySeedRatio as number) ?? 0.3,
+  )
+  const [autoApproveEnabled, setAutoApproveEnabled] = useState(
+    (prefs.autoApproveEnabled as boolean) ?? false,
+  )
+  const [autoApproveThreshold, setAutoApproveThreshold] = useState(
+    (prefs.autoApproveThreshold as number) ?? 0.8,
+  )
+  const [autoApproveMonitorOption, setAutoApproveMonitorOption] = useState(
+    (prefs.autoApproveMonitorOption as string) ?? 'all',
+  )
+  const [netNewAlbumDiscovery, setNetNewAlbumDiscovery] = useState(
+    (prefs.netNewAlbumDiscovery as boolean) ?? false,
+  )
+  const [fanartApiKey, setFanartApiKey] = useState(String(prefs.fanartApiKey ?? ''))
+  const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
+    String(prefs.metadataFallbackUrl ?? ''),
+  )
+  const [audiodbApiKey, setAudiodbApiKey] = useState(
+    settings.audiodbApiKey === '***' ? '' : (settings.audiodbApiKey ?? ''),
+  )
+  const [audiodbProxyImages, setAudiodbProxyImages] = useState<boolean>(
+    Boolean(settings.audiodbProxyImages),
+  )
+  const [wikidataEnabled, setWikidataEnabled] = useState<boolean>(
+    settings.wikidataEnabled !== false,
+  )
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (!targetsNetNewAlbumDiscovery) return
+
+    const target = document.getElementById('net-new-album-discovery')
+    target?.scrollIntoView({
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+      block: 'center',
+    })
+    target?.focus({ preventScroll: true })
+  }, [targetsNetNewAlbumDiscovery])
+
+  const weightSum =
+    consensus + similarity + genreOverlap + aiConfidence + feedbackBoost + popularity
+  const weightsOk = Math.abs(weightSum - 1.0) < 0.01
+
+  async function handleSave() {
+    setSaving(true)
+    let personalPreferencesSaved = false
+    try {
+      await updateUserPreferences({
+        scoreThreshold,
+        primaryGenres: primaryGenres
+          .split(',')
+          .map((genre) => genre.trim())
+          .filter(Boolean),
+        secondaryGenres: secondaryGenres
+          .split(',')
+          .map((genre) => genre.trim())
+          .filter(Boolean),
+        scoringWeights: {
+          consensus,
+          similarity,
+          genreOverlap,
+          aiConfidence,
+          feedbackBoost,
+          popularity,
+        },
+        rejectionCooldownDays:
+          parseInt(rejectionCooldown, 10) || (prefs.rejectionCooldownDays as number),
+        topArtistsLimit: parseInt(topArtistsLimit, 10) || (prefs.topArtistsLimit as number),
+        librarySeedRatio,
+        autoApproveEnabled,
+        autoApproveThreshold,
+        autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
+        netNewAlbumDiscovery,
+        fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
+        metadataFallbackUrl: metadataFallbackUrl || undefined,
+      })
+      personalPreferencesSaved = true
+      queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
+      queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+      if (isAdmin) {
+        await updateSettings({
+          audiodbApiKey: audiodbApiKey === '***' ? undefined : audiodbApiKey || null,
+          audiodbProxyImages,
+          wikidataEnabled,
+        })
+        setAudiodbProxyFlag(audiodbProxyImages)
+        queryClient.invalidateQueries({ queryKey: ['settings'] })
+      }
+      toast.success(t('settings.recommendationsSaved'))
+    } catch {
+      toast.error(
+        t(
+          personalPreferencesSaved
+            ? 'settings.recommendationsPartiallySaved'
+            : 'settings.recommendationsFailed',
+        ),
+      )
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="space-y-4 max-w-lg">
+      <Hint id="settings-recommendations-tip" type="inline">
+        {t('settings.recommendationsTip')}
+      </Hint>
+
+      <section className="space-y-4">
+        <Field label={t('settings.primaryGenres')} id="primary-genres">
+          <Input
+            id="primary-genres"
+            value={primaryGenres}
+            onChange={(e) => setPrimaryGenres(e.target.value)}
+            aria-describedby="genre-priority-help"
+          />
+        </Field>
+        <Field label={t('settings.secondaryGenres')} id="secondary-genres">
+          <Input
+            id="secondary-genres"
+            value={secondaryGenres}
+            onChange={(e) => setSecondaryGenres(e.target.value)}
+            aria-describedby="genre-priority-help"
+          />
+        </Field>
+        <p id="genre-priority-help" className="text-xs text-muted">
+          {t('settings.genrePriorityHelp')}
+        </p>
+      </section>
+
+      {/* Essential - always visible */}
+      <section className="space-y-4">
+        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+          {t('settings.scoreThreshold')}
+        </h2>
+        <SliderField
+          label={t('settings.minScoreToShow')}
+          id="score-threshold"
+          value={scoreThreshold}
+          min={0}
+          max={1}
+          step={0.05}
+          onChange={setScoreThreshold}
+        />
+      </section>
+
+      {/* Tuning - collapsed by default */}
+      <Disclosure title={t('settings.scoringWeights')}>
+        <div className="space-y-4 pt-2">
+          <div className="flex items-center gap-3">
+            <span className={`text-xs tabular-nums ${weightsOk ? 'text-muted' : 'text-warning'}`}>
+              {t('settings.totalWeight')} {weightSum.toFixed(2)}
+              {weightsOk ? '' : ` ${t('settings.shouldSumToOne')}`}
+            </span>
+          </div>
+          <SliderField
+            label={t('settings.consensus')}
+            id="w-consensus"
+            value={consensus}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setConsensus}
+          />
+          <SliderField
+            label={t('settings.similarity')}
+            id="w-similarity"
+            value={similarity}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setSimilarity}
+          />
+          <SliderField
+            label={t('settings.genreOverlap')}
+            id="w-genre"
+            value={genreOverlap}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setGenreOverlap}
+          />
+          <SliderField
+            label={t('settings.aiConfidence')}
+            id="w-ai"
+            value={aiConfidence}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setAiConfidence}
+          />
+          <SliderField
+            label={t('settings.feedbackBoost')}
+            id="w-feedback"
+            value={feedbackBoost}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setFeedbackBoost}
+          />
+          <SliderField
+            label={t('settings.popularity')}
+            id="w-popularity"
+            value={popularity}
+            min={0}
+            max={1}
+            step={0.05}
+            onChange={setPopularity}
+          />
+          <p className="text-xs text-muted">{t('settings.popularityHelp')}</p>
+        </div>
+      </Disclosure>
+
+      <Disclosure title={t('settings.autoApprove')}>
+        <div className="space-y-4 pt-2">
+          <p className="text-xs text-muted">{t('settings.autoApproveDescription')}</p>
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={autoApproveEnabled}
+              onChange={(e) => setAutoApproveEnabled(e.target.checked)}
+              className="rounded border-border"
+            />
+            <span className="text-sm text-text">{t('settings.enableAutoApprove')}</span>
+          </label>
+          {autoApproveEnabled && (
+            <div className="space-y-3 pl-6">
+              <SliderField
+                label={t('settings.minimumScore')}
+                id="auto-approve-threshold"
+                value={autoApproveThreshold}
+                min={0.5}
+                max={1.0}
+                step={0.05}
+                onChange={setAutoApproveThreshold}
+                displayValue={`${Math.round(autoApproveThreshold * 100)}%`}
+              />
+              <div className="space-y-1.5">
+                <label htmlFor="auto-approve-monitor" className="text-sm text-muted">
+                  {t('settings.monitorMode')}
+                </label>
+                <select
+                  id="auto-approve-monitor"
+                  value={autoApproveMonitorOption}
+                  onChange={(e) => setAutoApproveMonitorOption(e.target.value)}
+                  className="mt-1 w-full bg-bg border border-border rounded text-sm text-text px-2 py-1.5"
+                >
+                  <option value="all">{t('settings.monitorAll')}</option>
+                  <option value="new">{t('settings.monitorNew')}</option>
+                  <option value="none">{t('settings.monitorNone')}</option>
+                </select>
+              </div>
+            </div>
+          )}
+        </div>
+      </Disclosure>
+
+      {/* Advanced - collapsed by default */}
+      {/* Keyed so a hash link arriving while this tab is mounted still opens the section */}
+      <Disclosure
+        key={targetsNetNewAlbumDiscovery ? 'targeted' : 'default'}
+        title={t('settings.advancedSettings')}
+        defaultOpen={targetsNetNewAlbumDiscovery}
+      >
+        <div className="space-y-6 pt-2">
+          <section className="space-y-4">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              {t('settings.limits')}
+            </h3>
+            <Field label={t('settings.rejectionCooldown')} id="rejection-cooldown">
+              <Input
+                id="rejection-cooldown"
+                type="number"
+                min={1}
+                value={rejectionCooldown}
+                onChange={(e) => setRejectionCooldown(e.target.value)}
+                className="max-w-[120px]"
+              />
+            </Field>
+            <Field label={t('settings.topArtistsLimit')} id="top-artists-limit">
+              <Input
+                id="top-artists-limit"
+                type="number"
+                min={1}
+                value={topArtistsLimit}
+                onChange={(e) => setTopArtistsLimit(e.target.value)}
+                className="max-w-[120px]"
+              />
+            </Field>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              {t('settings.libraryDiscovery')}
+            </h3>
+            <p className="text-xs text-muted">{t('settings.libraryDiscoveryHelp')}</p>
+            <SliderField
+              label={t('settings.librarySeedRatio')}
+              id="library-seed-ratio"
+              value={librarySeedRatio}
+              min={0}
+              max={1}
+              step={0.05}
+              onChange={setLibrarySeedRatio}
+            />
+            <label
+              id="net-new-album-discovery"
+              tabIndex={-1}
+              className="scroll-mt-24 flex items-center gap-2 rounded-sm outline-none focus-visible:ring-2 focus-visible:ring-accent"
+            >
+              <input
+                type="checkbox"
+                checked={netNewAlbumDiscovery}
+                onChange={(e) => setNetNewAlbumDiscovery(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm text-text">{t('settings.netNewAlbumDiscovery')}</span>
+            </label>
+            <p className="text-xs text-muted">{t('settings.netNewAlbumDiscoveryHelp')}</p>
+          </section>
+
+          <section className="space-y-4">
+            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+              {t('settings.imageSources')}
+            </h3>
+            <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
+            {isAdmin && (
+              <>
+                <Field label={t('settings.audiodb.apiKey')} id="audiodb-api-key">
+                  <Input
+                    id="audiodb-api-key"
+                    type="password"
+                    value={audiodbApiKey}
+                    onChange={(e) => setAudiodbApiKey(e.target.value)}
+                    placeholder={t('settings.audiodb.apiKeyPlaceholder')}
+                  />
+                </Field>
+                <label className="flex items-start gap-2">
+                  <input
+                    type="checkbox"
+                    checked={audiodbProxyImages}
+                    onChange={(e) => setAudiodbProxyImages(e.target.checked)}
+                    className="mt-1"
+                  />
+                  <span className="text-sm">
+                    {t('settings.audiodb.proxyImages')}
+                    <span className="block text-micro text-muted">
+                      {t('settings.audiodb.proxyHint')}
+                    </span>
+                  </span>
+                </label>
+              </>
+            )}
+            <Field label={t('settings.fieldFanartApiKey')} id="fanart-api-key">
+              <Input
+                id="fanart-api-key"
+                type="password"
+                value={fanartApiKey}
+                onChange={(e) => setFanartApiKey(e.target.value)}
+                placeholder={t('settings.fieldFanartApiKey')}
+              />
+            </Field>
+            <Field label={t('settings.fieldMetadataFallbackUrl')} id="metadata-fallback-url">
+              <Input
+                id="metadata-fallback-url"
+                value={metadataFallbackUrl}
+                onChange={(e) => setMetadataFallbackUrl(e.target.value)}
+                placeholder="https://api.musicinfo.pro"
+              />
+            </Field>
+            <p className="text-micro text-muted">{t('settings.metadataFallbackHelp')}</p>
+          </section>
+
+          {isAdmin && (
+            <section className="space-y-4">
+              <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
+                {t('settings.wikidata.title')}
+              </h3>
+              <label className="flex items-start gap-2">
+                <input
+                  type="checkbox"
+                  checked={wikidataEnabled}
+                  onChange={(e) => setWikidataEnabled(e.target.checked)}
+                  className="mt-1"
+                />
+                <span className="text-sm">{t('settings.wikidata.enabled')}</span>
+              </label>
+            </section>
+          )}
+        </div>
+      </Disclosure>
+
+      <Button onClick={handleSave} disabled={saving}>
+        {saving ? t('settings.saving') : t('settings.save')}
+      </Button>
+    </div>
+  )
+}
