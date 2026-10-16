@@ -36,6 +36,17 @@ export async function markLibraryHealthScanStarted(db: Database): Promise<void> 
     })
 }
 
+/** Records a failed scan without touching the last completed checks. */
+export async function markLibraryHealthScanFailed(db: Database, error: string): Promise<void> {
+  await db
+    .insert(libraryHealthState)
+    .values({ id: 1, lastError: error, updatedAt: new Date() })
+    .onConflictDoUpdate({
+      target: libraryHealthState.id,
+      set: { lastError: error, updatedAt: new Date() },
+    })
+}
+
 export async function saveLibraryHealthState(
   db: Database,
   input: {

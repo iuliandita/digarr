@@ -54,6 +54,7 @@ type HealthServiceDeps = {
       lastCompletedAt: Date
       lastError: string | null
     }) => Promise<void>
+    markScanFailed: (error: string) => Promise<void>
   }
 }
 
@@ -128,7 +129,12 @@ export class LibraryHealthService {
       console.error('[library-health] failed to mark scan started:', err)
     })
     this.runChecks()
-      .catch((err) => console.error('[library-health] scan failed:', err))
+      .catch(async (err) => {
+        console.error('[library-health] scan failed:', err)
+        await this.deps.stateStore?.markScanFailed(errMsg(err)).catch((saveErr) => {
+          console.error('[library-health] failed to record scan failure:', saveErr)
+        })
+      })
       .finally(() => {
         this._scanning = false
       })
@@ -143,11 +149,16 @@ export class LibraryHealthService {
     const cachedByMbid = new Map(cachedArtists.map((a) => [a.mbid, a]))
 
     const monitoredArtists = lidarrArtists.filter((a) => a.monitored)
+    const missingAlbums = await this.checkMissingAlbums(monitoredArtists)
+    const { failed, firstError } = missingAlbums
+    if (failed > 0 && failed === monitoredArtists.length) {
+      throw new Error(`Album lookups failed for all ${failed} monitored artists: ${firstError}`)
+    }
 
     const results: HealthCheckResult[] = [
       this.checkMissingMetadata(lidarrArtists, cachedByMbid),
       this.checkUnmonitored(lidarrArtists),
-      await this.checkMissingAlbums(monitoredArtists),
+      missingAlbums.result,
       this.checkDuplicateArtists(lidarrArtists),
       this.checkGenreGaps(lidarrArtists, cachedByMbid),
       this.checkImageGaps(cachedArtists, lidarrArtists),
@@ -159,7 +170,10 @@ export class LibraryHealthService {
     await this.deps.stateStore?.save({
       checks: results,
       lastCompletedAt,
-      lastError: null,
+      lastError:
+        failed > 0
+          ? `Album lookups failed for ${failed} of ${monitoredArtists.length} monitored artists; missing album counts are partial: ${firstError}`
+          : null,
     })
     return results
   }
@@ -177,9 +191,11 @@ export class LibraryHealthService {
       throw new Error('duplicate-artists check is not fixable')
     }
 
-    const results = this.cachedResults
-    const check = results?.find((r) => r.id === checkId)
-    const items: HealthCheckItem[] = check?.items ?? []
+    // After a restart the in-memory results are gone; an empty fix would report success.
+    const results = this.cachedResults ?? (await this.deps.stateStore?.get())?.checks ?? []
+    const check = results.find((r) => r.id === checkId)
+    if (!check) throw new Error(`No scan results for ${checkId}; run a library health scan first`)
+    const items: HealthCheckItem[] = check.items
 
     const progress: HealthFixProgress = {
       checkId,
@@ -299,9 +315,13 @@ export class LibraryHealthService {
     return { ...meta, id: 'unmonitored', count: items.length, items }
   }
 
-  private async checkMissingAlbums(monitoredArtists: LidarrArtist[]): Promise<HealthCheckResult> {
+  private async checkMissingAlbums(
+    monitoredArtists: LidarrArtist[],
+  ): Promise<{ result: HealthCheckResult; failed: number; firstError: string | null }> {
     const meta = CHECK_META['missing-albums']
     const items: HealthCheckItem[] = []
+    let failed = 0
+    let firstError: string | null = null
 
     // Rate-limit album fetches so we don't saturate the event loop or hammer Lidarr
     const queue = new PQueue({ concurrency: 2, interval: 200, intervalCap: 2 })
@@ -325,14 +345,19 @@ export class LibraryHealthService {
               detail: `${missingCount} monitored album${missingCount === 1 ? '' : 's'} with no files`,
             })
           }
-        } catch {
-          // skip individual artist failures
+        } catch (err: unknown) {
+          failed++
+          firstError ??= `${artist.artistName}: ${errMsg(err)}`
         }
       })
     }
 
     await queue.onIdle()
-    return { ...meta, id: 'missing-albums', count: items.length, items }
+    return {
+      result: { ...meta, id: 'missing-albums', count: items.length, items },
+      failed,
+      firstError,
+    }
   }
 
   private checkDuplicateArtists(artists: LidarrArtist[]): HealthCheckResult {

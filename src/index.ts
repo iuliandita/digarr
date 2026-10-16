@@ -134,6 +134,7 @@ import {
 import * as jobQueries from './db/queries/jobs'
 import {
   getLibraryHealthState,
+  markLibraryHealthScanFailed,
   markLibraryHealthScanStarted,
   saveLibraryHealthState,
 } from './db/queries/library-health'
@@ -505,29 +506,24 @@ const genreService = new GenreService({
 // LibraryHealthService uses a lazy Lidarr client that reads current settings per call.
 // This avoids the chicken-and-egg problem of needing settings at construction time.
 function makeLazyLidarrClient() {
+  // Reads throw too: an empty library would make an unconfigured Lidarr look healthy.
   async function getClient() {
     const s = await getSettings(db)
     if (s?.lidarrUrl && s?.lidarrApiKey) {
       return createLidarrClient(s.lidarrUrl, s.lidarrApiKey, s.skipTlsVerify ?? false)
     }
-    return null
+    throw new Error('Lidarr not configured')
   }
 
   return {
-    getArtists: async () => (await getClient())?.getArtists() ?? [],
-    getAlbums: async (artistId: number) => (await getClient())?.getAlbums(artistId) ?? [],
-    lookupArtist: async (term: string) => (await getClient())?.lookupArtist(term) ?? [],
-    setArtistsMonitored: async (artistIds: number[], monitored: boolean) => {
-      const client = await getClient()
-      if (!client) throw new Error('Lidarr not configured')
-      return client.setArtistsMonitored(artistIds, monitored)
-    },
-    triggerCommand: async (name: string, body?: Record<string, unknown>) => {
-      const client = await getClient()
-      if (!client) throw new Error('Lidarr not configured')
-      return client.triggerCommand(name, body)
-    },
-    getRootFolders: async () => (await getClient())?.getRootFolders() ?? [],
+    getArtists: async () => (await getClient()).getArtists(),
+    getAlbums: async (artistId: number) => (await getClient()).getAlbums(artistId),
+    lookupArtist: async (term: string) => (await getClient()).lookupArtist(term),
+    setArtistsMonitored: async (artistIds: number[], monitored: boolean) =>
+      (await getClient()).setArtistsMonitored(artistIds, monitored),
+    triggerCommand: async (name: string, body?: Record<string, unknown>) =>
+      (await getClient()).triggerCommand(name, body),
+    getRootFolders: async () => (await getClient()).getRootFolders(),
   }
 }
 
@@ -564,6 +560,7 @@ const libraryHealth = new LibraryHealthService({
     markScanStarted: () => markLibraryHealthScanStarted(db),
     save: ({ checks, lastCompletedAt, lastError }) =>
       saveLibraryHealthState(db, { checks, lastCompletedAt, lastError }),
+    markScanFailed: (error) => markLibraryHealthScanFailed(db, error),
   },
 })
 
