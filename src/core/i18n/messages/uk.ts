@@ -355,6 +355,8 @@ export const uk = {
   'discover.select': 'Виберіть',
   'discover.showFeedbackInsights': 'Показати аналітику відгуків',
   'discover.swipeHint': 'Проведіть праворуч, щоб підтвердити, ліворуч, щоб відхилити',
+  'discover.cardsTip':
+    'Натисніть на картку, щоб побачити альбоми та посилання на стримінг, або натисніть ?, щоб побачити комбінації клавіш.',
   'discover.thresholdPercentage': 'Пороговий відсоток',
   'discover.undo': 'Скасувати',
   'discover.undoFailed': 'Не вдалося скасувати',
@@ -714,8 +716,6 @@ export const uk = {
   'recommendation.albumBadge': 'Альбом',
   'recommendation.metadataCached': 'Метадані кешовані',
   'recommendation.warmingCache': 'Розігрів кешу...',
-  'recommendation.clickHint':
-    'Натисніть на рекомендацію, щоб переглянути альбоми, посилання на потокове передавання тощо. Проведіть пальцем праворуч, щоб схвалити на мобільному пристрої.',
   'recommendation.match': 'збіг',
   'recommendation.viewOnMusicBrainz': 'Відкрити у MusicBrainz',
   'recommendation.whyThisArtist': 'Чому цей артист',

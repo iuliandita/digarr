@@ -355,6 +355,8 @@ export const ja = {
   'discover.select': '選択',
   'discover.showFeedbackInsights': 'フィードバック分析を表示',
   'discover.swipeHint': '承認するには右にスワイプ、拒否するには左にスワイプします',
+  'discover.cardsTip':
+    'カードをクリックするとアルバムとストリーミングリンクを表示します。? キーでキーボードショートカットを表示します。',
   'discover.thresholdPercentage': 'しきい値パーセンテージ',
   'discover.undo': '元に戻す',
   'discover.undoFailed': '元に戻すことができませんでした',
@@ -709,8 +711,6 @@ export const ja = {
   'recommendation.albumBadge': 'アルバム',
   'recommendation.metadataCached': 'キャッシュされたメタデータ',
   'recommendation.warmingCache': 'キャッシュを温めています...',
-  'recommendation.clickHint':
-    'おすすめをクリックすると、アルバムやストリーミング リンクなどが表示されます。モバイルで承認するには右にスワイプします。',
   'recommendation.match': '一致',
   'recommendation.viewOnMusicBrainz': 'MusicBrainz で表示',
   'recommendation.whyThisArtist': 'このアーティストの理由',

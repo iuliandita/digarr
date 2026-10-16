@@ -355,6 +355,8 @@ export const ru = {
   'discover.select': 'Выбрать',
   'discover.showFeedbackInsights': 'Показать аналитику отзывов',
   'discover.swipeHint': 'Проведите пальцем вправо, чтобы одобрить, влево, чтобы отклонить',
+  'discover.cardsTip':
+    'Нажмите на карточку, чтобы увидеть альбомы и ссылки на стриминг, или нажмите ?, чтобы увидеть сочетания клавиш.',
   'discover.thresholdPercentage': 'Пороговый процент',
   'discover.undo': 'Отменить',
   'discover.undoFailed': 'Отменить не удалось',
@@ -718,8 +720,6 @@ export const ru = {
   'recommendation.albumBadge': 'Альбом',
   'recommendation.metadataCached': 'Метаданные кэшируются',
   'recommendation.warmingCache': 'Потепление кэша...',
-  'recommendation.clickHint':
-    'Нажмите на рекомендацию, чтобы просмотреть альбомы, ссылки на потоки и многое другое. Проведите пальцем вправо, чтобы одобрить на мобильном телефоне.',
   'recommendation.match': 'совпадение',
   'recommendation.viewOnMusicBrainz': 'Открыть в MusicBrainz',
   'recommendation.whyThisArtist': 'Почему этот артист',

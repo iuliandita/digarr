@@ -356,6 +356,8 @@ export const ptBR = {
   'discover.select': 'Selecione',
   'discover.showFeedbackInsights': 'Mostrar insights de feedback',
   'discover.swipeHint': 'Deslize para a direita para aprovar, para a esquerda para rejeitar',
+  'discover.cardsTip':
+    'Clique em um card para ver álbuns e links de streaming, ou pressione ? para ver os atalhos de teclado.',
   'discover.thresholdPercentage': 'Porcentagem limite',
   'discover.undo': 'Desfazer',
   'discover.undoFailed': 'Falha ao desfazer',
@@ -718,8 +720,6 @@ export const ptBR = {
   'recommendation.albumBadge': 'Álbum',
   'recommendation.metadataCached': 'Metadados armazenados em cache',
   'recommendation.warmingCache': 'Aquecendo cache...',
-  'recommendation.clickHint':
-    'Clique em uma recomendação para ver álbuns, links de streaming e muito mais. Deslize para a direita para aprovar no celular.',
   'recommendation.match': 'compatibilidade',
   'recommendation.viewOnMusicBrainz': 'Ver no MusicBrainz',
   'recommendation.whyThisArtist': 'Por que este artista',

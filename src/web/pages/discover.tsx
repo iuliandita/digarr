@@ -1202,10 +1202,14 @@ export function DiscoverPage() {
 
       {/* Content area */}
       <div className="px-6">
-        {/* Shortcut keys are listed in the ? dialog; touch users get the swipe hint */}
         {!bulkMode && viewMode !== 'stack' && (
           <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
         )}
+        <div className="hidden sm:block mb-2">
+          <Hint id="discover-cards-tip" type="inline">
+            {t('discover.cardsTip')}
+          </Hint>
+        </div>
 
         <MoodPromptBar existingArtistNames={existingArtistNames} onQueued={refetch} />
 

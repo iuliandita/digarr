@@ -352,6 +352,8 @@ export const tr = {
   'discover.select': 'Seç',
   'discover.showFeedbackInsights': 'Geri bildirim içgörülerini göster',
   'discover.swipeHint': 'Onaylamak için sağa, reddetmek için sola kaydırın',
+  'discover.cardsTip':
+    'Albümler ve yayın bağlantıları için bir karta tıklayın veya klavye kısayolları için ? tuşuna basın.',
   'discover.thresholdPercentage': 'Eşik yüzdesi',
   'discover.undo': 'Geri al',
   'discover.undoFailed': 'Geri alma başarısız oldu',
@@ -706,8 +708,6 @@ export const tr = {
   'recommendation.albumBadge': 'Albüm',
   'recommendation.metadataCached': 'Meta veriler önbelleğe alındı',
   'recommendation.warmingCache': 'Önbellek ısınıyor...',
-  'recommendation.clickHint':
-    'Albümleri, akış bağlantılarını ve daha fazlasını görmek için bir öneriye tıklayın. Mobil cihazda onaylamak için sağa kaydırın.',
   'recommendation.match': 'eşleşme',
   'recommendation.viewOnMusicBrainz': 'MusicBrainz’da görüntüle',
   'recommendation.whyThisArtist': 'Neden bu sanatçı',

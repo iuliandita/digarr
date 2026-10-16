@@ -350,6 +350,8 @@ export const en = {
   'discover.select': 'Select',
   'discover.showFeedbackInsights': 'Show feedback insights',
   'discover.swipeHint': 'Swipe right to approve, left to reject',
+  'discover.cardsTip':
+    'Click a card for albums and streaming links, or press ? for keyboard shortcuts.',
   'discover.thresholdPercentage': 'Threshold percentage',
   'discover.undo': 'Undo',
   'discover.undoFailed': 'Undo failed',
@@ -702,8 +704,6 @@ export const en = {
   'recommendation.albumBadge': 'Album',
   'recommendation.metadataCached': 'Metadata cached',
   'recommendation.warmingCache': 'Warming cache...',
-  'recommendation.clickHint':
-    'Click on a recommendation to see albums, streaming links, and more. Swipe right to approve on mobile.',
   'recommendation.match': 'match',
   'recommendation.viewOnMusicBrainz': 'View on MusicBrainz',
   'recommendation.whyThisArtist': 'Why this artist',

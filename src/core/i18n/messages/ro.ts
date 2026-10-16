@@ -357,6 +357,8 @@ export const ro = {
   'discover.select': 'Selectați',
   'discover.showFeedbackInsights': 'Arată informațiile de feedback',
   'discover.swipeHint': 'Glisați spre dreapta pentru a aproba, spre stânga pentru a respinge',
+  'discover.cardsTip':
+    'Faceți clic pe un card pentru albume și linkuri de streaming sau apăsați ? pentru comenzile rapide de la tastatură.',
   'discover.thresholdPercentage': 'Procentul de prag',
   'discover.undo': 'Anulați',
   'discover.undoFailed': 'Anularea a eșuat',
@@ -717,8 +719,6 @@ export const ro = {
   'recommendation.albumBadge': 'Album',
   'recommendation.metadataCached': 'Metadatele stocate în cache',
   'recommendation.warmingCache': 'Se încălzește memoria cache...',
-  'recommendation.clickHint':
-    'Faceți clic pe o recomandare pentru a vedea albume, link-uri în flux și multe altele. Glisați spre dreapta pentru a aproba pe mobil.',
   'recommendation.match': 'potrivire',
   'recommendation.viewOnMusicBrainz': 'Vezi pe MusicBrainz',
   'recommendation.whyThisArtist': 'De ce acest artist?',

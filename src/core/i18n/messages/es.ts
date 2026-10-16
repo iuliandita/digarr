@@ -356,6 +356,8 @@ export const es = {
   'discover.select': 'Seleccionar',
   'discover.showFeedbackInsights': 'Mostrar información de feedback',
   'discover.swipeHint': 'Desliza hacia la derecha para aprobar, hacia la izquierda para rechazar',
+  'discover.cardsTip':
+    'Haz clic en una tarjeta para ver álbumes y enlaces de streaming, o pulsa ? para ver los atajos de teclado.',
   'discover.thresholdPercentage': 'Porcentaje umbral',
   'discover.undo': 'Deshacer',
   'discover.undoFailed': 'Error al deshacer',
@@ -717,8 +719,6 @@ export const es = {
   'recommendation.albumBadge': 'Álbum',
   'recommendation.metadataCached': 'Metadatos almacenados en caché',
   'recommendation.warmingCache': 'Caché de calentamiento...',
-  'recommendation.clickHint':
-    'Haga clic en una recomendación para ver álbumes, enlaces de transmisión y más. Desliza hacia la derecha para aprobar en el móvil.',
   'recommendation.match': 'coincidencia',
   'recommendation.viewOnMusicBrainz': 'Ver en MusicBrainz',
   'recommendation.whyThisArtist': 'Por qué este artista',

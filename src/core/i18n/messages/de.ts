@@ -356,6 +356,8 @@ export const de = {
   'discover.select': 'Auswählen',
   'discover.showFeedbackInsights': 'Feedback-Einblicke anzeigen',
   'discover.swipeHint': 'Wischen Sie zum Genehmigen nach rechts und zum Ablehnen nach links',
+  'discover.cardsTip':
+    'Klicken Sie auf eine Karte für Alben und Streaming-Links oder drücken Sie ? für Tastenkürzel.',
   'discover.thresholdPercentage': 'Schwellenprozentsatz',
   'discover.undo': 'Rückgängig machen',
   'discover.undoFailed': 'Rückgängig machen fehlgeschlagen',
@@ -725,8 +727,6 @@ export const de = {
   'recommendation.albumBadge': 'Album',
   'recommendation.metadataCached': 'Metadaten zwischengespeichert',
   'recommendation.warmingCache': 'Wärme-Cache...',
-  'recommendation.clickHint':
-    'Klicken Sie auf eine Empfehlung, um Alben, Streaming-Links und mehr anzuzeigen. Wischen Sie nach rechts, um auf dem Mobilgerät zu genehmigen.',
   'recommendation.match': 'Übereinstimmung',
   'recommendation.viewOnMusicBrainz': 'Auf MusicBrainz ansehen',
   'recommendation.whyThisArtist': 'Warum dieser Künstler',

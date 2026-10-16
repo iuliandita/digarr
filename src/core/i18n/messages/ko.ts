@@ -351,6 +351,8 @@ export const ko = {
   'discover.select': '선택',
   'discover.showFeedbackInsights': '피드백 인사이트 표시',
   'discover.swipeHint': '승인하려면 오른쪽으로 스와이프하고, 거부하려면 왼쪽으로 스와이프하세요.',
+  'discover.cardsTip':
+    '카드를 클릭하면 앨범과 스트리밍 링크를 볼 수 있고, ?를 누르면 키보드 단축키를 볼 수 있습니다.',
   'discover.thresholdPercentage': '임계값 비율',
   'discover.undo': '실행 취소',
   'discover.undoFailed': '실행취소 실패',
@@ -703,8 +705,6 @@ export const ko = {
   'recommendation.albumBadge': '앨범',
   'recommendation.metadataCached': '캐시된 메타데이터',
   'recommendation.warmingCache': '캐시를 따뜻하게 하는 중...',
-  'recommendation.clickHint':
-    '앨범, 스트리밍 링크 등을 보려면 추천 항목을 클릭하세요. 모바일에서는 오른쪽으로 스와이프하여 승인하세요.',
   'recommendation.match': '일치',
   'recommendation.viewOnMusicBrainz': 'MusicBrainz에서 보기',
   'recommendation.whyThisArtist': '이 아티스트를 추천한 이유',

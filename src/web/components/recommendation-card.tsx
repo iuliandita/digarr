@@ -12,7 +12,6 @@ import { readStoredVolume } from '../lib/preview-volume'
 import { cn, hueFromName } from '../lib/utils'
 import { ArtistEnrichmentPanel } from './artist-enrichment-panel'
 import { ArtistThumb } from './artist-thumb'
-import { Hint } from './hint'
 import { LibraryAlbumCoverageBadge } from './library-album-coverage-badge'
 import { StreamingLinks } from './streaming-links'
 import { Button } from './ui/button'
@@ -764,42 +763,37 @@ export function RecommendationCard({
 
           {/* One decision row: preview, then the actions */}
           {!expanded && (
-            <>
-              <div className="flex items-center gap-2">
-                {hasPreview && !bulkMode && (
-                  <button
-                    type="button"
-                    aria-label={
-                      artistIsPlaying
-                        ? t('recommendation.stopPreview')
-                        : t('recommendation.playPreview')
-                    }
-                    onClick={handlePlayClick}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-muted transition-colors hover:text-text focus-ring"
-                  >
-                    {artistIsPlaying ? (
-                      <Pause size={14} aria-hidden="true" />
-                    ) : (
-                      <Play size={14} aria-hidden="true" />
-                    )}
-                  </button>
-                )}
-                <ActionButtons
-                  rec={rec}
-                  bulkMode={bulkMode}
-                  isPending={isPending}
-                  isApproved={isApproved}
-                  onApprove={onApprove}
-                  onReject={onReject}
-                  approveNode={approveNode}
-                  targets={targets}
-                  onApproveToTarget={onApproveToTarget}
-                />
-              </div>
-              <Hint id="rec-card-click-tip" type="inline">
-                {t('recommendation.clickHint')}
-              </Hint>
-            </>
+            <div className="flex items-center gap-2">
+              {hasPreview && !bulkMode && (
+                <button
+                  type="button"
+                  aria-label={
+                    artistIsPlaying
+                      ? t('recommendation.stopPreview')
+                      : t('recommendation.playPreview')
+                  }
+                  onClick={handlePlayClick}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-muted transition-colors hover:text-text focus-ring"
+                >
+                  {artistIsPlaying ? (
+                    <Pause size={14} aria-hidden="true" />
+                  ) : (
+                    <Play size={14} aria-hidden="true" />
+                  )}
+                </button>
+              )}
+              <ActionButtons
+                rec={rec}
+                bulkMode={bulkMode}
+                isPending={isPending}
+                isApproved={isApproved}
+                onApprove={onApprove}
+                onReject={onReject}
+                approveNode={approveNode}
+                targets={targets}
+                onApproveToTarget={onApproveToTarget}
+              />
+            </div>
           )}
         </div>
 

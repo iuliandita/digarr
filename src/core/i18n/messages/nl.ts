@@ -355,6 +355,8 @@ export const nl = {
   'discover.select': 'Selecteer',
   'discover.showFeedbackInsights': 'Feedbackinzichten tonen',
   'discover.swipeHint': 'Veeg naar rechts om goed te keuren, naar links om af te wijzen',
+  'discover.cardsTip':
+    'Klik op een kaart voor albums en streaminglinks, of druk op ? voor sneltoetsen.',
   'discover.thresholdPercentage': 'Drempelpercentage',
   'discover.undo': 'Ongedaan maken',
   'discover.undoFailed': 'Ongedaan maken is mislukt',
@@ -715,8 +717,6 @@ export const nl = {
   'recommendation.albumBadge': 'Album',
   'recommendation.metadataCached': 'Metagegevens in cache',
   'recommendation.warmingCache': 'Opwarmende cache...',
-  'recommendation.clickHint':
-    'Klik op een aanbeveling om albums, streaminglinks en meer te bekijken. Veeg naar rechts om goed te keuren op mobiel.',
   'recommendation.match': 'overeenkomst',
   'recommendation.viewOnMusicBrainz': 'Bekijken op MusicBrainz',
   'recommendation.whyThisArtist': 'Waarom deze artiest',
