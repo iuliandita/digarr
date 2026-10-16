@@ -16,21 +16,23 @@ import { AuthTab } from './auth-tab'
 import { ConnectionsTab } from './connections-tab'
 import { RecommendationsTab } from './recommendations-tab'
 import { ScheduleTab } from './schedule-tab'
-import { TabBar } from './tab-bar'
+import { SettingsNav } from './settings-nav'
 import { resolveTab, type Tab } from './tabs'
 import { TargetsTab } from './targets-tab'
 
 function SettingsSkeleton() {
   return (
-    <div className="space-y-4">
-      <div className="flex gap-1 border-b border-border mb-6">
+    <div className="grid gap-6 md:grid-cols-[13.75rem_minmax(0,1fr)]">
+      <div className="hidden space-y-2 md:block">
         {[1, 2, 3, 4, 5].map((i) => (
-          <Skeleton key={i} className="h-9 w-28 mb-1" />
+          <Skeleton key={i} className="h-8 w-full" />
         ))}
       </div>
-      {[1, 2, 3].map((i) => (
-        <Skeleton key={i} className="h-40 w-full rounded-lg" />
-      ))}
+      <div className="space-y-4">
+        {[1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-40 w-full rounded-surface" />
+        ))}
+      </div>
     </div>
   )
 }
@@ -91,23 +93,27 @@ export function SettingsPage() {
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
       <OAuthCallbackNotice />
-      <TabBar active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
-      {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
-      {tab === 'targets' && <TargetsTab />}
-      {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
-      {tab === 'blocked' && (
-        <div className="space-y-8">
-          <BlockedArtistsTab />
-          <BlockedAlbumsTab />
+      <div className="grid gap-6 md:grid-cols-[13.75rem_minmax(0,1fr)]">
+        <SettingsNav active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
+        <div className="min-w-0 space-y-6">
+          {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
+          {tab === 'targets' && <TargetsTab />}
+          {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
+          {tab === 'blocked' && (
+            <div className="space-y-8">
+              <BlockedArtistsTab />
+              <BlockedAlbumsTab />
+            </div>
+          )}
+          {tab === 'schedule' && <ScheduleTab settings={data} />}
+          {tab === 'account' && <AccountTab />}
+          {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
+          {tab === 'users' && <UserManagementPage />}
+          {tab === 'administration' && <AdministrationTab />}
+          {tab === 'jobs' && <JobHistoryPage embedded />}
+          {tab === 'system-health' && <SystemHealthCard embedded />}
         </div>
-      )}
-      {tab === 'schedule' && <ScheduleTab settings={data} />}
-      {tab === 'account' && <AccountTab />}
-      {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
-      {tab === 'users' && <UserManagementPage />}
-      {tab === 'administration' && <AdministrationTab />}
-      {tab === 'jobs' && <JobHistoryPage embedded />}
-      {tab === 'system-health' && <SystemHealthCard embedded />}
+      </div>
     </div>
   )
 }

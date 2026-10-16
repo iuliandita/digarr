@@ -384,67 +384,25 @@ describe('SettingsPage', () => {
     expect(pulsingEls.length).toBeGreaterThan(0)
   })
 
-  it('renders tab bar with Connections, Recommendations, Schedule, Job History, and System Health', async () => {
+  it('groups settings sections in the side menu and the small-screen select', async () => {
     setupMocks()
     renderWithQuery(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
-    })
-    expect(screen.getByText('Recommendations')).toBeInTheDocument()
-    expect(screen.getByText('Schedule')).toBeInTheDocument()
-    expect(screen.getByText('Job History')).toBeInTheDocument()
-    expect(screen.getByText('System Health')).toBeInTheDocument()
-  })
+    const nav = await screen.findByRole('navigation', { name: 'Settings' })
+    expect(within(nav).getByText('Personal')).toBeInTheDocument()
+    expect(within(nav).getByText('Library & services')).toBeInTheDocument()
+    expect(within(nav).getByText('Admin')).toBeInTheDocument()
+    for (const name of ['Account', 'Connections', 'Schedule', 'Job History', 'System Health']) {
+      expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
+    }
 
-  it('shows directional controls only where settings tabs are hidden', async () => {
-    setupMocks()
-    renderWithQuery(<SettingsPage />)
-
-    await screen.findByText('Connections')
-    const tabStrip = screen.getByTestId('settings-tabs-scroll')
-    const scrollBy = vi.fn()
-    Object.defineProperties(tabStrip, {
-      clientWidth: { configurable: true, value: 320 },
-      scrollWidth: { configurable: true, value: 900 },
-      scrollLeft: { configurable: true, value: 0, writable: true },
-      scrollBy: { configurable: true, value: scrollBy },
-    })
-
-    fireEvent.scroll(tabStrip)
-
-    expect(tabStrip).toHaveClass('overflow-x-auto', 'scroll-px-16')
-    expect(screen.queryByRole('button', { name: 'Scroll settings tabs left' })).toBeNull()
-    const scrollRight = screen.getByRole('button', { name: 'Scroll settings tabs right' })
-    fireEvent.click(scrollRight)
-    expect(scrollBy).toHaveBeenCalledWith({ behavior: 'smooth', left: 240 })
-
-    tabStrip.scrollLeft = 300
-    fireEvent.scroll(tabStrip)
-    expect(screen.getByRole('button', { name: 'Scroll settings tabs left' })).toBeVisible()
-    expect(screen.getByRole('button', { name: 'Scroll settings tabs right' })).toBeVisible()
-
-    tabStrip.scrollLeft = 580
-    fireEvent.scroll(tabStrip)
-    expect(screen.getByRole('button', { name: 'Scroll settings tabs left' })).toBeVisible()
-    expect(screen.queryByRole('button', { name: 'Scroll settings tabs right' })).toBeNull()
-  })
-
-  it('scrolls the active settings tab into view', async () => {
-    setupMocks()
-    const scrollIntoView = vi.fn()
-    Element.prototype.scrollIntoView = scrollIntoView
-
-    renderWithQuery(<SettingsPage />, ['/settings?tab=system-health'])
-
-    await screen.findByRole('button', { name: 'System Health' })
-    await waitFor(() => {
-      expect(scrollIntoView).toHaveBeenCalledWith({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'nearest',
-      })
-    })
+    const select = screen.getByTestId('settings-section-select')
+    expect(select).toHaveValue('connections')
+    fireEvent.change(select, { target: { value: 'account' } })
+    expect(within(nav).getByRole('button', { name: 'Account' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
   })
 
   it('defaults to Connections tab showing Lidarr section', async () => {
@@ -489,10 +447,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Recommendations'))
+    fireEvent.click(screen.getByRole('button', { name: 'Recommendations' }))
 
     await waitFor(() => {
       expect(screen.getByText('Score Threshold')).toBeInTheDocument()
@@ -682,10 +640,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Schedule'))
+    fireEvent.click(screen.getByRole('button', { name: 'Schedule' }))
 
     await waitFor(() => {
       expect(screen.getByText('Presets')).toBeInTheDocument()
@@ -704,10 +662,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Job History'))
+    fireEvent.click(screen.getByRole('button', { name: 'Job History' }))
 
     await waitFor(() => {
       expect(screen.getByText('All')).toBeInTheDocument()
@@ -727,10 +685,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('System Health'))
+    fireEvent.click(screen.getByRole('button', { name: 'System Health' }))
 
     await waitFor(() => {
       expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)
@@ -902,7 +860,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
     expect(screen.queryByText('Add channel')).toBeNull()
   })
@@ -1091,10 +1049,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Account'))
+    fireEvent.click(screen.getByRole('button', { name: 'Account' }))
 
     expect(await screen.findByLabelText('Language')).toBeInTheDocument()
   })
@@ -1153,7 +1111,7 @@ describe('SettingsPage', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(getAuthMeta).toHaveBeenCalledTimes(2))
-    fireEvent.click(screen.getByText('Account'))
+    fireEvent.click(screen.getByRole('button', { name: 'Account' }))
 
     expect(await screen.findByRole('button', { name: 'Link SSO account' })).toBeInTheDocument()
   })
@@ -1194,7 +1152,7 @@ describe('SettingsPage', () => {
     setupMocks()
     renderWithQuery(<SettingsPage />)
 
-    fireEvent.click(await screen.findByText('Account'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Account' }))
     fireEvent.change(await screen.findByLabelText(/Current password/i), {
       target: { value: 'current-password' },
     })
@@ -1217,10 +1175,10 @@ describe('SettingsPage', () => {
     const { client } = renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Account'))
+    fireEvent.click(screen.getByRole('button', { name: 'Account' }))
 
     const switcher = await screen.findByLabelText('Language')
     fireEvent.change(switcher, { target: { value: 'de' } })
@@ -1261,10 +1219,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByText('Add Target'))
 
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
@@ -1295,10 +1253,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByText('Add Target'))
 
     fireEvent.change(screen.getByLabelText('Type'), {
@@ -1331,10 +1289,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByText('Add Target'))
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
 
@@ -1365,10 +1323,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connexions')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connexions' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Destinations'))
+    fireEvent.click(screen.getByRole('button', { name: 'Destinations' }))
     fireEvent.click(screen.getByRole('button', { name: 'Ajouter une destination' }))
     fireEvent.change(screen.getByLabelText('Categorie'), { target: { value: 'slskd' } })
 
@@ -1391,10 +1349,10 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('Connections')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByText('Targets'))
+    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
 
     const nameInput = await screen.findByDisplayValue('Primary Lidarr')
@@ -1415,7 +1373,7 @@ describe('SettingsPage', () => {
     setupMocks()
     mockListTargets.mockResolvedValue([])
     renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByText('Targets'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByText('Add Target'))
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
     await screen.findByRole('option', { name: 'listener' })
@@ -1447,7 +1405,7 @@ describe('SettingsPage', () => {
       },
     ])
     renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByText('Targets'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
     await screen.findByRole('option', { name: 'listener' })
     expect(screen.getByLabelText('Assigned user')).toHaveValue('2')
@@ -1483,7 +1441,7 @@ describe('SettingsPage', () => {
       },
     ])
     renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByText('Targets'))
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
     expect(await screen.findByRole('button', { name: 'Test' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()

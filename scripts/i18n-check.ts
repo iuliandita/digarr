@@ -57,6 +57,7 @@ const UNIVERSAL_SAME_AS_SOURCE_VALUES = new Set([
 const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'es:discoveryMode.option.global',
   'es:playlist.sourceLocal',
+  'es:settings.groups.personal',
   'fr:nav.albums',
   'fr:discover.kind.albums',
   'fr:recommendation.albumBadge',
@@ -88,6 +89,7 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'ro:discoveryMode.option.canada',
   'ro:genres.artistCountSingular',
   'ro:playlist.sourceLocal',
+  'ro:settings.groups.personal',
   'pl:recommendation.albumBadge',
   'pl:discoveryMode.field.region',
   'tr:discoveryMode.option.global',
