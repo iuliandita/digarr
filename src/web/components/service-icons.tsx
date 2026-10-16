@@ -1,4 +1,4 @@
-import { Bell } from 'lucide-react'
+import { Bell, BrainCircuit } from 'lucide-react'
 import { useState } from 'react'
 
 function ServiceLogo({ src, alt }: { src: string; alt: string }) {
@@ -28,17 +28,12 @@ export function LastfmIcon() {
   return <ServiceLogo src="/icons/lastfm.svg" alt="Last.fm" />
 }
 
-export function AiProviderIcon({ provider }: { provider?: string }) {
-  const icons: Record<string, { src: string; alt: string }> = {
-    anthropic: { src: '/icons/anthropic.png', alt: 'Anthropic' },
-    openai: { src: '/icons/openai.png', alt: 'OpenAI' },
-    gemini: { src: '/icons/gemini.png', alt: 'Google Gemini' },
-    ollama: { src: '/icons/ollama.png', alt: 'Ollama' },
-  }
-  const icon = provider ? icons[provider] : null
-  if (icon) return <ServiceLogo src={icon.src} alt={icon.alt} />
-  // Generic fallback for openai-compatible or unknown
-  return <ServiceLogo src="/icons/openai.png" alt="" />
+export function AiProviderIcon() {
+  return (
+    <span className="flex items-center justify-center w-6 h-6 text-accent">
+      <BrainCircuit size={18} aria-hidden="true" />
+    </span>
+  )
 }
 
 export function SpotifyIcon() {
@@ -69,8 +64,15 @@ export function SubsonicIcon() {
   return <ServiceLogo src="/icons/subsonic.svg" alt="Subsonic" />
 }
 
+// Inline so the mark follows the theme text color; an <img> leaves it black on dark themes.
 export function TidalIcon() {
-  return <ServiceLogo src="/icons/tidal.svg" alt="TIDAL" />
+  return (
+    <span className="flex items-center justify-center w-6 h-6 text-text">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+        <path d="M12.012 3.992 8.008 7.996 4.004 3.992 0 7.996 4.004 12l4.004-4.004L12.012 12l-4.004 4.004 4.004 4.004 4.004-4.004L12.012 12l4.004-4.004-4.004-4.004zM16.042 7.996l3.979-3.979L24 7.996l-3.979 3.979z" />
+      </svg>
+    </span>
+  )
 }
 
 export function WebhookIcon() {

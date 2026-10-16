@@ -659,7 +659,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
               }
               status={serviceStatus('ai')}
               onEdit={() => markEdited('ai')}
-              icon={<AiProviderIcon provider={aiProvider} />}
+              icon={<AiProviderIcon />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t('settings.fieldProvider')} id="ai-provider">
@@ -778,6 +778,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           {/* TIDAL search */}
           <ServiceCard
             name={t('settings.tidalAppName')}
+            icon={<TidalIcon />}
             description={t('settings.tidalDescription')}
             badge={
               <span className="rounded bg-warning/20 px-1.5 py-0.5 text-caption font-normal text-warning">
