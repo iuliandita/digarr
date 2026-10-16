@@ -8,7 +8,11 @@
       "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["deploy/unraid/digarr.xml", "docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "deploy/unraid/digarr.xml",
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Compared current upstream blobs and PR status on October 15 after independently reviewed personal PR5 merged. Bundled and published personal XML explain paired initial-account settings and existing-account no-op. Community bootstrap help remains tracked in issue843 alongside pending PR697. No variable, image channel, port, volume, permission or WebUI URL changes.",
         "breaking": "none",
         "migration": "",
@@ -185,7 +189,11 @@
       "digest": "e8388206b1a3337aa3368ec4b20f38ab631c719dfc33e33844a5ec9f32002e25",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "docs": [
+          "CHANGELOG.md",
+          "docs/OPERATIONS.md",
+          "docs/guides/switching-backends.md"
+        ],
         "note": "Pre-migration snapshot reads only the tables and columns present in the active schema, fails if no Digarr tables are found there, records omissions in an optional absentSchema field, and logs one actionable line before rethrowing a real backup failure. OPERATIONS and switching-backends say releases after v2.0.0 need no override for added columns or tables while v2.0.0 itself still does, and OPERATIONS notes that restoring an omitted-table snapshot into a database holding rows in that table is refused.",
         "breaking": "none",
         "migration": "Upgrade: no schema migration, and the backup format version and retention are unchanged; absentSchema is an optional additive field the restore path never reads, and absent tables are omitted entirely so a restore cannot clear them. Rollback: reverting restores the strict snapshot and its missing-column failure, so the native backup guidance for older schemas still applies.",
@@ -200,7 +208,12 @@
       "digest": "8076b80cdb5d50e0ae9aed883feca0fd380a1505edca54db9ad0e8214a247d09",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          ".env.example",
+          "docs/AUTHENTICATION.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Reviewed both environment examples and all deployment guides for paired initial-account values, 12-character password minimum, fail-closed fresh boot, existing-account no-op and manual registration. Bootstrap keeps raw credential bytes and never resets existing passwords or roles; no new setting or secret source is added.",
         "breaking": "An empty database with only one initial-account variable or a short initial password now exits before HTTP.",
         "migration": "",
@@ -246,7 +259,12 @@
       "digest": "c86352a944d77c503c906be03546e9497efb3f8786050e9cad84b2ecfe99b937",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/AUTHENTICATION.md",
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Review the combined exact issuer/subject OIDC contract, locked historical-identity recovery, first-admin bootstrap before HTTP, account-first atomic setup and settings secret projection. Preserve local login, sessions and no email linking.",
         "breaking": "Legacy issuer-less SSO accounts remain unbound until verified operator recovery; partial or short initial-admin credentials stop empty-database startup.",
         "migration": "",
@@ -309,7 +327,11 @@
       "digest": "75221e5e2b2afb01ce5f514538aa03a5ed07e082b94d4a3cbca8cfba061b3c5b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "OIDC callback and link documentation describe issuer/subject matching and legacy quarantine; request bodies, callback URLs and cookies retain their contract.",
         "breaking": "Existing issuer-less OIDC bindings no longer sign in until verified operator recovery; older subject-only images cannot safely read migrated identities.",
         "migration": "",
@@ -486,7 +508,9 @@
       "digest": "55ea49f3c2c5e21dcd73c46462091ea15b912b6a529efedaef12ea13c8f718a1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Restored stripped accents in French, Spanish, Dutch, Romanian, Turkish and Portuguese strings found by the new spell check",
         "breaking": "none",
         "migration": "",
@@ -694,7 +718,12 @@
       "digest": "8cf79a6a49cb759dd68f72d0fe752127f22a29effa40f9fde7fb9c94fc74c48f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "docs/ARCHITECTURE.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Review combined complete MusicBrainz pagination and coverage selection, owner-scoped discovery, cooperative cancellation, per-channel digest retries and saved playlist exports. Remove the unused create-only orchestrator without changing active failure aggregation or file exports.",
         "breaking": "Incomplete provider pages and uncertain playlist destinations fail explicitly; album coverage can decrease and hung cancellation remains busy. See combined migration and rollback precautions for persisted state.",
         "migration": "",
@@ -812,8 +841,10 @@
       "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CONTRIBUTING.md"],
-        "note": "Adds the advisory hunspell spell check for catalogs; usage documented in the catalog README",
+        "docs": [
+          "CHANGELOG.md"
+        ],
+        "note": "New i18n:spell and i18n:translate --stale scripts and the advisory i18n-spell CI job; usage is documented in the i18n messages README and the changelog",
         "breaking": "none",
         "migration": "",
         "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d"
