@@ -393,7 +393,8 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     queryFn: getCurrentUser,
   })
   if (isPending) return null
-  return currentUser?.isAdmin ? children : <Navigate to="/" replace />
+  // A failed lookup must not bounce admins; the server still gates these pages.
+  return currentUser && !currentUser.isAdmin ? <Navigate to="/" replace /> : children
 }
 
 function AppShell({ children }: { children: React.ReactNode }) {

@@ -30,9 +30,6 @@ vi.mock('@/web/lib/api', () => ({
   disconnectOAuth: vi.fn().mockResolvedValue(undefined),
   getAuthStatus: vi.fn(),
   getCurrentUser: vi.fn(),
-  getLidarrMetadataProfiles: vi.fn().mockResolvedValue([]),
-  getLidarrProfiles: vi.fn().mockResolvedValue([]),
-  getLidarrRootFolders: vi.fn().mockResolvedValue([]),
   getOAuthStatus: vi.fn().mockResolvedValue({ connected: false, scopes: null }),
   getPipelineStatus: vi.fn(),
   getSettings: vi.fn().mockResolvedValue({

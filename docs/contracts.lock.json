@@ -344,7 +344,7 @@
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
-        "src/web/App.tsx": "fac8bd36059ba137729d0190f0093f5bc4ab8147103d9069003ae69e65945daa",
+        "src/web/App.tsx": "549460746fc78bb522851d2ed8424c533fdf943fa4cafeccacdc9729de215396",
         "src/web/components/admin/administration-tab.tsx": "6af6a3773aa3d669a89a520aa636eb185ec86d8bbabaafda66f6609e58092fa7",
         "src/web/components/admin/backup-section.tsx": "aac1e33dbc5c1e98e79e519560c50d253823c00c2bca497b4f9b7e8675374ee6",
         "src/web/components/admin/hygiene-section.tsx": "58f1b0c6d38ce7a25c195ca393dc39f548c41871141b2b89683eb82697e7a8e8",
@@ -483,14 +483,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "fdebb7301ee62da1cb0a63a06f82b3923e959806734e6e321d02fe9596ededf4",
+      "digest": "7bd2f496557e9dbaa8ca0bf09b168f527e2bbe8cd7de5ea153172d73dc524d29",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "CONTRIBUTING.md"],
         "note": "Web UI review fixes: valid subscription and target edits, undo removes the reject block, auth retry state, admin-only Analytics and Library Health, translated health checks, placeholders and Job History labels, failures-only filter, skip link, mobile nav and Users layout. The changelog lists the visible fixes and OPERATIONS documents the Job History filter.",
         "breaking": "none",
         "migration": "",
-        "digest": "fdebb7301ee62da1cb0a63a06f82b3923e959806734e6e321d02fe9596ededf4"
+        "digest": "7bd2f496557e9dbaa8ca0bf09b168f527e2bbe8cd7de5ea153172d73dc524d29"
       }
     },
     "features": {

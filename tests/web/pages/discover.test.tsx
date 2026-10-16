@@ -81,9 +81,6 @@ vi.mock('@/web/lib/api', () => ({
   getUserPreferences: vi.fn().mockResolvedValue({}),
   getAuthStatus: vi.fn().mockResolvedValue({ authenticated: true, isAdmin: true }),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, username: 'admin', isAdmin: true }),
-  getLidarrProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Any' }]),
-  getLidarrMetadataProfiles: vi.fn().mockResolvedValue([{ id: 1, name: 'Standard' }]),
-  getLidarrRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music', freeSpace: 0 }]),
 }))
 
 import {
