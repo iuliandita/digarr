@@ -9,21 +9,21 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
-        "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and updates orphaned pre-migration backups. Unraid guide now says the bundled template maps both paths and how to add the backups path to store templates that lack it. Personal companion has the same change on an unpublished branch with no pull request yet; the URL recorded for it is the previous merged PR and must be replaced once the new PR exists. Community copy still lacks the path and needs it after PR 697 merges.",
+        "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
         "companions": [
           {
             "repo": "iuliandita/unraid-templates",
             "status": "pending",
-            "url": "https://github.com/iuliandita/unraid-templates/pull/5",
-            "note": "Branch fix/digarr-backups-path adds the Backups path; no pull request exists yet, so this URL is the previous merged PR and must be replaced when the new one is opened."
+            "url": "https://github.com/iuliandita/unraid-templates/pull/6",
+            "note": "PR 6 adds the same Backups path mapping and overview text to the personal companion template."
           },
           {
             "repo": "selfhosters/unRAID-CA-templates",
             "status": "pending",
             "url": "https://github.com/selfhosters/unRAID-CA-templates/pull/697",
-            "note": "PR 697 is still open and review is required; the Backups path must be added to the community template after it lands, and the guide documents the manual workaround."
+            "note": "PR 697 is open and needs maintainer review; the Backups path must be added to the community template after it lands, and the guide documents the manual workaround."
           }
         ],
         "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d"
@@ -756,7 +756,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "0c28f0a1e9c93e819f791ac130bbc0cea349678885ffbdc1d2a2fefeff204e0c",
+        ".github/workflows/ci.yml": "6c1bb7dfb0a923b2928cd0d18c6ecfcd68714a180da608e692887da5016b8844",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -771,14 +771,14 @@
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa",
+      "digest": "1f304066a4cac73cda5e33f71476513b309bfafef279e488573e65da9414ad86",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Adds a non-blocking CI job for the translation spell check and its package script; no version or image change",
+        "note": "Bump the postgres:17-alpine CI service image digest to the current rebuild; same major version and tag, no workflow behavior change.",
         "breaking": "none",
         "migration": "",
-        "digest": "6f42b228925a4bbadce7c1afe1049b47a4f0a3f9ccb706fe4da8d70d42c175aa"
+        "digest": "1f304066a4cac73cda5e33f71476513b309bfafef279e488573e65da9414ad86"
       }
     },
     "maintenance": {
@@ -793,7 +793,7 @@
         "scripts/check-version-drift.ts": "6995a5262c167abf9bb515b2f9f705e3895944c0e2d29e3c5b8ce074de2714f3",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
-        "scripts/dev-setup.sh": "afa2e79675b77b29af40ba6298446d51de5dad0d3ca0478934bb0be58f1e6fdd",
+        "scripts/dev-setup.sh": "1a65e70218d592fd317f0d908cbd75bbec30dcefb9d86f32879e2b534dc06b1b",
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
@@ -809,14 +809,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "6ed12149105479e0821dc550bfa2eaff29546e2882a7e9bb8d279cd326c9d217",
+      "digest": "14195ec98cbb01c916e6700fc01ef98aea69578596f9e92a19708dce94f13102",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "check-api-docs now also compares the Auth column with detectable admin guards (adminGuard, adminGate, requireAdmin, inline resolveAdmin, and use() prefix guards); no release or CI wiring changed.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Bump the postgres:17-alpine digest used by the local dev setup script to match the deploy pins; same tag and version.",
         "breaking": "none",
         "migration": "",
-        "digest": "6ed12149105479e0821dc550bfa2eaff29546e2882a7e9bb8d279cd326c9d217"
+        "digest": "14195ec98cbb01c916e6700fc01ef98aea69578596f9e92a19708dce94f13102"
       }
     }
   }
