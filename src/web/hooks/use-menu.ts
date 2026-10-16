@@ -23,8 +23,12 @@ export function useMenu(closeKey?: string) {
   const pendingFocus = useRef<'first' | 'last' | null>(null)
   const menuId = useId()
 
+  // Skip items hidden by responsive classes, or arrow keys would stop on them
   const items = useCallback(
-    () => [...(menuRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])],
+    () =>
+      [...(menuRef.current?.querySelectorAll<HTMLElement>(ITEM_SELECTOR) ?? [])].filter(
+        (el) => typeof el.checkVisibility !== 'function' || el.checkVisibility(),
+      ),
     [],
   )
 

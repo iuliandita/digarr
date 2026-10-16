@@ -704,7 +704,7 @@ function InnerApp() {
         <SetupWizard onComplete={() => setSetupComplete(true)} />
         <Toaster
           theme="system"
-          offset={{ bottom: 'calc(var(--player-offset) + 1.5rem)' }}
+          offset={{ bottom: 'calc(var(--bottom-stack) + 1.5rem)' }}
           mobileOffset={{ bottom: 'calc(var(--bottom-stack) + 0.75rem)' }}
         />
       </>
@@ -756,7 +756,7 @@ function InnerApp() {
         </ErrorBoundary>
         <Toaster
           theme="system"
-          offset={{ bottom: 'calc(var(--player-offset) + 1.5rem)' }}
+          offset={{ bottom: 'calc(var(--bottom-stack) + 1.5rem)' }}
           mobileOffset={{ bottom: 'calc(var(--bottom-stack) + 0.75rem)' }}
         />
       </BrowserRouter>

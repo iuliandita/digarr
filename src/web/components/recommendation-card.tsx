@@ -265,6 +265,7 @@ function ApproveDropdown({
   const { t } = useI18n()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const toggleRef = useRef<HTMLButtonElement>(null)
   useClickOutside(ref, () => setOpen(false), open)
   const actionableTargets = targets.filter((target) => canApproveArtistToTarget(target.type))
 
@@ -283,6 +284,7 @@ function ApproveDropdown({
           {t('recommendation.approve')}
         </Button>
         <Button
+          ref={toggleRef}
           size="sm"
           variant="outline"
           className="text-approve border-approve/40 hover:bg-approve/10 hover:text-approve rounded-l-none border-l-0 px-1.5"
@@ -302,8 +304,10 @@ function ApproveDropdown({
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                onApproveToTarget?.(recId, `${target.type}-${target.id}`)
+                // Focus the toggle first so a dialog opened next restores focus here
+                toggleRef.current?.focus()
                 setOpen(false)
+                onApproveToTarget?.(recId, `${target.type}-${target.id}`)
               }}
               className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-accent/10 flex items-center gap-2"
             >
@@ -594,9 +598,7 @@ export function RecommendationCard({
     rec.status === 'added_to_lidarr' || rec.status === 'add_failed' || rec.status === 'approved'
   const artistIsPlaying = preview.playing && preview.currentMbid === rec.artist.mbid
   const hasPreview = preview.hasPreview(rec.artist.streamingUrls)
-  const hasFailure =
-    rec.status === 'add_failed' ||
-    Object.values(rec.targetActions ?? {}).some((action) => action?.status === 'failed')
+  const hasFailure = rec.status === 'add_failed'
 
   function handlePlayClick(e: React.MouseEvent) {
     e.stopPropagation()
@@ -652,6 +654,8 @@ export function RecommendationCard({
         )}
         onClick={handleCardClick}
         onKeyDown={(e) => {
+          // Nested controls handle their own Enter/Space; only the card itself toggles
+          if (e.target !== e.currentTarget) return
           if (e.key === 'Enter' || e.key === ' ') {
             e.preventDefault()
             handleCardClick()
@@ -677,7 +681,10 @@ export function RecommendationCard({
             {rec.kind === 'album' && (
               <span
                 data-testid="rec-kind-album"
-                className="absolute bottom-2 left-2 rounded-control bg-black/65 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white"
+                className={cn(
+                  'absolute left-2 rounded-control bg-black/65 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white',
+                  hasFailure ? 'bottom-8' : 'bottom-2',
+                )}
               >
                 {t('recommendation.albumBadge')}
               </span>
@@ -744,7 +751,7 @@ export function RecommendationCard({
 
           {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
 
-          {isActed && (
+          {isActed && !expanded && (
             <StatusBadge
               status={rec.status}
               lidarrError={rec.lidarrError}

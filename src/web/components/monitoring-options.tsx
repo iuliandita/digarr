@@ -62,6 +62,8 @@ export function MonitoringOptions({
   ]
 
   function handleOptionClick(option: MonitorOption) {
+    // Focus the toggle first so a dialog opened next restores focus here
+    toggleRef.current?.focus()
     setOpen(false)
     if (option === 'selected') {
       onOpenAlbumPicker()

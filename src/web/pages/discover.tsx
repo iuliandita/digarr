@@ -1038,7 +1038,8 @@ export function DiscoverPage() {
       )}
 
       {/* Daily controls in one row; bulk and rare tools live in More */}
-      <div className="sticky top-0 z-20 bg-bg border-b border-border px-6 pt-4 pb-3">
+      {/* z-45: its menus must clear the bottom bars (z-40) but stay under dialogs (z-50) */}
+      <div className="sticky top-0 z-45 bg-bg border-b border-border px-6 pt-4 pb-3">
         <div className="flex flex-wrap items-center gap-2">
           <fieldset className="flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-surface border border-border bg-surface p-1 [scrollbar-width:none] md:w-auto">
             <legend className="sr-only">{t('discover.statusFilter')}</legend>

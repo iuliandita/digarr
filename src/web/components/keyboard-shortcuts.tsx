@@ -1,5 +1,6 @@
-import { type KeyboardEvent as ReactKeyboardEvent, useEffect } from 'react'
+import { useEffect } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
+import { useDialogFocus } from '@/web/hooks/use-dialog-focus'
 import { useI18n } from '@/web/lib/i18n'
 
 type KeyboardShortcutsProps = {
@@ -20,20 +21,13 @@ const SHORTCUTS: { key: string; labelKey: MessageKey }[] = [
 
 export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
   const { t } = useI18n()
+  const dialogRef = useDialogFocus(open, onClose)
 
-  function onBackdropKeyDown(event: ReactKeyboardEvent<HTMLDivElement>) {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault()
-      onClose()
-    }
-  }
-
-  // Close on Escape (handled in hook, but belt-and-suspenders here)
+  // `?` toggles the dialog; page shortcuts are suspended while it is open
   useEffect(() => {
     if (!open) return
     function onKeyDown(e: KeyboardEvent) {
-      // `?` toggles the dialog; page shortcuts are suspended while it is open
-      if (e.key === 'Escape' || e.key === '?') {
+      if (e.key === '?') {
         e.preventDefault()
         onClose()
       }
@@ -45,23 +39,18 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
   if (!open) return null
 
   return (
-    /* Full-screen backdrop so click-outside closes the dialog */
-    /* biome-ignore lint/a11y/useSemanticElements: backdrop cannot be a real button because the dialog contains buttons */
-    <div
-      role="button"
-      tabIndex={0}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-bg/70 backdrop-blur-sm w-full cursor-default"
-      onClick={onClose}
-      onKeyDown={onBackdropKeyDown}
-    >
-      {/* Dialog card - stop propagation so clicking inside doesn't close */}
+    <>
       <div
+        className="fixed inset-0 z-50 bg-bg/70 backdrop-blur-sm"
+        onClick={onClose}
+        aria-hidden="true"
+      />
+      <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={t('keyboardShortcuts.title')}
-        className="bg-surface border border-border rounded-xl shadow-xl p-6 w-full max-w-md mx-4 cursor-auto"
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={(e) => e.stopPropagation()}
+        className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-md -translate-x-1/2 -translate-y-1/2 rounded-xl border border-border bg-surface p-6 shadow-xl"
       >
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-text">{t('keyboardShortcuts.title')}</h2>
@@ -103,6 +92,6 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
           {t('keyboardShortcuts.disabledWhileTyping')}
         </p>
       </div>
-    </div>
+    </>
   )
 }

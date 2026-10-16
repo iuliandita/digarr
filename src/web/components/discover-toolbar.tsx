@@ -85,6 +85,10 @@ export function FiltersPopover({
           id={panelId}
           role="dialog"
           aria-label={t('discover.filters')}
+          onBlur={(e) => {
+            // Non-modal: tabbing out closes it so page shortcuts come back
+            if (!ref.current?.contains(e.relatedTarget as Node | null)) setOpen(false)
+          }}
           className="absolute right-0 top-full z-50 mt-2 w-72 space-y-4 rounded-surface border border-border bg-surface p-3 shadow-menu"
         >
           <label htmlFor="taste-ordering" className="block space-y-1">
@@ -131,7 +135,11 @@ export function FiltersPopover({
           {decades.size > 0 && (
             <button
               type="button"
-              onClick={onClearDecades}
+              onClick={() => {
+                // The button unmounts once nothing is selected; keep focus on the trigger
+                triggerRef.current?.focus()
+                onClearDecades()
+              }}
               className="text-caption text-muted transition-colors hover:text-text"
             >
               {t('common.clear')}
@@ -235,7 +243,8 @@ export function DiscoverMoreMenu({
       toast.error(t('discover.exportFailed'))
     } finally {
       setExporting(null)
-      menu.close(true)
+      // Only pull focus back if the user is still in the menu
+      menu.close(!!menu.containerRef.current?.contains(document.activeElement))
     }
   }
 

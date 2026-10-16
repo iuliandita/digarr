@@ -134,7 +134,9 @@ export function SearchPage() {
                   type="button"
                   disabled={!s.available}
                   onClick={() => toggleSource(s.id)}
-                  title={!s.available ? s.reason : undefined}
+                  title={
+                    !s.available && s.reason ? t(s.reason as Parameters<typeof t>[0]) : undefined
+                  }
                   className={cn(
                     'text-xs px-2.5 py-1 rounded-full border font-medium transition-colors',
                     isActive
