@@ -1202,20 +1202,22 @@ export function DiscoverPage() {
 
       {/* Content area */}
       <div className="px-6">
-        {!bulkMode && viewMode !== 'stack' && (
-          <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
-        )}
-        <div className="hidden sm:block mb-2">
-          <Hint id="discover-cards-tip" type="inline">
-            {t('discover.cardsTip')}
-          </Hint>
-        </div>
-
         <MoodPromptBar existingArtistNames={existingArtistNames} onQueued={refetch} />
 
         <Hint id="mood-bar-intro" type="inline" className="mb-2">
           {t('discover.moodTip')}
         </Hint>
+
+        {!bulkMode && viewMode !== 'stack' && items.length > 0 && (
+          <>
+            <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
+            <div className="hidden sm:block mb-4">
+              <Hint id="discover-cards-tip" type="inline">
+                {t('discover.cardsTip')}
+              </Hint>
+            </div>
+          </>
+        )}
 
         {insightsOpen && <FeedbackInsights />}
 

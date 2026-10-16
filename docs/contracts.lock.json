@@ -453,7 +453,7 @@
         "src/web/main.tsx": "ccd448a84acb20e8bc42daeefb02b726d58400149c0cc34b8b1517f5a3283337",
         "src/web/pages/analytics.tsx": "7d248618b32854f8f682ecd990adac7272c45f8e9170b5fc10162f6ae5459b87",
         "src/web/pages/dashboard.tsx": "af4c2546ddcf8d62152cc09d5c17a4ebf4ecfda0306a7e9817f04b9d36354084",
-        "src/web/pages/discover.tsx": "cea7aa8d3def3362a623bbe3d09aee1e8bf1fb0ec9f1bed1c1c5c6f35a754fc0",
+        "src/web/pages/discover.tsx": "7a7bf7dad4ec0edab115473d9e9cf4994fb40cea78faddb343ab13065d205ca9",
         "src/web/pages/discovery-modes.tsx": "03001fe47cf4402bb1a22a250c8a43d97c5a024d00ddbe70c4511b5e4dbfe24b",
         "src/web/pages/genre-detail.tsx": "853c1f0f002cc910bc51843b04b960d9ffffff87f7853405313d42a6c5184607",
         "src/web/pages/genres.tsx": "6d5d6b2d496cd574349070fe83fc5c32be6da7ff21eb28dc5cfeb8abe8fb4a1a",
@@ -482,14 +482,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "bc8b949907df31dbf6905912d53c9e7aff342a83111e9cf6fecb6ffc1d88c9eb",
+      "digest": "5f65e7662a2586653ca06160adff9819b6531270fd9093b3ccf342d3309d4d5d",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
         "note": "Help tips refreshed: stale copy rewritten, dashboard tips trimmed, Show tips again in Account, availability reasons no longer dismissible",
         "breaking": "none",
         "migration": "",
-        "digest": "bc8b949907df31dbf6905912d53c9e7aff342a83111e9cf6fecb6ffc1d88c9eb"
+        "digest": "5f65e7662a2586653ca06160adff9819b6531270fd9093b3ccf342d3309d4d5d"
       }
     },
     "features": {
