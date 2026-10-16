@@ -86,7 +86,7 @@ const mockArtist = {
 
 const mockRecommendation = {
   id: 1,
-  userId: null,
+  userId: 1 as number | null,
   artistId: 10,
   batchId: 1,
   score: 0.85,

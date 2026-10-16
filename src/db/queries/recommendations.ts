@@ -326,9 +326,7 @@ export async function filterOwnedIds(
 
   const conditions = [inArray(recommendations.id, ids)]
   if (userId !== undefined) {
-    conditions.push(
-      sql`(${recommendations.userId} IS NULL OR ${recommendations.userId} = ${userId})`,
-    )
+    conditions.push(eq(recommendations.userId, userId))
   }
 
   const rows = await db

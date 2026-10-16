@@ -36,8 +36,26 @@ function createTestApp() {
 describe('target-aware approval', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  it.each([null, 2])('treats a recommendation owned by %s as not found', async (owner) => {
+    mockDeps.getRecommendation.mockResolvedValue({
+      userId: owner,
+      id: 1,
+      artist: { mbid: 'mbid-1', name: 'Radiohead' },
+    })
+
+    const res = await createTestApp().request('/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+
+    expect(res.status).toBe(404)
+    expect(mockDeps.updateRecommendationStatus).not.toHaveBeenCalled()
+  })
+
   it('approves without targets - sets status to approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -62,6 +80,7 @@ describe('target-aware approval', () => {
 
   it('approves with Lidarr target - adds to Lidarr and sets added_to_lidarr', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -95,6 +114,7 @@ describe('target-aware approval', () => {
 
   it('partial Lidarr add (artist added, album not monitored) persists the artist link and warns, not orphaned', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -136,6 +156,7 @@ describe('target-aware approval', () => {
 
   it('approves with failing Lidarr target - sets add_failed', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -165,6 +186,7 @@ describe('target-aware approval', () => {
 
   it('approves with createPlaylist-only targets - sets approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -196,6 +218,7 @@ describe('target-aware approval', () => {
 
   it('approves to specific target via targetId', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -241,6 +264,7 @@ describe('target-aware approval', () => {
 
   it('handles multiple addArtist targets', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -287,6 +311,7 @@ describe('target-aware approval', () => {
 
   it('bulk approve with addArtist targets', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -321,6 +346,7 @@ describe('target-aware approval', () => {
 
   it('bulk approve without targets marks all as approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -346,6 +372,7 @@ describe('target-aware approval', () => {
     'bulk album approval preserves target outcome: $scenario',
     async ({ lidarr, slskd, status }) => {
       mockDeps.getRecommendation.mockResolvedValue({
+        userId: 1,
         id: 1,
         kind: 'album',
         recommendedReleaseGroupId: 'rg-1',
@@ -416,6 +443,7 @@ describe('target-aware approval', () => {
     'bulk album approval fails without artist acquisition: %s',
     async (scenario) => {
       mockDeps.getRecommendation.mockResolvedValue({
+        userId: 1,
         id: 1,
         kind: 'album',
         recommendedReleaseGroupId: scenario === 'missing release group' ? null : 'rg-1',
@@ -503,6 +531,7 @@ describe('target-aware approval', () => {
 
   it('bulk album approval selects an album-only target', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       kind: 'album',
       recommendedReleaseGroupId: 'rg-1',
@@ -530,6 +559,7 @@ describe('target-aware approval', () => {
 
   it('bulk approve with createPlaylist-only targets marks all as approved', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -556,6 +586,7 @@ describe('target-aware approval', () => {
 
   it('returns a per-target summary on partial failure', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
     })
@@ -597,6 +628,7 @@ describe('target-aware approval', () => {
   it('retrying a failed target keeps prior successes and does not regress status', async () => {
     // Rec already has lidarr-1 succeeded, lidarr-2 failed.
     mockDeps.getRecommendation.mockResolvedValue({
+      userId: 1,
       id: 1,
       artist: { mbid: 'mbid-1', name: 'Radiohead' },
       lidarrArtistId: 42,
