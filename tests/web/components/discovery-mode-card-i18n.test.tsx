@@ -61,7 +61,7 @@ describe('DiscoveryModeCard i18n', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Artista')).toBeInTheDocument()
     expect(screen.getByText('Nome artista o MBID per avviare la radio')).toBeInTheDocument()
-    expect(screen.getByText('Avventura')).toBeInTheDocument()
+    expect(screen.getByText('Avventurosità')).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Sicuro' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Medio' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: 'Avventuroso' })).toBeInTheDocument()

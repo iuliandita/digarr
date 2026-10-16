@@ -55,6 +55,23 @@ const UNIVERSAL_SAME_AS_SOURCE_VALUES = new Set([
 // Natural-language loanwords and unchanged labels are exceptions only for the
 // locale and key where a native speaker would actually use the English form.
 const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
+  'fr:app.themeMode',
+  'fr:genres.genrePlural',
+  'fr:genres.genreSingular',
+  'fr:common.date',
+  'fr:subscriptionForm.source',
+  'fr:subscriptionForm.sources',
+  'fr:discoveryMode.field.tags',
+  'de:app.themeGroupEditor',
+  'nl:app.themeGroupEditor',
+  'it:auth.password',
+  'it:settings.fieldPassword',
+  'it:playlists.playlistSingular',
+  'it:jobHistory.playlistType',
+  'it:integration.playlist',
+  'it:cronPicker.preset',
+  'pl:setup.model',
+  'tr:setup.model',
   'es:discoveryMode.option.global',
   'es:playlist.sourceLocal',
   'es:settings.groups.personal',

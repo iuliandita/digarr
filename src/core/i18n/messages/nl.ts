@@ -12,7 +12,7 @@ export const nl = {
   'app.themeModeDark': 'Donker',
   'app.themeModeLight': 'Licht',
   'app.themeModeSystem': 'Systeem',
-  'app.themeGroupEditor': 'Redacteur',
+  'app.themeGroupEditor': 'Editor',
   'app.themeGroupStreaming': 'Streamen',
   'app.userMenu.logout': 'Afmelden',
   'app.userMenu.settings': 'Instellingen',
@@ -111,7 +111,7 @@ export const nl = {
   'discover.emptyAll':
     'Nog geen aanbevelingen. Importeer enkele favoriete artiesten of voer uw eerste scan uit om aan de slag te gaan.',
   'discover.emptyApproved':
-    'Je hebt nog geen artiesten goedgekeurd. Kijk op het tabblad In behandeling om te zien wat Digarr voor u heeft gevonden.',
+    'Je hebt nog geen artiesten goedgekeurd. Kijk op het tabblad In behandeling om te zien wat Digarr voor je heeft gevonden.',
   'discover.emptyAlbums': 'Geen albumaanbevelingen in deze weergave.',
   'discover.emptyAlbumsHelp':
     'Een normale scan zoekt artiesten. Gebruik een van de onderstaande opties om albumaanbevelingen te maken.',
@@ -137,7 +137,7 @@ export const nl = {
   'recommendation.reject': 'Afwijzen',
   'recommendation.restore': 'Herstellen',
   'recommendation.retry': 'Opnieuw proberen',
-  'recommendation.retryFailed': 'Mislukte opnieuw proberen',
+  'recommendation.retryFailed': 'Mislukte items opnieuw proberen',
   'recommendation.addedToLidarr': 'Toegevoegd aan Lidarr',
   'recommendation.addFailed': 'Toevoegen mislukt',
   'recommendation.rejected': 'Afgewezen',
@@ -341,7 +341,7 @@ export const nl = {
   'discover.rescanFailed': 'Opnieuw scannen mislukt',
   'discover.restoreFailed': 'Herstellen is mislukt',
   'discover.restoredToPending': 'Hersteld naar in behandeling',
-  'discover.retryFailed': 'Opnieuw proberen mislukt',
+  'discover.retryFailed': 'Mislukte items opnieuw proberen',
   'discover.scanAlreadyRunning': 'Scan wordt al uitgevoerd',
   'discover.scanStarted': 'Scan gestart - bekijk het Dashboard voor de voortgang',
   'discover.scanQueued': 'Scan in wachtrij (positie {0}) - start zodra de huidige run klaar is',
@@ -585,7 +585,7 @@ export const nl = {
   'subscriptionForm.scoringPreset': 'Scoreprofiel',
   'subscriptionForm.scoringPresetDefault': 'Standaard',
   'subscriptionForm.scoringPresetGenre': 'Geoptimaliseerd voor genres',
-  'subscriptions.likedSongs': 'Vond liedjes leuk',
+  'subscriptions.likedSongs': 'Gelikte nummers',
   'subscriptions.addToRecommendations': 'Voeg toe aan aanbevelingen',
   'subscriptions.collapseRunHistory': 'De uitvoeringsgeschiedenis samenvouwen',
   'subscriptions.expandRunHistory': 'Vouw de uitvoeringsgeschiedenis uit',
@@ -700,7 +700,7 @@ export const nl = {
   'userManagement.deleteUser': 'Gebruiker verwijderen',
   'userManagement.deleteUserPrompt': 'Gebruiker verwijderen',
   'recommendation.sourceGenre': 'Muziekgenre',
-  'recommendation.sourceSimilar': 'Gelijkaardig',
+  'recommendation.sourceSimilar': 'Vergelijkbaar',
   'recommendation.sourceSpotifyPlaylist': 'Spotify-afspeellijst',
   'recommendation.sourceSpotifyCharts': 'Spotify-hitlijsten',
   'recommendation.sourceLastfm': 'Last.fm',
@@ -777,10 +777,12 @@ export const nl = {
   'libraryHealth.showAll': 'Alle {0} tonen',
   'libraryHealth.fixHint.missingMetadata': 'Vernieuwt artiestmetadata vanuit Lidarr',
   'libraryHealth.fixHint.unmonitored': 'Zet alle vermelde artiesten in Lidarr op gemonitord',
-  'libraryHealth.fixHint.missingAlbums': 'Vernieuwt albums in Lidarr om ontbrekende te vinden',
+  'libraryHealth.fixHint.missingAlbums': 'Zoekt in Lidarr naar albums voor elke getroffen artiest',
   'libraryHealth.fixHint.genreGaps': 'Vernieuwt Lidarr-metadata om genres op te halen',
-  'libraryHealth.fixHint.imageGaps': 'Zoekt artiestafbeeldingen opnieuw',
-  'libraryHealth.fixHint.missingWikidata': 'Haalt biografieën en links op uit Wikidata',
+  'libraryHealth.fixHint.imageGaps':
+    'Zoekt opnieuw naar artiestafbeeldingen en slaat elk resultaat lokaal op.',
+  'libraryHealth.fixHint.missingWikidata':
+    'Haalt korte beschrijvingen en externe links op uit Wikidata voor elke getroffen artiest. Beperkt tot 1 verzoek per seconde.',
   'setup.modelSuggestionAnthropicHaiku': 'Haiku 4.5 (snel, goedkoopst)',
   'setup.modelSuggestionAnthropicSonnet': 'Sonnet 4.6 (gebalanceerd)',
   'setup.modelSuggestionAnthropicOpus': 'Opus 4.6 (meest capabel)',
@@ -934,7 +936,7 @@ export const nl = {
   'discoveryMode.field.helpPopularityMax':
     '0-100. Sluit opnamen boven deze populariteitswaarde uit.',
   'discoveryMode.field.region': 'Regio',
-  'discoveryMode.option.weeklyJams': 'Wekelijkse mix',
+  'discoveryMode.option.weeklyJams': 'Wekelijkse jams',
   'discoveryMode.option.similarUsersQuick': 'Vergelijkbare gebruikers (snel)',
   'discoveryMode.option.safe': 'Veilig',
   'discoveryMode.option.medium': 'Gemiddeld',
@@ -979,12 +981,12 @@ export const nl = {
   'importArtists.failedImport': 'Importeren kon niet worden gestart',
   'importArtists.failedPlaylist': 'Afspeellijstimport kon niet worden gestart',
   'importArtists.failedCsv': 'CSV-bestand kon niet worden geimporteerd',
-  'librarySources.title': 'Bibliotheekinformatie',
+  'librarySources.title': 'Bibliotheekbronnen',
   'librarySources.syncAll': 'Alles synchroniseren',
   'librarySources.syncStarted': 'Synchronisatie gestart',
   'librarySources.syncFailed': 'Synchronisatie mislukt:',
   'librarySources.noSources':
-    'Geen bibliotheekinformatie geconfigureerd. Voeg Lidarr, Plex, Jellyfin of Emby toe in Instellingen.',
+    'Geen bibliotheekbronnen geconfigureerd. Voeg Lidarr, Plex, Jellyfin of Emby toe in Instellingen.',
   'librarySources.neverSynced': 'nooit gesynchroniseerd',
   'librarySources.lastSynced': 'Laatst gesynchroniseerd:',
   'librarySources.syncNow': 'Nu synchroniseren',
@@ -993,7 +995,7 @@ export const nl = {
   'librarySources.minAgo': '{0} min. geleden',
   'librarySources.hoursAgo': '{0} u geleden',
   'librarySources.mbWarning':
-    '{0} MusicBrainz-verzoeken mislukt. Betroffen artiesten blijven niet gekoppeld en worden bij de volgende synchronisatie opnieuw geprobeerd.',
+    '{0} MusicBrainz-verzoeken mislukt. Getroffen artiesten blijven niet gekoppeld en worden bij de volgende synchronisatie opnieuw geprobeerd.',
   'libraryStats.artists': 'Artiesten',
   'libraryStats.monitored': 'Bewaakt',
   'libraryStats.albums': 'Albumreleases',
@@ -1033,7 +1035,7 @@ export const nl = {
   'settings.getPersonalAccessToken': 'Persoonlijk toegangstoken ophalen',
   'settings.connected': 'verbonden',
   'settings.lidarrDescription':
-    'Muziekbibliotheekmanger - vereist voor het toevoegen van artiesten.',
+    'Muziekbibliotheekmanager - vereist voor het toevoegen van artiesten.',
   'settings.lidarrPublicUrlHelp':
     "Via browser bereikbare URL voor links naar Lidarr-artiestenpagina's. Leeg laten als de API-URL al via de browser bereikbaar is.",
   'settings.aiTip':
@@ -1136,7 +1138,7 @@ export const nl = {
   'settings.consensus': 'Consensusscore',
   'settings.similarity': 'Gelijkenis',
   'settings.genreOverlap': 'Genre-overlap',
-  'settings.aiConfidence': 'AI-zekerheid',
+  'settings.aiConfidence': 'AI-vertrouwen',
   'settings.feedbackBoost': 'Feedbackboost',
   'settings.popularity': 'Populariteit',
   'settings.popularityHelp':
@@ -1239,7 +1241,7 @@ export const nl = {
     'Het SSO-account kon niet worden gekoppeld. Meld je aan met je wachtwoord en probeer het opnieuw.',
   'settings.oidcLinkIdentityInUse': 'Deze SSO-identiteit is al gekoppeld aan een ander account.',
   'settings.oidcDescription':
-    'OpenID Connect configureren voor single sign-on. Na het opslaan zien gebruikers een knop "Aanmelden met SSO" op de inlogpagina.',
+    'OpenID Connect configureren voor single sign-on. Na het opslaan zien gebruikers een knop "Meld u aan met SSO" op de inlogpagina.',
   'settings.authTip':
     'Laat mensen inloggen via een OpenID Connect-provider zoals Authentik of Authelia, of via een reverse proxy die de ingelogde gebruiker doorgeeft.',
   'settings.reverseProxyAuth': 'Reverse-proxyauthenticatie',
