@@ -1682,6 +1682,7 @@ export const ru = {
   'settings.channels.ntfyServer': 'Сервер',
   'settings.channels.ntfyTopic': 'Тема',
   'settings.channels.ntfyPriority': 'Приоритет',
+  'settings.channels.ntfyPriorityDefault': 'По умолчанию сервера',
   'settings.channels.ntfyToken': 'Токен доступа',
   'settings.channels.telegramBotToken': 'Токен бота',
   'settings.channels.telegramChatId': 'ID чата',

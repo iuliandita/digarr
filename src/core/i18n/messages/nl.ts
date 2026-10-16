@@ -1673,6 +1673,7 @@ export const nl = {
   'settings.channels.ntfyServer': 'Serveradres',
   'settings.channels.ntfyTopic': 'Onderwerp',
   'settings.channels.ntfyPriority': 'Prioriteit',
+  'settings.channels.ntfyPriorityDefault': 'Serverstandaard',
   'settings.channels.ntfyToken': 'Toegangstoken',
   'settings.channels.telegramBotToken': 'Bot-token',
   'settings.channels.telegramChatId': 'Chat-ID',

@@ -1658,6 +1658,7 @@ export const ja = {
   'settings.channels.ntfyServer': 'サーバー',
   'settings.channels.ntfyTopic': 'トピック',
   'settings.channels.ntfyPriority': '優先度',
+  'settings.channels.ntfyPriorityDefault': 'サーバーの既定値',
   'settings.channels.ntfyToken': 'アクセストークン',
   'settings.channels.telegramBotToken': 'ボットトークン',
   'settings.channels.telegramChatId': 'チャット ID',

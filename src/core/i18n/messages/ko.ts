@@ -1633,6 +1633,7 @@ export const ko = {
   'settings.channels.ntfyServer': '서버',
   'settings.channels.ntfyTopic': '주제',
   'settings.channels.ntfyPriority': '우선순위',
+  'settings.channels.ntfyPriorityDefault': '서버 기본값',
   'settings.channels.ntfyToken': '액세스 토큰',
   'settings.channels.telegramBotToken': '봇 토큰',
   'settings.channels.telegramChatId': '채팅 ID',

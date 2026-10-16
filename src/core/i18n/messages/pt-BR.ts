@@ -1678,6 +1678,7 @@ export const ptBR = {
   'settings.channels.ntfyServer': 'Servidor',
   'settings.channels.ntfyTopic': 'Tópico',
   'settings.channels.ntfyPriority': 'Prioridade',
+  'settings.channels.ntfyPriorityDefault': 'Padrão do servidor',
   'settings.channels.ntfyToken': 'Token de acesso',
   'settings.channels.telegramBotToken': 'Token do bot',
   'settings.channels.telegramChatId': 'ID do chat',

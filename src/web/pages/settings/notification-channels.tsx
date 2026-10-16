@@ -7,6 +7,7 @@ import { ServiceCard } from '../../components/service-card'
 import { WebhookIcon } from '../../components/service-icons'
 import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
+import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import { Select } from '../../components/ui/select'
 import { ApiError, testNotificationChannel, updateSettings } from '../../lib/api'
@@ -138,22 +139,6 @@ function ChannelFields({
               value={channel.topic}
               onChange={(e) => onPatch({ topic: e.target.value })}
             />
-          </Field>
-          <Field label={t('settings.channels.ntfyPriority')} id={`ch-${channel.id}-priority`}>
-            <Select
-              id={`ch-${channel.id}-priority`}
-              value={channel.priority != null ? String(channel.priority) : ''}
-              onChange={(e) =>
-                onPatch({ priority: e.target.value ? Number(e.target.value) : undefined })
-              }
-            >
-              <option value="">—</option>
-              {[1, 2, 3, 4, 5].map((p) => (
-                <option key={p} value={p}>
-                  {p}
-                </option>
-              ))}
-            </Select>
           </Field>
           <Field label={t('settings.channels.ntfyToken')} id={`ch-${channel.id}-token`}>
             <Input
@@ -360,8 +345,31 @@ export function NotificationChannelsCard({
               </div>
             </div>
 
-            {isAdmin && (
-              <div className="space-y-1">
+            <Disclosure title={t('settings.advancedSettings')}>
+              <div className="space-y-3">
+                {channel.type === 'ntfy' && (
+                  <Field
+                    label={t('settings.channels.ntfyPriority')}
+                    id={`ch-${channel.id}-priority`}
+                  >
+                    <Select
+                      id={`ch-${channel.id}-priority`}
+                      value={channel.priority != null ? String(channel.priority) : ''}
+                      onChange={(e) =>
+                        patchChannel(channel.id, {
+                          priority: e.target.value ? Number(e.target.value) : undefined,
+                        })
+                      }
+                    >
+                      <option value="">{t('settings.channels.ntfyPriorityDefault')}</option>
+                      {[1, 2, 3, 4, 5].map((p) => (
+                        <option key={p} value={p}>
+                          {p}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                )}
                 <label className="flex items-center gap-2 text-sm text-text">
                   <input
                     type="checkbox"
@@ -373,12 +381,10 @@ export function NotificationChannelsCard({
                   />
                   {t('settings.channels.allowPrivate')}
                 </label>
-                {channel.allowPrivateTarget && (
-                  <p className="text-xs text-warning">
-                    {t('settings.channels.allowPrivateWarning')}
-                  </p>
-                )}
               </div>
+            </Disclosure>
+            {channel.allowPrivateTarget && (
+              <p className="text-xs text-warning">{t('settings.channels.allowPrivateWarning')}</p>
             )}
 
             <div className="flex justify-end">
@@ -419,15 +425,17 @@ export function NotificationChannelsCard({
         </Button>
       </div>
 
-      <Field label={t('settings.fieldDigestCron')} id="digest-cron">
-        <Input
-          id="digest-cron"
-          placeholder="0 6 * * 1"
-          value={digestCron}
-          onChange={(e) => setDigestCron(e.target.value)}
-        />
-      </Field>
-      <p className="text-xs text-muted">{t('settings.digestCronHelp')}</p>
+      <Disclosure title={t('settings.advancedSettings')}>
+        <Field label={t('settings.fieldDigestCron')} id="digest-cron">
+          <Input
+            id="digest-cron"
+            placeholder="0 6 * * 1"
+            value={digestCron}
+            onChange={(e) => setDigestCron(e.target.value)}
+          />
+        </Field>
+        <p className="mt-1 text-xs text-muted">{t('settings.digestCronHelp')}</p>
+      </Disclosure>
 
       <div className="flex justify-end pt-1">
         <Button size="sm" onClick={handleSave} disabled={saving}>

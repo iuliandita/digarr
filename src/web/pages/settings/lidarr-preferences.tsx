@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { Field } from '../../components/field'
 import { Button } from '../../components/ui/button'
+import { Disclosure } from '../../components/ui/disclosure'
 import { Select } from '../../components/ui/select'
 import {
   getLidarrMetadataProfiles,
@@ -94,14 +95,9 @@ export function LidarrPreferencesSection() {
   }
 
   return (
-    <div>
-      <div className="pt-2 mb-4">
-        <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.lidarrPreferences')}
-        </h3>
-        <p className="text-xs text-muted mt-1">{t('settings.lidarrPreferencesDescription')}</p>
-      </div>
-      <div className="rounded-lg border border-border bg-surface p-4 space-y-4">
+    <Disclosure title={t('settings.lidarrPreferences')} className="bg-surface">
+      <div className="space-y-4">
+        <p className="text-small text-muted">{t('settings.lidarrPreferencesDescription')}</p>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <Field label={t('settings.qualityProfile')} id="user-quality-profile">
             <Select
@@ -161,6 +157,6 @@ export function LidarrPreferencesSection() {
           </Button>
         </div>
       </div>
-    </div>
+    </Disclosure>
   )
 }

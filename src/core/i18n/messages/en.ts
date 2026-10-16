@@ -796,7 +796,7 @@ export const en = {
     'Connect your Deezer account to import favorites, followed artists, and playlist data.',
   'settings.importFavorites': 'Import Favorites',
   'settings.importFollowed': 'Import Followed',
-  'settings.integrationCapabilities': 'Integration Capabilities',
+  'settings.integrationCapabilities': 'Integration capabilities',
 
   // System Health Card
   'systemHealth.title': 'System Health',
@@ -1019,9 +1019,9 @@ export const en = {
   'settings.groups.personal': 'Personal',
   'settings.groups.library': 'Library & services',
   'settings.groups.admin': 'Admin',
-  'settings.globalSettings': 'Global Settings',
+  'settings.globalSettings': 'Global settings',
   'settings.adminOnly': 'Only admins can modify global settings.',
-  'settings.yourConnections': 'Your Connections',
+  'settings.yourConnections': 'Your connections',
   'settings.yourConnectionsDescription': 'Personal listening sources linked to your account.',
   'settings.testConnection': 'Test Connection',
   'settings.testing': 'Testing...',
@@ -1082,7 +1082,7 @@ export const en = {
   'settings.tidalDescription':
     'Experimental search source using TIDAL client-credentials access. Uses undocumented endpoints that may change without notice.',
   'settings.yourAccount': 'your account',
-  'settings.lidarrPreferences': 'Your Lidarr Preferences',
+  'settings.lidarrPreferences': 'Your Lidarr preferences',
   'settings.lidarrPreferencesDescription':
     'Defaults used when you approve recommendations into Lidarr. Each user can set their own.',
   'settings.qualityProfile': 'Quality Profile',
@@ -1129,7 +1129,7 @@ export const en = {
     'Approval action: queue in slskd and import through Lidarr.',
   'settings.recommendationsTip':
     'Scoring weights control how recommendations are ranked. Tweak these to emphasize genre overlap, AI confidence, or similarity.',
-  'settings.scoreThreshold': 'Score Threshold',
+  'settings.scoreThreshold': 'Score threshold',
   'settings.minScoreToShow': 'Minimum score to show recommendation',
   'settings.scoringWeights': 'Scoring Weights',
   'settings.totalWeight': 'total:',
@@ -1158,11 +1158,11 @@ export const en = {
   'settings.limits': 'Limits',
   'settings.rejectionCooldown': 'Rejection cooldown (days)',
   'settings.topArtistsLimit': 'Top artists limit',
-  'settings.libraryDiscovery': 'Library Discovery',
+  'settings.libraryDiscovery': 'Library discovery',
   'settings.libraryDiscoveryHelp':
     'How much of the discovery should be seeded from your existing Lidarr library vs listening history. Higher values find artists similar to what you already own. Lower values rely more on ListenBrainz/Last.fm listening data.',
   'settings.librarySeedRatio': 'Library seed ratio',
-  'settings.imageSources': 'Image Sources',
+  'settings.imageSources': 'Image sources',
   'settings.imageSourcesHelp':
     'Artist images are sourced from TheAudioDB first, with Lidarr/SkyHook, fanart.tv, and musicinfo.pro as fallbacks.',
   'settings.audiodb.apiKey': 'TheAudioDB premium API key (optional)',
@@ -1208,7 +1208,7 @@ export const en = {
   'settings.saveEmail': 'Save email',
   'settings.emailSaved': 'Email updated',
   'settings.emailTaken': 'That email is already in use',
-  'settings.changePassword': 'Change Password',
+  'settings.changePassword': 'Change password',
   'settings.currentPassword': 'Current password',
   'settings.newPassword': 'New password',
   'settings.confirmNewPassword': 'Confirm new password',
@@ -1728,6 +1728,7 @@ export const en = {
   'settings.channels.ntfyServer': 'Server',
   'settings.channels.ntfyTopic': 'Topic',
   'settings.channels.ntfyPriority': 'Priority',
+  'settings.channels.ntfyPriorityDefault': 'Server default',
   'settings.channels.ntfyToken': 'Access token',
   'settings.channels.telegramBotToken': 'Bot token',
   'settings.channels.telegramChatId': 'Chat ID',

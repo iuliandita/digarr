@@ -222,9 +222,7 @@ function RecommendationsTabInner({
 
       {/* Essential - always visible */}
       <section className="space-y-4">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.scoreThreshold')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('settings.scoreThreshold')}</h2>
         <SliderField
           label={t('settings.minScoreToShow')}
           id="score-threshold"
@@ -356,9 +354,7 @@ function RecommendationsTabInner({
       >
         <div className="space-y-6 pt-2">
           <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              {t('settings.limits')}
-            </h3>
+            <h3 className="text-xs font-semibold text-muted">{t('settings.limits')}</h3>
             <Field label={t('settings.rejectionCooldown')} id="rejection-cooldown">
               <Input
                 id="rejection-cooldown"
@@ -382,9 +378,7 @@ function RecommendationsTabInner({
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              {t('settings.libraryDiscovery')}
-            </h3>
+            <h3 className="text-xs font-semibold text-muted">{t('settings.libraryDiscovery')}</h3>
             <p className="text-xs text-muted">{t('settings.libraryDiscoveryHelp')}</p>
             <SliderField
               label={t('settings.librarySeedRatio')}
@@ -412,9 +406,7 @@ function RecommendationsTabInner({
           </section>
 
           <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-              {t('settings.imageSources')}
-            </h3>
+            <h3 className="text-xs font-semibold text-muted">{t('settings.imageSources')}</h3>
             <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
             {isAdmin && (
               <>
@@ -465,9 +457,7 @@ function RecommendationsTabInner({
 
           {isAdmin && (
             <section className="space-y-4">
-              <h3 className="text-xs font-semibold text-muted uppercase tracking-wide">
-                {t('settings.wikidata.title')}
-              </h3>
+              <h3 className="text-xs font-semibold text-muted">{t('settings.wikidata.title')}</h3>
               <label className="flex items-start gap-2">
                 <input
                   type="checkbox"

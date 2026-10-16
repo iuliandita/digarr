@@ -30,11 +30,7 @@ export default function JobHistoryPage({ embedded = false }: { embedded?: boolea
     <div className={embedded ? 'space-y-4' : 'mx-auto max-w-6xl space-y-4 p-6'}>
       <div>
         <h2
-          className={
-            embedded
-              ? 'text-sm font-semibold text-text uppercase tracking-wide'
-              : 'text-xl font-bold text-text'
-          }
+          className={embedded ? 'text-lead font-semibold text-text' : 'text-xl font-bold text-text'}
         >
           {t('jobHistory.title')}
         </h2>

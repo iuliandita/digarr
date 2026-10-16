@@ -490,9 +490,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.globalSettings')}
-        </h3>
+        <h3 className="text-lead font-semibold text-text">{t('settings.globalSettings')}</h3>
         {!isAdmin && <p className="text-xs text-muted mt-1">{t('settings.adminOnly')}</p>}
       </div>
 
@@ -562,16 +560,18 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                   />
                 </Field>
               </div>
-              <Field label={t('settings.fieldPublicUrl')} id="lidarr-public-url">
-                <Input
-                  id="lidarr-public-url"
-                  type="url"
-                  placeholder="https://lidarr.example.com"
-                  value={lidarrPublicUrl}
-                  onChange={(e) => setLidarrPublicUrl(e.target.value)}
-                />
-                <p className="text-xs text-muted mt-1">{t('settings.lidarrPublicUrlHelp')}</p>
-              </Field>
+              <Disclosure title={t('settings.advancedSettings')}>
+                <Field label={t('settings.fieldPublicUrl')} id="lidarr-public-url">
+                  <Input
+                    id="lidarr-public-url"
+                    type="url"
+                    placeholder="https://lidarr.example.com"
+                    value={lidarrPublicUrl}
+                    onChange={(e) => setLidarrPublicUrl(e.target.value)}
+                  />
+                  <p className="text-xs text-muted mt-1">{t('settings.lidarrPublicUrlHelp')}</p>
+                </Field>
+              </Disclosure>
               <div className="flex justify-end gap-2 pt-1">
                 <Button
                   size="sm"
@@ -824,9 +824,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       )}
 
       <div className="pt-2">
-        <h3 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.yourConnections')}
-        </h3>
+        <h3 className="text-lead font-semibold text-text">{t('settings.yourConnections')}</h3>
         <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
       </div>
 

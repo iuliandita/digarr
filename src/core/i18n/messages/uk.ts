@@ -1673,6 +1673,7 @@ export const uk = {
   'settings.channels.ntfyServer': 'Сервер',
   'settings.channels.ntfyTopic': 'Тема',
   'settings.channels.ntfyPriority': 'Пріоритет',
+  'settings.channels.ntfyPriorityDefault': 'За замовчуванням сервера',
   'settings.channels.ntfyToken': 'Токен доступу',
   'settings.channels.telegramBotToken': 'Токен бота',
   'settings.channels.telegramChatId': 'ID чату',

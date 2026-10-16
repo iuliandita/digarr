@@ -143,9 +143,7 @@ export function AccountTab() {
         </div>
       )}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.profile')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('settings.profile')}</h2>
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted">
             {t('settings.signedInAs')}{' '}
@@ -163,9 +161,7 @@ export function AccountTab() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.email')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('settings.email')}</h2>
         <p className="text-xs text-muted">{t('settings.emailHelp')}</p>
         <form onSubmit={handleSaveEmail} className="space-y-3">
           <Field label={t('settings.emailAddress')} id="account-email">
@@ -186,9 +182,7 @@ export function AccountTab() {
 
       {(user?.oidcSubject || (authMeta?.oidcEnabled && user?.authProvider === 'local')) && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('settings.oidcSso')}
-          </h2>
+          <h2 className="text-lead font-semibold text-text">{t('settings.oidcSso')}</h2>
           {user?.oidcSubject ? (
             <p className="text-sm text-muted">{t('settings.oidcLinked')}</p>
           ) : user?.authProvider === 'local' ? (
@@ -213,9 +207,7 @@ export function AccountTab() {
       )}
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.changePassword')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('settings.changePassword')}</h2>
         <form onSubmit={handleChangePassword} className="space-y-3">
           <Field label={t('settings.currentPassword')} id="current-pw">
             <Input
@@ -252,9 +244,7 @@ export function AccountTab() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('settings.language')}
-        </h2>
+        <h2 className="text-lead font-semibold text-text">{t('settings.language')}</h2>
         <Field label={t('common.language')} id="preferred-locale">
           <LanguageSelect id="preferred-locale" value={locale} onChange={handleLocaleChange} />
         </Field>
@@ -262,9 +252,7 @@ export function AccountTab() {
 
       {(canInstall || showIosHint) && (
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('settings.app')}
-          </h2>
+          <h2 className="text-lead font-semibold text-text">{t('settings.app')}</h2>
           <div className="flex items-center justify-between p-3 bg-surface border border-border rounded-lg">
             <div>
               <p className="text-sm font-medium text-text">{t('settings.installDigarr')}</p>

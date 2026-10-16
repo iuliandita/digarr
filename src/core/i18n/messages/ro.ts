@@ -1680,6 +1680,7 @@ export const ro = {
   'settings.channels.ntfyServer': 'Adresă server',
   'settings.channels.ntfyTopic': 'Subiect',
   'settings.channels.ntfyPriority': 'Prioritate',
+  'settings.channels.ntfyPriorityDefault': 'Implicit server',
   'settings.channels.ntfyToken': 'Token de acces',
   'settings.channels.telegramBotToken': 'Token bot',
   'settings.channels.telegramChatId': 'ID chat',

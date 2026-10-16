@@ -16,7 +16,7 @@ import {
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
-export function UserManagementPage() {
+export function UserManagementPage({ embedded = false }: { embedded?: boolean }) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -76,9 +76,13 @@ export function UserManagementPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className={embedded ? 'space-y-6' : 'p-6 space-y-6 max-w-6xl mx-auto'}>
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-text">{t('userManagement.title')}</h1>
+        {embedded ? (
+          <h2 className="text-lead font-semibold text-text">{t('userManagement.title')}</h2>
+        ) : (
+          <h1 className="text-2xl font-bold text-text">{t('userManagement.title')}</h1>
+        )}
         <Button size="sm" onClick={() => setShowForm((v) => !v)}>
           <Plus size={14} className="mr-1" />
           {t('userManagement.addUser')}

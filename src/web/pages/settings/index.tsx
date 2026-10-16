@@ -108,7 +108,7 @@ export function SettingsPage() {
           {tab === 'schedule' && <ScheduleTab settings={data} />}
           {tab === 'account' && <AccountTab />}
           {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
-          {tab === 'users' && <UserManagementPage />}
+          {tab === 'users' && <UserManagementPage embedded />}
           {tab === 'administration' && <AdministrationTab />}
           {tab === 'jobs' && <JobHistoryPage embedded />}
           {tab === 'system-health' && <SystemHealthCard embedded />}

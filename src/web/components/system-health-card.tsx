@@ -105,9 +105,7 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
         <div>
           <h2
             className={
-              embedded
-                ? 'text-sm font-semibold text-text uppercase tracking-wide'
-                : 'text-sm font-medium text-text'
+              embedded ? 'text-lead font-semibold text-text' : 'text-sm font-medium text-text'
             }
           >
             {t('systemHealth.title')}

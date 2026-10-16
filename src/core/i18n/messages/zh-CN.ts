@@ -1545,6 +1545,7 @@ export const zhCN = {
   'settings.channels.ntfyServer': '服务器',
   'settings.channels.ntfyTopic': '主题',
   'settings.channels.ntfyPriority': '优先级',
+  'settings.channels.ntfyPriorityDefault': '服务器默认',
   'settings.channels.ntfyToken': '访问令牌',
   'settings.channels.telegramBotToken': '机器人令牌',
   'settings.channels.telegramChatId': '聊天 ID',

@@ -1683,6 +1683,7 @@ export const it = {
   'settings.channels.ntfyServer': 'Indirizzo server',
   'settings.channels.ntfyTopic': 'Argomento',
   'settings.channels.ntfyPriority': 'Priorità',
+  'settings.channels.ntfyPriorityDefault': 'Predefinito del server',
   'settings.channels.ntfyToken': 'Token di accesso',
   'settings.channels.telegramBotToken': 'Token del bot',
   'settings.channels.telegramChatId': 'ID chat',

@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Field } from '../../components/field'
 import { Hint } from '../../components/hint'
 import { Button } from '../../components/ui/button'
+import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import { getAuthMeta, testService, updateSettings } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
@@ -75,9 +76,7 @@ export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: ()
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('settings.oidcSso')}
-          </h2>
+          <h2 className="text-lead font-semibold text-text">{t('settings.oidcSso')}</h2>
           <p className="text-xs text-muted mt-1">{t('settings.oidcDescription')}</p>
         </div>
         <Field label={t('settings.fieldIssuerUrl')} id="oidc-issuer-url">
@@ -113,14 +112,16 @@ export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: ()
             }}
           />
         </Field>
-        <Field label={t('settings.fieldScopes')} id="oidc-scopes">
-          <Input
-            id="oidc-scopes"
-            placeholder="openid profile email"
-            value={oidcScopes}
-            onChange={(e) => setOidcScopes(e.target.value)}
-          />
-        </Field>
+        <Disclosure title={t('settings.advancedSettings')} defaultOpen={!!settings.oidcScopes}>
+          <Field label={t('settings.fieldScopes')} id="oidc-scopes">
+            <Input
+              id="oidc-scopes"
+              placeholder="openid profile email"
+              value={oidcScopes}
+              onChange={(e) => setOidcScopes(e.target.value)}
+            />
+          </Field>
+        </Disclosure>
         <div className="flex justify-end gap-2 pt-1">
           <Button
             size="sm"
@@ -136,23 +137,25 @@ export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: ()
         </div>
       </section>
 
-      <section className="space-y-4">
-        <div>
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('settings.reverseProxyAuth')}
-          </h2>
-          <p className="text-xs text-muted mt-1">
+      {/* Remount once auth meta loads so an enabled proxy opens instead of hiding */}
+      <Disclosure
+        key={String(!!authMeta?.proxyAuthEnabled)}
+        title={t('settings.reverseProxyAuth')}
+        defaultOpen={!!authMeta?.proxyAuthEnabled}
+      >
+        <div className="space-y-3">
+          <p className="text-xs text-muted">
             {t('settings.reverseProxyDescription')} {t('settings.reverseProxyConfigHint')}
           </p>
+          <p className="text-sm">
+            {authMeta?.proxyAuthEnabled ? (
+              <span className="text-text">{t('settings.proxyEnabled')}</span>
+            ) : (
+              <span className="text-muted">{t('settings.proxyDisabled')}</span>
+            )}
+          </p>
         </div>
-        <div className="rounded-lg border border-border bg-surface p-3 text-sm">
-          {authMeta?.proxyAuthEnabled ? (
-            <span className="text-text">{t('settings.proxyEnabled')}</span>
-          ) : (
-            <span className="text-muted">{t('settings.proxyDisabled')}</span>
-          )}
-        </div>
-      </section>
+      </Disclosure>
     </div>
   )
 }

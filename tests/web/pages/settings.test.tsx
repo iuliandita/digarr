@@ -458,7 +458,7 @@ describe('SettingsPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Recommendations' }))
 
     await waitFor(() => {
-      expect(screen.getByText('Score Threshold')).toBeInTheDocument()
+      expect(screen.getByText('Score threshold')).toBeInTheDocument()
       expect(screen.getByText('Scoring Weights')).toBeInTheDocument()
     })
   })
@@ -883,6 +883,7 @@ describe('SettingsPage', () => {
       expect(screen.getByDisplayValue('/music')).toBeInTheDocument()
     })
 
+    fireEvent.click(screen.getByRole('button', { name: 'Your Lidarr preferences' }))
     const saveButtons = screen.getAllByRole('button', { name: 'Save' })
     const preferencesSaveButton = saveButtons.at(-1)
     expect(preferencesSaveButton).toBeDefined()
@@ -1171,7 +1172,7 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText(/^Confirm new password$/i), {
       target: { value: 'new-password-123' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Change Password' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Change password' }))
 
     await waitFor(() => {
       expect(mockChangePassword).toHaveBeenCalledWith('current-password', 'new-password-123')

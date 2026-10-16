@@ -1666,6 +1666,7 @@ export const pl = {
   'settings.channels.ntfyServer': 'Serwer',
   'settings.channels.ntfyTopic': 'Temat',
   'settings.channels.ntfyPriority': 'Priorytet',
+  'settings.channels.ntfyPriorityDefault': 'Domyślny serwera',
   'settings.channels.ntfyToken': 'Token dostępu',
   'settings.channels.telegramBotToken': 'Token bota',
   'settings.channels.telegramChatId': 'ID czatu',

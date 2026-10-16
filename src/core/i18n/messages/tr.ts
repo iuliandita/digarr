@@ -1664,6 +1664,7 @@ export const tr = {
   'settings.channels.ntfyServer': 'Sunucu',
   'settings.channels.ntfyTopic': 'Konu',
   'settings.channels.ntfyPriority': 'Öncelik',
+  'settings.channels.ntfyPriorityDefault': 'Sunucu varsayılanı',
   'settings.channels.ntfyToken': 'Erişim belirteci',
   'settings.channels.telegramBotToken': 'Bot belirteci',
   'settings.channels.telegramChatId': 'Sohbet kimliği',
