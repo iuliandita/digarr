@@ -92,7 +92,7 @@ jobs:
     needs: build
     services:
       postgres:
-        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -119,10 +119,23 @@ jobs:
         run: bun run db:migrate
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
-      - name: Run PostgreSQL concurrency tests
-        run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts tests/db/oidc-issuer-upgrade-postgres.test.ts tests/core/ops/upgrade-old-schema.test.ts
+      - name: Run PostgreSQL integration tests
+        run: >-
+          bunx vitest run --no-file-parallelism
+          tests/db/require-test-db.test.ts
+          tests/db/session-queries.test.ts
+          tests/db/oidc-link-postgres.test.ts
+          tests/db/migrate-backend-postgres.test.ts
+          tests/db/oidc-issuer-upgrade-postgres.test.ts
+          tests/db/oidc-token-retirement.test.ts
+          tests/core/ops/upgrade-old-schema.test.ts
+          tests/core/ops/backup-integration.test.ts
+          tests/core/library/sync-flow.test.ts
+          tests/core/library/reconciler-cache.test.ts
+          tests/core/clients/rate-limiter.test.ts
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
+          DIGARR_REQUIRE_TEST_DB: "1"
       - name: Run API route contract tests
         run: bun run test:api-routes
         env:
@@ -152,7 +165,7 @@ jobs:
     needs: api-route-test
     services:
       postgres:
-        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test
@@ -190,7 +203,7 @@ jobs:
     continue-on-error: true
     services:
       postgres:
-        image: postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73
+        image: postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
           POSTGRES_USER: test
           POSTGRES_PASSWORD: test

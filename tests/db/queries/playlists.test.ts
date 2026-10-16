@@ -6,7 +6,6 @@ import {
   createPlaylist,
   deletePlaylist,
   getPlaylistsByUser,
-  getPlaylistsDueForGeneration,
   getPlaylistWithTracks,
   replacePlaylistTracks,
   updatePlaylist,
@@ -239,35 +238,5 @@ describe('replacePlaylistTracks', () => {
 
     expect(txMock.delete).toHaveBeenCalledOnce()
     expect(txMock.insert).not.toHaveBeenCalled()
-  })
-})
-
-describe('getPlaylistsDueForGeneration', () => {
-  it('returns enabled playlists with no lastGeneratedAt or stale one', async () => {
-    const rows = [
-      makePlaylistRow(baseInsert, 1),
-      makePlaylistRow({ ...baseInsert, name: 'Old' }, 2),
-    ]
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(rows),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await getPlaylistsDueForGeneration(db)
-
-    expect(result).toHaveLength(2)
-    expect(chain.where).toHaveBeenCalledOnce()
-  })
-
-  it('returns empty array when no playlists are due', async () => {
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue([]),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await getPlaylistsDueForGeneration(db)
-    expect(result).toHaveLength(0)
   })
 })

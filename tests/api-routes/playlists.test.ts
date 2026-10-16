@@ -36,7 +36,6 @@ vi.mock('@/db/queries/playlists', () => ({
   updatePlaylist: vi.fn(async () => {}),
   deletePlaylist: vi.fn(async () => {}),
   replacePlaylistTracks: vi.fn(async () => {}),
-  getPlaylistsDueForGeneration: vi.fn(async () => []),
 }))
 
 describe('API routes: playlists', () => {

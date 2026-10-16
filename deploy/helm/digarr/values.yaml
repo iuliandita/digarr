@@ -5,8 +5,9 @@ image:
   # Helm deployments should keep a digest pin for reproducibility; the verify-digest-sync
   # job in release.yml asserts k8s/helm/unraid digests match. If you prefer a floating
   # channel for clusters where reproducibility is not a goal, set tag: "stable" and remove
-  # the digest line - :stable is promoted only after a release has been live >= 7 days
-  # without a follow-up patch.
+  # the digest (image.digest: null in a values file, or --set image.digest=null; an empty
+  # string fails schema validation) - :stable is promoted only after a release has been live
+  # >= 7 days without a follow-up patch.
   tag: "2.0.1"
   digest: "sha256:cfcbb1461c6557471b3896ee1493e76abaf0fb053cdf8b76c7ea16979762b14c"
   pullPolicy: Always
@@ -52,6 +53,18 @@ service:
 
 networkPolicy:
   enabled: true
+  # Extra egress rules appended to the app NetworkPolicy, in the standard
+  # NetworkPolicy egress shape. The default allows only DNS, the bundled database,
+  # and public HTTP/HTTPS, so private-network services (external PostgreSQL, Lidarr,
+  # a local AI server, a media server) need an entry here. Example:
+  #   extraEgress:
+  #     - to:
+  #         - ipBlock:
+  #             cidr: 192.168.1.0/24
+  #       ports:
+  #         - protocol: TCP
+  #           port: 8686
+  extraEgress: []
 
 # PodDisruptionBudget protects the app from voluntary evictions during
 # node drains. Disabled by default because the chart ships replicaCount=1 --
@@ -94,7 +107,6 @@ resources:
 
 env:
   PORT: "3000"
-  LOG_LEVEL: info
 
 # Extra environment variables appended to the deployment container.
 # Use this for secrets like DIGARR_ENCRYPTION_KEY, OIDC_CLIENT_SECRET, etc.
@@ -167,6 +179,9 @@ readinessProbe:
 #   chart encodes each URL component. The database-name limitation above applies.
 #   Alternatively, database.existingSecret supplies a complete DATABASE_URL;
 #   encode its components yourself. The chart does not rewrite that URL.
+#   WARNING: the default NetworkPolicy blocks private addresses. With
+#   networkPolicy.enabled=true, add the database address and port to
+#   networkPolicy.extraEgress or the app cannot start.
 # ---------------------------------------------------------------------------
 
 # Bundled PostgreSQL -- official postgres image, no Bitnami dependency
@@ -175,7 +190,7 @@ postgresql:
   image:
     repository: postgres
     tag: "17-alpine"
-    digest: "sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73"
+    digest: "sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24"
     pullPolicy: Always
   auth:
     username: digarr

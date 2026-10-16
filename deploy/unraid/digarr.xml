@@ -21,15 +21,17 @@
 
     Ships with a built-in embedded database -- no separate PostgreSQL
     container needed. Data is stored in the mapped data folder
-    (/mnt/user/appdata/digarr/data), which must be writable by the
-    container user (uid 1000). To use an external PostgreSQL instead,
-    set the (advanced) Database URL variable.
+    (/mnt/user/appdata/digarr/data) and automatic pre-migration backups in
+    the mapped backups folder (/mnt/user/appdata/digarr/backups); both must
+    be writable by the container user (uid 1000). To use an external
+    PostgreSQL instead, set the (advanced) Database URL variable.
   </Overview>
   <Requires>
     No separate database required -- uses a built-in embedded database by
-    default. The data folder (/mnt/user/appdata/digarr/data) must be
-    writable by the container user (uid 1000). Optionally point Database URL
-    at an external PostgreSQL instance.
+    default. The data and backups folders (/mnt/user/appdata/digarr/data and
+    /mnt/user/appdata/digarr/backups) must be writable by the container user
+    (uid 1000). Optionally point Database URL at an external PostgreSQL
+    instance.
   </Requires>
   <Category>MediaApp:Music</Category>
   <WebUI>http://[IP]:[PORT:3000]</WebUI>
@@ -43,6 +45,10 @@
   <Config Name="Data" Target="/app/data" Default="/mnt/user/appdata/digarr/data" Mode="rw"
     Description="Persistent storage for the built-in embedded database. Must be writable by the container user (uid 1000)."
     Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/digarr/data</Config>
+
+  <Config Name="Backups" Target="/app/backups" Default="/mnt/user/appdata/digarr/backups" Mode="rw"
+    Description="Persistent storage for automatic pre-migration backups (the last 14 are kept). Must be writable by the container user (uid 1000). Without this mapping, backups are lost when the container is recreated."
+    Type="Path" Display="always" Required="false" Mask="false">/mnt/user/appdata/digarr/backups</Config>
 
   <Config Name="Data Path" Target="DB_PATH" Default="/app/data"
     Description="Container path for the built-in embedded database (matches the Data folder mapping)"

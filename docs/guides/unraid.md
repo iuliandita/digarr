@@ -6,7 +6,7 @@ pipeline updates its version tag and records the matching image digest in a
 comment. The container uses the version tag; the comment does not enforce a
 digest pin. Community Applications (CA) uses a separate template maintained in the Selfhosters repository; [iuliandita/unraid-templates](https://github.com/iuliandita/unraid-templates) also carries a companion copy.
 
-Digarr ships with a **built-in embedded database (PGlite)** -- no separate
+Digarr ships with a **built-in embedded database (PGlite)** - no separate
 PostgreSQL container is required. New installs run as a single container that
 stores its data in a mapped appdata folder. If you would rather use your own
 PostgreSQL, that stays fully supported via the optional Database URL field (see
@@ -77,7 +77,8 @@ The bundled template exposes these fields (matching
 |-------|----------|----------|-------|
 | Web UI Port | host port -> `3000` | Yes | The web interface; WebUI link opens `http://<server-ip>:<port>` |
 | Data | path `/app/data` | Yes | Persistent storage for the embedded database. Default maps `/mnt/user/appdata/digarr/data` -> `/app/data`. Must be writable by the container user (uid 1000) |
-| Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` -- leave it matching the Data mapping |
+| Backups | path `/app/backups` | No (recommended) | Persistent storage for automatic pre-migration backups. Default maps `/mnt/user/appdata/digarr/backups` -> `/app/backups`. Must be writable by the container user (uid 1000) |
+| Data Path | `DB_PATH` | No (advanced) | Container path of the embedded database, default `/app/data` - leave it matching the Data mapping |
 | Database URL | `DATABASE_URL` | No (advanced) | Leave empty to use the embedded database. Set only to use an external PostgreSQL, e.g. `postgresql://digarr:pass@host:5432/digarr`; percent-encode username, password, and database-name components when needed (see [Advanced section](#advanced-external-postgresql)) |
 | Initial Username | `DIGARR_INITIAL_USERNAME` | No | Set with Initial Password to create the first admin; leave both blank for manual registration. Ignored when users exist |
 | Initial Password | `DIGARR_INITIAL_PASSWORD` | No | Set with Initial Username, at least 12 characters. Ignored when users exist; does not reset passwords |
@@ -85,7 +86,7 @@ The bundled template exposes these fields (matching
 | AI Model | `AI_MODEL` | No | Model name for the chosen provider |
 | AI API Key | `AI_API_KEY` | No | API key for the AI provider |
 | AI Base URL | `AI_BASE_URL` | No | Base URL for openai-compatible/ollama endpoints |
-| Lidarr URL / API Key | `LIDARR_URL`, `LIDARR_API_KEY` | No | Optional -- discovery works without Lidarr |
+| Lidarr URL / API Key | `LIDARR_URL`, `LIDARR_API_KEY` | No | Optional - discovery works without Lidarr |
 | ListenBrainz | `LISTENBRAINZ_USERNAME`, `LISTENBRAINZ_TOKEN` | No | Listening source (advanced) |
 | Last.fm | `LASTFM_USERNAME`, `LASTFM_API_KEY` | No | Listening source (advanced) |
 | Allowed Origin | `ALLOWED_ORIGIN` | Set explicitly | Exact browser origin for direct HTTP or a reverse proxy, e.g. `http://<server-ip>:3000` or `https://digarr.example.com`; no path or trailing slash |
@@ -98,21 +99,22 @@ The bundled template exposes these fields (matching
 The template requires explicit dropdown selections for Disable Registration and Skip TLS Verify, with defaults `true` and `false`; the environment settings themselves remain optional.
 
 `WEBHOOK_URL` seeds one channel during env auto-setup. Changing it after setup does not update the saved channels. Notifications are
-multi-channel -- add webhook, ntfy, Telegram, or Apprise channels (each with its
+multi-channel - add webhook, ntfy, Telegram, or Apprise channels (each with its
 own event subscriptions) under **Settings > Connections > Notifications** in the web UI.
 
 Use HTTPS for webhook delivery. Plain HTTP is accepted for compatibility but
 exposes notification data and any credential embedded in the URL while in transit.
 
 Subsonic, Plex, Jellyfin, Emby, Spotify, Deezer, and Discogs connections are not
-template fields -- add them later under **Settings > Connections** in the web UI.
+template fields - add them later under **Settings > Connections** in the web UI.
 
 ### Recommended: persistent backups volume
 
-The template maps the `Data` folder (`/app/data`) by default, but Digarr's
-auto-backup writes to a separate `/app/backups` directory before it applies
-database migrations (it keeps the last 14 auto-backups). Add a path mapping in
-**Add Container** > **Add another Path** so those survive container recreation:
+Digarr's auto-backup writes to `/app/backups`, a separate directory from
+`/app/data`, before it applies database migrations (it keeps the last 14
+auto-backups). The bundled template maps both. Published store templates may
+only map `Data`; if yours has no **Backups** path, add one in **Add Container**
+> **Add another Path** so the backups survive container recreation:
 
 - Container path: `/app/backups`
 - Host path: e.g. `/mnt/user/appdata/digarr/backups`

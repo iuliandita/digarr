@@ -79,10 +79,8 @@ spec:
               mountPath: /var/run/postgresql
             - name: postgres-tmp
               mountPath: /tmp
-            {{- if .Values.postgresql.persistence.enabled }}
             - name: data
               mountPath: /var/lib/postgresql/data
-            {{- end }}
           startupProbe:
             exec:
               command: ["pg_isready", "-U", {{ .Values.postgresql.auth.username | quote }}]
@@ -108,6 +106,10 @@ spec:
           emptyDir: {}
         - name: postgres-tmp
           emptyDir: {}
+        {{- if not .Values.postgresql.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
   {{- if .Values.postgresql.persistence.enabled }}
   volumeClaimTemplates:
     - metadata:

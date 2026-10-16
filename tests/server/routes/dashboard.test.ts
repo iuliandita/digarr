@@ -133,7 +133,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
       getSubGenres: vi.fn(async () => []),
       seedFromLibrary: vi.fn(async () => {}),
       slugify: vi.fn((name: string) => name.toLowerCase()),
-      isStale: vi.fn(() => false),
     } as unknown as AppDependencies['genreService'],
     libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
     librarySync: {} as unknown as AppDependencies['librarySync'],

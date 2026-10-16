@@ -152,7 +152,9 @@ sudo docker compose -f docker-compose.pglite.yml up -d
 ## Advanced: separate PostgreSQL server (DSM 7.1)
 
 Use this only if you want Digarr to run against your own PostgreSQL instead of
-the embedded database. It requires two containers on a shared network.
+the embedded database. It requires two containers on a shared network and
+PostgreSQL 15 or newer (migrations create `NULLS NOT DISTINCT` unique
+indexes); the `postgres:17-alpine` image used below qualifies.
 
 ### DSM 7.1 gotchas
 
@@ -233,7 +235,7 @@ network lets them reach each other by container name.
 1. **Docker** > **Registry** > search for `postgres`
 2. Download `postgres:17-alpine`
 3. **Image** > select
-   `postgres:17-alpine@sha256:18cfe3ef5e6815560c98237d6216d1e5119702fb0f3894c8785dd58b8bbe5d73`
+   `postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24`
    if your DSM build supports digest references; otherwise select
    `postgres:17-alpine` > **Launch**
 4. **Network**: select `digarr-net` (deselect `bridge`)

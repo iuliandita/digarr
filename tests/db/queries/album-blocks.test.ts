@@ -90,23 +90,6 @@ describe('createAlbumBlock', () => {
     })
     expect(onConflictDoNothing).toHaveBeenCalled()
   })
-
-  it('defaults source to "rejection" when omitted', async () => {
-    const { db, values } = makeInsertDb()
-    await createAlbumBlock(db, { userId: 2, artistId: 20, releaseGroupMbid: 'rg-mbid-2' })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ source: 'rejection' }))
-  })
-
-  it('forwards source=manual when explicitly passed', async () => {
-    const { db, values } = makeInsertDb()
-    await createAlbumBlock(db, {
-      userId: 3,
-      artistId: 30,
-      releaseGroupMbid: 'rg-mbid-3',
-      source: 'manual',
-    })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ source: 'manual' }))
-  })
 })
 
 describe('removeAlbumBlock', () => {

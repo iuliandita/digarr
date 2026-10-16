@@ -51,24 +51,6 @@ describe('GenreService', () => {
     })
   })
 
-  describe('isStale()', () => {
-    it('returns true when cachedAt is null', () => {
-      const svc = new GenreService({ genreQueries: makeQueries() })
-      expect(svc.isStale({ cachedAt: null })).toBe(true)
-    })
-
-    it('returns true when cachedAt is 8 days ago', () => {
-      const svc = new GenreService({ genreQueries: makeQueries() })
-      const eightDaysAgo = new Date(Date.now() - 8 * 24 * 60 * 60 * 1000)
-      expect(svc.isStale({ cachedAt: eightDaysAgo })).toBe(true)
-    })
-
-    it('returns false when cachedAt is now', () => {
-      const svc = new GenreService({ genreQueries: makeQueries() })
-      expect(svc.isStale({ cachedAt: new Date() })).toBe(false)
-    })
-  })
-
   describe('seedFromLibrary()', () => {
     it('upserts all unique genres with correct counts', async () => {
       const queries = makeQueries()

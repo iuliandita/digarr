@@ -79,8 +79,8 @@ checks this without creating any files.
 
 The data root defaults to the parent directory of the currently active PGlite
 data directory (for Docker deployments that is `/app`, since the default
-`DB_PATH` is `/app/data`). To allow migration targets elsewhere -- for example
-a second mounted volume -- set `DIGARR_MIGRATE_DATA_ROOT` to that directory
+`DB_PATH` is `/app/data`). To allow migration targets elsewhere - for example
+a second mounted volume - set `DIGARR_MIGRATE_DATA_ROOT` to that directory
 before starting Digarr. Paths outside the root are rejected to keep the
 migration panel from writing to arbitrary container locations.
 
@@ -139,7 +139,7 @@ When switching backends, follow the complete list below, including file-backed s
   password, and database-name components percent-encoded as needed. Alternatively,
   set `DB_HOST`, `DB_USER`, `DB_NAME`, and `DB_PASS` individually with raw usernames, database names and passwords, as described above. For TLS,
   `DB_SSL_MODE` accepts `disable`, `require`, or `no-verify`. Note that
-  Digarr's `require` performs full certificate verification -- stricter than
+  Digarr's `require` performs full certificate verification - stricter than
   libpq's `require`, which encrypts without verifying. Use `no-verify` for
   self-signed certificates.
 - **Switching to PGlite**: unset `DATABASE_URL`, `DATABASE_URL_FILE`, and `DB_HOST`, then set `DB_PATH`

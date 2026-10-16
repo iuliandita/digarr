@@ -7,4 +7,3 @@ metadata:
     {{- include "digarr.labels" . | nindent 4 }}
 data:
   PORT: {{ .Values.env.PORT | quote }}
-  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}

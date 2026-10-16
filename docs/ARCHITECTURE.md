@@ -39,18 +39,18 @@ before a concurrent reset cannot mint a post-reset session.
 OIDC account linking reuses that callback with a server-owned transaction
 purpose. Initiation requires a cookie session and fresh password proof. The
 link callback locks the user and initiating session, rechecks the password
-fingerprint and session validity, and updates only the OIDC subject. It never
-creates an account or session; the unique subject index prevents linking one
-identity to two accounts.
+fingerprint and session validity, and updates only the OIDC issuer and subject.
+It never creates an account or session; the unique issuer-and-subject index
+prevents linking one identity to two accounts.
 
 ## Database backend
 
 Digarr runs on PostgreSQL through Drizzle either way, but the backend is chosen
 at boot:
 
-- **PostgreSQL server** when a DSN is present -- `DATABASE_URL`, or the
+- **PostgreSQL server** when a DSN is present - `DATABASE_URL`, or the
   `DB_HOST` + `DB_USER` + `DB_NAME` triple. Uses a connection pool.
-- **Embedded PGlite** otherwise -- PostgreSQL compiled to Wasm,
+- **Embedded PGlite** otherwise - PostgreSQL compiled to Wasm,
   running in-process, with the whole database persisted to a single directory at
   `DB_PATH` (image default `/app/data`). No separate database server or
   container.
@@ -62,7 +62,7 @@ selected backend is surfaced at `GET /health` (`"dbBackend": "pglite" |
 "postgres"`) and printed at startup as `[db] backend=...`.
 
 Boot interaction (see [Boot order](#boot-order)): `waitForDatabase()` only runs
-for the external pool (`if (pool)`) -- PGlite is in-process and always ready --
+for the external pool (`if (pool)`) - PGlite is in-process and always ready --
 then the same `preFlightCheck()` -> `runMigrations()` path runs for both
 backends.
 
@@ -70,7 +70,7 @@ backends.
 Wasm and persists in a data directory, so exactly one replica may own it. The
 Helm opt-in requires `replicaCount=1` and forces the `Recreate` rollout strategy
 (no two pods touching the file at once). Raw manifests require manual PVC, strategy, environment, and memory-limit edits; see their deployment comments. Because the working set sits in Wasm
-memory, PGlite is a scale ceiling -- it fits digarr's small-data, single-writer
+memory, PGlite is a scale ceiling - it fits digarr's small-data, single-writer
 profile. Switch to a PostgreSQL server for a managed database or larger
 datasets, but keep the app at one replica: pipeline coordination, schedulers,
 rate limits, and migration locks remain process-local, so a DSN alone does not
@@ -217,7 +217,7 @@ score threshold.
 Extension points use registries or configuration maps:
 
 - `DiscoverySource` - listening-source plugins in `src/core/plugins/`, registered through `SourceRegistry`; add new IDs to `LISTENING_SOURCE_IDS` for unconfigured-source reporting
-- `LibrarySource` - library-sync adapters in `src/core/library/sources/`, registered through `LibrarySourceRegistry` and ordered by MBID quality
+- `LibrarySource` - library-sync adapters in `src/core/library/sources/`, built through the sync orchestrator's `buildGlobalSources` and `buildPerUserSources` callbacks and ordered by MBID quality
 
 - `DestinationTarget` - where recommendations are pushed (Lidarr, Emby, `slskd`, ...)
 - `SubscriptionAdapter` - how recurring seeds are sourced (CSV, Spotify saved, ...)
@@ -290,8 +290,8 @@ Digest positions live in server-owned `settings.digestDeliveryPositions`, outsid
 Albums are a first-class recommendation unit:
 
 - **`kind` discriminator** on the `recommendations` table (`'artist' | 'album'`, default `'artist'`). All recommendation queries and API responses include `kind`; the list endpoint accepts a `?kind=` filter.
-- **`album_blocks` table** -- per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
-- **`applyAlbumModifier`** in `src/core/pipeline/score.ts` -- computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
+- **`album_blocks` table** - per-user, forever-block layer for albums, keyed on release-group MBID. Independent of `artist_blocks`; the filter stage drops candidates matching either block layer.
+- **`applyAlbumModifier`** in `src/core/pipeline/score.ts` - computes a bounded recency / popularity / gap-priority modifier added to the artist-similarity base score, then clamps the result to `[0, 1]`.
 
 ### Album approval
 
@@ -314,7 +314,7 @@ target call. Album external IDs stay in `targetActions`, never the artist ID.
 ### Release radar
 
 The release-radar discovery mode emits `kind='album'` recommendations for new
-releases from artists the user already tracks. These land in the Albums tab.
+releases from artists the user already tracks. These appear in Discover under the Albums kind filter.
 Artist seeds come from ListenBrainz, Spotify, or Last.fm; Plex listening history
 does not currently supply this mode. Release metadata comes from MusicBrainz.
 Kind-aware dedup keeps one album recommendation per release, including several
@@ -334,7 +334,7 @@ For each artist, the executor calls the album-coverage engine
 missing eligible primary-type `Album` release group. Each carries the release-group MBID and the release year
 as the recency signal. In v2.0.0, only a slice whose coverage lookups all succeed
 has its artists' `last_gap_check_at` stamped so the next run advances the cursor. The resulting
-recommendations fill the Albums tab with missing studio-classified releases from artists
+recommendations fill the Discover Albums kind filter with missing studio-classified releases from artists
 already in the library. In v2.0.0, coverage requires primary type `Album` and an
 explicit empty secondary-type array; it excludes every secondary type, including
 Live, Compilation, Soundtrack and Demo. Owned excluded groups affect neither count.

@@ -57,12 +57,16 @@ spec:
         - ipBlock:
             cidr: ::/0
             except:
-              - fd00::/8
+              - fc00::/7
+              - fe80::/10
       ports:
         - protocol: TCP
           port: 443
         - protocol: TCP
           port: 80
+    {{- with .Values.networkPolicy.extraEgress }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
 {{- end }}
 {{- if and .Values.networkPolicy.enabled (eq .Values.database.backend "postgres") .Values.postgresql.enabled }}
 ---
@@ -70,6 +74,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: {{ include "digarr.fullname" . }}-postgresql
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "digarr.labels" . | nindent 4 }}
     app.kubernetes.io/component: database
