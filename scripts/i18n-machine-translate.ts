@@ -110,7 +110,7 @@ export function buildTranslationMessages(
     {
       role: 'system' as const,
       content:
-        'Translate the provided JSON object into the target language. Return JSON only, with the exact same keys, no markdown, no commentary, and preserve placeholders, punctuation, line breaks, artist names, and product names exactly. Address the user informally (for example du, tu, je, ty, ты, ти, sen), and write a dash as -- rather than an em or en dash.',
+        'Translate the provided JSON object into the target language. Return JSON only, with the exact same keys, no markdown, no commentary, and preserve placeholders, punctuation, line breaks, artist names, and product names exactly. Address the user informally (for example du, tu, je, ty, ты, ти, sen), and write a dash as a plain hyphen, never an em dash, en dash or double hyphen.',
     },
     { role: 'user' as const, content: user.join('\n\n') },
   ]
@@ -305,7 +305,9 @@ async function translateStale(): Promise<void> {
       previous,
     })
     for (const key of Object.keys(translated)) {
-      translated[key] = (translated[key] as string).replace(/\s*[\u2013\u2014]\s*/g, ' -- ')
+      translated[key] = (translated[key] as string)
+        .replace(/(\d)\s*[\u2013\u2014]\s*(\d)/g, '$1-$2')
+        .replace(/\s*(?:[\u2013\u2014]+|--)\s*/g, ' - ')
     }
     if (!writeOutput) {
       console.log(JSON.stringify({ [locale]: translated }, null, 2))

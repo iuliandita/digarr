@@ -798,7 +798,7 @@
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
         "scripts/i18n-check.ts": "c4ce6edabd5186aa8af382f204c57b14176b8945aa89da57ecb7f753f8f1f5ea",
-        "scripts/i18n-machine-translate.ts": "3d4a74ac57345ef30ac28baab4422ad8cba1d3cd4190c6d21cfab2b2c42cbc10",
+        "scripts/i18n-machine-translate.ts": "fc2551b0deca5e789b2afb6cdb1864042789dae66869e582a7af992a8043f592",
         "scripts/i18n-source-lock.ts": "4c4e956bca944562784aee5bba959c0cc9c21537e85e42af9c1b99d7b6cb74c6",
         "scripts/i18n-stamp.ts": "3e96ef4b7381d15262fa555c93a523505a2defff92b84c13acfcfc2baa665ecf",
         "scripts/import-artist-metadata.ts": "0ce7cb594ea6311ff59ac8a655d35007538b46611154c94d61e3c5c81ddb41c9",
@@ -808,14 +808,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "fed05d8e6a20cb9bdad6f11d53851420a12c58cb4969c7b612aba5d0a7c1bb17",
+      "digest": "bbb60d20c52a798ee40c9753ac86cf02b0e8fdc2133c7a22efd171cb74333dad",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CONTRIBUTING.md"],
-        "note": "The i18n check verifies English source hashes, informal address and punctuation style; i18n:stamp records the hashes",
+        "note": "i18n:translate gains a stale-only mode and asks for informal address and plain hyphens; workflow documented in the catalog README",
         "breaking": "none",
         "migration": "",
-        "digest": "fed05d8e6a20cb9bdad6f11d53851420a12c58cb4969c7b612aba5d0a7c1bb17"
+        "digest": "bbb60d20c52a798ee40c9753ac86cf02b0e8fdc2133c7a22efd171cb74333dad"
       }
     }
   }
