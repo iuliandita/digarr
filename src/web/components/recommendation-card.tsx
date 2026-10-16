@@ -59,6 +59,8 @@ type RecommendationCardProps = {
   approveNode?: React.ReactNode
   targets?: Array<{ id: number; type: string; name: string }>
   onApproveToTarget?: (recId: number, targetId: string) => void
+  /** Grid cards lead with the artist image; list rows keep a thumbnail. */
+  layout?: 'grid' | 'list'
 }
 
 const SOURCE_COLORS: Record<string, { label: string; color: string }> = {
@@ -581,6 +583,7 @@ export function RecommendationCard({
   approveNode,
   targets,
   onApproveToTarget,
+  layout = 'list',
 }: RecommendationCardProps) {
   const { t } = useI18n()
   const preview = usePreviewContext()
@@ -591,6 +594,9 @@ export function RecommendationCard({
     rec.status === 'added_to_lidarr' || rec.status === 'add_failed' || rec.status === 'approved'
   const artistIsPlaying = preview.playing && preview.currentMbid === rec.artist.mbid
   const hasPreview = preview.hasPreview(rec.artist.streamingUrls)
+  const hasFailure =
+    rec.status === 'add_failed' ||
+    Object.values(rec.targetActions ?? {}).some((action) => action?.status === 'failed')
 
   function handlePlayClick(e: React.MouseEvent) {
     e.stopPropagation()
@@ -631,64 +637,6 @@ export function RecommendationCard({
           />
         </button>
       )}
-      {/* Hover edge buttons - desktop only, pending cards, not when expanded */}
-      {!bulkMode && isPending && !expanded && (
-        <>
-          {/* Left edge: reject */}
-          <button
-            type="button"
-            className="hidden md:group-hover:flex absolute left-0 top-0 bottom-0 z-10 items-center justify-center w-10 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
-            onClick={(e) => {
-              e.stopPropagation()
-              onReject(rec.id)
-            }}
-            aria-label={t('recommendation.reject')}
-          >
-            <span className="w-8 h-8 rounded-full bg-surface border border-reject/40 text-reject hover:bg-reject/30 transition-colors flex items-center justify-center shadow-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
-                aria-hidden="true"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </span>
-          </button>
-          {/* Right edge: approve */}
-          <button
-            type="button"
-            className="hidden md:group-hover:flex absolute right-0 top-0 bottom-0 z-10 items-center justify-center w-10 translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-150 bg-transparent border-none p-0"
-            onClick={(e) => {
-              e.stopPropagation()
-              onApprove(rec.id)
-            }}
-            aria-label={t('recommendation.approve')}
-          >
-            <span className="w-8 h-8 rounded-full bg-surface border border-approve/40 text-approve hover:bg-approve/30 transition-colors flex items-center justify-center shadow-lg">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                className="w-4 h-4"
-                aria-hidden="true"
-              >
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            </span>
-          </button>
-        </>
-      )}
       {/* biome-ignore lint/a11y/useSemanticElements: intentional div[role=button] - nesting <button> inside <button> is invalid HTML */}
       <div
         role="button"
@@ -710,33 +658,64 @@ export function RecommendationCard({
           }
         }}
       >
-        {/* Compact layout (always shown) */}
-        <div className="p-4 space-y-3 flex-1">
-          {/* Header row */}
-          <div className="flex items-start gap-3">
+        {layout === 'grid' && (
+          <div
+            className={cn(
+              'relative w-full overflow-hidden rounded-t-surface',
+              expanded ? 'h-48' : rec.artist.imageUrl ? 'aspect-[16/10]' : 'h-24',
+            )}
+          >
             <ArtistThumb
               name={rec.artist.name}
               imageUrl={rec.artist.imageUrl}
-              size={expanded ? 14 : 10}
+              fill
+              className="rounded-none text-3xl"
             />
+            <span className="absolute top-2 right-2 rounded-control bg-black/65 px-2 py-0.5 text-caption font-semibold text-white">
+              {pct}
+            </span>
+            {rec.kind === 'album' && (
+              <span
+                data-testid="rec-kind-album"
+                className="absolute bottom-2 left-2 rounded-control bg-black/65 px-1.5 py-0.5 text-micro font-semibold uppercase tracking-wide text-white"
+              >
+                {t('recommendation.albumBadge')}
+              </span>
+            )}
+            {hasFailure && (
+              <span className="absolute inset-x-0 bottom-0 bg-reject/90 px-3 py-1 text-caption font-medium text-white">
+                {t('recommendation.addFailed')}
+              </span>
+            )}
+          </div>
+        )}
+        <div className="p-4 space-y-3 flex-1">
+          <div className="flex items-start gap-3">
+            {layout === 'list' && (
+              <ArtistThumb
+                name={rec.artist.name}
+                imageUrl={rec.artist.imageUrl}
+                size={expanded ? 14 : 10}
+              />
+            )}
             <div className="flex-1 min-w-0 flex items-start justify-between gap-2">
               {rec.kind === 'album' ? (
-                <div>
-                  <div className="flex items-center gap-1.5">
+                <div className="min-w-0">
+                  {layout === 'list' && (
                     <span
                       data-testid="rec-kind-album"
                       className="bg-accent/15 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
                     >
                       {t('recommendation.albumBadge')}
                     </span>
-                  </div>
+                  )}
                   <h3 className="text-lg font-semibold text-text leading-tight mt-0.5">
                     {rec.recommendedReleaseGroupTitle ?? rec.artist.name}
                   </h3>
                   <p className="text-xs text-muted mt-0.5">{rec.artist.name}</p>
                 </div>
               ) : (
-                <div>
+                <div className="min-w-0">
                   <h3 className="text-lg font-semibold text-text leading-tight">
                     {rec.artist.name}
                   </h3>
@@ -751,65 +730,20 @@ export function RecommendationCard({
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-1.5 shrink-0">
-                {warmStatus === 'warm' && (
-                  <span
-                    className="w-2 h-2 rounded-full bg-approve"
-                    title={t('recommendation.metadataCached')}
-                    role="img"
-                    aria-label={t('recommendation.metadataCached')}
-                  />
-                )}
-                {warmStatus === 'warming' && (
-                  <span
-                    className="w-2 h-2 rounded-full bg-warning animate-pulse"
-                    title={t('recommendation.warmingCache')}
-                    role="img"
-                    aria-label={t('recommendation.warmingCache')}
-                  />
-                )}
-                <span className="bg-accent/20 text-accent text-xs font-semibold px-2 py-0.5 rounded">
+              {layout === 'list' && (
+                <span className="shrink-0 bg-accent/20 text-accent text-xs font-semibold px-2 py-0.5 rounded">
                   {pct}
                 </span>
-              </div>
-            </div>
-          </div>
-
-          {/* Genre tags */}
-          <div className="flex items-center gap-1.5 overflow-hidden">
-            <GenrePills genres={rec.artist.genres} max={expanded ? 8 : 3} compact={!expanded} />
-          </div>
-
-          {/* Streaming links (compact) + play button */}
-          {!expanded && (
-            <div className="flex items-center gap-2">
-              {hasPreview && !bulkMode && (
-                <button
-                  type="button"
-                  aria-label={
-                    artistIsPlaying
-                      ? t('recommendation.stopPreview')
-                      : t('recommendation.playPreview')
-                  }
-                  onClick={handlePlayClick}
-                  className="shrink-0 text-muted hover:text-text transition-colors"
-                >
-                  {artistIsPlaying ? (
-                    <Pause size={14} aria-hidden="true" />
-                  ) : (
-                    <Play size={14} aria-hidden="true" />
-                  )}
-                </button>
               )}
-              <StreamingLinks
-                streamingUrls={rec.artist.streamingUrls}
-                artistName={rec.artist.name}
-                compact
-              />
             </div>
-          )}
+          </div>
 
-          {/* Status for acted-on recs */}
+          <div className="flex items-center gap-1.5 overflow-hidden">
+            <GenrePills genres={rec.artist.genres} max={expanded ? 8 : 2} compact={!expanded} />
+          </div>
+
+          {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
+
           {isActed && (
             <StatusBadge
               status={rec.status}
@@ -821,22 +755,40 @@ export function RecommendationCard({
             />
           )}
 
-          {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
-
-          {/* Action buttons - compact mode only, hidden in bulk mode */}
+          {/* One decision row: preview, then the actions */}
           {!expanded && (
             <>
-              <ActionButtons
-                rec={rec}
-                bulkMode={bulkMode}
-                isPending={isPending}
-                isApproved={isApproved}
-                onApprove={onApprove}
-                onReject={onReject}
-                approveNode={approveNode}
-                targets={targets}
-                onApproveToTarget={onApproveToTarget}
-              />
+              <div className="flex items-center gap-2">
+                {hasPreview && !bulkMode && (
+                  <button
+                    type="button"
+                    aria-label={
+                      artistIsPlaying
+                        ? t('recommendation.stopPreview')
+                        : t('recommendation.playPreview')
+                    }
+                    onClick={handlePlayClick}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-muted transition-colors hover:text-text focus-ring"
+                  >
+                    {artistIsPlaying ? (
+                      <Pause size={14} aria-hidden="true" />
+                    ) : (
+                      <Play size={14} aria-hidden="true" />
+                    )}
+                  </button>
+                )}
+                <ActionButtons
+                  rec={rec}
+                  bulkMode={bulkMode}
+                  isPending={isPending}
+                  isApproved={isApproved}
+                  onApprove={onApprove}
+                  onReject={onReject}
+                  approveNode={approveNode}
+                  targets={targets}
+                  onApproveToTarget={onApproveToTarget}
+                />
+              </div>
               <Hint id="rec-card-click-tip" type="inline">
                 {t('recommendation.clickHint')}
               </Hint>
@@ -847,39 +799,57 @@ export function RecommendationCard({
         {/* Expanded-only section */}
         {expanded && (
           <div className="border-t border-border pb-4 space-y-4">
-            {/* Hero banner with artist image or gradient fallback */}
-            <div
-              className="relative h-40 w-full bg-cover bg-center"
-              style={
-                rec.artist.imageUrl
-                  ? { backgroundImage: `url(${rec.artist.imageUrl.replace(/[()'"]/g, '')})` }
-                  : {
-                      background: `hsl(${hueFromName(rec.artist.name)}, 40%, 25%)`,
-                    }
-              }
-            >
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-              {rec.artist.logoUrl ? (
-                <img
-                  src={rec.artist.logoUrl}
-                  alt={rec.artist.name}
-                  className="absolute bottom-3 left-4 h-10 max-w-[60%] object-contain object-left drop-shadow-lg"
-                />
-              ) : (
-                <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
-                  {rec.artist.name}
-                </span>
-              )}
-              <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5 flex items-baseline gap-0.5">
-                <span className="text-accent text-lg font-bold leading-none">{pct}</span>
-                <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
-                  {t('recommendation.match')}
-                </span>
+            {/* Hero banner with artist image or gradient fallback; grid cards already lead with it */}
+            {layout === 'list' && (
+              <div
+                className="relative h-40 w-full bg-cover bg-center"
+                style={
+                  rec.artist.imageUrl
+                    ? { backgroundImage: `url(${rec.artist.imageUrl.replace(/[()'"]/g, '')})` }
+                    : {
+                        background: `hsl(${hueFromName(rec.artist.name)}, 40%, 25%)`,
+                      }
+                }
+              >
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                {rec.artist.logoUrl ? (
+                  <img
+                    src={rec.artist.logoUrl}
+                    alt={rec.artist.name}
+                    className="absolute bottom-3 left-4 h-10 max-w-[60%] object-contain object-left drop-shadow-lg"
+                  />
+                ) : (
+                  <span className="absolute bottom-3 left-4 text-white font-bold text-xl drop-shadow-lg">
+                    {rec.artist.name}
+                  </span>
+                )}
+                <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5 flex items-baseline gap-0.5">
+                  <span className="text-accent text-lg font-bold leading-none">{pct}</span>
+                  <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
+                    {t('recommendation.match')}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
 
-            {/* MusicBrainz link */}
+            {/* MusicBrainz link and metadata cache state */}
             <div className="px-4 flex items-center gap-2">
+              {warmStatus === 'warm' && (
+                <span
+                  className="w-2 h-2 rounded-full bg-approve"
+                  title={t('recommendation.metadataCached')}
+                  role="img"
+                  aria-label={t('recommendation.metadataCached')}
+                />
+              )}
+              {warmStatus === 'warming' && (
+                <span
+                  className="w-2 h-2 rounded-full bg-warning animate-pulse"
+                  title={t('recommendation.warmingCache')}
+                  role="img"
+                  aria-label={t('recommendation.warmingCache')}
+                />
+              )}
               <a
                 href={`https://musicbrainz.org/artist/${rec.artist.mbid}`}
                 target="_blank"

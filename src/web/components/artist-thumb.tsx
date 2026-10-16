@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { hueFromName } from '../lib/utils'
+import { cn, hueFromName } from '../lib/utils'
 
 const AUDIODB_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])
 const PROXY_FLAG_KEY = 'digarr:audiodbProxyImages'
@@ -73,7 +73,7 @@ export function ArtistThumb({
         alt={name}
         loading="lazy"
         decoding="async"
-        className={`rounded-md object-cover bg-bg ${sizeClass} ${className ?? ''}`}
+        className={cn('rounded-md object-cover bg-bg', sizeClass, className)}
         style={sizeStyle}
         onError={() => setImgError(true)}
       />
@@ -82,7 +82,11 @@ export function ArtistThumb({
 
   return (
     <div
-      className={`rounded-md flex items-center justify-center font-bold text-bg ${sizeClass} ${className ?? ''}`}
+      className={cn(
+        'rounded-md flex items-center justify-center font-bold text-bg',
+        sizeClass,
+        className,
+      )}
       style={{
         ...sizeStyle,
         background: `hsl(${hue}, 40%, 45%)`,

@@ -993,7 +993,7 @@ export function DiscoverPage() {
 
   return (
     <div
-      className={`space-y-6 max-w-6xl mx-auto${bulkMode ? ' pb-24' : ' pb-6'} md:pb-6`}
+      className={`space-y-6 max-w-6xl mx-auto ${bulkMode ? 'pb-24' : 'pb-20'} md:pb-6`}
       {...pullHandlers}
     >
       <h1 className="sr-only">{t('discover.title')}</h1>
@@ -1285,6 +1285,7 @@ export function DiscoverPage() {
                         onApproveToTarget={
                           approveTargets.length > 0 ? handleApproveToTarget : undefined
                         }
+                        layout="grid"
                         approveNode={
                           !isActing &&
                           !bulkMode &&

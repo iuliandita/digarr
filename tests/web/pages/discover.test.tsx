@@ -674,14 +674,14 @@ describe('DiscoverPage', () => {
     })
   })
 
-  it('renders streaming links', async () => {
+  it('keeps streaming links in the expanded card, off the decision face', async () => {
     setupMockApi()
     renderWithQuery(<DiscoverPage />)
 
-    await waitFor(() => {
-      // SP link for Spotify
-      expect(screen.getByTitle('Spotify')).toBeInTheDocument()
-    })
+    const card = await screen.findByTestId('rec-card-button')
+    expect(screen.queryByTitle('Spotify')).toBeNull()
+    fireEvent.click(card)
+    expect(await screen.findByTitle('Spotify')).toBeInTheDocument()
   })
 
   it('uses translated feedback insights copy in French', async () => {

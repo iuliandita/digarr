@@ -138,12 +138,12 @@ describe('RecommendationCard', () => {
     withPreview(
       <RecommendationCard recommendation={makeRec()} onApprove={onApprove} onReject={onReject} />,
     )
-    // Default compact: max 3 genres shown
+    // Default compact: max 2 genres shown
     expect(screen.getByText('rock')).toBeInTheDocument()
     expect(screen.getByText('alternative')).toBeInTheDocument()
-    expect(screen.getByText('art rock')).toBeInTheDocument()
-    // The remaining 2 are collapsed
-    expect(screen.getByText('+2')).toBeInTheDocument()
+    expect(screen.queryByText('art rock')).toBeNull()
+    // The remaining 3 are collapsed
+    expect(screen.getByText('+3')).toBeInTheDocument()
   })
 
   it('approve button calls onApprove with correct id', () => {
