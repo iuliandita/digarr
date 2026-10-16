@@ -78,8 +78,6 @@ spec:
               value: production
             - name: PORT
               value: "3000"
-            - name: LOG_LEVEL
-              value: info
             - name: DATABASE_URL
               valueFrom:
                 secretKeyRef:
