@@ -5,7 +5,7 @@ import { createLibrarySyncStore } from '@/core/library/store'
 import { libraryAlbums, libraryArtists } from '@/db/schema'
 
 const SQLITE_MAX_HOST_PARAMETERS = 32_766
-const ARTIST_INSERT_COLUMNS = 10
+const ARTIST_INSERT_COLUMNS = 11
 const ALBUM_INSERT_COLUMNS = 13
 
 type InsertCall = {
@@ -16,6 +16,7 @@ type InsertCall = {
 type MockTx = {
   delete: ReturnType<typeof vi.fn>
   insert: ReturnType<typeof vi.fn>
+  select: ReturnType<typeof vi.fn>
 }
 
 function makeDb() {
@@ -28,7 +29,10 @@ function makeDb() {
       return []
     }),
   }))
-  const tx: MockTx = { delete: del, insert }
+  const select = vi.fn(() => ({
+    from: vi.fn(() => ({ where: vi.fn().mockResolvedValue([]) })),
+  }))
+  const tx: MockTx = { delete: del, insert, select }
   const transaction = vi.fn(async (callback: (tx: MockTx) => Promise<unknown>) => callback(tx))
 
   return {
@@ -84,17 +88,14 @@ describe('LibrarySyncStore chunked inserts', () => {
     expect(albumRows?.[0]).toMatchObject({ unreconciledReason: 'ambiguous' })
   })
 
-  it('preserves artist and album reconciliation reasons in split replacements', async () => {
+  it('preserves artist reconciliation reasons in artist-only replacements', async () => {
     const db = makeDb()
     const store = createLibrarySyncStore(db as never)
 
     await store.replaceLibraryArtists(1, 'plex', [makeArtist(1)])
-    await store.replaceLibraryAlbums(1, 'plex', [makeAlbum(1, 'ambiguous')])
 
     const artistRows = db._mocks.insertCalls.find((call) => call.table === libraryArtists)?.rows
-    const albumRows = db._mocks.insertCalls.find((call) => call.table === libraryAlbums)?.rows
     expect(artistRows?.[0]).toMatchObject({ unreconciledReason: 'no_candidate' })
-    expect(albumRows?.[0]).toMatchObject({ unreconciledReason: 'ambiguous' })
   })
 
   it('splits oversized album writes into sqlite-safe chunks', async () => {
@@ -102,7 +103,7 @@ describe('LibrarySyncStore chunked inserts', () => {
     const store = createLibrarySyncStore(db as never)
     const albums = Array.from({ length: 3_000 }, (_, index) => makeAlbum(index))
 
-    await store.replaceLibraryAlbums(1, 'plex', albums)
+    await store.replaceLibrarySnapshot(1, 'plex', [], albums)
 
     const albumCalls = db._mocks.insertCalls.filter((call) => call.table === libraryAlbums)
     expect(albumCalls.length).toBeGreaterThan(1)

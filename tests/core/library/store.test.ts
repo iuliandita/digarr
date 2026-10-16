@@ -176,22 +176,27 @@ describe('LibrarySyncStore', () => {
     expect(rows.map((r) => r.source).sort()).toEqual([JELLYFIN_SOURCE, PLEX_SOURCE])
   })
 
-  it('replaceLibraryAlbums writes rows and returns total count', async () => {
+  it('replaceLibrarySnapshot writes album rows and counts them', async () => {
     const store = createLibrarySyncStore(db)
-    const result = await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'alb-1',
-        sourceArtistId: 'rk-1',
-        title: 'Dummy',
-        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-        albumMbid: '11111111-1111-1111-1111-111111111111',
-        matchMethod: 'title_exact',
-        matchConfidence: 0.8,
-        unreconciledReason: 'ambiguous',
-      }),
-    ])
+    const result = await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'alb-1',
+          sourceArtistId: 'rk-1',
+          title: 'Dummy',
+          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          albumMbid: '11111111-1111-1111-1111-111111111111',
+          matchMethod: 'title_exact',
+          matchConfidence: 0.8,
+          unreconciledReason: 'ambiguous',
+        }),
+      ],
+    )
 
-    expect(result.total).toBe(1)
+    expect(result.albumsSynced).toBe(1)
     const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
     expect(rows).toHaveLength(1)
     expect(rows[0]?.title).toBe('Dummy')
@@ -234,24 +239,34 @@ describe('LibrarySyncStore', () => {
     expect(album?.unreconciledReason).toBe('ambiguous')
   })
 
-  it('replaceLibraryAlbums is truncate-and-replace per source/user', async () => {
+  it('replaceLibrarySnapshot replaces albums per source/user', async () => {
     const store = createLibrarySyncStore(db)
-    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'alb-1',
-        sourceArtistId: 'rk-1',
-        title: 'Dummy',
-        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-      }),
-    ])
-    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'alb-2',
-        sourceArtistId: 'rk-2',
-        title: 'Dummy 2',
-        artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'alb-1',
+          sourceArtistId: 'rk-1',
+          title: 'Dummy',
+          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        }),
+      ],
+    )
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'alb-2',
+          sourceArtistId: 'rk-2',
+          title: 'Dummy 2',
+          artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+        }),
+      ],
+    )
 
     const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
     expect(rows).toHaveLength(1)
@@ -260,21 +275,25 @@ describe('LibrarySyncStore', () => {
 
   it('replaceLibrarySnapshot rolls back artist and album writes on persistence failure', async () => {
     const store = createLibrarySyncStore(db)
-    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
-      reconciled({
-        sourceArtistId: 'rk-seed',
-        name: 'Seed Artist',
-        mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-      }),
-    ])
-    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'alb-seed',
-        sourceArtistId: 'rk-seed',
-        title: 'Seed Album',
-        artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [
+        reconciled({
+          sourceArtistId: 'rk-seed',
+          name: 'Seed Artist',
+          mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        }),
+      ],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'alb-seed',
+          sourceArtistId: 'rk-seed',
+          title: 'Seed Album',
+          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        }),
+      ],
+    )
 
     await expect(
       store.replaceLibrarySnapshot(
@@ -537,17 +556,22 @@ describe('LibrarySyncStore', () => {
     const store = createLibrarySyncStore(db)
     const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 
-    await store.replaceLibraryAlbums(userId, 'plex', [
-      reconciledAlbum({
-        sourceAlbumId: 'album-1',
-        sourceArtistId: 'artist-1',
-        title: 'Unknown Album',
-        titleNormalized: 'unknown album',
-        albumMbid: null,
-        artistMbid,
-        primaryType: 'Album',
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      userId,
+      'plex',
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'album-1',
+          sourceArtistId: 'artist-1',
+          title: 'Unknown Album',
+          titleNormalized: 'unknown album',
+          albumMbid: null,
+          artistMbid,
+          primaryType: 'Album',
+        }),
+      ],
+    )
 
     expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(1)
 
@@ -559,20 +583,25 @@ describe('LibrarySyncStore', () => {
   it('bulk ignores albums and hides them from unreconciled rows', async () => {
     const store = createLibrarySyncStore(db)
     const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
-    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'bulk-album-1',
-        sourceArtistId: 'bulk-artist-1',
-        title: 'Album One',
-        artistMbid,
-      }),
-      reconciledAlbum({
-        sourceAlbumId: 'bulk-album-2',
-        sourceArtistId: 'bulk-artist-2',
-        title: 'Album Two',
-        artistMbid,
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'bulk-album-1',
+          sourceArtistId: 'bulk-artist-1',
+          title: 'Album One',
+          artistMbid,
+        }),
+        reconciledAlbum({
+          sourceAlbumId: 'bulk-album-2',
+          sourceArtistId: 'bulk-artist-2',
+          title: 'Album Two',
+          artistMbid,
+        }),
+      ],
+    )
 
     await store.bulkIgnoreAlbums(userId, [
       { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-1' },
@@ -617,56 +646,66 @@ describe('LibrarySyncStore', () => {
     const store = createLibrarySyncStore(db)
     const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 
-    await store.replaceLibraryAlbums(userId, PLEX_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'album-user',
-        sourceArtistId: 'artist-1',
-        title: 'Dummy',
-        artistMbid,
-        albumMbid: '11111111-1111-1111-1111-111111111111',
-        releaseYear: 1991,
-        primaryType: 'Album',
-      }),
-      reconciledAlbum({
-        sourceAlbumId: 'album-ep',
-        sourceArtistId: 'artist-1',
-        title: 'Bonus EP',
-        artistMbid,
-        albumMbid: '33333333-3333-3333-3333-333333333333',
-        releaseYear: 1992,
-        primaryType: 'EP',
-      }),
-      reconciledAlbum({
-        sourceAlbumId: 'album-null-mbid',
-        sourceArtistId: 'artist-1',
-        title: 'Unknown Album',
-        artistMbid,
-        albumMbid: null,
-        releaseYear: 1993,
-        primaryType: 'Album',
-      }),
-      reconciledAlbum({
-        sourceAlbumId: 'album-other-artist',
-        sourceArtistId: 'artist-2',
-        title: 'Other Artist Album',
-        artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
-        albumMbid: '44444444-4444-4444-4444-444444444444',
-        releaseYear: 1995,
-        primaryType: 'Album',
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'album-user',
+          sourceArtistId: 'artist-1',
+          title: 'Dummy',
+          artistMbid,
+          albumMbid: '11111111-1111-1111-1111-111111111111',
+          releaseYear: 1991,
+          primaryType: 'Album',
+        }),
+        reconciledAlbum({
+          sourceAlbumId: 'album-ep',
+          sourceArtistId: 'artist-1',
+          title: 'Bonus EP',
+          artistMbid,
+          albumMbid: '33333333-3333-3333-3333-333333333333',
+          releaseYear: 1992,
+          primaryType: 'EP',
+        }),
+        reconciledAlbum({
+          sourceAlbumId: 'album-null-mbid',
+          sourceArtistId: 'artist-1',
+          title: 'Unknown Album',
+          artistMbid,
+          albumMbid: null,
+          releaseYear: 1993,
+          primaryType: 'Album',
+        }),
+        reconciledAlbum({
+          sourceAlbumId: 'album-other-artist',
+          sourceArtistId: 'artist-2',
+          title: 'Other Artist Album',
+          artistMbid: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
+          albumMbid: '44444444-4444-4444-4444-444444444444',
+          releaseYear: 1995,
+          primaryType: 'Album',
+        }),
+      ],
+    )
 
-    await store.replaceLibraryAlbums(null, LIDARR_SOURCE, [
-      reconciledAlbum({
-        sourceAlbumId: 'album-global',
-        sourceArtistId: 'artist-global',
-        title: 'Hex',
-        artistMbid,
-        albumMbid: '22222222-2222-2222-2222-222222222222',
-        releaseYear: 1994,
-        primaryType: 'Album',
-      }),
-    ])
+    await store.replaceLibrarySnapshot(
+      null,
+      LIDARR_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'album-global',
+          sourceArtistId: 'artist-global',
+          title: 'Hex',
+          artistMbid,
+          albumMbid: '22222222-2222-2222-2222-222222222222',
+          releaseYear: 1994,
+          primaryType: 'Album',
+        }),
+      ],
+    )
 
     const owned = await store.listOwnedAlbumsForArtist(userId, artistMbid)
 
@@ -752,5 +791,108 @@ describe('LibrarySyncStore', () => {
       .from(libraryAlbumMatchOverrides)
       .where(eq(libraryAlbumMatchOverrides.userId, userId))
     expect(rows).toHaveLength(1)
+  })
+})
+
+describe('LibrarySyncStore continuity across syncs', () => {
+  const ARTIST_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+  const OTHER_MBID = '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11'
+
+  it('keeps the gap-fill cursor for artists whose MBID did not change', async () => {
+    const store = createLibrarySyncStore(db)
+    const checkedAt = new Date('2026-09-01T00:00:00Z')
+    const artists = [
+      reconciled({ sourceArtistId: 'kept', name: 'Kept', mbid: ARTIST_MBID, matchMethod: 'mbid' }),
+      reconciled({ sourceArtistId: 'moved', name: 'Moved', mbid: OTHER_MBID, matchMethod: 'mbid' }),
+    ]
+    await store.replaceLibrarySnapshot(userId, PLEX_SOURCE, artists, [])
+    await db
+      .update(libraryArtists)
+      .set({ lastGapCheckAt: checkedAt })
+      .where(eq(libraryArtists.source, PLEX_SOURCE))
+
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [artists[0] as ReconciledArtist, { ...(artists[1] as ReconciledArtist), mbid: ARTIST_MBID }],
+      [],
+    )
+
+    const rows = await db
+      .select({ id: libraryArtists.sourceArtistId, at: libraryArtists.lastGapCheckAt })
+      .from(libraryArtists)
+      .where(eq(libraryArtists.source, PLEX_SOURCE))
+    expect(Object.fromEntries(rows.map((row) => [row.id, row.at]))).toEqual({
+      kept: checkedAt,
+      moved: null,
+    })
+  })
+
+  it('lists the previous matches of one source', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
+      reconciled({
+        sourceArtistId: 'matched',
+        name: 'Bush',
+        mbid: ARTIST_MBID,
+        matchMethod: 'name_exact',
+        matchConfidence: 0.7,
+      }),
+      reconciled({ sourceArtistId: 'missing', name: 'Nobody', unreconciledReason: 'no_candidate' }),
+    ])
+    await store.replaceLibraryArtists(userId, JELLYFIN_SOURCE, [
+      reconciled({ sourceArtistId: 'other', name: 'Other', mbid: OTHER_MBID, matchMethod: 'mbid' }),
+    ])
+
+    expect(await store.listArtistMatches(userId, PLEX_SOURCE)).toEqual(
+      new Map([
+        [
+          'matched',
+          {
+            nameNormalized: 'bush',
+            mbid: ARTIST_MBID,
+            matchMethod: 'name_exact',
+            matchConfidence: expect.closeTo(0.7),
+          },
+        ],
+      ]),
+    )
+  })
+
+  it('applies saved album corrections and ignores to ownership', async () => {
+    const store = createLibrarySyncStore(db)
+    const correctedMbid = '55555555-5555-5555-5555-555555555555'
+    await store.replaceLibrarySnapshot(
+      userId,
+      PLEX_SOURCE,
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'unmatched',
+          sourceArtistId: 'artist-1',
+          title: 'Unmatched',
+          artistMbid: ARTIST_MBID,
+          primaryType: null,
+          unreconciledReason: 'no_candidate',
+        }),
+        reconciledAlbum({
+          sourceAlbumId: 'ignored',
+          sourceArtistId: 'artist-1',
+          title: 'Ignored',
+          artistMbid: ARTIST_MBID,
+          albumMbid: '66666666-6666-6666-6666-666666666666',
+        }),
+      ],
+    )
+    expect(
+      (await store.listOwnedAlbumsForArtist(userId, ARTIST_MBID)).map((a) => a.sourceAlbumId),
+    ).toEqual(['ignored'])
+
+    await store.upsertAlbumOverride(userId, PLEX_SOURCE, 'unmatched', correctedMbid)
+    await store.upsertAlbumOverride(userId, PLEX_SOURCE, 'ignored', null)
+
+    expect(await store.listOwnedAlbumsForArtist(userId, ARTIST_MBID)).toEqual([
+      expect.objectContaining({ sourceAlbumId: 'unmatched', albumMbid: correctedMbid }),
+    ])
   })
 })

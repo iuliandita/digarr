@@ -400,3 +400,51 @@ describe('reconcileArtist - MusicBrainz degradation', () => {
     expect(ctx.counts.unreconciledAmbiguous).toBe(0)
   })
 })
+
+describe('reconcileArtist - continuity', () => {
+  it('treats one artist cached from several sources as a cache hit', async () => {
+    const ctx = makeCtx({
+      cacheLookup: vi.fn().mockResolvedValue([
+        { mbid: VALID_MBID, name: 'Bush', source: 'lidarr' },
+        { mbid: VALID_MBID, name: 'Bush', source: 'jellyfin' },
+      ]),
+    })
+    const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: 'Bush' }, 'plex', ctx)
+    expect(result).toMatchObject({ mbid: VALID_MBID, matchMethod: 'name_anchored' })
+    expect(ctx.counts.cacheHits).toBe(1)
+    expect(ctx.mbClient.searchArtist).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['the same name', 'bush', { mbid: VALID_MBID, matchMethod: 'name_exact' }],
+    ['a renamed artist', 'someone else', { mbid: null, unreconciledReason: 'lookup_failed' }],
+  ])(
+    'on MusicBrainz failure keeps the previous match only for %s',
+    async (_label, previousName, expected) => {
+      const ctx = makeCtx({
+        cacheLookup: vi.fn().mockResolvedValue([
+          { mbid: VALID_MBID, name: 'Bush', source: 'plex' },
+          { mbid: OTHER_MBID, name: 'Bush', source: 'lidarr' },
+        ]),
+        previousMatches: new Map([
+          [
+            'rk-1',
+            {
+              nameNormalized: previousName,
+              mbid: VALID_MBID,
+              matchMethod: 'name_exact' as const,
+              matchConfidence: 0.7,
+            },
+          ],
+        ]),
+        mbClient: {
+          searchArtist: vi.fn().mockRejectedValue(new Error('MusicBrainz HTTP 503')),
+          getReleaseGroups: vi.fn(),
+        },
+      })
+      const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: 'Bush' }, 'plex', ctx)
+      expect(result).toMatchObject(expected)
+      expect(ctx.counts.mbApiCallsFailed).toBe(1)
+    },
+  )
+})
