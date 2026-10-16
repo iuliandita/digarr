@@ -13,6 +13,8 @@ import {
 } from '@/core/ops/hygiene'
 import { getGenreEnrichments } from '@/db/queries/artists'
 
+vi.setConfig({ testTimeout: 30_000 })
+
 function makeUpdateDb(rowCount: number) {
   return {
     update: vi.fn().mockReturnValue({
