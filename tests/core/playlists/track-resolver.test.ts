@@ -1,8 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import {
-  resolvePlaylistTracks,
-  resolveTracksForArtist,
+  resolvePlaylistTracksDetailed,
   resolveTracksForArtistDetailed,
 } from '@/core/playlists/track-resolver'
 import type {
@@ -13,6 +12,14 @@ import type {
   TrackResolverConfig,
   TrackResolverDeps,
 } from '@/core/playlists/types'
+
+async function resolveTracksForArtist(...args: Parameters<typeof resolveTracksForArtistDetailed>) {
+  return (await resolveTracksForArtistDetailed(...args)).tracks
+}
+
+async function resolvePlaylistTracks(...args: Parameters<typeof resolvePlaylistTracksDetailed>) {
+  return (await resolvePlaylistTracksDetailed(...args)).flatMap((result) => result.tracks)
+}
 
 // ---------------------------------------------------------------------------
 // Fixtures

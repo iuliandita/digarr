@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNull, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, lt, or } from 'drizzle-orm'
 import type { Database } from '@/db'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
 import { playlists, playlistTracks } from '@/db/schema'
@@ -132,21 +132,4 @@ export async function replacePlaylistTracks(
       )
     }
   })
-}
-
-// Returns enabled playlists that have never been generated or whose last
-// generation was more than 7 days ago. The scheduler does finer cron
-// evaluation on top of this.
-export async function getPlaylistsDueForGeneration(db: Database): Promise<PlaylistRow[]> {
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)
-  const rows = await db
-    .select()
-    .from(playlists)
-    .where(
-      and(
-        eq(playlists.enabled, true),
-        or(isNull(playlists.lastGeneratedAt), lt(playlists.lastGeneratedAt, sevenDaysAgo)),
-      ),
-    )
-  return rows
 }

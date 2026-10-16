@@ -80,7 +80,6 @@ vi.mock('@/db/queries/playlists', () => ({
   updatePlaylist: vi.fn(),
   deletePlaylist: vi.fn(),
   replacePlaylistTracks: vi.fn(),
-  getPlaylistsDueForGeneration: vi.fn(),
 }))
 
 vi.mock('@/db/queries/jobs', () => ({ getLatestPlaylistGeneration: vi.fn() }))

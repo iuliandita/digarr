@@ -8,14 +8,6 @@ export function cellSafe(value: string): string {
   return `"${escaped}"`
 }
 
-export function parseCell(raw: string): string {
-  let value = raw
-  if (value.length >= 2 && value.startsWith('"') && value.endsWith('"')) {
-    value = value.slice(1, -1).replace(/""/g, '"')
-  }
-  return value.replace(DANGEROUS_PREFIX, '')
-}
-
 export function parseCsvRow(row: string): string[] {
   const fields: string[] = []
   let current = ''
