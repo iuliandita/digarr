@@ -117,6 +117,10 @@ Notes:
 - Login and registration return `{ user, token }` for API clients by default.
   Send `X-Digarr-Auth-Mode: cookie` to receive an HttpOnly session cookie and a
   `{ user }` response without the raw token.
+- User objects from login, registration, `GET /api/v1/auth/me`, and
+  `/api/v1/users` never include stored connection values (`listenbrainzToken`,
+  `lastfmApiKey`, `plexToken`, `jellyfinApiKey`, `embyApiKey`, `discogsToken`,
+  `subsonicPassword`). Each is replaced by a boolean such as `hasPlexToken`.
 - Registration trims surrounding username whitespace and requires 2-50 characters. Passwords require at least 12 characters.
 - Registration returns `201`; closed registration returns `403`, an existing
   username returns `409`, and the sixth request from one source within a minute

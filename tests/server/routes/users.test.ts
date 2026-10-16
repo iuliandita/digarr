@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import { LastAdminError } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
@@ -261,6 +262,29 @@ describe('GET /api/v1/users', () => {
     expect(Array.isArray(body)).toBe(true)
     expect(body).toHaveLength(2)
     expect(body[0].username).toBe('admin')
+  })
+
+  it.each([
+    ['/api/v1/users', (body: unknown) => body],
+    ['/api/v1/users?limit=10', (body: unknown) => (body as { data: unknown }).data],
+  ])('omits stored connection values from %s', async (path, pick) => {
+    const token = await adminToken()
+    const secrets = Object.fromEntries(SENSITIVE_USER_CONNECTIONS.map((f) => [f, `secret-${f}`]))
+    const app = createApp(
+      makeDeps({ listUsers: vi.fn(async () => [{ ...regularUser, ...secrets }, adminUser]) }),
+    )
+
+    const res = await app.request(path, { headers: { Authorization: `Bearer ${token}` } })
+
+    expect(res.status).toBe(200)
+    const rows = pick(await res.json()) as Record<string, unknown>[]
+    expect(rows).toHaveLength(2)
+    expect(JSON.stringify(rows)).not.toContain('secret-')
+    for (const field of SENSITIVE_USER_CONNECTIONS) {
+      for (const row of rows) expect(row).not.toHaveProperty(field)
+    }
+    expect(rows[0]?.hasDiscogsToken).toBe(true)
+    expect(rows[1]?.hasDiscogsToken).toBe(false)
   })
 
   it('returns 403 for non-admin', async () => {
