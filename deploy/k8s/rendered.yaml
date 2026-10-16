@@ -253,7 +253,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: digarr
-          image: "ghcr.io/iuliandita/digarr@sha256:e94b688477e4ab00853a7ea747a4967c52240558575ae0b21c572c82a4526e99"
+          image: "ghcr.io/iuliandita/digarr@sha256:cfcbb1461c6557471b3896ee1493e76abaf0fb053cdf8b76c7ea16979762b14c"
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false

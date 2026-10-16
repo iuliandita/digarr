@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <Container version="2">
   <Name>Digarr</Name>
-  <!-- Digest pin (synced via scripts/sync-deploy-digests.ts): sha256:e94b688477e4ab00853a7ea747a4967c52240558575ae0b21c572c82a4526e99 -->
-  <Repository>docker.io/iuliandita/digarr:2.0.0</Repository>
+  <!-- Digest pin (synced via scripts/sync-deploy-digests.ts): sha256:cfcbb1461c6557471b3896ee1493e76abaf0fb053cdf8b76c7ea16979762b14c -->
+  <Repository>docker.io/iuliandita/digarr:2.0.1</Repository>
   <Registry>https://hub.docker.com/r/iuliandita/digarr</Registry>
   <Branch>
-    <Tag>2.0.0</Tag>
-    <TagDescription>v2.0.0 release</TagDescription>
+    <Tag>2.0.1</Tag>
+    <TagDescription>v2.0.1 release</TagDescription>
   </Branch>
   <Network>bridge</Network>
   <Shell>sh</Shell>
