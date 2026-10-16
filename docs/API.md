@@ -854,7 +854,7 @@ When one enabled source fails, Digarr still returns results from the healthy sou
 | POST | `/api/v1/library/reconcile` | Admin | Trigger a background reconcile pass after override changes |
 
 **Library health** notes:
-- Lidarr reads fail when Lidarr is not configured, so a scan records that error instead of saving empty checks, and `GET /api/v1/library/stats` fails
+- Lidarr reads fail when Lidarr is not configured, so a manual scan records that error instead of saving empty checks, and `GET /api/v1/library/stats` fails; scheduled scans are skipped while Lidarr is not configured
 - When some per-artist album lookups fail, the scan saves its checks with `lastError` noting that missing-album counts are partial; when all fail, the scan fails, keeps the previous checks, and records `lastError`
 - `POST /api/v1/library/health/:checkId/fix` uses the last persisted scan after a restart and returns 400 when no scan results exist for that check
 

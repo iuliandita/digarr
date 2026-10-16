@@ -1216,6 +1216,10 @@ function restartLibraryMaintenanceScheduler(intervalHours: number): void {
   libraryHealthCron = startLibraryHealthScheduler({
     intervalHours,
     libraryHealth,
+    isConfigured: async () => {
+      const s = await getSettings(db)
+      return Boolean(s?.lidarrUrl && s?.lidarrApiKey)
+    },
   })
 }
 

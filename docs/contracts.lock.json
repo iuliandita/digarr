@@ -557,7 +557,7 @@
         "src/core/jobs/types.ts": "1cd1e0124fa698c7f54a5ebc6dea64ef200e850b7cd2da9d7f96b3c251ec02ab",
         "src/core/library/album-coverage.ts": "dfef35e740be4c39428830549b4f6b39950fa549454904a699063d584b0b6c9e",
         "src/core/library/album-reconciler.ts": "2cc0bb7a657185fbc3cb9bf1a26d98c516e852c6e47a3eec9114bf97ec51afb4",
-        "src/core/library/health-scheduler.ts": "f1c3595d984033933731adf26be6aa3d1998d3fa5bb7d6e6ee7b0c56a04b9a58",
+        "src/core/library/health-scheduler.ts": "1bc22e2658aadf5ddc910e2951196e021792bb268f5c4986773b409ae8d28592",
         "src/core/library/health.ts": "ed9120f65aab5f0b3c1d7b79c12dc88ee519409d55c2191e006f9f09b6c1f39d",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
         "src/core/library/reconciler.ts": "c83146b23164c23c47afb44d462d6e39ec4e4c5cd8e372e647ae5f532fa13a7f",
@@ -688,17 +688,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "957622b80cc1c0afabd5742f4f82e0b35d87c1614bcd531b6425f297cd2a681d",
-        "src/index.ts": "49756c07fa6e7e12b3cb84dd6514016c6a80da34265ab6135e7fdb6bf74296b9",
+        "src/index.ts": "5c96508e05c2f8d06675446bdfb036b45506969e2434537aaacc1cbff4a36c50",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "782a689258c71deca833301837a2c03ab61f074caff19e644a3280e87d4ff1bd",
+      "digest": "c0adbf8588f162a804a0769d0fc8e6ee199356a24f1f1fbf99414994767f1902",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
-        "note": "Library sync keeps previous matches on MusicBrainz failure, dedupes cached MBIDs, retries failed syncs, applies album corrections to ownership and preserves the gap-fill cursor; library health reports partial and failed scans, fixes from persisted results, and treats unconfigured Lidarr as an error; Jellyfin/Emby replace adds in chunks before removing; genre playlists filter in SQL; regeneration keeps previous tracks on resolver outages or missing owner. API, architecture, operations and changelog updated.",
+        "docs": ["CHANGELOG.md", "docs/API.md"],
+        "note": "Scheduled library health scans now skip when Lidarr is not configured, so discovery-only installs do not record a failed scan every interval; manual scans still report the missing configuration. Changelog and API reference updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "782a689258c71deca833301837a2c03ab61f074caff19e644a3280e87d4ff1bd"
+        "digest": "c0adbf8588f162a804a0769d0fc8e6ee199356a24f1f1fbf99414994767f1902"
       }
     },
     "deployment": {
