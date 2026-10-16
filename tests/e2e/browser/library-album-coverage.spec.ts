@@ -80,7 +80,7 @@ test.describe('library album coverage', () => {
     await page.goto('/discover')
 
     const recommendationCard = page
-      .locator('[role="button"]')
+      .getByTestId('rec-card-button')
       .filter({ hasText: 'Radiohead' })
       .first()
     await expect(recommendationCard).toBeVisible()
