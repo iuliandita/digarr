@@ -99,15 +99,26 @@ describe('CI workflow reliability policy', () => {
     const workflow = readFileSync('.github/workflows/ci.yml', 'utf8')
     const apiJob = workflow.split('  api-route-test:')[1]?.split('\n  helm-drift:')[0] ?? ''
     const migrationIndex = apiJob.indexOf('run: bun run db:migrate')
-    const sessionTestIndex = apiJob.indexOf(
-      'run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts',
-    )
+    const sessionTestIndex = apiJob.indexOf('bunx vitest run --no-file-parallelism')
     const routeTestIndex = apiJob.indexOf('run: bun run test:api-routes')
+    const integrationStep = apiJob.slice(sessionTestIndex, routeTestIndex)
 
     expect(migrationIndex).toBeGreaterThan(-1)
     expect(sessionTestIndex).toBeGreaterThan(migrationIndex)
     expect(routeTestIndex).toBeGreaterThan(sessionTestIndex)
-    expect(apiJob.match(/Run PostgreSQL concurrency tests/g)).toHaveLength(1)
+    expect(apiJob.match(/Run PostgreSQL integration tests/g)).toHaveLength(1)
+    expect(integrationStep).toContain('DIGARR_REQUIRE_TEST_DB: "1"')
+    for (const file of [
+      'tests/db/require-test-db.test.ts',
+      'tests/db/session-queries.test.ts',
+      'tests/db/oidc-link-postgres.test.ts',
+      'tests/db/migrate-backend-postgres.test.ts',
+      'tests/core/ops/backup-integration.test.ts',
+      'tests/core/library/sync-flow.test.ts',
+      'tests/core/library/reconciler-cache.test.ts',
+    ]) {
+      expect(integrationStep).toContain(file)
+    }
   })
 
   it('runs cookie-auth browser coverage in CI', () => {
