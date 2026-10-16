@@ -100,6 +100,10 @@ export const ko = {
   'discover.decadesLabel': '연대',
   'discover.runScan': '검사 실행',
   'discover.importArtists': '아티스트 가져오기',
+  'discover.loadFailed': '추천을 불러오지 못했습니다.',
+  'discover.emptyFiltered': '선택한 연대와 일치하는 추천이 없습니다.',
+  'discover.clearFilters': '필터 지우기',
+  'discover.pageRange': '{2}개 중 {0}--{1}',
   'discover.emptyAll':
     '아직 추천사항이 없습니다. 좋아하는 아티스트를 가져오거나 첫 번째 스캔을 실행하여 시작하세요.',
   'discover.emptyApproved':

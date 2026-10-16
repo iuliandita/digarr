@@ -96,6 +96,10 @@ export const zhCN = {
   'discover.decadesLabel': '年代',
   'discover.runScan': '运行扫描',
   'discover.importArtists': '进口艺术家',
+  'discover.loadFailed': '无法加载推荐。',
+  'discover.emptyFiltered': '没有符合所选年代的推荐。',
+  'discover.clearFilters': '清除筛选',
+  'discover.pageRange': '共 {2} 条，第 {0}--{1} 条',
   'discover.emptyAll': '还没有建议。导入一些最喜欢的艺术家或运行第一次扫描即可开始。',
   'discover.emptyApproved':
     '您尚未批准任何艺术家。检查“待处理”选项卡，查看 Digarr 为您找到的内容。',

@@ -101,6 +101,10 @@ export const es = {
   'discover.decadesLabel': 'Décadas',
   'discover.runScan': 'Ejecutar un escaneo',
   'discover.importArtists': 'importar artistas',
+  'discover.loadFailed': 'No se pudieron cargar las recomendaciones.',
+  'discover.emptyFiltered': 'Ninguna recomendación coincide con las décadas seleccionadas.',
+  'discover.clearFilters': 'Quitar filtros',
+  'discover.pageRange': '{0}--{1} de {2}',
   'discover.emptyAll':
     'Aún no hay recomendaciones. Importa algunos de tus artistas favoritos o ejecuta tu primer escaneo para comenzar.',
   'discover.emptyApproved':

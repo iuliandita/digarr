@@ -101,6 +101,10 @@ export const fr = {
   'discover.decadesLabel': 'Décennies',
   'discover.runScan': 'Exécuter une analyse',
   'discover.importArtists': 'Importer des artistes',
+  'discover.loadFailed': 'Impossible de charger les recommandations.',
+  'discover.emptyFiltered': 'Aucune recommandation ne correspond aux décennies choisies.',
+  'discover.clearFilters': 'Effacer les filtres',
+  'discover.pageRange': '{0}--{1} sur {2}',
   'discover.emptyAll':
     "Aucune recommandation pour l'instant. Importez quelques artistes préférés ou lancez votre première analyse pour commencer.",
   'discover.emptyApproved':

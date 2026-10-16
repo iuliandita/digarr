@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react'
 import { REJECTION_REASONS, type RejectionReason } from '@/core/recommendations/rejection-reasons'
+import { useDialogFocus } from '@/web/hooks/use-dialog-focus'
 import { useI18n } from '@/web/lib/i18n'
 import { Button } from './ui/button'
 
@@ -30,8 +31,6 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
       setReasonText('')
       setPermanent(false)
       setSubmitting(false)
-    } else {
-      requestAnimationFrame(() => firstRadioRef.current?.focus())
     }
   }, [open])
 
@@ -41,14 +40,7 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
     if (reason === 'not_right_now' && permanent) setPermanent(false)
   }, [reason, permanent])
 
-  useEffect(() => {
-    if (!open) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-    }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [open, onClose])
+  const dialogRef = useDialogFocus(open, onClose, firstRadioRef)
 
   if (!open) return null
 
@@ -82,13 +74,9 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
         aria-modal="true"
         aria-labelledby={titleId}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: dialog content wrapper prevents click-through */}
         <div
           className="bg-surface text-text border border-border w-full md:max-w-md md:rounded-xl rounded-t-xl p-4 max-h-[85vh] overflow-y-auto shadow-2xl"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') onClose()
-          }}
+          ref={dialogRef}
         >
           <div className="md:hidden mx-auto mb-3 h-1 w-9 rounded-full bg-border" />
           <h2 id={titleId} className="text-base font-semibold mb-3">

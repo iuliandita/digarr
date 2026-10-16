@@ -101,6 +101,10 @@ export const ro = {
   'discover.decadesLabel': 'Decenii',
   'discover.runScan': 'Rulați o scanare',
   'discover.importArtists': 'Importați artiști',
+  'discover.loadFailed': 'Recomandările nu au putut fi încărcate.',
+  'discover.emptyFiltered': 'Nicio recomandare nu corespunde deceniilor alese.',
+  'discover.clearFilters': 'Șterge filtrele',
+  'discover.pageRange': '{0}--{1} din {2}',
   'discover.emptyAll':
     'Încă nu există recomandări. Importați câțiva artiști preferați sau rulați prima scanare pentru a începe.',
   'discover.emptyApproved':

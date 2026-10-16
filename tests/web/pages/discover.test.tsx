@@ -305,6 +305,30 @@ describe('DiscoverPage', () => {
     expect(screen.queryByRole('link', { name: 'Library Gap-Fill' })).not.toBeInTheDocument()
   })
 
+  it('shows a load error with retry instead of an empty queue', async () => {
+    mockGetRecommendations.mockRejectedValue(new Error('boom'))
+    renderWithQuery(<DiscoverPage />)
+
+    expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load recommendations.")
+    expect(screen.queryByText(/No pending recommendations/i)).toBeNull()
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    expect(await screen.findByText(/No pending recommendations/i)).toBeInTheDocument()
+  })
+
+  it('tells a decade-filtered empty result apart and clears the filter', async () => {
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    renderWithQuery(<DiscoverPage />)
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Filters' }))
+    fireEvent.click(screen.getByRole('button', { name: '70s' }))
+    expect(
+      await screen.findByText('No recommendations match the selected decades.'),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Clear filters' }))
+    expect(await screen.findByText(/No pending recommendations/i)).toBeInTheDocument()
+  })
+
   it('explains album producers and links to each action when the Albums view is empty', async () => {
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
     renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])

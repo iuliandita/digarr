@@ -101,6 +101,10 @@ export const ptBR = {
   'discover.decadesLabel': 'Décadas',
   'discover.runScan': 'Execute uma verificação',
   'discover.importArtists': 'Importar artistas',
+  'discover.loadFailed': 'Não foi possível carregar as recomendações.',
+  'discover.emptyFiltered': 'Nenhuma recomendação corresponde às décadas selecionadas.',
+  'discover.clearFilters': 'Limpar filtros',
+  'discover.pageRange': '{0}--{1} de {2}',
   'discover.emptyAll':
     'Nenhuma recomendação ainda. Importe alguns artistas favoritos ou execute sua primeira digitalização para começar.',
   'discover.emptyApproved':

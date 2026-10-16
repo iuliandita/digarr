@@ -18,6 +18,9 @@ import { type Recommendation, RecommendationCard } from '../components/recommend
 import { RejectionPicker } from '../components/rejection-picker'
 import { SwipeCard } from '../components/swipe-card'
 import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
+import { Button } from '../components/ui/button'
+import { EmptyState as UiEmptyState } from '../components/ui/empty-state'
+import { Notice } from '../components/ui/notice'
 import { Skeleton } from '../components/ui/skeleton'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
@@ -623,7 +626,11 @@ export function DiscoverPage() {
     queryParams.tasteTier = tasteOrdering
   }
 
-  const { data, isLoading: loading } = useQuery({
+  const {
+    data,
+    isLoading: loading,
+    error: loadError,
+  } = useQuery({
     queryKey: [
       'recommendations',
       {
@@ -650,6 +657,40 @@ export function DiscoverPage() {
     artist: t('discover.kind.artists'),
     album: t('discover.kind.albums'),
   }
+
+  // Errors and filter-caused emptiness must not read as an exhausted queue.
+  const emptyContent = loadError ? (
+    <Notice
+      tone="error"
+      className="my-8"
+      action={
+        <Button size="sm" variant="outline" onClick={refetch}>
+          {t('errorBoundary.retry')}
+        </Button>
+      }
+    >
+      {t('discover.loadFailed')}
+    </Notice>
+  ) : activeDecades.size > 0 ? (
+    <UiEmptyState
+      className="py-16"
+      message={t('discover.emptyFiltered')}
+      action={
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setActiveDecades(new Set())
+            setPage(0)
+          }}
+        >
+          {t('discover.clearFilters')}
+        </Button>
+      }
+    />
+  ) : (
+    <EmptyState filter={filter} kind={kindFilter} />
+  )
 
   // Warm status
 
@@ -1448,7 +1489,7 @@ export function DiscoverPage() {
               <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
             </div>
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} kind={kindFilter} />
+            emptyContent
           ) : (
             <CardStack
               recommendations={items}
@@ -1467,7 +1508,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} kind={kindFilter} />
+            emptyContent
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {items.map((rec) => {
@@ -1540,7 +1581,7 @@ export function DiscoverPage() {
           (loading ? (
             <SkeletonGrid />
           ) : items.length === 0 ? (
-            <EmptyState filter={filter} kind={kindFilter} />
+            emptyContent
           ) : (
             <div className="flex flex-col gap-3">
               {items.map((rec) => {
@@ -1621,7 +1662,8 @@ export function DiscoverPage() {
             disabled={checkedIds.size === 0 || bulkActing}
             className="px-3 py-1 bg-approve/20 text-approve border border-approve/40 rounded text-sm font-medium hover:bg-approve/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Approve{checkedIds.size > 0 ? ` (${checkedIds.size})` : ''}
+            {t('recommendation.approve')}
+            {checkedIds.size > 0 ? ` (${checkedIds.size})` : ''}
           </button>
           <button
             type="button"
@@ -1629,7 +1671,8 @@ export function DiscoverPage() {
             disabled={checkedIds.size === 0 || bulkActing}
             className="px-3 py-1 bg-reject/20 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Reject{checkedIds.size > 0 ? ` (${checkedIds.size})` : ''}
+            {t('recommendation.reject')}
+            {checkedIds.size > 0 ? ` (${checkedIds.size})` : ''}
           </button>
         </div>
       )}
@@ -1684,7 +1727,10 @@ export function DiscoverPage() {
             {t('common.previous')}
           </button>
           <span className="text-sm text-muted tabular-nums">
-            {page * PAGE_SIZE + 1}--{Math.min((page + 1) * PAGE_SIZE, total)} of {total}
+            {t('discover.pageRange')
+              .replace('{0}', String(page * PAGE_SIZE + 1))
+              .replace('{1}', String(Math.min((page + 1) * PAGE_SIZE, total)))
+              .replace('{2}', String(total))}
           </span>
           <button
             type="button"

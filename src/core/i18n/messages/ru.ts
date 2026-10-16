@@ -100,6 +100,10 @@ export const ru = {
   'discover.decadesLabel': 'Десятилетия',
   'discover.runScan': 'Запустите сканирование',
   'discover.importArtists': 'Импортировать исполнителей',
+  'discover.loadFailed': 'Не удалось загрузить рекомендации.',
+  'discover.emptyFiltered': 'Нет рекомендаций для выбранных десятилетий.',
+  'discover.clearFilters': 'Сбросить фильтры',
+  'discover.pageRange': '{0}--{1} из {2}',
   'discover.emptyAll':
     'Пока нет рекомендаций. Импортируйте любимых исполнителей или запустите первое сканирование, чтобы начать.',
   'discover.emptyApproved':

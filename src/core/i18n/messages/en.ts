@@ -100,6 +100,10 @@ export const en = {
   'discover.decadesLabel': 'Decades',
   'discover.runScan': 'Run a scan',
   'discover.importArtists': 'Import artists',
+  'discover.loadFailed': "Couldn't load recommendations.",
+  'discover.emptyFiltered': 'No recommendations match the selected decades.',
+  'discover.clearFilters': 'Clear filters',
+  'discover.pageRange': '{0}--{1} of {2}',
   'discover.emptyAll':
     'No recommendations yet. Import some favorite artists or run your first scan to get started.',
   'discover.emptyApproved':

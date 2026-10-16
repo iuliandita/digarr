@@ -100,6 +100,10 @@ export const uk = {
   'discover.decadesLabel': 'Десятиліття',
   'discover.runScan': 'Запустіть сканування',
   'discover.importArtists': 'Імпорт художників',
+  'discover.loadFailed': 'Не вдалося завантажити рекомендації.',
+  'discover.emptyFiltered': 'Немає рекомендацій для вибраних десятиліть.',
+  'discover.clearFilters': 'Скинути фільтри',
+  'discover.pageRange': '{0}--{1} з {2}',
   'discover.emptyAll':
     'Рекомендацій ще немає. Щоб почати, імпортуйте улюблених виконавців або запустіть перше сканування.',
   'discover.emptyApproved':

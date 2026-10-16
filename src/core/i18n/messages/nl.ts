@@ -101,6 +101,10 @@ export const nl = {
   'discover.decadesLabel': 'Decennia',
   'discover.runScan': 'Voer een scan uit',
   'discover.importArtists': 'Importeer artiesten',
+  'discover.loadFailed': 'Aanbevelingen konden niet worden geladen.',
+  'discover.emptyFiltered': 'Geen aanbevelingen passen bij de gekozen decennia.',
+  'discover.clearFilters': 'Filters wissen',
+  'discover.pageRange': '{0}--{1} van {2}',
   'discover.emptyAll':
     'Nog geen aanbevelingen. Importeer enkele favoriete artiesten of voer uw eerste scan uit om aan de slag te gaan.',
   'discover.emptyApproved':

@@ -101,6 +101,10 @@ export const ja = {
   'discover.decadesLabel': '年代',
   'discover.runScan': 'スキャンを実行する',
   'discover.importArtists': 'アーティストをインポートする',
+  'discover.loadFailed': 'おすすめを読み込めませんでした。',
+  'discover.emptyFiltered': '選択した年代に一致するおすすめはありません。',
+  'discover.clearFilters': 'フィルターをクリア',
+  'discover.pageRange': '{2} 件中 {0}--{1}',
   'discover.emptyAll':
     'まだ推奨事項はありません。お気に入りのアーティストをインポートするか、最初のスキャンを実行して始めてください。',
   'discover.emptyApproved':

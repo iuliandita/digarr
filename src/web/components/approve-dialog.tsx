@@ -1,4 +1,5 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
+import { useDialogFocus } from '../hooks/use-dialog-focus'
 import { getLidarrApproveOptions } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import type { MonitorOption } from './monitoring-options'
@@ -30,6 +31,8 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
   const [rf, setRf] = useState(String(defaults.rootFolderId))
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const titleId = useId()
+  const dialogRef = useDialogFocus(true, onCancel)
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: snap runs once against the initial default
   useEffect(() => {
@@ -71,16 +74,15 @@ export function ApproveDialog({ defaults, monitorOption, onConfirm, onCancel }: 
         className="fixed inset-0 z-50 flex items-center justify-center p-4"
         role="dialog"
         aria-modal="true"
+        aria-labelledby={titleId}
       >
-        {/* biome-ignore lint/a11y/noStaticElementInteractions: dialog content wrapper prevents click-through */}
         <div
           className="bg-surface border border-border rounded-lg shadow-lg w-full max-w-sm p-4"
-          onClick={(e) => e.stopPropagation()}
-          onKeyDown={(e) => {
-            if (e.key === 'Escape') onCancel()
-          }}
+          ref={dialogRef}
         >
-          <h3 className="text-sm font-medium text-text mb-3">{t('approveDialog.title')}</h3>
+          <h3 id={titleId} className="text-sm font-medium text-text mb-3">
+            {t('approveDialog.title')}
+          </h3>
 
           {loading ? (
             <p className="text-sm text-muted">{t('approveDialog.loadingProfiles')}</p>

@@ -100,6 +100,10 @@ export const tr = {
   'discover.decadesLabel': 'On yıllar',
   'discover.runScan': 'Bir tarama çalıştırın',
   'discover.importArtists': 'Sanatçıları içe aktar',
+  'discover.loadFailed': 'Öneriler yüklenemedi.',
+  'discover.emptyFiltered': 'Seçilen on yıllarla eşleşen öneri yok.',
+  'discover.clearFilters': 'Filtreleri temizle',
+  'discover.pageRange': '{2} içinden {0}--{1}',
   'discover.emptyAll':
     'Henüz öneri yok. Başlamak için favori sanatçılardan bazılarını içe aktarın veya ilk taramanızı çalıştırın.',
   'discover.emptyApproved':

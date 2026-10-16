@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
+import { shouldIgnoreShortcut } from '../hooks/use-keyboard-shortcuts'
 import { useI18n } from '../lib/i18n'
-import { cn } from '../lib/utils'
+import { cn, prefersReducedMotion } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import type { Recommendation } from './recommendation-card'
 import { RejectionPicker } from './rejection-picker'
@@ -223,6 +224,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
 
   const total = recommendations.length
   const rec = recommendations[index]
+  const reducedMotion = prefersReducedMotion()
 
   // Keep stable refs for keyboard handler to avoid stale closures
   const approveRef = useRef<() => void>(() => {})
@@ -243,9 +245,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
   // Keyboard: left arrow = reject, right arrow = approve, up/down = navigate
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
-      const tag = (e.target as HTMLElement).tagName
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return
-      if (exitingRef.current) return
+      if (shouldIgnoreShortcut(e) || exitingRef.current) return
 
       if (e.key === 'ArrowRight') {
         e.preventDefault()
@@ -376,11 +376,14 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
       <div
         className="w-full transition-all duration-250"
         style={{
-          transform: exiting
-            ? `translateX(${exiting === 'right' ? '110%' : '-110%'}) rotate(${exiting === 'right' ? '8deg' : '-8deg'})`
-            : 'translateX(0) rotate(0deg)',
+          // Reduced motion hides the card at once; the 250ms commit delay stays the same.
+          transform:
+            exiting && !reducedMotion
+              ? `translateX(${exiting === 'right' ? '110%' : '-110%'}) rotate(${exiting === 'right' ? '8deg' : '-8deg'})`
+              : 'translateX(0) rotate(0deg)',
           opacity: exiting ? 0 : 1,
-          transition: exiting ? 'transform 0.25s ease-out, opacity 0.2s ease-out' : 'none',
+          transition:
+            exiting && !reducedMotion ? 'transform 0.25s ease-out, opacity 0.2s ease-out' : 'none',
         }}
       >
         {rec && (
