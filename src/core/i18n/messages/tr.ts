@@ -26,6 +26,9 @@ export const tr = {
     'Tarayıcıda erişim jetonuyla oturum açma özelliği kullanımdan kaldırıldı. Hesabınla veya SSO ile oturum aç.',
   'auth.loginDescription': 'Hesabınla oturum aç.',
   'auth.loginFailed': 'Giriş başarısız oldu',
+  'auth.serverUnavailableTitle': "Digarr'a ulaşılamıyor",
+  'auth.serverUnavailableBody':
+    'Sunucuya ulaşılamıyor ya da bir hata döndürdü, bu yüzden oturumun doğrulanamadı. Birazdan tekrar dene.',
   'auth.or': 'veya',
   'auth.passwordMin': 'Şifre (en az 12 karakter)',
   'auth.passwordMinError': 'Şifre en az 12 karakter olmalıdır',

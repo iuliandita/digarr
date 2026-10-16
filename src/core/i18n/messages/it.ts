@@ -26,6 +26,9 @@ export const it = {
     "L'accesso dal browser con token di accesso non è più disponibile. Accedi con il tuo account o tramite SSO.",
   'auth.loginDescription': 'Accedi con il tuo account.',
   'auth.loginFailed': 'Accesso non riuscito',
+  'auth.serverUnavailableTitle': 'Impossibile raggiungere Digarr',
+  'auth.serverUnavailableBody':
+    'Il server non è raggiungibile o ha restituito un errore, quindi non è stato possibile verificare la tua sessione. Riprova tra un momento.',
   'auth.or': 'o',
   'auth.passwordMin': 'Password (minimo 12 caratteri)',
   'auth.passwordMinError': 'La password deve contenere almeno 12 caratteri',

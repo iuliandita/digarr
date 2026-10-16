@@ -155,6 +155,8 @@
   "auth.passwordMin": "5b8a96427c63",
   "auth.passwordMinError": "c7ccea5f3aa6",
   "auth.registerDescription": "a28d90d66055",
+  "auth.serverUnavailableBody": "c5063aee94e2",
+  "auth.serverUnavailableTitle": "b6c80117a34f",
   "auth.sessionCookieInsecureOrigin": "d6f2f31279ea",
   "auth.sessionCookieRejected": "10c88fcdd123",
   "auth.sessionMigrationFailed": "b2e3d59c7cb9",

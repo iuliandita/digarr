@@ -26,6 +26,9 @@ export const ja = {
     'ブラウザーでのアクセストークンによるサインインは廃止されました。アカウントまたは SSO でサインインしてください。',
   'auth.loginDescription': 'アカウントでサインインします。',
   'auth.loginFailed': 'ログインに失敗しました',
+  'auth.serverUnavailableTitle': 'Digarr に接続できません',
+  'auth.serverUnavailableBody':
+    'サーバーに接続できないか、エラーが返されたため、セッションを確認できませんでした。しばらくしてからもう一度お試しください。',
   'auth.or': 'または',
   'auth.passwordMin': 'パスワード (12文字以上)',
   'auth.passwordMinError': 'パスワードは12文字以上である必要があります',

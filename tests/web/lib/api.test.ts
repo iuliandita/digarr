@@ -331,6 +331,16 @@ describe('authenticated downloads', () => {
     expect(clickedAnchor?.download).toBe('server-backup.json')
   })
 
+  it('treats a 401 on a raw download as an expired session', async () => {
+    const onExpired = vi.fn()
+    window.addEventListener(AUTH_EXPIRED_EVENT, onExpired, { once: true })
+    fetchMock.mockResolvedValueOnce({ ok: false, status: 401 })
+
+    await expect(exportPlaylistApi(7, 'm3u')).rejects.toMatchObject({ status: 401 })
+
+    expect(onExpired).toHaveBeenCalledTimes(1)
+  })
+
   it('preserves each download function error shape', async () => {
     fetchMock
       .mockResolvedValueOnce({ ok: false, status: 500 })

@@ -116,6 +116,12 @@ function getBrowserHeaders(options?: RequestInit): Headers {
   return headers
 }
 
+function handleSessionExpired(): never {
+  clearStoredToken()
+  window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
+  throw new ApiError(401, { error: 'Session expired' })
+}
+
 async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   const { headers: _extraHeaders, ...restOptions } = options ?? {}
   const res = await fetch(`${BASE}${path}`, {
@@ -124,11 +130,7 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
     headers: getBrowserHeaders(options),
   })
   if (!res.ok) {
-    if (res.status === 401) {
-      clearStoredToken()
-      window.dispatchEvent(new Event(AUTH_EXPIRED_EVENT))
-      throw new ApiError(res.status, { error: 'Session expired' })
-    }
+    if (res.status === 401) handleSessionExpired()
     const error = await res.json().catch(() => ({ error: res.statusText }))
     throw new ApiError(res.status, error)
   }
@@ -138,13 +140,15 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   return res.json() as Promise<T>
 }
 
-function authedRawFetch(path: string, options?: RequestInit): Promise<Response> {
+async function authedRawFetch(path: string, options?: RequestInit): Promise<Response> {
   const { headers: _extraHeaders, ...restOptions } = options ?? {}
-  return fetch(`${BASE}${path}`, {
+  const res = await fetch(`${BASE}${path}`, {
     ...restOptions,
     credentials: 'same-origin',
     headers: getBrowserHeaders(options),
   })
+  if (res.status === 401) handleSessionExpired()
+  return res
 }
 
 // Auth

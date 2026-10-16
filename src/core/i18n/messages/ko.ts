@@ -26,6 +26,9 @@ export const ko = {
     '브라우저 액세스 토큰 로그인이 더 이상 지원되지 않습니다. 계정 또는 SSO로 로그인하세요.',
   'auth.loginDescription': '귀하의 계정으로 로그인하십시오.',
   'auth.loginFailed': '로그인 실패',
+  'auth.serverUnavailableTitle': 'Digarr에 연결할 수 없습니다',
+  'auth.serverUnavailableBody':
+    '서버에 연결할 수 없거나 오류가 반환되어 세션을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.',
   'auth.or': '또는',
   'auth.passwordMin': '비밀번호(최소 12자)',
   'auth.passwordMinError': '비밀번호는 12자 이상이어야 합니다.',

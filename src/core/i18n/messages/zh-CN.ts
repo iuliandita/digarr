@@ -25,6 +25,8 @@ export const zhCN = {
   'auth.legacyTokenMigrationRequired': '浏览器访问令牌登录功能已停用。请使用帐户或 SSO 登录。',
   'auth.loginDescription': '使用您的帐户登录。',
   'auth.loginFailed': '登录失败',
+  'auth.serverUnavailableTitle': '无法连接到 Digarr',
+  'auth.serverUnavailableBody': '服务器无法访问或返回了错误，因此无法验证你的会话。请稍后重试。',
   'auth.or': '或',
   'auth.passwordMin': '密码（最少 12 个字符）',
   'auth.passwordMinError': '密码必须至少为 12 个字符',

@@ -26,6 +26,9 @@ export const fr = {
     "La connexion dans le navigateur par jeton d'accès n'est plus disponible. Connecte-toi avec ton compte ou via SSO.",
   'auth.loginDescription': 'Connecte-toi avec ton compte.',
   'auth.loginFailed': 'La connexion a échoué',
+  'auth.serverUnavailableTitle': 'Impossible de joindre Digarr',
+  'auth.serverUnavailableBody':
+    "Le serveur est injoignable ou a renvoyé une erreur, ta session n'a donc pas pu être vérifiée. Réessaie dans un instant.",
   'auth.or': 'ou',
   'auth.passwordMin': 'Mot de passe (min 12 caractères)',
   'auth.passwordMinError': 'Le mot de passe doit contenir au moins 12 caractères',

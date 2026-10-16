@@ -26,6 +26,9 @@ export const ro = {
     'Autentificarea în browser cu jeton de acces nu mai este disponibilă. Conectează-te cu contul tău sau prin SSO.',
   'auth.loginDescription': 'Conectează-te cu contul tău.',
   'auth.loginFailed': 'Conectarea a eșuat',
+  'auth.serverUnavailableTitle': 'Digarr nu poate fi accesat',
+  'auth.serverUnavailableBody':
+    'Serverul nu poate fi accesat sau a returnat o eroare, așa că sesiunea ta nu a putut fi verificată. Încearcă din nou peste câteva momente.',
   'auth.or': 'sau',
   'auth.passwordMin': 'Parola (min 12 caractere)',
   'auth.passwordMinError': 'Parola trebuie să aibă cel puțin 12 caractere',

@@ -26,6 +26,9 @@ export const es = {
     'El inicio de sesión en el navegador con token de acceso ya no está disponible. Inicia sesión con tu cuenta o mediante SSO.',
   'auth.loginDescription': 'Inicia sesión con tu cuenta.',
   'auth.loginFailed': 'Error al iniciar sesión',
+  'auth.serverUnavailableTitle': 'No se puede conectar con Digarr',
+  'auth.serverUnavailableBody':
+    'El servidor no responde o devolvió un error, así que no se pudo comprobar tu sesión. Inténtalo de nuevo en un momento.',
   'auth.or': 'o',
   'auth.passwordMin': 'Contraseña (mínimo 12 caracteres)',
   'auth.passwordMinError': 'La contraseña debe tener al menos 12 caracteres.',

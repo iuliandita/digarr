@@ -26,6 +26,9 @@ export const en = {
     'Browser access-token sign-in has been retired. Sign in with your account or SSO.',
   'auth.loginDescription': 'Sign in with your account.',
   'auth.loginFailed': 'Login failed',
+  'auth.serverUnavailableTitle': "Can't reach Digarr",
+  'auth.serverUnavailableBody':
+    'The server is unreachable or returned an error, so your session could not be checked. Try again in a moment.',
   'auth.or': 'or',
   'auth.passwordMin': 'Password (min 12 characters)',
   'auth.passwordMinError': 'Password must be at least 12 characters',

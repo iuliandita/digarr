@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
 import {
+  ApiError,
   AUTH_EXPIRED_EVENT,
   clearStoredToken,
   getAuthStatus,
@@ -18,7 +19,7 @@ import { Button } from './ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card'
 import { Input } from './ui/input'
 
-type AuthState = 'loading' | 'not-required' | 'register' | 'login' | 'authenticated'
+type AuthState = 'loading' | 'not-required' | 'register' | 'login' | 'authenticated' | 'unavailable'
 type AuthFragment = { retiredToken: boolean; oidcError: boolean }
 type MigrationRetryState = 'fresh' | 'retry' | 'unavailable'
 
@@ -44,6 +45,12 @@ function sessionCookieRejectedKey(): MessageKey {
   return isInsecureRemoteOrigin(window.location)
     ? 'auth.sessionCookieInsecureOrigin'
     : 'auth.sessionCookieRejected'
+}
+
+// A network failure or 5xx says nothing about the session; only a 401 means signed out.
+function isServerUnavailable(err: unknown): boolean {
+  if (err instanceof ApiError) return err.status >= 500
+  return true
 }
 
 function getMigrationRetryState(): MigrationRetryState {
@@ -108,30 +115,62 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         : null,
   )
   const authCheckStarted = useRef(false)
+  const statusAllowsAuthRef = useRef(true)
+  const [retrying, setRetrying] = useState(false)
+
+  function applyStatus(
+    status: Awaited<ReturnType<typeof getAuthStatus>>,
+    allowAuthenticated: boolean,
+  ) {
+    hasUsersRef.current = status.hasUsers
+    setOidcEnabled(status.oidcEnabled ?? false)
+
+    if (!status.required && status.hasUsers && allowAuthenticated) {
+      setState('not-required')
+    } else if (status.authenticated && allowAuthenticated) {
+      setState('authenticated')
+    } else {
+      setState(status.hasUsers ? 'login' : 'register')
+    }
+  }
+
+  async function loadStatus(allowAuthenticated: boolean) {
+    statusAllowsAuthRef.current = allowAuthenticated
+    try {
+      const status = await getAuthStatus()
+      applyStatus(status, allowAuthenticated)
+    } catch (err) {
+      if (isServerUnavailable(err)) {
+        setState('unavailable')
+        return
+      }
+      setNotice((current) => current ?? 'auth.loginFailed')
+      hasUsersRef.current = true
+      setState('login')
+    }
+  }
+
+  const loadStatusRef = useRef(loadStatus)
+  loadStatusRef.current = loadStatus
+  const applyStatusRef = useRef(applyStatus)
+  applyStatusRef.current = applyStatus
+
+  async function retryStatus() {
+    setRetrying(true)
+    try {
+      await loadStatus(statusAllowsAuthRef.current)
+    } finally {
+      setRetrying(false)
+    }
+  }
 
   useEffect(() => {
     if (authCheckStarted.current) return
     authCheckStarted.current = true
 
-    function applyStatus(
-      status: Awaited<ReturnType<typeof getAuthStatus>>,
-      allowAuthenticated: boolean,
-    ) {
-      hasUsersRef.current = status.hasUsers
-      setOidcEnabled(status.oidcEnabled ?? false)
-
-      if (!status.required && status.hasUsers && allowAuthenticated) {
-        setState('not-required')
-      } else if (status.authenticated && allowAuthenticated) {
-        setState('authenticated')
-      } else {
-        setState(status.hasUsers ? 'login' : 'register')
-      }
-    }
-
     async function requireLoginAfterMigrationFailure() {
       try {
-        applyStatus(await getAuthStatus(), false)
+        applyStatusRef.current(await getAuthStatus(), false)
       } catch {
         hasUsersRef.current = true
         setState('login')
@@ -166,14 +205,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
         clearMigrationRetryMarker()
       }
 
-      try {
-        const status = await getAuthStatus()
-        applyStatus(status, allowAuthenticated)
-      } catch {
-        setNotice((current) => current ?? 'auth.loginFailed')
-        hasUsersRef.current = true
-        setState('login')
-      }
+      await loadStatusRef.current(allowAuthenticated)
     }
     void checkAuth()
   }, [])
@@ -226,6 +258,9 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
   }
 
   if (state === 'loading') return null
+  if (state === 'unavailable') {
+    return <ServerUnavailable retrying={retrying} onRetry={() => void retryStatus()} />
+  }
   if (state === 'not-required' || state === 'authenticated') return <>{children}</>
   if (state === 'register') {
     return (
@@ -249,6 +284,25 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       }}
       oidcEnabled={oidcEnabled}
     />
+  )
+}
+
+function ServerUnavailable({ retrying, onRetry }: { retrying: boolean; onRetry: () => void }) {
+  const { t } = useI18n()
+  return (
+    <div className="min-h-screen bg-bg flex flex-col items-center justify-center p-4">
+      <Card className="w-full max-w-sm" role="alert">
+        <CardHeader>
+          <CardTitle>{t('auth.serverUnavailableTitle')}</CardTitle>
+          <CardDescription>{t('auth.serverUnavailableBody')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button className="w-full" onClick={onRetry} disabled={retrying}>
+            {retrying ? t('common.loading') : t('errorBoundary.retry')}
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
   )
 }
 

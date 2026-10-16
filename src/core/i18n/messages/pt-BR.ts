@@ -26,6 +26,9 @@ export const ptBR = {
     'O login no navegador com token de acesso foi desativado. Entre com sua conta ou via SSO.',
   'auth.loginDescription': 'Faça login com sua conta.',
   'auth.loginFailed': 'Falha no login',
+  'auth.serverUnavailableTitle': 'Não foi possível acessar o Digarr',
+  'auth.serverUnavailableBody':
+    'O servidor está inacessível ou retornou um erro, então não foi possível verificar sua sessão. Tente novamente em instantes.',
   'auth.or': 'ou',
   'auth.passwordMin': 'Senha (mín. 12 caracteres)',
   'auth.passwordMinError': 'A senha deve ter pelo menos 12 caracteres',

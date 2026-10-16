@@ -26,6 +26,9 @@ export const nl = {
     'Aanmelden in de browser met een toegangstoken wordt niet meer ondersteund. Meld je aan met je account of via SSO.',
   'auth.loginDescription': 'Meld je aan met je account.',
   'auth.loginFailed': 'Inloggen mislukt',
+  'auth.serverUnavailableTitle': 'Digarr is niet bereikbaar',
+  'auth.serverUnavailableBody':
+    'De server is niet bereikbaar of gaf een fout, dus je sessie kon niet worden gecontroleerd. Probeer het zo opnieuw.',
   'auth.or': 'of',
   'auth.passwordMin': 'Wachtwoord (min. 12 tekens)',
   'auth.passwordMinError': 'Wachtwoord moet minimaal 12 tekens lang zijn',

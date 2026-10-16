@@ -26,6 +26,9 @@ export const pl = {
     'Logowanie w przeglądarce za pomocą tokena dostępu zostało wycofane. Zaloguj się na konto lub przez SSO.',
   'auth.loginDescription': 'Zaloguj się na swoje konto.',
   'auth.loginFailed': 'Logowanie nie powiodło się',
+  'auth.serverUnavailableTitle': 'Nie można połączyć się z Digarr',
+  'auth.serverUnavailableBody':
+    'Serwer jest niedostępny lub zwrócił błąd, więc nie udało się sprawdzić twojej sesji. Spróbuj ponownie za chwilę.',
   'auth.or': 'lub',
   'auth.passwordMin': 'Hasło (min. 12 znaków)',
   'auth.passwordMinError': 'Hasło musi mieć co najmniej 12 znaków',

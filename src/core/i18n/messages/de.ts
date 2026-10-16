@@ -26,6 +26,9 @@ export const de = {
     'Die Anmeldung im Browser mit einem Zugriffstoken wird nicht mehr unterstützt. Melde dich mit deinem Konto oder per SSO an.',
   'auth.loginDescription': 'Melde dich mit deinem Konto an.',
   'auth.loginFailed': 'Die Anmeldung ist fehlgeschlagen',
+  'auth.serverUnavailableTitle': 'Digarr ist nicht erreichbar',
+  'auth.serverUnavailableBody':
+    'Der Server ist nicht erreichbar oder hat einen Fehler gemeldet, deshalb konnte deine Sitzung nicht geprüft werden. Versuch es gleich noch einmal.',
   'auth.or': 'oder',
   'auth.passwordMin': 'Passwort (mindestens 12 Zeichen)',
   'auth.passwordMinError': 'Das Passwort muss mindestens 12 Zeichen lang sein',
