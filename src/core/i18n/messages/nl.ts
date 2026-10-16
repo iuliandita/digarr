@@ -782,6 +782,7 @@ export const nl = {
     'Automatisch opnieuw scannen gepland om de oplossingsresultaten te verifiëren...',
   'libraryHealth.noChecks':
     'Er zijn geen gezondheidscontroles beschikbaar. Voer een scan uit om je bibliotheek te inspecteren.',
+  'libraryHealth.loadFailed': 'De bibliotheekcontroles konden niet worden geladen.',
   'libraryHealth.syncNow': 'Nu synchroniseren',
   'libraryHealth.snapshotTitle': 'Laatste momentopname',
   'libraryHealth.lastSynced': 'Laatst gesynchroniseerd',

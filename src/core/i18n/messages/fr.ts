@@ -781,6 +781,7 @@ export const fr = {
   'libraryHealth.pendingRescan': 'Un nouveau scan est programme pour vérifier les corrections...',
   'libraryHealth.noChecks':
     'Aucun contrôle disponible. Lance un scan pour inspecter ta bibliothèque.',
+  'libraryHealth.loadFailed': 'Impossible de charger les vérifications de la bibliothèque.',
   'libraryHealth.syncNow': 'Synchroniser maintenant',
   'libraryHealth.snapshotTitle': 'Dernier instantané',
   'libraryHealth.lastSynced': 'Dernière synchronisation',

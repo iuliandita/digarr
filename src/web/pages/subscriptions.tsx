@@ -153,6 +153,16 @@ function RunHistoryPanel({ subscriptionId }: { subscriptionId: number }) {
   )
 }
 
+// Brand names for the provider ids stored on a subscription.
+const PROVIDER_NAMES: Record<string, string> = {
+  lastfm: 'Last.fm',
+  listenbrainz: 'ListenBrainz',
+  discogs: 'Discogs',
+  spotify: 'Spotify',
+  deezer: 'Deezer',
+  tidal: 'TIDAL',
+}
+
 function SubscriptionCard({
   sub,
   nextRun,
@@ -218,8 +228,10 @@ function SubscriptionCard({
           <div className="flex items-center gap-3 text-xs text-muted flex-wrap">
             <span>
               {Array.isArray((sub.sourceConfig as Record<string, unknown>)?.providers)
-                ? ((sub.sourceConfig as Record<string, unknown>).providers as string[]).join(', ')
-                : sub.sourceProvider}
+                ? ((sub.sourceConfig as Record<string, unknown>).providers as string[])
+                    .map((id) => PROVIDER_NAMES[id] ?? id)
+                    .join(', ')
+                : (PROVIDER_NAMES[sub.sourceProvider] ?? sub.sourceProvider)}
             </span>
             <span>{actionLabel}</span>
             <span title={sub.cron}>{describeCron(t, sub.cron)}</span>

@@ -766,6 +766,7 @@ export const en = {
     'Scanning library health - this may take several minutes for large libraries. Results will appear when complete.',
   'libraryHealth.pendingRescan': 'Auto re-scan scheduled to verify fix results...',
   'libraryHealth.noChecks': 'No health checks available. Run a scan to inspect your library.',
+  'libraryHealth.loadFailed': "Couldn't load the library health checks.",
   'libraryHealth.syncNow': 'Sync Now',
   'libraryHealth.snapshotTitle': 'Latest Snapshot',
   'libraryHealth.lastSynced': 'Last synced',

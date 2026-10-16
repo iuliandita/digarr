@@ -784,6 +784,7 @@ export const es = {
     'Nueva exploración automática programada para verificar los resultados de la reparación...',
   'libraryHealth.noChecks':
     'No hay controles de salud disponibles. Ejecuta un escaneo para inspeccionar tu biblioteca.',
+  'libraryHealth.loadFailed': 'No se pudieron cargar las comprobaciones de la biblioteca.',
   'libraryHealth.syncNow': 'Sincronizar ahora',
   'libraryHealth.snapshotTitle': 'Última instantánea',
   'libraryHealth.lastSynced': 'Última sincronización',

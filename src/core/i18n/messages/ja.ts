@@ -776,6 +776,7 @@ export const ja = {
     '修正結果を確認するために自動再スキャンがスケジュールされています...',
   'libraryHealth.noChecks':
     '利用できる健全性チェックはありません。スキャンを実行してライブラリを確認してください。',
+  'libraryHealth.loadFailed': 'ライブラリのヘルスチェックを読み込めませんでした。',
   'libraryHealth.syncNow': '今すぐ同期',
   'libraryHealth.snapshotTitle': '最新のスナップショット',
   'libraryHealth.lastSynced': '最終同期',

@@ -730,6 +730,7 @@ export const zhCN = {
     '扫描库的运行状况 - 对于大型库来说这可能需要几分钟的时间。完成后将显示结果。',
   'libraryHealth.pendingRescan': '计划自动重新扫描以验证修复结果...',
   'libraryHealth.noChecks': '没有可用的健康检查。运行扫描来检查您的资料库。',
+  'libraryHealth.loadFailed': '无法加载媒体库健康检查。',
   'libraryHealth.syncNow': '立即同步',
   'libraryHealth.snapshotTitle': '最新快照',
   'libraryHealth.lastSynced': '上次同步',

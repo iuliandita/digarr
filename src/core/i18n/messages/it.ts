@@ -786,6 +786,7 @@ export const it = {
     'Nuova scansione automatica pianificata per verificare i risultati della correzione...',
   'libraryHealth.noChecks':
     'Nessun controllo sullo stato della libreria disponibile. Esegui una scansione per ispezionare la tua libreria.',
+  'libraryHealth.loadFailed': 'Impossibile caricare i controlli della libreria.',
   'libraryHealth.syncNow': 'Sincronizza ora',
   'libraryHealth.snapshotTitle': 'Ultima istantanea',
   'libraryHealth.lastSynced': 'Ultima sincronizzazione',

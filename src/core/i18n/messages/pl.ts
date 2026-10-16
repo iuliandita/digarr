@@ -782,6 +782,7 @@ export const pl = {
     'Zaplanowano automatyczne ponowne skanowanie w celu sprawdzenia wyników naprawy...',
   'libraryHealth.noChecks':
     'Brak dostępnych kontroli stanu zdrowia. Uruchom skanowanie, aby sprawdzić swoją bibliotekę.',
+  'libraryHealth.loadFailed': 'Nie udało się wczytać kontroli biblioteki.',
   'libraryHealth.syncNow': 'Synchronizuj teraz',
   'libraryHealth.snapshotTitle': 'Najnowsza migawka',
   'libraryHealth.lastSynced': 'Ostatnia synchronizacja',

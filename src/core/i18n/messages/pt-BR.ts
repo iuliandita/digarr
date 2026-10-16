@@ -785,6 +785,7 @@ export const ptBR = {
     'Nova verificação automática agendada para verificar os resultados da correção...',
   'libraryHealth.noChecks':
     'Não há exames de saúde disponíveis. Execute uma varredura para inspecionar sua biblioteca.',
+  'libraryHealth.loadFailed': 'Não foi possível carregar as verificações da biblioteca.',
   'libraryHealth.syncNow': 'Sincronizar agora',
   'libraryHealth.snapshotTitle': 'Última captura',
   'libraryHealth.lastSynced': 'Última sincronização',

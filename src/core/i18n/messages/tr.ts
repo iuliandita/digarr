@@ -770,6 +770,7 @@ export const tr = {
     'Düzeltme sonuçlarını doğrulamak için otomatik yeniden tarama planlandı...',
   'libraryHealth.noChecks':
     'Herhangi bir sağlık kontrolü mevcut değil. Kitaplığını incelemek için bir tarama çalıştır.',
+  'libraryHealth.loadFailed': 'Kitaplık denetimleri yüklenemedi.',
   'libraryHealth.syncNow': 'Şimdi eşitle',
   'libraryHealth.snapshotTitle': 'Son anlık görüntü',
   'libraryHealth.lastSynced': 'Son eşitleme',

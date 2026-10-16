@@ -7,6 +7,7 @@ import { Hint } from '../components/hint'
 import { LibraryFirstSyncBanner } from '../components/library-first-sync-banner'
 import { LibrarySourcesPanel } from '../components/library-sources-panel'
 import { LibraryStatsDisplay } from '../components/library-stats'
+import { Notice } from '../components/ui/notice'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   fixHealthCheck,
@@ -212,6 +213,8 @@ export function LibraryHealthPage() {
       <div className="space-y-3">
         {healthQuery.isLoading ? (
           <ChecksSkeleton />
+        ) : healthQuery.isError ? (
+          <Notice tone="error">{t('libraryHealth.loadFailed')}</Notice>
         ) : checks.length === 0 && !scanning ? (
           <div className="bg-surface border border-border rounded-lg px-4 py-8 text-center text-muted text-sm">
             {t('libraryHealth.noChecks')}

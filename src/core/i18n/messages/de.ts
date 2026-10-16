@@ -790,6 +790,7 @@ export const de = {
     'Automatischer erneuter Scan zur Überprüfung der Korrekturergebnisse geplant ...',
   'libraryHealth.noChecks':
     'Keine Gesundheitschecks verfügbar. Führe einen Scan durch, um deine Bibliothek zu überprüfen.',
+  'libraryHealth.loadFailed': 'Die Bibliotheksprüfungen konnten nicht geladen werden.',
   'libraryHealth.syncNow': 'Jetzt synchronisieren',
   'libraryHealth.snapshotTitle': 'Letzte Momentaufnahme',
   'libraryHealth.lastSynced': 'Zuletzt synchronisiert',

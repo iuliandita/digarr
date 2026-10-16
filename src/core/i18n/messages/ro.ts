@@ -783,6 +783,7 @@ export const ro = {
     'Scanarea automată a fost programată pentru a verifica rezultatele remedierii...',
   'libraryHealth.noChecks':
     'Nu există controale de sănătate disponibile. Rulează o scanare pentru a-ți inspecta biblioteca.',
+  'libraryHealth.loadFailed': 'Verificările bibliotecii nu au putut fi încărcate.',
   'libraryHealth.syncNow': 'Sincronizează acum',
   'libraryHealth.snapshotTitle': 'Ultimul instantaneu',
   'libraryHealth.lastSynced': 'Ultima sincronizare',

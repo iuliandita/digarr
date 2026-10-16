@@ -768,6 +768,7 @@ export const ko = {
   'libraryHealth.pendingRescan': '수정 결과를 확인하기 위해 자동 재검사가 예약되었습니다...',
   'libraryHealth.noChecks':
     '사용 가능한 상태 점검이 없습니다. 스캔을 실행하여 라이브러리를 검사하세요.',
+  'libraryHealth.loadFailed': '라이브러리 상태 점검을 불러오지 못했습니다.',
   'libraryHealth.syncNow': '지금 동기화',
   'libraryHealth.snapshotTitle': '최신 스냅샷',
   'libraryHealth.lastSynced': '마지막 동기화',
