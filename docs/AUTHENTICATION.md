@@ -14,7 +14,7 @@ The first user becomes admin; admins can promote additional users in Settings > 
 
 In Settings > Targets, admins choose **Assigned user** when adding or editing a target. Each user's approvals use only their assigned targets. Create separate targets if several users need the same Lidarr instance. Admins manage the connection; ordinary users can test and use it without seeing saved credentials.
 
-Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Shared artists and batch history remain.
+Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Shared artists and batch history remain. Job history entries also remain: they lose their link to the deleted user but keep their recorded type, status, errors, and metadata.
 
 ## Session auth (default)
 
@@ -398,9 +398,9 @@ TIDAL uses a single app registered by an admin, which every user then authorizes
    <your-digarr-url>/api/v1/auth/oauth/tidal/callback
    ```
 
-   Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces -- a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. Production requires `ALLOWED_ORIGIN`. Without it, only non-production loopback callback URLs are accepted.
+   Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces - a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. Production requires `ALLOWED_ORIGIN`. Without it, only non-production loopback callback URLs are accepted.
 
-2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL** (the same credentials that power experimental TIDAL search).
+2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL app** (the same credentials that power experimental TIDAL search).
 3. Each user then opens **Settings > Connections > Your connections > TIDAL** and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
 
 Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
