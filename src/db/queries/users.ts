@@ -19,6 +19,22 @@ function toPublic(row: UserRow): UserPublic {
   return rest
 }
 
+type SensitiveUserField = (typeof SENSITIVE_USER_CONNECTIONS)[number]
+type PresenceFlags = { [K in SensitiveUserField as `has${Capitalize<K>}`]: boolean }
+
+export type UserResponse<T = UserPublic> = Omit<T, SensitiveUserField | 'passwordHash'> &
+  PresenceFlags
+
+export function toUserResponse<T extends object>(user: T): UserResponse<T> {
+  const out = { ...user } as Record<string, unknown>
+  delete out.passwordHash
+  for (const field of SENSITIVE_USER_CONNECTIONS) {
+    out[`has${field[0]?.toUpperCase()}${field.slice(1)}`] = Boolean(out[field])
+    delete out[field]
+  }
+  return out as UserResponse<T>
+}
+
 export type UserBootstrapOptions = { bootstrap?: 'allow-existing' | 'first-user-only' }
 
 export class FirstUserRequiredError extends Error {

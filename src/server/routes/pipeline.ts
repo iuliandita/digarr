@@ -32,7 +32,7 @@ import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestLocale } from '@/server/locale'
-import { adminGuard } from '@/server/middleware/admin-guard'
+import { adminGuard, resolveAdmin } from '@/server/middleware/admin-guard'
 import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pipeline'
 import { zJson } from '@/server/schemas/validator'
 import { createPipelineSSEStream } from '@/server/sse'
@@ -142,8 +142,23 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   // The current write and its bookkeeping drain before the pipeline stops.
-  router.post('/api/v1/pipeline/cancel', (c) => {
-    const result = deps.orchestrator.cancel()
+  router.post('/api/v1/pipeline/cancel', async (c) => {
+    const userId = c.get('userId')
+    const isAdmin = await resolveAdmin(
+      userId,
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
+    const result = deps.orchestrator.cancel(userId, { canStopOthers: isAdmin })
+    if (result.forbidden) {
+      return problem(
+        c,
+        'pipeline-cancel-forbidden',
+        'Only the user who started this run or an admin can stop it',
+        403,
+      )
+    }
     return c.json(
       {
         cancelled: result.cancelled,
@@ -229,8 +244,8 @@ export function pipelineRoutes(deps: AppDependencies) {
     })
   })
 
-  router.get('/api/v1/pipeline/events', (_c) => {
-    const stream = createPipelineSSEStream(deps.orchestrator)
+  router.get('/api/v1/pipeline/events', (c) => {
+    const stream = createPipelineSSEStream(deps.orchestrator, c.get('userId'))
     return new Response(stream, {
       headers: {
         'Content-Type': 'text/event-stream',

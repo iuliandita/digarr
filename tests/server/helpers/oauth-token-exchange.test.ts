@@ -92,6 +92,25 @@ describe('exchangeAuthCode', () => {
     expect(logged).not.toContain('hunter2')
   })
 
+  it('redacts JSON-echoed credentials and the exact posted secrets from the log', async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 400,
+      text: async () => '{"error":"invalid_grant","detail":"code authcode9 for plainsecret9"}',
+    } as Response) as unknown as typeof fetch
+
+    await exchangeAuthCode({
+      provider: 'Spotify',
+      tokenUrl: 'https://spotify.test/token',
+      params: new URLSearchParams({ grant_type: 'authorization_code', code: 'authcode9' }),
+      basicAuth: { clientId: 'public-id', clientSecret: 'plainsecret9' },
+    })
+
+    const logged = vi.mocked(console.error).mock.calls[0]?.[0] as string
+    expect(logged).toContain('invalid_grant')
+    expect(logged).not.toMatch(/authcode9|plainsecret9/)
+  })
+
   it('reports a non-JSON body as malformed unless a form response is allowed', async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,

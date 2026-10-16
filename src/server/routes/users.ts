@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { hashPassword } from '@/core/auth'
-import { LastAdminError } from '@/db/queries/users'
+import { LastAdminError, toUserResponse } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { adminRequired } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
@@ -24,7 +24,7 @@ export function userRoutes(deps: AppDependencies) {
     const page = readPagination(c)
     if (page === null) {
       const userList = await deps.listUsers()
-      return c.json(userList)
+      return c.json(userList.map(toUserResponse))
     }
     const rows = await deps.listUsers({ limit: page.limit + 1, cursor: page.cursor })
     const hasMore = rows.length > page.limit
@@ -32,7 +32,7 @@ export function userRoutes(deps: AppDependencies) {
     const last = data[data.length - 1]
     const nextCursor =
       hasMore && last ? encodeCursor({ id: last.id, ts: last.createdAt.toISOString() }) : null
-    return c.json({ data, meta: { limit: page.limit, nextCursor } })
+    return c.json({ data: data.map(toUserResponse), meta: { limit: page.limit, nextCursor } })
   })
 
   // POST /api/v1/users - create a new user (admin only)
@@ -49,7 +49,7 @@ export function userRoutes(deps: AppDependencies) {
 
     const passwordHash = hashPassword(password)
     const user = await deps.createUser({ username, passwordHash, isAdmin })
-    return c.json(user, 201)
+    return c.json(toUserResponse(user), 201)
   })
 
   // PATCH /api/v1/users/:id - update user (admin only)

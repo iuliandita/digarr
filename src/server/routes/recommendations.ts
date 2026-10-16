@@ -455,7 +455,7 @@ async function approveWithCombinedLidarrSlskd(
 }
 
 function isOwned(rec: { userId?: number | null }, callerId?: number): boolean {
-  if (!rec.userId) return true // legacy recs (null userId) are visible to everyone
+  if (callerId === undefined) return true
   return rec.userId === callerId
 }
 

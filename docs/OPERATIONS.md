@@ -42,6 +42,10 @@ Admins can inspect Job History for failures and partial results; the Failures on
 
 This label does not stop the job or prove that it has stopped making progress. A slow, healthy run can cross the limit; check its progress before retrying.
 
+## Boolean environment settings
+
+`DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `PROXY_AUTH_ENABLED`, and `SKIP_TLS_VERIFY` accept `true`, `false`, `1`, or `0`, in any letter case. Any other value stops startup with an error naming the variable. Earlier releases read every unrecognized value, including `TRUE`, as `false`; check these variables before upgrading. An empty value keeps the default.
+
 ## Unattended setup
 
 Keep first-boot access restricted until the intended admin account is verified. Migrations and configured initial-admin creation finish before HTTP opens. With no users, set both `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters, or leave both unset for manual registration. A partial pair, short password, or database failure stops startup. Existing users bypass these bootstrap settings without password or role changes; keep one app instance per database.
@@ -161,7 +165,7 @@ Take a complete destination backup first and prefer restoring into a fresh datab
 
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
-**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Copy backups off the server as well; a local volume does not protect against disk loss.
+**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Files are named `pre-migrate-<UTC timestamp to the second>-<from>-<to>.json` and readable only by the app user (mode `0600`); a backup directory Digarr creates is `0700`, while an existing directory or volume keeps its permissions. A write that fails partway leaves no file behind, so it never counts as the latest backup or toward the 14. Copy backups off the server as well; a local volume does not protect against disk loss.
 
 Automatic backups include the persistent application snapshot and optional metadata. The snapshot reads only the tables and columns the database already has, so an older schema that lacks what the new release adds still produces a backup. The file lists the omitted tables and columns under `absentSchema`. Restoring it never clears an omitted table, so a restore into a database that already holds rows in one (for example saved playlist exports after the upgrade) is refused as a partial-backup conflict; restore into a fresh database. A directory, snapshot-read, or write failure stops startup before migrations and logs one line saying so. Keep previous backups until a new one is written. Fresh databases skip this step. If the snapshot fails, take and verify a native consistent database backup, retain its exact encryption key and previous image, then fix the cause. `DIGARR_AUTO_BACKUP=false` bypasses the safety check, so only set it for a failure you understand and only for that upgrade.
 
@@ -184,6 +188,8 @@ If admin settings responses from v1.19.0 were shared, review them for exposed fa
 New JSON exports and backend copies preserve issuer/subject pairs and playlist bindings. Older JSON files remain partial and may be refused with `422 partial_backup_conflict` before writes, even when forced; old issuer-less subjects require recovery again. JSON exports exclude migration history and cannot restore an older schema.
 
 For rollback, stop writers and restore the previous image's matching native backup into a **separate database or data directory**, using the original encryption key and configuration. Never start an older subject-only binary against migrated identities: identical subjects may now belong to different issuers. Older images also do not maintain export bindings and may create remote copies again. External playlist writes and notification sends cannot be rolled back; later application writes require a separately reviewed recovery.
+
+**Recommendation owner backfill (migration 0055):** Recommendations stored without an owner, from single-user releases before per-user recommendations, are assigned to the first admin (the first user when no admin exists). Afterward only their owner can approve, reject, or bulk-update them; previously any signed-in user could. The migration only updates `recommendations.user_id`, adds no columns, and is safe to re-run. The automatic pre-migration backup covers it. Older images can still read the migrated database, but they again let every user act on these rows. To undo the ownership change exactly, restore the native or pre-migration backup into a separate database with the previous image.
 
 **Upgrading from before v1.18.0:** Startup migrations add Plex listener identity fields and consolidate duplicate slskd retry jobs, retaining superseded rows and accumulated attempts. Keep a pre-upgrade backup. Existing Plex connections need a listener selection for history; linked slskd targets need a completed-download path visible to Lidarr. See [Plex setup](#connecting-plex-listeners) and [slskd imports](#importing-slskd-downloads-into-lidarr).
 

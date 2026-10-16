@@ -10,7 +10,7 @@ import { getMessages } from '@/core/i18n/messages'
 import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
 import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
-import { FirstUserRequiredError, updateUserPreferences } from '@/db/queries/users'
+import { FirstUserRequiredError, toUserResponse, updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
@@ -32,7 +32,7 @@ import {
   updateLocaleSchema,
   updatePreferencesSchema,
 } from '@/server/schemas/auth'
-import { preferredGenreListSchema } from '@/server/schemas/settings'
+import { preferencesSchema, preferredGenreListSchema } from '@/server/schemas/settings'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -150,7 +150,8 @@ export function authRoutes(deps: AppDependencies) {
       revokeTokens: cookie && existingCookie ? [existingCookie] : undefined,
     })
 
-    return cookie ? c.json({ user }, 201) : c.json({ user, token }, 201)
+    const publicUser = toUserResponse(user)
+    return cookie ? c.json({ user: publicUser }, 201) : c.json({ user: publicUser, token }, 201)
   })
 
   // Login with username + password.
@@ -218,7 +219,7 @@ export function authRoutes(deps: AppDependencies) {
       throw error
     }
 
-    const { passwordHash: _, ...publicUser } = user
+    const publicUser = toUserResponse(user)
     return cookie ? c.json({ user: publicUser }) : c.json({ user: publicUser, token })
   })
 
@@ -296,7 +297,7 @@ export function authRoutes(deps: AppDependencies) {
     if (!user) {
       return c.json({ error: 'User not found' }, 404)
     }
-    return c.json(user)
+    return c.json(toUserResponse(user))
   })
 
   router.get('/api/v1/auth/validate', (c) => {
@@ -497,6 +498,12 @@ export function authRoutes(deps: AppDependencies) {
         )
       filtered[key] = parsed.data
     }
+
+    const validated = preferencesSchema.safeParse(filtered)
+    if (!validated.success) {
+      return problem(c, 'invalid-preferences', 'Invalid preference values', 400)
+    }
+    Object.assign(filtered, validated.data)
 
     // SSRF protection: validate metadataFallbackUrl against private IP ranges
     const fallbackUrl = filtered.metadataFallbackUrl

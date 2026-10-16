@@ -326,9 +326,7 @@ export async function filterOwnedIds(
 
   const conditions = [inArray(recommendations.id, ids)]
   if (userId !== undefined) {
-    conditions.push(
-      sql`(${recommendations.userId} IS NULL OR ${recommendations.userId} = ${userId})`,
-    )
+    conditions.push(eq(recommendations.userId, userId))
   }
 
   const rows = await db
@@ -389,9 +387,9 @@ export async function getGenreArtists(
   const genreCondition = sql`EXISTS (
     SELECT 1 FROM unnest(${artists.genres}) g WHERE lower(g) = lower(${genreName})
   )`
+  const userCondition = userId ? eq(recommendations.userId, userId) : sql`TRUE`
 
   if (view === 'recommended') {
-    const userCondition = userId ? eq(recommendations.userId, userId) : sql`TRUE`
     const rows = await db
       .select({
         name: artists.name,
@@ -425,7 +423,7 @@ export async function getGenreArtists(
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
       .innerJoin(recommendationBatches, eq(recommendations.batchId, recommendationBatches.id))
-      .where(and(genreCondition, gte(recommendationBatches.createdAt, cutoff)))
+      .where(and(genreCondition, userCondition, gte(recommendationBatches.createdAt, cutoff)))
       .orderBy(desc(recommendations.score))
       .limit(limit)
     return rows
@@ -451,6 +449,7 @@ export async function getGenreArtists(
     .where(
       and(
         genreCondition,
+        userCondition,
         eq(recommendations.status, 'pending'),
         sql`(
           ${artistMetadata.spotifyPopularity} IS NULL

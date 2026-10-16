@@ -159,4 +159,23 @@ describe('redactSecrets', () => {
   it('leaves non-credential params alone', () => {
     expect(redactSecrets('client_id=public&limit=50')).toBe('client_id=public&limit=50')
   })
+
+  it('redacts JSON credential fields', () => {
+    const out = redactSecrets(
+      '{"error":"invalid_client","client_secret":"abc12345","refresh_token" : "x9y8z7w6","access_token":"q\\"uoted"}',
+    )
+    expect(out).not.toMatch(/abc12345|x9y8z7w6|uoted/)
+    expect(out).toContain('"error":"invalid_client"')
+  })
+
+  it('redacts exact known secret values, raw and URL-encoded', () => {
+    const key = 'plainkey/with+chars'
+    const out = redactSecrets(`invalid key ${key} (sent ${encodeURIComponent(key)})`, [
+      key,
+      null,
+      undefined,
+      'ab',
+    ])
+    expect(out).toBe('invalid key [redacted] (sent [redacted])')
+  })
 })

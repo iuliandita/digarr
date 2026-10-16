@@ -27,6 +27,13 @@ describe('locales', () => {
     expect(resolveSupportedLocale('pt-BR')).toBe('pt-BR')
   })
 
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty-x'])(
+    'ignores inherited object keys: %s',
+    (input) => {
+      expect(normalizeLocale(input)).toBeNull()
+    },
+  )
+
   it('falls back to english for unsupported values', () => {
     expect(resolveSupportedLocale('xx-YY')).toBe(DEFAULT_LOCALE)
     expect(resolveSupportedLocale('')).toBe(DEFAULT_LOCALE)

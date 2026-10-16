@@ -701,6 +701,15 @@ export async function restoreBackup(
       await spec.resetSequence(tx)
       tablesRestored[spec.key] = rows.length
     }
+
+    // Same rule as migration 0055: older backups can carry ownerless recommendations.
+    if (tablesRestored.recommendations) {
+      await tx.execute(sql`
+        UPDATE recommendations
+        SET user_id = (SELECT id FROM users ORDER BY is_admin DESC, id ASC LIMIT 1)
+        WHERE user_id IS NULL
+      `)
+    }
   })
 
   return {

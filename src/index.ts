@@ -36,6 +36,7 @@ import { createLibrarySyncStore } from './core/library/store'
 import { createSyncOrchestrator, type SyncOrchestrator } from './core/library/sync'
 import { markShuttingDown } from './core/lifecycle'
 import { dispatch } from './core/notifications'
+import { encryptLegacyPlaintext } from './core/ops/encrypt-legacy'
 import { bootstrapInitialAdmin } from './core/ops/initial-admin'
 import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-connections'
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
@@ -255,6 +256,11 @@ await runPreFlightCheck(db)
 // Idempotent; selects the migrator matching the active backend.
 await runMigrations()
 console.log('Database migrations applied')
+
+const legacyEncrypted = await encryptLegacyPlaintext(db)
+if (legacyEncrypted > 0) {
+  console.log(`Encrypted ${legacyEncrypted} stored value(s) saved before encryption was enabled`)
+}
 
 try {
   await bootstrapInitialAdmin(db, envConfig)

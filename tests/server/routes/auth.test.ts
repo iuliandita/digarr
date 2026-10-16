@@ -5,6 +5,7 @@ import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { envConfig } from '@/config/env'
 import { hashPassword } from '@/core/auth'
+import { SENSITIVE_USER_CONNECTIONS } from '@/core/crypto'
 import {
   clearAllSessions,
   clearUserSessions,
@@ -1675,6 +1676,32 @@ describe('PATCH /api/v1/auth/me/preferences', () => {
     expect(set).toHaveBeenCalledTimes(2)
   })
 
+  it.each([
+    { rejectionCooldownDays: 'soon' },
+    { rejectionCooldownDays: -1 },
+    { scoreThreshold: 2 },
+    { topArtistsLimit: 1.5 },
+    { autoApproveMonitorOption: 'some' },
+    { scoringWeights: { consensus: 'high' } },
+  ])('rejects invalid preference value %j before writing', async (body) => {
+    const update = vi.fn()
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      await next()
+    })
+    app.route('/', authRoutes(makeDeps({ db: { update } as unknown as AppDependencies['db'] })))
+
+    const res = await app.request('/api/v1/auth/me/preferences', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+
+    expect(res.status).toBe(400)
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it('rejects legacy read-only token auth', async () => {
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
@@ -1821,4 +1848,51 @@ describe('PATCH /api/v1/auth/me/email', () => {
     for (let i = 0; i < 5; i++) expect((await fire()).status).toBe(200)
     expect((await fire()).status).toBe(429)
   })
+})
+
+describe('user response projection', () => {
+  const secrets = Object.fromEntries(SENSITIVE_USER_CONNECTIONS.map((f) => [f, `secret-${f}`]))
+
+  it('omits stored connection values from login and /auth/me', async () => {
+    const row = {
+      id: 1,
+      username: 'testuser',
+      passwordHash: hashPassword('password1234'),
+      isAdmin: false,
+      preferredLocale: null,
+      plexUrl: 'http://plex.local:32400',
+      ...secrets,
+      plexToken: null,
+    }
+    const { passwordHash: _, ...publicRow } = row
+    const app = createApp(
+      makeDeps({
+        getUserByUsername: vi.fn(async () => row) as never,
+        getUserById: vi.fn(async () => publicRow) as never,
+        getUserCount: vi.fn(async () => 1),
+      }),
+    )
+
+    const loginRes = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'testuser', password: 'password1234' }),
+    })
+    const login = await loginRes.json()
+    const meRes = await app.request('/api/v1/auth/me', {
+      headers: { Authorization: `Bearer ${login.token}` },
+    })
+    const me = await meRes.json()
+
+    for (const user of [login.user, me]) {
+      for (const field of SENSITIVE_USER_CONNECTIONS) {
+        expect(user).not.toHaveProperty(field)
+        expect(JSON.stringify(user)).not.toContain(`secret-${field}`)
+      }
+      expect(user).not.toHaveProperty('passwordHash')
+      expect(user.hasLastfmApiKey).toBe(true)
+      expect(user.hasPlexToken).toBe(false)
+      expect(user.plexUrl).toBe('http://plex.local:32400')
+    }
+  }, 15_000)
 })

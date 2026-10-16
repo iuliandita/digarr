@@ -64,6 +64,25 @@ describe('post (SSRF transport)', () => {
     expect((init.headers as Record<string, string>).Host).toBe('example.com')
   })
 
+  it('keeps path tokens and header secrets out of a failed request error', async () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    okFetch.mockImplementationOnce(async (url: string) => {
+      throw new Error(`connect failed for ${url} with hdrsecret9`)
+    })
+    const r = await post(
+      'https://example.com/bot/pathtoken123/send',
+      {},
+      {
+        headers: { Authorization: 'Bearer hdrsecret9' },
+        redact: (u) => u.replace('pathtoken123', '***'),
+      },
+    )
+    expect(r.ok).toBe(false)
+    expect(r.error).not.toMatch(/pathtoken123|hdrsecret9/)
+    expect(JSON.stringify(error.mock.calls)).not.toMatch(/pathtoken123|hdrsecret9/)
+    error.mockRestore()
+  })
+
   it('sends rawBody as-is when provided', async () => {
     await post('https://example.com/hook', undefined, { rawBody: 'plain text' })
     const [, init] = okFetch.mock.calls[0] as [string, RequestInit]

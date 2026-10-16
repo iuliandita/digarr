@@ -4,10 +4,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
-  upsertOAuthToken: vi.fn(),
+  updateRefreshedOAuthToken: vi.fn(),
 }))
 
-const { getOAuthToken, upsertOAuthToken } = await import('@/db/queries/oauth-tokens')
+const { getOAuthToken, updateRefreshedOAuthToken } = await import('@/db/queries/oauth-tokens')
 const { getValidToken } = await import('@/core/oauth')
 
 const mockDb = {} as never
@@ -114,12 +114,14 @@ describe('getValidToken()', () => {
     const result = await getValidToken(mockDb, 1, 'spotify', refreshConfig)
 
     expect(result).toBe('valid-token')
-    expect(upsertOAuthToken).not.toHaveBeenCalled()
+    expect(updateRefreshedOAuthToken).not.toHaveBeenCalled()
   })
 
-  it('refreshes token when expired and preserves clientId, clientSecret, scopes', async () => {
+  it('refreshes an expired token by updating only the generation it read', async () => {
     const pastDate = new Date(Date.now() - 60 * 1000) // 1 minute ago
     vi.mocked(getOAuthToken).mockResolvedValue({
+      id: 7,
+      updatedAt: pastDate,
       accessToken: 'expired-token',
       refreshToken: 'my-refresh-token',
       expiresAt: pastDate,
@@ -127,23 +129,19 @@ describe('getValidToken()', () => {
       clientSecret: 'stored-client-secret',
       scopes: 'read write',
     } as never)
-    vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
+    vi.mocked(updateRefreshedOAuthToken).mockResolvedValue(true)
 
     const result = await getValidToken(mockDb, 1, 'spotify', refreshConfig)
 
     expect(result).toBe('new-access-token')
-    expect(upsertOAuthToken).toHaveBeenCalledWith(
+    expect(updateRefreshedOAuthToken).toHaveBeenCalledWith(
       mockDb,
-      expect.objectContaining({
-        userId: 1,
-        provider: 'spotify',
+      expect.objectContaining({ id: 7, updatedAt: pastDate }),
+      {
         accessToken: 'new-access-token',
         refreshToken: 'new-refresh-token',
         expiresAt: expect.any(Date),
-        clientId: 'stored-client-id',
-        clientSecret: 'stored-client-secret',
-        scopes: 'read write',
-      }),
+      },
     )
   })
 
@@ -154,7 +152,7 @@ describe('getValidToken()', () => {
       refreshToken: 'my-refresh-token',
       expiresAt: almostExpired,
     } as never)
-    vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
+    vi.mocked(updateRefreshedOAuthToken).mockResolvedValue(true)
 
     const result = await getValidToken(mockDb, 1, 'spotify', refreshConfig)
 
@@ -172,7 +170,7 @@ describe('getValidToken()', () => {
     const result = await getValidToken(mockDb, 1, 'spotify', refreshConfig)
 
     expect(result).toBeNull()
-    expect(upsertOAuthToken).not.toHaveBeenCalled()
+    expect(updateRefreshedOAuthToken).not.toHaveBeenCalled()
   })
 
   it('returns null when token refresh request fails', async () => {
@@ -199,18 +197,17 @@ describe('getValidToken()', () => {
       refreshToken: 'original-refresh',
       expiresAt: pastDate,
     } as never)
-    vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
+    vi.mocked(updateRefreshedOAuthToken).mockResolvedValue(true)
 
     await getValidToken(mockDb, 1, 'spotify', {
       ...refreshConfig,
       tokenEndpoint: tokenEndpoint.replace('/token', '/token-no-refresh'),
     })
 
-    expect(upsertOAuthToken).toHaveBeenCalledWith(
+    expect(updateRefreshedOAuthToken).toHaveBeenCalledWith(
       mockDb,
+      expect.anything(),
       expect.objectContaining({
-        userId: 1,
-        provider: 'spotify',
         accessToken: 'new-access-token',
         refreshToken: 'original-refresh',
       }),
@@ -224,7 +221,7 @@ describe('getValidToken()', () => {
         refreshToken: 'original-refresh',
         expiresAt: new Date(Date.now() - 60 * 1000),
       } as never)
-      vi.mocked(upsertOAuthToken).mockResolvedValue(undefined as never)
+      vi.mocked(updateRefreshedOAuthToken).mockResolvedValue(true)
     })
 
     it('defaults to credentials in the form body, with no Basic header', async () => {

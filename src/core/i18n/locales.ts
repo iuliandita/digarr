@@ -67,11 +67,10 @@ export function normalizeLocale(input?: string | null): SupportedLocale | null {
   if (!value) return null
   const normalized = value.toLowerCase()
 
-  const exactMatch = LOCALE_ALIASES[normalized]
-  if (exactMatch) return exactMatch
+  if (Object.hasOwn(LOCALE_ALIASES, normalized)) return LOCALE_ALIASES[normalized] ?? null
 
   const baseLanguage = normalized.split(/[-_]/, 1)[0] ?? normalized
-  if (baseLanguage !== normalized) {
+  if (baseLanguage !== normalized && Object.hasOwn(LOCALE_ALIASES, baseLanguage)) {
     return LOCALE_ALIASES[baseLanguage] ?? null
   }
 

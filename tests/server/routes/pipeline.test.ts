@@ -420,6 +420,24 @@ describe('POST /api/v1/pipeline/cancel', () => {
     expect(res.status).toBe(202)
     expect(await res.json()).toEqual({ cancelled: false, message: 'Pipeline finishing' })
   })
+
+  it.each([false, true])('passes the caller and admin=%s to the orchestrator', async (isAdmin) => {
+    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+    const getUserById = vi.fn(async () => ({ id: 1, isAdmin })) as never
+    const app = createApp(makeDeps({ orchestrator, getUserById }))
+    await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
+    expect(orchestrator.cancel).toHaveBeenCalledWith(1, { canStopOthers: isAdmin })
+  })
+
+  it("returns 403 when the caller may not stop another user's run", async () => {
+    const mock = makeMockOrchestrator(true)
+    mock.cancel.mockReturnValue({ cancelled: false, dequeued: 0, forbidden: true } as never)
+    const app = createApp(
+      makeDeps({ orchestrator: mock as unknown as AppDependencies['orchestrator'] }),
+    )
+    const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
+    expect(res.status).toBe(403)
+  })
 })
 describe('GET /api/v1/pipeline/events', () => {
   it('returns text/event-stream content type', async () => {

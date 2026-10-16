@@ -81,6 +81,25 @@ describe('pipeline SSE stream', () => {
     expect(stages).toEqual(['collect', 'analyze', 'complete'])
   })
 
+  it("drops another user's progress, error and terminal events", async () => {
+    const orchestrator = Object.assign(makeOrchestrator(), { currentUserId: 1 })
+    const stream = createPipelineSSEStream(orchestrator, 2)
+    setImmediate(() => {
+      orchestrator.emit('progress', { stage: 'collect', userId: 1, message: 'user one' })
+      orchestrator.emit('error', new Error('user one failed'))
+      orchestrator.emit('progress', { stage: 'complete', userId: 1 })
+      orchestrator.emit('progress', { stage: 'collect', userId: 2 })
+      orchestrator.emit('progress', { stage: 'complete', userId: 2 })
+    })
+
+    const data = (await drain(stream)).filter((f) => f.data !== undefined).map((f) => f.data)
+
+    expect(data).toEqual([
+      { stage: 'collect', userId: 2 },
+      { stage: 'complete', userId: 2 },
+    ])
+  })
+
   it('closes the stream after the final complete frame', async () => {
     const orchestrator = makeOrchestrator()
     const stream = createPipelineSSEStream(orchestrator)

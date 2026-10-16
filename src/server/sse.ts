@@ -4,7 +4,15 @@ import { errMsg } from '@/core/validation'
 const HEARTBEAT_MS = 20_000
 const RECONNECT_MS = 5_000
 
-export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): ReadableStream {
+/**
+ * Stream pipeline events for one caller. With `userId` set, events from other
+ * users' runs are dropped; undefined (auth disabled) receives every event.
+ */
+export function createPipelineSSEStream(
+  orchestrator: PipelineOrchestrator,
+  userId?: number,
+): ReadableStream {
+  const visible = (ownerId: unknown) => userId === undefined || ownerId === userId
   let progressHandler: ((progress: unknown) => void) | null = null
   let completeHandler: (() => void) | null = null
   let errorHandler: ((err: unknown) => void) | null = null
@@ -39,6 +47,11 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       }
 
       progressHandler = (progress: unknown) => {
+        const ownerId =
+          progress !== null && typeof progress === 'object'
+            ? (progress as Record<string, unknown>).userId
+            : undefined
+        if (!visible(ownerId)) return
         try {
           emit((progress ?? {}) as Record<string, unknown>)
           const terminalStage =
@@ -56,6 +69,7 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       }
 
       completeHandler = () => {
+        if (!visible(orchestrator.currentUserId)) return
         try {
           emit({ stage: 'complete' })
           cleanup()
@@ -66,6 +80,7 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       }
 
       errorHandler = (err: unknown) => {
+        if (!visible(orchestrator.currentUserId)) return
         try {
           emit({ stage: 'error', message: errMsg(err) })
           cleanup()
@@ -87,8 +102,8 @@ export function createPipelineSSEStream(orchestrator: PipelineOrchestrator): Rea
       heartbeat.unref?.()
 
       orchestrator.on('progress', progressHandler)
-      orchestrator.once('complete', completeHandler)
-      orchestrator.once('error', errorHandler)
+      orchestrator.on('complete', completeHandler)
+      orchestrator.on('error', errorHandler)
     },
 
     cancel() {

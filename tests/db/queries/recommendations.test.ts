@@ -237,6 +237,51 @@ describe('getGenreArtists', () => {
     expect(params).toContain('approved')
     expect(params).not.toContain('added_to_lidarr')
   })
+
+  it('shows only the caller recommendations in every view', async () => {
+    const { db, close } = await makeTestDb()
+    try {
+      const [owner, other] = await db
+        .insert(users)
+        .values([
+          { username: 'genre-owner', passwordHash: 'test' },
+          { username: 'genre-other', passwordHash: 'test' },
+        ])
+        .returning()
+      const [batch] = await db.insert(recommendationBatches).values({}).returning()
+      const catalog = await db
+        .insert(artists)
+        .values(
+          ['mine-a', 'theirs-a', 'mine-p', 'theirs-p'].map((name, i) => ({
+            mbid: `00000000-0000-0000-0000-00000000020${i}`,
+            name,
+            genres: ['dub'],
+          })),
+        )
+        .returning()
+      if (!owner || !other || !batch || catalog.length !== 4) throw new Error('fixture missing')
+      await db.insert(recommendations).values(
+        catalog.map((artist, i) => ({
+          userId: i % 2 === 0 ? owner.id : other.id,
+          artistId: artist.id,
+          batchId: batch.id,
+          score: i % 2 === 0 ? 0.5 : 0.9,
+          status: i < 2 ? 'approved' : 'pending',
+        })),
+      )
+
+      const names = async (view: 'recommended' | 'trending' | 'deep_cuts') =>
+        (await getGenreArtists(db as unknown as Database, 'dub', view, 20, owner.id))
+          .map((r) => r.name)
+          .sort()
+
+      expect(await names('recommended')).toEqual(['mine-a'])
+      expect(await names('trending')).toEqual(['mine-a', 'mine-p'])
+      expect(await names('deep_cuts')).toEqual(['mine-p'])
+    } finally {
+      await close()
+    }
+  }, 30_000)
 })
 
 describe('rejectRecommendation', () => {

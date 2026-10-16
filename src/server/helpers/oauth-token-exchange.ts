@@ -22,6 +22,8 @@ export type TokenExchangeOptions = {
   timeoutMs?: number
 }
 
+const SECRET_PARAMS = ['code', 'code_verifier', 'client_secret', 'refresh_token']
+
 async function readBody(res: Response): Promise<string> {
   try {
     return await res.text()
@@ -66,7 +68,11 @@ export async function exchangeAuthCode(
   if (!res.ok) {
     // The upstream body can echo the credentials that were just posted, and is
     // the only diagnosable artifact when an exchange fails.
-    const detail = redactSecrets(await readBody(res)).slice(0, 300)
+    const detail = redactSecrets(await readBody(res), [
+      ...SECRET_PARAMS.map((name) => params.get(name)),
+      basicAuth?.clientSecret,
+      headers.Authorization,
+    ]).slice(0, 300)
     console.error(`${provider} token exchange failed: ${res.status} ${detail}`)
     return { ok: false, error: 'token_exchange_failed' }
   }

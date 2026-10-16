@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, sql } from 'drizzle-orm'
 import { decryptField, encryptField } from '@/core/crypto'
 import type { Database } from '@/db'
 import { oauthTokens } from '@/db/schema'
@@ -59,6 +59,34 @@ export async function upsertOAuthToken(
     .returning()
   if (!row) throw new Error('upsertOAuthToken: no row returned')
   return decryptOAuthRow(row)
+}
+
+/**
+ * Store a refreshed token only if the row is still the generation that was
+ * read before the refresh. A disconnect or reconnect in the meantime wins.
+ */
+export async function updateRefreshedOAuthToken(
+  db: Database,
+  generation: Pick<OAuthTokenRow, 'id' | 'updatedAt'>,
+  data: Pick<OAuthTokenRow, 'accessToken' | 'refreshToken' | 'expiresAt'>,
+): Promise<boolean> {
+  const rows = await db
+    .update(oauthTokens)
+    .set({
+      accessToken: encryptField(data.accessToken) ?? data.accessToken,
+      refreshToken: encryptField(data.refreshToken) ?? data.refreshToken,
+      expiresAt: data.expiresAt,
+      updatedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(oauthTokens.id, generation.id),
+        // The JS Date read back is truncated to milliseconds; the column may hold microseconds.
+        sql`date_trunc('milliseconds', ${oauthTokens.updatedAt}) = ${generation.updatedAt.toISOString()}::timestamptz`,
+      ),
+    )
+    .returning({ id: oauthTokens.id })
+  return rows.length > 0
 }
 
 export async function deleteOAuthToken(

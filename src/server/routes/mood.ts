@@ -4,7 +4,7 @@ import { createLidarrClient } from '@/core/clients/lidarr'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { buildMoodPrompt } from '@/core/providers/prompt'
 import type { AiProviderRegistry } from '@/core/providers/registry'
-import { errMsg } from '@/core/validation'
+import { errMsg, redactSecrets } from '@/core/validation'
 import { resolveRequestLocale } from '@/server/locale'
 import { moodDiscoverSchema } from '@/server/schemas/mood'
 import { zJson } from '@/server/schemas/validator'
@@ -65,7 +65,7 @@ export function moodRoutes(deps: MoodDeps) {
         _rawPrompt: prompt,
       })
     } catch (err) {
-      const detail = errMsg(err)
+      const detail = redactSecrets(errMsg(err), [aiApiKey])
       console.error(`[mood] ${aiProvider} request failed:`, detail)
       return c.json(
         { error: `AI provider request failed (${aiProvider}/${aiModel}): ${detail}` },

@@ -1,6 +1,6 @@
 import { redactSecrets } from '@/core/validation'
 import type { Database } from '@/db'
-import { getOAuthToken, upsertOAuthToken } from '@/db/queries/oauth-tokens'
+import { getOAuthToken, updateRefreshedOAuthToken } from '@/db/queries/oauth-tokens'
 
 export type OAuthRefreshConfig = {
   tokenEndpoint: string
@@ -73,7 +73,12 @@ export async function getValidToken(
 
   if (!res.ok) {
     // The upstream body can echo the credentials that were just posted.
-    const body = redactSecrets(await res.text().catch(() => '')).slice(0, 300)
+    const body = redactSecrets(await res.text().catch(() => ''), [
+      token.refreshToken,
+      token.accessToken,
+      refreshConfig.clientSecret,
+      headers.Authorization,
+    ]).slice(0, 300)
     console.error(`[oauth] Token refresh failed for ${provider}: ${res.status} ${body}`)
     return null
   }
@@ -81,18 +86,16 @@ export async function getValidToken(
   const data = (await res.json()) as TokenResponse
   const expiresAt = new Date(Date.now() + data.expires_in * 1000)
 
-  await upsertOAuthToken(db, {
-    userId,
-    provider,
+  const stored = await updateRefreshedOAuthToken(db, token, {
     accessToken: data.access_token,
     refreshToken: data.refresh_token ?? token.refreshToken,
     expiresAt,
-    // Preserve credentials and scopes so the row stays whole after refresh.
-    // decryptOAuthRow has already decrypted these on the read path.
-    clientId: token.clientId,
-    clientSecret: token.clientSecret,
-    scopes: token.scopes,
   })
+  if (stored) return data.access_token
 
-  return data.access_token
+  // Disconnected, reconnected, or refreshed by a concurrent caller while this
+  // request was in flight: defer to whatever the row holds now.
+  const current = await getOAuthToken(db, userId, provider)
+  if (!current || current.expiresAt.getTime() - EXPIRY_BUFFER_MS <= Date.now()) return null
+  return current.accessToken
 }

@@ -71,7 +71,7 @@ function decryptWithKey(ivStr: string, encStr: string, tagStr: string, key: Buff
 
 /** Encrypt a string value. Returns the original if encryption is disabled or value is null. */
 export function encryptField(value: string | null | undefined): typeof value {
-  if (value == null || !derivedKey) return value
+  if (value == null || value === '' || !derivedKey) return value
   if (value.startsWith(PREFIX)) return value // already encrypted
 
   const iv = randomBytes(IV_LENGTH)
@@ -92,7 +92,8 @@ export function decryptField(value: string | null | undefined): typeof value {
   }
 
   const [ivStr, encStr, tagStr] = value.slice(PREFIX.length).split('.')
-  if (!ivStr || !encStr || !tagStr) return value // malformed
+  // encStr is legitimately empty for a stored empty string.
+  if (!ivStr || encStr === undefined || !tagStr) return value // malformed
 
   // Try both HKDF keys, then both legacy SHA-256 derivations.
   // AES-GCM auth-tag verification is cheap so trial decryption is fine.

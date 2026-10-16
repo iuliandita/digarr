@@ -406,3 +406,31 @@ describe('canAutoSetup', () => {
     expect(canAutoSetup()).toBe(false)
   })
 })
+
+describe('boolean env parsing', () => {
+  beforeEach(() => vi.resetModules())
+  afterEach(() => {
+    vi.unstubAllEnvs()
+    vi.resetModules()
+  })
+
+  it.each([
+    ['TRUE', true],
+    ['True', true],
+    ['1', true],
+    [' true ', true],
+    ['FALSE', false],
+    ['0', false],
+  ])('parses %j as %s', async (raw, expected) => {
+    vi.stubEnv('DIGARR_DISABLE_REGISTRATION', raw)
+    const { envConfig } = await import('@/config/env')
+    expect(envConfig.disableRegistration).toBe(expected)
+  })
+
+  it.each(['yes', 'off', 'enabled'])('fails boot on %j', async (raw) => {
+    vi.stubEnv('DIGARR_DISABLE_REGISTRATION', raw)
+    await expect(import('@/config/env')).rejects.toThrow(
+      /^DIGARR_DISABLE_REGISTRATION must be true, false, 1, or 0$/,
+    )
+  })
+})
