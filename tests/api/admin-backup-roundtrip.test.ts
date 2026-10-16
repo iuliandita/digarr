@@ -1,6 +1,6 @@
 // @vitest-environment node
 
-import { mkdtempSync, readdirSync, rmSync } from 'node:fs'
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { sql } from 'drizzle-orm'
@@ -190,7 +190,7 @@ describe('admin recovery backup round trip', () => {
     }
   })
 
-  it('blocks an upgrade when an older schema cannot be read by the recovery snapshot', async () => {
+  it('snapshots an older schema without the columns it lacks', async () => {
     const { db, close } = await makeTestDb()
     const backupDir = mkdtempSync(join(tmpdir(), 'digarr-upgrade-backup-'))
     vi.stubEnv('DIGARR_AUTO_BACKUP', 'true')
@@ -202,10 +202,13 @@ describe('admin recovery backup round trip', () => {
         sql`delete from drizzle.__drizzle_migrations where id = (select max(id) from drizzle.__drizzle_migrations)`,
       )
 
-      await expect(runPreFlightCheck(db as never)).rejects.toThrow(/digest_last_sent_at/)
-      expect(readdirSync(backupDir)).toEqual([])
-      const result = await db.execute(sql`select count(*)::int as count from settings`)
-      expect(result.rows).toEqual([{ count: 1 }])
+      const result = await runPreFlightCheck(db as never)
+      expect(readdirSync(backupDir)).toHaveLength(1)
+      const snapshot = JSON.parse(readFileSync(result.backupPath as string, 'utf-8'))
+      expect(snapshot.absentSchema.columns).toEqual({ settings: ['digest_last_sent_at'] })
+      expect(snapshot.data.settings).toHaveLength(1)
+      const rows = await db.execute(sql`select count(*)::int as count from settings`)
+      expect(rows.rows).toEqual([{ count: 1 }])
     } finally {
       vi.unstubAllEnvs()
       rmSync(backupDir, { recursive: true, force: true })

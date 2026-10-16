@@ -120,7 +120,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
       - name: Run PostgreSQL concurrency tests
-        run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts tests/db/oidc-issuer-upgrade-postgres.test.ts
+        run: bunx vitest run tests/db/session-queries.test.ts tests/db/oidc-link-postgres.test.ts tests/db/migrate-backend-postgres.test.ts tests/db/oidc-issuer-upgrade-postgres.test.ts tests/core/ops/upgrade-old-schema.test.ts
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
       - name: Run API route contract tests

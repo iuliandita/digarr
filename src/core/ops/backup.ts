@@ -96,11 +96,54 @@ function getAppVersion(): string {
   }
 }
 
+type SchemaProbe = {
+  live: Map<string, Set<string>>
+  absent: { tables: string[]; columns: Record<string, string[]> }
+}
+
+async function probeLiveSchema(db: Pick<OpsDb, 'execute'>): Promise<SchemaProbe> {
+  const result = await db.execute(sql`
+    SELECT table_name, column_name
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+  `)
+  const live = new Map<string, Set<string>>()
+  for (const row of result.rows as { table_name: string; column_name: string }[]) {
+    const columns = live.get(row.table_name) ?? new Set<string>()
+    columns.add(row.column_name)
+    live.set(row.table_name, columns)
+  }
+  return { live, absent: { tables: [], columns: {} } }
+}
+
+// With a probe, read only what the live database has and record the rest. A
+// missing table returns undefined so its key never reaches the snapshot and a
+// restore leaves that table alone instead of clearing it.
 async function selectAll(
   db: Pick<OpsDb, 'select'>,
   table: BackupTable,
+  probe?: SchemaProbe,
 ): Promise<Record<string, unknown>[]> {
-  return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
+  if (!probe) {
+    return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
+  }
+  const name = getTableName(table)
+  const liveColumns = probe.live.get(name)
+  if (!liveColumns) {
+    probe.absent.tables.push(name)
+    return undefined as unknown as Record<string, unknown>[]
+  }
+  const present: Record<string, AnyPgColumn> = {}
+  const missing: string[] = []
+  for (const [key, col] of Object.entries(getTableColumns(table)) as [string, AnyPgColumn][]) {
+    if (liveColumns.has(col.name)) present[key] = col
+    else missing.push(col.name)
+  }
+  if (missing.length > 0) probe.absent.columns[name] = missing
+  return (await db.select(present).from(table as AnyPgTable)) as unknown as Record<
+    string,
+    unknown
+  >[]
 }
 
 function canonical(value: unknown): unknown {
@@ -123,22 +166,24 @@ function tableHash(rows: Record<string, unknown>[]): string {
 }
 
 export async function createBackup(
-  db: Pick<OpsDb, 'select'>,
+  db: Pick<OpsDb, 'select' | 'execute'>,
   options: BackupOptions = {},
 ): Promise<BackupFile> {
-  const { includeCaches = false, full = true } = options
+  const { includeCaches = false, full = true, tolerateMissingSchema = false } = options
+  const probe = tolerateMissingSchema ? await probeLiveSchema(db) : undefined
+  const read = (table: BackupTable) => selectAll(db, table, probe)
 
-  const settingsRows = await selectAll(db, settings)
-  const userRows = await selectAll(db, users)
-  const oauthRows = await selectAll(db, oauthTokens)
-  const targetRows = await selectAll(db, targets)
-  const subRows = await selectAll(db, subscriptions)
-  const jobRunRows = await selectAll(db, jobRuns)
-  const batchRows = await selectAll(db, recommendationBatches)
-  const recRows = await selectAll(db, recommendations)
-  const playlistRows = await selectAll(db, playlists)
-  const trackRows = await selectAll(db, playlistTracks)
-  const blockRows = await selectAll(db, artistBlocks)
+  const settingsRows = await read(settings)
+  const userRows = await read(users)
+  const oauthRows = await read(oauthTokens)
+  const targetRows = await read(targets)
+  const subRows = await read(subscriptions)
+  const jobRunRows = await read(jobRuns)
+  const batchRows = await read(recommendationBatches)
+  const recRows = await read(recommendations)
+  const playlistRows = await read(playlists)
+  const trackRows = await read(playlistTracks)
+  const blockRows = await read(artistBlocks)
 
   const backup: BackupFile = {
     version: 1,
@@ -157,28 +202,32 @@ export async function createBackup(
       recommendations: recRows,
       playlists: playlistRows,
       playlistTracks: trackRows,
-      playlistExports: await selectAll(db, playlistExports),
+      playlistExports: await read(playlistExports),
       artistBlocks: blockRows,
-      artists: await selectAll(db, artists),
-      artistGenreAliases: await selectAll(db, artistGenreAliases),
-      genres: await selectAll(db, genres),
+      artists: await read(artists),
+      artistGenreAliases: await read(artistGenreAliases),
+      genres: await read(genres),
     },
   }
 
   if (includeCaches) {
-    backup.data.artistMetadata = await selectAll(db, artistMetadata)
+    backup.data.artistMetadata = await read(artistMetadata)
   }
 
   if (full) {
-    backup.data.albumBlocks = await selectAll(db, albumBlocks)
-    backup.data.libraryArtists = await selectAll(db, libraryArtists)
-    backup.data.libraryAlbums = await selectAll(db, libraryAlbums)
-    backup.data.librarySyncState = await selectAll(db, librarySyncState)
-    backup.data.libraryMatchOverrides = await selectAll(db, libraryMatchOverrides)
-    backup.data.libraryAlbumMatchOverrides = await selectAll(db, libraryAlbumMatchOverrides)
-    backup.data.libraryHealthState = await selectAll(db, libraryHealthState)
-    backup.data.recordingArtistCache = await selectAll(db, recordingArtistCache)
-    backup.data.slskdJobs = await selectAll(db, slskdJobs)
+    backup.data.albumBlocks = await read(albumBlocks)
+    backup.data.libraryArtists = await read(libraryArtists)
+    backup.data.libraryAlbums = await read(libraryAlbums)
+    backup.data.librarySyncState = await read(librarySyncState)
+    backup.data.libraryMatchOverrides = await read(libraryMatchOverrides)
+    backup.data.libraryAlbumMatchOverrides = await read(libraryAlbumMatchOverrides)
+    backup.data.libraryHealthState = await read(libraryHealthState)
+    backup.data.recordingArtistCache = await read(recordingArtistCache)
+    backup.data.slskdJobs = await read(slskdJobs)
+  }
+
+  if (probe && (probe.absent.tables.length > 0 || Object.keys(probe.absent.columns).length > 0)) {
+    backup.absentSchema = probe.absent
   }
 
   return backup

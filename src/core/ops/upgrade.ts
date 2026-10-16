@@ -143,7 +143,10 @@ export async function autoBackup(
   const dir = getBackupDir()
   mkdirSync(dir, { recursive: true })
 
-  const backup = await createBackupSnapshot(db, { includeCaches: true })
+  const backup = await createBackupSnapshot(db, {
+    includeCaches: true,
+    tolerateMissingSchema: true,
+  })
   const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 15)
   const from = fromVersion ?? 'fresh'
   const to = toVersion ?? 'unknown'
@@ -152,6 +155,15 @@ export async function autoBackup(
 
   writeFileSync(filepath, JSON.stringify(backup, null, 2), 'utf-8')
   pruneOldBackups(dir)
+
+  if (backup.absentSchema) {
+    const { tables, columns } = backup.absentSchema
+    const missing = [
+      ...tables,
+      ...Object.entries(columns).map(([t, cols]) => `${t}(${cols.join(', ')})`),
+    ]
+    console.log(`[ops] Snapshot omits schema not present yet: ${missing.join(', ')}`)
+  }
 
   return filepath
 }
@@ -190,7 +202,15 @@ export async function runPreFlightCheck(db: OpsDb): Promise<PreFlightResult> {
     }
   }
 
-  const path = await autoBackup(db, status.currentVersion, status.targetVersion)
+  let path: string
+  try {
+    path = await autoBackup(db, status.currentVersion, status.targetVersion)
+  } catch (error) {
+    console.error(
+      '[ops] Pre-migration backup failed and no migrations were applied. Take a native pg_dump -Fc (or copy the PGlite data directory), verify it restores, then fix the cause. DIGARR_AUTO_BACKUP=false skips this step for one upgrade only once that backup exists.',
+    )
+    throw error
+  }
   console.log(`[ops] Auto-backup saved to ${path}`)
   return {
     pendingCount: status.pendingCount,

@@ -141,15 +141,15 @@
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "17a11f3c319771e7fa54dc65f196a262ad89d0ae1b06afb7f3e3f0afd9de6f5e",
-        "src/core/ops/backup.ts": "840403e0dafc3c9237a6eea921202bc3b3cef317d78968b6f284e72efd03e8fe",
+        "src/core/ops/backup.ts": "8ca01610a2ca4671142283171f07de54bd0f06bddc58ace2765c090c550581a6",
         "src/core/ops/cron-scheduler.ts": "98d5c7888eb6112adf6ae7fd6d1ce0c9cc549e51836d87ea79de704ee527a9f1",
         "src/core/ops/hygiene.ts": "09dd4061ae12c51142e843c65bf05d2a373acbd2a91be14fdc3ba7037c30ca6c",
         "src/core/ops/initial-admin.ts": "7f8b81e3e103c8e7f103afae6ba61ae5116c06cb26d4ede30c19b21d439018f7",
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
-        "src/core/ops/types.ts": "05133c0670a772c804601094eb2cd46e07bc92297dec21ea043e0d1283ef4b86",
-        "src/core/ops/upgrade.ts": "9fbcd673397927afdf479c49978c36bf9472d6dcd04c81405327e32dc0347a03",
+        "src/core/ops/types.ts": "6a77240d367f7cd2450caf75c654fac51ecf52a16e8fa00b4101ad5fa9a48243",
+        "src/core/ops/upgrade.ts": "214afb1720a7eb69822641b4632047320f8b3b390bff222ab6d8faca7d538780",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
         "src/db/connect.ts": "8ceabe90f6765e1700741b20561967406d166a88f542dc10b0bf62151ac2983c",
         "src/db/index.ts": "b7542782e276e575fc784669a6269da82ac84a07f8f69eab514c87dc8eb4ed2e",
@@ -182,14 +182,14 @@
         "src/db/schema.ts": "aa0365573cac5ecce8d909c778c9cdab17a8c37fb0b7038b6e2c2c3a36a6d3ca",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "7c2657d1411032c0f7403535243be75489abf55cb06c7e9d0f3ba99b41121b5c",
+      "digest": "0e9edc3796798125cf78e732d1d5b2b166c155bbbee75014a9f42ec3f0eb131e",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Review combined 0052 digest positions, 0053 playlist bindings and 0054 exact OIDC identities, consistent JSON backup boundaries and backend copies. Document verified native restoration before the one-upgrade snapshot override and issuer recovery.",
-        "breaking": "Legacy issuer-less SSO accounts require verified historical issuer recovery; older subject-only images cannot safely use migrated identities.",
-        "migration": "Before upgrade, stop writers, preserve the original key and previous image, and verify a native backup in a separate database. Apply all three migrations once with the understood automatic-backup override, then re-enable backups and recover verified issuer bindings. Rollback restores the matching native backup separately; external sends and playlist writes remain.",
-        "digest": "7c2657d1411032c0f7403535243be75489abf55cb06c7e9d0f3ba99b41121b5c"
+        "note": "Pre-migration snapshot now reads only the tables and columns the live database has, records omissions in an optional absentSchema field, and logs one actionable line before rethrowing a real backup failure. OPERATIONS and switching-backends now say releases after v2.0.0 need no override for added columns or tables while v2.0.0 itself still does; the override stays explicit and one-upgrade.",
+        "breaking": "none",
+        "migration": "Upgrade: no schema migration, and the backup format version and retention are unchanged; absentSchema is an optional additive field the restore path never reads, and absent tables are omitted entirely so a restore cannot clear them. Rollback: reverting restores the strict snapshot and its missing-column failure, so the native backup guidance for older schemas still applies.",
+        "digest": "0e9edc3796798125cf78e732d1d5b2b166c155bbbee75014a9f42ec3f0eb131e"
       }
     },
     "configuration": {
@@ -734,7 +734,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "be6065dd23116ea5e25253a5ec4471d2c8aaa5c795a15ab87967b6f67b384e5d",
+        ".github/workflows/ci.yml": "b68e8f46f3f66baa8d8061fc737d235ba1fa91bda04a8be49e4da1130b5c5044",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -749,14 +749,14 @@
         "package.json": "37e213c0b4f6d7c73867f84d5cd05cd1a6e51e8a5d210c6c2789e2340cc9b38d",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "d053e749539c4dde3b4f76f8c9046a674a804d78530d246afebb22af376e020c",
+      "digest": "641c2efa27798a5e6bda0bbba819f7e1c67ddafcb4c66fd313694e1b3aeae976",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/ROADMAP.md", "deploy/docker/README.md"],
-        "note": "Document the v2.0.0 archive example correction and distinguish pre-tag version examples from post-publication immutable image pins. Release input help now uses the generic vX.Y.Z format; runtime, image channels and publication policy are unchanged.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "CI change only appends the new upgrade-old-schema test to the existing PostgreSQL test file list; no release, tag, image, channel, or promotion behavior changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "d053e749539c4dde3b4f76f8c9046a674a804d78530d246afebb22af376e020c"
+        "digest": "641c2efa27798a5e6bda0bbba819f7e1c67ddafcb4c66fd313694e1b3aeae976"
       }
     },
     "maintenance": {

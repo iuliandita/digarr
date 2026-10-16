@@ -8,6 +8,8 @@ export interface BackupFile {
   createdAt: string
   encryptionKeyHash: string | null
   includesCaches: boolean
+  // Tables and columns that did not exist in the source database (pre-migration snapshots only).
+  absentSchema?: { tables: string[]; columns: Record<string, string[]> }
   data: BackupData
 }
 
@@ -53,6 +55,7 @@ export interface RestoreResult {
 export interface BackupOptions {
   includeCaches?: boolean
   full?: boolean
+  tolerateMissingSchema?: boolean
 }
 
 export interface RestoreOptions {

@@ -180,7 +180,10 @@ describe('runPreFlightCheck', () => {
 
     expect(result.pendingCount).toBe(3)
     expect(result.backupSkipped).toBe(false)
-    expect(createBackupSnapshot).toHaveBeenCalledExactlyOnceWith(mockDb, { includeCaches: true })
+    expect(createBackupSnapshot).toHaveBeenCalledExactlyOnceWith(mockDb, {
+      includeCaches: true,
+      tolerateMissingSchema: true,
+    })
     expect(writeFileSync).toHaveBeenCalledTimes(1)
     expect(unlinkSync).toHaveBeenCalledTimes(1)
     expect(vi.mocked(writeFileSync).mock.invocationCallOrder[0]).toBeLessThan(
