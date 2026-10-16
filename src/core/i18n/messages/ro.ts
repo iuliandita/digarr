@@ -1344,6 +1344,8 @@ export const ro = {
   'service.notConfigured': 'Neconfigurat',
   'service.error': 'Eroare',
   'service.testing': 'Testare...',
+  'service.saved': 'Salvat',
+  'service.testPassed': 'Test reușit',
   'oauth.connectedTitle': 'Conectat',
   'oauth.connectedBody': '{0} este acum conectat.',
   'oauth.failedTitle': 'Conectare eșuată',

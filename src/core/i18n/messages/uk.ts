@@ -1341,6 +1341,8 @@ export const uk = {
   'service.notConfigured': 'Не налаштовано',
   'service.error': 'Помилка',
   'service.testing': 'Тестування...',
+  'service.saved': 'Збережено',
+  'service.testPassed': 'Перевірку пройдено',
   'oauth.connectedTitle': 'Підключено',
   'oauth.connectedBody': '{0} тепер підключено.',
   'oauth.failedTitle': 'Не вдалося підключити',

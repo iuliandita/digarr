@@ -1306,6 +1306,8 @@ export const ko = {
   'service.notConfigured': '미설정',
   'service.error': '오류',
   'service.testing': '테스트 중...',
+  'service.saved': '저장됨',
+  'service.testPassed': '테스트 통과',
   'oauth.connectedTitle': '연결됨',
   'oauth.connectedBody': '{0}이(가) 연결되었습니다.',
   'oauth.failedTitle': '연결 실패',

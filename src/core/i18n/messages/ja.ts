@@ -1323,6 +1323,8 @@ export const ja = {
   'service.notConfigured': '未設定',
   'service.error': 'エラー',
   'service.testing': 'テスト中...',
+  'service.saved': '保存済み',
+  'service.testPassed': 'テスト成功',
   'oauth.connectedTitle': '接続しました',
   'oauth.connectedBody': '{0}が接続されました。',
   'oauth.failedTitle': '接続に失敗しました',

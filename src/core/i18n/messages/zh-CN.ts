@@ -1232,6 +1232,8 @@ export const zhCN = {
   'service.notConfigured': '未配置',
   'service.error': '错误',
   'service.testing': '测试中...',
+  'service.saved': '已保存',
+  'service.testPassed': '测试通过',
   'oauth.connectedTitle': '已连接',
   'oauth.connectedBody': '{0} 现已连接。',
   'oauth.failedTitle': '连接失败',

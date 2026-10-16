@@ -1,10 +1,20 @@
+import { ChevronDown } from 'lucide-react'
 import type * as React from 'react'
-import { useId } from 'react'
+import { useId, useState } from 'react'
+import type { MessageKey } from '@/core/i18n/messages/types'
 import { useI18n } from '../lib/i18n'
+import { cn } from '../lib/utils'
 import { Button } from './ui/button'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './ui/card'
+import { Card } from './ui/card'
 
-type ServiceStatus = 'connected' | 'not_configured' | 'error' | 'testing'
+// `saved` means credentials are stored but not tested in this session; only OAuth uses `connected`.
+export type ServiceStatus =
+  | 'not_configured'
+  | 'saved'
+  | 'testing'
+  | 'test_passed'
+  | 'error'
+  | 'connected'
 
 export type ServiceCardProps = {
   name: string
@@ -12,82 +22,81 @@ export type ServiceCardProps = {
   status: ServiceStatus
   icon?: React.ReactNode
   onTest?: () => void
+  defaultOpen?: boolean
   children: React.ReactNode
+}
+
+const STATUS_STYLE: Record<ServiceStatus, { dot: string; text: string; label: MessageKey }> = {
+  not_configured: { dot: 'bg-muted', text: 'text-muted', label: 'service.notConfigured' },
+  saved: { dot: 'bg-muted', text: 'text-muted', label: 'service.saved' },
+  testing: { dot: 'bg-muted animate-pulse', text: 'text-muted', label: 'service.testing' },
+  test_passed: { dot: 'bg-approve', text: 'text-approve', label: 'service.testPassed' },
+  error: { dot: 'bg-reject', text: 'text-reject', label: 'service.error' },
+  connected: { dot: 'bg-approve', text: 'text-approve', label: 'service.connected' },
 }
 
 function StatusIndicator({ status }: { status: ServiceStatus }) {
   const { t } = useI18n()
-
-  if (status === 'testing') {
-    return (
-      <span className="flex items-center gap-1.5 text-xs text-muted">
-        <span className="inline-block h-2 w-2 rounded-full bg-muted animate-pulse" />
-        {t('service.testing')}
-      </span>
-    )
-  }
-
-  const dot: Record<Exclude<ServiceStatus, 'testing'>, string> = {
-    connected: 'bg-approve',
-    not_configured: 'bg-muted',
-    error: 'bg-reject',
-  }
-
-  const labelKey: Record<
-    Exclude<ServiceStatus, 'testing'>,
-    'service.connected' | 'service.notConfigured' | 'service.error'
-  > = {
-    connected: 'service.connected',
-    not_configured: 'service.notConfigured',
-    error: 'service.error',
-  }
-
-  const textColor: Record<Exclude<ServiceStatus, 'testing'>, string> = {
-    connected: 'text-approve',
-    not_configured: 'text-muted',
-    error: 'text-reject',
-  }
-
+  const style = STATUS_STYLE[status]
   return (
-    <span className={`flex items-center gap-1.5 text-xs ${textColor[status]}`}>
-      <span className={`inline-block h-2 w-2 rounded-full ${dot[status]}`} />
-      {t(labelKey[status])}
+    <span className={cn('flex shrink-0 items-center gap-1.5 text-caption', style.text)}>
+      <span className={cn('inline-block h-2 w-2 rounded-full', style.dot)} />
+      {t(style.label)}
     </span>
   )
 }
 
+/** Collapsed row with live status; the form stays mounted while closed so drafts survive. */
 export function ServiceCard({
   name,
   description,
   status,
   icon,
   onTest,
+  defaultOpen = false,
   children,
 }: ServiceCardProps) {
   const { t } = useI18n()
+  const [open, setOpen] = useState(defaultOpen)
   const titleId = useId()
+  const panelId = useId()
   return (
     <Card role="group" aria-labelledby={titleId}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle id={titleId}>
-            <span className="flex items-center gap-2">
-              {icon}
-              {name}
-            </span>
-          </CardTitle>
+      <h3>
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => setOpen((v) => !v)}
+          className="flex w-full items-center gap-3 rounded-surface px-4 py-3 text-left transition-colors hover:bg-surface-2 focus-ring"
+        >
+          <span
+            id={titleId}
+            className="flex min-w-0 flex-1 items-center gap-2 text-lead font-semibold text-text"
+          >
+            {icon}
+            {name}
+          </span>
           <StatusIndicator status={status} />
-        </div>
-        {description && <CardDescription>{description}</CardDescription>}
-      </CardHeader>
-      <CardContent className="space-y-3">{children}</CardContent>
-      {onTest && (
-        <CardFooter>
+          <ChevronDown
+            aria-hidden="true"
+            className={cn('h-4 w-4 shrink-0 text-muted transition-transform', open && 'rotate-180')}
+          />
+        </button>
+      </h3>
+      <div
+        id={panelId}
+        hidden={!open}
+        className="space-y-3 border-t border-border-subtle px-4 py-4"
+      >
+        {description && <p className="text-body text-muted">{description}</p>}
+        {children}
+        {onTest && (
           <Button variant="outline" size="sm" onClick={onTest} disabled={status === 'testing'}>
             {t('serviceCard.testConnection')}
           </Button>
-        </CardFooter>
-      )}
+        )}
+      </div>
     </Card>
   )
 }

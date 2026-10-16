@@ -1334,6 +1334,8 @@ export const en = {
   'service.notConfigured': 'Not configured',
   'service.error': 'Error',
   'service.testing': 'Testing...',
+  'service.saved': 'Saved',
+  'service.testPassed': 'Test passed',
 
   // OAuth connect callback banner
   'oauth.connectedTitle': 'Connected',

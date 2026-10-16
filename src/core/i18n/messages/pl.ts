@@ -1334,6 +1334,8 @@ export const pl = {
   'service.notConfigured': 'Nie skonfigurowany',
   'service.error': 'Błąd',
   'service.testing': 'Testowanie...',
+  'service.saved': 'Zapisano',
+  'service.testPassed': 'Test zaliczony',
   'oauth.connectedTitle': 'Połączono',
   'oauth.connectedBody': '{0} jest teraz połączony.',
   'oauth.failedTitle': 'Połączenie nieudane',

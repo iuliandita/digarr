@@ -16,6 +16,11 @@ vi.mock('@/web/lib/locale-storage', () => ({
   setStoredLocale: vi.fn(),
 }))
 
+async function expandService(name: string) {
+  const card = await screen.findByRole('group', { name: new RegExp(name) })
+  fireEvent.click(within(card).getAllByRole('button', { expanded: false })[0] as HTMLElement)
+}
+
 function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
   const client = new QueryClient({
     defaultOptions: { queries: { retry: false } },
@@ -908,6 +913,8 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(screen.getByText('ListenBrainz')).toBeInTheDocument()
     })
+    await expandService('ListenBrainz')
+    await expandService('Plex')
 
     expect(screen.getAllByRole('button', { name: 'Test Connection' })).toHaveLength(1)
 
@@ -937,6 +944,7 @@ describe('SettingsPage', () => {
     })
     vi.mocked(getPlexSections).mockResolvedValue({ sections: [{ key: '2', title: 'Music' }] })
     renderWithQuery(<SettingsPage />)
+    await expandService('Plex')
     expect(await screen.findByRole('option', { name: 'Music' })).toBeInTheDocument()
     expect(document.getElementById('plex-section')).toHaveValue('2')
     expect(mockTestService).not.toHaveBeenCalled()
@@ -992,6 +1000,7 @@ describe('SettingsPage', () => {
     })
     mockUpdateSettings.mockResolvedValue(undefined)
     renderWithQuery(<SettingsPage />)
+    await expandService('Plex')
     fireEvent.click(await screen.findByRole('button', { name: 'Test Connection' }))
     await screen.findByRole('option', { name: 'Listener' })
     expect(mockTestService).toHaveBeenCalledWith(

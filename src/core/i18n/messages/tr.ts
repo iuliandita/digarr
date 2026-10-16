@@ -1327,6 +1327,8 @@ export const tr = {
   'service.notConfigured': 'Yapilandirilmamis',
   'service.error': 'Hata',
   'service.testing': 'Test ediliyor...',
+  'service.saved': 'Kaydedildi',
+  'service.testPassed': 'Test başarılı',
   'oauth.connectedTitle': 'Bağlandı',
   'oauth.connectedBody': '{0} artık bağlı.',
   'oauth.failedTitle': 'Bağlantı başarısız',

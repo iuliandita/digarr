@@ -113,10 +113,7 @@ export function IntegrationCapabilities() {
   const { t } = useI18n()
 
   return (
-    <div className="mb-6 overflow-x-auto">
-      <h3 className="text-sm font-medium text-text mb-3">
-        {t('settings.integrationCapabilities')}
-      </h3>
+    <div className="overflow-x-auto">
       <table className="w-full text-sm border-collapse">
         <thead>
           <tr className="border-b border-border">

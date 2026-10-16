@@ -1342,6 +1342,8 @@ export const ptBR = {
   'service.notConfigured': 'Não configurado',
   'service.error': 'Erro',
   'service.testing': 'Testando...',
+  'service.saved': 'Salvo',
+  'service.testPassed': 'Teste aprovado',
   'oauth.connectedTitle': 'Conectado',
   'oauth.connectedBody': '{0} agora está conectado.',
   'oauth.failedTitle': 'Falha na conexão',

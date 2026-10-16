@@ -1351,6 +1351,8 @@ export const de = {
   'service.notConfigured': 'Nicht konfiguriert',
   'service.error': 'Fehler',
   'service.testing': 'Teste...',
+  'service.saved': 'Gespeichert',
+  'service.testPassed': 'Test bestanden',
   'oauth.connectedTitle': 'Verbunden',
   'oauth.connectedBody': '{0} ist jetzt verbunden.',
   'oauth.failedTitle': 'Verbindung fehlgeschlagen',

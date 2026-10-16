@@ -302,7 +302,7 @@ export function NotificationChannelsCard({
     <ServiceCard
       name={t('settings.channels.title')}
       description={t('settings.channels.description')}
-      status={channels.length > 0 ? 'connected' : 'not_configured'}
+      status={channels.length > 0 ? 'saved' : 'not_configured'}
       icon={<WebhookIcon />}
     >
       {channels.length === 0 && (

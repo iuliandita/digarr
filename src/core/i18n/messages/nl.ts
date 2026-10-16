@@ -1337,6 +1337,8 @@ export const nl = {
   'service.notConfigured': 'Niet geconfigureerd',
   'service.error': 'Fout',
   'service.testing': 'Testen...',
+  'service.saved': 'Opgeslagen',
+  'service.testPassed': 'Test geslaagd',
   'oauth.connectedTitle': 'Verbonden',
   'oauth.connectedBody': '{0} is nu verbonden.',
   'oauth.failedTitle': 'Verbinden mislukt',

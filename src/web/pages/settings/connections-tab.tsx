@@ -7,7 +7,7 @@ import { Field } from '../../components/field'
 import { GenreCoverageSummary } from '../../components/genre-coverage-summary'
 import { Hint } from '../../components/hint'
 import { IntegrationCapabilities } from '../../components/integration-capabilities'
-import { ServiceCard } from '../../components/service-card'
+import { ServiceCard, type ServiceStatus } from '../../components/service-card'
 import {
   AiProviderIcon,
   DeezerIcon,
@@ -24,6 +24,7 @@ import {
 } from '../../components/service-icons'
 import { Badge } from '../../components/ui/badge'
 import { Button } from '../../components/ui/button'
+import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import { Select } from '../../components/ui/select'
 import {
@@ -198,13 +199,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
     ),
   }
 
-  function serviceStatus(key: string): 'connected' | 'not_configured' | 'error' | 'testing' {
+  function serviceStatus(key: string): ServiceStatus {
     const t = tests[key]
     if (t === 'testing') return 'testing'
-    if (t === 'ok') return 'connected'
+    if (t === 'ok') return 'test_passed'
     if (t === 'error') return 'error'
-    // If no test has been run but the service has saved credentials, show as connected
-    if (configuredServices[key]) return 'connected'
+    if (configuredServices[key]) return 'saved'
     return 'not_configured'
   }
 
@@ -518,7 +518,6 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
         </div>
       ) : (
         <>
-          <IntegrationCapabilities />
           {/* Lidarr */}
           <div>
             <ServiceCard
@@ -817,6 +816,10 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
               </Button>
             </div>
           </ServiceCard>
+
+          <Disclosure title={t('settings.integrationCapabilities')}>
+            <IntegrationCapabilities />
+          </Disclosure>
         </>
       )}
 

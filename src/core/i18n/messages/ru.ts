@@ -1346,6 +1346,8 @@ export const ru = {
   'service.notConfigured': 'Не настроено',
   'service.error': 'Ошибка',
   'service.testing': 'Тестирование...',
+  'service.saved': 'Сохранено',
+  'service.testPassed': 'Проверка пройдена',
   'oauth.connectedTitle': 'Подключено',
   'oauth.connectedBody': '{0} теперь подключён.',
   'oauth.failedTitle': 'Не удалось подключиться',
