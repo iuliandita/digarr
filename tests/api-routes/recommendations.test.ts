@@ -30,7 +30,7 @@ describe('API routes: recommendations list', () => {
 
 describe('API routes: approve/reject', () => {
   it('rejects a recommendation', async () => {
-    const rec = makeRecommendation({ id: 2, status: 'pending' })
+    const rec = makeRecommendation({ id: 2, status: 'pending', userId: 1 })
     const { app, deps } = createTestApp({
       getRecommendation: vi.fn(async () => rec) as never,
       filterOwnedIds: vi.fn(async (ids: number[]) => ids),

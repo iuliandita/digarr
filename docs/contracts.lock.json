@@ -8,11 +8,7 @@
       "digest": "96e76d4f3c4a3a3e42dd5feb188e48e44c1eba22f3a535bf9ed2218d5585f514",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/unraid/digarr.xml",
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["deploy/unraid/digarr.xml", "docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Compared current upstream blobs and PR status on October 15 after independently reviewed personal PR5 merged. Bundled and published personal XML explain paired initial-account settings and existing-account no-op. Community bootstrap help remains tracked in issue843 alongside pending PR697. No variable, image channel, port, volume, permission or WebUI URL changes.",
         "breaking": "none",
         "migration": "",
@@ -213,10 +209,7 @@
       "digest": "923d92c617e4e4db200995438eaeaadf03f79574699aa184a0060a62400aa240",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
         "note": "Boolean env vars accept true/false/1/0 in any case and stop startup on other values; documented in a new Operations section with the upgrade check.",
         "breaking": "Deployments that set a boolean env var to a value other than true, false, 1 or 0 (case-insensitive) now fail to start instead of reading it as false.",
         "migration": "",
@@ -262,10 +255,7 @@
       "digest": "7b0cc67c99f5ad38d984060a993946754690322168080e407649c6997fdb8563",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/API.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/API.md"],
         "note": "Auth and user routes return a public projection with has<Field> flags instead of stored connection values; preference PATCH validates values with the settings schema; OAuth exchange and refresh logs redact posted secrets and JSON fields; refresh writes only over the generation it read; empty strings stay empty through field encryption.",
         "breaking": "API clients that read stored connection values from /auth/me, login, registration or /users must use the has<Field> flags; the values were never needed by the web UI.",
         "migration": "",
@@ -328,10 +318,7 @@
       "digest": "a55cd8db051f426fa6b445a1462a81730bf79a847ca683c354bea4a49bc27d25",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/API.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/API.md"],
         "note": "Pipeline cancel stops only the caller's run unless admin, drops only the caller's queued run and returns 403 when nothing is allowed; the SSE stream forwards only the caller's events; recommendation mutations require strict ownership; mood 502 bodies redact the configured AI key; preference values reuse the exported settings schema.",
         "breaking": "Non-owner, non-admin cancel requests now return 403 instead of stopping another user's run and clearing the whole queue.",
         "migration": "",
@@ -716,11 +703,7 @@
       "digest": "b2a60e3ce213868946dc54a7753f6b964f2e734c086e46b472dfd766c19921b4",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/API.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/API.md", "docs/OPERATIONS.md"],
         "note": "Provider retry redacts exact credential header values and honours the abort signal during Retry-After waits; redactSecrets handles JSON credential fields and exact secrets; notification transport keeps raw webhook URLs out of errors; orchestrator cancel is owner-scoped; startup runs the legacy plaintext encryption backfill after migrations.",
         "breaking": "none",
         "migration": "",
@@ -838,9 +821,7 @@
       "digest": "ba8258240c6e56f9a4961c5e1c8dd6c082aded17585d967b87ae107fba30e55d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "New i18n:spell and i18n:translate --stale scripts and the advisory i18n-spell CI job; usage is documented in the i18n messages README and the changelog",
         "breaking": "none",
         "migration": "",
