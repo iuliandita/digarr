@@ -410,6 +410,25 @@ describe('SettingsPage', () => {
     )
   })
 
+  it('only reports a passing test for the saved values', async () => {
+    setupMocks()
+    mockTestService.mockResolvedValue({ success: true, message: 'OK' })
+    renderWithQuery(<SettingsPage />)
+
+    const card = await screen.findByRole('group', { name: /Lidarr/ })
+    expect(within(card).getByText('Saved')).toBeInTheDocument()
+    await expandService('Lidarr')
+    fireEvent.click(within(card).getByRole('button', { name: 'Test Connection' }))
+    expect(await within(card).findByText('Test passed')).toBeInTheDocument()
+
+    fireEvent.change(within(card).getByLabelText('URL'), {
+      target: { value: 'http://other:8686' },
+    })
+    expect(within(card).getByText('Saved')).toBeInTheDocument()
+    fireEvent.click(within(card).getByRole('button', { name: 'Test Connection' }))
+    expect(await within(card).findByText('Test passed -- not saved yet')).toBeInTheDocument()
+  })
+
   it('defaults to Connections tab showing Lidarr section', async () => {
     setupMocks()
     renderWithQuery(<SettingsPage />)

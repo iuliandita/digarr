@@ -1084,6 +1084,7 @@ export const fr = {
   'settings.tidalDisconnected': 'TIDAL déconnecté',
   'settings.tidalDisconnectFailed': 'Échec de la déconnexion de TIDAL',
   'settings.tidalAuthorizationFailed': "Échec du démarrage de l'autorisation TIDAL",
+  'settings.tidalAppName': 'Application TIDAL',
   'settings.tidalDescription':
     "Source de recherche expérimentale utilisant l'accès par identifiants client TIDAL. Utilise des points de terminaison non documentés susceptibles de changer sans préavis.",
   'settings.yourAccount': 'votre compte',
@@ -1344,6 +1345,7 @@ export const fr = {
   'service.testing': 'Test...',
   'service.saved': 'Enregistré',
   'service.testPassed': 'Test réussi',
+  'service.testPassedUnsaved': 'Test réussi -- pas encore enregistré',
   'oauth.connectedTitle': 'Connecté',
   'oauth.connectedBody': '{0} est maintenant connecté.',
   'oauth.failedTitle': 'Échec de la connexion',

@@ -287,7 +287,7 @@ export function NotificationChannelsCard({
     <ServiceCard
       name={t('settings.channels.title')}
       description={t('settings.channels.description')}
-      status={channels.length > 0 ? 'saved' : 'not_configured'}
+      status={(settings.preferences?.channels?.length ?? 0) > 0 ? 'saved' : 'not_configured'}
       icon={<WebhookIcon />}
     >
       {channels.length === 0 && (
@@ -345,7 +345,14 @@ export function NotificationChannelsCard({
               </div>
             </div>
 
-            <Disclosure title={t('settings.advancedSettings')}>
+            <Disclosure
+              title={
+                <span>
+                  {t('settings.advancedSettings')}
+                  <span className="sr-only"> ({t(CHANNEL_TYPE_LABEL[channel.type])})</span>
+                </span>
+              }
+            >
               <div className="space-y-3">
                 {channel.type === 'ntfy' && (
                   <Field

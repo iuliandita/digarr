@@ -1071,6 +1071,7 @@ export const ja = {
   'settings.tidalDisconnected': 'TIDAL の接続を解除しました',
   'settings.tidalDisconnectFailed': 'TIDAL の接続解除に失敗しました',
   'settings.tidalAuthorizationFailed': 'TIDAL の認証を開始できませんでした',
+  'settings.tidalAppName': 'TIDAL アプリ',
   'settings.tidalDescription':
     'TIDALのクライアントクレデンシャルアクセスを使用する実験的な検索ソースです。仕様変更の可能性がある非公開のエンドポイントを使用します。',
   'settings.yourAccount': 'あなたのアカウント',
@@ -1325,6 +1326,7 @@ export const ja = {
   'service.testing': 'テスト中...',
   'service.saved': '保存済み',
   'service.testPassed': 'テスト成功',
+  'service.testPassedUnsaved': 'テスト成功 -- 未保存',
   'oauth.connectedTitle': '接続しました',
   'oauth.connectedBody': '{0}が接続されました。',
   'oauth.failedTitle': '接続に失敗しました',

@@ -1056,6 +1056,7 @@ export const ko = {
   'settings.tidalDisconnected': 'TIDAL 연결이 해제되었습니다',
   'settings.tidalDisconnectFailed': 'TIDAL 연결 해제에 실패했습니다',
   'settings.tidalAuthorizationFailed': 'TIDAL 인증을 시작하지 못했습니다',
+  'settings.tidalAppName': 'TIDAL 앱',
   'settings.tidalDescription':
     'TIDAL 클라이언트 자격 증명 액세스를 사용하는 실험적 검색 소스입니다. 예고 없이 변경될 수 있는 비공식 엔드포인트를 사용합니다.',
   'settings.yourAccount': '내 계정',
@@ -1308,6 +1309,7 @@ export const ko = {
   'service.testing': '테스트 중...',
   'service.saved': '저장됨',
   'service.testPassed': '테스트 통과',
+  'service.testPassedUnsaved': '테스트 통과 -- 아직 저장되지 않음',
   'oauth.connectedTitle': '연결됨',
   'oauth.connectedBody': '{0}이(가) 연결되었습니다.',
   'oauth.failedTitle': '연결 실패',

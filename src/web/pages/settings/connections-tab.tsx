@@ -130,6 +130,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
 
   const [tests, setTests] = useState<Record<string, ServiceTestState>>({})
   const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [dirty, setDirty] = useState<Record<string, boolean>>({})
 
   const queryClient = useQueryClient()
   const savedPlexToken = settings.plexToken === '***' ? '' : (settings.plexToken ?? '')
@@ -180,6 +181,11 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   function setTest(key: string, val: ServiceTestState) {
     setTests((prev) => ({ ...prev, [key]: val }))
   }
+  // An edit invalidates the last test; a passing test of an unsaved draft must not read as saved.
+  function markEdited(key: string) {
+    setTests((prev) => ({ ...prev, [key]: 'idle' }))
+    setDirty((prev) => ({ ...prev, [key]: true }))
+  }
   function setSave(key: string, val: boolean) {
     setSaving((prev) => ({ ...prev, [key]: val }))
   }
@@ -202,7 +208,9 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   function serviceStatus(key: string): ServiceStatus {
     const t = tests[key]
     if (t === 'testing') return 'testing'
-    if (t === 'ok') return 'test_passed'
+    if (t === 'ok') {
+      return dirty[key] || !configuredServices[key] ? 'test_passed_unsaved' : 'test_passed'
+    }
     if (t === 'error') return 'error'
     if (configuredServices[key]) return 'saved'
     return 'not_configured'
@@ -237,6 +245,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       setSave(key, true)
       try {
         await saveFn()
+        setDirty((prev) => ({ ...prev, [key]: false }))
         toast.success(formatLabelMessage('settings.serviceSettingsSavedToast', label))
         onSaved()
       } catch {
@@ -297,6 +306,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
         aiApiKey: aiApiKey || undefined,
         aiBaseUrl: aiBaseUrl || undefined,
       })
+      setDirty((prev) => ({ ...prev, ai: false }))
       toast.success(formatLabelMessage('settings.serviceSettingsSavedToast', aiProviderLabel))
       onSaved()
     } catch {
@@ -490,7 +500,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   return (
     <div className="space-y-4">
       <div>
-        <h3 className="text-lead font-semibold text-text">{t('settings.globalSettings')}</h3>
+        <h2 className="text-lead font-semibold text-text">{t('settings.globalSettings')}</h2>
         {!isAdmin && <p className="text-xs text-muted mt-1">{t('settings.adminOnly')}</p>}
       </div>
 
@@ -534,6 +544,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 </span>
               }
               status={serviceStatus('lidarr')}
+              onEdit={() => markEdited('lidarr')}
               icon={<LidarrIcon />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -647,6 +658,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 </span>
               }
               status={serviceStatus('ai')}
+              onEdit={() => markEdited('ai')}
               icon={<AiProviderIcon provider={aiProvider} />}
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -765,16 +777,15 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
 
           {/* TIDAL search */}
           <ServiceCard
-            name="TIDAL"
-            description={
-              <span>
-                {t('settings.tidalDescription')}{' '}
-                <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
-                  {t('search.experimental')}
-                </span>
+            name={t('settings.tidalAppName')}
+            description={t('settings.tidalDescription')}
+            badge={
+              <span className="rounded bg-warning/20 px-1.5 py-0.5 text-caption font-normal text-warning">
+                {t('search.experimental')}
               </span>
             }
             status={serviceStatus('tidal')}
+            onEdit={() => markEdited('tidal')}
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Field label={t('settings.fieldClientId')} id="tidal-client-id">
@@ -824,7 +835,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       )}
 
       <div className="pt-2">
-        <h3 className="text-lead font-semibold text-text">{t('settings.yourConnections')}</h3>
+        <h2 className="text-lead font-semibold text-text">{t('settings.yourConnections')}</h2>
         <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
       </div>
 
@@ -859,6 +870,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             </span>
           }
           status={serviceStatus('listenbrainz')}
+          onEdit={() => markEdited('listenbrainz')}
           icon={<ListenBrainzIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -929,6 +941,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             </span>
           }
           status={serviceStatus('lastfm')}
+          onEdit={() => markEdited('lastfm')}
           icon={<LastfmIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1194,12 +1207,10 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       <div>
         <ServiceCard
           name="TIDAL"
-          description={
-            <span>
-              {t('settings.tidalConnectDescription')}{' '}
-              <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
-                {t('search.experimental')}
-              </span>
+          description={t('settings.tidalConnectDescription')}
+          badge={
+            <span className="rounded bg-warning/20 px-1.5 py-0.5 text-caption font-normal text-warning">
+              {t('search.experimental')}
             </span>
           }
           status={tidalConnected ? 'connected' : 'not_configured'}
@@ -1264,6 +1275,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           name="Plex"
           description={t('settings.plexDescription')}
           status={serviceStatus('plex')}
+          onEdit={() => markEdited('plex')}
           icon={<PlexIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1365,6 +1377,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           name="Jellyfin"
           description={t('settings.jellyfinDescription')}
           status={serviceStatus('jellyfin')}
+          onEdit={() => markEdited('jellyfin')}
           icon={<JellyfinIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1450,6 +1463,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           name="Emby"
           description={t('settings.embyDescription')}
           status={serviceStatus('emby')}
+          onEdit={() => markEdited('emby')}
           icon={<EmbyIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1533,6 +1547,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           name="Subsonic"
           description={t('settings.subsonicDescription')}
           status={serviceStatus('subsonic')}
+          onEdit={() => markEdited('subsonic')}
           icon={<SubsonicIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1611,6 +1626,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             </span>
           }
           status={serviceStatus('discogs')}
+          onEdit={() => markEdited('discogs')}
           icon={<DiscogsIcon />}
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

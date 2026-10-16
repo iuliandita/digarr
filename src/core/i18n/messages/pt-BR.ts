@@ -1085,6 +1085,7 @@ export const ptBR = {
   'settings.tidalDisconnected': 'TIDAL desconectado',
   'settings.tidalDisconnectFailed': 'Falha ao desconectar o TIDAL',
   'settings.tidalAuthorizationFailed': 'Falha ao iniciar a autorização do TIDAL',
+  'settings.tidalAppName': 'App do TIDAL',
   'settings.tidalDescription':
     'Fonte de busca experimental que usa acesso por credenciais de cliente do TIDAL. Utiliza endpoints não documentados que podem mudar sem aviso prévio.',
   'settings.yourAccount': 'sua conta',
@@ -1344,6 +1345,7 @@ export const ptBR = {
   'service.testing': 'Testando...',
   'service.saved': 'Salvo',
   'service.testPassed': 'Teste aprovado',
+  'service.testPassedUnsaved': 'Teste aprovado -- ainda não salvo',
   'oauth.connectedTitle': 'Conectado',
   'oauth.connectedBody': '{0} agora está conectado.',
   'oauth.failedTitle': 'Falha na conexão',

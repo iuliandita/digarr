@@ -13,6 +13,7 @@ export type ServiceStatus =
   | 'saved'
   | 'testing'
   | 'test_passed'
+  | 'test_passed_unsaved'
   | 'error'
   | 'connected'
 
@@ -21,7 +22,11 @@ export type ServiceCardProps = {
   description?: React.ReactNode
   status: ServiceStatus
   icon?: React.ReactNode
+  /** Shown in the collapsed row, for notices that must stay visible (e.g. Experimental). */
+  badge?: React.ReactNode
   onTest?: () => void
+  /** Fires on any field change inside the panel, so callers can drop stale test results. */
+  onEdit?: () => void
   defaultOpen?: boolean
   children: React.ReactNode
 }
@@ -31,6 +36,11 @@ const STATUS_STYLE: Record<ServiceStatus, { dot: string; text: string; label: Me
   saved: { dot: 'bg-muted', text: 'text-muted', label: 'service.saved' },
   testing: { dot: 'bg-muted animate-pulse', text: 'text-muted', label: 'service.testing' },
   test_passed: { dot: 'bg-approve', text: 'text-approve', label: 'service.testPassed' },
+  test_passed_unsaved: {
+    dot: 'bg-warning',
+    text: 'text-warning',
+    label: 'service.testPassedUnsaved',
+  },
   error: { dot: 'bg-reject', text: 'text-reject', label: 'service.error' },
   connected: { dot: 'bg-approve', text: 'text-approve', label: 'service.connected' },
 }
@@ -52,7 +62,9 @@ export function ServiceCard({
   description,
   status,
   icon,
+  badge,
   onTest,
+  onEdit,
   defaultOpen = false,
   children,
 }: ServiceCardProps) {
@@ -76,6 +88,7 @@ export function ServiceCard({
           >
             {icon}
             {name}
+            {badge}
           </span>
           <StatusIndicator status={status} />
           <ChevronDown
@@ -87,6 +100,7 @@ export function ServiceCard({
       <div
         id={panelId}
         hidden={!open}
+        onChange={onEdit}
         className="space-y-3 border-t border-border-subtle px-4 py-4"
       >
         {description && <p className="text-body text-muted">{description}</p>}

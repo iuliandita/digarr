@@ -1071,6 +1071,7 @@ export const tr = {
   'settings.tidalDisconnected': 'TIDAL bağlantısı kesildi',
   'settings.tidalDisconnectFailed': 'TIDAL bağlantısı kesilemedi',
   'settings.tidalAuthorizationFailed': 'TIDAL yetkilendirmesi başlatılamadı',
+  'settings.tidalAppName': 'TIDAL uygulaması',
   'settings.tidalDescription':
     'TIDAL istemci kimlik bilgileri erişimini kullanan deneysel bir arama kaynağı. Önceden haber verilmeden değişebilecek belgelenmemiş uç noktalar kullanır.',
   'settings.yourAccount': 'hesabiniz',
@@ -1329,6 +1330,7 @@ export const tr = {
   'service.testing': 'Test ediliyor...',
   'service.saved': 'Kaydedildi',
   'service.testPassed': 'Test başarılı',
+  'service.testPassedUnsaved': 'Test başarılı -- henüz kaydedilmedi',
   'oauth.connectedTitle': 'Bağlandı',
   'oauth.connectedBody': '{0} artık bağlı.',
   'oauth.failedTitle': 'Bağlantı başarısız',

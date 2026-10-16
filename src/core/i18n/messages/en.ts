@@ -1079,6 +1079,7 @@ export const en = {
   'settings.tidalDisconnected': 'TIDAL disconnected',
   'settings.tidalDisconnectFailed': 'Failed to disconnect TIDAL',
   'settings.tidalAuthorizationFailed': 'Failed to start TIDAL authorization',
+  'settings.tidalAppName': 'TIDAL app',
   'settings.tidalDescription':
     'Experimental search source using TIDAL client-credentials access. Uses undocumented endpoints that may change without notice.',
   'settings.yourAccount': 'your account',
@@ -1336,6 +1337,7 @@ export const en = {
   'service.testing': 'Testing...',
   'service.saved': 'Saved',
   'service.testPassed': 'Test passed',
+  'service.testPassedUnsaved': 'Test passed -- not saved yet',
 
   // OAuth connect callback banner
   'oauth.connectedTitle': 'Connected',

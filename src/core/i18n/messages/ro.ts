@@ -1088,6 +1088,7 @@ export const ro = {
   'settings.tidalDisconnected': 'TIDAL deconectat',
   'settings.tidalDisconnectFailed': 'Deconectarea TIDAL a eșuat',
   'settings.tidalAuthorizationFailed': 'Pornirea autorizării TIDAL a eșuat',
+  'settings.tidalAppName': 'Aplicație TIDAL',
   'settings.tidalDescription':
     'Sursă de căutare experimentală care utilizează acces prin credențiale de client TIDAL. Folosește puncte finale nedocumentate care se pot schimba fără notificare.',
   'settings.yourAccount': 'contul dvs.',
@@ -1346,6 +1347,7 @@ export const ro = {
   'service.testing': 'Testare...',
   'service.saved': 'Salvat',
   'service.testPassed': 'Test reușit',
+  'service.testPassedUnsaved': 'Test reușit -- încă nesalvat',
   'oauth.connectedTitle': 'Conectat',
   'oauth.connectedBody': '{0} este acum conectat.',
   'oauth.failedTitle': 'Conectare eșuată',

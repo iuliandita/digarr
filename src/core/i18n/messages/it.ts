@@ -1087,6 +1087,7 @@ export const it = {
   'settings.tidalDisconnected': 'TIDAL scollegato',
   'settings.tidalDisconnectFailed': 'Impossibile scollegare TIDAL',
   'settings.tidalAuthorizationFailed': "Impossibile avviare l'autorizzazione TIDAL",
+  'settings.tidalAppName': 'App TIDAL',
   'settings.tidalDescription':
     "Fonte di ricerca sperimentale che utilizza l'accesso tramite credenziali client TIDAL. Utilizza endpoint non documentati che potrebbero cambiare senza preavviso.",
   'settings.yourAccount': 'il tuo account',
@@ -1347,6 +1348,7 @@ export const it = {
   'service.testing': 'Verifica...',
   'service.saved': 'Salvato',
   'service.testPassed': 'Test superato',
+  'service.testPassedUnsaved': 'Test superato -- non ancora salvato',
   'oauth.connectedTitle': 'Collegato',
   'oauth.connectedBody': '{0} è ora collegato.',
   'oauth.failedTitle': 'Connessione non riuscita',

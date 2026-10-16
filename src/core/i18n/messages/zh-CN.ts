@@ -996,6 +996,7 @@ export const zhCN = {
   'settings.tidalDisconnected': '已断开 TIDAL 连接',
   'settings.tidalDisconnectFailed': '断开 TIDAL 连接失败',
   'settings.tidalAuthorizationFailed': '无法启动 TIDAL 授权',
+  'settings.tidalAppName': 'TIDAL 应用',
   'settings.tidalDescription':
     '实验性搜索源，使用 TIDAL 客户端凭据访问。使用未记录的接口，可能随时变更且不另行通知。',
   'settings.yourAccount': '你的账户',
@@ -1234,6 +1235,7 @@ export const zhCN = {
   'service.testing': '测试中...',
   'service.saved': '已保存',
   'service.testPassed': '测试通过',
+  'service.testPassedUnsaved': '测试通过 -- 尚未保存',
   'oauth.connectedTitle': '已连接',
   'oauth.connectedBody': '{0} 现已连接。',
   'oauth.failedTitle': '连接失败',

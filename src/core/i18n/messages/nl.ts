@@ -1079,6 +1079,7 @@ export const nl = {
   'settings.tidalDisconnected': 'TIDAL losgekoppeld',
   'settings.tidalDisconnectFailed': 'TIDAL loskoppelen mislukt',
   'settings.tidalAuthorizationFailed': 'Starten van TIDAL-autorisatie mislukt',
+  'settings.tidalAppName': 'TIDAL-app',
   'settings.tidalDescription':
     'Experimentele zoekbron die gebruikmaakt van TIDAL-clientgegevens. Gebruikt ongedocumenteerde eindpunten die zonder waarschuwing kunnen veranderen.',
   'settings.yourAccount': 'jouw account',
@@ -1339,6 +1340,7 @@ export const nl = {
   'service.testing': 'Testen...',
   'service.saved': 'Opgeslagen',
   'service.testPassed': 'Test geslaagd',
+  'service.testPassedUnsaved': 'Test geslaagd -- nog niet opgeslagen',
   'oauth.connectedTitle': 'Verbonden',
   'oauth.connectedBody': '{0} is nu verbonden.',
   'oauth.failedTitle': 'Verbinden mislukt',

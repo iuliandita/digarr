@@ -1084,6 +1084,7 @@ export const uk = {
   'settings.tidalDisconnected': 'TIDAL відключено',
   'settings.tidalDisconnectFailed': 'Не вдалося відключити TIDAL',
   'settings.tidalAuthorizationFailed': 'Не вдалося розпочати авторизацію TIDAL',
+  'settings.tidalAppName': 'Застосунок TIDAL',
   'settings.tidalDescription':
     'Експериментальне джерело пошуку, що використовує доступ за клієнтськими обліковими даними TIDAL. Використовує недокументовані кінцеві точки, які можуть змінитися без попередження.',
   'settings.yourAccount': 'ваш акаунт',
@@ -1343,6 +1344,7 @@ export const uk = {
   'service.testing': 'Тестування...',
   'service.saved': 'Збережено',
   'service.testPassed': 'Перевірку пройдено',
+  'service.testPassedUnsaved': 'Перевірку пройдено -- ще не збережено',
   'oauth.connectedTitle': 'Підключено',
   'oauth.connectedBody': '{0} тепер підключено.',
   'oauth.failedTitle': 'Не вдалося підключити',

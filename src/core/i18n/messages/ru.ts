@@ -1089,6 +1089,7 @@ export const ru = {
   'settings.tidalDisconnected': 'TIDAL отключен',
   'settings.tidalDisconnectFailed': 'Не удалось отключить TIDAL',
   'settings.tidalAuthorizationFailed': 'Не удалось начать авторизацию TIDAL',
+  'settings.tidalAppName': 'Приложение TIDAL',
   'settings.tidalDescription':
     'Экспериментальный источник поиска, использующий доступ по клиентским учётным данным TIDAL. Использует недокументированные конечные точки, которые могут измениться без предупреждения.',
   'settings.yourAccount': 'ваш аккаунт',
@@ -1348,6 +1349,7 @@ export const ru = {
   'service.testing': 'Тестирование...',
   'service.saved': 'Сохранено',
   'service.testPassed': 'Проверка пройдена',
+  'service.testPassedUnsaved': 'Проверка пройдена -- ещё не сохранено',
   'oauth.connectedTitle': 'Подключено',
   'oauth.connectedBody': '{0} теперь подключён.',
   'oauth.failedTitle': 'Не удалось подключиться',
