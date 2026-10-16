@@ -184,15 +184,6 @@ export async function resolveTracksForArtistDetailed(
   }
 }
 
-export async function resolveTracksForArtist(
-  artistName: string,
-  artistMbid: string | undefined,
-  deps: TrackResolverDeps,
-  config: TrackResolverConfig,
-): Promise<ResolvedTrack[]> {
-  return (await resolveTracksForArtistDetailed(artistName, artistMbid, deps, config)).tracks
-}
-
 export async function resolvePlaylistTracksDetailed(
   artists: { name: string; mbid?: string }[],
   deps: TrackResolverDeps,
@@ -204,15 +195,5 @@ export async function resolvePlaylistTracksDetailed(
     artists.map((artist) =>
       queue.add(() => resolveTracksForArtistDetailed(artist.name, artist.mbid, deps, config)),
     ),
-  )
-}
-
-export async function resolvePlaylistTracks(
-  artists: { name: string; mbid?: string }[],
-  deps: TrackResolverDeps,
-  config: TrackResolverConfig,
-): Promise<ResolvedTrack[]> {
-  return (await resolvePlaylistTracksDetailed(artists, deps, config)).flatMap(
-    (result) => result.tracks,
   )
 }

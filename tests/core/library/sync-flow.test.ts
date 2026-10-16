@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { LibrarySource } from '@/core/library/sources/types'
 import { createLibrarySyncStore } from '@/core/library/store'
 import { createSyncOrchestrator } from '@/core/library/sync'
+import { dbSuiteEnabled } from '../../helpers/require-db'
 
 const RADIOHEAD_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
 const PORTISHEAD_MBID = '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11'
@@ -12,11 +13,7 @@ const LIDARR_SOURCE_ID = 'lidarr-sync-flow'
 const PLEX_SOURCE_ID = 'plex-sync-flow'
 const GLOBAL_ANCHOR_NAME = 'Digarr Sync Flow Anchor'
 const EXACT_MATCH_NAME = 'Digarr Sync Flow Exact'
-const SHOULD_RUN =
-  process.env.DATABASE_URL !== undefined ||
-  (process.env.DB_HOST !== undefined &&
-    process.env.DB_USER !== undefined &&
-    process.env.DB_NAME !== undefined)
+const SHOULD_RUN = dbSuiteEnabled()
 let db: import('@/db').Database
 let libraryAlbums: typeof import('@/db/schema').libraryAlbums
 let libraryArtists: typeof import('@/db/schema').libraryArtists

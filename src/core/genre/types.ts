@@ -7,11 +7,3 @@ export type GenreInfo = {
   artistCount: number
   cachedAt: Date | null
 }
-
-export type GenreArtistResult = {
-  name: string
-  mbid?: string
-  tags: string[]
-  listenerCount?: number
-  source: string
-}

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { cellSafe, parseCell, parseCsvRow } from '@/core/csv/cell-safe'
+import { cellSafe, parseCsvRow } from '@/core/csv/cell-safe'
 
 describe('cellSafe (export-side sanitization)', () => {
   it('strips leading formula-trigger characters', () => {
@@ -27,25 +27,6 @@ describe('cellSafe (export-side sanitization)', () => {
     expect(cellSafe('Artist Name')).toBe('Artist Name')
     expect(cellSafe('')).toBe('')
     expect(cellSafe('simple123')).toBe('simple123')
-  })
-})
-
-describe('parseCell (import-side sanitization)', () => {
-  it('unquotes and de-escapes RFC 4180 quoted fields', () => {
-    expect(parseCell('"a, b"')).toBe('a, b')
-    expect(parseCell('"a ""b"" c"')).toBe('a "b" c')
-    expect(parseCell('"line1\nline2"')).toBe('line1\nline2')
-  })
-
-  it('strips formula-trigger prefixes after unquoting', () => {
-    expect(parseCell('=bad')).toBe('bad')
-    expect(parseCell('"=HYPERLINK(evil)"')).toBe('HYPERLINK(evil)')
-    expect(parseCell('+risk')).toBe('risk')
-  })
-
-  it('passes through plain fields', () => {
-    expect(parseCell('Radiohead')).toBe('Radiohead')
-    expect(parseCell('')).toBe('')
   })
 })
 

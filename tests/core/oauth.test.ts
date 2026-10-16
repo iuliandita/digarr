@@ -49,6 +49,15 @@ beforeAll(async () => {
       return
     }
 
+    if (url.pathname === '/token-no-refresh' && req.method === 'POST') {
+      sendJson(res, 200, {
+        access_token: 'new-access-token',
+        expires_in: 3600,
+        token_type: 'Bearer',
+      })
+      return
+    }
+
     if (url.pathname === '/token-fail' && req.method === 'POST') {
       sendJson(res, 401, { error: 'invalid_grant' })
       return
@@ -190,13 +199,18 @@ describe('getValidToken()', () => {
     } as never)
     vi.mocked(updateRefreshedOAuthToken).mockResolvedValue(true)
 
-    await getValidToken(mockDb, 1, 'spotify', refreshConfig)
+    await getValidToken(mockDb, 1, 'spotify', {
+      ...refreshConfig,
+      tokenEndpoint: tokenEndpoint.replace('/token', '/token-no-refresh'),
+    })
 
-    // The mock server returns a new refresh_token, so it uses that.
     expect(updateRefreshedOAuthToken).toHaveBeenCalledWith(
       mockDb,
       expect.anything(),
-      expect.objectContaining({ accessToken: 'new-access-token' }),
+      expect.objectContaining({
+        accessToken: 'new-access-token',
+        refreshToken: 'original-refresh',
+      }),
     )
   })
 

@@ -59,7 +59,6 @@ const mockGenreService = {
   getSubGenres: vi.fn(async () => [mockGenres[1]]),
   seedFromLibrary: vi.fn(async () => {}),
   slugify: vi.fn((name: string) => name.toLowerCase().replace(/\s+/g, '-')),
-  isStale: vi.fn(() => false),
 }
 
 function makeChainableMockDb() {

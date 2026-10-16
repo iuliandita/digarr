@@ -66,7 +66,6 @@ const mockGenreService = {
   getSubGenres: vi.fn(async () => []),
   seedFromLibrary: vi.fn(async () => {}),
   slugify: vi.fn((name: string) => name.toLowerCase()),
-  isStale: vi.fn(() => false),
 }
 
 function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
