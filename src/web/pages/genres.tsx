@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { GenreInfo } from '../../core/genre/types'
+import { DiscoverTabs } from '../components/discover-tabs'
 import { GenreGrid } from '../components/genre-grid'
 import { Hint } from '../components/hint'
 import { Input } from '../components/ui/input'
@@ -79,6 +80,7 @@ export function GenresPage() {
           {pullY >= PULL_THRESHOLD ? t('common.releaseToRefresh') : t('common.pullToRefresh')}
         </div>
       )}
+      <DiscoverTabs />
       {/* Header + search */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="flex-1">

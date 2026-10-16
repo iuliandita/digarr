@@ -32,7 +32,8 @@ export function KeyboardShortcuts({ open, onClose }: KeyboardShortcutsProps) {
   useEffect(() => {
     if (!open) return
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
+      // `?` toggles the dialog; page shortcuts are suspended while it is open
+      if (e.key === 'Escape' || e.key === '?') {
         e.preventDefault()
         onClose()
       }

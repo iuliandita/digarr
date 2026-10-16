@@ -167,23 +167,24 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await installAuthCookie(page)
 
   await page.goto('/')
-  await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
-  await page.getByRole('menuitem', { name: messages['nav.discoveryModes'] }).click()
+  const mainNav = page.getByRole('navigation', { name: messages['app.mainNavigation'] })
+  await mainNav.getByRole('link', { name: messages['nav.discover'], exact: true }).click()
+  await expect(page).toHaveURL('/discover')
+  const discoverTabs = page.getByRole('navigation', { name: messages['nav.discover'] })
+  await discoverTabs.getByRole('link', { name: messages['nav.discoveryModes'] }).click()
   await expect(page).toHaveURL('/discover/modes')
   await expect(
     page.getByRole('heading', { name: messages['discover.discoveryModes'] }),
   ).toBeVisible()
-  await expect(page.getByRole('link', { name: messages['nav.recommendations'] })).toBeVisible()
-  await page.getByRole('button', { name: messages['nav.discover'], exact: true }).click()
   await expect(
-    page.getByRole('button', { name: messages['nav.discover'], exact: true }),
-  ).toHaveClass(/text-accent/)
-  await expect(page.getByRole('menuitem', { name: messages['nav.recommendations'] })).toHaveClass(
-    /text-text/,
-  )
-  await expect(page.getByRole('menuitem', { name: messages['nav.discoveryModes'] })).toHaveClass(
-    /text-accent/,
-  )
+    mainNav.getByRole('link', { name: messages['nav.discover'], exact: true }),
+  ).toHaveAttribute('aria-current', 'page')
+  await expect(
+    discoverTabs.getByRole('link', { name: messages['nav.discoveryModes'] }),
+  ).toHaveAttribute('aria-current', 'page')
+  await expect(
+    discoverTabs.getByRole('link', { name: messages['nav.recommendations'] }),
+  ).not.toHaveAttribute('aria-current', 'page')
   await expect(
     page.getByRole('heading', { name: messages['discoveryMode.listenbrainz.label'] }),
   ).toBeVisible()

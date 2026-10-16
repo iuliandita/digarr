@@ -16,7 +16,7 @@ import { Field } from '../components/field'
 import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import { IntegrationCapabilities } from '../components/integration-capabilities'
-import { LanguageSwitcher } from '../components/language-switcher'
+import { LanguageSelect } from '../components/language-switcher'
 import { OAuthCallbackNotice } from '../components/oauth-callback-notice'
 import { ServiceCard } from '../components/service-card'
 import {
@@ -3966,7 +3966,7 @@ function AccountTab() {
           {t('settings.language')}
         </h2>
         <Field label={t('common.language')} id="preferred-locale">
-          <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+          <LanguageSelect id="preferred-locale" value={locale} onChange={handleLocaleChange} />
         </Field>
       </section>
 

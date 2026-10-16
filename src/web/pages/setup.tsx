@@ -555,7 +555,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
         )}
 
         <div className="mt-4 flex justify-center">
-          <LanguageSwitcher value={locale} onChange={setLocale} />
+          <LanguageSwitcher value={locale} onChange={setLocale} placement="top" />
         </div>
       </div>
     </div>

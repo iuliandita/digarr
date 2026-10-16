@@ -1,35 +1,19 @@
 import { QueryClientProvider, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
-  BarChart3,
   ChevronDown,
-  Compass,
-  Disc3,
-  HeartPulse,
-  LayoutDashboard,
-  ListMusic,
   LogOut,
   Monitor,
   Moon,
-  Music,
   RefreshCw,
-  Search,
   Settings,
   Sun,
   User,
-  Users,
+  Wrench,
 } from 'lucide-react'
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
-import {
-  BrowserRouter,
-  Navigate,
-  NavLink,
-  Route,
-  Routes,
-  useLocation,
-  useSearchParams,
-} from 'react-router-dom'
+import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
-import { normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
+import { getLocaleLabel, normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
 import { errMsg } from '@/core/validation'
 import { CHANNEL, GIT_SHA, VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
@@ -39,8 +23,8 @@ import { KeyboardShortcuts } from './components/keyboard-shortcuts'
 import { LanguageSwitcher } from './components/language-switcher'
 import { PreviewPlayer } from './components/preview-player'
 import { useAuditionQueue } from './hooks/use-audition-queue'
-import { useClickOutside } from './hooks/use-click-outside'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
+import { useMenu } from './hooks/use-menu'
 import { usePreview } from './hooks/use-preview'
 import {
   AUTH_EXPIRED_EVENT,
@@ -53,6 +37,7 @@ import {
   updatePreferredLocale,
 } from './lib/api'
 import { useI18n } from './lib/i18n'
+import { isSettingsActive, type NavItem, PRIMARY_NAV, TOOLS_NAV } from './lib/nav'
 import { PreviewContext } from './lib/preview-context'
 import { queryClient } from './lib/query-client'
 import { broadcastSessionChanged } from './lib/session-broadcast'
@@ -66,6 +51,7 @@ import {
   setStoredColorTheme,
   setStoredMode,
 } from './lib/theme'
+import { cn } from './lib/utils'
 // Eager: dashboard is the default landing surface and setup gates the entire app
 import { Dashboard } from './pages/dashboard'
 import { SetupWizard } from './pages/setup'
@@ -136,63 +122,97 @@ function MobileMenuIcon({ open }: { open: boolean }) {
   )
 }
 
-// Nav dropdown
+// Nav
 
-function NavDropdown({
-  label,
-  icon,
-  items,
-}: {
-  label: string
-  icon: React.ReactNode
-  items: { to: string; label: string; icon: React.ReactNode; end?: boolean; active?: boolean }[]
-}) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
+function useRouteKey() {
+  const { pathname, search } = useLocation()
+  return pathname + search
+}
+
+function navItemClass(active: boolean) {
+  return cn(
+    'inline-flex min-h-9 items-center gap-1.5 rounded-control px-2.5 text-body font-medium transition-colors focus-ring',
+    active ? 'bg-surface-2 text-text' : 'text-muted hover:bg-surface-2 hover:text-text',
+  )
+}
+
+function iconButtonClass(active = false) {
+  return cn(
+    'flex h-11 w-11 items-center justify-center rounded-control transition-colors focus-ring md:h-9 md:w-9',
+    active ? 'bg-surface-2 text-text' : 'text-muted hover:bg-surface-2 hover:text-text',
+  )
+}
+
+const MENU_CLASS =
+  'absolute top-full z-50 mt-2 rounded-surface border border-border bg-surface py-1 shadow-menu'
+
+const MENU_ITEM_CLASS =
+  'flex w-full items-center gap-2 px-3 py-2 text-left text-body transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring'
+
+function PrimaryNavLink({ item }: { item: NavItem }) {
+  const { t } = useI18n()
   const location = useLocation()
-
-  useClickOutside(ref, () => setOpen(false), open)
-
-  const isActive = items.some((item) => {
-    if (item.active !== undefined) return item.active
-    const path = item.to.split('?')[0]
-    return item.end
-      ? location.pathname === path
-      : location.pathname === path || location.pathname.startsWith(`${path}/`)
-  })
-
+  const active = item.isActive(location)
+  const label = t(item.labelKey)
   return (
-    <div ref={ref} className="relative">
+    <Link
+      to={item.to}
+      aria-current={active ? 'page' : undefined}
+      aria-label={label}
+      title={label}
+      className={navItemClass(active)}
+    >
+      <item.icon size={16} aria-hidden="true" className="xl:hidden" />
+      <span className="hidden xl:inline">{label}</span>
+    </Link>
+  )
+}
+
+function ToolsMenu() {
+  const { t } = useI18n()
+  const location = useLocation()
+  const menu = useMenu(useRouteKey())
+  const active = TOOLS_NAV.some((item) => item.isActive(location))
+  return (
+    <div ref={menu.containerRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        aria-expanded={open}
-        aria-haspopup="menu"
-        className={`flex items-center gap-1 rounded-md text-sm transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-accent' : 'text-muted hover:text-text'}`}
+        {...menu.triggerProps}
+        aria-label={t('nav.tools')}
+        title={t('nav.tools')}
+        className={navItemClass(active)}
       >
-        {icon} {label}
-        <ChevronDown size={12} className={`transition-transform ${open ? 'rotate-180' : ''}`} />
+        <Wrench size={16} aria-hidden="true" className="xl:hidden" />
+        <span className="hidden xl:inline">{t('nav.tools')}</span>
+        <ChevronDown
+          size={14}
+          aria-hidden="true"
+          className={cn('transition-transform', menu.open && 'rotate-180')}
+        />
       </button>
-      {open && (
+      {menu.open && (
         <div
+          {...menu.menuProps}
           role="menu"
-          className="absolute top-full left-0 mt-2 w-48 bg-surface border border-border rounded-lg shadow-lg py-1 z-50"
+          aria-label={t('nav.tools')}
+          className={cn(MENU_CLASS, 'left-0 w-56')}
         >
-          {items.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.end}
-              role="menuitem"
-              onClick={() => setOpen(false)}
-              className={({ isActive: navActive }) => {
-                const active = item.active ?? navActive
-                return `flex items-center gap-2 px-3 py-2 text-sm transition-colors ${active ? 'text-accent bg-accent/5' : 'text-text hover:bg-bg'}`
-              }}
-            >
-              {item.icon} {item.label}
-            </NavLink>
-          ))}
+          {TOOLS_NAV.map((item) => {
+            const itemActive = item.isActive(location)
+            return (
+              <Link
+                key={item.to}
+                to={item.to}
+                role="menuitem"
+                tabIndex={-1}
+                aria-current={itemActive ? 'page' : undefined}
+                className={cn(MENU_ITEM_CLASS, itemActive ? 'text-accent' : 'text-text')}
+              >
+                <item.icon size={16} aria-hidden="true" className="shrink-0 text-muted" />
+                {t(item.labelKey)}
+              </Link>
+            )
+          })}
         </div>
       )}
     </div>
@@ -213,75 +233,93 @@ function ThemePicker({
   onColorThemeChange: (t: ColorTheme) => void
 }) {
   const { t } = useI18n()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useClickOutside(ref, () => setOpen(false), open)
-
+  const menu = useMenu(useRouteKey())
   const ModeIcon = mode === 'dark' ? Moon : mode === 'light' ? Sun : Monitor
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative" ref={menu.containerRef}>
       <button
         type="button"
-        onClick={() => setOpen(!open)}
-        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
+        {...menu.triggerProps}
+        className={iconButtonClass()}
         aria-label={t('app.themeSettings')}
-        aria-expanded={open}
-        aria-haspopup="menu"
         title={t('app.theme')}
       >
-        <ModeIcon size={18} />
+        <ModeIcon size={18} aria-hidden="true" />
       </button>
-      {open && (
+      {menu.open && (
         <div
+          {...menu.menuProps}
           role="menu"
-          className="absolute right-0 top-full mt-1 w-48 bg-surface border border-border rounded-lg shadow-lg z-50 py-1"
+          aria-label={t('app.themeSettings')}
+          className={cn(MENU_CLASS, 'right-0 w-56')}
         >
-          <div className="px-3 py-1.5 text-micro uppercase tracking-wider text-muted">
-            {t('app.themeMode')}
-          </div>
-          {(['dark', 'light', 'system'] as const).map((m) => {
-            const Icon = m === 'dark' ? Moon : m === 'light' ? Sun : Monitor
-            const label =
-              m === 'dark'
-                ? t('app.themeModeDark')
-                : m === 'light'
-                  ? t('app.themeModeLight')
-                  : t('app.themeModeSystem')
-            return (
-              <button
-                key={m}
-                type="button"
-                role="menuitem"
-                onClick={() => onModeChange(m)}
-                className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-bg transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] ${mode === m ? 'text-accent' : 'text-text'}`}
-              >
-                <Icon size={14} />
-                <span>{label}</span>
-              </button>
-            )
-          })}
-          <div className="border-t border-border my-1" />
+          <fieldset className="m-0 border-0 p-0">
+            <legend className="px-3 py-1.5 text-caption text-muted">{t('app.themeMode')}</legend>
+            {(['dark', 'light', 'system'] as const).map((m) => {
+              const Icon = m === 'dark' ? Moon : m === 'light' ? Sun : Monitor
+              const label =
+                m === 'dark'
+                  ? t('app.themeModeDark')
+                  : m === 'light'
+                    ? t('app.themeModeLight')
+                    : t('app.themeModeSystem')
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={mode === m}
+                  tabIndex={-1}
+                  onClick={() => onModeChange(m)}
+                  className={cn(MENU_ITEM_CLASS, mode === m ? 'text-accent' : 'text-text')}
+                >
+                  <Icon size={14} aria-hidden="true" />
+                  <span>{label}</span>
+                </button>
+              )
+            })}
+          </fieldset>
+          <hr className="my-1 border-border" />
           <div className="max-h-[320px] overflow-y-auto">
             {(['Editor', 'Streaming'] as const).map((group) => (
-              <div key={group}>
-                <div className="px-3 py-1.5 text-micro uppercase tracking-wider text-muted sticky top-0 bg-surface">
+              <fieldset
+                key={group}
+                aria-label={
+                  group === 'Editor' ? t('app.themeGroupEditor') : t('app.themeGroupStreaming')
+                }
+                className="m-0 border-0 p-0"
+              >
+                <div
+                  aria-hidden="true"
+                  className="sticky top-0 bg-surface px-3 py-1.5 text-caption text-muted"
+                >
                   {group === 'Editor' ? t('app.themeGroupEditor') : t('app.themeGroupStreaming')}
                 </div>
-                {COLOR_THEMES.filter((t) => t.group === group).map((t) => (
+                {COLOR_THEMES.filter((theme) => theme.group === group).map((theme) => (
                   <button
-                    key={t.id}
+                    key={theme.id}
                     type="button"
-                    role="menuitem"
-                    onClick={() => onColorThemeChange(t.id)}
-                    className={`w-full flex items-center gap-2 px-3 py-1.5 text-sm hover:bg-bg transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-[-2px] ${colorTheme === t.id ? 'text-accent' : 'text-text'}`}
+                    role="menuitemradio"
+                    aria-checked={colorTheme === theme.id}
+                    tabIndex={-1}
+                    onClick={() => onColorThemeChange(theme.id)}
+                    className={cn(
+                      MENU_ITEM_CLASS,
+                      colorTheme === theme.id ? 'text-accent' : 'text-text',
+                    )}
                   >
-                    <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
-                    {t.name}
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        'h-2 w-2 shrink-0 rounded-full',
+                        colorTheme === theme.id ? 'bg-accent' : 'bg-border',
+                      )}
+                    />
+                    {theme.name}
                   </button>
                 ))}
-              </div>
+              </fieldset>
             ))}
           </div>
         </div>
@@ -292,10 +330,7 @@ function ThemePicker({
 
 function UserMenu({ username }: { username: string }) {
   const { t } = useI18n()
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useClickOutside(ref, () => setOpen(false), open)
+  const menu = useMenu(useRouteKey())
 
   async function handleLogout() {
     try {
@@ -309,43 +344,61 @@ function UserMenu({ username }: { username: string }) {
   }
 
   return (
-    <div ref={ref} className="relative">
+    <div ref={menu.containerRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="flex h-11 w-11 items-center justify-center rounded-md text-muted transition-colors hover:text-text focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:h-9 sm:w-9"
+        {...menu.triggerProps}
+        className={iconButtonClass()}
         aria-label={username}
-        aria-expanded={open}
-        aria-haspopup="menu"
         title={username}
       >
-        <User size={18} />
+        <User size={18} aria-hidden="true" />
       </button>
-      {open && (
-        <div className="absolute right-0 top-full mt-1 w-48 bg-surface border border-border rounded-lg shadow-lg z-50 py-1">
-          <div className="px-3 py-2 border-b border-border">
-            <p className="text-sm font-medium text-text truncate">{username}</p>
-          </div>
-          <NavLink
-            to="/settings?tab=account"
-            onClick={() => setOpen(false)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-text hover:bg-bg transition-colors"
+      {menu.open && (
+        <div
+          {...menu.menuProps}
+          role="menu"
+          aria-label={username}
+          className={cn(MENU_CLASS, 'right-0 w-56')}
+        >
+          <p
+            aria-hidden="true"
+            className="truncate border-b border-border px-3 pb-2 pt-1 text-body font-medium text-text"
           >
-            <Settings size={14} />
+            {username}
+          </p>
+          <Link
+            to="/settings?tab=account"
+            role="menuitem"
+            tabIndex={-1}
+            className={cn(MENU_ITEM_CLASS, 'text-text')}
+          >
+            <Settings size={14} aria-hidden="true" className="text-muted" />
             {t('app.userMenu.settings')}
-          </NavLink>
+          </Link>
           <button
             type="button"
+            role="menuitem"
+            tabIndex={-1}
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-muted hover:text-text hover:bg-bg transition-colors"
+            className={cn(MENU_ITEM_CLASS, 'text-text')}
           >
-            <LogOut size={14} />
+            <LogOut size={14} aria-hidden="true" className="text-muted" />
             {t('app.userMenu.logout')}
           </button>
         </div>
       )}
     </div>
   )
+}
+
+function AdminRoute({ children }: { children: React.ReactNode }) {
+  const { data: currentUser, isPending } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+  })
+  if (isPending) return null
+  return currentUser?.isAdmin ? children : <Navigate to="/" replace />
 }
 
 function AppShell({ children }: { children: React.ReactNode }) {
@@ -443,20 +496,14 @@ function AppShell({ children }: { children: React.ReactNode }) {
     return () => mq.removeEventListener('change', handler)
   }, [mode, colorTheme])
 
-  // The Discover and Albums dropdown entries share the /discover pathname and
-  // differ only by ?kind=album, so compute their active state off the search
-  // param to avoid both highlighting at once.
   const location = useLocation()
-  const [searchParams] = useSearchParams()
-  const onDiscover = location.pathname === '/discover'
-  const albumsActive = onDiscover && searchParams.get('kind') === 'album'
-  const discoverActive = onDiscover && searchParams.get('kind') !== 'album'
+  const isAdmin = currentUser?.isAdmin ?? false
+  const settingsActive = isSettingsActive(location)
 
-  const navLinkClass = ({ isActive }: { isActive: boolean }) =>
-    isActive ? 'text-text' : 'text-muted hover:text-text'
-
-  const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex min-h-11 items-center rounded-md px-2 py-2 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 ${isActive ? 'text-text' : 'text-muted hover:text-text'}`
+  // biome-ignore lint/correctness/useExhaustiveDependencies: close the mobile menu on navigation
+  useEffect(() => {
+    setMenuOpen(false)
+  }, [location.pathname, location.search])
 
   return (
     <PreviewContext.Provider
@@ -474,94 +521,29 @@ function AppShell({ children }: { children: React.ReactNode }) {
     >
       <div className="min-h-screen bg-bg">
         <nav
-          className="border-b border-border px-4 sm:px-6 py-3"
+          className="border-b border-border px-4 py-2 sm:px-6"
           aria-label={t('app.mainNavigation')}
         >
-          <div className="max-w-6xl mx-auto flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <NavLink to="/" className="text-xl font-bold text-accent hover:opacity-90">
+          <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-4 lg:gap-6">
+              <Link to="/" className="text-title font-bold text-accent focus-ring rounded-control">
                 digarr
-              </NavLink>
-              {/* Desktop nav links - grouped */}
-              <div className="hidden sm:flex items-center gap-4">
-                <NavLink to="/" end className={navLinkClass}>
-                  <span className="flex items-center gap-1">
-                    <LayoutDashboard size={14} aria-hidden="true" />
-                    {t('nav.dashboard')}
-                  </span>
-                </NavLink>
-                <NavLink to="/search" className={navLinkClass}>
-                  <span className="flex items-center gap-1">
-                    <Search size={14} aria-hidden="true" />
-                    {t('nav.search')}
-                  </span>
-                </NavLink>
-                <NavDropdown
-                  label={t('nav.discover')}
-                  icon={<Compass size={14} aria-hidden="true" />}
-                  items={[
-                    {
-                      to: '/discover',
-                      end: true,
-                      active: discoverActive,
-                      label: t('nav.recommendations'),
-                      icon: <Compass size={14} />,
-                    },
-                    {
-                      to: '/discover?kind=album',
-                      end: true,
-                      active: albumsActive,
-                      label: t('nav.albums'),
-                      icon: <Disc3 size={14} />,
-                    },
-                    {
-                      to: '/discover/modes',
-                      end: true,
-                      label: t('nav.discoveryModes'),
-                      icon: <Compass size={14} />,
-                    },
-                    { to: '/genres', label: t('nav.genres'), icon: <Music size={14} /> },
-                    {
-                      to: '/subscriptions',
-                      label: t('nav.subscriptions'),
-                      icon: <Monitor size={14} />,
-                    },
-                    { to: '/playlists', label: t('nav.playlists'), icon: <ListMusic size={14} /> },
-                  ]}
-                />
-                {currentUser?.isAdmin && (
-                  <NavDropdown
-                    label={t('nav.library')}
-                    icon={<HeartPulse size={14} aria-hidden="true" />}
-                    items={[
-                      {
-                        to: '/library/health',
-                        label: t('nav.health'),
-                        icon: <HeartPulse size={14} />,
-                      },
-                      {
-                        to: '/library/reconciliation',
-                        label: t('nav.reconciliation'),
-                        icon: <RefreshCw size={14} />,
-                      },
-                      {
-                        to: '/analytics',
-                        label: t('nav.analytics'),
-                        icon: <BarChart3 size={14} />,
-                      },
-                    ]}
-                  />
+              </Link>
+              <ul className="hidden items-center gap-1 md:flex">
+                {PRIMARY_NAV.map((item) => (
+                  <li key={item.to}>
+                    <PrimaryNavLink item={item} />
+                  </li>
+                ))}
+                {isAdmin && (
+                  <li>
+                    <ToolsMenu />
+                  </li>
                 )}
-                <NavLink to="/settings" className={navLinkClass}>
-                  <span className="flex items-center gap-1">
-                    <Settings size={14} aria-hidden="true" />
-                    {t('nav.settings')}
-                  </span>
-                </NavLink>
-              </div>
+              </ul>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="hidden sm:block">
+            <div className="flex items-center gap-1">
+              <div className="hidden md:block">
                 <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
               </div>
               <ThemePicker
@@ -570,6 +552,15 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 onModeChange={handleModeChange}
                 onColorThemeChange={handleColorThemeChange}
               />
+              <Link
+                to="/settings"
+                aria-label={t('nav.settings')}
+                title={t('nav.settings')}
+                aria-current={settingsActive ? 'page' : undefined}
+                className={cn(iconButtonClass(settingsActive), 'hidden sm:flex')}
+              >
+                <Settings size={18} aria-hidden="true" />
+              </Link>
               {currentUser && <UserMenu username={currentUser.username} />}
               <button
                 type="button"
@@ -589,169 +580,80 @@ function AppShell({ children }: { children: React.ReactNode }) {
                       toast.error(errMsg(err))
                     })
                 }
-                className="flex min-h-11 items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-fg hover:opacity-90 focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 disabled:opacity-60 sm:min-h-9 sm:px-4"
+                className="ml-1 flex min-h-11 items-center gap-1.5 whitespace-nowrap rounded-control bg-accent px-3 py-1.5 text-body font-medium text-accent-fg transition-colors hover:bg-accent-hover focus-ring disabled:opacity-60 md:min-h-9 lg:px-4"
               >
                 {pipelineRunning ? (
                   <>
-                    <RefreshCw size={14} className="animate-spin" />
-                    <span className="hidden sm:inline">{t('app.scanning')}</span>
-                    <span className="sm:hidden">{t('app.scan')}</span>
+                    <RefreshCw size={14} className="animate-spin" aria-hidden="true" />
+                    <span className="hidden lg:inline">{t('app.scanning')}</span>
+                    <span className="lg:hidden">{t('app.scan')}</span>
                   </>
                 ) : (
                   <>
-                    <span className="hidden sm:inline">{t('app.runScan')}</span>
-                    <span className="sm:hidden">{t('app.scan')}</span>
+                    <span className="hidden lg:inline">{t('app.runScan')}</span>
+                    <span className="lg:hidden">{t('app.scan')}</span>
                   </>
                 )}
               </button>
-              {/* Mobile hamburger */}
+              {/* Mobile: language and admin tools; daily pages live in the bottom nav */}
               <button
                 type="button"
                 onClick={() => setMenuOpen((v) => !v)}
-                className="flex h-11 w-11 items-center justify-center rounded-md focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2 sm:hidden"
+                aria-expanded={menuOpen}
+                aria-controls="mobile-menu"
+                className={cn(iconButtonClass(menuOpen), 'md:hidden')}
                 aria-label={t('app.toggleMenu')}
               >
                 <MobileMenuIcon open={menuOpen} />
               </button>
             </div>
           </div>
-          {/* Mobile nav dropdown */}
           {menuOpen && (
-            <div className="sm:hidden flex flex-col gap-1 pt-3 pb-1">
-              <div className="px-2 py-2">
-                <LanguageSwitcher value={locale} onChange={handleLocaleChange} />
+            <div id="mobile-menu" className="flex flex-col gap-1 pb-2 pt-3 md:hidden">
+              <div className="flex items-center gap-2 px-2 py-1 text-body text-muted">
+                <LanguageSwitcher
+                  value={locale}
+                  onChange={handleLocaleChange}
+                  placement="bottom-start"
+                  testId="language-switcher-mobile"
+                />
+                <span lang={locale}>{getLocaleLabel(locale)}</span>
               </div>
-              <NavLink to="/" end className={mobileNavLinkClass} onClick={() => setMenuOpen(false)}>
-                <span className="flex items-center gap-1.5">
-                  <LayoutDashboard size={14} aria-hidden="true" />
-                  {t('nav.dashboard')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/search"
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Search size={14} aria-hidden="true" />
-                  {t('nav.search')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/discover"
-                end
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Compass size={14} aria-hidden="true" />
-                  {t('nav.discover')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/discover/modes"
-                end
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Compass size={14} aria-hidden="true" />
-                  {t('nav.discoveryModes')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/genres"
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Music size={14} aria-hidden="true" />
-                  {t('nav.genres')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/playlists"
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <ListMusic size={14} aria-hidden="true" />
-                  {t('nav.playlists')}
-                </span>
-              </NavLink>
-              <NavLink
-                to="/subscriptions"
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
-              >
-                <span className="flex items-center gap-1.5">
-                  <Monitor size={14} aria-hidden="true" />
-                  {t('nav.subscriptions')}
-                </span>
-              </NavLink>
-              {currentUser?.isAdmin && (
-                <NavLink
-                  to="/library/health"
-                  className={mobileNavLinkClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <HeartPulse size={14} aria-hidden="true" />
-                    {t('nav.library')}
-                  </span>
-                </NavLink>
-              )}
-              {currentUser?.isAdmin && (
-                <NavLink
-                  to="/library/reconciliation"
-                  className={mobileNavLinkClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <RefreshCw size={14} aria-hidden="true" />
-                    {t('nav.reconciliation')}
-                  </span>
-                </NavLink>
-              )}
-              {currentUser?.isAdmin && (
-                <NavLink
-                  to="/analytics"
-                  className={mobileNavLinkClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <BarChart3 size={14} aria-hidden="true" />
-                    {t('nav.analytics')}
-                  </span>
-                </NavLink>
-              )}
-              <NavLink
+              <Link
                 to="/settings"
-                className={mobileNavLinkClass}
-                onClick={() => setMenuOpen(false)}
+                aria-current={settingsActive ? 'page' : undefined}
+                className={cn(navItemClass(settingsActive), 'min-h-11 w-full sm:hidden')}
               >
-                <span className="flex items-center gap-1.5">
-                  <Settings size={14} aria-hidden="true" />
-                  {t('nav.settings')}
-                </span>
-              </NavLink>
-              {currentUser?.isAdmin && (
-                <NavLink
-                  to="/users"
-                  className={mobileNavLinkClass}
-                  onClick={() => setMenuOpen(false)}
-                >
-                  <span className="flex items-center gap-1.5">
-                    <Users size={14} aria-hidden="true" />
-                    {t('nav.users')}
-                  </span>
-                </NavLink>
+                <Settings size={16} aria-hidden="true" />
+                {t('nav.settings')}
+              </Link>
+              {isAdmin && (
+                <>
+                  <p className="px-2 pt-2 text-caption text-muted">{t('nav.tools')}</p>
+                  <ul className="flex flex-col">
+                    {TOOLS_NAV.map((item) => {
+                      const active = item.isActive(location)
+                      return (
+                        <li key={item.to}>
+                          <Link
+                            to={item.to}
+                            aria-current={active ? 'page' : undefined}
+                            className={cn(navItemClass(active), 'min-h-11 w-full')}
+                          >
+                            <item.icon size={16} aria-hidden="true" />
+                            {t(item.labelKey)}
+                          </Link>
+                        </li>
+                      )
+                    })}
+                  </ul>
+                </>
               )}
             </div>
           )}
         </nav>
-        {/* Main content - add pb-16 on mobile so bottom nav doesn't overlap */}
-        <main className="pb-16 md:pb-0">{children}</main>
+        {/* Mobile padding clears the fixed bottom nav and the home-indicator inset */}
+        <main className="pb-[calc(3.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
         <BottomNav />
         <KeyboardShortcuts open={shortcutsOpen} onClose={() => setShortcutsOpen(false)} />
         <PreviewPlayer
@@ -840,7 +742,14 @@ function InnerApp() {
                   path="/settings/system-health"
                   element={<Navigate to="/settings?tab=system-health" replace />}
                 />
-                <Route path="/users" element={<UserManagementPage />} />
+                <Route
+                  path="/users"
+                  element={
+                    <AdminRoute>
+                      <UserManagementPage />
+                    </AdminRoute>
+                  }
+                />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
             </Suspense>

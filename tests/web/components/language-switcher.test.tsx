@@ -202,6 +202,11 @@ function renderWithAppShell() {
   return renderWithProviders(<App />)
 }
 
+function chooseLanguage(switcher: HTMLElement, name: string) {
+  fireEvent.click(switcher)
+  fireEvent.click(screen.getByRole('menuitemradio', { name }))
+}
+
 describe('language switcher surfaces', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -314,9 +319,9 @@ describe('language switcher surfaces', () => {
     )
 
     const switcher = await screen.findByLabelText('Language')
-    fireEvent.change(switcher, { target: { value: 'de' } })
+    chooseLanguage(switcher, 'Deutsch')
 
-    expect(switcher).toHaveValue('de')
+    expect(switcher).toHaveAttribute('title', 'Deutsch')
     expect(mockSetStoredLocale).toHaveBeenCalledWith('de')
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
   })
@@ -326,7 +331,7 @@ describe('language switcher surfaces', () => {
     renderWithProviders(<LanguageSwitcher value="en" onChange={onChange} />)
 
     const switcher = screen.getByLabelText('Language')
-    fireEvent.change(switcher, { target: { value: 'de' } })
+    chooseLanguage(switcher, 'Deutsch')
 
     expect(onChange).toHaveBeenCalledWith('de')
   })
@@ -336,8 +341,7 @@ describe('language switcher surfaces', () => {
 
     renderWithProviders(<LanguageSwitcher value="fr" onChange={vi.fn()} />)
 
-    expect(screen.getByText('Langue')).toBeInTheDocument()
-    expect(screen.getByRole('combobox', { name: 'Langue' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Langue' })).toHaveAttribute('title', 'Français')
   })
 
   it('persists authenticated locale changes without snapping back to stale account data', async () => {
@@ -360,9 +364,9 @@ describe('language switcher surfaces', () => {
     renderWithAppShell()
 
     const switcher = await screen.findByLabelText('Language')
-    fireEvent.change(switcher, { target: { value: 'de' } })
+    chooseLanguage(switcher, 'Deutsch')
     await waitFor(() => {
-      expect(switcher).toHaveValue('de')
+      expect(switcher).toHaveAttribute('title', 'Deutsch')
     })
 
     userRequest.resolve({
@@ -373,7 +377,7 @@ describe('language switcher surfaces', () => {
     })
 
     await waitFor(() => {
-      expect(switcher).toHaveValue('de')
+      expect(switcher).toHaveAttribute('title', 'Deutsch')
     })
 
     localeRequest.resolve({ success: true, preferredLocale: 'de' })
@@ -382,7 +386,7 @@ describe('language switcher surfaces', () => {
       expect(mockUpdatePreferredLocale.mock.calls[0]?.[0]).toBe('de')
     })
     await waitFor(() => {
-      expect(switcher).toHaveValue('de')
+      expect(switcher).toHaveAttribute('title', 'Deutsch')
     })
   })
 })

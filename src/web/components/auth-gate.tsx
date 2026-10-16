@@ -352,8 +352,8 @@ function LoginForm({
               </button>
             </div>
           </form>
-          <div className="mt-4 flex justify-center">
-            <LanguageSwitcher value={locale} onChange={setLocale} />
+          <div className="mt-4 flex justify-end">
+            <LanguageSwitcher value={locale} onChange={setLocale} placement="top-end" />
           </div>
         </CardContent>
       </Card>
@@ -450,8 +450,8 @@ function RegisterForm({
               {t('auth.alreadyHaveAccount')}
             </button>
           </form>
-          <div className="mt-4 flex justify-center">
-            <LanguageSwitcher value={locale} onChange={setLocale} />
+          <div className="mt-4 flex justify-end">
+            <LanguageSwitcher value={locale} onChange={setLocale} placement="top-end" />
           </div>
         </CardContent>
       </Card>

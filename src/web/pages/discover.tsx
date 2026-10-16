@@ -10,6 +10,7 @@ import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
 import { ConfirmDialog } from '../components/confirm-dialog'
+import { DiscoverTabs } from '../components/discover-tabs'
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
@@ -1139,6 +1140,7 @@ export function DiscoverPage() {
       {...pullHandlers}
     >
       <h1 className="sr-only">{t('discover.title')}</h1>
+      <DiscoverTabs className="mx-6 mt-2" />
       {preview.audition.unavailable?.length > 0 && (
         <section
           className="rounded-lg border border-border bg-surface p-4 text-sm"

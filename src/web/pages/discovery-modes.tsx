@@ -1,5 +1,7 @@
-import { Link, useSearchParams } from 'react-router-dom'
+import { useSearchParams } from 'react-router-dom'
+import { DiscoverTabs } from '../components/discover-tabs'
 import { DiscoveryModesSection } from '../components/discovery-modes-section'
+import { PageHeader } from '../components/ui/page-header'
 import { useI18n } from '../lib/i18n'
 
 export function DiscoveryModesPage() {
@@ -8,16 +10,12 @@ export function DiscoveryModesPage() {
   const requestedModeId = searchParams.get('mode')
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 px-6 py-6">
-      <div className="space-y-3">
-        <Link to="/discover" className="text-sm text-accent underline">
-          {t('nav.recommendations')}
-        </Link>
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-text">{t('discover.discoveryModes')}</h1>
-          <p className="text-sm text-muted">{t('discover.discoveryModesDescription')}</p>
-        </div>
-      </div>
+    <div className="max-w-6xl mx-auto space-y-6 p-4 sm:p-6">
+      <DiscoverTabs />
+      <PageHeader
+        title={t('discover.discoveryModes')}
+        description={t('discover.discoveryModesDescription')}
+      />
 
       <DiscoveryModesSection requestedModeId={requestedModeId} />
     </div>

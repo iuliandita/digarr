@@ -13,11 +13,16 @@ test.describe('Language switching', () => {
     await page.goto('/')
 
     const languageSwitcher = page.getByTestId('language-switcher')
-    await expect(languageSwitcher).toHaveValue('en')
+    await expect(languageSwitcher).toHaveAttribute('title', 'English')
     await expect(page.getByRole('button', { name: english['auth.signIn'] })).toBeVisible()
 
-    await languageSwitcher.selectOption('fr')
-    await expect(languageSwitcher).toHaveValue('fr')
+    await languageSwitcher.click()
+    await expect(page.getByRole('menuitemradio', { name: 'English' })).toHaveAttribute(
+      'aria-checked',
+      'true',
+    )
+    await page.getByRole('menuitemradio', { name: 'Français' }).click()
+    await expect(languageSwitcher).toHaveAttribute('title', 'Français')
     await expect(page.getByRole('button', { name: french['auth.signIn'] })).toBeVisible()
     await expect
       .poll(() => page.evaluate(() => window.localStorage.getItem('digarr-locale')))
@@ -25,7 +30,7 @@ test.describe('Language switching', () => {
 
     await page.reload()
 
-    await expect(languageSwitcher).toHaveValue('fr')
+    await expect(languageSwitcher).toHaveAttribute('title', 'Français')
     await expect(page.getByRole('button', { name: french['auth.signIn'] })).toBeVisible()
   })
 
@@ -44,9 +49,10 @@ test.describe('Language switching', () => {
     await expect(page.getByRole('link', { name: english['nav.dashboard'] })).toBeVisible()
     await expect(page.getByRole('button', { name: english['auth.signIn'] })).toHaveCount(0)
 
-    await languageSwitcher.selectOption('fr')
+    await languageSwitcher.click()
+    await page.getByRole('menuitemradio', { name: 'Français' }).click()
 
-    await expect(languageSwitcher).toHaveValue('fr')
+    await expect(languageSwitcher).toHaveAttribute('title', 'Français')
     await expect(page.getByRole('link', { name: french['nav.dashboard'] })).toBeVisible()
     await expect(page.getByRole('button', { name: french['auth.signIn'] })).toHaveCount(0)
   })

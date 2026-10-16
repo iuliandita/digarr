@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
@@ -13,7 +14,9 @@ function renderWithQuery(ui: ReactElement) {
 
   return render(
     <I18nProvider>
-      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+      <QueryClientProvider client={client}>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </QueryClientProvider>
     </I18nProvider>,
   )
 }
