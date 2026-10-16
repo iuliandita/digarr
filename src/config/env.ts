@@ -26,7 +26,10 @@ function envOrFile(key: string): string | undefined {
 function envBool(key: string, fallback = false): boolean {
   const val = process.env[key]
   if (!val) return fallback
-  return val === 'true' || val === '1'
+  const normalized = val.trim().toLowerCase()
+  if (normalized === 'true' || normalized === '1') return true
+  if (normalized === 'false' || normalized === '0') return false
+  throw new Error(`${key} must be true, false, 1, or 0`)
 }
 
 function envInt(key: string): number | undefined {
