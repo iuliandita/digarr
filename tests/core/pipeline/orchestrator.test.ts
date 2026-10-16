@@ -1229,7 +1229,7 @@ describe('PipelineOrchestrator', () => {
       // Request cancellation from inside discover; the checkpoint before the
       // resolve stage then aborts the run.
       mockDiscover.mockImplementation(async () => {
-        orchestrator.cancel()
+        orchestrator.cancel(1)
         return discovered
       })
 
@@ -1252,7 +1252,7 @@ describe('PipelineOrchestrator', () => {
       expect(orchestrator.isRunning).toBe(false)
     })
 
-    it('clears the queue so a queued run does not start after a stop', async () => {
+    it('drops only the caller queued runs and refuses to stop another user run', async () => {
       const db = makeDb()
       // Hold the first run in discover until we release it, so a second run can
       // queue behind it before we cancel.
@@ -1283,14 +1283,31 @@ describe('PipelineOrchestrator', () => {
       expect(second.status).toBe('queued')
       expect(orchestrator.queueLength).toBe(1)
 
-      const result = orchestrator.cancel()
-      expect(result.cancelled).toBe(true)
+      expect(orchestrator.cancel(3)).toEqual({ cancelled: false, dequeued: 0, forbidden: true })
+      expect(orchestrator.cancel(2)).toEqual({ cancelled: false, dequeued: 1, forbidden: false })
       expect(orchestrator.queueLength).toBe(0)
+      expect(orchestrator.isRunning).toBe(true)
 
+      orchestrator.enqueue({
+        db,
+        settings: defaultSettings,
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 2,
+      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
+      expect(orchestrator.cancel(3, { canStopOthers: true })).toEqual({
+        cancelled: true,
+        dequeued: 0,
+        forbidden: false,
+      })
+      expect(orchestrator.queueLength).toBe(1)
+
+      const owners: unknown[] = []
+      orchestrator.on('progress', (e: { userId?: number }) => owners.push(e.userId))
       release()
-      // Let the aborted run settle.
-      await new Promise((r) => setTimeout(r, 0))
-      expect(orchestrator.isRunning).toBe(false)
+      // The aborted run settles, then user 2's queued run starts.
+      await vi.waitFor(() => expect(owners).toContain(2))
+      expect(orchestrator.queueLength).toBe(0)
     })
 
     it('keeps ownership beyond the old grace period until store and cancel bookkeeping settle', async () => {
@@ -1342,7 +1359,7 @@ describe('PipelineOrchestrator', () => {
         const run = orchestrator.run(deps)
         const rejection = expect(run).rejects.toBeInstanceOf(PipelineCancelledError)
         await stored
-        expect(orchestrator.cancel()).toEqual({ cancelled: true })
+        expect(orchestrator.cancel(1)).toMatchObject({ cancelled: true })
         await vi.advanceTimersByTimeAsync(16_000)
         expect(orchestrator.isRunning).toBe(true)
         expect(terminal).not.toHaveBeenCalled()
@@ -1396,7 +1413,7 @@ describe('PipelineOrchestrator', () => {
         jobRecorder,
       })
       await entered
-      expect(orchestrator.cancel()).toEqual({ cancelled: false })
+      expect(orchestrator.cancel(1)).toMatchObject({ cancelled: false })
       expect(orchestrator.isRunning).toBe(true)
       expect(terminal).not.toHaveBeenCalled()
       release()
@@ -1418,7 +1435,7 @@ describe('PipelineOrchestrator', () => {
         markStuck: vi.fn(),
       }
       mockDiscover.mockImplementationOnce(async () => {
-        orchestrator.cancel()
+        orchestrator.cancel(1)
         return discovered
       })
       const errors = vi.fn()
@@ -1485,7 +1502,7 @@ describe('PipelineOrchestrator', () => {
 
     it('reports nothing to cancel when idle', () => {
       expect(orchestrator.isRunning).toBe(false)
-      expect(orchestrator.cancel()).toEqual({ cancelled: false })
+      expect(orchestrator.cancel(1)).toMatchObject({ cancelled: false })
     })
   })
 })

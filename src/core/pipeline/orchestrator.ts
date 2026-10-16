@@ -707,12 +707,25 @@ export class PipelineOrchestrator extends EventEmitter {
     })
   }
 
-  /** Stop at a safe boundary after in-flight writes and their bookkeeping settle. */
-  cancel(): { cancelled: boolean } {
-    this.queue = []
-    if (!this.running || this.completionCommitted) return { cancelled: false }
+  /**
+   * Stop at a safe boundary after in-flight writes and their bookkeeping settle.
+   * Drops only the caller's queued runs; the in-flight run stops only for its
+   * owner or with `canStopOthers` (admin). `forbidden` means nothing was allowed.
+   */
+  cancel(
+    userId: number | undefined,
+    { canStopOthers = false }: { canStopOthers?: boolean } = {},
+  ): { cancelled: boolean; dequeued: number; forbidden: boolean } {
+    const before = this.queue.length
+    this.queue = this.queue.filter((q) => q.userId !== userId)
+    const dequeued = before - this.queue.length
+    if (!this.running) return { cancelled: false, dequeued, forbidden: false }
+    if (!canStopOthers && this._currentUserId !== userId) {
+      return { cancelled: false, dequeued, forbidden: dequeued === 0 }
+    }
+    if (this.completionCommitted) return { cancelled: false, dequeued, forbidden: false }
     this.abort?.abort()
-    return { cancelled: true }
+    return { cancelled: true, dequeued, forbidden: false }
   }
 
   private drainQueue(): void {
