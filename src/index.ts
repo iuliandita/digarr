@@ -1056,8 +1056,12 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
       },
     })
 
-    const strategyDeps = buildStrategyDeps(db, playlist.userId ?? null)
-    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId ?? null)
+    // Approvals are per user; an ownerless playlist would regenerate empty.
+    if (playlist.userId == null) {
+      throw new Error('Playlist has no owner; kept the previous tracks')
+    }
+    const strategyDeps = buildStrategyDeps(db, playlist.userId)
+    const resolverDeps = await buildPlaylistResolverDeps(db, playlist.userId)
     const generation = await generatePlaylist(
       playlist.strategy as import('./db/schema').PlaylistStrategy,
       playlist.config,
