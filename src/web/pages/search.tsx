@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { SearchIcon } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { SearchResultCard } from '../components/search-result-card'
+import { Disclosure } from '../components/ui/disclosure'
 import { getSearchSources, searchArtists } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
@@ -115,53 +116,63 @@ export function SearchPage() {
         />
       </div>
 
-      {/* Source filter toggles */}
-      <div className="flex flex-wrap gap-2">
-        {renderedSources.map((s) => {
-          const isActive = effectiveActiveSources.includes(s.id)
-          return (
-            <button
-              key={s.id}
-              type="button"
-              disabled={!s.available}
-              onClick={() => toggleSource(s.id)}
-              title={!s.available ? s.reason : undefined}
-              className={cn(
-                'text-xs px-2.5 py-1 rounded-full border font-medium transition-colors',
-                isActive
-                  ? s.active
-                  : s.available
-                    ? 'bg-surface border-border text-muted hover:text-text hover:border-accent/40'
-                    : 'bg-surface border-border text-muted/60 opacity-50 cursor-not-allowed',
-              )}
-            >
-              {s.label}
-              {s.stability === 'experimental' && (
-                <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
-                  {t('search.experimental')}
-                </span>
-              )}
-            </button>
-          )
-        })}
-        {activeSources.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setActiveSources([])}
-            className="text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-text transition-colors"
-          >
-            {t('search.clearFilters')}
-          </button>
-        )}
-      </div>
+      {/* Sources stay tucked away: by default every available source is searched */}
+      <Disclosure
+        title={
+          effectiveActiveSources.length > 0
+            ? t('search.sourcesActive').replace('{0}', String(effectiveActiveSources.length))
+            : t('search.sources')
+        }
+      >
+        <div className="space-y-2">
+          <div className="flex flex-wrap gap-2">
+            {renderedSources.map((s) => {
+              const isActive = effectiveActiveSources.includes(s.id)
+              return (
+                <button
+                  key={s.id}
+                  type="button"
+                  disabled={!s.available}
+                  onClick={() => toggleSource(s.id)}
+                  title={!s.available ? s.reason : undefined}
+                  className={cn(
+                    'text-xs px-2.5 py-1 rounded-full border font-medium transition-colors',
+                    isActive
+                      ? s.active
+                      : s.available
+                        ? 'bg-surface border-border text-muted hover:text-text hover:border-accent/40'
+                        : 'bg-surface border-border text-muted/60 opacity-50 cursor-not-allowed',
+                  )}
+                >
+                  {s.label}
+                  {s.stability === 'experimental' && (
+                    <span className="ml-1 rounded bg-warning/20 px-1.5 py-0.5 text-xs text-warning">
+                      {t('search.experimental')}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+            {activeSources.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setActiveSources([])}
+                className="text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-text transition-colors"
+              >
+                {t('search.clearFilters')}
+              </button>
+            )}
+          </div>
 
-      {disabledSources.length > 0 && (
-        <p className="text-xs text-muted">
-          {disabledSources
-            .map((source) => `${source.label}: ${t(source.reason as Parameters<typeof t>[0])}`)
-            .join(' ')}
-        </p>
-      )}
+          {disabledSources.length > 0 && (
+            <p className="text-xs text-muted">
+              {disabledSources
+                .map((source) => `${source.label}: ${t(source.reason as Parameters<typeof t>[0])}`)
+                .join(' ')}
+            </p>
+          )}
+        </div>
+      </Disclosure>
 
       {/* Results area */}
       {!showResults && (

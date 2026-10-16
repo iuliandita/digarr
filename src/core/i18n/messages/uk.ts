@@ -826,6 +826,8 @@ export const uk = {
   'search.subtitle': 'Знайдіть виконавців на музичних платформах',
   'search.placeholder': 'Пошук виконавців...',
   'search.experimental': 'Експериментальне',
+  'search.sources': 'Джерела',
+  'search.sourcesActive': 'Джерела ({0})',
   'search.clearFilters': 'Скинути фільтри',
   'search.minChars': 'Введіть щонайменше 2 символи для пошуку',
   'search.failed': 'Помилка пошуку - спробуйте ще раз',

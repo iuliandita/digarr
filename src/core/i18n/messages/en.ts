@@ -819,6 +819,8 @@ export const en = {
   'search.subtitle': 'Find artists across music platforms',
   'search.placeholder': 'Search artists...',
   'search.experimental': 'Experimental',
+  'search.sources': 'Sources',
+  'search.sourcesActive': 'Sources ({0})',
   'search.clearFilters': 'Clear filters',
   'search.minChars': 'Type at least 2 characters to search',
   'search.failed': 'Search failed - try again',

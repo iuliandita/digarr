@@ -817,6 +817,8 @@ export const tr = {
   'search.subtitle': 'Müzik platformlarında sanatçı bul',
   'search.placeholder': 'Sanatçı ara...',
   'search.experimental': 'Deneysel',
+  'search.sources': 'Kaynaklar',
+  'search.sourcesActive': 'Kaynaklar ({0})',
   'search.clearFilters': 'Filtreleri temizle',
   'search.minChars': 'Arama için en az 2 karakter girin',
   'search.failed': 'Arama başarısız - tekrar deneyin',

@@ -819,6 +819,8 @@ export const ja = {
   'search.subtitle': '音楽プラットフォームでアーティストを探す',
   'search.placeholder': 'アーティストを検索...',
   'search.experimental': '実験的',
+  'search.sources': 'ソース',
+  'search.sourcesActive': 'ソース ({0})',
   'search.clearFilters': 'フィルターをクリア',
   'search.minChars': '検索するには2文字以上入力してください',
   'search.failed': '検索に失敗しました - もう一度お試しください',

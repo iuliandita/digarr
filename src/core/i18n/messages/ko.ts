@@ -812,6 +812,8 @@ export const ko = {
   'search.subtitle': '음악 플랫폼에서 아티스트 찾기',
   'search.placeholder': '아티스트 검색...',
   'search.experimental': '실험적',
+  'search.sources': '소스',
+  'search.sourcesActive': '소스 ({0})',
   'search.clearFilters': '필터 초기화',
   'search.minChars': '검색하려면 2자 이상 입력하세요',
   'search.failed': '검색에 실패했습니다 - 다시 시도하세요',

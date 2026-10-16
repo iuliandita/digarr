@@ -831,6 +831,8 @@ export const it = {
   'search.subtitle': 'Trova artisti sulle piattaforme musicali',
   'search.placeholder': 'Cerca artisti...',
   'search.experimental': 'Sperimentale',
+  'search.sources': 'Fonti',
+  'search.sourcesActive': 'Fonti ({0})',
   'search.clearFilters': 'Cancella filtri',
   'search.minChars': 'Digita almeno 2 caratteri per cercare',
   'search.failed': 'Ricerca non riuscita - riprova',

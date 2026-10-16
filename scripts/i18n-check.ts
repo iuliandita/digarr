@@ -59,6 +59,8 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'es:playlist.sourceLocal',
   'es:settings.groups.personal',
   'fr:nav.albums',
+  'fr:search.sources',
+  'fr:search.sourcesActive',
   'fr:discover.kindFilter',
   'fr:discover.kind.albums',
   'fr:recommendation.albumBadge',

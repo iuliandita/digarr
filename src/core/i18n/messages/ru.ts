@@ -831,6 +831,8 @@ export const ru = {
   'search.subtitle': 'Найдите исполнителей на музыкальных платформах',
   'search.placeholder': 'Поиск исполнителей...',
   'search.experimental': 'Экспериментальное',
+  'search.sources': 'Источники',
+  'search.sourcesActive': 'Источники ({0})',
   'search.clearFilters': 'Сбросить фильтры',
   'search.minChars': 'Введите не менее 2 символов для поиска',
   'search.failed': 'Ошибка поиска - попробуйте ещё раз',

@@ -829,6 +829,8 @@ export const ro = {
   'search.subtitle': 'Găsiți artiști pe platformele muzicale',
   'search.placeholder': 'Căutați artiști...',
   'search.experimental': 'În test',
+  'search.sources': 'Surse',
+  'search.sourcesActive': 'Surse ({0})',
   'search.clearFilters': 'Ștergeți filtrele',
   'search.minChars': 'Introduceți cel puțin 2 caractere pentru a căuta',
   'search.failed': 'Căutarea a eșuat - încercați din nou',

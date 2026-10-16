@@ -773,6 +773,8 @@ export const zhCN = {
   'search.subtitle': '在音乐平台上搜索艺术家',
   'search.placeholder': '搜索艺术家...',
   'search.experimental': '实验性',
+  'search.sources': '来源',
+  'search.sourcesActive': '来源 ({0})',
   'search.clearFilters': '清除筛选',
   'search.minChars': '请至少输入2个字符进行搜索',
   'search.failed': '搜索失败，请重试',

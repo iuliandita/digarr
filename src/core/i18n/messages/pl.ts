@@ -827,6 +827,8 @@ export const pl = {
   'search.subtitle': 'Znajdź artystów na platformach muzycznych',
   'search.placeholder': 'Szukaj artystów...',
   'search.experimental': 'Eksperymentalne',
+  'search.sources': 'Źródła',
+  'search.sourcesActive': 'Źródła ({0})',
   'search.clearFilters': 'Wyczyść filtry',
   'search.minChars': 'Wpisz co najmniej 2 znaki, aby wyszukac',
   'search.failed': 'Wyszukiwanie nie powiodło się - sprobuj ponownie',

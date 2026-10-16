@@ -826,6 +826,8 @@ export const nl = {
   'search.subtitle': 'Artiesten vinden op muziekplatforms',
   'search.placeholder': 'Artiesten zoeken...',
   'search.experimental': 'Experimenteel',
+  'search.sources': 'Bronnen',
+  'search.sourcesActive': 'Bronnen ({0})',
   'search.clearFilters': 'Filters wissen',
   'search.minChars': 'Typ minimaal 2 tekens om te zoeken',
   'search.failed': 'Zoeken mislukt - probeer opnieuw',

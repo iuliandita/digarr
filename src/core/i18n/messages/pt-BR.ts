@@ -830,6 +830,8 @@ export const ptBR = {
   'search.subtitle': 'Encontre artistas nas plataformas de música',
   'search.placeholder': 'Buscar artistas...',
   'search.experimental': 'Em teste',
+  'search.sources': 'Fontes',
+  'search.sourcesActive': 'Fontes ({0})',
   'search.clearFilters': 'Limpar filtros',
   'search.minChars': 'Digite pelo menos 2 caracteres para buscar',
   'search.failed': 'Busca falhou - tente novamente',
