@@ -1810,6 +1810,10 @@ export const es = {
   'settings.channels.description':
     'Envía notificaciones de fin de escaneo y de resumen a uno o varios canales.',
   'settings.channels.add': 'Añadir canal',
+  'settings.channels.addConfirm': 'Añadir',
+  'settings.channels.summary': '{0} canales, {1} activados',
+  'settings.channels.summarySingle': '1 canal, {0} activado',
+  'settings.channels.disabled': 'Desactivado',
   'settings.channels.empty': 'Aún no hay canales configurados.',
   'settings.channels.type': 'Tipo',
   'settings.channels.enabled': 'Activado',

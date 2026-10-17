@@ -829,13 +829,14 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     const addButton = await screen.findByText('Add channel')
-    const card = screen.getByRole('group', { name: 'Notifications' })
+    const card = screen.getByRole('group', { name: /^Notifications/ })
     expect(card).toBeTruthy()
 
     // No type-specific fields until a channel is added.
     expect(within(card).queryByLabelText('Webhook URL')).toBeNull()
 
     fireEvent.click(addButton)
+    fireEvent.click(within(card).getByText('Add'))
 
     // Default type is webhook, so its URL field appears.
     const urlInput = await within(card).findByLabelText('Webhook URL')
@@ -892,7 +893,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await screen.findByText('Add channel')
-    const card = screen.getByRole('group', { name: 'Notifications' })
+    const card = screen.getByRole('group', { name: /^Notifications/ })
 
     // The masked secret shows an empty input with a keep placeholder.
     const botInput = within(card).getByLabelText('Bot token') as HTMLInputElement

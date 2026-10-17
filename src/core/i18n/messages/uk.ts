@@ -1794,6 +1794,10 @@ export const uk = {
   'settings.channels.description':
     'Надсилай сповіщення про завершення сканування та зведення до одного чи кількох каналів.',
   'settings.channels.add': 'Додати канал',
+  'settings.channels.addConfirm': 'Додати',
+  'settings.channels.summary': 'Каналів: {0}, увімкнено: {1}',
+  'settings.channels.summarySingle': '1 канал, увімкнено: {0}',
+  'settings.channels.disabled': 'Вимкнено',
   'settings.channels.empty': 'Канали ще не налаштовано.',
   'settings.channels.type': 'Тип',
   'settings.channels.enabled': 'Увімкнено',

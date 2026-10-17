@@ -1800,6 +1800,10 @@ export const nl = {
   'settings.channels.description':
     'Stuur meldingen bij voltooiing van een scan en samenvattingen naar een of meer kanalen.',
   'settings.channels.add': 'Kanaal toevoegen',
+  'settings.channels.addConfirm': 'Toevoegen',
+  'settings.channels.summary': '{0} kanalen, {1} ingeschakeld',
+  'settings.channels.summarySingle': '1 kanaal, {0} ingeschakeld',
+  'settings.channels.disabled': 'Uitgeschakeld',
   'settings.channels.empty': 'Nog geen kanalen geconfigureerd.',
   'settings.channels.type': 'Soort',
   'settings.channels.enabled': 'Ingeschakeld',

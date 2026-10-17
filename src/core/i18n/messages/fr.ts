@@ -1815,6 +1815,10 @@ export const fr = {
   'settings.channels.description':
     "Envoie des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",
   'settings.channels.add': 'Ajouter un canal',
+  'settings.channels.addConfirm': 'Ajouter',
+  'settings.channels.summary': '{0} canaux, {1} activés',
+  'settings.channels.summarySingle': '1 canal, {0} activé',
+  'settings.channels.disabled': 'Désactivé',
   'settings.channels.empty': "Aucun canal configuré pour l'instant.",
   'settings.channels.type': 'Type de canal',
   'settings.channels.enabled': 'Activé',
