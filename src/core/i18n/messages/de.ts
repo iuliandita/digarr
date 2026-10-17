@@ -798,6 +798,8 @@ export const de = {
   'libraryHealth.loadFailed': 'Die Bibliotheksprüfungen konnten nicht geladen werden.',
   'libraryHealth.syncNow': 'Jetzt synchronisieren',
   'libraryHealth.snapshotTitle': 'Letzte Momentaufnahme',
+  'libraryHealth.lastSyncProblem':
+    'Bei der letzten Synchronisierung ist ein Problem aufgetreten, daher sind die Prüfungen unten eventuell unvollständig oder veraltet.',
   'libraryHealth.lastSynced': 'Zuletzt synchronisiert',
   'libraryHealth.neverSynced': 'Noch nie synchronisiert.',
   'libraryHealth.autoSyncEvery': 'Automatische Synchronisierung alle {0} Std.',

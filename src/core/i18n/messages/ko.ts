@@ -776,6 +776,8 @@ export const ko = {
   'libraryHealth.loadFailed': '라이브러리 상태 점검을 불러오지 못했습니다.',
   'libraryHealth.syncNow': '지금 동기화',
   'libraryHealth.snapshotTitle': '최신 스냅샷',
+  'libraryHealth.lastSyncProblem':
+    '마지막 동기화에서 문제가 발생해 아래 검사 결과가 불완전하거나 오래되었을 수 있습니다.',
   'libraryHealth.lastSynced': '마지막 동기화',
   'libraryHealth.neverSynced': '동기화된 적이 없습니다.',
   'libraryHealth.autoSyncEvery': '{0}시간마다 자동 동기화',

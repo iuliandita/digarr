@@ -774,6 +774,8 @@ export const en = {
   'libraryHealth.loadFailed': "Couldn't load the library health checks.",
   'libraryHealth.syncNow': 'Sync Now',
   'libraryHealth.snapshotTitle': 'Latest Snapshot',
+  'libraryHealth.lastSyncProblem':
+    'The last sync ran into a problem, so the checks below may be incomplete or out of date.',
   'libraryHealth.lastSynced': 'Last synced',
   'libraryHealth.neverSynced': 'Never synced.',
   'libraryHealth.autoSyncEvery': 'Auto sync every {0}h',

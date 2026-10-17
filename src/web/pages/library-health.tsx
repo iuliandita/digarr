@@ -149,6 +149,7 @@ export function LibraryHealthPage() {
   const scanning = healthQuery.data?.scanning ?? false
   const checks: HealthCheckResult[] = healthQuery.data?.checks ?? []
   const lastCompletedAt = healthQuery.data?.lastCompletedAt ?? null
+  const lastError = healthQuery.data?.lastError ?? null
   const syncIntervalHours = healthQuery.data?.syncIntervalHours ?? 6
   const stats: LibraryStats | undefined = statsQuery.data
   const prefs = (settingsQuery.data?.preferences ?? {}) as Record<string, unknown>
@@ -199,6 +200,13 @@ export function LibraryHealthPage() {
           <RefreshCw size={14} className="animate-spin shrink-0" />
           {t('libraryHealth.scanningBanner')}
         </div>
+      )}
+
+      {lastError && !scanning && (
+        <Notice tone="warning">
+          <p>{t('libraryHealth.lastSyncProblem')}</p>
+          <p className="mt-1 text-caption text-muted break-words">{lastError}</p>
+        </Notice>
       )}
 
       {/* Pending rescan indicator */}

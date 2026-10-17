@@ -794,6 +794,8 @@ export const it = {
   'libraryHealth.loadFailed': 'Impossibile caricare i controlli della libreria.',
   'libraryHealth.syncNow': 'Sincronizza ora',
   'libraryHealth.snapshotTitle': 'Ultima istantanea',
+  'libraryHealth.lastSyncProblem':
+    "L'ultima sincronizzazione ha avuto un problema, quindi i controlli qui sotto potrebbero essere incompleti o non aggiornati.",
   'libraryHealth.lastSynced': 'Ultima sincronizzazione',
   'libraryHealth.neverSynced': 'Mai sincronizzato.',
   'libraryHealth.autoSyncEvery': 'Sincronizzazione automatica ogni {0} h',

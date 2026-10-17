@@ -791,6 +791,8 @@ export const ru = {
   'libraryHealth.loadFailed': 'Не удалось загрузить проверки библиотеки.',
   'libraryHealth.syncNow': 'Синхронизировать сейчас',
   'libraryHealth.snapshotTitle': 'Последний снимок',
+  'libraryHealth.lastSyncProblem':
+    'При последней синхронизации возникла проблема, поэтому проверки ниже могут быть неполными или устаревшими.',
   'libraryHealth.lastSynced': 'Последняя синхронизация',
   'libraryHealth.neverSynced': 'Никогда не синхронизировалось.',
   'libraryHealth.autoSyncEvery': 'Автосинхронизация каждые {0} ч',

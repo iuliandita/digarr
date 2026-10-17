@@ -790,6 +790,8 @@ export const nl = {
   'libraryHealth.loadFailed': 'De bibliotheekcontroles konden niet worden geladen.',
   'libraryHealth.syncNow': 'Nu synchroniseren',
   'libraryHealth.snapshotTitle': 'Laatste momentopname',
+  'libraryHealth.lastSyncProblem':
+    'Bij de laatste synchronisatie ging iets mis, dus de controles hieronder kunnen onvolledig of verouderd zijn.',
   'libraryHealth.lastSynced': 'Laatst gesynchroniseerd',
   'libraryHealth.neverSynced': 'Nog niet gesynchroniseerd.',
   'libraryHealth.autoSyncEvery': 'Automatisch synchroniseren elke {0} uur',

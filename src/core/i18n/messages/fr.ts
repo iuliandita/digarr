@@ -789,6 +789,8 @@ export const fr = {
   'libraryHealth.loadFailed': 'Impossible de charger les vérifications de la bibliothèque.',
   'libraryHealth.syncNow': 'Synchroniser maintenant',
   'libraryHealth.snapshotTitle': 'Dernier instantané',
+  'libraryHealth.lastSyncProblem':
+    'La dernière synchronisation a rencontré un problème, les vérifications ci-dessous peuvent donc être incomplètes ou obsolètes.',
   'libraryHealth.lastSynced': 'Dernière synchronisation',
   'libraryHealth.neverSynced': 'Jamais synchronise.',
   'libraryHealth.autoSyncEvery': 'Synchronisation automatique toutes les {0} h',

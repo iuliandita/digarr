@@ -92,7 +92,7 @@ Delivery remains at least once: a crash after sending but before saving can dupl
 
 ## Library health
 
-Library Health offers scheduled sync and `Sync Now`. Failed album fetches preserve the previous library snapshot. Admins can inspect failures in Job History.
+Library Health offers scheduled sync and `Sync Now`. Failed album fetches preserve the previous library snapshot. When the last health scan failed or was partial, the page shows a warning with the stored error. Admins can inspect failures in Job History.
 
 ## Large Lidarr libraries
 

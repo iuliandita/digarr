@@ -736,6 +736,7 @@ export const zhCN = {
   'libraryHealth.loadFailed': '无法加载媒体库健康检查。',
   'libraryHealth.syncNow': '立即同步',
   'libraryHealth.snapshotTitle': '最新快照',
+  'libraryHealth.lastSyncProblem': '上次同步遇到问题，因此下面的检查结果可能不完整或已过时。',
   'libraryHealth.lastSynced': '上次同步',
   'libraryHealth.neverSynced': '从未同步。',
   'libraryHealth.autoSyncEvery': '每 {0} 小时自动同步',

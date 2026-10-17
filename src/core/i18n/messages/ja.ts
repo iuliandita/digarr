@@ -784,6 +784,8 @@ export const ja = {
   'libraryHealth.loadFailed': 'ライブラリのヘルスチェックを読み込めませんでした。',
   'libraryHealth.syncNow': '今すぐ同期',
   'libraryHealth.snapshotTitle': '最新のスナップショット',
+  'libraryHealth.lastSyncProblem':
+    '前回の同期で問題が発生したため、以下のチェックは不完全または古い可能性があります。',
   'libraryHealth.lastSynced': '最終同期',
   'libraryHealth.neverSynced': 'まだ同期されていません。',
   'libraryHealth.autoSyncEvery': '{0}時間ごとに自動同期',

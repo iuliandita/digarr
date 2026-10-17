@@ -791,6 +791,8 @@ export const ro = {
   'libraryHealth.loadFailed': 'Verificările bibliotecii nu au putut fi încărcate.',
   'libraryHealth.syncNow': 'Sincronizează acum',
   'libraryHealth.snapshotTitle': 'Ultimul instantaneu',
+  'libraryHealth.lastSyncProblem':
+    'Ultima sincronizare a întâmpinat o problemă, așa că verificările de mai jos pot fi incomplete sau depășite.',
   'libraryHealth.lastSynced': 'Ultima sincronizare',
   'libraryHealth.neverSynced': 'Nu a fost sincronizat niciodată.',
   'libraryHealth.autoSyncEvery': 'Sincronizare automată la fiecare {0} h',

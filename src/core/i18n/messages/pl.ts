@@ -790,6 +790,8 @@ export const pl = {
   'libraryHealth.loadFailed': 'Nie udało się wczytać kontroli biblioteki.',
   'libraryHealth.syncNow': 'Synchronizuj teraz',
   'libraryHealth.snapshotTitle': 'Najnowsza migawka',
+  'libraryHealth.lastSyncProblem':
+    'Ostatnia synchronizacja napotkała problem, więc poniższe kontrole mogą być niepełne lub nieaktualne.',
   'libraryHealth.lastSynced': 'Ostatnia synchronizacja',
   'libraryHealth.neverSynced': 'Nigdy nie synchronizowano.',
   'libraryHealth.autoSyncEvery': 'Automatyczna synchronizacja co {0} h',

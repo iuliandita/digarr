@@ -793,6 +793,8 @@ export const ptBR = {
   'libraryHealth.loadFailed': 'Não foi possível carregar as verificações da biblioteca.',
   'libraryHealth.syncNow': 'Sincronizar agora',
   'libraryHealth.snapshotTitle': 'Última captura',
+  'libraryHealth.lastSyncProblem':
+    'A última sincronização teve um problema, então as verificações abaixo podem estar incompletas ou desatualizadas.',
   'libraryHealth.lastSynced': 'Última sincronização',
   'libraryHealth.neverSynced': 'Nunca sincronizado.',
   'libraryHealth.autoSyncEvery': 'Sincronização automática a cada {0} h',

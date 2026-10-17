@@ -787,6 +787,8 @@ export const uk = {
   'libraryHealth.loadFailed': 'Не вдалося завантажити перевірки бібліотеки.',
   'libraryHealth.syncNow': 'Синхронізувати зараз',
   'libraryHealth.snapshotTitle': 'Останній знімок',
+  'libraryHealth.lastSyncProblem':
+    'Під час останньої синхронізації виникла проблема, тому перевірки нижче можуть бути неповними або застарілими.',
   'libraryHealth.lastSynced': 'Остання синхронізація',
   'libraryHealth.neverSynced': 'Ще не синхронізовано.',
   'libraryHealth.autoSyncEvery': 'Автосинхронізація кожні {0} год',

@@ -792,6 +792,8 @@ export const es = {
   'libraryHealth.loadFailed': 'No se pudieron cargar las comprobaciones de la biblioteca.',
   'libraryHealth.syncNow': 'Sincronizar ahora',
   'libraryHealth.snapshotTitle': 'Última instantánea',
+  'libraryHealth.lastSyncProblem':
+    'La última sincronización tuvo un problema, así que las comprobaciones de abajo pueden estar incompletas o desactualizadas.',
   'libraryHealth.lastSynced': 'Última sincronización',
   'libraryHealth.neverSynced': 'Nunca se ha sincronizado.',
   'libraryHealth.autoSyncEvery': 'Sincronización automática cada {0} h',

@@ -778,6 +778,8 @@ export const tr = {
   'libraryHealth.loadFailed': 'Kitaplık denetimleri yüklenemedi.',
   'libraryHealth.syncNow': 'Şimdi eşitle',
   'libraryHealth.snapshotTitle': 'Son anlık görüntü',
+  'libraryHealth.lastSyncProblem':
+    'Son eşitlemede bir sorun oluştu, bu yüzden aşağıdaki kontroller eksik veya güncel olmayabilir.',
   'libraryHealth.lastSynced': 'Son eşitleme',
   'libraryHealth.neverSynced': 'Henüz hiç eşitlenmedi.',
   'libraryHealth.autoSyncEvery': 'Her {0} saatte otomatik eşitleme',
