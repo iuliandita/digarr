@@ -56,7 +56,7 @@ beforeEach(async () => {
 })
 
 describe('validation: shared error shape', () => {
-  it('returns error summary + code + details for a validation failure', async () => {
+  it('returns a problem+json summary + code + details for a validation failure', async () => {
     const { app, headers } = await authedApp()
     const res = await app.request('/api/v1/users', {
       method: 'POST',
@@ -65,9 +65,16 @@ describe('validation: shared error shape', () => {
     })
 
     expect(res.status).toBe(400)
+    expect(res.headers.get('content-type')).toBe('application/problem+json')
     const body = await res.json()
+    expect(body).toMatchObject({
+      type: '/problems/validation-failed',
+      title: 'Validation failed',
+      status: 400,
+    })
     expect(body.code).toBe('validation_failed')
-    expect(typeof body.error).toBe('string')
+    expect(typeof body.detail).toBe('string')
+    expect(body.error).toBe(body.detail)
     expect(Array.isArray(body.details)).toBe(true)
     expect(body.details.length).toBeGreaterThan(0)
     expect(body.details[0]).toHaveProperty('path')

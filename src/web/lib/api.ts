@@ -65,17 +65,18 @@ export class ApiError extends Error {
 function extractApiErrorMessage(status: number, data: unknown): string {
   if (data && typeof data === 'object') {
     const record = data as Record<string, unknown>
-    // problem+json: translate `code` i18n key, fall back to `title`.
+    // problem+json: translate `code` i18n key, fall back to `title`. Problems
+    // converted from legacy bodies carry `error`, the text users saw before; their
+    // `title` is only the generic HTTP reason phrase.
     if (typeof record.code === 'string' && record.code.trim()) {
       const translated = translateErrorCode(record.code)
       if (translated) return translated
-      if (typeof record.title === 'string' && record.title.trim()) return record.title
-    }
-    if (typeof record.title === 'string' && record.title.trim()) {
-      return record.title
     }
     if (typeof record.error === 'string' && record.error.trim()) {
       return record.error
+    }
+    if (typeof record.title === 'string' && record.title.trim()) {
+      return record.title
     }
     if (typeof record.message === 'string' && record.message.trim()) {
       return record.message

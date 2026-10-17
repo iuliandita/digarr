@@ -1,15 +1,6 @@
-import { lookup } from 'node:dns/promises'
-import { isIP } from 'node:net'
 import { redactUrlForLog } from '../clients/http'
-import {
-  formatUrlHostname,
-  getLookupHostname,
-  isHttpUrl,
-  isPrivateIp,
-  isRfc1918,
-  normalizeIp,
-  redactSecrets,
-} from '../validation'
+import { BlockedTargetError, type GuardedInit, pinRequest } from '../net/guarded-fetch'
+import { isHttpUrl, redactSecrets } from '../validation'
 
 export type PostResult = { ok: boolean; status?: number; error?: string }
 export type PostOptions = {
@@ -20,14 +11,14 @@ export type PostOptions = {
   redact?: (url: string) => string
 }
 
-function isIpLiteral(hostname: string): boolean {
-  return isIP(hostname) !== 0
-}
-
-function blocksAddress(address: string, allowPrivate: boolean): boolean {
-  if (!isPrivateIp(address)) return false
-  if (allowPrivate && isRfc1918(address)) return false
-  return true
+function blockedMessage(err: unknown): string {
+  if (err instanceof BlockedTargetError && err.reason === 'blocked_host') {
+    return 'URL points to a blocked private/internal address'
+  }
+  if (err instanceof BlockedTargetError && err.reason === 'blocked_ip') {
+    return 'URL resolves to a blocked private/internal IP'
+  }
+  return 'URL hostname resolution failed'
 }
 
 export async function post(
@@ -35,61 +26,29 @@ export async function post(
   body: unknown,
   opts: PostOptions = {},
 ): Promise<PostResult> {
-  const allowPrivate = opts.allowPrivate ?? false
   const redact = opts.redact ?? redactUrlForLog
 
   if (!isHttpUrl(url)) return { ok: false, error: 'URL must use http:// or https://' }
 
-  let parsedUrl: URL
-  let resolvedAddress: string
-  try {
-    parsedUrl = new URL(url)
-    const hostname = getLookupHostname(parsedUrl)
-    if (hostname === 'localhost') {
-      return { ok: false, error: 'URL points to a blocked private/internal address' }
-    }
-    if (blocksAddress(hostname, allowPrivate)) {
-      return { ok: false, error: 'URL points to a blocked private/internal address' }
-    }
-    const { address } = await lookup(hostname)
-    if (blocksAddress(address, allowPrivate)) {
-      return { ok: false, error: 'URL resolves to a blocked private/internal IP' }
-    }
-    resolvedAddress = address
-  } catch {
-    return { ok: false, error: 'URL hostname resolution failed' }
-  }
-
   const controller = new AbortController()
-  const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 10_000)
-  const safeUrl = redact(url)
-  const fetchUrl = new URL(url)
-  fetchUrl.hostname = formatUrlHostname(resolvedAddress)
-
-  const fetchHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
-    ...opts.headers,
-  }
-  // Pin the resolved IP to prevent DNS rebinding between check and use.
-  // HTTPS keeps the original hostname for SNI while connecting to the pinned IP.
-  if (resolvedAddress !== parsedUrl.hostname || parsedUrl.protocol === 'https:') {
-    fetchHeaders.Host = parsedUrl.host
-  }
-
-  const fetchInit: RequestInit & { tls?: { serverName: string } } = {
+  const init: GuardedInit = {
     method: 'POST',
-    headers: fetchHeaders,
+    headers: { 'Content-Type': 'application/json', ...opts.headers },
     body: opts.rawBody ?? JSON.stringify(body),
     signal: controller.signal,
-    redirect: 'manual',
   }
-  const normalizedHostname = normalizeIp(parsedUrl.hostname)
-  if (parsedUrl.protocol === 'https:' && !isIpLiteral(normalizedHostname)) {
-    fetchInit.tls = { serverName: normalizedHostname }
+  let pinned: { url: string; init: GuardedInit }
+  try {
+    pinned = await pinRequest(url, init, opts.allowPrivate ? 'lan' : 'public')
+  } catch (err) {
+    return { ok: false, error: blockedMessage(err) }
   }
 
+  const timeout = setTimeout(() => controller.abort(), opts.timeoutMs ?? 10_000)
+  const safeUrl = redact(url)
+
   try {
-    const res = await fetch(fetchUrl.toString(), fetchInit)
+    const res = await fetch(pinned.url, pinned.init as RequestInit)
     if (!res.ok) {
       console.error(`POST to ${safeUrl} failed: HTTP ${res.status}`)
       return { ok: false, status: res.status, error: `HTTP ${res.status}` }
@@ -99,7 +58,7 @@ export async function post(
     const raw = err instanceof Error ? err.message : 'request failed'
     // Fetch errors can quote the URL, and webhook URLs carry their token in the path.
     const error = redactSecrets(
-      raw.split(url).join(safeUrl).split(fetchUrl.toString()).join(safeUrl),
+      raw.split(url).join(safeUrl).split(pinned.url).join(safeUrl),
       Object.entries(opts.headers ?? {})
         .filter(([name]) => !/^content-type$/i.test(name))
         .flatMap(([, value]) => [value, value.replace(/^(?:Bearer|Basic)\s+/i, '')]),

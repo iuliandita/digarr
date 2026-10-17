@@ -65,7 +65,7 @@ export const openapiDoc = {
     title: 'digarr API',
     version: VERSION,
     description:
-      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. Central errors use RFC 9457 problem+json; some routes still return plain JSON `{error}` bodies, documented per operation where covered. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
+      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. Every error response from an /api/* route uses RFC 9457 problem+json (`application/problem+json`). Errors from routes that used to return `{error}` keep a deprecated `error` member with the same text as `detail`. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
   },
   servers: [{ url: '/', description: 'Current deployment' }],
   components: {
@@ -103,31 +103,45 @@ export const openapiDoc = {
           title: { type: 'string' },
           status: { type: 'integer' },
           detail: { type: 'string' },
+          code: {
+            type: 'string',
+            description: 'Stable identifier: an i18n message key or a machine code.',
+          },
+          error: {
+            type: 'string',
+            deprecated: true,
+            description: 'Same text as detail, kept for clients written against {error} bodies.',
+          },
         },
         additionalProperties: true,
       },
       ValidationError: {
-        type: 'object',
-        required: ['error', 'code', 'details'],
-        properties: {
-          error: { type: 'string' },
-          code: { type: 'string', const: 'validation_failed' },
-          details: {
-            type: 'array',
-            items: {
-              type: 'object',
-              required: ['path', 'code', 'message'],
-              properties: {
-                path: {
-                  type: 'array',
-                  items: { oneOf: [{ type: 'string' }, { type: 'integer' }] },
+        allOf: [
+          { $ref: '#/components/schemas/Problem' },
+          {
+            type: 'object',
+            required: ['detail', 'code', 'details'],
+            properties: {
+              type: { type: 'string', const: '/problems/validation-failed' },
+              code: { type: 'string', const: 'validation_failed' },
+              details: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  required: ['path', 'code', 'message'],
+                  properties: {
+                    path: {
+                      type: 'array',
+                      items: { oneOf: [{ type: 'string' }, { type: 'integer' }] },
+                    },
+                    code: { type: 'string' },
+                    message: { type: 'string' },
+                  },
                 },
-                code: { type: 'string' },
-                message: { type: 'string' },
               },
             },
           },
-        },
+        ],
       },
       User: {
         type: 'object',
@@ -167,14 +181,6 @@ export const openapiDoc = {
         required: ['user'],
         properties: {
           user: { $ref: '#/components/schemas/User' },
-        },
-        additionalProperties: false,
-      },
-      ErrorResponse: {
-        type: 'object',
-        required: ['error'],
-        properties: {
-          error: { type: 'string' },
         },
         additionalProperties: false,
       },
@@ -516,7 +522,7 @@ export const openapiDoc = {
       ValidationFailed: {
         description: 'Request body or query failed schema validation.',
         content: {
-          'application/json': { schema: { $ref: '#/components/schemas/ValidationError' } },
+          [problemJson]: { schema: { $ref: '#/components/schemas/ValidationError' } },
         },
       },
       RateLimited: {
@@ -553,7 +559,6 @@ export const openapiDoc = {
         security: [],
         responses: {
           '200': { description: 'Auth status.', ...jsonSchema('#/components/schemas/AuthStatus') },
-          '400': problemResponse,
         },
       },
     },
@@ -583,7 +588,7 @@ export const openapiDoc = {
           '200': sessionResponse('Authenticated session.'),
           '400': {
             description: 'Missing credentials.',
-            ...jsonSchema('#/components/schemas/ErrorResponse'),
+            content: { [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } } },
           },
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
@@ -624,7 +629,6 @@ export const openapiDoc = {
             description:
               'Registration is disabled after the first user by default; DIGARR_DISABLE_REGISTRATION=false reopens it. Browser CSRF rejection instead returns a Problem with type /problems/csrf-validation-failed.',
             content: {
-              [json]: { schema: { $ref: '#/components/schemas/ErrorResponse' } },
               [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
             },
           },
@@ -654,7 +658,6 @@ export const openapiDoc = {
               },
             },
           },
-          '400': problemResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
           '409': {
@@ -751,23 +754,25 @@ export const openapiDoc = {
             description:
               'Invalid input, target selection, popularity lookup, or rejection payload.',
             content: {
-              [json]: {
+              [problemJson]: {
                 schema: {
                   anyOf: [
                     { $ref: '#/components/schemas/ValidationError' },
                     {
-                      type: 'object',
-                      required: ['error'],
-                      properties: {
-                        error: { type: 'string' },
-                        code: { type: 'string', enum: ['no_source', 'no_match'] },
-                      },
-                      additionalProperties: false,
+                      allOf: [
+                        { $ref: '#/components/schemas/Problem' },
+                        {
+                          type: 'object',
+                          properties: {
+                            code: { type: 'string', enum: ['no_source', 'no_match'] },
+                          },
+                        },
+                      ],
                     },
+                    { $ref: '#/components/schemas/Problem' },
                   ],
                 },
               },
-              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
             },
           },
           '401': unauthenticatedResponse,
@@ -884,10 +889,7 @@ export const openapiDoc = {
           '400': validationResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
-          '404': {
-            description: 'Job not found.',
-            ...jsonSchema('#/components/schemas/ErrorResponse'),
-          },
+          '404': notFoundResponse,
         },
       },
     },
@@ -903,7 +905,6 @@ export const openapiDoc = {
             description: 'Job health summary.',
             ...jsonSchema('#/components/schemas/JobHealth'),
           },
-          '400': problemResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
         },

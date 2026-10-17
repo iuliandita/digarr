@@ -218,7 +218,7 @@
       "files": {
         "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
-        "src/core/auth/oidc.ts": "c63e396968586a67bca32762bb2b62b42ae0835d76cba6d6770e445009786724",
+        "src/core/auth/oidc.ts": "824a37cb005c3d9094a5a00e4dcec2f5da9c5af9b8d614215d94a8784c9c2a68",
         "src/core/crypto.ts": "89718848a735a943c7e2167c195b433a8064f9f94a0d225f1ebca40a82039c3c",
         "src/core/oauth.ts": "23c54d509bf27770574221d6d3b5d8ea68e9a030aaa74b1a3ace37c55abd2385",
         "src/core/provider-auth.ts": "77ad75b128a06c5f44e1b0c239f94c25ad1c7698c55637ea1e9bbf78a273200d",
@@ -232,11 +232,12 @@
         "src/server/middleware/auth.ts": "c7ba4e9b4c4de5c06cb66fc3927f269cc0b0740e52fd4d85e143d344fc924c86",
         "src/server/middleware/csrf.ts": "aeac94c8dae8b439362430551ee9de9c3f6be95e5b543a4b164a226fb9db4821",
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
+        "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "50674c48773809fa60500d11547b64bde475d07f989d1afdaf8ff4c780345b3e",
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
-        "src/server/routes/admin.ts": "d5606fe3f7d100676691fe99e3b7732671c6c1bb2bac3d3c8ef599e4837baf95",
+        "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
         "src/server/routes/auth.ts": "2e9d4554d3b6ee056d22e3d6b5a160e67313c45b004d0ebf0ef43fe13a61b4e8",
         "src/server/routes/oauth-callbacks.ts": "f425c9a010c1c97c8a3cd8d914dd4e137d40b4d5b5883d2d773eb7e4c97b98fa",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
@@ -250,33 +251,33 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430",
+      "digest": "332ea4748ab16bcb74f6f21ed85f111a9ef88aeaf02c557c0d2e24e36ed5b606",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "CSRF origin rejection now carries the errors.csrf.originMismatch code and an ALLOWED_ORIGIN hint; documented in API.md. The check itself is unchanged.",
+        "note": "The problem-json middleware only rewrites the body and content type of JSON error responses that carry an error member, and admin restore and migrate-backend/test validation failures now use the shared validation-failed problem; status codes, WWW-Authenticate, Set-Cookie and other headers are preserved, so authentication, admin gating, CSRF and session behavior are unchanged. The admin 403 note in docs/API.md says problem+json everywhere.",
         "breaking": "none",
         "migration": "",
-        "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430"
+        "digest": "332ea4748ab16bcb74f6f21ed85f111a9ef88aeaf02c557c0d2e24e36ed5b606"
       }
     },
     "api": {
       "files": {
         "src/server/deps.ts": "fd06cfad9f41fdf12ea969636978c9e9461f45f4378b1137911b72e4651480e1",
-        "src/server/helpers/openapi-doc.ts": "c4b69b5c0bc4920df9927709bafddc45ce30ade084380067fc8adb51b4e16b51",
+        "src/server/helpers/openapi-doc.ts": "db90cea0892f5f897e7bcd58961b8caf4c7ab75314998c208f67f8e744f8cb0b",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "819d0f0482fde33ea86bce6addf1221442fdffb9523bed5ef1c060f0495f4b8e",
-        "src/server/helpers/problem.ts": "400b8d509b1b31a02b2ca556ff424ac8d7d3fa7913cef7092cbbeae993f9eecc",
+        "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "598e50f60af3e97ad59abfa2d791ddab4a47d5ccaf80a65b07ae96710abdf3a6",
-        "src/server/index.ts": "0adf26086e51f9355b31f630e8013602187b80fc75602008182f851e3fa83396",
+        "src/server/index.ts": "76da31e03232013036b95ff2c2efc155fe3e15289b1640ec4c5f6c3d4cc5a421",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
-        "src/server/routes/artists.ts": "63db65113b83d8a93ef2c2c9a97fca91b28b46875a28bfdb07869dc94ee6b490",
+        "src/server/routes/artists.ts": "1f6258d3654546a5ea5ea7c4a07f04a80223a9c273ba918816a3c0269e155820",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "bdacae8e030bbd51819f7f9692bca173ea5afe20d370772260e7f78110c9bb87",
         "src/server/routes/discovery-modes.ts": "daca7bc1810dc86abb1166b14e37b75fb779ae814f70a8b1faa123a2876db0cf",
@@ -309,18 +310,18 @@
         "src/server/schemas/settings.ts": "1c58b87f8e896b992ffa248a7689bc20921d3fb7c94abe6600a29fbc512163c7",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "a06e9afefe69f7518620a6c7bfe70626e848373899022834f5e2deaae505d25c",
-        "src/server/schemas/validator.ts": "c23a1aeeaa484524ec8be483934fea9ef53bcdb0798fcbbc40c6d984482a7f50",
+        "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688",
+      "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Preview audio proxy now re-checks the host allowlist on each redirect hop; the endpoint contract and responses for valid previews are unchanged.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "All /api/* error responses now use application/problem+json with type, title, status and detail. Legacy error bodies are converted centrally and keep a deprecated error member; validation failures, including admin restore schema failures and migrate-backend/test input errors, use type /problems/validation-failed. The /health 503 body and non-API plain-text 404s are deliberately unchanged and documented as such. docs/API.md intro, per-route error notes, 202 bodies for slskd sync and genre seed, conditional route groups and migrate-backend/test 400 vs 502 were updated, and the OpenAPI error responses were audited (bogus 400s removed from auth/status, session/migrate, jobs/health).",
+        "breaking": "Error responses change content type from application/json to application/problem+json; clients that match the exact content type must accept the new one. The error member stays (deprecated), so clients that read error keep working. Preview proxy upstream status moved to upstreamStatus, and a failed single-source library sync no longer carries status failed. No data, backup or rollback impact: rolling back the image restores the old shapes.",
         "migration": "",
-        "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688"
+        "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be"
       }
     },
     "interface": {
@@ -441,7 +442,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "eb5667532ffca7a0daa72ebed0471f5fc333bfa8ffb53307647212d485a40c21",
-        "src/web/lib/api.ts": "cddd88e1822ef823bf127cb68a7de51edd75d79b7d61c1c95706245179aa647f",
+        "src/web/lib/api.ts": "da83cbaa11fb1404b77b6b1fd87cd38f5a5af2dc9198e68f7b0b141ceed3f8f8",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "73efb61efbc75bd90d7e96f1e5faeaa1c4132a74a4415ba41ee1a9141ca04516",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -492,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "bcd5424a315115d0e7bcd0d5d77a2828dd0baa574768d1ddfa0053b53ec1e6b9",
+      "digest": "c11a0cad44bc156e4775f10ec02833fec25d08ef137983b8d78bd173ed1b7f16",
       "review": {
         "outcome": "no-impact",
         "docs": [],
         "note": "Dark theme color tokens and chip tint opacity, tip placement, scroll-edge fade, card heights, and a Settings URL replace for unavailable tabs. No documented route, setting, or workflow changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "bcd5424a315115d0e7bcd0d5d77a2828dd0baa574768d1ddfa0053b53ec1e6b9"
+        "digest": "c11a0cad44bc156e4775f10ec02833fec25d08ef137983b8d78bd173ed1b7f16"
       }
     },
     "features": {
@@ -507,13 +508,13 @@
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
         "src/core/clients/audiodb.ts": "10b86b61f5f56c69f4237bec29b6ae8fbe519003b14a0a552ee634498ed48da4",
-        "src/core/clients/bandcamp.ts": "2941c6724ce06b5b4b7712d68d09e502c1a4a62ee0fc87002536963f7df2ae9c",
+        "src/core/clients/bandcamp.ts": "6bf5e7f0f59b88ab0a2ce3a946b997c136beec0379d0b06a57aa40663e7516e7",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "58c31bf15f98c55afb38368f7d5c81288efc40edd36be0930427e752c7bdc9db",
         "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
-        "src/core/clients/http.ts": "3bc9eb47ee05c1e9675b5fbb69e9bbfef182caece0fdc63d346bd2110065f9d4",
+        "src/core/clients/http.ts": "842ab7cb8cc07b27aa6de790352757f167bed4f72448d68c6ecdc77b4351e014",
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
@@ -583,13 +584,14 @@
         "src/core/library/sync.ts": "2a4bda0806ab5aae742a1474b85cf0952759ef97e198a19a35bc077a6dcd5c07",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
+        "src/core/net/guarded-fetch.ts": "517d7075fc57ed03c0173c10b6ba68c7253721c9d514e6ab90df9704540d6611",
         "src/core/notifications/channels/apprise.ts": "e7e4f6a6f17c8b4b712c520c5382ea17196ebb27cae60f32c55be471c96255d9",
         "src/core/notifications/channels/ntfy.ts": "5c5b7747a209a1f7f557a2e2f956d908f480372269a8185223eedf91ac77a0bb",
         "src/core/notifications/channels/telegram.ts": "fa3cdab2724e026fa5528924bf7638aea01ee188232b3cad0d3cd0b9a8660221",
         "src/core/notifications/channels/webhook.ts": "8c48e506179778903281906aec6bc651eb3b55ef1955df06b32a019367bf217c",
         "src/core/notifications/index.ts": "eb41977d894a1f5ec162a1c675caf27fc8d29a9aa326a821040faf7820c9f67c",
         "src/core/notifications/registry.ts": "08ce7a4937bdd27366a5e34d6ea1dd3e77d0be092edcdd44aa40672653803335",
-        "src/core/notifications/transport.ts": "a6107d6120c33f2aa41e528771a5d003c224e3c7f7f905f57b9392c19060e600",
+        "src/core/notifications/transport.ts": "ccdbd6b7a7cb6b0b7f4a2eb7101e925430a620ccc5fd154660bb5c95be3137d9",
         "src/core/notifications/types.ts": "be5640349401fb3b996709e631d14dd8760fbed4f529b00f6328d9ddbe12068a",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
         "src/core/pipeline/auto-approve.ts": "a9a52ae3478da777837c8da9620eeb0f9d97f088b7f87ed2753f7daa918dc722",
@@ -701,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76",
+      "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Export the genre alias key helper so the normalization contract test can pin it; behavior unchanged. Architecture now links the new name normalization plan.",
+        "note": "Notification transport, publicIpOnly clients and Bandcamp share one resolve-and-pin guard; blocked targets fail without retry backoff. ARCHITECTURE documents the guard, allowPrivateTarget semantics in API.md unchanged",
         "breaking": "none",
         "migration": "",
-        "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76"
+        "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2"
       }
     },
     "deployment": {

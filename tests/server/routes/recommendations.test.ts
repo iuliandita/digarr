@@ -770,7 +770,13 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     })
 
     expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({ error: 'Unknown targetId: missing-target' })
+    await expect(res.json()).resolves.toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Unknown targetId: missing-target',
+      error: 'Unknown targetId: missing-target',
+    })
   })
 
   it('supports combined lidarr + slskd approval ordering', async () => {
@@ -959,6 +965,10 @@ describe('PATCH /api/v1/recommendations/:id', () => {
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Combined approval requires exactly one enabled Lidarr target',
       error: 'Combined approval requires exactly one enabled Lidarr target',
     })
     expect(firstLidarrTarget.addArtist).not.toHaveBeenCalled()
@@ -1142,7 +1152,13 @@ describe('POST /api/v1/recommendations/bulk', () => {
     })
 
     expect(res.status).toBe(400)
-    await expect(res.json()).resolves.toEqual({ error: 'Unknown targetId: missing-target' })
+    await expect(res.json()).resolves.toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Unknown targetId: missing-target',
+      error: 'Unknown targetId: missing-target',
+    })
   })
 })
 

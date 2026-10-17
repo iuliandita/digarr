@@ -347,7 +347,13 @@ describe('PATCH /api/v1/users/:id', () => {
     })
     expect(updateUser).toHaveBeenCalledWith(2, { isAdmin: false })
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'Cannot remove admin from the last admin user' })
+    expect(await res.json()).toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Cannot remove admin from the last admin user',
+      error: 'Cannot remove admin from the last admin user',
+    })
   })
 
   it('admin can toggle isAdmin on another user', async () => {
@@ -430,7 +436,13 @@ describe('DELETE /api/v1/users/:id', () => {
     })
     expect(deleteUser).toHaveBeenCalledWith(2)
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'Cannot delete the last admin user' })
+    expect(await res.json()).toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'Cannot delete the last admin user',
+      error: 'Cannot delete the last admin user',
+    })
   })
 
   it('admin can delete another user', async () => {

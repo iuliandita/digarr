@@ -362,6 +362,34 @@ describe('authenticated downloads', () => {
   })
 })
 
+describe('ApiError message', () => {
+  it.each([
+    [
+      'a translated code over the legacy error member',
+      { title: 'Not Found', error: 'raw', code: 'errors.auth.notAuthenticated' },
+      'Nicht authentifiziert',
+    ],
+    [
+      'the legacy error member over a generic title',
+      {
+        type: '/problems/http-400',
+        title: 'Bad Request',
+        detail: 'Unknown targetId: x',
+        error: 'Unknown targetId: x',
+      },
+      'Unknown targetId: x',
+    ],
+    [
+      'the title of a native problem over its detail',
+      { type: '/problems/not-found', title: 'Not Found', detail: 'No route for GET /api/v1/x' },
+      'Not Found',
+    ],
+    ['the message when nothing else is set', { message: 'Plain message' }, 'Plain message'],
+  ])('prefers %s', (_case, data, expected) => {
+    expect(new ApiError(400, data).message).toBe(expected)
+  })
+})
+
 describe('subscription imports', () => {
   it('posts the three no-body imports with cookie credentials and CSRF', async () => {
     const responses = [

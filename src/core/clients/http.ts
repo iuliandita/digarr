@@ -1,12 +1,4 @@
-import * as dns from 'node:dns/promises'
-import { isIP } from 'node:net'
-import {
-  formatUrlHostname,
-  getLookupHostname,
-  isPrivateIp,
-  isPrivateUrl,
-  normalizeIp,
-} from '@/core/validation'
+import { BlockedTargetError, type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set([
@@ -73,25 +65,24 @@ export function createHttpClient(config: HttpClientConfig) {
       let delayMs: number
 
       try {
-        const prepared = await prepareRequest(
-          url,
-          {
-            method,
-            headers: {
-              'Content-Type': 'application/json',
-              ...headers,
-            },
-            body: body ? JSON.stringify(body) : undefined,
-            signal: controller.signal,
-          },
-          {
-            publicIpOnly,
-            followRedirects,
-            skipTlsVerify,
-          },
-        )
-
-        const res = await fetch(prepared.url, prepared.init)
+        const init: GuardedInit = {
+          method,
+          headers: new Headers({
+            'Content-Type': 'application/json',
+            ...headers,
+          }),
+          body: body ? JSON.stringify(body) : undefined,
+          signal: controller.signal,
+          ...(skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
+        }
+        // Private-network services (Lidarr, media servers on the LAN) are reached unguarded;
+        // publicIpOnly clients get the resolve-and-pin guard on every hop.
+        const res = publicIpOnly
+          ? await guardedFetch(url, init, { maxRedirects: followRedirects ? MAX_REDIRECTS : 0 })
+          : await fetch(url, {
+              ...init,
+              redirect: followRedirects ? 'follow' : 'manual',
+            } as RequestInit)
 
         // The timer stays armed through the body read so a stalled body cannot hang the caller.
         if (res.ok) return { status: res.status, text: await res.text() }
@@ -114,7 +105,8 @@ export function createHttpClient(config: HttpClientConfig) {
           (res.status === 429 ? parseRetryAfterMs(res.headers.get('retry-after')) : null) ??
           backoffMs(attempt)
       } catch (err: unknown) {
-        if (err instanceof HttpError) throw err
+        // A blocked target fails the same way on every attempt.
+        if (err instanceof HttpError || err instanceof BlockedTargetError) throw err
         if (attempt >= maxRetries) {
           // A bare AbortError reads as "This operation was aborted", which tells
           // the user nothing about which budget they blew or that it is tunable.
@@ -177,58 +169,6 @@ export function createHttpClient(config: HttpClientConfig) {
   }
 }
 
-async function prepareRequest(
-  url: string,
-  init: RequestInit,
-  options: { publicIpOnly: boolean; followRedirects: boolean; skipTlsVerify: boolean },
-): Promise<{ url: string; init: RequestInit }> {
-  const headers = new Headers(init.headers)
-  let fetchUrl = url
-  let serverName: string | null = null
-
-  if (options.publicIpOnly) {
-    if (isPrivateUrl(url)) {
-      throw new Error('URL points to a private/internal address')
-    }
-
-    const parsedUrl = new URL(url)
-    const hostname = getLookupHostname(parsedUrl)
-    const { address } = await dns.lookup(hostname)
-    if (isPrivateIp(address)) {
-      throw new Error('URL resolves to a private/internal IP')
-    }
-
-    // Pin the resolved IP for both http: and https: so a second DNS lookup
-    // during fetch() cannot rebind to a private address (TOCTOU). For HTTPS,
-    // preserve the original hostname for SNI and cert verification.
-    if (address !== hostname) {
-      const pinnedUrl = new URL(url)
-      pinnedUrl.hostname = formatUrlHostname(address)
-      fetchUrl = pinnedUrl.toString()
-      headers.set('Host', parsedUrl.host)
-      const normalizedHostname = normalizeIp(parsedUrl.hostname)
-      if (parsedUrl.protocol === 'https:' && isIP(normalizedHostname) === 0) {
-        serverName = normalizedHostname
-      }
-    }
-  }
-
-  const tls: { serverName?: string; rejectUnauthorized?: boolean } = {}
-  if (serverName) tls.serverName = serverName
-  if (options.skipTlsVerify) tls.rejectUnauthorized = false
-  const tlsInit = Object.keys(tls).length > 0 ? { tls } : {}
-
-  return {
-    url: fetchUrl,
-    init: {
-      ...init,
-      headers,
-      redirect: options.followRedirects ? 'follow' : 'manual',
-      ...tlsInit,
-    } as RequestInit,
-  }
-}
-
 export class HttpError extends Error {
   constructor(
     public status: number,
@@ -260,6 +200,7 @@ export class HttpTimeoutError extends Error {
 }
 
 const RETRYABLE_METHODS = new Set(['GET', 'HEAD'])
+const MAX_REDIRECTS = 5
 const MAX_RETRY_AFTER_MS = 30_000
 
 function backoffMs(attempt: number): number {

@@ -48,21 +48,21 @@ describe('sendNtfyChannel', () => {
     expect(r.ok).toBe(true)
     const [url, init] = okFetch.mock.calls[0] as [string, RequestInit]
     expect(url).toContain('/digarr')
-    const headers = init.headers as Record<string, string>
-    expect(headers.Title).toBe('digarr notification')
-    expect(headers.Priority).toBe('4')
+    const headers = new Headers(init.headers)
+    expect(headers.get('title')).toBe('digarr notification')
+    expect(headers.get('priority')).toBe('4')
     expect(init.body).toBe(makePayload().message)
   })
 
   it('adds Authorization Bearer header only when a token is set', async () => {
     await sendNtfyChannel(makeChannel({ token: 'tk_secret' }), makePayload())
     const [, withInit] = okFetch.mock.calls[0] as [string, RequestInit]
-    expect((withInit.headers as Record<string, string>).Authorization).toBe('Bearer tk_secret')
+    expect(new Headers(withInit.headers).get('authorization')).toBe('Bearer tk_secret')
 
     okFetch.mockClear()
     await sendNtfyChannel(makeChannel(), makePayload())
     const [, noInit] = okFetch.mock.calls[0] as [string, RequestInit]
-    expect((noInit.headers as Record<string, string>).Authorization).toBeUndefined()
+    expect(new Headers(noInit.headers).get('authorization')).toBeNull()
   })
 
   it('strips a trailing slash from the server before joining the topic', async () => {

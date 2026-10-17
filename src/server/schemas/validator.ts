@@ -1,13 +1,14 @@
 import { zValidator as zv } from '@hono/zod-validator'
 import * as z from 'zod'
+import { problem } from '@/server/helpers/problem'
 
 export const idParamSchema = z.object({
   id: z.coerce.number().int().positive(),
 })
 
-// Consistent 400 response shape for every Zod-validated route. Clients key on
-// `error` (stable machine code) and render per-field hints from `details`.
-// Zod's English messages travel through unchanged; UI may translate by path+code.
+// Consistent problem+json 400 for every Zod-validated route. `code` is the stable
+// machine identifier and `details` carries per-field hints. Zod's English
+// messages travel through unchanged; UI may translate by path+code.
 type ValidationIssue = {
   path: (string | number)[]
   code: string
@@ -33,16 +34,17 @@ const hook = (result: AnyResult, c: any) => {
     code: i.code,
     message: i.message,
   }))
-  // `error` is a human-readable summary so existing clients that read `data.error`
-  // keep showing useful text. `code` is the stable machine identifier.
-  // `details` carries the full structured issue list for form-level UIs.
   const first = issues[0]
   const summary = first
     ? first.path.length > 0
       ? `${first.path.join('.')}: ${first.message}`
       : first.message
     : 'Invalid request'
-  return c.json({ error: summary, code: 'validation_failed' as const, details: issues }, 400)
+  return problem(c, 'validation-failed', 'Validation failed', 400, summary, {
+    code: 'validation_failed',
+    details: issues,
+    error: summary,
+  })
 }
 
 export const zJson = <T extends z.ZodTypeAny>(schema: T) => zv('json', schema, hook)

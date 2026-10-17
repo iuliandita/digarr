@@ -231,9 +231,14 @@ describe('first-admin race: POST /api/auth/register', () => {
       body: JSON.stringify({ username: 'loser', password: 'password1234' }),
     })
     expect(res.status).toBe(403)
+    const message =
+      'Registration is disabled. Set DIGARR_DISABLE_REGISTRATION=false to allow open registration.'
     expect(await res.json()).toEqual({
-      error:
-        'Registration is disabled. Set DIGARR_DISABLE_REGISTRATION=false to allow open registration.',
+      type: '/problems/http-403',
+      title: 'Forbidden',
+      status: 403,
+      detail: message,
+      error: message,
     })
     expect(createUser).toHaveBeenCalledExactlyOnceWith(expect.any(Object), {
       bootstrap: 'first-user-only',

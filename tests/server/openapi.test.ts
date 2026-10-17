@@ -77,9 +77,7 @@ describe('OpenAPI skeleton', () => {
       { $ref: '#/components/schemas/AuthTokenResponse' },
       { $ref: '#/components/schemas/AuthCookieResponse' },
     ])
-    expect(register.responses['403']?.content?.['application/json']?.schema).toEqual({
-      $ref: '#/components/schemas/ErrorResponse',
-    })
+    expect(register.responses['403'].content).not.toHaveProperty('application/json')
     expect(register.responses['403'].content['application/problem+json'].schema).toEqual({
       $ref: '#/components/schemas/Problem',
     })
@@ -154,7 +152,25 @@ describe('OpenAPI skeleton', () => {
   it('declares the Problem and ValidationError schemas', () => {
     const schemas = openapiDoc.components?.schemas
     expect(schemas?.Problem?.required).toContain('status')
-    expect(schemas?.ValidationError?.required).toContain('code')
+    expect(schemas?.ValidationError?.allOf[0]).toEqual({ $ref: '#/components/schemas/Problem' })
+    expect(schemas?.ValidationError?.allOf[1].required).toContain('code')
+  })
+
+  it('declares every error response as problem+json', () => {
+    const errorContentTypes = new Set<string>()
+    const collect = (response: unknown) => {
+      const content = (response as { content?: Record<string, unknown> }).content
+      for (const type of Object.keys(content ?? {})) errorContentTypes.add(type)
+    }
+    for (const response of Object.values(openapiDoc.components.responses)) collect(response)
+    for (const operations of Object.values(openapiDoc.paths)) {
+      for (const operation of Object.values(operations)) {
+        for (const [status, response] of Object.entries(operation.responses)) {
+          if (Number(status) >= 400) collect(response)
+        }
+      }
+    }
+    expect([...errorContentTypes]).toEqual(['application/problem+json'])
   })
 
   it('declares the standard response envelopes', () => {
@@ -382,6 +398,9 @@ describe('OpenAPI skeleton', () => {
     ])
     const bearerOnlyPaths = new Set(['/api/v1/auth/session/migrate'])
     const noBadRequestPaths = new Set([
+      '/api/v1/auth/status',
+      '/api/v1/auth/session/migrate',
+      '/api/v1/jobs/health',
       '/api/v1/library/unreconciled',
       '/api/v1/library/unreconciled-albums',
       '/api/v1/settings/plex/sections',
@@ -413,7 +432,9 @@ describe('OpenAPI skeleton', () => {
           ])
           expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('401')
         }
-        if (!noBadRequestPaths.has(path)) {
+        if (noBadRequestPaths.has(path)) {
+          expect(operation.responses, `${method.toUpperCase()} ${path}`).not.toHaveProperty('400')
+        } else {
           expect(operation.responses, `${method.toUpperCase()} ${path}`).toHaveProperty('400')
         }
       }
