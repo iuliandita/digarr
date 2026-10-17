@@ -3,6 +3,13 @@ export const ro = {
   'oauth.error.authorizationDenied':
     'Autorizarea a fost refuzată - pornește din nou conexiunea dacă vrei să te conectezi.',
   'jobHistory.writeBack': 'Trimitere către {service}',
+  'settings.slskdSearchInterval': 'Interval minim între căutări în secunde (1-60, implicit 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',
+  'settings.slskdPathIncomplete':
+    'Calea pare un dosar cu descărcări incomplete. Folosește dosarul tău cu descărcări finalizate.',
+  'settings.slskdPathOk':
+    'Conectat la slskd - Lidarr vede dosarul de descărcare. Verifică dacă acesta conține descărcările tale finalizate.',
   'tokens.title': 'Tokenuri API',
   'tokens.description': 'Dă-le scripturilor tale propriile credențiale pe care le poți revoca.',
   'tokens.passwordWarning':

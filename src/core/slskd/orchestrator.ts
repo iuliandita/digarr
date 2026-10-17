@@ -1,3 +1,4 @@
+import { HttpError } from '@/core/clients/http'
 import type { createLidarrClient, LidarrCommand } from '@/core/clients/lidarr'
 import type {
   SlskdDownloadUser,
@@ -294,6 +295,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
   const processPendingJobs = deps.processPendingJobs ?? (async () => {})
   const chooseCandidate = deps.selectBestCandidate ?? selectBestSlskdCandidate
   let activeRun: Promise<void> | null = null
+  const searchPacing = new Map<number, { nextAt: number; throttles: number }>()
 
   async function updateRecommendationAction(
     recommendationId: number | null,
@@ -369,7 +371,11 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     }
   }
 
-  async function processSearchableJob(job: SlskdPendingJob, slskd: SlskdClient) {
+  async function processSearchableJob(
+    job: SlskdPendingJob,
+    slskd: SlskdClient,
+    config: Record<string, unknown>,
+  ) {
     if (!deps.updateJobState) return
     const searchQuery = buildSearchQuery(job)
     if (!searchQuery) {
@@ -379,12 +385,32 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
 
     let searchId = job.slskdSearchId
     if (!searchId) {
+      const pacing = searchPacing.get(job.targetId) ?? { nextAt: 0, throttles: 0 }
+      searchPacing.set(job.targetId, pacing)
+      if (pacing.throttles > 0 && Date.now() < pacing.nextAt) return
+      const gapSeconds = Number(config.searchIntervalSeconds ?? 3)
+      const gapMs = (Number.isFinite(gapSeconds) ? Math.min(60, Math.max(1, gapSeconds)) : 3) * 1000
+      const waitMs = pacing.nextAt - Date.now()
+      if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs))
       await deps.updateJobState(job.id, 'searching', {
         attempts: job.attempts + 1,
         lastError: null,
       })
       job.attempts += 1
-      const search = await slskd.createSearch(searchQuery)
+      pacing.nextAt = Date.now() + gapMs
+      let search: Record<string, unknown>
+      try {
+        search = await slskd.createSearch(searchQuery)
+        pacing.throttles = 0
+      } catch (error) {
+        if (!(error instanceof HttpError) || ![409, 429].includes(error.status)) throw error
+        pacing.throttles = Math.min(pacing.throttles + 1, 4)
+        pacing.nextAt =
+          Date.now() + Math.min(60 * 60 * 1000, 10 * 60 * 1000 * 2 ** (pacing.throttles - 1))
+        job.attempts -= 1
+        await deps.updateJobState(job.id, 'searching', { attempts: job.attempts, lastError: null })
+        return
+      }
       searchId = normalizeString(search.id)
       if (!searchId) throw new Error(`slskd search did not return an id for job ${job.id}`)
       await deps.updateJobState(job.id, 'searching', { slskdSearchId: searchId, lastError: null })
@@ -642,7 +668,11 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
         }
         const slskd = getSlskdClient(job.targetId)
         if (job.state === 'pending' || job.state === 'searching') {
-          await processSearchableJob(job, slskd)
+          await processSearchableJob(
+            job,
+            slskd,
+            targets?.find((target) => target.id === job.targetId)?.config ?? {},
+          )
         } else {
           await processTransferJob(job, slskd, targets)
         }

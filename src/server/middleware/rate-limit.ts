@@ -1,5 +1,6 @@
 import type { Context } from 'hono'
 import { createMiddleware } from 'hono/factory'
+import { getClientIp } from '@/server/helpers/client-ip'
 import { problem } from '@/server/helpers/problem'
 import type { HonoEnv } from '@/server/types'
 
@@ -29,17 +30,6 @@ export function __shutdownRateLimiter(): void {
   registry.length = 0
 }
 
-/** Extract socket-level IP (not forgeable headers). Mirrors proxy-auth.ts. */
-function getSocketIp(c: { env?: unknown }): string | null {
-  const env = c.env as Record<string, unknown> | undefined
-  const bunAddr = env?.remoteAddress
-  if (typeof bunAddr === 'string') return bunAddr
-  const incoming = env?.incoming as { socket?: { remoteAddress?: string } } | undefined
-  const nodeAddr = incoming?.socket?.remoteAddress
-  if (typeof nodeAddr === 'string') return nodeAddr
-  return null
-}
-
 /**
  * Simple in-memory rate limiter keyed by client IP.
  * Not shared across processes - sufficient for single-process deployments.
@@ -64,8 +54,7 @@ export function rateLimiter(opts: {
     if (process.env.NODE_ENV !== 'production' && process.env.DIGARR_DISABLE_RATE_LIMIT === '1') {
       return next()
     }
-    // Socket-only by default; specific limiters can opt into trusted proxy resolution.
-    const ip = (opts.getIp ? opts.getIp(c) : getSocketIp(c)) ?? 'unknown'
+    const ip = (opts.getIp ?? getClientIp)(c) ?? 'unknown'
     // Append the resolved userId to the bucket key when auth has already run.
     // Without this, every authenticated user behind a reverse proxy or shared
     // NAT shares one bucket and a single noisy account drains the budget for

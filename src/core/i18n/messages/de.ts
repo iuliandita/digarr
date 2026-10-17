@@ -4,6 +4,13 @@ export const de = {
   'oauth.error.authorizationDenied':
     'Die Autorisierung wurde abgelehnt - starte die Verbindung erneut, wenn du dich verbinden möchtest.',
   'jobHistory.writeBack': 'An {service} senden',
+  'settings.slskdSearchInterval': 'Mindestabstand zwischen Suchen in Sekunden (1-60, Standard 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr kann den Downloadpfad nicht finden oder auflisten. Prüfe deine Einbindung und Leserechte.',
+  'settings.slskdPathIncomplete':
+    'Der Downloadpfad sieht nach einem Ordner für unvollständige Downloads aus. Nutze deinen Ordner für abgeschlossene Downloads.',
+  'settings.slskdPathOk':
+    'Mit slskd verbunden - Lidarr sieht den Downloadordner. Prüfe, ob er deine abgeschlossenen Downloads enthält.',
   'tokens.title': 'API-Tokens',
   'tokens.description': 'Gib deinen Skripten eigene widerrufbare Zugangsdaten.',
   'tokens.passwordWarning':

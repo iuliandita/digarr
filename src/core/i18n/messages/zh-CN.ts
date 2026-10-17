@@ -2,6 +2,11 @@ export const zhCN = {
   'oauth.error.tokenMismatch': '授权令牌不匹配 - 请重新连接。',
   'oauth.error.authorizationDenied': '授权被拒绝 - 如果你想连接，请重试。',
   'jobHistory.writeBack': '发送到 {service}',
+  'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
+  'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
+  'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
+  'settings.slskdPathOk':
+    '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
   'tokens.passwordWarning':

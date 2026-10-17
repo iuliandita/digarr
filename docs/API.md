@@ -688,6 +688,10 @@ Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lid
 
 Example create bodies: `{"type":"lidarr","name":"Music","userId":2,"config":{"useServerConnection":true}}` and `{"type":"lidarr","name":"Other Lidarr","userId":2,"config":{"url":"http://lidarr2:8686","apiKey":"<key>","rootFolderId":3}}`.
 
+slskd config accepts `searchIntervalSeconds` (default 3, clamped to 1-60 seconds). Search creation is spaced per target; HTTP 409/429 defers jobs with a 10-minute exponential cooldown capped at 60 minutes without failing them or consuming an acquisition attempt.
+
+For linked slskd targets with `lidarrDownloadPath`, the saved connection test also probes the enabled same-owner Lidarr directory. Its response keeps `success` and `message`, with an optional `details.messageKey`: `settings.slskdPathOk`, `settings.slskdPathUnavailable`, or `settings.slskdPathIncomplete`. Clients can translate those keys. Messages contain no configured paths or credentials. The directory probe and incomplete-folder heuristic have the [documented limits](OPERATIONS.md#importing-slskd-downloads-into-lidarr).
+
 The target test uses the saved provider configuration for `plex-playlist`, `jellyfin-playlist`, `navidrome-playlist`, and `emby-playlist`. Plex playlist export fails before creation when no local tracks resolve or the server identity is missing.
 
 **Target types**: `lidarr`, `slskd`, `spotify-playlist`, `navidrome-playlist`, `jellyfin-playlist`, `emby-playlist`, `plex-playlist`, `export`

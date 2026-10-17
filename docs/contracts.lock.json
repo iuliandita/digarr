@@ -237,7 +237,7 @@
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
-        "src/server/middleware/rate-limit.ts": "55487a8842af56559d02376e20252632a2f555eb03d0a02f5b11a2f9d67ddd15",
+        "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
@@ -254,14 +254,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "45c0c0d053fe6b8ceff9f9f5607b85b26ce2debcb2ee03f7f2cfd972155fd327",
+      "digest": "6fcc4d387312cf87f7cf2db69aced2411394359f3f05350c9ab07482826ad82b",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Document the Last.fm state path callback and token query, preserving the transaction cookie prefix, single-use consumption, expiry and browser binding. No storage or deployment configuration changes; optional Unraid settings remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "45c0c0d053fe6b8ceff9f9f5607b85b26ce2debcb2ee03f7f2cfd972155fd327"
+        "digest": "6fcc4d387312cf87f7cf2db69aced2411394359f3f05350c9ab07482826ad82b"
       }
     },
     "api": {
@@ -301,7 +301,7 @@
         "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
-        "src/server/routes/targets.ts": "345658517bab8faf0691d30cf92d08ea09d35822cef13c8aaa36b63ea88d7800",
+        "src/server/routes/targets.ts": "02e6eab2324feee8b00957d15308867a70a60b78cf64360459d779f3031573c2",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "1b64df039413d79bd2597368238a0a99b9c3fddf9fa98ef752e0d486bbbc0588",
+      "digest": "2668d95b7607a5bafd926b4dcb785a619a18c713ea9d09815e097df53581a965",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Document manual-only ListenBrainz playlist sending and the Last.fm state path. Stale, ambiguous or failed Audition lookups skip feedback while local approval proceeds; request and ownership validation remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "1b64df039413d79bd2597368238a0a99b9c3fddf9fa98ef752e0d486bbbc0588"
+        "digest": "2668d95b7607a5bafd926b4dcb785a619a18c713ea9d09815e097df53581a965"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "38d0938a93e62b58d3fd677cb369fc090b52264790cbba4cfd4bdff44e4ec1eb",
-        "src/core/i18n/messages/en.ts": "fad4b7baabea277e69376c9326e1a80432be71d8120a617dae485a3ca5663ff6",
-        "src/core/i18n/messages/es.ts": "c8b8511962c20df817fb5cb34b6d2569566ad1613f9115b664f8b1c48004331d",
-        "src/core/i18n/messages/fr.ts": "d84e27954ad4a46378091ef7e2e9392714598fa63c073e0dd5ab86a987c64e87",
+        "src/core/i18n/messages/de.ts": "353cf9701c96c6309b239080d7274be5c7aeef1587870c2a63384bee017a2194",
+        "src/core/i18n/messages/en.ts": "74069fe0547799af412f33771d37a840e9a86017b3bea894e02b74dc2572c527",
+        "src/core/i18n/messages/es.ts": "ffea10055daa2407c816f0e0ffd14ba5ec054e61f95e15f84002629c7c674e89",
+        "src/core/i18n/messages/fr.ts": "44148aa94e1285d88063ebd845b88f4cd305ab9615e6931a7270705c2a7940a7",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "6bed6f63666676d3ac8884903cad9582e1a915a4f461444d1796b1e148f00ee7",
-        "src/core/i18n/messages/ja.ts": "1e13aaa5f743ac457fb0ff65779cd11eae45aaef44dea4a51f8c9efc17bc085e",
-        "src/core/i18n/messages/ko.ts": "e4880cbb4b89437388d8b07ad22eb3eb3c7809424820fd3f558fc99348541e4b",
-        "src/core/i18n/messages/nl.ts": "79ea37451e3ef6936c0ad188b5037dc0b4453f87555f5f0280de2b39b556b933",
-        "src/core/i18n/messages/pl.ts": "aefdcfc7a5a483665f93816b3f57d1961a6b1295ed2fd4ae143943c5acf77db6",
-        "src/core/i18n/messages/pt-BR.ts": "dff4c6b1f68da6f340ceda33a156108315543759a12d0088e024fee948f730c8",
-        "src/core/i18n/messages/ro.ts": "f705a3f4b587f3bdcf30c82229a80039c7bcf9f3018b90dd3648756f30e47c9d",
-        "src/core/i18n/messages/ru.ts": "e0e97e351b6bc03c629d09793ff0f2ff9183467290e74f318d474bca33fe5389",
-        "src/core/i18n/messages/source-lock.json": "39bf294ce72212147669d5fa57b6a853c2f23fb7f34085f58739c3f8d16d9508",
-        "src/core/i18n/messages/tr.ts": "61ba8962bc8d44d6f2843eb1908c9fb9a7422ff6daffaa1b0ed13e8801491733",
+        "src/core/i18n/messages/it.ts": "025fb237be6cf4e19fc72d3d80dd4b624293995c1df582df1dbf2fe10252c7b6",
+        "src/core/i18n/messages/ja.ts": "a15aff27427bb55a1e2e98604d8e0689d5c27070d34fc7abaa2abbb5b51c576a",
+        "src/core/i18n/messages/ko.ts": "ca2efa231391c4d12a3bfc274af1d5985a46203ad6be52d54c47c90addc93816",
+        "src/core/i18n/messages/nl.ts": "14551c747af5270fd70f5ce56b30d8e16f3eb60b1be1ac8d2973a9fd6e10d595",
+        "src/core/i18n/messages/pl.ts": "2ccb728d54e82f97080c1bc0351875d31d1a9336d80d1012fee3b422fb65957c",
+        "src/core/i18n/messages/pt-BR.ts": "3c0d9886dcc159acff9509e2a638649d698d77dbbad1b84ba5152b04393f38ce",
+        "src/core/i18n/messages/ro.ts": "91e712c1297fe518b16b96ef1c8d64e35e22dccbad479297b910af7bcf143496",
+        "src/core/i18n/messages/ru.ts": "2ab2c60d4d4eb1cb032f207dba0efcd5cb589bf913f0c0fdf507a6f6ebb02539",
+        "src/core/i18n/messages/source-lock.json": "37531884fbd0f9f6d19285e4c1ab977f3d860fe1bad32cdae321f449b46c7fdd",
+        "src/core/i18n/messages/tr.ts": "08326ab186906949b2c57c9740e25a51c4ef767787083a33dde1baf878290386",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "85fd156edf02cff1c310bc0434f5403f8bcffee7c3c3b858e4a5b4fa79389eab",
-        "src/core/i18n/messages/zh-CN.ts": "d64f89173479f156b74519cf2251976ab2d6b3e5f46458c570e1bac5a28f6541",
+        "src/core/i18n/messages/uk.ts": "cd02430924d4801e98e6f9c3a4a3fe0e156391a3d1903b3b81f96c183b2be1b1",
+        "src/core/i18n/messages/zh-CN.ts": "077ba9eebb63edd206f723bd70d6fe4e9aa5b6d901193f4a6b325c74a79a812c",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -449,7 +449,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "4a29f706951d7098891feec84a086ab015d0e32fb1701687c9ab38020086041d",
+        "src/web/lib/api.ts": "7d31f6adc1c51fbc8fb7ad9fd09951362e507a84bd279312695040d65389316b",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -494,7 +494,7 @@
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
         "src/web/pages/settings/system-tab.tsx": "c4a4982336f7b2bc6ff4602a495feccd462c4b337915d464625521c9bf41f225",
         "src/web/pages/settings/tabs.ts": "6357a22ef5a0417e789f5f0c29bccc64093e5a519c5252e0f238138fe6ea4e28",
-        "src/web/pages/settings/targets-tab.tsx": "a5133ab80a2919021b414bb83f76cfe40b35ccb2b6cfc0fd8e2d6c91aa4257e5",
+        "src/web/pages/settings/targets-tab.tsx": "8702767a39d95377a20532356a7368007cde32d903b5b45999be5e811d9de222",
         "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
         "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
         "src/web/pages/subscriptions.tsx": "0c7c7c6d4d5a4754fc0681c00d07cd805a51fa48bacca067d2486803db21fe8d",
@@ -502,14 +502,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "8f9c6faa171433d8f76be9590188ce20589b8b006d5c1746d0735952e20680ff",
+      "digest": "509a7c45827d13b2c736ac8c8343a9b29d989a486a243a40231c59ef5c985f69",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "CHANGELOG.md"],
         "note": "Document manual-only playlist sending, restored single-request Deezer playback with exact-match feedback metadata, translated OAuth errors and service-named write-back jobs. Reviewed help and messages in all 15 locales; no layout or screenshot changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "8f9c6faa171433d8f76be9590188ce20589b8b006d5c1746d0735952e20680ff"
+        "digest": "509a7c45827d13b2c736ac8c8343a9b29d989a486a243a40231c59ef5c985f69"
       }
     },
     "features": {
@@ -527,7 +527,7 @@
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
-        "src/core/clients/lidarr.ts": "93707c7b08d5220e2435db3027bac4636cad1052408799a496eaaf67b279856c",
+        "src/core/clients/lidarr.ts": "5ccd301db48fcf530f644d01904385808cfe283d6b3b73b8184e70330f971412",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
@@ -671,7 +671,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "3499ee134874f9d5dae8321c99075cfa06799ccc440a7969acddc9da8d3d54fb",
+        "src/core/slskd/orchestrator.ts": "a33e94e8e2a3a89f43db35484841b32dc03d8ceb1e622ed70404f435e12dc565",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -707,7 +707,7 @@
         "src/core/targets/saved-playlist-targets.ts": "811d2ca1198c4f17dff7ed08d9e6b9fd0c5a2d3937dd58b2d436f614af8cb74d",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
-        "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
+        "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
         "src/core/targets/types.ts": "4407cefaec67d956f1be13e400c58985023dae85ea40fc6d0f474b612d1953b2",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
@@ -716,14 +716,14 @@
         "src/index.ts": "a4e83699bdbf5495b6a592899e8992b0c1a01f8baa83dce9630bac80b63c24bb",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "f7cf572b6e8d7363095d446ffb4ae746fd571f85f0f23f92d9416c0c6578cfbe",
+      "digest": "51f35fac08574c43219c39fb975c72978a38d44f7d7bc5d26132c9a73f8ae3fa",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Manual and scheduled playlist generation now carry an explicit trigger; scheduled runs cannot create ListenBrainz playlists even with consent enabled. Existing track loves, opt-in defaults and local playlist generation remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "f7cf572b6e8d7363095d446ffb4ae746fd571f85f0f23f92d9416c0c6578cfbe"
+        "digest": "51f35fac08574c43219c39fb975c72978a38d44f7d7bc5d26132c9a73f8ae3fa"
       }
     },
     "deployment": {

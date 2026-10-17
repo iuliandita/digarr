@@ -2,6 +2,13 @@ export const ko = {
   'oauth.error.tokenMismatch': '인증 토큰이 일치하지 않아요 - 연결을 다시 시작하세요.',
   'oauth.error.authorizationDenied': '인증이 거부되었어요 - 연결하려면 다시 시작하세요.',
   'jobHistory.writeBack': '{service}로 전송',
+  'settings.slskdSearchInterval': '검색 사이 최소 간격, 초 (1-60, 기본값 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr가 다운로드 경로를 찾거나 목록을 읽을 수 없습니다. 마운트와 읽기 권한을 확인해 주세요.',
+  'settings.slskdPathIncomplete':
+    '다운로드 경로가 미완료 폴더로 보입니다. 완료된 다운로드 폴더를 사용해 주세요.',
+  'settings.slskdPathOk':
+    'slskd에 연결됨 - Lidarr에서 다운로드 폴더가 보입니다. 완료된 다운로드가 들어 있는지 확인해 주세요.',
   'tokens.title': 'API 토큰',
   'tokens.description': '스크립트마다 취소할 수 있는 별도 인증 정보를 만들어 주세요.',
   'tokens.passwordWarning':

@@ -3,6 +3,13 @@ export const ptBR = {
   'oauth.error.authorizationDenied':
     'A autorização foi negada - inicie a conexão de novo se quiser se conectar.',
   'jobHistory.writeBack': 'Envio para {service}',
+  'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
+  'settings.slskdPathUnavailable':
+    'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
+  'settings.slskdPathIncomplete':
+    'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
+  'settings.slskdPathOk':
+    'Conectado ao slskd - O Lidarr vê a pasta de download. Confira se ela contém seus downloads concluídos.',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dê aos seus scripts credenciais próprias que você pode revogar.',
   'tokens.passwordWarning':

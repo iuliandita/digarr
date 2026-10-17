@@ -3,6 +3,13 @@ export const uk = {
   'oauth.error.authorizationDenied':
     'В авторизації відмовлено - почни підключення заново, якщо хочеш підключитися.',
   'jobHistory.writeBack': 'Надсилання до {service}',
+  'settings.slskdSearchInterval': 'Мінімальний інтервал між пошуками в секундах (1-60, типово 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr не може знайти або прочитати теку завантажень. Перевір монтування та права на читання.',
+  'settings.slskdPathIncomplete':
+    'Шлях схожий на теку незавершених завантажень. Використовуй теку завершених завантажень.',
+  'settings.slskdPathOk':
+    'Підключено до slskd - Lidarr бачить теку завантажень. Перевір, чи містить вона твої завершені завантаження.',
   'tokens.title': 'Токени API',
   'tokens.description': 'Створи для своїх скриптів окремі облікові дані, які можна відкликати.',
   'tokens.passwordWarning':

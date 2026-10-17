@@ -4,6 +4,13 @@ export const en = {
   'oauth.error.authorizationDenied':
     'Authorization was denied - start the connection again if you want to connect.',
   'jobHistory.writeBack': '{service} write-back',
+  'settings.slskdSearchInterval': 'Minimum search gap in seconds (1-60, default 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr cannot find or list the download path. Check your mount and read permissions.',
+  'settings.slskdPathIncomplete':
+    'The download path looks like an incomplete folder. Use your completed-downloads folder.',
+  'settings.slskdPathOk':
+    'Connected to slskd - Lidarr can see the download folder. Check that it contains your completed downloads.',
   'tokens.title': 'API tokens',
   'tokens.description': 'Give your scripts their own revocable credential.',
   'tokens.passwordWarning':

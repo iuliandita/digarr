@@ -4,6 +4,13 @@ export const it = {
   'oauth.error.authorizationDenied':
     'L’autorizzazione è stata negata - avvia di nuovo la connessione se vuoi collegarti.',
   'jobHistory.writeBack': 'Invio a {service}',
+  'settings.slskdSearchInterval': 'Intervallo minimo tra ricerche in secondi (1-60, predefinito 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr non riesce a trovare o elencare il percorso di download. Controlla il tuo montaggio e i permessi di lettura.',
+  'settings.slskdPathIncomplete':
+    'Il percorso sembra una cartella di download incompleti. Usa la tua cartella dei download completati.',
+  'settings.slskdPathOk':
+    'Connesso a slskd - Lidarr vede la cartella di download. Verifica che contenga i tuoi download completati.',
   'tokens.title': 'Token API',
   'tokens.description': 'Dai ai tuoi script credenziali revocabili dedicate.',
   'tokens.passwordWarning':
