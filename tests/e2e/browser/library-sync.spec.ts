@@ -9,7 +9,7 @@ test.describe('library sync', () => {
 
     await installAuthCookie(page)
 
-    await page.goto('/library/health')
+    await page.goto('/library?tab=health')
     const sourcesToggle = page.getByRole('button', { name: 'Library Sources' })
     await expect(sourcesToggle).toHaveAttribute('aria-expanded', 'false')
     await sourcesToggle.click()

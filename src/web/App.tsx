@@ -71,14 +71,7 @@ const GenreDetailPage = lazy(() =>
   import('./pages/genre-detail').then((m) => ({ default: m.GenreDetailPage })),
 )
 const GenresPage = lazy(() => import('./pages/genres').then((m) => ({ default: m.GenresPage })))
-const LibraryHealthPage = lazy(() =>
-  import('./pages/library-health').then((m) => ({ default: m.LibraryHealthPage })),
-)
-const LibraryReconciliationPage = lazy(() =>
-  import('./pages/library-reconciliation').then((m) => ({
-    default: m.LibraryReconciliationPage,
-  })),
-)
+const LibraryPage = lazy(() => import('./pages/library').then((m) => ({ default: m.LibraryPage })))
 const PlaylistDetailPage = lazy(() =>
   import('./pages/playlist-detail').then((m) => ({ default: m.PlaylistDetailPage })),
 )
@@ -742,14 +735,29 @@ function InnerApp() {
                 <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
                 <Route path="/subscriptions" element={<SubscriptionsPage />} />
                 <Route
-                  path="/library/health"
+                  path="/library"
                   element={
                     <AdminRoute>
-                      <LibraryHealthPage />
+                      <LibraryPage />
                     </AdminRoute>
                   }
                 />
-                <Route path="/library/reconciliation" element={<LibraryReconciliationPage />} />
+                <Route
+                  path="/library/health"
+                  element={
+                    <AdminRoute>
+                      <LibraryPage />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/library/reconciliation"
+                  element={
+                    <AdminRoute>
+                      <LibraryPage />
+                    </AdminRoute>
+                  }
+                />
                 <Route
                   path="/analytics"
                   element={
@@ -761,11 +769,11 @@ function InnerApp() {
                 <Route path="/settings" element={<SettingsPage />} />
                 <Route
                   path="/settings/jobs"
-                  element={<Navigate to="/settings?tab=jobs" replace />}
+                  element={<Navigate to="/settings?tab=system#jobs" replace />}
                 />
                 <Route
                   path="/settings/system-health"
-                  element={<Navigate to="/settings?tab=system-health" replace />}
+                  element={<Navigate to="/settings?tab=system#health" replace />}
                 />
                 <Route
                   path="/users"

@@ -79,6 +79,8 @@ const UNIVERSAL_SAME_AS_SOURCE_VALUES = new Set([
 // Natural-language loanwords and unchanged labels are exceptions only for the
 // locale and key where a native speaker would actually use the English form.
 const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
+  'de:settings.tabs.system',
+  'pl:settings.tabs.system',
   'fr:app.themeMode',
   'fr:genres.genrePlural',
   'fr:genres.genreSingular',
