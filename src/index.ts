@@ -1604,7 +1604,7 @@ if (envConfig.authToken && envConfig.authToken.length < 16) {
 }
 if (envConfig.authToken) {
   console.warn(
-    'DEPRECATED: DIGARR_AUTH_TOKEN provides read-only access with no admin privileges, no per-user features, and no audit trail. Create a user account instead.',
+    'DEPRECATED: DIGARR_AUTH_TOKEN provides read-only access with no admin privileges, no per-user features, and no audit trail. Create personal API tokens in Settings > Account instead. See docs/AUTHENTICATION.md#personal-api-tokens.',
   )
 }
 if (!envConfig.authToken && !envConfig.initialUsername) {

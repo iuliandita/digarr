@@ -4,6 +4,7 @@ import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { errMsg } from '@/core/validation'
+import { ApiTokensSection } from '../../components/api-tokens-section'
 import { Field } from '../../components/field'
 import { LanguageSelect } from '../../components/language-switcher'
 import { Button } from '../../components/ui/button'
@@ -275,6 +276,7 @@ export function AccountTab() {
         </div>
       </section>
 
+      <ApiTokensSection isAdmin={user?.isAdmin ?? false} />
       {(canInstall || showIosHint) && (
         <section className="space-y-3">
           <h2 className="text-lead font-semibold text-text">{t('settings.app')}</h2>

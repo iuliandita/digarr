@@ -62,6 +62,8 @@ function getSocketIp(c: { env?: unknown }): string {
 export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
   return createMiddleware<HonoEnv>(async (c, next) => {
     if (!deps.enabled) return next()
+    // Explicit personal tokens keep their scope even behind a sign-in proxy.
+    if (c.req.header('Authorization')?.startsWith('Bearer dga_')) return next()
 
     const proxyIp = getSocketIp(c)
     if (!isIpTrusted(proxyIp, deps.trustedProxies)) return next()

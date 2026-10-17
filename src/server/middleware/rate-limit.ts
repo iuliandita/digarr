@@ -1,3 +1,4 @@
+import type { Context } from 'hono'
 import { createMiddleware } from 'hono/factory'
 import { problem } from '@/server/helpers/problem'
 import type { HonoEnv } from '@/server/types'
@@ -44,7 +45,13 @@ function getSocketIp(c: { env?: unknown }): string | null {
  * Not shared across processes - sufficient for single-process deployments.
  * All limiter instances share one prune interval via the module-level registry.
  */
-export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: string }) {
+export function rateLimiter(opts: {
+  windowMs: number
+  max: number
+  keyPrefix?: string
+  getIp?: (c: Context<HonoEnv>) => string | null
+  countResponse?: (c: Context<HonoEnv>) => boolean
+}) {
   const buckets: RateLimitStore = new Map()
   registry.push(buckets)
   ensurePruneStarted()
@@ -57,9 +64,8 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
     if (process.env.NODE_ENV !== 'production' && process.env.DIGARR_DISABLE_RATE_LIMIT === '1') {
       return next()
     }
-    // Use socket IP to prevent bypass via forged X-Forwarded-For headers.
-    // Same approach as proxy-auth.ts getSocketIp().
-    const ip = getSocketIp(c) ?? 'unknown'
+    // Socket-only by default; specific limiters can opt into trusted proxy resolution.
+    const ip = (opts.getIp ? opts.getIp(c) : getSocketIp(c)) ?? 'unknown'
     // Append the resolved userId to the bucket key when auth has already run.
     // Without this, every authenticated user behind a reverse proxy or shared
     // NAT shares one bucket and a single noisy account drains the budget for
@@ -78,27 +84,38 @@ export function rateLimiter(opts: { windowMs: number; max: number; keyPrefix?: s
 
     bucket.count++
 
-    const remaining = Math.max(0, opts.max - bucket.count)
-    const resetEpoch = Math.ceil(bucket.resetAt / 1000)
-    const windowSeconds = Math.ceil(opts.windowMs / 1000)
+    const setHeaders = () => {
+      const remaining = Math.max(0, opts.max - bucket.count)
+      const resetEpoch = Math.ceil(bucket.resetAt / 1000)
+      const windowSeconds = Math.ceil(opts.windowMs / 1000)
 
-    // Legacy X-RateLimit-* headers stay for existing clients; the new
-    // RateLimit-* set (IETF draft-ietf-httpapi-ratelimit-headers) is added
-    // in parallel so forward-looking clients can rely on the standard.
-    c.header('X-RateLimit-Limit', String(opts.max))
-    c.header('X-RateLimit-Remaining', String(remaining))
-    c.header('X-RateLimit-Reset', String(resetEpoch))
-    c.header('RateLimit-Policy', `${opts.max};w=${windowSeconds}`)
-    c.header('RateLimit-Limit', String(opts.max))
-    c.header('RateLimit-Remaining', String(remaining))
-    c.header('RateLimit-Reset', String(Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))))
+      // Legacy X-RateLimit-* headers stay for existing clients; the new
+      // RateLimit-* set (IETF draft-ietf-httpapi-ratelimit-headers) is added
+      // in parallel so forward-looking clients can rely on the standard.
+      c.header('X-RateLimit-Limit', String(opts.max))
+      c.header('X-RateLimit-Remaining', String(remaining))
+      c.header('X-RateLimit-Reset', String(resetEpoch))
+      c.header('RateLimit-Policy', `${opts.max};w=${windowSeconds}`)
+      c.header('RateLimit-Limit', String(opts.max))
+      c.header('RateLimit-Remaining', String(remaining))
+      c.header('RateLimit-Reset', String(Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))))
+    }
 
     if (bucket.count > opts.max) {
+      setHeaders()
       const retryAfter = Math.max(0, Math.ceil((bucket.resetAt - now) / 1000))
       c.header('Retry-After', String(retryAfter))
       return problem(c, 'rate-limited', 'Too many requests', 429, undefined, { retryAfter })
     }
 
-    await next()
+    if (!opts.countResponse) setHeaders()
+    try {
+      await next()
+    } finally {
+      if (opts.countResponse) {
+        if (opts.countResponse(c)) setHeaders()
+        else bucket.count--
+      }
+    }
   })
 }
