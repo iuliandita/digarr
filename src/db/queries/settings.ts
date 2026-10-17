@@ -26,15 +26,14 @@ export type SetupConfig = {
 }
 
 export async function initializeExperimentalIntegrations(db: Database): Promise<void> {
-  // Bandcamp was always enabled before this preference existed. Completed legacy
-  // installs retain it; new setup writes an explicit false instead.
+  // Preserve visibility for saved TIDAL integrations only; legacy Bandcamp use
+  // does not opt an installation into experimental integrations.
   await db
     .update(settings)
     .set({
       preferences: sql`coalesce(${settings.preferences}, '{}'::jsonb) || jsonb_build_object(
       'showExperimentalIntegrations',
-      ${settings.setupComplete}
-        or nullif(${settings.tidalClientId}, '') is not null
+      nullif(${settings.tidalClientId}, '') is not null
         or nullif(${settings.tidalClientSecret}, '') is not null
         or exists (select 1 from ${oauthTokens} where ${oauthTokens.provider} = 'tidal')
     )`,

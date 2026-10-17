@@ -24,7 +24,7 @@ afterEach(async () => {
 describe('experimental integration upgrade default', () => {
   it.each([
     {
-      name: 'unused installation',
+      name: 'fresh installation',
       setupComplete: false,
       app: false,
       user: false,
@@ -32,12 +32,12 @@ describe('experimental integration upgrade default', () => {
       expected: false,
     },
     {
-      name: 'legacy Bandcamp enabled',
+      name: 'legacy installation with only Bandcamp',
       setupComplete: true,
       app: false,
       user: false,
       explicit: undefined,
-      expected: true,
+      expected: false,
     },
     {
       name: 'TIDAL app credentials',

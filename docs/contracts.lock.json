@@ -180,7 +180,7 @@
         "src/db/queries/recommendations.ts": "3fcb903eaa0f14206fe02c93a003b6dca18f5383f4326daa56c665268ab56b24",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
-        "src/db/queries/settings.ts": "317284e8829c0ec4f5254d84b54f6c5c71fcb540648e14a02188cb68e254d5f2",
+        "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
         "src/db/queries/setup.ts": "25ad4caa8da652ae83f6dcdd845630a8ec801261cd753816e6908abaf6345401",
         "src/db/queries/slskd-jobs.ts": "fab637cf124846376531e53c6f399eb234f4f6bc71fa0f46861a9ab2a81f4f84",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
@@ -189,14 +189,14 @@
         "src/db/schema.ts": "511d0c12f321f0a779c143a104a01d78dbb8a77c2a15f3b707fefd10c6796095",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "f564d8e0f8a5c4e83319240301c324f33317990af689c72a154d12f904c91057",
+      "digest": "20e5cdd472a9addc6b06bb488b0832888b93f1d893f0cddb24324002355480ca",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Review combined Lidarr monitor/tag preferences and one-time experimental visibility initialization; preserve saved setup preferences and explicit choices and document legacy Bandcamp compatibility.",
+        "note": "Review combined Lidarr monitor/tag preferences and one-time experimental visibility initialization. Missing visibility defaults off for legacy Bandcamp installs; saved TIDAL credentials or OAuth connections are the only upgrade exceptions. Preserve saved setup preferences and explicit choices.",
         "breaking": "none",
         "migration": "Upgrade adds preferences in existing JSON without a schema migration; normal database backups preserve the settings. Rollback ignores the experimental key; choose all/new/none before rolling back newer Lidarr monitor options, and older versions ignore tags.",
-        "digest": "f564d8e0f8a5c4e83319240301c324f33317990af689c72a154d12f904c91057"
+        "digest": "20e5cdd472a9addc6b06bb488b0832888b93f1d893f0cddb24324002355480ca"
       }
     },
     "configuration": {
