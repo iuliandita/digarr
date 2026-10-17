@@ -237,7 +237,7 @@
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
-        "src/server/middleware/rate-limit.ts": "55487a8842af56559d02376e20252632a2f555eb03d0a02f5b11a2f9d67ddd15",
+        "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
@@ -254,14 +254,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba",
+      "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md"],
-        "note": "Document per-client personal-token failure budgets, trusted proxy forwarding, and socket fallback for missing or malformed headers.",
+        "docs": ["docs/AUTHENTICATION.md", "CHANGELOG.md"],
+        "note": "Document trusted-proxy client IP buckets for all in-memory limiters, socket fallback for untrusted peers, and unchanged limits and windows.",
         "breaking": "none",
         "migration": "",
-        "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba"
+        "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7"
       }
     },
     "api": {
