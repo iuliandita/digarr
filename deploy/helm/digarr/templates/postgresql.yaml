@@ -68,7 +68,7 @@ spec:
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: {{ include "digarr.fullname" . }}-db
+                  name: {{ include "digarr.databaseSecretName" . }}
                   key: POSTGRES_PASSWORD
             - name: POSTGRES_DB
               value: {{ .Values.postgresql.auth.database | quote }}

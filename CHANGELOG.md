@@ -26,6 +26,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
+- CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).
 - Upgrades from releases before migrations 0024 and 0028 no longer fail on databases with duplicate rows. After the pre-migration backup, Digarr removes duplicate library sync state and match override rows (keeping the newest) and clears a duplicate email or SSO subject from every account but the oldest, then logs counts and affected user ids (#925).
 - Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
