@@ -219,6 +219,8 @@ export const it = {
   'setup.readyDescription': 'Ecco cosa hai configurato:',
   'setup.readyTitle': 'Pronti a partire',
   'setup.skipTlsVerification': 'Salta la verifica TLS',
+  'setup.skipTlsVerificationHint':
+    'Disattiva il controllo dei certificati. Usalo solo su una rete di cui ti fidi.',
   'setup.startDigging': 'Inizia',
   'setup.starting': 'A partire...',
   'setup.continueRequires': 'Per continuare, compila: {0}',
@@ -1589,6 +1591,10 @@ export const it = {
   'errorBoundary.title': 'Qualcosa è andato storto',
   'errorBoundary.retry': 'Riprova',
   'errorBoundary.home': 'Vai alla home',
+  'errorBoundary.body':
+    'Di solito ricaricare risolve. Se succede ancora, includi i dettagli qui sotto in una segnalazione di bug.',
+  'errorBoundary.reload': 'Ricarica',
+  'errorBoundary.details': 'Dettagli',
   'keyboardShortcuts.title': 'Scorciatoie da tastiera',
   'keyboardShortcuts.close': 'Chiudi scorciatoie',
   'keyboardShortcuts.nextCard': 'Scheda successiva',

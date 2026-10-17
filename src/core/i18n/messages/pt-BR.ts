@@ -219,6 +219,8 @@ export const ptBR = {
   'setup.readyDescription': 'Aqui está o que você configurou:',
   'setup.readyTitle': 'Tudo pronto',
   'setup.skipTlsVerification': 'Ignorar verificação TLS',
+  'setup.skipTlsVerificationHint':
+    'Desativa a verificação de certificados. Use apenas em uma rede em que você confia.',
   'setup.startDigging': 'Começar',
   'setup.starting': 'Começando...',
   'setup.continueRequires': 'Para continuar, preencha: {0}',
@@ -1583,6 +1585,10 @@ export const ptBR = {
   'errorBoundary.title': 'Algo deu errado',
   'errorBoundary.retry': 'Tentar novamente',
   'errorBoundary.home': 'Ir para o início',
+  'errorBoundary.body':
+    'Recarregar costuma resolver. Se continuar acontecendo, inclua os detalhes abaixo em um relatório de bug.',
+  'errorBoundary.reload': 'Recarregar',
+  'errorBoundary.details': 'Detalhes',
   'keyboardShortcuts.title': 'Atalhos de teclado',
   'keyboardShortcuts.close': 'Fechar atalhos',
   'keyboardShortcuts.nextCard': 'Próximo cartão',

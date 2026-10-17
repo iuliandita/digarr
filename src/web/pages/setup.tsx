@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { Field } from '../components/field'
 import { LanguageSwitcher } from '../components/language-switcher'
 import { Button } from '../components/ui/button'
+import { Disclosure } from '../components/ui/disclosure'
 import { Input } from '../components/ui/input'
 import { Select } from '../components/ui/select'
 import { ApiError, completeSetup } from '../lib/api'
@@ -181,15 +182,18 @@ function StepLidarr({
           onChange={(e) => onFormChange({ ...form, url: e.target.value })}
         />
       </Field>
-      <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
-        <input
-          type="checkbox"
-          checked={form.skipTlsVerify}
-          onChange={(e) => onFormChange({ ...form, skipTlsVerify: e.target.checked })}
-          className="rounded border-border"
-        />
-        {t('setup.skipTlsVerification')}
-      </label>
+      <Disclosure title={t('settings.advancedSettings')} defaultOpen={form.skipTlsVerify}>
+        <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.skipTlsVerify}
+            onChange={(e) => onFormChange({ ...form, skipTlsVerify: e.target.checked })}
+            className="rounded border-border"
+          />
+          {t('setup.skipTlsVerification')}
+        </label>
+        <p className="mt-2 text-xs text-warning">{t('setup.skipTlsVerificationHint')}</p>
+      </Disclosure>
       <Field label={t('setup.apiKey')} id="lidarr-apikey">
         <Input
           id="lidarr-apikey"

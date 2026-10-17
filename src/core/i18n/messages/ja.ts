@@ -218,6 +218,8 @@ export const ja = {
   'setup.readyDescription': '設定した内容は次のとおりです。',
   'setup.readyTitle': '準備完了',
   'setup.skipTlsVerification': 'TLS検証をスキップする',
+  'setup.skipTlsVerificationHint':
+    '証明書の検証を無効にします。信頼できるネットワークでのみ使用してください。',
   'setup.startDigging': 'はじめる',
   'setup.starting': '開始中...',
   'setup.continueRequires': '続行するには次を入力してください: {0}',
@@ -1563,6 +1565,10 @@ export const ja = {
   'errorBoundary.title': '問題が発生しました',
   'errorBoundary.retry': '再試行',
   'errorBoundary.home': 'ホームへ戻る',
+  'errorBoundary.body':
+    '再読み込みすると直ることが多いです。繰り返し発生する場合は、下の詳細をバグ報告に添えてください。',
+  'errorBoundary.reload': '再読み込み',
+  'errorBoundary.details': '詳細',
   'keyboardShortcuts.title': 'キーボードショートカット',
   'keyboardShortcuts.close': 'ショートカットを閉じる',
   'keyboardShortcuts.nextCard': '次のカード',

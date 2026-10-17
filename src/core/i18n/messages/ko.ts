@@ -214,6 +214,8 @@ export const ko = {
   'setup.readyDescription': '구성한 내용은 다음과 같습니다.',
   'setup.readyTitle': '갈 준비가 됐어요',
   'setup.skipTlsVerification': 'TLS 확인 건너뛰기',
+  'setup.skipTlsVerificationHint':
+    '인증서 검사를 끕니다. 신뢰할 수 있는 네트워크에서만 사용하세요.',
   'setup.startDigging': '시작하기',
   'setup.starting': '시작 중...',
   'setup.continueRequires': '계속하려면 다음을 입력하세요: {0}',
@@ -1542,6 +1544,10 @@ export const ko = {
   'errorBoundary.title': '문제가 발생했습니다',
   'errorBoundary.retry': '다시 시도',
   'errorBoundary.home': '홈으로 이동',
+  'errorBoundary.body':
+    '새로고침하면 대부분 해결됩니다. 계속 발생하면 아래 세부 정보를 버그 보고에 포함해 주세요.',
+  'errorBoundary.reload': '새로고침',
+  'errorBoundary.details': '세부 정보',
   'keyboardShortcuts.title': '키보드 단축키',
   'keyboardShortcuts.close': '단축키 닫기',
   'keyboardShortcuts.nextCard': '다음 카드',

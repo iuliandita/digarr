@@ -218,6 +218,8 @@ export const uk = {
   'setup.readyDescription': 'Ось що налаштовано:',
   'setup.readyTitle': 'Готовий до роботи',
   'setup.skipTlsVerification': 'Пропустити перевірку TLS',
+  'setup.skipTlsVerificationHint':
+    'Вимикає перевірку сертифікатів. Використовуй це лише в мережі, якій довіряєш.',
   'setup.startDigging': 'Почати',
   'setup.starting': 'Починаючи...',
   'setup.continueRequires': 'Щоб продовжити, заповни: {0}',
@@ -1578,6 +1580,10 @@ export const uk = {
   'errorBoundary.title': 'Сталася проблема',
   'errorBoundary.retry': 'Спробувати знову',
   'errorBoundary.home': 'Перейти на головну',
+  'errorBoundary.body':
+    'Зазвичай допомагає перезавантаження сторінки. Якщо помилка повторюється, додай подробиці нижче до звіту про помилку.',
+  'errorBoundary.reload': 'Перезавантажити',
+  'errorBoundary.details': 'Подробиці',
   'keyboardShortcuts.title': 'Клавіатурні скорочення',
   'keyboardShortcuts.close': 'Закрити скорочення',
   'keyboardShortcuts.nextCard': 'Наступна картка',

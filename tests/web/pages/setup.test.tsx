@@ -208,6 +208,37 @@ describe('SetupWizard', () => {
     await vi.waitFor(() => expect(mockCompleteSetup).toHaveBeenCalledWith({}))
   })
 
+  it('hides skip-TLS under Advanced on the Lidarr step and sends the value when set', async () => {
+    mockCompleteSetup.mockResolvedValueOnce(undefined as never)
+    await goToLidarrStep()
+    const checkbox = screen.getByLabelText('Skip TLS verification')
+    expect(checkbox).not.toBeVisible()
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+    expect(checkbox).toBeVisible()
+    expect(screen.getByText(/Disables certificate checks/)).toBeVisible()
+    fireEvent.click(checkbox)
+    await fillAndContinueLidarr()
+    await screen.findByText('AI Provider')
+    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
+    fireEvent.click(await screen.findByRole('button', { name: /Start Digging/i }))
+    await vi.waitFor(() =>
+      expect(mockCompleteSetup).toHaveBeenCalledWith(
+        expect.objectContaining({ skipTlsVerify: true }),
+      ),
+    )
+  })
+
+  it('reopens Advanced automatically when skip-TLS is already on', async () => {
+    await goToLidarrStep()
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+    fireEvent.click(screen.getByLabelText('Skip TLS verification'))
+    await fillAndContinueLidarr()
+    await screen.findByText('AI Provider')
+    fireEvent.click(screen.getByRole('button', { name: /Back/ }))
+    await screen.findByText(/Connect(?:er)? Lidarr/i)
+    expect(screen.getByLabelText('Skip TLS verification')).toBeVisible()
+  })
+
   it('uses a translated fallback model placeholder in French for openai-compatible', async () => {
     mockGetStoredLocale.mockReturnValue('fr')
     renderSetupWizard()

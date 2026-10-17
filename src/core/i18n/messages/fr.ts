@@ -219,6 +219,8 @@ export const fr = {
   'setup.readyDescription': 'Voici ce que tu as configuré :',
   'setup.readyTitle': 'Prêt',
   'setup.skipTlsVerification': 'Ignorer la vérification TLS',
+  'setup.skipTlsVerificationHint':
+    'Désactive la vérification des certificats. À utiliser uniquement sur un réseau de confiance.',
   'setup.startDigging': 'Commencer',
   'setup.starting': 'Démarrage...',
   'setup.continueRequires': 'Pour continuer, remplis : {0}',
@@ -1590,6 +1592,10 @@ export const fr = {
   'errorBoundary.title': 'Un problème est survenu',
   'errorBoundary.retry': 'Réessayer',
   'errorBoundary.home': "Retour à l'accueil",
+  'errorBoundary.body':
+    "Recharger règle généralement le problème. S'il persiste, joins les détails ci-dessous à ton rapport de bug.",
+  'errorBoundary.reload': 'Recharger',
+  'errorBoundary.details': 'Détails',
   'keyboardShortcuts.title': 'Raccourcis clavier',
   'keyboardShortcuts.close': 'Fermer les raccourcis',
   'keyboardShortcuts.nextCard': 'Carte suivante',

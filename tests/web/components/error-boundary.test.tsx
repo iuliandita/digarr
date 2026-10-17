@@ -42,24 +42,22 @@ describe('ErrorBoundary', () => {
     expect(screen.getByText('healthy child')).toBeInTheDocument()
   })
 
-  it('renders fallback UI with error message when child throws', () => {
+  it('shows friendly copy with the raw message tucked into a details disclosure', () => {
     render(withI18n(<ErrorBoundary>{(<Boom message="kaboom" />) as ReactNode}</ErrorBoundary>))
-    expect(screen.getByText('kaboom')).toBeInTheDocument()
-    // i18n fallback title ("Something went wrong") should render
-    expect(screen.getByRole('heading')).toBeInTheDocument()
-    // Retry and Home buttons present
-    expect(screen.getAllByRole('button').length).toBeGreaterThanOrEqual(2)
+    expect(screen.getByRole('heading', { name: 'Something went wrong' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reload' })).toBeInTheDocument()
+    const toggle = screen.getByRole('button', { name: 'Details' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText(/kaboom/)).not.toBeVisible()
+    fireEvent.click(toggle)
+    expect(screen.getByText(/kaboom/)).toBeVisible()
   })
 
-  it('exposes retry and home buttons in the fallback', () => {
+  it('exposes reload and home buttons in the fallback', () => {
     render(withI18n(<ErrorBoundary>{(<Boom message="x" />) as ReactNode}</ErrorBoundary>))
     const buttons = screen.getAllByRole('button')
-    // Retry + Home = 2 buttons in the fallback UI.
+    // Reload + Home + Details = 3 buttons in the fallback UI.
     expect(buttons.length).toBeGreaterThanOrEqual(2)
-    const retry = buttons[0]
-    if (!retry) throw new Error('retry button missing')
-    // Clicking retry should not throw; the integration-level behaviour
-    // (re-mount with healthy children) is covered by other tests.
-    fireEvent.click(retry)
+    expect(screen.getByRole('button', { name: 'Go home' })).toBeInTheDocument()
   })
 })

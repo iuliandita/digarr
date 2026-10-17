@@ -216,6 +216,8 @@ export const tr = {
   'setup.readyDescription': 'İşte yapılandırdığın şey:',
   'setup.readyTitle': 'Gitmeye hazır',
   'setup.skipTlsVerification': 'TLS doğrulamasını atla',
+  'setup.skipTlsVerificationHint':
+    'Sertifika denetimini kapatır. Bunu yalnızca güvendiğin bir ağda kullan.',
   'setup.startDigging': 'Başla',
   'setup.starting': 'Başlıyor...',
   'setup.continueRequires': 'Devam etmek için doldur: {0}',
@@ -1565,6 +1567,10 @@ export const tr = {
   'errorBoundary.title': 'Bir sorun oluştu',
   'errorBoundary.retry': 'Tekrar dene',
   'errorBoundary.home': 'Ana sayfaya git',
+  'errorBoundary.body':
+    'Sayfayı yenilemek genellikle sorunu çözer. Tekrar ederse aşağıdaki ayrıntıları hata bildirimine ekle.',
+  'errorBoundary.reload': 'Yenile',
+  'errorBoundary.details': 'Ayrıntılar',
   'keyboardShortcuts.title': 'Klavye kısayolları',
   'keyboardShortcuts.close': 'Kısayolları kapat',
   'keyboardShortcuts.nextCard': 'Sonraki kart',
