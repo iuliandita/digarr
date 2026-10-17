@@ -218,7 +218,7 @@
       "files": {
         "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
-        "src/core/auth/oidc.ts": "c63e396968586a67bca32762bb2b62b42ae0835d76cba6d6770e445009786724",
+        "src/core/auth/oidc.ts": "824a37cb005c3d9094a5a00e4dcec2f5da9c5af9b8d614215d94a8784c9c2a68",
         "src/core/crypto.ts": "89718848a735a943c7e2167c195b433a8064f9f94a0d225f1ebca40a82039c3c",
         "src/core/oauth.ts": "23c54d509bf27770574221d6d3b5d8ea68e9a030aaa74b1a3ace37c55abd2385",
         "src/core/provider-auth.ts": "77ad75b128a06c5f44e1b0c239f94c25ad1c7698c55637ea1e9bbf78a273200d",
@@ -251,14 +251,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "1bb0426c255d590d24e7e35cc7ba89a683db642f2af9b7a795f8669c95a3f549",
+      "digest": "332ea4748ab16bcb74f6f21ed85f111a9ef88aeaf02c557c0d2e24e36ed5b606",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "The problem-json middleware only rewrites the body and content type of JSON error responses that carry an error member, and admin restore and migrate-backend/test validation failures now use the shared validation-failed problem; status codes, WWW-Authenticate, Set-Cookie and other headers are preserved, so authentication, admin gating, CSRF and session behavior are unchanged. The admin 403 note in docs/API.md says problem+json everywhere.",
         "breaking": "none",
         "migration": "",
-        "digest": "1bb0426c255d590d24e7e35cc7ba89a683db642f2af9b7a795f8669c95a3f549"
+        "digest": "332ea4748ab16bcb74f6f21ed85f111a9ef88aeaf02c557c0d2e24e36ed5b606"
       }
     },
     "api": {
@@ -508,13 +508,13 @@
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
         "src/core/clients/audiodb.ts": "10b86b61f5f56c69f4237bec29b6ae8fbe519003b14a0a552ee634498ed48da4",
-        "src/core/clients/bandcamp.ts": "2941c6724ce06b5b4b7712d68d09e502c1a4a62ee0fc87002536963f7df2ae9c",
+        "src/core/clients/bandcamp.ts": "6bf5e7f0f59b88ab0a2ce3a946b997c136beec0379d0b06a57aa40663e7516e7",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "58c31bf15f98c55afb38368f7d5c81288efc40edd36be0930427e752c7bdc9db",
         "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
-        "src/core/clients/http.ts": "3bc9eb47ee05c1e9675b5fbb69e9bbfef182caece0fdc63d346bd2110065f9d4",
+        "src/core/clients/http.ts": "842ab7cb8cc07b27aa6de790352757f167bed4f72448d68c6ecdc77b4351e014",
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
@@ -584,13 +584,14 @@
         "src/core/library/sync.ts": "2a4bda0806ab5aae742a1474b85cf0952759ef97e198a19a35bc077a6dcd5c07",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
+        "src/core/net/guarded-fetch.ts": "517d7075fc57ed03c0173c10b6ba68c7253721c9d514e6ab90df9704540d6611",
         "src/core/notifications/channels/apprise.ts": "e7e4f6a6f17c8b4b712c520c5382ea17196ebb27cae60f32c55be471c96255d9",
         "src/core/notifications/channels/ntfy.ts": "5c5b7747a209a1f7f557a2e2f956d908f480372269a8185223eedf91ac77a0bb",
         "src/core/notifications/channels/telegram.ts": "fa3cdab2724e026fa5528924bf7638aea01ee188232b3cad0d3cd0b9a8660221",
         "src/core/notifications/channels/webhook.ts": "8c48e506179778903281906aec6bc651eb3b55ef1955df06b32a019367bf217c",
         "src/core/notifications/index.ts": "eb41977d894a1f5ec162a1c675caf27fc8d29a9aa326a821040faf7820c9f67c",
         "src/core/notifications/registry.ts": "08ce7a4937bdd27366a5e34d6ea1dd3e77d0be092edcdd44aa40672653803335",
-        "src/core/notifications/transport.ts": "a6107d6120c33f2aa41e528771a5d003c224e3c7f7f905f57b9392c19060e600",
+        "src/core/notifications/transport.ts": "ccdbd6b7a7cb6b0b7f4a2eb7101e925430a620ccc5fd154660bb5c95be3137d9",
         "src/core/notifications/types.ts": "be5640349401fb3b996709e631d14dd8760fbed4f529b00f6328d9ddbe12068a",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
         "src/core/pipeline/auto-approve.ts": "a9a52ae3478da777837c8da9620eeb0f9d97f088b7f87ed2753f7daa918dc722",
@@ -702,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76",
+      "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Export the genre alias key helper so the normalization contract test can pin it; behavior unchanged. Architecture now links the new name normalization plan.",
+        "note": "Notification transport, publicIpOnly clients and Bandcamp share one resolve-and-pin guard; blocked targets fail without retry backoff. ARCHITECTURE documents the guard, allowPrivateTarget semantics in API.md unchanged",
         "breaking": "none",
         "migration": "",
-        "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76"
+        "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2"
       }
     },
     "deployment": {

@@ -8,22 +8,13 @@
 // response handling. The auth-free, text/html nature of this scraper makes it a
 // poor fit for the JSON-oriented http abstraction.
 
-import dns from 'node:dns/promises'
 import PQueue from 'p-queue'
+import { guardedFetch } from '@/core/net/guarded-fetch'
 import type { ServiceTestResult } from '@/core/types'
-import { getLookupHostname, isPrivateIp, isPrivateUrl } from '@/core/validation'
 
 const DEFAULT_BASE_URL = 'https://bandcamp.com'
 const MAX_BODY_BYTES = 2 * 1024 * 1024
 const MAX_REDIRECTS = 3
-
-async function assertPublicUrl(url: string): Promise<void> {
-  if (isPrivateUrl(url)) throw new Error('URL points to a private/internal address')
-  const addresses = await dns.lookup(getLookupHostname(url), { all: true })
-  if (addresses.some(({ address }) => isPrivateIp(address))) {
-    throw new Error('URL resolves to a private/internal IP')
-  }
-}
 
 async function readCapped(res: Response): Promise<string> {
   if (!res.body) return ''
@@ -214,31 +205,22 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 10_000)
     try {
-      let url = startUrl
-      for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-        if (guard) await assertPublicUrl(url)
-        const res = await fetch(url, {
-          headers: {
-            'User-Agent':
-              'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
-            Accept: 'text/html,application/xhtml+xml',
-          },
-          redirect: guard ? 'manual' : 'follow',
-          signal: controller.signal,
-        })
-        const location = res.headers.get('location')
-        if (guard && res.status >= 300 && res.status < 400 && location) {
-          url = new URL(location, url).toString()
-          await res.body?.cancel()
-          continue
-        }
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status} from ${url}`)
-        }
-        // Read inside the timer so a stalled body is aborted too.
-        return await readCapped(res)
+      const init: RequestInit = {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+        signal: controller.signal,
       }
-      throw new Error('Too many redirects from Bandcamp')
+      const res = guard
+        ? await guardedFetch(startUrl, init, { maxRedirects: MAX_REDIRECTS })
+        : await fetch(startUrl, { ...init, redirect: 'follow' })
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} from ${startUrl}`)
+      }
+      // Read inside the timer so a stalled body is aborted too.
+      return await readCapped(res)
     } finally {
       clearTimeout(timer)
     }

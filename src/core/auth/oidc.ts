@@ -1,40 +1,21 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
-import * as dns from 'node:dns/promises'
-import { isIP } from 'node:net'
 import type { Configuration } from 'openid-client'
 import * as oidcClient from 'openid-client'
-import {
-  errMsg,
-  formatUrlHostname,
-  getLookupHostname,
-  isPrivateIp,
-  normalizeIp,
-} from '@/core/validation'
+import { BlockedTargetError, guardedFetch } from '@/core/net/guarded-fetch'
+import { errMsg } from '@/core/validation'
 
 const ipPinningFetch: oidcClient.CustomFetch = async (url, options) => {
-  const parsedUrl = new URL(url)
-  const hostname = getLookupHostname(parsedUrl)
-  const { address } = await dns.lookup(hostname)
-  if (isPrivateIp(address)) {
-    throw new Error('OIDC issuer resolves to a private/internal IP')
-  }
-
-  const headers = new Headers(options.headers)
-  const init = { ...options, headers } as unknown as RequestInit & {
-    tls?: { serverName: string }
-  }
-  if (address !== hostname) {
-    const pinnedUrl = new URL(url)
-    pinnedUrl.hostname = formatUrlHostname(address)
-    headers.set('Host', parsedUrl.host)
-    const normalizedHostname = normalizeIp(parsedUrl.hostname)
-    if (parsedUrl.protocol === 'https:' && isIP(normalizedHostname) === 0) {
-      init.tls = { serverName: normalizedHostname }
+  try {
+    return await guardedFetch(url, options as unknown as RequestInit)
+  } catch (err) {
+    if (
+      err instanceof BlockedTargetError &&
+      (err.reason === 'blocked_host' || err.reason === 'blocked_ip')
+    ) {
+      throw new Error('OIDC issuer resolves to a private/internal IP')
     }
-    return fetch(pinnedUrl.toString(), init)
+    throw err
   }
-
-  return fetch(url, init)
 }
 
 export interface OidcConfig {

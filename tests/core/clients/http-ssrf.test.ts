@@ -71,10 +71,11 @@ describe('createHttpClient + publicIpOnly DNS rebinding defence', () => {
     const client = createHttpClient({
       baseUrl: 'https://intranet.attacker.example',
       publicIpOnly: true,
-      retries: 0,
     })
 
     await expect(client.get('/secret')).rejects.toThrow(/private/i)
+    // A blocked target is not retried with backoff even though GET allows retries.
+    expect(lookupMock).toHaveBeenCalledOnce()
   })
 
   it('rejects when the URL points at a literal private IP up front', async () => {

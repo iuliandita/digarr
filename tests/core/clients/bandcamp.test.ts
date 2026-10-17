@@ -1,8 +1,11 @@
 // @vitest-environment node
 import * as http from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createBandcampClient } from '@/core/clients/bandcamp'
+
+const lookupMock = vi.hoisted(() => vi.fn())
+vi.mock('node:dns/promises', () => ({ lookup: lookupMock }))
 
 let server: http.Server
 let baseUrl: string
@@ -313,6 +316,38 @@ describe('createBandcampClient', () => {
   describe('default baseUrl', () => {
     it('creates a client without options', () => {
       expect(() => createBandcampClient()).not.toThrow()
+    })
+
+    it('pins bandcamp.com to its resolved IP and blocks a redirect to a private host', async () => {
+      const dns: Record<string, string> = {
+        'bandcamp.com': '151.101.1.1',
+        'internal.example': '10.0.0.1',
+      }
+      lookupMock.mockImplementation(async (host: string) => ({ address: dns[host], family: 4 }))
+      const fetchMock = vi.fn(
+        async (_url: string, _init: RequestInit) =>
+          new Response('<html>bandcamp search</html>', { status: 200 }),
+      )
+      vi.stubGlobal('fetch', fetchMock)
+      try {
+        expect((await createBandcampClient().testConnection()).success).toBe(true)
+        const [url, init] = fetchMock.mock.calls[0] ?? []
+        expect(url).toMatch(/^https:\/\/151\.101\.1\.1\/search\?/)
+        expect(new Headers(init?.headers).get('host')).toBe('bandcamp.com')
+        expect(init?.redirect).toBe('manual')
+
+        fetchMock.mockClear()
+        fetchMock.mockResolvedValueOnce(
+          new Response(null, { status: 302, headers: { location: 'http://internal.example/' } }),
+        )
+        const blocked = await createBandcampClient().testConnection()
+        expect(blocked.success).toBe(false)
+        expect(blocked.message).toMatch(/private/i)
+        expect(fetchMock).toHaveBeenCalledOnce()
+      } finally {
+        vi.unstubAllGlobals()
+        lookupMock.mockReset()
+      }
     })
   })
 })
