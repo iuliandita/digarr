@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#7aa2f7" />
+    <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="apple-touch-icon" href="/icon.svg" />
@@ -12,17 +13,7 @@
     <title>Digarr</title>
   </head>
   <body>
-    <script>
-      // Apply theme before React mounts to prevent FOUC
-      (() => {
-        var m = localStorage.getItem('digarr-theme') || 'system';
-        var c = localStorage.getItem('digarr-color-theme') || 'tokyonight';
-        var resolved = m === 'system'
-          ? (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-          : m;
-        document.documentElement.setAttribute('data-theme', `${c}-${resolved}`);
-      })();
-    </script>
+    <script src="/theme-init.js"></script>
     <div id="root"></div>
     <script type="module" src="/src/web/main.tsx"></script>
   </body>
