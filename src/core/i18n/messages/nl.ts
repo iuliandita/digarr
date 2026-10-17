@@ -1,4 +1,10 @@
 export const nl = {
+  'tokens.mcpTitle': 'MCP-clientconfiguratie',
+  'tokens.mcpDescription':
+    'Plak deze JSON in een MCP-client die externe servers en autorisatieheaders ondersteunt. Bewaar deze veilig - je token staat erin.',
+  'tokens.mcpCopy': 'Configuratie kopiëren',
+  'tokens.mcpCopied': 'Configuratie gekopieerd',
+  'tokens.mcpCopyFailed': 'Kopiëren mislukt. Selecteer de configuratie en kopieer deze handmatig.',
   'tokens.title': 'API-tokens',
   'tokens.description': 'Geef je scripts hun eigen intrekbare inloggegevens.',
   'tokens.passwordWarning':

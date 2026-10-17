@@ -81,10 +81,24 @@ describe('Account API tokens', () => {
     expect(within(dialog).getByRole('status').textContent).toContain('cannot see it again')
     fireEvent.click(within(dialog).getByRole('button', { name: 'Copy token' }))
     await waitFor(() => expect(writeText).toHaveBeenCalledWith(secret))
+    const config = within(dialog).getByLabelText('MCP client configuration').textContent ?? ''
+    expect(JSON.parse(config)).toEqual({
+      mcpServers: {
+        digarr: {
+          url: `${window.location.origin}/api/v1/mcp`,
+          headers: { Authorization: `Bearer ${secret}` },
+        },
+      },
+    })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Copy configuration' }))
+    await waitFor(() => expect(writeText).toHaveBeenLastCalledWith(config))
     fireEvent.click(within(dialog).getByRole('button', { name: 'Close' }))
     expect(screen.queryByDisplayValue(secret)).toBeNull()
+    expect(screen.queryByLabelText('MCP client configuration')).toBeNull()
+    expect(screen.queryByText(config)).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Create API token' }))
     expect(screen.queryByDisplayValue(secret)).toBeNull()
+    expect(screen.queryByLabelText('MCP client configuration')).toBeNull()
     expect((screen.getByLabelText('Name') as HTMLInputElement).value).toBe('')
   })
 

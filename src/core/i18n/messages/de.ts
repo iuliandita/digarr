@@ -1,4 +1,11 @@
 export const de = {
+  'tokens.mcpTitle': 'MCP-Client-Konfiguration',
+  'tokens.mcpDescription':
+    'Füge dieses JSON in einen MCP-Client ein, der entfernte Server und Autorisierungsheader unterstützt. Bewahre es sicher auf - es enthält dein Token.',
+  'tokens.mcpCopy': 'Konfiguration kopieren',
+  'tokens.mcpCopied': 'Konfiguration kopiert',
+  'tokens.mcpCopyFailed':
+    'Kopieren fehlgeschlagen. Markiere die Konfiguration und kopiere sie manuell.',
   'tokens.title': 'API-Tokens',
   'tokens.description': 'Gib deinen Skripten eigene widerrufbare Zugangsdaten.',
   'tokens.passwordWarning':

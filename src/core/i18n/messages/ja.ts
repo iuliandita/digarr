@@ -1,4 +1,10 @@
 export const ja = {
+  'tokens.mcpTitle': 'MCPクライアント設定',
+  'tokens.mcpDescription':
+    'リモートサーバーと認証ヘッダーに対応したMCPクライアントに、このJSONを貼り付けてください。トークンが含まれているため、安全に保管してください。',
+  'tokens.mcpCopy': '設定をコピー',
+  'tokens.mcpCopied': '設定をコピーしました',
+  'tokens.mcpCopyFailed': 'コピーできませんでした。設定を選択して手動でコピーしてください。',
   'tokens.title': 'APIトークン',
   'tokens.description': 'スクリプト専用の取り消し可能な認証情報を作成できます。',
   'tokens.passwordWarning':

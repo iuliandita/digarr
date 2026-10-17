@@ -65,7 +65,7 @@ export const openapiDoc = {
     title: 'digarr API',
     version: VERSION,
     description:
-      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. Every error response from an /api/* route uses RFC 9457 problem+json (`application/problem+json`). Errors from routes that used to return `{error}` keep a deprecated `error` member with the same text as `detail`. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request.',
+      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. REST error responses use RFC 9457 problem+json (`application/problem+json`); MCP protocol and tool errors keep their MCP shapes. Errors from routes that used to return `{error}` keep a deprecated `error` member with the same text as `detail`. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request; /api/v1/mcp accepts personal API tokens only.',
   },
   servers: [{ url: '/', description: 'Current deployment' }],
   components: {

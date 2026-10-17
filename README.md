@@ -128,6 +128,7 @@ Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-ima
 - [Configuration and operations](docs/OPERATIONS.md)
 - [Authentication, SSO, and user management](docs/AUTHENTICATION.md)
 - [API reference](docs/API.md), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
+- [Connect an MCP client](docs/MCP.md) for recommendations, approvals, and scans
 - [Recommendation quality evaluation](docs/RECOMMENDATION-QUALITY.md)
 - [Switching database backends](docs/guides/switching-backends.md) and [encryption-key rotation](docs/runbooks/encryption-key-rotation.md)
 - [Changelog](CHANGELOG.md), [roadmap](docs/ROADMAP.md), and [screenshots](docs/SCREENSHOTS.md)

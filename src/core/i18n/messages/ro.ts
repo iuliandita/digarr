@@ -1,4 +1,10 @@
 export const ro = {
+  'tokens.mcpTitle': 'Configurarea clientului MCP',
+  'tokens.mcpDescription':
+    'Lipește acest JSON într-un client MCP care acceptă servere la distanță și antete de autorizare. Păstrează-l în siguranță - conține tokenul tău.',
+  'tokens.mcpCopy': 'Copiază configurația',
+  'tokens.mcpCopied': 'Configurație copiată',
+  'tokens.mcpCopyFailed': 'Nu s-a putut copia. Selectează configurația și copiaz-o manual.',
   'tokens.title': 'Tokenuri API',
   'tokens.description': 'Dă-le scripturilor tale propriile credențiale pe care le poți revoca.',
   'tokens.passwordWarning':

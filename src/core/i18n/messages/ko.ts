@@ -1,4 +1,10 @@
 export const ko = {
+  'tokens.mcpTitle': 'MCP 클라이언트 설정',
+  'tokens.mcpDescription':
+    '원격 서버와 인증 헤더를 지원하는 MCP 클라이언트에 이 JSON을 붙여 넣어 주세요. 토큰이 포함되어 있으니 안전하게 보관해 주세요.',
+  'tokens.mcpCopy': '설정 복사',
+  'tokens.mcpCopied': '설정을 복사했어요',
+  'tokens.mcpCopyFailed': '복사하지 못했어요. 설정을 선택해서 직접 복사해 주세요.',
   'tokens.title': 'API 토큰',
   'tokens.description': '스크립트마다 취소할 수 있는 별도 인증 정보를 만들어 주세요.',
   'tokens.passwordWarning':

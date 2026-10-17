@@ -1,4 +1,11 @@
 export const fr = {
+  'tokens.mcpTitle': 'Configuration du client MCP',
+  'tokens.mcpDescription':
+    'Colle ce JSON dans un client MCP compatible avec les serveurs distants et les en-têtes d’autorisation. Garde-le en lieu sûr - il contient ton jeton.',
+  'tokens.mcpCopy': 'Copier la configuration',
+  'tokens.mcpCopied': 'Configuration copiée',
+  'tokens.mcpCopyFailed':
+    'Copie impossible. Sélectionne la configuration et copie-la manuellement.',
   'tokens.title': 'Jetons API',
   'tokens.description': 'Donne à tes scripts leurs propres identifiants révocables.',
   'tokens.passwordWarning':

@@ -1,4 +1,10 @@
 export const zhCN = {
+  'tokens.mcpTitle': 'MCP 客户端配置',
+  'tokens.mcpDescription':
+    '请将此 JSON 粘贴到支持远程服务器和授权请求头的 MCP 客户端中。其中包含你的令牌，请妥善保管。',
+  'tokens.mcpCopy': '复制配置',
+  'tokens.mcpCopied': '配置已复制',
+  'tokens.mcpCopyFailed': '无法复制。请选择配置并手动复制。',
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
   'tokens.passwordWarning':

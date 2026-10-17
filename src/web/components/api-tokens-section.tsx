@@ -23,6 +23,20 @@ export function ApiTokensSection({ isAdmin }: { isAdmin: boolean }) {
   const [scope, setScope] = useState<PersonalApiToken['scope']>('read')
   const [expiry, setExpiry] = useState<30 | 90 | 365 | null>(null)
   const [secret, setSecret] = useState('')
+  const mcpConfig = secret
+    ? JSON.stringify(
+        {
+          mcpServers: {
+            digarr: {
+              url: `${window.location.origin}/api/v1/mcp`,
+              headers: { Authorization: `Bearer ${secret}` },
+            },
+          },
+        },
+        null,
+        2,
+      )
+    : ''
   const [busy, setBusy] = useState(false)
   const [revoking, setRevoking] = useState<PersonalApiToken | null>(null)
   const dialog = useRef<HTMLDialogElement>(null)
@@ -70,12 +84,12 @@ export function ApiTokensSection({ isAdmin }: { isAdmin: boolean }) {
     }
   }
 
-  async function copy() {
+  async function copy(configuration = false) {
     try {
-      await navigator.clipboard.writeText(secret)
-      toast.success(t('tokens.copied'))
+      await navigator.clipboard.writeText(configuration ? mcpConfig : secret)
+      toast.success(t(configuration ? 'tokens.mcpCopied' : 'tokens.copied'))
     } catch {
-      toast.error(t('tokens.copyFailed'))
+      toast.error(t(configuration ? 'tokens.mcpCopyFailed' : 'tokens.copyFailed'))
     }
   }
 
@@ -156,7 +170,17 @@ export function ApiTokensSection({ isAdmin }: { isAdmin: boolean }) {
                 onFocus={(e) => e.target.select()}
                 className="font-mono"
               />
-              <Button onClick={copy}>{t('tokens.copy')}</Button>
+              <Button onClick={() => copy()}>{t('tokens.copy')}</Button>
+              <h4 id="mcp-client-config-title" className="font-medium">
+                {t('tokens.mcpTitle')}
+              </h4>
+              <p className="text-sm text-muted">{t('tokens.mcpDescription')}</p>
+              <section aria-labelledby="mcp-client-config-title">
+                <pre className="overflow-x-auto rounded border border-border p-3 text-xs">
+                  <code>{mcpConfig}</code>
+                </pre>
+              </section>
+              <Button onClick={() => copy(true)}>{t('tokens.mcpCopy')}</Button>
               <Button variant="outline" disabled={busy} onClick={close}>
                 {t('common.close')}
               </Button>

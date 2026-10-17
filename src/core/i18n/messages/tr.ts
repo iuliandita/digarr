@@ -1,4 +1,10 @@
 export const tr = {
+  'tokens.mcpTitle': 'MCP istemci yapılandırması',
+  'tokens.mcpDescription':
+    'Bu JSON içeriğini uzak sunucuları ve yetkilendirme başlıklarını destekleyen bir MCP istemcisine yapıştır. Güvenli bir yerde sakla - belirtecini içeriyor.',
+  'tokens.mcpCopy': 'Yapılandırmayı kopyala',
+  'tokens.mcpCopied': 'Yapılandırma kopyalandı',
+  'tokens.mcpCopyFailed': 'Kopyalanamadı. Yapılandırmayı seç ve elle kopyala.',
   'tokens.title': 'API belirteçleri',
   'tokens.description': 'Betiklerine iptal edebileceğin ayrı kimlik bilgileri ver.',
   'tokens.passwordWarning':

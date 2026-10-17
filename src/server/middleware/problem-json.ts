@@ -6,6 +6,7 @@ import { legacyErrorToProblem } from '@/server/helpers/problem'
 export function problemJsonErrors(): MiddlewareHandler {
   return async (c, next) => {
     await next()
+    if (c.req.path === '/api/v1/mcp') return
     const res = c.res
     if (res.status < 400) return
     if (!res.headers.get('content-type')?.startsWith('application/json')) return

@@ -1,4 +1,10 @@
 export const es = {
+  'tokens.mcpTitle': 'Configuración del cliente MCP',
+  'tokens.mcpDescription':
+    'Pega este JSON en un cliente MCP que admita servidores remotos y cabeceras de autorización. Guárdalo en un lugar seguro - contiene tu token.',
+  'tokens.mcpCopy': 'Copiar configuración',
+  'tokens.mcpCopied': 'Configuración copiada',
+  'tokens.mcpCopyFailed': 'No se pudo copiar. Selecciona la configuración y cópiala manualmente.',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dale a cada script tuyo una credencial que puedas revocar.',
   'tokens.passwordWarning':
