@@ -122,7 +122,7 @@ export function SettingsPage() {
         <div className="min-w-0 space-y-6">
           {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
           {tab === 'targets' && <TargetsTab />}
-          {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
+          {tab === 'recommendations' && <RecommendationsTab />}
           {tab === 'schedule' && <ScheduleTab settings={data} />}
           {tab === 'account' && <AccountTab />}
           {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}

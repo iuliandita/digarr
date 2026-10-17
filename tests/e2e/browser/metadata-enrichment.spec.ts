@@ -28,14 +28,15 @@ test.describe('Metadata enrichment', () => {
   })
 
   test('settings toggle hides Wikidata bio from cards after reload', async ({ page }) => {
-    // Disable "Show artist bio and external links" in the Recommendations tab.
-    // The toggle lives inside the collapsed "Advanced" section, so expand it first.
+    // Image-source controls live in Connections under Artist images.
     await page.goto('/settings')
-    await page.getByRole('button', { name: 'Recommendations' }).first().click()
-    await page.getByRole('button', { name: 'Advanced', exact: true }).first().click()
-    await page.getByLabel(/bio and external links/i).uncheck()
-    await page.getByRole('button', { name: 'Save', exact: true }).first().click()
-    await expect(page.getByText(/recommendation settings saved/i)).toBeVisible({ timeout: 5_000 })
+    const images = page.getByRole('group', { name: 'Artist images', exact: true })
+    await images.getByRole('button', { expanded: false }).click()
+    await images.getByLabel(/bio and external links/i).uncheck()
+    await images.getByRole('button', { name: 'Save', exact: true }).click()
+    await expect(page.getByText('Artist images settings saved', { exact: true })).toBeVisible({
+      timeout: 5_000,
+    })
 
     // Reload discover: the backend now returns an empty enrichment payload, so
     // the seeded bio text is gone while the mbid-built MusicBrainz pill remains.

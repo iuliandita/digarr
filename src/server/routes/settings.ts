@@ -195,6 +195,9 @@ async function buildSettingsResponse(
 
   // Non-secret capability flag: the TIDAL connect button needs to know whether an
   // admin has registered the shared app, but must never see the credentials.
+  response._notificationsConfigured = Boolean(
+    row.preferences?.channels?.length || row.preferences?.webhookUrl,
+  )
   response._tidalAppConfigured = Boolean(row.tidalClientId && row.tidalClientSecret)
 
   if (userId) {

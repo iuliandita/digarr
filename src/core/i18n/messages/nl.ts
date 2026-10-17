@@ -1066,8 +1066,31 @@ export const nl = {
   'settings.groups.personal': 'Persoonlijk',
   'settings.groups.library': 'Bibliotheek en diensten',
   'settings.groups.admin': 'Beheer',
-  'settings.globalSettings': 'Globale instellingen',
+  'settings.globalSettings': 'Server (beheerder)',
   'settings.adminOnly': 'Alleen beheerders kunnen globale instellingen wijzigen.',
+  'settings.addConnection': 'Verbinding toevoegen',
+  'settings.searchConnections': 'Verbindingen zoeken',
+  'settings.connectionResults': '{0} verbindingen gevonden',
+  'settings.noConnectionsFound': 'Geen overeenkomende verbindingen.',
+  'settings.showExperimentalIntegrations': 'Experimentele integraties tonen',
+  'settings.experimentalIntegrationsHelp':
+    'Toon TIDAL en Bandcamp in de verbindings-, zoek- en ontdekkingskeuzes. Bestaande verbindingen blijven werken als ze verborgen zijn.',
+  'settings.picker.listening': 'Luistergeschiedenis',
+  'settings.picker.streaming': 'Streamingaccounts',
+  'settings.picker.servers': 'Mediaservers',
+  'settings.picker.collections': 'Verzamelingen',
+  'settings.picker.listenbrainz': 'Topartiesten, recente luisterbeurten en radio-ontdekking.',
+  'settings.picker.lastfm': 'Topartiesten en recente luisterbeurten. Schakelt Release Radar in.',
+  'settings.picker.spotify':
+    'Gevolgde artiesten, opgeslagen albums, playlists importeren en exporteren.',
+  'settings.picker.deezer': 'Flow, favorieten, gevolgde artiesten en playlists.',
+  'settings.picker.tidal': 'Favoriete artiesten als basis voor je smaak.',
+  'settings.picker.jellyfin': 'Bibliotheeksynchronisatie en playlistexport.',
+  'settings.picker.media': 'Afspeelgeschiedenis, bibliotheeksynchronisatie en playlistexport.',
+  'settings.picker.subsonic': 'Favorieten, bibliotheeksynchronisatie en playlistexport.',
+  'settings.picker.discogs': 'Je verzameling en verlanglijst als basis voor je smaak.',
+  'settings.artistImagesPartiallySaved':
+    'Afbeeldingsvoorkeuren opgeslagen, maar de afbeeldingsinstellingen van de server konden niet worden opgeslagen.',
   'settings.yourConnections': 'Jouw verbindingen',
   'settings.yourConnectionsDescription': 'Persoonlijke luisterbronnen gekoppeld aan jouw account.',
   'settings.testConnection': 'Verbinding testen',
@@ -1212,7 +1235,7 @@ export const nl = {
   'settings.libraryDiscoveryHelp':
     'Hoeveel van de ontdekking gebaseerd is op je bestaande Lidarr-bibliotheek versus luistergeschiedenis. Hogere waarden vinden artiesten gelijkend op wat je al bezit. Lagere waarden steunen meer op ListenBrainz/Last.fm-data.',
   'settings.librarySeedRatio': 'Bibliotheek-seedverhouding',
-  'settings.imageSources': 'Afbeeldingsbronnen',
+  'settings.imageSources': 'Artiestafbeeldingen',
   'settings.imageSourcesHelp':
     'Artiestafbeeldingen komen eerst van TheAudioDB; Lidarr/SkyHook, fanart.tv en musicinfo.pro dienen als fallback.',
   'settings.audiodb.apiKey': 'TheAudioDB premium API-sleutel (optioneel)',
@@ -1220,7 +1243,6 @@ export const nl = {
   'settings.audiodb.proxyImages': 'Afbeeldingen via Digarr proxyen',
   'settings.audiodb.proxyHint':
     'Verbergt je IP voor het TheAudioDB-CDN door afbeeldingsverzoeken via deze server te sturen.',
-  'settings.wikidata.title': 'Wikidata-verrijking',
   'settings.wikidata.enabled':
     'Toon biografie en externe links van de artiest op aanbevelingskaarten',
   'artist.noDescription': 'Geen beschrijving beschikbaar.',
@@ -1252,8 +1274,6 @@ export const nl = {
     "Gebruikt als Lidarr's metadataserver niet beschikbaar is. Standaard is api.musicinfo.pro. Gebruik je eigen hearring-aid-instantie-URL bij zelfhosting.",
   'settings.recommendationsSaved': 'Aanbevelingsinstellingen opgeslagen',
   'settings.recommendationsFailed': 'Instellingen konden niet worden opgeslagen',
-  'settings.recommendationsPartiallySaved':
-    'Persoonlijke voorkeuren opgeslagen, maar de globale metadata-instellingen konden niet worden opgeslagen.',
   'settings.scheduleTip':
     'Kies een voorinstelling of voer een cron-expressie in om ontdekking automatisch uit te voeren. Dagelijks of wekelijks past bij de meeste bibliotheken.',
   'settings.librarySyncInterval': 'Bibliotheeksynchronisatie',

@@ -1077,8 +1077,30 @@ export const de = {
   'settings.groups.personal': 'Persönlich',
   'settings.groups.library': 'Bibliothek & Dienste',
   'settings.groups.admin': 'Verwaltung',
-  'settings.globalSettings': 'Globale Einstellungen',
+  'settings.globalSettings': 'Server (Admin)',
   'settings.adminOnly': 'Nur Admins können globale Einstellungen ändern.',
+  'settings.addConnection': 'Verbindung hinzufügen',
+  'settings.searchConnections': 'Verbindungen suchen',
+  'settings.connectionResults': '{0} Verbindungen gefunden',
+  'settings.noConnectionsFound': 'Keine passenden Verbindungen.',
+  'settings.showExperimentalIntegrations': 'Experimentelle Integrationen anzeigen',
+  'settings.experimentalIntegrationsHelp':
+    'Zeige TIDAL und Bandcamp in der Verbindungs-, Such- und Entdeckungsauswahl. Bestehende Verbindungen funktionieren auch ausgeblendet weiter.',
+  'settings.picker.listening': 'Hörverlauf',
+  'settings.picker.streaming': 'Streaming-Konten',
+  'settings.picker.servers': 'Medienserver',
+  'settings.picker.collections': 'Sammlungen',
+  'settings.picker.listenbrainz': 'Top-Künstler, zuletzt gehört und Radio-Entdeckung.',
+  'settings.picker.lastfm': 'Top-Künstler und zuletzt gehört. Aktiviert Release Radar.',
+  'settings.picker.spotify': 'Gefolgte Künstler, gespeicherte Alben, Playlist-Import und -Export.',
+  'settings.picker.deezer': 'Flow, Favoriten, gefolgte Künstler, Playlists.',
+  'settings.picker.tidal': 'Lieblingskünstler als Grundlage für deinen Geschmack.',
+  'settings.picker.jellyfin': 'Bibliothekssynchronisierung und Playlist-Export.',
+  'settings.picker.media': 'Hörverlauf, Bibliothekssynchronisierung, Playlist-Export.',
+  'settings.picker.subsonic': 'Favoriten, Bibliothekssynchronisierung, Playlist-Export.',
+  'settings.picker.discogs': 'Deine Sammlung und Wunschliste als Geschmacksgrundlage.',
+  'settings.artistImagesPartiallySaved':
+    'Bildeinstellungen gespeichert, aber die Server-Bildeinstellungen konnten nicht gespeichert werden.',
   'settings.yourConnections': 'Deine Verbindungen',
   'settings.yourConnectionsDescription':
     'Persönliche Hörquellen, die mit deinem Konto verknüpft sind.',
@@ -1226,7 +1248,7 @@ export const de = {
   'settings.libraryDiscoveryHelp':
     'Wie viel der Entdeckung auf deiner bestehenden Lidarr-Bibliothek vs. Hörverlauf basiert. Höhere Werte finden Künstler ähnlich zu dem, was du schon besitzt. Niedrigere Werte stützen sich mehr auf ListenBrainz/Last.fm-Daten.',
   'settings.librarySeedRatio': 'Bibliotheks-Seed-Verhältnis',
-  'settings.imageSources': 'Bildquellen',
+  'settings.imageSources': 'Künstlerbilder',
   'settings.imageSourcesHelp':
     'Künstlerbilder stammen primär von TheAudioDB, mit Lidarr/SkyHook, fanart.tv und musicinfo.pro als Fallback.',
   'settings.audiodb.apiKey': 'TheAudioDB Premium-API-Schlüssel (optional)',
@@ -1234,7 +1256,6 @@ export const de = {
   'settings.audiodb.proxyImages': 'Bilder über Digarr proxyen',
   'settings.audiodb.proxyHint':
     'Verbirgt deine IP vor dem TheAudioDB-CDN, indem Bildanfragen durch diesen Server geleitet werden.',
-  'settings.wikidata.title': 'Wikidata-Anreicherung',
   'settings.wikidata.enabled':
     'Biografie und externe Links des Künstlers auf Empfehlungskarten anzeigen',
   'artist.noDescription': 'Keine Beschreibung verfügbar.',
@@ -1265,8 +1286,6 @@ export const de = {
     'Wird verwendet, wenn Lidarrs Metadatenserver nicht erreichbar ist. Standard ist api.musicinfo.pro. Bei Self-Hosting eigene hearring-aid-Instanz-URL angeben.',
   'settings.recommendationsSaved': 'Empfehlungseinstellungen gespeichert',
   'settings.recommendationsFailed': 'Einstellungen konnten nicht gespeichert werden',
-  'settings.recommendationsPartiallySaved':
-    'Persönliche Einstellungen gespeichert, aber die globalen Metadateneinstellungen konnten nicht gespeichert werden.',
   'settings.scheduleTip':
     'Wähle eine Vorlage oder gib einen Cron-Ausdruck ein, um die Entdeckung automatisch auszuführen. Täglich oder wöchentlich passt für die meisten Bibliotheken.',
   'settings.librarySyncInterval': 'Bibliothekssync',

@@ -1055,8 +1055,32 @@ export const tr = {
   'settings.groups.personal': 'Kişisel',
   'settings.groups.library': 'Kitaplık ve hizmetler',
   'settings.groups.admin': 'Yönetim',
-  'settings.globalSettings': 'Genel Ayarlar',
+  'settings.globalSettings': 'Sunucu (yönetici)',
   'settings.adminOnly': 'Yalnızca yöneticiler genel ayarları değiştirebilir.',
+  'settings.addConnection': 'Bağlantı ekle',
+  'settings.searchConnections': 'Bağlantı ara',
+  'settings.connectionResults': '{0} bağlantı bulundu',
+  'settings.noConnectionsFound': 'Eşleşen bağlantı yok.',
+  'settings.showExperimentalIntegrations': 'Deneysel entegrasyonları göster',
+  'settings.experimentalIntegrationsHelp':
+    'Bağlantı, arama ve keşif seçicilerinde TIDAL ve Bandcamp gösterilir. Mevcut bağlantılar gizlendiğinde de çalışır.',
+  'settings.picker.listening': 'Dinleme geçmişi',
+  'settings.picker.streaming': 'Akış hesapları',
+  'settings.picker.servers': 'Medya sunucuları',
+  'settings.picker.collections': 'Koleksiyonlar',
+  'settings.picker.listenbrainz': 'En çok dinlenen sanatçılar, son dinlemeler ve radyo keşfi.',
+  'settings.picker.lastfm':
+    'En çok dinlenen sanatçılar ve son çalmalar. Release Radar özelliğini açar.',
+  'settings.picker.spotify':
+    'Takip edilen sanatçılar, kayıtlı albümler, çalma listesi içe ve dışa aktarımı.',
+  'settings.picker.deezer': 'Flow, favoriler, takip edilen sanatçılar ve çalma listeleri.',
+  'settings.picker.tidal': 'Favori sanatçıların zevkin için başlangıç noktası olur.',
+  'settings.picker.jellyfin': 'Kitaplık eşitleme ve çalma listesi dışa aktarımı.',
+  'settings.picker.media': 'Çalma geçmişi, kitaplık eşitleme ve çalma listesi dışa aktarımı.',
+  'settings.picker.subsonic': 'Yıldızlılar, kitaplık eşitleme ve çalma listesi dışa aktarımı.',
+  'settings.picker.discogs': 'Koleksiyonun ve istek listen zevkin için başlangıç noktası olur.',
+  'settings.artistImagesPartiallySaved':
+    'Görsel tercihleri kaydedildi, ancak sunucu görsel ayarları kaydedilemedi.',
   'settings.yourConnections': 'Bağlantıların',
   'settings.yourConnectionsDescription': 'Hesabına bağlı kişisel dinleme kaynakları.',
   'settings.testConnection': 'Bağlantıyı test et',
@@ -1200,7 +1224,7 @@ export const tr = {
   'settings.libraryDiscoveryHelp':
     'Keşfin ne kadarının mevcut Lidarr kütüphanenden, ne kadarının dinleme geçmişinden beslendiğini belirler. Yüksek değerler sahip olduğuna benzer sanatçıları bulur. Düşük değerler ListenBrainz/Last.fm verilerine daha fazla güvenir.',
   'settings.librarySeedRatio': 'Kütüphane başlangıç oranı',
-  'settings.imageSources': 'Görsel Kaynaklar',
+  'settings.imageSources': 'Sanatçı görselleri',
   'settings.imageSourcesHelp':
     'Sanatçı görselleri öncelikle TheAudioDB kaynağından gelir; Lidarr/SkyHook, fanart.tv ve musicinfo.pro yedek olarak kullanılır.',
   'settings.audiodb.apiKey': 'TheAudioDB premium API anahtarı (isteğe bağlı)',
@@ -1208,7 +1232,6 @@ export const tr = {
   'settings.audiodb.proxyImages': 'Görselleri Digarr üzerinden aktar',
   'settings.audiodb.proxyHint':
     'Görsel isteklerini bu sunucu üzerinden yönlendirerek IP adresini TheAudioDB CDN karşısında gizler.',
-  'settings.wikidata.title': 'Wikidata zenginleştirmesi',
   'settings.wikidata.enabled':
     'Öneri kartlarında sanatçı biyografisi ve harici bağlantıları göster',
   'artist.noDescription': 'Açıklama mevcut değil.',
@@ -1240,8 +1263,6 @@ export const tr = {
     "Lidarr'ın meta veri sunucusu kapalıyken kullanılır. Varsayılan api.musicinfo.pro. Kendi sunucunu barındırıyorsan kendi hearring-aid örnek URL'ni gir.",
   'settings.recommendationsSaved': 'Öneri ayarları kaydedildi',
   'settings.recommendationsFailed': 'Ayarlar kaydedilemedi',
-  'settings.recommendationsPartiallySaved':
-    'Kişisel tercihler kaydedildi, ancak genel meta veri ayarları kaydedilemedi.',
   'settings.scheduleTip':
     'Keşfi otomatik çalıştırmak için bir hazır ayar seç veya bir cron ifadesi gir. Çoğu kitaplık için günlük ya da haftalık yeterlidir.',
   'settings.librarySyncInterval': 'Kütüphane eşitleme',

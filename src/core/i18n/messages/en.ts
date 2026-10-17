@@ -1063,8 +1063,30 @@ export const en = {
   'settings.groups.personal': 'Personal',
   'settings.groups.library': 'Library & services',
   'settings.groups.admin': 'Admin',
-  'settings.globalSettings': 'Global settings',
+  'settings.globalSettings': 'Server (admin)',
   'settings.adminOnly': 'Only admins can modify global settings.',
+  'settings.addConnection': 'Add connection',
+  'settings.searchConnections': 'Search connections',
+  'settings.connectionResults': '{0} connections found',
+  'settings.noConnectionsFound': 'No matching connections.',
+  'settings.showExperimentalIntegrations': 'Show experimental integrations',
+  'settings.experimentalIntegrationsHelp':
+    'Show TIDAL and Bandcamp in connection, search and discovery pickers. Existing connections keep working when hidden.',
+  'settings.picker.listening': 'Listening history',
+  'settings.picker.streaming': 'Streaming accounts',
+  'settings.picker.servers': 'Media servers',
+  'settings.picker.collections': 'Collections',
+  'settings.picker.listenbrainz': 'Top artists, recent listens and radio discovery.',
+  'settings.picker.lastfm': 'Top artists and recent plays. Enables Release Radar.',
+  'settings.picker.spotify': 'Followed artists, saved albums, playlist import and export.',
+  'settings.picker.deezer': 'Flow, favorites, followed artists, playlists.',
+  'settings.picker.tidal': 'Favorite artists as taste seeds.',
+  'settings.picker.jellyfin': 'Library sync and playlist export.',
+  'settings.picker.media': 'Play history, library sync, playlist export.',
+  'settings.picker.subsonic': 'Starred, library sync, playlist export.',
+  'settings.picker.discogs': 'Your collection and wantlist as taste seeds.',
+  'settings.artistImagesPartiallySaved':
+    'Image preferences saved, but server image settings failed to save.',
   'settings.yourConnections': 'Your connections',
   'settings.yourConnectionsDescription': 'Personal listening sources linked to your account.',
   'settings.testConnection': 'Test Connection',
@@ -1208,7 +1230,7 @@ export const en = {
   'settings.libraryDiscoveryHelp':
     'How much of the discovery should be seeded from your existing Lidarr library vs listening history. Higher values find artists similar to what you already own. Lower values rely more on ListenBrainz/Last.fm listening data.',
   'settings.librarySeedRatio': 'Library seed ratio',
-  'settings.imageSources': 'Image sources',
+  'settings.imageSources': 'Artist images',
   'settings.imageSourcesHelp':
     'Artist images are sourced from TheAudioDB first, with Lidarr/SkyHook, fanart.tv, and musicinfo.pro as fallbacks.',
   'settings.audiodb.apiKey': 'TheAudioDB premium API key (optional)',
@@ -1216,7 +1238,6 @@ export const en = {
   'settings.audiodb.proxyImages': 'Proxy images through Digarr',
   'settings.audiodb.proxyHint':
     'Hides your IP from the TheAudioDB CDN by routing image requests through this server.',
-  'settings.wikidata.title': 'Wikidata enrichment',
   'settings.wikidata.enabled': 'Show artist bio and external links on recommendation cards',
   'artist.noDescription': 'No description available.',
   'artist.externalLinks.wikipedia': 'Wikipedia',
@@ -1246,8 +1267,6 @@ export const en = {
     "Used when Lidarr's metadata server is down. Defaults to api.musicinfo.pro. Set to your own hearring-aid instance URL if self-hosting.",
   'settings.recommendationsSaved': 'Recommendation settings saved',
   'settings.recommendationsFailed': 'Failed to save settings',
-  'settings.recommendationsPartiallySaved':
-    'Personal preferences saved, but global metadata settings failed to save.',
   'settings.scheduleTip':
     'Pick a preset or enter a cron expression to run discovery automatically. Daily or weekly suits most libraries.',
   'settings.librarySyncInterval': 'Library Sync',
