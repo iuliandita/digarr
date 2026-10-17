@@ -143,7 +143,7 @@
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "6b25ef3f836cdc7a333fd493a09ae4bd770bded277ba164f01decbd3bf68d882",
-        "src/core/ops/backup.ts": "3aa90dcff27f2ce49c886584201d859dbd5434ec66b1325fbfd0f14273602a23",
+        "src/core/ops/backup.ts": "0768b93e9e2e5fb0f8817ac1fa5bcf27bffc1d7d713e87122958633074b3000b",
         "src/core/ops/cron-scheduler.ts": "62757dc647de6281604bafee4a1683908d2733d2e0ef98641fc8ecf0bb29a4c6",
         "src/core/ops/encrypt-legacy.ts": "e870353b8906200355d717907d488f82b2dd85b2dfd067201d7b063da606e5c8",
         "src/core/ops/encryption-sites.ts": "7ac3926596fd13bc8d5e82d4900235b420166936bb98f2091efe056c96b04c19",
@@ -152,7 +152,7 @@
         "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
-        "src/core/ops/types.ts": "6a77240d367f7cd2450caf75c654fac51ecf52a16e8fa00b4101ad5fa9a48243",
+        "src/core/ops/types.ts": "3ebc33955a0c551acf465666af27ece23d746d1fa7fe4385626375087d19f5b9",
         "src/core/ops/upgrade.ts": "88f08f73e9a8ba682c09b552bb58a701d79cc788bff5c20209e11260239acffd",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
         "src/db/connect.ts": "8ceabe90f6765e1700741b20561967406d166a88f542dc10b0bf62151ac2983c",
@@ -186,19 +186,14 @@
         "src/db/schema.ts": "aa0365573cac5ecce8d909c778c9cdab17a8c37fb0b7038b6e2c2c3a36a6d3ca",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "e33cf28d54087aa17307317f64528deaf4da51c76982e316c38232cb527f2127",
+      "digest": "7e940df6f1ec26fb5f4a0e561ca780d65fd9d88e0b082f49a6b064450da3d79c",
       "review": {
-        "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/runbooks/encryption-key-rotation.md"
-        ],
-        "note": "Migration 0055 assigns ownerless recommendations to the first admin and restore applies the same rule; startup encrypts legacy plaintext credentials when a key is set; pre-migration backups are written 0600 via temp file and rename with second-resolution names; OAuth refresh updates only the row generation it read; genre views and ownership queries are scoped to the caller; user responses use an explicit projection. Also deleted getPlaylistsDueForGeneration, a query with no production caller. Also: Hygiene tools (genre rebuild in one transaction with slug merging, pending-only dedupe by kind and release group, audit lock release), per-name cron overlap guard, rebuild genres visible to enrichment, and a health scan-failure write; documented in the changelog. Also deleted getPlaylistsDueForGeneration, a query with no production caller.",
-        "breaking": "Ownerless recommendations become owned by the first admin; other users can no longer act on them. With an encryption key set, legacy plaintext credentials are encrypted at first startup and need that key afterward.",
-        "migration": "Take a native database backup (or keep the automatic pre-migration backup) and record the encryption key before upgrading; rollback restores that backup into a separate database with the previous image. Validated with PGlite tests: owner backfill re-run, restore of an ownerless legacy backup, plaintext backfill across every site and a second no-op run.",
-        "digest": "e33cf28d54087aa17307317f64528deaf4da51c76982e316c38232cb527f2127"
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged.",
+        "breaking": "none",
+        "migration": "No upgrade, rollback, or backup consequence: no schema, snapshot format, or restore logic changes; existing backups restore as before.",
+        "digest": "7e940df6f1ec26fb5f4a0e561ca780d65fd9d88e0b082f49a6b064450da3d79c"
       }
     },
     "configuration": {
@@ -471,7 +466,7 @@
         "src/web/pages/library-health.tsx": "533562713772cde5847e949f081539e6faca2cb73652f665d83f38e9d787c0c5",
         "src/web/pages/library-reconciliation.tsx": "0edd594bb16d929e76949604d813c18d112aef2fe99e48a3941c74aac59cd381",
         "src/web/pages/playlist-detail.tsx": "06117a594780600420f29371ba6d656c152115c57dca1b3e4882412969be1e18",
-        "src/web/pages/playlists.tsx": "2f27740f78fe753b33e32503189e01c036bafc673d97999739fbe5510d438b63",
+        "src/web/pages/playlists.tsx": "72817a1c67e097c2c2e1f91837a231f7c0724c98eebc8227de1c88f2166459de",
         "src/web/pages/search.tsx": "bb86846393f8307d8a62541e9f16c0f66a82f3aac627154ce207fc33bc788907",
         "src/web/pages/settings/account-tab.tsx": "2e8e7e5fd4bd07fc2a4e13bfd216859780b1cd1b7947d264db0fcb8af5fb0b60",
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
@@ -492,14 +487,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "0f88667c048b807f7f6ba251f24dd42ff8dded56844676698d856b557a6c7335",
+      "digest": "cd34e7763fada38cb55005bf0b1ea456fc9324ebb8d22263055f1433c063a8bc",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "CONTRIBUTING.md"],
-        "note": "Web UI review fixes: valid subscription and target edits, undo removes the reject block, auth retry state, admin-only Analytics and Library Health, translated health checks, placeholders and Job History labels, failures-only filter, skip link, mobile nav and Users layout. The changelog lists the visible fixes and OPERATIONS documents the Job History filter. Also: normalizeLocale now ignores inherited object keys such as constructor; supported locale tags and aliases resolve exactly as before.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Playlists header reports a paused schedule when the global switch is off and enabled playlists have different schedules; the operations guide no longer describes the old No schedule configured quirk.",
         "breaking": "none",
         "migration": "",
-        "digest": "0f88667c048b807f7f6ba251f24dd42ff8dded56844676698d856b557a6c7335"
+        "digest": "cd34e7763fada38cb55005bf0b1ea456fc9324ebb8d22263055f1433c063a8bc"
       }
     },
     "features": {
@@ -611,7 +606,7 @@
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
         "src/core/playlists/generator.ts": "4d9f2bd9fe04bf9c96a741ab8f18f17c1c1850dcb2f06d00a9f79818f2d3464d",
         "src/core/playlists/resolver-deps.ts": "fb4bf6626de207f1cbfcb4feca6c6f515af0c3646f205299ea9ac5a46d912957",
-        "src/core/playlists/scheduler.ts": "d99b30a85702aeeccd3d2aa30e066ff15ab3aecf1ec47b4aee4f14dcb17091d1",
+        "src/core/playlists/scheduler.ts": "9b0191c53158cbcb0354cda6165d327dd966f8d70ce91d6956cc1698b655e208",
         "src/core/playlists/strategies/audition.ts": "a5b9997f4b54afd2c763bbf7180fe706aa9488171c43bb2b80d5445724f95e88",
         "src/core/playlists/strategies/genre-focus.ts": "4393801b18ea5d733ef2233bb5908d2b1271e41355ef864d95eda63418caa535",
         "src/core/playlists/strategies/mood-mix.ts": "58edb4816c71d74e47e9f8c72ba9c6311cd5cef606da29704f1a641d8862a814",
@@ -681,32 +676,33 @@
         "src/core/targets/export-json.ts": "f418e541febdc4771b1c11a920688e187f46126b3a622a61fe0048f940ce5b6a",
         "src/core/targets/export-m3u.ts": "0cb4d7c7b9cc92b088f4bd043a5c93dd503853790db3586b1720498f729e821b",
         "src/core/targets/export-xspf.ts": "c2e20b23a58ae57697aa1d6d9f9cb993fb5336cd199a2c59683b37bd8b600f02",
-        "src/core/targets/jellyfin-family-playlist.ts": "7f5c33d4670771ce71a54069935383711575a5b161138d221614c2486d000239",
+        "src/core/targets/jellyfin-family-playlist.ts": "9fc24c3bc84086bce655551c2a69ac103030ac100e9b1a47bff33244093c59ed",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
         "src/core/targets/lidarr.ts": "78b933016fb81d35e6c4b8093ea51792c3f122335d78100995e1c1c8f30516ea",
-        "src/core/targets/navidrome-playlist.ts": "741a779ec29b7c46275aeb842acbed635da30264278b16ef97b11c0f2e8c0022",
+        "src/core/targets/navidrome-playlist.ts": "18d6ed252fc2e072e373d76f25d5dd06b0a0f9521cd333b33946221a8ccfaea7",
         "src/core/targets/playlist-match.ts": "051b1bedde97c023449b349903f915360dbad5d211bc7b9051438bd08785e375",
         "src/core/targets/playlist-scope.ts": "e9d9c18cd05fcc1b9637b7ceccf6e7ff0bde629e27652da1ac785a84f810268e",
-        "src/core/targets/plex-playlist.ts": "09c9697f163d860f9c1d390a24b12a7ededc31c501bc57d02a2ebb663da0eea6",
+        "src/core/targets/plex-playlist.ts": "b872c41978872109e7a0cda8fbcca165bf318b2180413bbe39bce024f06ec794",
+        "src/core/targets/saved-playlist-targets.ts": "811d2ca1198c4f17dff7ed08d9e6b9fd0c5a2d3937dd58b2d436f614af8cb74d",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
-        "src/core/targets/spotify-playlist.ts": "2157514d26cefd55b05c6d5f4ebe4caa380065cfc24d331061b50d2140a08c13",
+        "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
         "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
-        "src/core/targets/types.ts": "d4a6074dbb81a918d020de577bcef7afa255927f16914c6320a90ff2e4d28cde",
+        "src/core/targets/types.ts": "856b9563b20a863406e8b920f95dccbb4aa663d82f2724454d9b8a85c1b14457",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "30e4f6fe779f776bbdea396c67a1583a85f5da9459c2b7c1e60c92354fa1011c",
+        "src/index.ts": "030367088e740f610d515bf52b13e07ebe9109601ad055bbbbb4ff9bc4b748ce",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "fc98bc7bd8f71e194614f9333dfde623ffda3b38587c1672fd1efa5167d1d8f2",
+      "digest": "812aa67af3d5ec2a73fbf9091a7eefb9f607c62ecd2f2e0edd6c6f8659a9e0fc",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md", "docs/OPERATIONS.md"],
-        "note": "Provider retry redacts exact credential header values and honours the abort signal during Retry-After waits; redactSecrets handles JSON credential fields and exact secrets; notification transport keeps raw webhook URLs out of errors; orchestrator cancel is owner-scoped; startup runs the legacy plaintext encryption backfill after migrations. Also removed the unused LibrarySourceRegistry and TargetRegistry classes and test-only helpers and moved sleep to one shared helper (ARCHITECTURE.md updated). Also: Scheduled library health scans now skip when Lidarr is not configured, so discovery-only installs do not record a failed scan every interval; manual scans still report the missing configuration. Also removed the unused LibrarySourceRegistry and TargetRegistry classes and test-only helpers, moved sleep to one shared helper, and updated ARCHITECTURE.md.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Saved-playlist exports gate on openPlaylistExportSession and the unused one-shot createPlaylist target method is removed; scheduler registration moves to schedulePlaylists with the same playlistEnabled gating documented in the operations guide.",
         "breaking": "none",
         "migration": "",
-        "digest": "fc98bc7bd8f71e194614f9333dfde623ffda3b38587c1672fd1efa5167d1d8f2"
+        "digest": "812aa67af3d5ec2a73fbf9091a7eefb9f607c62ecd2f2e0edd6c6f8659a9e0fc"
       }
     },
     "deployment": {
@@ -765,7 +761,7 @@
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
         ".github/workflows/ci.yml": "eaf10aeac96b1925f1653fef2e2efbab40b805f3c87c8844e777eb129f391f2d",
-        ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
+        ".github/workflows/compatibility.yml": "8cb19bc64f338d8db901a064e6b3423fd2fd7bd7d17f60056c217f2ef557b599",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
         ".github/workflows/evals.yml": "abfc59364fff6b89877593a648072b5f18b22554492dad2340a80587acb1e86a",
@@ -779,14 +775,14 @@
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "642580775861ae3957c531b9ca1c34ff5a375ab717e84ad45dd7fca14399f9a7",
+      "digest": "698212268786bed24a9574ff8c227211cfc9b85325c29a9cda56c88e9f07e023",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Combined CI change: the Postgres job runs every DB-gated suite serially with DIGARR_REQUIRE_TEST_DB, and the postgres service image uses the current 17-alpine digest; no release workflow, versioning, image or tagging behavior changes.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "The advisory macOS Colima compatibility job runs only on the weekly schedule and manual dispatch; the changelog records it and CONTRIBUTING.md and docs/MAINTENANCE.md say when to dispatch it by hand.",
         "breaking": "none",
         "migration": "",
-        "digest": "642580775861ae3957c531b9ca1c34ff5a375ab717e84ad45dd7fca14399f9a7"
+        "digest": "698212268786bed24a9574ff8c227211cfc9b85325c29a9cda56c88e9f07e023"
       }
     },
     "maintenance": {
