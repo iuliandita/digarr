@@ -91,7 +91,7 @@ describe('shared component i18n', () => {
     )
 
     expect(screen.getByText('Un problème est survenu')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Réessayer' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Recharger' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: "Retour à l'accueil" })).toBeInTheDocument()
   })
 
