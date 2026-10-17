@@ -4,6 +4,7 @@ import { createMiddleware } from 'hono/factory'
 import { envConfig } from '@/config/env'
 import { getSession } from '@/core/sessions'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
+import { getClientIp } from '@/server/helpers/client-ip'
 import { problem } from '@/server/helpers/problem'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
@@ -63,6 +64,7 @@ export function authGuard(options: {
     windowMs: 60_000,
     max: 20,
     keyPrefix: 'api-token-failures',
+    getIp: getClientIp,
     countResponse: (c) => c.res.status === 401 && c.get('authMethod') !== 'api-token',
   })
   return createMiddleware<HonoEnv>(async (c, next) => {

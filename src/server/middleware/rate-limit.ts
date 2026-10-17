@@ -49,6 +49,7 @@ export function rateLimiter(opts: {
   windowMs: number
   max: number
   keyPrefix?: string
+  getIp?: (c: Context<HonoEnv>) => string | null
   countResponse?: (c: Context<HonoEnv>) => boolean
 }) {
   const buckets: RateLimitStore = new Map()
@@ -63,9 +64,8 @@ export function rateLimiter(opts: {
     if (process.env.NODE_ENV !== 'production' && process.env.DIGARR_DISABLE_RATE_LIMIT === '1') {
       return next()
     }
-    // Use socket IP to prevent bypass via forged X-Forwarded-For headers.
-    // Same approach as proxy-auth.ts getSocketIp().
-    const ip = getSocketIp(c) ?? 'unknown'
+    // Socket-only by default; specific limiters can opt into trusted proxy resolution.
+    const ip = (opts.getIp ? opts.getIp(c) : getSocketIp(c)) ?? 'unknown'
     // Append the resolved userId to the bucket key when auth has already run.
     // Without this, every authenticated user behind a reverse proxy or shared
     // NAT shares one bucket and a single noisy account drains the budget for
