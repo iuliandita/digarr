@@ -10,6 +10,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
 - The slskd connection test checks the linked Lidarr download directory, reports missing or unlistable paths and likely incomplete folders, and shows the result in your language (#972).
+- Lidarr approvals and auto-approval now offer missing, existing, latest and first-album monitoring. Each Lidarr target can set default tags, with per-approval overrides and tag creation from its own instance. Tags also apply when an album approval adds a missing artist (#974) (#975).
 
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).

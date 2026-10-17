@@ -84,7 +84,7 @@ describe('MonitoringOptions', () => {
     expect(toggle).toHaveAttribute('aria-expanded', 'true')
     const menu = screen.getByRole('menu')
     expect(menu).toBeInTheDocument()
-    expect(screen.getAllByRole('menuitem')).toHaveLength(5)
+    expect(screen.getAllByRole('menuitem')).toHaveLength(9)
   })
 
   it('focuses the first menuitem when opened', () => {

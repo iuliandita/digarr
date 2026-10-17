@@ -8,6 +8,8 @@ vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(() => ({
     addArtist: vi.fn(async () => ({ id: 42, artistName: 'Test' })),
     getArtists: vi.fn(async () => []),
+    getTags: vi.fn(async () => [{ id: 4, label: 'digarr', extra: 'leak' }]),
+    createTag: vi.fn(async (label: string) => ({ id: 5, label, extra: 'leak' })),
     // Carry extra fields the approve-options projection must strip: profiles
     // gain a stray prop, root folders carry freeSpace + structure metadata.
     getMetadataProfiles: vi.fn(async () => [{ id: 10, name: 'Standard', extra: 'leak' }]),
@@ -158,6 +160,7 @@ describe('GET /api/v1/lidarr/approve-options (non-admin picker)', () => {
     }
     expect(body.qualityProfiles).toEqual([{ id: 20, name: 'FLAC' }])
     expect(body.metadataProfiles).toEqual([{ id: 10, name: 'Standard' }])
+    expect((body as typeof body & { tags: unknown }).tags).toEqual([{ id: 4, label: 'digarr' }])
     expect(body.rootFolders).toEqual([{ id: 30, path: '/music' }])
   })
 
@@ -187,19 +190,39 @@ describe('GET /api/v1/lidarr/approve-options?targetId', () => {
   beforeEach(() => vi.clearAllMocks())
 
   const targets: Record<number, unknown> = {
-    5: { id: 5, type: 'lidarr', userId: 2, config: { useServerConnection: true } },
+    5: { id: 5, type: 'lidarr', userId: 2, config: { useServerConnection: true, tags: [4] } },
     6: {
       id: 6,
       type: 'lidarr',
       userId: 2,
-      config: { url: 'http://other.local', apiKey: 'other-key', rootFolderId: 31 },
+      config: { url: 'http://other.local', apiKey: 'other-key', rootFolderId: 31, tags: [4] },
     },
-    7: { id: 7, type: 'lidarr', userId: 3, config: { useServerConnection: true } },
+    7: { id: 7, type: 'lidarr', userId: 3, config: { useServerConnection: true, tags: [4] } },
     8: { id: 8, type: 'slskd', userId: 2, config: {} },
   }
   const targetDeps = {
     targetQueries: { getTarget: vi.fn(async (id: number) => targets[id] ?? null) },
   } as unknown as Partial<RouteDeps>
+
+  it.each([5, 6, 7])('creates tags only on owned target %s', async (targetId) => {
+    const { createLidarrClient } = await import('@/core/clients/lidarr')
+    const app = createTestApp({ userId: 2, deps: targetDeps })
+    const res = await app.request(`/api/v1/lidarr/tags?targetId=${targetId}`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ label: ' digarr ' }),
+    })
+    expect(res.status).toBe(targetId === 7 ? 404 : 201)
+    if (targetId === 7) expect(createLidarrClient).not.toHaveBeenCalled()
+    else {
+      expect(createLidarrClient).toHaveBeenCalledWith(
+        targetId === 6 ? 'http://other.local' : 'http://lidarr.local',
+        targetId === 6 ? 'other-key' : 'abc',
+        false,
+      )
+      expect(await res.json()).toEqual({ id: 5, label: 'digarr' })
+    }
+  })
 
   it('loads lists and defaults from a separate instance, not the server', async () => {
     const { createLidarrClient } = await import('@/core/clients/lidarr')
@@ -209,6 +232,7 @@ describe('GET /api/v1/lidarr/approve-options?targetId', () => {
     expect(createLidarrClient).toHaveBeenCalledWith('http://other.local', 'other-key', false)
     const raw = await res.text()
     expect(JSON.parse(raw).defaults).toEqual({
+      tags: [4],
       qualityProfileId: null,
       metadataProfileId: null,
       rootFolderId: 31,
@@ -224,6 +248,7 @@ describe('GET /api/v1/lidarr/approve-options?targetId', () => {
     expect(res.status).toBe(200)
     expect(createLidarrClient).toHaveBeenCalledWith('http://lidarr.local', 'abc', false)
     expect((await res.json()).defaults).toEqual({
+      tags: [4],
       qualityProfileId: 1,
       metadataProfileId: 1,
       rootFolderId: null,

@@ -15,7 +15,8 @@ export const TARGET_TYPES = [
 export type TargetType = (typeof TARGET_TYPES)[number]
 
 export type TargetAddOptions = {
-  monitorOption?: 'all' | 'new' | 'none' | 'selected'
+  monitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none' | 'selected'
+  tags?: number[]
   selectedAlbumIds?: string[]
   qualityProfileId?: number
   metadataProfileId?: number

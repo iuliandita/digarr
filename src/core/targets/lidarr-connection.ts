@@ -1,5 +1,5 @@
 // A Lidarr target either references the server Lidarr connection in settings
-// (`useServerConnection: true`, nothing else stored) or is a separate instance
+// (`useServerConnection: true`, plus per-target tags) or is a separate instance
 // with its own url/apiKey and per-target default IDs. Reference targets are
 // resolved at use time so a Connections change reaches approvals immediately.
 
@@ -12,6 +12,7 @@ export type LidarrServerSettings = {
 export type LidarrConnection = { url: string; apiKey: string; skipTlsVerify: boolean }
 
 export type LidarrDefaults = {
+  tags?: number[]
   qualityProfileId?: number
   metadataProfileId?: number
   rootFolderId?: number
@@ -61,18 +62,27 @@ export function resolveLidarrTargetDefaults(
 ): LidarrDefaults {
   const source = usesServerConnection(config) ? serverDefaults : config
   return {
+    tags: Array.isArray(config.tags)
+      ? config.tags.filter(
+          (id): id is number => typeof id === 'number' && positiveInt(id) !== undefined,
+        )
+      : undefined,
     qualityProfileId: positiveInt(source.qualityProfileId),
     metadataProfileId: positiveInt(source.metadataProfileId),
     rootFolderId: positiveInt(source.rootFolderId),
   }
 }
 
-// Canonical stored shape. A reference keeps only the flag; a separate instance
+// Canonical stored shape. A reference keeps its flag and tags; a separate instance
 // drops the flag and keeps connection fields plus valid default IDs.
 export function normalizeLidarrTargetConfig(
   config: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (usesServerConnection(config)) return { useServerConnection: true }
+  if (usesServerConnection(config))
+    return {
+      useServerConnection: true,
+      ...(Array.isArray(config.tags) ? { tags: config.tags } : {}),
+    }
   const normalized: Record<string, unknown> = { ...config }
   delete normalized.useServerConnection
   for (const key of DEFAULT_KEYS) {
@@ -91,13 +101,18 @@ export function clearDefaultsOnInstanceChange(
   stored: Record<string, unknown>,
   merged: Record<string, unknown>,
 ): Record<string, unknown> {
-  if (usesServerConnection(merged) || usesServerConnection(stored)) return merged
+  if (usesServerConnection(merged) !== usesServerConnection(stored)) {
+    const cleared = { ...merged }
+    delete cleared.tags
+    return cleared
+  }
+  if (usesServerConnection(merged)) return merged
   const storedUrl = typeof stored.url === 'string' ? stored.url : ''
   const mergedUrl = typeof merged.url === 'string' ? merged.url : ''
   const urlChanged = storedUrl.trim() !== mergedUrl.trim()
   if (!urlChanged && stored.apiKey === merged.apiKey) return merged
   const cleared = { ...merged }
-  for (const key of DEFAULT_KEYS) delete cleared[key]
+  for (const key of [...DEFAULT_KEYS, 'tags']) delete cleared[key]
   return cleared
 }
 
@@ -160,7 +175,10 @@ export async function linkLidarrTargetsToServerConnection(
   const linked: number[] = []
   for (const row of await store.listLidarrTargets()) {
     if (usesServerConnection(row.config) || !matchesServerConnection(row.config, settings)) continue
-    await store.updateTargetConfig(row.id, { useServerConnection: true })
+    await store.updateTargetConfig(
+      row.id,
+      normalizeLidarrTargetConfig({ ...row.config, useServerConnection: true }),
+    )
     linked.push(row.id)
   }
   return linked

@@ -18,11 +18,12 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
   return {
     ...actual,
     getLidarrApproveOptions: vi.fn(),
+    createLidarrTag: vi.fn(),
   }
 })
 
 import { ApproveDialog } from '@/web/components/approve-dialog'
-import { getLidarrApproveOptions } from '@/web/lib/api'
+import { createLidarrTag, getLidarrApproveOptions } from '@/web/lib/api'
 
 function renderWithProviders(ui: ReactElement) {
   const client = new QueryClient({
@@ -127,6 +128,40 @@ describe('ApproveDialog', () => {
 })
 
 describe('ApproveDialog monitor option', () => {
+  it.each(['missing', 'existing', 'latest', 'first'] as const)(
+    'submits %s and selected tags from the target instance',
+    async (monitorOption) => {
+      vi.mocked(getLidarrApproveOptions).mockResolvedValue({
+        qualityProfiles: [{ id: 2, name: 'Standard' }],
+        metadataProfiles: [{ id: 3, name: 'Standard' }],
+        rootFolders: [{ id: 5, path: '/music' }],
+        tags: [{ id: 4, label: 'discovery' }],
+        defaults: { qualityProfileId: 2, metadataProfileId: 3, rootFolderId: 5, tags: [4] },
+      })
+      vi.mocked(createLidarrTag).mockResolvedValue({ id: 7, label: 'digarr' })
+      const onConfirm = vi.fn()
+      renderWithProviders(
+        <ApproveDialog
+          lidarrTargetId={9}
+          monitorOption={monitorOption}
+          onConfirm={onConfirm}
+          onCancel={vi.fn()}
+        />,
+      )
+      fireEvent.click(await screen.findByRole('button', { name: 'Lidarr options' }))
+      expect(screen.getByRole('checkbox', { name: 'discovery' })).toBeChecked()
+      fireEvent.click(screen.getByRole('checkbox', { name: 'discovery' }))
+      fireEvent.change(screen.getByRole('textbox', { name: 'New tag' }), {
+        target: { value: 'digarr' },
+      })
+      fireEvent.click(screen.getByRole('button', { name: 'Create tag' }))
+      await waitFor(() => expect(screen.getByRole('checkbox', { name: 'digarr' })).toBeChecked())
+      expect(createLidarrTag).toHaveBeenCalledWith('digarr', 9)
+      fireEvent.click(screen.getByRole('button', { name: /add to lidarr/i }))
+      expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ monitorOption, tags: [7] }))
+    },
+  )
+
   it('shows and submits Popular when opened with it', async () => {
     vi.mocked(getLidarrApproveOptions).mockResolvedValue({
       qualityProfiles: [{ id: 2, name: 'Standard' }],

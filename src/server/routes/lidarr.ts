@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import {
+  type LidarrDefaults,
   resolveLidarrTargetConnection,
   resolveLidarrTargetDefaults,
   serverLidarrConnection,
@@ -11,7 +12,11 @@ import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { notFoundProblem } from '@/server/helpers/problem'
 import { adminGuard } from '@/server/middleware/admin-guard'
-import { approveOptionsQuerySchema, lidarrAddSchema } from '@/server/schemas/lidarr'
+import {
+  approveOptionsQuerySchema,
+  lidarrAddSchema,
+  lidarrTagSchema,
+} from '@/server/schemas/lidarr'
 import { zJson, zQuery } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
@@ -71,11 +76,9 @@ export function lidarrRoutes(deps: AppDependencies) {
   // as RootFolder carries freeSpace (and the types may gain fields later).
   // With ?targetId the lists and defaults come from the Lidarr instance that
   // target actually uses, so a separate instance never shows server IDs.
-  router.get('/api/v1/lidarr/approve-options', zQuery(approveOptionsQuerySchema), async (c) => {
-    const { targetId } = c.req.valid('query')
-    const userId = c.get('userId')
+  async function picker(targetId: number | undefined, userId: number | undefined) {
     let client: ReturnType<typeof createLidarrClient>
-    let defaults: { qualityProfileId?: number; metadataProfileId?: number; rootFolderId?: number }
+    let defaults: LidarrDefaults
     if (targetId === undefined) {
       client = await getClient()
       defaults = await serverDefaults(userId)
@@ -83,7 +86,7 @@ export function lidarrRoutes(deps: AppDependencies) {
       const target = await deps.targetQueries.getTarget(targetId)
       const caller = userId ? await deps.getUserById(userId) : null
       if (target?.type !== 'lidarr' || !caller || (!caller.isAdmin && target.userId !== userId)) {
-        return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
+        return null
       }
       const connection = resolveLidarrTargetConnection(target.config, await deps.getSettings())
       if (!connection) throw new Error('Lidarr not configured')
@@ -93,17 +96,41 @@ export function lidarrRoutes(deps: AppDependencies) {
         await serverDefaults(target.userId ?? undefined),
       )
     }
-    const [qualityProfiles, metadataProfiles, rootFolders] = await Promise.all([
+    return { client, defaults }
+  }
+
+  router.post(
+    '/api/v1/lidarr/tags',
+    zQuery(approveOptionsQuerySchema),
+    zJson(lidarrTagSchema),
+    async (c) => {
+      const resolved = await picker(c.req.valid('query').targetId, c.get('userId'))
+      if (!resolved)
+        return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
+      const tag = await resolved.client.createTag(c.req.valid('json').label)
+      return c.json({ id: tag.id, label: tag.label }, 201)
+    },
+  )
+
+  router.get('/api/v1/lidarr/approve-options', zQuery(approveOptionsQuerySchema), async (c) => {
+    const resolved = await picker(c.req.valid('query').targetId, c.get('userId'))
+    if (!resolved)
+      return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
+    const { client, defaults } = resolved
+    const [qualityProfiles, metadataProfiles, rootFolders, tags] = await Promise.all([
       client.getQualityProfiles(),
       client.getMetadataProfiles(),
       client.getRootFolders(),
+      client.getTags(),
     ])
     return c.json({
+      tags: tags.map((tag) => ({ id: tag.id, label: tag.label })),
       qualityProfiles: qualityProfiles.map((p) => ({ id: p.id, name: p.name })),
       metadataProfiles: metadataProfiles.map((p) => ({ id: p.id, name: p.name })),
       // path is kept as the picker label; freeSpace and any other fields drop.
       rootFolders: rootFolders.map((f) => ({ id: f.id, path: f.path })),
       defaults: {
+        tags: defaults.tags ?? [],
         qualityProfileId: defaults.qualityProfileId ?? null,
         metadataProfileId: defaults.metadataProfileId ?? null,
         rootFolderId: defaults.rootFolderId ?? null,
@@ -116,8 +143,15 @@ export function lidarrRoutes(deps: AppDependencies) {
     adminGuard(deps.getUserById),
     zJson(lidarrAddSchema),
     async (c) => {
-      const { foreignArtistId, artistName, qualityProfileId, metadataProfileId, rootFolderId } =
-        c.req.valid('json')
+      const {
+        foreignArtistId,
+        artistName,
+        qualityProfileId,
+        metadataProfileId,
+        rootFolderId,
+        tags,
+        monitorOption,
+      } = c.req.valid('json')
       const client = await getClient()
       const artist = await client.addArtist(
         foreignArtistId,
@@ -125,6 +159,7 @@ export function lidarrRoutes(deps: AppDependencies) {
         qualityProfileId ?? 1,
         metadataProfileId ?? 1,
         rootFolderId,
+        { tags, monitorOption },
       )
       return c.json(artist)
     },
