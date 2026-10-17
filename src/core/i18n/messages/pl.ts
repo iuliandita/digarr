@@ -1,4 +1,8 @@
 export const pl = {
+  'oauth.error.tokenMismatch': 'Token autoryzacji nie pasuje - rozpocznij połączenie ponownie.',
+  'oauth.error.authorizationDenied':
+    'Odmówiono autoryzacji - rozpocznij połączenie ponownie, jeśli chcesz się połączyć.',
+  'jobHistory.writeBack': 'Wysyłanie do {service}',
   'tokens.title': 'Tokeny API',
   'tokens.description': 'Daj swoim skryptom osobne dane dostępu, które możesz unieważnić.',
   'tokens.passwordWarning':
@@ -35,7 +39,7 @@ export const pl = {
     'Wysyła MBID nagrania zatwierdzanego utworu na twoje konto ListenBrainz.',
   'writeBack.listenbrainzPlaylists': 'Wysyłaj wygenerowane playlisty do ListenBrainz',
   'writeBack.playlistHelp':
-    'Osobna zgoda: wysyła tytuł playlisty, nazwy wykonawców i utworów oraz znane MBID nagrań jako prywatną playlistę ListenBrainz. Utwory bez MBID nagrania są pomijane.',
+    'Osobna zgoda: wysyła tytuł playlisty, nazwy wykonawców i utworów oraz znane MBID nagrań jako prywatną playlistę ListenBrainz. Utwory bez MBID nagrania są pomijane. Wysyłane są tylko playlisty, które generujesz ręcznie - zaplanowane uruchomienia nigdy ich nie wysyłają.',
   'writeBack.listenbrainzMissing':
     'Dodaj swój token ListenBrainz w Połączeniach, aby włączyć wysyłanie.',
   'writeBack.lastfmLoves': 'Wysyłaj ulubione utwory do Last.fm',

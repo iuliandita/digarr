@@ -1,4 +1,7 @@
 export const ja = {
+  'oauth.error.tokenMismatch': '認証トークンが一致しません - 接続をやり直してください。',
+  'oauth.error.authorizationDenied': '認証が拒否されました - 接続する場合はやり直してください。',
+  'jobHistory.writeBack': '{service}への送信',
   'tokens.title': 'APIトークン',
   'tokens.description': 'スクリプト専用の取り消し可能な認証情報を作成できます。',
   'tokens.passwordWarning':
@@ -34,7 +37,7 @@ export const ja = {
   'writeBack.listenbrainzHelp': '承認した曲の録音MBIDをListenBrainzアカウントに送信します。',
   'writeBack.listenbrainzPlaylists': '生成したプレイリストをListenBrainzに送信',
   'writeBack.playlistHelp':
-    '別の同意が必要です。プレイリスト名、アーティスト名、曲名、既知の録音MBIDを非公開のListenBrainzプレイリストとして送信します。録音MBIDのない曲はスキップされます。',
+    '別の同意が必要です。プレイリスト名、アーティスト名、曲名、既知の録音MBIDを非公開のListenBrainzプレイリストとして送信します。録音MBIDのない曲はスキップされます。 手動で生成したプレイリストのみ送信されます - スケジュール実行では送信されません。',
   'writeBack.listenbrainzMissing':
     '送信するには、接続設定でListenBrainzトークンを追加してください。',
   'writeBack.lastfmLoves': 'お気に入りの曲をLast.fmに送信',

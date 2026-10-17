@@ -24,6 +24,8 @@ type WriteBackDeps = {
   encryptionEnabled: () => boolean
 }
 
+export type PlaylistGenerationTrigger = 'manual' | 'scheduled'
+
 type Operation = 'love' | 'playlist'
 type Service = 'listenbrainz' | 'lastfm'
 
@@ -127,7 +129,9 @@ export function createScrobblerWriteBack(deps: WriteBackDeps) {
     userId: number,
     title: string,
     tracks: Array<{ artistName: string; trackName: string; mbid?: string }>,
+    trigger: PlaylistGenerationTrigger,
   ): Promise<void> {
+    if (trigger !== 'manual') return
     await send(userId, 'listenbrainz', 'playlist', async (connections) => {
       if (!connections.listenbrainzToken) throw new Error('ListenBrainz token is missing')
       await createListenBrainzPlaylist(connections.listenbrainzToken, title, tracks)

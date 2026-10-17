@@ -435,6 +435,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
   it.each([
     null,
     { artistName: 'Other artist', trackName: 'Exact song', recordingMbid: null },
+    { artistName: 'Test Artist', trackName: '   ', recordingMbid: null },
     {
       artistName: 'Test Artist',
       trackName: 'Exact song',
@@ -450,11 +451,41 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
     })
     expect(getOwnedAuditionTrack).toHaveBeenCalledWith(deps.db, 1, 123, mockArtist.mbid)
-    const valid = track?.artistName === 'Test Artist'
-    expect(res.status).toBe(valid ? 200 : 400)
+    const valid = track?.artistName === 'Test Artist' && Boolean(track.trackName.trim())
+    expect(res.status).toBe(200)
     expect(approvedTrack).toHaveBeenCalledTimes(valid ? 1 : 0)
-    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(valid ? 1 : 0)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
   })
+  it('approves a stale Audition track without write-back configured', async () => {
+    const deps = makeDeps()
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ status: 'approved' })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
+  })
+
+  it('approves without feedback when the Audition lookup fails', async () => {
+    vi.mocked(getOwnedAuditionTrack).mockRejectedValueOnce(new Error('database-private-detail'))
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const approvedTrack = vi.fn(async () => {})
+    const deps = makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } })
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
+    })
+    expect(res.status).toBe(200)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
+    expect(approvedTrack).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalledWith('[write-back] Could not resolve approved Audition track')
+    expect(log.mock.calls.flat().join(' ')).not.toContain('database-private-detail')
+    log.mockRestore()
+  })
+
   it('updates to rejected status without calling Lidarr', async () => {
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))

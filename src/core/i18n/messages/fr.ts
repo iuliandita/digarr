@@ -1,4 +1,8 @@
 export const fr = {
+  'oauth.error.tokenMismatch': 'Le jeton d’autorisation ne correspond pas - relance la connexion.',
+  'oauth.error.authorizationDenied':
+    'L’autorisation a été refusée - relance la connexion si tu veux te connecter.',
+  'jobHistory.writeBack': 'Envoi vers {service}',
   'tokens.title': 'Jetons API',
   'tokens.description': 'Donne à tes scripts leurs propres identifiants révocables.',
   'tokens.passwordWarning':
@@ -35,7 +39,7 @@ export const fr = {
     'Envoie le MBID de l’enregistrement du morceau que tu valides à ton compte ListenBrainz.',
   'writeBack.listenbrainzPlaylists': 'Envoyer les playlists générées à ListenBrainz',
   'writeBack.playlistHelp':
-    'Accord séparé : envoie le titre de la playlist, les noms des artistes et morceaux et les MBID d’enregistrement connus dans une playlist ListenBrainz privée. Les morceaux sans MBID d’enregistrement sont ignorés.',
+    'Accord séparé : envoie le titre de la playlist, les noms des artistes et morceaux et les MBID d’enregistrement connus dans une playlist ListenBrainz privée. Les morceaux sans MBID d’enregistrement sont ignorés. Seules les playlists que tu génères manuellement sont envoyées - les exécutions planifiées ne les envoient jamais.',
   'writeBack.listenbrainzMissing':
     'Ajoute ton jeton ListenBrainz dans Connexions pour activer les envois.',
   'writeBack.lastfmLoves': 'Envoyer les coups de cœur à Last.fm',

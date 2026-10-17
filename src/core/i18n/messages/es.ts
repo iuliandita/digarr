@@ -1,4 +1,9 @@
 export const es = {
+  'oauth.error.tokenMismatch':
+    'El token de autorización no coincide - vuelve a iniciar la conexión.',
+  'oauth.error.authorizationDenied':
+    'Se denegó la autorización - vuelve a iniciar la conexión si quieres conectarte.',
+  'jobHistory.writeBack': 'Envío a {service}',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dale a cada script tuyo una credencial que puedas revocar.',
   'tokens.passwordWarning':
@@ -35,7 +40,7 @@ export const es = {
     'Envía el MBID de la grabación de la pista que apruebas a tu cuenta de ListenBrainz.',
   'writeBack.listenbrainzPlaylists': 'Enviar playlists generadas a ListenBrainz',
   'writeBack.playlistHelp':
-    'Permiso aparte: envía el título de la playlist, los nombres de artistas y pistas y los MBID de grabación conocidos como una playlist privada de ListenBrainz. Se omiten las pistas sin MBID de grabación.',
+    'Permiso aparte: envía el título de la playlist, los nombres de artistas y pistas y los MBID de grabación conocidos como una playlist privada de ListenBrainz. Se omiten las pistas sin MBID de grabación. Solo se envían las playlists que generas manualmente - las ejecuciones programadas nunca las envían.',
   'writeBack.listenbrainzMissing':
     'Añade tu token de ListenBrainz en Conexiones para activar los envíos.',
   'writeBack.lastfmLoves': 'Enviar pistas favoritas a Last.fm',

@@ -1,4 +1,8 @@
 export const tr = {
+  'oauth.error.tokenMismatch': 'Yetkilendirme belirteci eşleşmedi - bağlantıyı yeniden başlat.',
+  'oauth.error.authorizationDenied':
+    'Yetkilendirme reddedildi - bağlanmak istiyorsan bağlantıyı yeniden başlat.',
+  'jobHistory.writeBack': '{service} hizmetine gönderim',
   'tokens.title': 'API belirteçleri',
   'tokens.description': 'Betiklerine iptal edebileceğin ayrı kimlik bilgileri ver.',
   'tokens.passwordWarning':
@@ -35,7 +39,7 @@ export const tr = {
     'Onayladığın parçanın kayıt MBID bilgisini ListenBrainz hesabına gönderir.',
   'writeBack.listenbrainzPlaylists': 'Oluşturulan çalma listelerini ListenBrainz hizmetine gönder',
   'writeBack.playlistHelp':
-    'Ayrı izin: çalma listesi başlığını, sanatçı/parça adlarını ve bilinen kayıt MBID bilgilerini özel bir ListenBrainz çalma listesi olarak gönderir. Kayıt MBID bilgisi olmayan parçalar atlanır.',
+    'Ayrı izin: çalma listesi başlığını, sanatçı/parça adlarını ve bilinen kayıt MBID bilgilerini özel bir ListenBrainz çalma listesi olarak gönderir. Kayıt MBID bilgisi olmayan parçalar atlanır. Yalnızca elle oluşturduğun çalma listeleri gönderilir - zamanlanmış çalıştırmalar asla göndermez.',
   'writeBack.listenbrainzMissing':
     'Göndermeyi açmak için Bağlantılar bölümüne ListenBrainz belirtecini ekle.',
   'writeBack.lastfmLoves': 'Beğenilen parçaları Last.fm hizmetine gönder',

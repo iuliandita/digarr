@@ -1,4 +1,8 @@
 export const ptBR = {
+  'oauth.error.tokenMismatch': 'O token de autorização não corresponde - inicie a conexão de novo.',
+  'oauth.error.authorizationDenied':
+    'A autorização foi negada - inicie a conexão de novo se quiser se conectar.',
+  'jobHistory.writeBack': 'Envio para {service}',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dê aos seus scripts credenciais próprias que você pode revogar.',
   'tokens.passwordWarning':
@@ -35,7 +39,7 @@ export const ptBR = {
     'Envia o MBID da gravação da faixa que você aprova para sua conta do ListenBrainz.',
   'writeBack.listenbrainzPlaylists': 'Enviar playlists geradas para o ListenBrainz',
   'writeBack.playlistHelp':
-    'Permissão separada: envia o título da playlist, os nomes de artistas e faixas e os MBIDs de gravação conhecidos como uma playlist privada do ListenBrainz. Faixas sem MBID de gravação são ignoradas.',
+    'Permissão separada: envia o título da playlist, os nomes de artistas e faixas e os MBIDs de gravação conhecidos como uma playlist privada do ListenBrainz. Faixas sem MBID de gravação são ignoradas. Só as playlists que você gera manualmente são enviadas - execuções agendadas nunca enviam playlists.',
   'writeBack.listenbrainzMissing':
     'Adiciona seu token do ListenBrainz em Conexões para ativar os envios.',
   'writeBack.lastfmLoves': 'Enviar faixas favoritas para o Last.fm',

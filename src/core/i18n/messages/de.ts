@@ -1,4 +1,9 @@
 export const de = {
+  'oauth.error.tokenMismatch':
+    'Das Autorisierungstoken stimmt nicht überein - starte die Verbindung erneut.',
+  'oauth.error.authorizationDenied':
+    'Die Autorisierung wurde abgelehnt - starte die Verbindung erneut, wenn du dich verbinden möchtest.',
+  'jobHistory.writeBack': 'An {service} senden',
   'tokens.title': 'API-Tokens',
   'tokens.description': 'Gib deinen Skripten eigene widerrufbare Zugangsdaten.',
   'tokens.passwordWarning':
@@ -35,7 +40,7 @@ export const de = {
     'Sendet die Aufnahme-MBID des von dir bestätigten Titels an dein ListenBrainz-Konto.',
   'writeBack.listenbrainzPlaylists': 'Erstellte Playlists an ListenBrainz senden',
   'writeBack.playlistHelp':
-    'Eigene Zustimmung: Sendet den Playlist-Titel, Künstler- und Titelnamen sowie bekannte Aufnahme-MBIDs als private ListenBrainz-Playlist. Titel ohne Aufnahme-MBID werden übersprungen.',
+    'Eigene Zustimmung: Sendet den Playlist-Titel, Künstler- und Titelnamen sowie bekannte Aufnahme-MBIDs als private ListenBrainz-Playlist. Titel ohne Aufnahme-MBID werden übersprungen. Nur Playlists, die du manuell erstellst, werden gesendet - geplante Läufe senden nie Playlists.',
   'writeBack.listenbrainzMissing':
     'Füge deinen ListenBrainz-Token unter Verbindungen hinzu, um das Senden zu aktivieren.',
   'writeBack.lastfmLoves': 'Lieblingstitel an Last.fm senden',

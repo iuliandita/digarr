@@ -1,4 +1,9 @@
 export const en = {
+  'oauth.error.tokenMismatch':
+    'The authorization token did not match - start the connection again.',
+  'oauth.error.authorizationDenied':
+    'Authorization was denied - start the connection again if you want to connect.',
+  'jobHistory.writeBack': '{service} write-back',
   'tokens.title': 'API tokens',
   'tokens.description': 'Give your scripts their own revocable credential.',
   'tokens.passwordWarning':
@@ -34,7 +39,7 @@ export const en = {
     'Sends the recording MBID of the track you approve to your ListenBrainz account.',
   'writeBack.listenbrainzPlaylists': 'Send generated playlists to ListenBrainz',
   'writeBack.playlistHelp':
-    'Separate opt-in: sends the playlist title, artist/track names, and known recording MBIDs as a private ListenBrainz playlist. Tracks without recording MBIDs are skipped.',
+    'Separate opt-in: sends the playlist title, artist/track names, and known recording MBIDs as a private ListenBrainz playlist. Tracks without recording MBIDs are skipped. Only playlists you generate manually are sent - scheduled runs never send playlists.',
   'writeBack.listenbrainzMissing': 'Add your ListenBrainz token in Connections to enable sending.',
   'writeBack.lastfmLoves': 'Send track loves to Last.fm',
   'writeBack.lastfmHelp': 'Sends the artist and track name you approve to your Last.fm account.',

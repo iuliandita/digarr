@@ -138,7 +138,9 @@ export function oauthRoutes(deps: AppDependencies) {
           clientSecret: sharedSecret,
         })
         const callback = new URL(callbackUri)
-        callback.searchParams.set('state', state)
+        callback.pathname = `${callback.pathname.replace(/\/$/, '')}/${state}`
+        callback.search = ''
+        callback.hash = ''
         const params = new URLSearchParams({
           api_key: apiKey,
           token: requestToken,
@@ -273,10 +275,10 @@ export function oauthRoutes(deps: AppDependencies) {
   })
 
   // OAuth callback - exchanges code for tokens
-  router.get('/api/v1/auth/oauth/:provider/callback', async (c) => {
-    const provider = c.req.param('provider')
+  const oauthCallback = async (c: Context<HonoEnv>) => {
+    const provider = c.req.param('provider') ?? 'lastfm'
     const code = c.req.query(provider === 'lastfm' ? 'token' : 'code')
-    const state = c.req.query('state')
+    const state = provider === 'lastfm' ? c.req.param('state') : c.req.query('state')
     const error = c.req.query('error') ?? c.req.query('error_reason')
     const settingsPath = provider === 'lastfm' ? '/settings?tab=account&' : '/settings?'
 
@@ -305,7 +307,9 @@ export function oauthRoutes(deps: AppDependencies) {
         ? `${settingsPath}oauth_success=${provider}`
         : `${settingsPath}oauth_error=${outcome.error}`,
     )
-  })
+  }
+  router.get('/api/v1/auth/oauth/:provider/callback', oauthCallback)
+  router.get('/api/v1/auth/oauth/lastfm/callback/:state', oauthCallback)
 
   // Disconnect an OAuth provider
   router.delete('/api/v1/auth/oauth/:provider', async (c) => {

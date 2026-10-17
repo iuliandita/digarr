@@ -1,4 +1,8 @@
 export const ro = {
+  'oauth.error.tokenMismatch': 'Tokenul de autorizare nu corespunde - pornește din nou conexiunea.',
+  'oauth.error.authorizationDenied':
+    'Autorizarea a fost refuzată - pornește din nou conexiunea dacă vrei să te conectezi.',
+  'jobHistory.writeBack': 'Trimitere către {service}',
   'tokens.title': 'Tokenuri API',
   'tokens.description': 'Dă-le scripturilor tale propriile credențiale pe care le poți revoca.',
   'tokens.passwordWarning':
@@ -35,7 +39,7 @@ export const ro = {
     'Trimite MBID-ul înregistrării piesei pe care o aprobi către contul tău ListenBrainz.',
   'writeBack.listenbrainzPlaylists': 'Trimite playlisturile generate la ListenBrainz',
   'writeBack.playlistHelp':
-    'Acord separat: trimite titlul playlistului, numele artiștilor și pieselor și MBID-urile de înregistrare cunoscute într-un playlist privat ListenBrainz. Piesele fără MBID de înregistrare sunt omise.',
+    'Acord separat: trimite titlul playlistului, numele artiștilor și pieselor și MBID-urile de înregistrare cunoscute într-un playlist privat ListenBrainz. Piesele fără MBID de înregistrare sunt omise. Sunt trimise doar playlisturile pe care le generezi manual - rulările programate nu trimit niciodată playlisturi.',
   'writeBack.listenbrainzMissing':
     'Adaugă tokenul tău ListenBrainz în Conexiuni ca să activezi trimiterea.',
   'writeBack.lastfmLoves': 'Trimite piesele favorite la Last.fm',

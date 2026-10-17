@@ -1,4 +1,9 @@
 export const nl = {
+  'oauth.error.tokenMismatch':
+    'Het autorisatietoken komt niet overeen - start de verbinding opnieuw.',
+  'oauth.error.authorizationDenied':
+    'De autorisatie is geweigerd - start de verbinding opnieuw als je wilt verbinden.',
+  'jobHistory.writeBack': 'Versturen naar {service}',
   'tokens.title': 'API-tokens',
   'tokens.description': 'Geef je scripts hun eigen intrekbare inloggegevens.',
   'tokens.passwordWarning':
@@ -34,7 +39,7 @@ export const nl = {
     'Stuurt de opname-MBID van het nummer dat je goedkeurt naar je ListenBrainz-account.',
   'writeBack.listenbrainzPlaylists': 'Gegenereerde playlists naar ListenBrainz sturen',
   'writeBack.playlistHelp':
-    'Aparte toestemming: stuurt de playlisttitel, artiest- en nummernamen en bekende opname-MBID’s als een privéplaylist naar ListenBrainz. Nummers zonder opname-MBID worden overgeslagen.',
+    'Aparte toestemming: stuurt de playlisttitel, artiest- en nummernamen en bekende opname-MBID’s als een privéplaylist naar ListenBrainz. Nummers zonder opname-MBID worden overgeslagen. Alleen playlists die je handmatig genereert worden verstuurd - geplande taken versturen nooit playlists.',
   'writeBack.listenbrainzMissing':
     'Voeg je ListenBrainz-token toe bij Verbindingen om verzending in te schakelen.',
   'writeBack.lastfmLoves': 'Favoriete nummers naar Last.fm sturen',

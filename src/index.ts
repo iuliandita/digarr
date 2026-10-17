@@ -58,7 +58,10 @@ import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
 import { isConnectedToken, resolveProviderToken } from './core/provider-auth'
 import { createDefaultRegistry } from './core/providers/registry'
-import { createScrobblerWriteBack } from './core/scrobbler-write-back'
+import {
+  createScrobblerWriteBack,
+  type PlaylistGenerationTrigger,
+} from './core/scrobbler-write-back'
 import { buildSearchSourceCatalog } from './core/search/catalog'
 import { enrichSearchResultsWithImages } from './core/search/enrich'
 import type { SearchSource } from './core/search/multi-source'
@@ -1058,11 +1061,19 @@ async function runSubscriptionById(subscriptionId: number): Promise<void> {
   )
 }
 
-async function executePlaylistGeneration(playlistId: number): Promise<void> {
-  return trackInFlight(withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId)))
+async function executePlaylistGeneration(
+  playlistId: number,
+  trigger: PlaylistGenerationTrigger,
+): Promise<void> {
+  return trackInFlight(
+    withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId, trigger)),
+  )
 }
 
-async function generatePlaylistContents(playlistId: number): Promise<void> {
+async function generatePlaylistContents(
+  playlistId: number,
+  trigger: PlaylistGenerationTrigger,
+): Promise<void> {
   let jobId: number | null = null
 
   const result = await getPlaylistWithTracks(db, playlistId)
@@ -1125,7 +1136,12 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
     })
 
     void trackInFlight(
-      scrobblerWriteBack.generatedPlaylist(playlist.userId, playlist.name, generation.tracks),
+      scrobblerWriteBack.generatedPlaylist(
+        playlist.userId,
+        playlist.name,
+        generation.tracks,
+        trigger,
+      ),
     )
 
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
@@ -1188,7 +1204,7 @@ async function restartPlaylistScheduler(): Promise<void> {
   schedulePlaylists(playlistScheduler, {
     enabled,
     playlists: enabled ? await getEnabledPlaylists(db) : [],
-    generate: executePlaylistGeneration,
+    generate: (playlistId) => executePlaylistGeneration(playlistId, 'scheduled'),
   })
 }
 
@@ -1392,13 +1408,13 @@ const app = createApp({
   scrobblerWriteBack: {
     approvedTrack: (userId, track) =>
       trackInFlight(scrobblerWriteBack.approvedTrack(userId, track)),
-    generatedPlaylist: (userId, title, tracks) =>
-      trackInFlight(scrobblerWriteBack.generatedPlaylist(userId, title, tracks)),
+    generatedPlaylist: (userId, title, tracks, trigger) =>
+      trackInFlight(scrobblerWriteBack.generatedPlaylist(userId, title, tracks, trigger)),
   },
   playlistDeps: {
     db,
     playlistScheduler,
-    runPlaylistGeneration: (playlistId) => executePlaylistGeneration(playlistId),
+    runPlaylistGeneration: (playlistId) => executePlaylistGeneration(playlistId, 'manual'),
     restartPlaylistScheduler,
   },
   search: {

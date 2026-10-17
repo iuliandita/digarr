@@ -1,4 +1,7 @@
 export const zhCN = {
+  'oauth.error.tokenMismatch': '授权令牌不匹配 - 请重新连接。',
+  'oauth.error.authorizationDenied': '授权被拒绝 - 如果你想连接，请重试。',
+  'jobHistory.writeBack': '发送到 {service}',
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
   'tokens.passwordWarning':
@@ -31,7 +34,7 @@ export const zhCN = {
   'writeBack.listenbrainzHelp': '将你认可曲目的录音 MBID 发送到你的 ListenBrainz 账户。',
   'writeBack.listenbrainzPlaylists': '向 ListenBrainz 发送生成的播放列表',
   'writeBack.playlistHelp':
-    '需单独授权：将播放列表标题、艺人名、曲名和已知录音 MBID 作为私密 ListenBrainz 播放列表发送。没有录音 MBID 的曲目会被跳过。',
+    '需单独授权：将播放列表标题、艺人名、曲名和已知录音 MBID 作为私密 ListenBrainz 播放列表发送。没有录音 MBID 的曲目会被跳过。 仅发送你手动生成的播放列表 - 定时运行不会发送播放列表。',
   'writeBack.listenbrainzMissing': '在连接设置中添加你的 ListenBrainz 令牌即可启用发送。',
   'writeBack.lastfmLoves': '向 Last.fm 发送喜爱曲目',
   'writeBack.lastfmHelp': '将你认可曲目的艺人名和曲名发送到你的 Last.fm 账户。',

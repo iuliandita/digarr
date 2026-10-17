@@ -2,6 +2,7 @@
 import { Hono } from 'hono'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { initEncryption } from '@/core/crypto'
+import { authGuard } from '@/server/middleware/auth'
 import type { HonoEnv } from '@/server/types'
 
 vi.mock('@/config/env', () => ({
@@ -63,7 +64,7 @@ function app(authed = true) {
 }
 
 function callback(app: Hono<HonoEnv>, token = 'request-token', binding: string | null = BINDING) {
-  return app.request(`/api/v1/auth/oauth/lastfm/callback?token=${token}&state=${STATE}`, {
+  return app.request(`/api/v1/auth/oauth/lastfm/callback/${STATE}?token=${token}`, {
     headers: binding ? { Cookie: `${oauthTransactionCookieName('lastfm', STATE)}=${binding}` } : {},
   })
 }
@@ -108,10 +109,29 @@ describe('Last.fm authorization', () => {
         payload: { requestToken: 'request-token' },
       }),
     )
-    expect(new URL(url.searchParams.get('cb') ?? '').searchParams.get('state')).toBe(stored?.state)
+    const callbackUrl = new URL(url.searchParams.get('cb') ?? '')
+    expect(callbackUrl.href).toBe(
+      `https://digarr.example/api/v1/auth/oauth/lastfm/callback/${stored?.state}`,
+    )
+    expect(callbackUrl.search).toBe('')
     expect(url.searchParams.get('token')).toBe('request-token')
     expect(response.headers.get('set-cookie')).toContain('HttpOnly')
+    expect(response.headers.get('set-cookie')).toContain('Path=/api/v1/auth/oauth/lastfm/callback')
     expect(response.headers.get('cache-control')).toBe('no-store')
+  })
+
+  it('allows the state-bearing callback through auth without a session', async () => {
+    const context = app(false)
+    const guarded = new Hono<HonoEnv>()
+    guarded.use('*', authGuard({ hasUsers: async () => true, isSetupComplete: async () => true }))
+    guarded.route('/', context.app)
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response('{"session":{"key":"session-key"}}'),
+    )
+    const response = await callback(guarded)
+    expect(response.headers.get('location')).toBe('/settings?tab=account&oauth_success=lastfm')
+    expect(consumePendingOAuth).toHaveBeenCalledWith(expect.anything(), 'lastfm', STATE)
+    expect(response.headers.get('set-cookie')).toContain('Path=/api/v1/auth/oauth/lastfm/callback')
   })
 
   it.each(['missing', 'expired', 'missing-browser', 'wrong-browser', 'forged-token'] as const)(

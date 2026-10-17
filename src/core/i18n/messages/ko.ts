@@ -1,4 +1,7 @@
 export const ko = {
+  'oauth.error.tokenMismatch': '인증 토큰이 일치하지 않아요 - 연결을 다시 시작하세요.',
+  'oauth.error.authorizationDenied': '인증이 거부되었어요 - 연결하려면 다시 시작하세요.',
+  'jobHistory.writeBack': '{service}로 전송',
   'tokens.title': 'API 토큰',
   'tokens.description': '스크립트마다 취소할 수 있는 별도 인증 정보를 만들어 주세요.',
   'tokens.passwordWarning':
@@ -33,7 +36,7 @@ export const ko = {
   'writeBack.listenbrainzHelp': '승인한 곡의 녹음 MBID를 ListenBrainz 계정으로 보내요.',
   'writeBack.listenbrainzPlaylists': '생성된 재생목록을 ListenBrainz로 보내기',
   'writeBack.playlistHelp':
-    '별도 동의가 필요해요. 재생목록 제목, 아티스트와 곡 이름, 알려진 녹음 MBID를 비공개 ListenBrainz 재생목록으로 보내요. 녹음 MBID가 없는 곡은 건너뛰어요.',
+    '별도 동의가 필요해요. 재생목록 제목, 아티스트와 곡 이름, 알려진 녹음 MBID를 비공개 ListenBrainz 재생목록으로 보내요. 녹음 MBID가 없는 곡은 건너뛰어요. 직접 생성한 재생목록만 보내요 - 예약 실행에서는 보내지 않아요.',
   'writeBack.listenbrainzMissing': '전송을 켜려면 연결 설정에서 ListenBrainz 토큰을 추가해 주세요.',
   'writeBack.lastfmLoves': '좋아하는 곡을 Last.fm으로 보내기',
   'writeBack.lastfmHelp': '승인한 곡의 아티스트와 곡 이름을 Last.fm 계정으로 보내요.',

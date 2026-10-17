@@ -664,16 +664,19 @@ export function recommendationRoutes(deps: AppDependencies) {
           rec.artist.name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
         let feedbackTrack: FeedbackTrack | undefined
         if (body.auditionTrackId !== undefined) {
-          const track = userId
-            ? await getOwnedAuditionTrack(deps.db, userId, body.auditionTrackId, rec.artist.mbid)
-            : null
-          if (!track?.trackName?.trim() || !sameArtist(track.artistName)) {
-            return c.json({ error: 'Invalid Audition track for this recommendation' }, 400)
-          }
-          feedbackTrack = {
-            artistName: track.artistName,
-            trackName: track.trackName,
-            ...(track.recordingMbid ? { recordingMbid: track.recordingMbid } : {}),
+          try {
+            const track = userId
+              ? await getOwnedAuditionTrack(deps.db, userId, body.auditionTrackId, rec.artist.mbid)
+              : null
+            if (track?.trackName?.trim() && sameArtist(track.artistName)) {
+              feedbackTrack = {
+                artistName: track.artistName,
+                trackName: track.trackName,
+                ...(track.recordingMbid ? { recordingMbid: track.recordingMbid } : {}),
+              }
+            }
+          } catch {
+            console.error('[write-back] Could not resolve approved Audition track')
           }
         } else if (body.feedbackTrack && sameArtist(body.feedbackTrack.artistName)) {
           feedbackTrack = body.feedbackTrack

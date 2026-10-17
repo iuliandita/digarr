@@ -54,7 +54,12 @@ describe('opt-in scrobbler write-back', () => {
   it.each([null, {}, { scoreThreshold: 0.7 }])('keeps upgraded users off for %j', async (prefs) => {
     const { service, deps } = setup(prefs)
     await service.approvedTrack(7, track)
-    await service.generatedPlaylist(7, 'New music', [{ ...track, mbid: track.recordingMbid }])
+    await service.generatedPlaylist(
+      7,
+      'New music',
+      [{ ...track, mbid: track.recordingMbid }],
+      'manual',
+    )
     expect(loveListenBrainz).not.toHaveBeenCalled()
     expect(loveLastFm).not.toHaveBeenCalled()
     expect(createListenBrainzPlaylist).not.toHaveBeenCalled()
@@ -93,13 +98,37 @@ describe('opt-in scrobbler write-back', () => {
 
   it('keeps playlist export independent of loves', async () => {
     const { service } = setup({ listenbrainzLoveEnabled: true })
-    await service.generatedPlaylist(7, 'New music', [{ ...track, mbid: track.recordingMbid }])
+    await service.generatedPlaylist(
+      7,
+      'New music',
+      [{ ...track, mbid: track.recordingMbid }],
+      'manual',
+    )
     expect(createListenBrainzPlaylist).not.toHaveBeenCalled()
     const enabled = setup({ listenbrainzPlaylistEnabled: true }).service
-    await enabled.generatedPlaylist(7, 'New music', [{ ...track, mbid: track.recordingMbid }])
+    await enabled.generatedPlaylist(
+      7,
+      'New music',
+      [{ ...track, mbid: track.recordingMbid }],
+      'manual',
+    )
     expect(createListenBrainzPlaylist).toHaveBeenCalledTimes(1)
     expect(loveListenBrainz).not.toHaveBeenCalled()
     expect(loveLastFm).not.toHaveBeenCalled()
+  })
+
+  it('does not push scheduled playlist generations even when opted in', async () => {
+    const { service, deps } = setup({ listenbrainzPlaylistEnabled: true })
+    await service.generatedPlaylist(
+      7,
+      'New music',
+      [{ ...track, mbid: track.recordingMbid }],
+      'scheduled',
+    )
+    expect(createListenBrainzPlaylist).not.toHaveBeenCalled()
+    expect(deps.getPreferences).not.toHaveBeenCalled()
+    expect(deps.getConnections).not.toHaveBeenCalled()
+    expect(deps.recorder.start).not.toHaveBeenCalled()
   })
 
   it('rechecks consent after credentials load', async () => {

@@ -36,7 +36,7 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 ## Unreleased work
 
-- Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz generated-playlist opt-in and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
+- Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
 
 ## Next priorities
 
