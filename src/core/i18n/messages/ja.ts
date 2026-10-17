@@ -1659,6 +1659,17 @@ export const ja = {
   'approveDialog.qualityProfile': '品質プロファイル',
   'approveDialog.metadataProfile': 'メタデータプロファイル',
   'approveDialog.rootFolder': 'ルートフォルダ',
+  'approveDialog.lidarrOptions': 'Lidarr オプション',
+  'settings.targetLidarrServerConnection': 'Lidarr (サーバー接続)',
+  'settings.targetLidarrServerConnectionHelp':
+    '設定 > 接続 の Lidarr URL、API キー、デフォルトプロファイルを使用します。',
+  'settings.targetLidarrUseOtherInstance': '別の Lidarr インスタンスを使用',
+  'settings.targetLidarrInstanceDefaults': 'このインスタンスのデフォルト',
+  'settings.targetLidarrDefaultsSaveFirst':
+    '先にターゲットを保存してから編集すると、このインスタンスのプロファイルとルートフォルダを選択できます。',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
+  'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
   'cardStack.counter': '{1} 件中 {0} 件目',
   'cardStack.swipeHint': '右にスワイプで承認、左にスワイプで拒否',
   'serviceCard.testConnection': '接続テスト',

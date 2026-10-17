@@ -10,7 +10,11 @@ import { Hint } from '../components/hint'
 import type { MonitorOption } from '../components/monitoring-options'
 import { PipelineProgress } from '../components/pipeline-progress'
 import { RecentlyApproved } from '../components/recently-approved'
-import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
+import {
+  canApproveArtistToTarget,
+  resolveApprovalTargetOptions,
+  resolveDialogLidarrTarget,
+} from '../components/target-utils'
 import { type Recommendation, TodaysPick } from '../components/todays-pick'
 import { Button } from '../components/ui/button'
 import { EmptyState } from '../components/ui/empty-state'
@@ -30,7 +34,6 @@ import {
   getSchedulerInfo,
   getSubscriptions,
   getTopArtists,
-  getUserPreferences,
   type ListeningTopRange,
   listTargets,
   type SchedulerJob,
@@ -590,15 +593,6 @@ export function Dashboard() {
   )
   const hasLidarrTarget = approveTargets.some((target) => target.type === 'lidarr')
 
-  // User preferences (for ApproveDialog defaults)
-  const { data: prefsData } = useQuery({
-    queryKey: ['user-preferences'],
-    queryFn: getUserPreferences,
-    staleTime: 60_000,
-  })
-
-  const prefs = (prefsData ?? {}) as Record<string, unknown>
-
   // ApproveDialog state (Lidarr profile picker)
   const [approveDialogState, setApproveDialogState] = useState<{
     recId: number
@@ -822,11 +816,7 @@ export function Dashboard() {
       {/* Lidarr profile picker dialog (Today's Pick target approve) */}
       {approveDialogState && (
         <ApproveDialog
-          defaults={{
-            qualityProfileId: Number(prefs.qualityProfileId ?? 1),
-            metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-            rootFolderId: Number(prefs.rootFolderId ?? 0),
-          }}
+          lidarrTargetId={resolveDialogLidarrTarget(targets, approveDialogState.targetId)?.id}
           monitorOption={approveDialogState.monitorOption}
           onCancel={() => setApproveDialogState(null)}
           onConfirm={async (overrides) => {
@@ -842,7 +832,11 @@ export function Dashboard() {
                   ...targetOptions,
                 })
               } else {
-                res = await approveRecommendation(recId, overrides)
+                const dialogTarget = resolveDialogLidarrTarget(targets)
+                res = await approveRecommendation(recId, {
+                  ...overrides,
+                  ...(dialogTarget ? { lidarrTargetId: `lidarr-${dialogTarget.id}` } : {}),
+                })
               }
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })

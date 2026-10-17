@@ -26,7 +26,11 @@ import {
 } from '../components/recommendation-card'
 import { RejectionPicker } from '../components/rejection-picker'
 import { SwipeCard } from '../components/swipe-card'
-import { canApproveArtistToTarget, resolveApprovalTargetOptions } from '../components/target-utils'
+import {
+  canApproveArtistToTarget,
+  resolveApprovalTargetOptions,
+  resolveDialogLidarrTarget,
+} from '../components/target-utils'
 import { Button } from '../components/ui/button'
 import { EmptyState as UiEmptyState } from '../components/ui/empty-state'
 import { Notice } from '../components/ui/notice'
@@ -1600,11 +1604,7 @@ export function DiscoverPage() {
       {/* Per-artist Lidarr profile picker dialog */}
       {approveDialogState && (
         <ApproveDialog
-          defaults={{
-            qualityProfileId: Number(prefs.qualityProfileId ?? 1),
-            metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-            rootFolderId: Number(prefs.rootFolderId ?? 0),
-          }}
+          lidarrTargetId={resolveDialogLidarrTarget(targets, approveDialogState.targetId)?.id}
           monitorOption={approveDialogState.monitorOption}
           onCancel={() => setApproveDialogState(null)}
           onConfirm={async (overrides) => {
@@ -1620,7 +1620,11 @@ export function DiscoverPage() {
                   ...targetOptions,
                 })
               } else {
-                res = await approveRecommendation(recId, overrides)
+                const dialogTarget = resolveDialogLidarrTarget(targets)
+                res = await approveRecommendation(recId, {
+                  ...overrides,
+                  ...(dialogTarget ? { lidarrTargetId: `lidarr-${dialogTarget.id}` } : {}),
+                })
               }
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               refetch()

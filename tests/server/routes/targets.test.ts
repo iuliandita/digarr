@@ -374,4 +374,31 @@ describe('target routes', () => {
       },
     })
   })
+
+  it.each([
+    [
+      'clears default IDs when the url changes',
+      { url: 'http://other:8686' },
+      { url: 'http://other:8686', apiKey: 'saved' },
+    ],
+    [
+      'keeps default IDs when the url is unchanged',
+      { url: 'http://lidarr:8686', apiKey: '***' },
+      { url: 'http://lidarr:8686', apiKey: 'saved', qualityProfileId: 2, rootFolderId: 3 },
+    ],
+  ])('PATCH a separate Lidarr instance %s', async (_name, patch, expected) => {
+    mockDeps.targetQueries.getTarget.mockResolvedValue({
+      id: 1,
+      userId: 1,
+      type: 'lidarr',
+      config: { url: 'http://lidarr:8686', apiKey: 'saved', qualityProfileId: 2, rootFolderId: 3 },
+    })
+    const res = await createTestApp().request('/api/v1/targets/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ config: patch }),
+    })
+    expect(res.status).toBe(204)
+    expect(mockDeps.targetQueries.updateTarget).toHaveBeenCalledWith(1, { config: expected })
+  })
 })

@@ -1681,6 +1681,17 @@ export const ru = {
   'approveDialog.qualityProfile': 'Профиль качества',
   'approveDialog.metadataProfile': 'Профиль метаданных',
   'approveDialog.rootFolder': 'Корневая папка',
+  'approveDialog.lidarrOptions': 'Параметры Lidarr',
+  'settings.targetLidarrServerConnection': 'Lidarr (подключение сервера)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Использует URL, API-ключ и профили по умолчанию Lidarr из Настройки > Подключения.',
+  'settings.targetLidarrUseOtherInstance': 'Использовать другой экземпляр Lidarr',
+  'settings.targetLidarrInstanceDefaults': 'Значения по умолчанию для этого экземпляра',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Сначала сохрани цель, затем отредактируй её, чтобы выбрать профили и корневую папку этого экземпляра.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL или API-ключ изменились. Сохрани, затем снова отредактируй цель, чтобы выбрать профили и корневую папку нового экземпляра.',
+  'settings.targetLidarrDefaultsUnset': 'Первый доступный',
   'cardStack.counter': '{0} из {1}',
   'cardStack.swipeHint': 'Свайп вправо - одобрить, влево - отклонить',
   'serviceCard.testConnection': 'Проверить подключение',

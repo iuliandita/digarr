@@ -18,7 +18,7 @@ export function LidarrPreferencesSection() {
   // approve-options is the non-admin-safe projection; the per-type endpoints are admin-only.
   const { data: lidarrOptions } = useQuery({
     queryKey: ['lidarrApproveOptions'],
-    queryFn: getLidarrApproveOptions,
+    queryFn: () => getLidarrApproveOptions(),
   })
   const qualityProfiles = lidarrOptions?.qualityProfiles
   const metadataProfiles = lidarrOptions?.metadataProfiles

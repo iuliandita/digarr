@@ -1674,6 +1674,17 @@ export const uk = {
   'approveDialog.qualityProfile': 'Профіль якості',
   'approveDialog.metadataProfile': 'Профіль метаданих',
   'approveDialog.rootFolder': 'Коренева папка',
+  'approveDialog.lidarrOptions': 'Параметри Lidarr',
+  'settings.targetLidarrServerConnection': 'Lidarr (підключення сервера)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Використовує URL, API-ключ і типові профілі Lidarr з Налаштування > Підключення.',
+  'settings.targetLidarrUseOtherInstance': 'Використати інший екземпляр Lidarr',
+  'settings.targetLidarrInstanceDefaults': 'Типові значення для цього екземпляра',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Спочатку збережи ціль, потім відредагуй її, щоб вибрати профілі й кореневу папку цього екземпляра.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
+  'settings.targetLidarrDefaultsUnset': 'Перший доступний',
   'cardStack.counter': '{0} з {1}',
   'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч - щоб відхилити',
   'serviceCard.testConnection': 'Перевірити підключення',

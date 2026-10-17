@@ -60,9 +60,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.7,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -74,7 +71,7 @@ describe('autoApprove()', () => {
     expect(target.addArtist).toHaveBeenCalledTimes(1)
     expect(target.addArtist).toHaveBeenCalledWith(
       { mbid: 'mbid-1', name: 'Artist A' },
-      expect.objectContaining({ monitorOption: 'all', qualityProfileId: 1 }),
+      expect.objectContaining({ monitorOption: 'all' }),
     )
   })
 
@@ -96,9 +93,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -114,9 +108,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -172,9 +163,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -215,9 +203,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -279,9 +264,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -328,9 +310,6 @@ describe('autoApprove()', () => {
       {
         threshold: 0.5,
         monitorOption: 'all',
-        qualityProfileId: 1,
-        metadataProfileId: 1,
-        rootFolderId: 1,
       },
       deps,
     )
@@ -341,9 +320,6 @@ describe('autoApprove()', () => {
   const config = {
     threshold: 0.7,
     monitorOption: 'new' as const,
-    qualityProfileId: 2,
-    metadataProfileId: 3,
-    rootFolderId: 4,
   }
   const albumRec = {
     id: 11,
@@ -388,9 +364,6 @@ describe('autoApprove()', () => {
       { mbid: 'mbid-1', name: 'Artist A' },
       {
         monitorOption: 'new',
-        qualityProfileId: 2,
-        metadataProfileId: 3,
-        rootFolderId: 4,
         userId: 7,
         recommendationId: 10,
       },
@@ -399,9 +372,6 @@ describe('autoApprove()', () => {
       { artistMbid: 'mbid-1', artistName: 'Artist A', releaseGroupMbid: 'release-1' },
       expect.objectContaining({
         monitorOption: 'new',
-        qualityProfileId: 2,
-        metadataProfileId: 3,
-        rootFolderId: 4,
         userId: 7,
         recommendationId: 11,
       }),
@@ -585,12 +555,7 @@ describe('autoApprove()', () => {
           markStuck: vi.fn(),
         },
       })
-      const run = autoApprove(
-        1,
-        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
-        deps,
-        controller.signal,
-      )
+      const run = autoApprove(1, { threshold: 0.5, monitorOption: 'all' }, deps, controller.signal)
       const rejected = expect(run).rejects.toThrow(
         success ? PipelineCancelledError : 'target failed',
       )
@@ -630,12 +595,7 @@ describe('autoApprove()', () => {
     })
     const targets = await deps.getEnabledTargets()
     await expect(
-      autoApprove(
-        1,
-        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
-        deps,
-        controller.signal,
-      ),
+      autoApprove(1, { threshold: 0.5, monitorOption: 'all' }, deps, controller.signal),
     ).rejects.toBeInstanceOf(PipelineCancelledError)
     expect(deps.jobRecorder?.cancel).toHaveBeenCalledWith(11)
     expect(targets[0]?.addArtist).not.toHaveBeenCalled()
@@ -663,12 +623,7 @@ describe('autoApprove()', () => {
         }),
       })
       await expect(
-        autoApprove(
-          1,
-          { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
-          deps,
-          controller.signal,
-        ),
+        autoApprove(1, { threshold: 0.5, monitorOption: 'all' }, deps, controller.signal),
       ).rejects.toBeInstanceOf(PipelineCancelledError)
       expect(deps.updateRecommendationStatus).toHaveBeenCalledOnce()
     },
@@ -682,12 +637,7 @@ describe('autoApprove()', () => {
     })
     const targets = await deps.getEnabledTargets()
     await expect(
-      autoApprove(
-        1,
-        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
-        deps,
-        controller.signal,
-      ),
+      autoApprove(1, { threshold: 0.5, monitorOption: 'all' }, deps, controller.signal),
     ).rejects.toBeInstanceOf(PipelineCancelledError)
     expect(targets[0]?.addArtist).not.toHaveBeenCalled()
     expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
@@ -706,12 +656,7 @@ describe('autoApprove()', () => {
       throw failure
     })
     await expect(
-      autoApprove(
-        1,
-        { threshold: 0.5, monitorOption: 'all', qualityProfileId: 1, metadataProfileId: 1 },
-        deps,
-        controller.signal,
-      ),
+      autoApprove(1, { threshold: 0.5, monitorOption: 'all' }, deps, controller.signal),
     ).rejects.toBe(failure)
     expect(deps.updateRecommendationStatus).toHaveBeenCalledExactlyOnceWith(1, 'add_failed', {
       targetActions: { 'lidarr-1': { status: 'failed', error: failure.message } },

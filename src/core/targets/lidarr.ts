@@ -8,10 +8,13 @@ import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
 // album silently never gets monitored. Poll briefly until the albums appear.
 const ALBUM_POLL_ATTEMPTS = 6
 const ALBUM_POLL_DELAY_MS = 1500
+const NOT_CONFIGURED = 'Lidarr is not configured in Settings > Connections'
 
 export type LidarrTargetConfig = {
-  url: string
-  apiKey: string
+  // Missing when the target references an unconfigured server connection;
+  // every call then fails loudly instead of the target silently disappearing.
+  url?: string
+  apiKey?: string
   skipTlsVerify?: boolean
   qualityProfileId?: number
   metadataProfileId?: number
@@ -22,10 +25,28 @@ export function createLidarrTarget(
   targetId: number,
   config: LidarrTargetConfig,
 ): DestinationTarget {
-  const client = createLidarrClient(config.url, config.apiKey, config.skipTlsVerify)
-  const qualityProfileId = config.qualityProfileId ?? 1
-  const metadataProfileId = config.metadataProfileId ?? 1
-  const rootFolderId = config.rootFolderId
+  const id = `lidarr-${targetId}`
+  const configured = Boolean(config.url && config.apiKey)
+  const client = configured
+    ? createLidarrClient(config.url as string, config.apiKey as string, config.skipTlsVerify)
+    : (null as unknown as ReturnType<typeof createLidarrClient>)
+
+  // Explicit picks scoped to another Lidarr target were loaded from that
+  // instance, so their IDs mean nothing here; use this target's own defaults.
+  function profileIds(options?: TargetAddOptions) {
+    const scoped =
+      options?.lidarrOptionsTargetId === undefined || options.lidarrOptionsTargetId === id
+    return {
+      qualityProfileId: (scoped ? options?.qualityProfileId : undefined) ?? config.qualityProfileId,
+      metadataProfileId:
+        (scoped ? options?.metadataProfileId : undefined) ?? config.metadataProfileId,
+      rootFolderId: (scoped ? options?.rootFolderId : undefined) ?? config.rootFolderId,
+    }
+  }
+
+  function notConfigured(): TargetResult {
+    return { success: false, targetType: 'lidarr', targetId, error: NOT_CONFIGURED }
+  }
 
   // Poll Lidarr until the requested albums appear (or attempts run out),
   // returning whichever of the selected albums are now present.
@@ -43,7 +64,7 @@ export function createLidarrTarget(
   }
 
   return {
-    id: `lidarr-${targetId}`,
+    id,
     name: 'Lidarr',
     type: 'lidarr',
     capabilities: ['addArtist', 'addAlbum'],
@@ -52,16 +73,18 @@ export function createLidarrTarget(
       artist: { mbid: string; name: string },
       options?: TargetAddOptions,
     ): Promise<TargetResult> {
+      if (!configured) return notConfigured()
       const effectiveMonitor =
         options?.monitorOption === 'selected' ? 'none' : (options?.monitorOption ?? 'none')
+      const ids = profileIds(options)
 
       try {
         const added = await client.addArtist(
           artist.mbid,
           artist.name,
-          options?.qualityProfileId ?? qualityProfileId,
-          options?.metadataProfileId ?? metadataProfileId,
-          options?.rootFolderId ?? rootFolderId,
+          ids.qualityProfileId,
+          ids.metadataProfileId,
+          ids.rootFolderId,
           { monitorOption: effectiveMonitor },
         )
 
@@ -113,6 +136,7 @@ export function createLidarrTarget(
       album: { artistMbid: string; artistName: string; releaseGroupMbid: string },
       options?: TargetAddOptions,
     ): Promise<TargetResult> {
+      if (!configured) return notConfigured()
       try {
         // Gap-fill safe: reuse the artist if already tracked, otherwise add it
         // unmonitored so Lidarr does not grab the whole discography.
@@ -120,12 +144,13 @@ export function createLidarrTarget(
         let artistId = existing?.id
 
         if (!artistId) {
+          const ids = profileIds(options)
           const added = await client.addArtist(
             album.artistMbid,
             album.artistName,
-            options?.qualityProfileId ?? qualityProfileId,
-            options?.metadataProfileId ?? metadataProfileId,
-            options?.rootFolderId ?? rootFolderId,
+            ids.qualityProfileId,
+            ids.metadataProfileId,
+            ids.rootFolderId,
             { monitorOption: 'none' },
           )
           artistId = added.id
@@ -166,6 +191,7 @@ export function createLidarrTarget(
     },
 
     async testConnection() {
+      if (!configured) return { success: false, message: NOT_CONFIGURED }
       return client.testConnection()
     },
   }

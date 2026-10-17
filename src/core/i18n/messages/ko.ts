@@ -1637,6 +1637,17 @@ export const ko = {
   'approveDialog.qualityProfile': '품질 프로필',
   'approveDialog.metadataProfile': '메타데이터 프로필',
   'approveDialog.rootFolder': '루트 폴더',
+  'approveDialog.lidarrOptions': 'Lidarr 옵션',
+  'settings.targetLidarrServerConnection': 'Lidarr (서버 연결)',
+  'settings.targetLidarrServerConnectionHelp':
+    '설정 > 연결의 Lidarr URL, API 키, 기본 프로필을 사용합니다.',
+  'settings.targetLidarrUseOtherInstance': '다른 Lidarr 인스턴스 사용',
+  'settings.targetLidarrInstanceDefaults': '이 인스턴스의 기본값',
+  'settings.targetLidarrDefaultsSaveFirst':
+    '먼저 대상을 저장한 다음 편집하면 이 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL 또는 API 키가 변경되었습니다. 저장한 다음 대상을 다시 편집하면 새 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
+  'settings.targetLidarrDefaultsUnset': '첫 번째 사용 가능 항목',
   'cardStack.counter': '{1} 중 {0}',
   'cardStack.swipeHint': '오른쪽으로 밀어 승인, 왼쪽으로 밀어 거부',
   'serviceCard.testConnection': '연결 테스트',

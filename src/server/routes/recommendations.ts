@@ -8,7 +8,6 @@ import { resolveProviderToken } from '@/core/provider-auth'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
-import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { problem } from '@/server/helpers/problem'
 import {
   bulkRecommendationSchema,
@@ -459,7 +458,27 @@ function isOwned(rec: { userId?: number | null }, callerId?: number): boolean {
   return rec.userId === callerId
 }
 
-/** Build Lidarr add options from per-user preferences (with global fallback). */
+/**
+ * Pick the Lidarr target explicit profile/folder IDs belong to. They were
+ * loaded from one instance, so they only apply to that target; without an
+ * unambiguous target they are dropped and every target uses its own defaults.
+ */
+function resolveLidarrOptionsTargetId(
+  targets: TargetWithCapabilities[],
+  scope: { targetId?: string; lidarrTargetId?: string },
+): string | undefined {
+  const lidarrTargets = targets.filter((target) => target.type === 'lidarr')
+  for (const id of [scope.targetId, scope.lidarrTargetId]) {
+    if (id && lidarrTargets.some((target) => target.id === id)) return id
+  }
+  return lidarrTargets.length === 1 ? lidarrTargets[0]?.id : undefined
+}
+
+/**
+ * Build target add options. Profile/folder defaults are not injected here:
+ * each Lidarr target resolves its own (server connection: user/global prefs;
+ * separate instance: its stored IDs).
+ */
 async function buildAddOptions(
   deps: AppDependencies,
   userId: number | undefined,
@@ -470,18 +489,14 @@ async function buildAddOptions(
     qualityProfileId?: number
     metadataProfileId?: number
     rootFolderId?: number
+    lidarrOptionsTargetId?: string
   },
 ): Promise<Record<string, unknown>> {
-  const settings = await deps.getSettings()
-  const globalPrefs = settings?.preferences ?? null
-
-  // Merge per-user preferences over global
-  const resolved = await resolveUserPreferences(deps.getUserById, globalPrefs, userId)
-  const prefs = mergePreferences(resolved ?? globalPrefs)
   const popularAlbumIds =
     overrides.monitorOption === 'popular'
       ? await resolvePopularAlbumIds(deps, userId, artist)
       : undefined
+  const scope = overrides.lidarrOptionsTargetId
 
   return {
     ...(overrides.monitorOption != null
@@ -495,9 +510,14 @@ async function buildAddOptions(
       : overrides.selectedAlbumIds
         ? { selectedAlbumIds: overrides.selectedAlbumIds }
         : {}),
-    qualityProfileId: overrides.qualityProfileId ?? prefs.qualityProfileId,
-    metadataProfileId: overrides.metadataProfileId ?? prefs.metadataProfileId,
-    rootFolderId: overrides.rootFolderId ?? prefs.rootFolderId,
+    ...(scope
+      ? {
+          lidarrOptionsTargetId: scope,
+          qualityProfileId: overrides.qualityProfileId,
+          metadataProfileId: overrides.metadataProfileId,
+          rootFolderId: overrides.rootFolderId,
+        }
+      : {}),
   }
 }
 
@@ -702,6 +722,12 @@ export function recommendationRoutes(deps: AppDependencies) {
               qualityProfileId: qpOverride,
               metadataProfileId: mpOverride,
               rootFolderId: rfOverride,
+              lidarrOptionsTargetId: resolveLidarrOptionsTargetId(
+                approvalMode === 'combined_lidarr_slskd' && lidarrTarget
+                  ? [lidarrTarget]
+                  : effectiveTargets,
+                { targetId, lidarrTargetId },
+              ),
             },
           )
         } catch (err) {
@@ -865,6 +891,7 @@ export function recommendationRoutes(deps: AppDependencies) {
       qualityProfileId: qpOverride,
       metadataProfileId: mpOverride,
       rootFolderId: rfOverride,
+      lidarrOptionsTargetId: resolveLidarrOptionsTargetId(effectiveTargets, { targetId }),
     })
 
     const results: Array<{ id: number; status: string; error?: string }> = []

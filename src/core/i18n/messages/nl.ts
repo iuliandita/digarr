@@ -1678,6 +1678,17 @@ export const nl = {
   'approveDialog.qualityProfile': 'Kwaliteitsprofiel',
   'approveDialog.metadataProfile': 'Metadataprofiel',
   'approveDialog.rootFolder': 'Hoofdmap',
+  'approveDialog.lidarrOptions': 'Lidarr-opties',
+  'settings.targetLidarrServerConnection': 'Lidarr (serververbinding)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Gebruikt de Lidarr-URL, API-sleutel en standaardprofielen uit Instellingen > Verbindingen.',
+  'settings.targetLidarrUseOtherInstance': 'Een andere Lidarr-instantie gebruiken',
+  'settings.targetLidarrInstanceDefaults': 'Standaardwaarden voor deze instantie',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Sla het doel eerst op en bewerk het daarna om profielen en een hoofdmap van deze instantie te kiezen.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'De URL of API-sleutel is gewijzigd. Sla op en bewerk het doel daarna opnieuw om profielen en een hoofdmap van de nieuwe instantie te kiezen.',
+  'settings.targetLidarrDefaultsUnset': 'Eerste beschikbare',
   'cardStack.counter': '{0} van {1}',
   'cardStack.swipeHint': 'Veeg naar rechts om goed te keuren, naar links om af te wijzen',
   'serviceCard.testConnection': 'Verbinding testen',
