@@ -9,7 +9,15 @@ const HEADER_AUTH = new Set(['session-bearer', 'legacy-bearer'])
 const QUERY_AUTH = new Set(['session-query', 'legacy-query'])
 
 function rejectRequest(c: Context<HonoEnv>) {
-  return problem(c, 'csrf-validation-failed', 'Request rejected', 403)
+  return problem(
+    c,
+    'csrf-validation-failed',
+    'Request rejected',
+    403,
+    'Request rejected: the address in your browser must match ALLOWED_ORIGIN exactly (scheme, host and port). Check the URL you are using and the ALLOWED_ORIGIN setting.',
+    undefined,
+    'errors.csrf.originMismatch',
+  )
 }
 
 function hasBrowserSignals(c: Context<HonoEnv>) {

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HygieneSection } from '@/web/components/admin/hygiene-section'
-import { getAiAuditResults } from '@/web/lib/api'
+import { getAiAuditResults, runHygieneTool } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -57,5 +57,32 @@ describe('HygieneSection audit polling', () => {
       await vi.advanceTimersByTimeAsync(15_000)
     })
     expect(getAiAuditResults).toHaveBeenCalledTimes(3)
+  })
+})
+
+describe('HygieneSection results', () => {
+  it('renders translated labels instead of raw keys and skips structured fields', async () => {
+    vi.mocked(getAiAuditResults).mockResolvedValue({
+      flaggedIds: [],
+      fixedIds: [],
+      inProgress: false,
+    })
+    vi.mocked(runHygieneTool).mockResolvedValue({
+      tool: 'rescore',
+      rescored: 4,
+      skipped: 1,
+      weightProfile: { a: 1 },
+    })
+    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={client}>
+          <HygieneSection />
+        </QueryClientProvider>
+      </I18nProvider>,
+    )
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Run' }))[2] as HTMLElement)
+    fireEvent.click((await screen.findAllByRole('button', { name: 'Run' })).at(-1) as HTMLElement)
+    expect(await screen.findByText('Rescored: 4, Skipped: 1')).toBeInTheDocument()
   })
 })

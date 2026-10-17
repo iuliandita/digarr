@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Small visible leftovers: the Analytics score chart's top bucket now reads "90-100%" and includes a score of exactly 1.0 instead of showing "100-100%", the unreconciled library row no longer prints a "Normalized: ..." debug line, a CSRF origin rejection now says the browsed address must match `ALLOWED_ORIGIN` (translated, error code `errors.csrf.originMismatch`), and the Administration hygiene results show translated labels instead of raw field names (#928).
 - Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
 - Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).

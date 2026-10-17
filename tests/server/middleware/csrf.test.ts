@@ -232,6 +232,8 @@ describe('csrf middleware policy', () => {
       type: '/problems/csrf-validation-failed',
       title: 'Request rejected',
       status: 403,
+      code: 'errors.csrf.originMismatch',
+      detail: expect.stringContaining('ALLOWED_ORIGIN'),
     })
   })
 })

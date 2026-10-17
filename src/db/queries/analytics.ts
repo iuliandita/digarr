@@ -142,7 +142,7 @@ export type ScoreBucket = { bucket: string; count: number }
 export async function getScoreDistribution(db: Database): Promise<ScoreBucket[]> {
   const rows = await db.execute(sql`
     SELECT
-      (FLOOR(score * 10) * 10)::int AS bucket_start,
+      (LEAST(FLOOR(score * 10), 9) * 10)::int AS bucket_start,
       COUNT(*)::int AS count
     FROM recommendations
     WHERE score IS NOT NULL
@@ -150,7 +150,7 @@ export async function getScoreDistribution(db: Database): Promise<ScoreBucket[]>
     ORDER BY bucket_start
   `)
   return (rows.rows as { bucket_start: number; count: number }[]).map((r) => ({
-    bucket: `${r.bucket_start}-${Math.min(r.bucket_start + 10, 100)}%`,
+    bucket: `${r.bucket_start}-${r.bucket_start + 10}%`,
     count: r.count,
   }))
 }

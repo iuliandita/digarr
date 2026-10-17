@@ -132,7 +132,7 @@ describe('library unreconciled rows', () => {
     expect(checkbox.closest('label')).toHaveClass('cursor-not-allowed')
   })
 
-  it('preserves dollar replacement tokens in artist labels and normalized names', () => {
+  it('preserves dollar replacement tokens in artist labels and shows no normalized-name debug text', () => {
     renderArtist({
       row: {
         ...artistRow,
@@ -142,7 +142,8 @@ describe('library unreconciled rows', () => {
     })
 
     expect(screen.getByRole('checkbox', { name: 'Select artist Cash $& $$' })).toBeInTheDocument()
-    expect(screen.getByText('plex - Normalized: cash $& $$')).toBeInTheDocument()
+    expect(screen.getByText('plex')).toBeInTheDocument()
+    expect(screen.queryByText(/Normalized/)).not.toBeInTheDocument()
   })
 
   it('defensively excludes lookup-failed artists while keeping their actions available', () => {
