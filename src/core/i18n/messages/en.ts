@@ -89,7 +89,8 @@ export const en = {
   'playlists.title': 'Playlists',
   'subscriptions.title': 'Subscriptions',
   'subscriptions.new': 'New',
-  'subscriptions.presets': 'Presets',
+  'subscriptions.fromPreset': 'From a preset',
+  'subscriptions.newOptions': 'More ways to add a subscription',
   'subscriptions.pauseAll': 'Pause All',
   'subscriptions.resumeAll': 'Resume All',
   'dashboard.todaysPick': "Today's Pick",
@@ -1435,6 +1436,7 @@ export const en = {
 
   // Mood discover bar
   'discover.moodPlaceholder': 'rainy day jazz, upbeat 90s pop, dark ambient...',
+  'discover.moodOpen': 'Describe a mood',
   'discover.discoverButton': 'Discover',
   'discover.discovering': 'Discovering...',
   'discover.moodResults': 'Mood results',
@@ -1615,6 +1617,7 @@ export const en = {
   'keyboardShortcuts.rejectFocusedCard': 'Reject focused card',
   'keyboardShortcuts.toggleDetailView': 'Open / close detail view',
   'keyboardShortcuts.toggleShortcuts': 'Show / hide shortcuts',
+  'keyboardShortcuts.focusMoodSearch': 'Open mood search',
   'keyboardShortcuts.rejectCardStack': 'Reject card (stack view)',
   'keyboardShortcuts.approveCardStack': 'Approve card (stack view)',
   'keyboardShortcuts.disabledWhileTyping': 'Shortcuts are disabled when a text field is focused.',
@@ -1632,6 +1635,7 @@ export const en = {
   'rejectionPicker.dontShowAgainDisabled': "Disabled when 'Maybe later' is selected",
   'rejectionPicker.cancel': 'Cancel',
   'rejectionPicker.reject': 'Reject',
+  'rejectionPicker.rejectNoReason': 'Reject without a reason',
   'rejectionPicker.blockForever': 'Block forever',
   'rejectionPicker.otherPlaceholder': 'Tell us why (optional, 200 chars)',
 
@@ -1707,6 +1711,17 @@ export const en = {
   'approveDialog.qualityProfile': 'Quality Profile',
   'approveDialog.metadataProfile': 'Metadata Profile',
   'approveDialog.rootFolder': 'Root Folder',
+  'approveDialog.lidarrOptions': 'Lidarr options',
+  'settings.targetLidarrServerConnection': 'Lidarr (server connection)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Uses the Lidarr URL, API key and default profiles from Settings > Connections.',
+  'settings.targetLidarrUseOtherInstance': 'Use a different Lidarr instance',
+  'settings.targetLidarrInstanceDefaults': 'Defaults for this instance',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Save the target first, then edit it to pick profiles and a root folder from this instance.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'The URL or API key changed. Save, then edit the target again to pick profiles and a root folder from the new instance.',
+  'settings.targetLidarrDefaultsUnset': 'First available',
 
   // Card stack navigation hints
   'cardStack.counter': '{0} of {1}',

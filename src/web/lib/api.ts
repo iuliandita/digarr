@@ -354,6 +354,7 @@ export const approveRecommendation = (
     qualityProfileId?: number
     metadataProfileId?: number
     rootFolderId?: number
+    lidarrTargetId?: string
   },
 ) => updateRecommendation(id, { status: 'approved', ...options })
 export const bulkAction = (
@@ -501,12 +502,24 @@ export const getTimeToAct = () => fetchApi<TimeToAct[]>('/analytics/time-to-act'
 // Lidarr
 // Non-admin-safe picker data: profile names + root-folder paths only, no
 // freeSpace/structure. Used by the approve dialog and per-user Lidarr defaults.
-export const getLidarrApproveOptions = () =>
-  fetchApi<{
-    qualityProfiles: Array<{ id: number; name: string }>
-    metadataProfiles: Array<{ id: number; name: string }>
-    rootFolders: Array<{ id: number; path: string }>
-  }>('/lidarr/approve-options')
+export type LidarrApproveOptions = {
+  qualityProfiles: Array<{ id: number; name: string }>
+  metadataProfiles: Array<{ id: number; name: string }>
+  rootFolders: Array<{ id: number; path: string }>
+  defaults?: {
+    qualityProfileId: number | null
+    metadataProfileId: number | null
+    rootFolderId: number | null
+  }
+}
+
+// Without targetId: the server connection. With it: the instance that target uses.
+export const getLidarrApproveOptions = (targetId?: number) =>
+  fetchApi<LidarrApproveOptions>(
+    targetId === undefined
+      ? '/lidarr/approve-options'
+      : `/lidarr/approve-options?targetId=${encodeURIComponent(String(targetId))}`,
+  )
 
 // Library Health
 export type HealthCheckItem = {

@@ -183,6 +183,70 @@ describe('GET /api/v1/lidarr/approve-options (non-admin picker)', () => {
   })
 })
 
+describe('GET /api/v1/lidarr/approve-options?targetId', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  const targets: Record<number, unknown> = {
+    5: { id: 5, type: 'lidarr', userId: 2, config: { useServerConnection: true } },
+    6: {
+      id: 6,
+      type: 'lidarr',
+      userId: 2,
+      config: { url: 'http://other.local', apiKey: 'other-key', rootFolderId: 31 },
+    },
+    7: { id: 7, type: 'lidarr', userId: 3, config: { useServerConnection: true } },
+    8: { id: 8, type: 'slskd', userId: 2, config: {} },
+  }
+  const targetDeps = {
+    targetQueries: { getTarget: vi.fn(async (id: number) => targets[id] ?? null) },
+  } as unknown as Partial<RouteDeps>
+
+  it('loads lists and defaults from a separate instance, not the server', async () => {
+    const { createLidarrClient } = await import('@/core/clients/lidarr')
+    const app = createTestApp({ userId: 2, deps: targetDeps })
+    const res = await app.request('/api/v1/lidarr/approve-options?targetId=6')
+    expect(res.status).toBe(200)
+    expect(createLidarrClient).toHaveBeenCalledWith('http://other.local', 'other-key', false)
+    const raw = await res.text()
+    expect(JSON.parse(raw).defaults).toEqual({
+      qualityProfileId: null,
+      metadataProfileId: null,
+      rootFolderId: 31,
+    })
+    expect(raw).not.toContain('other-key')
+    expect(raw).not.toContain('freeSpace')
+  })
+
+  it('uses the server connection and its defaults for a reference target', async () => {
+    const { createLidarrClient } = await import('@/core/clients/lidarr')
+    const app = createTestApp({ userId: 2, deps: targetDeps })
+    const res = await app.request('/api/v1/lidarr/approve-options?targetId=5')
+    expect(res.status).toBe(200)
+    expect(createLidarrClient).toHaveBeenCalledWith('http://lidarr.local', 'abc', false)
+    expect((await res.json()).defaults).toEqual({
+      qualityProfileId: 1,
+      metadataProfileId: 1,
+      rootFolderId: null,
+    })
+  })
+
+  it.each([
+    [7, 'another user'],
+    [8, 'a non-Lidarr target'],
+    [99, 'a missing target'],
+  ])('returns 404 for target %i (%s)', async (id) => {
+    const app = createTestApp({ userId: 2, deps: targetDeps })
+    const res = await app.request(`/api/v1/lidarr/approve-options?targetId=${id}`)
+    expect(res.status).toBe(404)
+  })
+
+  it('lets an admin load options for any Lidarr target', async () => {
+    const app = createTestApp({ userId: 1, deps: targetDeps })
+    const res = await app.request('/api/v1/lidarr/approve-options?targetId=7')
+    expect(res.status).toBe(200)
+  })
+})
+
 describe('Lidarr onError sanitization', () => {
   beforeEach(() => vi.clearAllMocks())
 

@@ -146,6 +146,66 @@ function renderPage() {
   )
 }
 
+const baseSubscription: Subscription = {
+  id: 1,
+  name: 'Deezer favorites',
+  userId: 1,
+  enabled: true,
+  sourceType: 'deezer',
+  sourceProvider: 'deezer',
+  sourceConfig: { feedType: 'favorites' },
+  maxArtistsPerRun: 20,
+  listenerRange: null,
+  cron: '0 0 * * *',
+  action: 'recommend',
+  scoreThreshold: null,
+  scoringWeightPreset: null,
+  scoringWeightOverrides: null,
+  lastRunAt: null,
+  lastResultCount: null,
+  lastError: null,
+  createdAt: '2026-10-15T00:00:00.000Z',
+  updatedAt: '2026-10-15T00:00:00.000Z',
+}
+
+describe('SubscriptionsPage header controls (#993)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it.each([
+    [1, false],
+    [2, true],
+  ])('with %i subscription(s) Pause all is shown: %s', async (count, shown) => {
+    vi.mocked(getSubscriptions).mockResolvedValue(
+      Array.from({ length: count }, (_, i) => ({
+        ...baseSubscription,
+        id: i + 1,
+        name: `Sub ${i + 1}`,
+      })),
+    )
+    renderPage()
+
+    await screen.findByText('Sub 1')
+    expect(!!screen.queryByRole('button', { name: /pause all/i })).toBe(shown)
+    expect(screen.queryByRole('button', { name: 'Presets' })).toBeNull()
+  })
+
+  it('opens the presets panel from the New menu', async () => {
+    vi.mocked(getSubscriptions).mockResolvedValue([baseSubscription])
+    renderPage()
+
+    await screen.findByText(baseSubscription.name)
+    expect(screen.queryByTestId('subscription-presets')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'More ways to add a subscription' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: 'From a preset' }))
+
+    expect(await screen.findByTestId('subscription-presets')).toBeInTheDocument()
+    expect(screen.queryByRole('menu')).toBeNull()
+  })
+})
+
 describe('SubscriptionsPage discovery mode support', () => {
   beforeEach(() => {
     discoveryModeProps.length = 0

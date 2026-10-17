@@ -612,7 +612,7 @@ describe('DiscoverPage', () => {
     expect(await screen.findByRole('menuitem', { name: 'Refresh Data' })).toBeInTheDocument()
   })
 
-  it('reject button calls updateRecommendation', async () => {
+  it('reject opens the reason picker, and rejecting without a reason sends no reason', async () => {
     mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
     setupMockApi()
 
@@ -623,12 +623,53 @@ describe('DiscoverPage', () => {
     })
 
     // "Reject" exact text (not "Rejected" tab)
-    const rejectButton = screen.getByText('Reject')
-    fireEvent.click(rejectButton)
+    fireEvent.click(screen.getByText('Reject'))
+    expect(mockUpdateRecommendation).not.toHaveBeenCalled()
+
+    const dialog = await screen.findByRole('dialog', { name: /Why are you rejecting/ })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Reject without a reason' }))
 
     await waitFor(() => {
       expect(mockUpdateRecommendation).toHaveBeenCalledWith(1, { status: 'rejected' })
     })
+  })
+
+  it('the r shortcut opens the same picker and sends the chosen reason', async () => {
+    mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
+    setupMockApi()
+
+    renderWithQuery(<DiscoverPage />)
+    await screen.findByText('Test Artist')
+
+    fireEvent.keyDown(window, { key: 'j' })
+    fireEvent.keyDown(window, { key: 'r' })
+
+    const dialog = await screen.findByRole('dialog', { name: /Why are you rejecting/ })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Wrong genre or style for me' }))
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Reject' }))
+
+    await waitFor(() => {
+      expect(mockUpdateRecommendation).toHaveBeenCalledWith(1, {
+        status: 'rejected',
+        reason: 'wrong_style',
+      })
+    })
+  })
+
+  it('cancelling the picker leaves the recommendation untouched', async () => {
+    setupMockApi()
+
+    renderWithQuery(<DiscoverPage />)
+    await screen.findByText('Test Artist')
+
+    fireEvent.click(screen.getByText('Reject'))
+    const dialog = await screen.findByRole('dialog', { name: /Why are you rejecting/ })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: /Why are you rejecting/ })).toBeNull()
+    })
+    expect(mockUpdateRecommendation).not.toHaveBeenCalled()
   })
 
   it('keyboard approve sends a selected recommendation to a standalone slskd target', async () => {

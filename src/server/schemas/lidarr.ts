@@ -11,3 +11,7 @@ export const lidarrAddSchema = z
     rootFolderId: z.number().int().positive().optional(),
   })
   .strict()
+
+export const approveOptionsQuerySchema = z.object({
+  targetId: z.coerce.number().int().positive().optional(),
+})

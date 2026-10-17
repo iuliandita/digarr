@@ -88,6 +88,12 @@ import type {
   SubscriptionConfig,
 } from './core/subscriptions/types'
 import { createLidarrTarget } from './core/targets/lidarr'
+import {
+  linkLidarrTargetsToServerConnection,
+  resolveLidarrTargetConnection,
+  resolveLidarrTargetDefaults,
+  withResolvedLidarrConnection,
+} from './core/targets/lidarr-connection'
 import { createSavedPlaylistExportTarget } from './core/targets/saved-playlist-targets'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
@@ -470,7 +476,10 @@ async function updateSlskdRecommendationAction(
 }
 
 const slskdOrchestrator = createSlskdOrchestrator({
-  listTargets: () => getAllTargets(db),
+  listTargets: async () => {
+    const [rows, settings] = await Promise.all([getAllTargets(db), getSettings(db)])
+    return rows.map((row) => withResolvedLidarrConnection(row, settings))
+  },
   createSlskdClient: (url, apiKey, skipTlsVerify) => createSlskdClient(url, apiKey, skipTlsVerify),
   createLidarrClient: (url, apiKey, skipTlsVerify) =>
     createLidarrClient(url, apiKey, skipTlsVerify),
@@ -752,20 +761,20 @@ async function getEnabledTargetsForResolvedUser(
 ): Promise<import('./core/targets/types').DestinationTarget[]> {
   const rows = await getTargetsByUser(db, userId)
   const settings = await getSettings(db)
-  const prefs = (settings?.preferences ?? {}) as Record<string, unknown>
+  // Server-connection defaults: the owner's preferences, falling back to global.
+  const serverDefaults = mergePreferences(
+    await resolveUserPreferences(db, settings?.preferences ?? null, userId),
+  )
 
   const targets: import('./core/targets/types').DestinationTarget[] = []
   for (const row of rows) {
     if (!row.enabled) continue
     if (row.type === 'lidarr') {
+      const connection = resolveLidarrTargetConnection(row.config, settings)
       targets.push(
         createLidarrTarget(row.id, {
-          url: row.config.url as string,
-          apiKey: row.config.apiKey as string,
-          skipTlsVerify: (row.config.skipTlsVerify as boolean) ?? false,
-          qualityProfileId: Number(prefs.qualityProfileId ?? 1),
-          metadataProfileId: Number(prefs.metadataProfileId ?? 1),
-          rootFolderId: prefs.rootFolderId != null ? Number(prefs.rootFolderId) : undefined,
+          ...(connection ?? {}),
+          ...resolveLidarrTargetDefaults(row.config, serverDefaults),
         }),
       )
     }
@@ -1346,7 +1355,10 @@ const app = createApp({
       updateTarget(db, id, data),
     deleteTarget: (id: number) => deleteTarget(db, id),
   },
-  testTargetConnection,
+  testTargetConnection: async (type, config) => {
+    const resolved = withResolvedLidarrConnection({ type, config }, await getSettings(db))
+    return testTargetConnection(type, resolved.config)
+  },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),
@@ -1483,7 +1495,8 @@ const server = serve({ fetch: app.fetch, port })
       updateSettings: (partial) => updateSettings(db, partial),
     })
 
-    // Backfill: create Lidarr target for existing installations
+    // Backfill: create a Lidarr target for existing installations, then link
+    // copies of the server connection to it (#994).
     const settings = await getSettings(db)
     if (settings?.lidarrUrl && settings?.lidarrApiKey) {
       const existingTargets = await getTargetsByType(db, 'lidarr')
@@ -1494,15 +1507,18 @@ const server = serve({ fetch: app.fetch, port })
           await createTarget(db, {
             type: 'lidarr',
             name: 'Lidarr',
-            config: {
-              url: settings.lidarrUrl as string,
-              apiKey: settings.lidarrApiKey as string,
-              skipTlsVerify: (settings.skipTlsVerify as boolean) ?? false,
-            },
+            config: { useServerConnection: true },
             userId: admin.id,
           })
           console.log('[boot] Created Lidarr target from existing settings (migration backfill)')
         }
+      }
+      const linked = await linkLidarrTargetsToServerConnection(settings, {
+        listLidarrTargets: () => getTargetsByType(db, 'lidarr'),
+        updateTargetConfig: (id, config) => updateTarget(db, id, { config }),
+      })
+      if (linked.length > 0) {
+        console.log(`[boot] Linked ${linked.length} Lidarr target(s) to the server connection`)
       }
     }
 

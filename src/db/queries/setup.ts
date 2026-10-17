@@ -54,11 +54,8 @@ export async function completeSetupWithServices(
       await createTarget(tx, {
         type: 'lidarr',
         name: 'Lidarr',
-        config: {
-          url: config.lidarrUrl,
-          apiKey: config.lidarrApiKey,
-          skipTlsVerify: config.skipTlsVerify ?? false,
-        },
+        // References the server connection saved by completeSetup below.
+        config: { useServerConnection: true },
         userId: services.userId,
       })
     }

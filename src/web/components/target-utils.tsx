@@ -56,6 +56,21 @@ export function resolveApprovalTargetOptions(
   return { approvalMode: 'single_target' }
 }
 
+// The Lidarr target an approve dialog loads its options from: the chosen
+// target, or the caller's first enabled Lidarr target when approving to all.
+export function resolveDialogLidarrTarget<
+  T extends { id: number; type: string; enabled?: boolean; owned?: boolean },
+>(targets: T[], targetId?: string): T | undefined {
+  const lidarrTargets = targets.filter(
+    (item) =>
+      item.type === 'lidarr' &&
+      (item.enabled === undefined || item.enabled) &&
+      (item.owned === undefined || item.owned),
+  )
+  if (targetId) return lidarrTargets.find((item) => `${item.type}-${item.id}` === targetId)
+  return lidarrTargets[0]
+}
+
 import type { MessageKey } from '@/core/i18n/messages/types'
 
 export function targetActionLabel(

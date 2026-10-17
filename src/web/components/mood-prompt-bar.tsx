@@ -1,5 +1,7 @@
-import { type FormEvent, useState } from 'react'
+import { Sparkles } from 'lucide-react'
+import { type FocusEvent, type FormEvent, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { shouldIgnoreShortcut } from '../hooks/use-keyboard-shortcuts'
 import { moodDiscover, quickDiscover } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
@@ -21,6 +23,38 @@ export function MoodPromptBar({
   }> | null>(null)
   const [loading, setLoading] = useState(false)
   const [queued, setQueued] = useState<Set<string>>(new Set())
+  const [expanded, setExpanded] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const focusOnOpen = useRef(false)
+  const visible = expanded || query !== '' || results !== null || loading
+
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== '/' || shouldIgnoreShortcut(e)) return
+      e.preventDefault()
+      focusOnOpen.current = true
+      setExpanded(true)
+      inputRef.current?.focus()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  useEffect(() => {
+    if (visible && focusOnOpen.current) {
+      focusOnOpen.current = false
+      inputRef.current?.focus()
+    }
+  }, [visible])
+
+  function handleBlur(e: FocusEvent<HTMLFormElement>) {
+    if (!e.currentTarget.contains(e.relatedTarget)) setExpanded(false)
+  }
+
+  function expand() {
+    focusOnOpen.current = true
+    setExpanded(true)
+  }
 
   async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -56,10 +90,27 @@ export function MoodPromptBar({
     }
   }
 
+  if (!visible) {
+    return (
+      <div className="mb-4">
+        <button
+          type="button"
+          onClick={expand}
+          aria-keyshortcuts="/"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded hover:text-text hover:border-accent/40 transition-colors focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-2"
+        >
+          <Sparkles size={14} aria-hidden="true" />
+          {t('discover.moodOpen')}
+        </button>
+      </div>
+    )
+  }
+
   return (
     <div className="mb-4">
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form onSubmit={handleSubmit} onBlur={handleBlur} className="flex gap-2">
         <input
+          ref={inputRef}
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}

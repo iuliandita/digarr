@@ -14,6 +14,7 @@ const SHORTCUTS: { key: string; labelKey: MessageKey }[] = [
   { key: 'a', labelKey: 'keyboardShortcuts.approveFocusedCard' },
   { key: 'r', labelKey: 'keyboardShortcuts.rejectFocusedCard' },
   { key: 'd', labelKey: 'keyboardShortcuts.toggleDetailView' },
+  { key: '/', labelKey: 'keyboardShortcuts.focusMoodSearch' },
   { key: '?', labelKey: 'keyboardShortcuts.toggleShortcuts' },
   { key: '\u2190', labelKey: 'keyboardShortcuts.rejectCardStack' },
   { key: '\u2192', labelKey: 'keyboardShortcuts.approveCardStack' },

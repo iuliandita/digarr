@@ -54,6 +54,7 @@ test('promotes users, assigns a target, and deletes a user with recommendations'
     .getByRole('combobox', { name: 'Assigned user', exact: true })
     .selectOption(String(user.id))
   await page.getByLabel('Name', { exact: true }).fill('Listener destination')
+  await page.getByLabel('Use a different Lidarr instance', { exact: true }).check()
   await page.getByLabel('URL', { exact: true }).fill('http://lidarr:8686')
   await page.getByLabel('API Key', { exact: true }).fill('test-target-key')
   await page.getByRole('button', { name: 'Add Target', exact: true }).click()
