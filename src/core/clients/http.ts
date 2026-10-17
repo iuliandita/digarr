@@ -1,4 +1,4 @@
-import { type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
+import { BlockedTargetError, type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set([
@@ -105,7 +105,8 @@ export function createHttpClient(config: HttpClientConfig) {
           (res.status === 429 ? parseRetryAfterMs(res.headers.get('retry-after')) : null) ??
           backoffMs(attempt)
       } catch (err: unknown) {
-        if (err instanceof HttpError) throw err
+        // A blocked target fails the same way on every attempt.
+        if (err instanceof HttpError || err instanceof BlockedTargetError) throw err
         if (attempt >= maxRetries) {
           // A bare AbortError reads as "This operation was aborted", which tells
           // the user nothing about which budget they blew or that it is tunable.
