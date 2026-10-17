@@ -851,6 +851,52 @@ describe('POST /api/v1/subscriptions/import/csv', () => {
     expect(res.status).toBe(413)
   })
 
+  it('imports an M3U playlist and reports unreadable entries', async () => {
+    mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
+    const app = createTestApp(makeDeps(), USER_ID)
+
+    const formData = new FormData()
+    formData.append(
+      'file',
+      new Blob(['#EXTM3U\n#EXTINF:1,Radiohead - Karma Police\na.mp3\nmystery.mp3\n'], {
+        type: 'audio/x-mpegurl',
+      }),
+      'mix.m3u8',
+    )
+
+    const res = await app.request('/api/v1/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+
+    expect(res.status).toBe(202)
+    const body = await res.json()
+    expect(body.artistCount).toBe(1)
+    expect(body.unreadable).toBe(1)
+    expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
+      expect.objectContaining({ sourceConfig: { artists: ['Radiohead'] } }),
+    )
+  })
+
+  it('returns 400 for a malformed XSPF file', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const formData = new FormData()
+    formData.append(
+      'file',
+      new Blob(['<playlist><trackList><track><creator>X</creator></trackList>'], {
+        type: 'application/xspf+xml',
+      }),
+      'broken.xspf',
+    )
+
+    const res = await app.request('/api/v1/subscriptions/import/csv', {
+      method: 'POST',
+      body: formData,
+    })
+    expect(res.status).toBe(400)
+    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
+  })
+
   it('returns 401 when not authenticated', async () => {
     const app = createTestApp(makeDeps(), undefined)
     const formData = new FormData()

@@ -14,6 +14,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
 - Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).
 
+- Import artists from M3U, M3U8 and XSPF playlist files in the same import section as CSV. Artists come from `#EXTINF` lines and XSPF `creator` tags. A path-only M3U entry counts only when it reads `Artist/Album/NN - Title` or a flat `Artist - Title`; anything else is skipped and reported as "N entries couldn't be read" after the import instead of guessed. Duplicates are merged, and the existing 1 MB and 500-artist limits apply (#981).
+
 ### Changed
 - Combine Library Health and Reconciliation into one Library page with tabs, and Jobs and System Health into one System settings tab. Old links still open the matching tab or section; Tools keeps one Job History shortcut. (#984)
 
