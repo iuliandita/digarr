@@ -232,7 +232,7 @@
         "src/server/helpers/oidc-transaction-cookie.ts": "190d3b607282965f4c5cf4aa69fa7eeda5ec791aa353b16722e4a193f98912ff",
         "src/server/helpers/session-auth.ts": "d7ce109a9f7d7bcd610a21395d06faaae4f7686ed44c7f34fcc4cf6101e0e56a",
         "src/server/middleware/admin-guard.ts": "eb66a95d878c1ddf8757391452d578fb5cd3ecaa4c163ab35807b5569fc46264",
-        "src/server/middleware/auth.ts": "7e6f34be5b5faf14455fbf43916423b21daab0fd98ef02327c5acfaa14a78428",
+        "src/server/middleware/auth.ts": "f1edfea36bd252184991d919a1ee16afacc2254477c8568ad5275544e79c826b",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
@@ -244,7 +244,7 @@
         "src/server/routes/auth.ts": "8b77434dc331a5afcbdf6aef0223a68c28bca8bb03378970acbc8cefd0b0a3e6",
         "src/server/routes/oauth-callbacks.ts": "9afe6d6d34017118f84c679dfa82e2ce2ad529bd04a17833ab01aa0ba83ba4e9",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
-        "src/server/routes/oauth.ts": "9d565699893e1d43c1b8e501eba1d37c69cbb5436e0705f34ee5184d96f63c30",
+        "src/server/routes/oauth.ts": "bb6b0c70a3360a9fdfc29758ef16d058290c9256a5613eda64591ac870252d4b",
         "src/server/routes/oidc.ts": "94e28540a2bbfa25f737983726e5b00fc5a617eb7cddba3f8aa293bac308ab91",
         "src/server/routes/setup.ts": "485b8a7f6ec27c0625aa35ab988872372e8f5cc7ca086bd37aa75323d71aaf01",
         "src/server/routes/users.ts": "98214102160a89d912d47fcfd97959028e6885f5c534c07e0e5995f27c1dad15",
@@ -254,14 +254,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "0335cab3ce99f1660b65ca965780a9bd7c0870cb5849d159edb11a8f6cafc0d9",
+      "digest": "45c0c0d053fe6b8ceff9f9f5607b85b26ce2debcb2ee03f7f2cfd972155fd327",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Document encrypted Last.fm sessions, signed token exchange, single-use browser-bound callback checks, reconnect and explicit opt-in after authorization. Re-reviewed after integrating personal API tokens and collapsed notification settings; preserve their existing permissions, controls and documentation.",
+        "note": "Document the Last.fm state path callback and token query, preserving the transaction cookie prefix, single-use consumption, expiry and browser binding. No storage or deployment configuration changes; optional Unraid settings remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "0335cab3ce99f1660b65ca965780a9bd7c0870cb5849d159edb11a8f6cafc0d9"
+        "digest": "45c0c0d053fe6b8ceff9f9f5607b85b26ce2debcb2ee03f7f2cfd972155fd327"
       }
     },
     "api": {
@@ -296,7 +296,7 @@
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "6516a6d9957239d66b3f09d59cca516c981560218d2189de0c22a7212c7dcb9c",
         "src/server/routes/playlists.ts": "41dbdf57228c4bab8f12423511e39f031efb613896cd8adab3bcfec0ed09b423",
-        "src/server/routes/recommendations.ts": "fcf8965ff29c67f9d7a2ce1a085b476b6bf28e519aea5d68eef80b15807c829d",
+        "src/server/routes/recommendations.ts": "30e891da404d3de115c0f4211fb33f1d3ad63d0497e280ca5a794c0d23e30c09",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9c39ac07236f49373e420ca3da1a8b206f377ec29a6c835ba682ac2e0dabb5ec",
+      "digest": "1b64df039413d79bd2597368238a0a99b9c3fddf9fa98ef752e0d486bbbc0588",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Document caller-scoped delivery status, independent false-default preference flags, exact preview and owned Audition approval context, and pending recommendation projection. Re-reviewed after integrating personal API tokens and collapsed notification settings; preserve their existing permissions, controls and documentation.",
+        "note": "Document manual-only ListenBrainz playlist sending and the Last.fm state path. Stale, ambiguous or failed Audition lookups skip feedback while local approval proceeds; request and ownership validation remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "9c39ac07236f49373e420ca3da1a8b206f377ec29a6c835ba682ac2e0dabb5ec"
+        "digest": "1b64df039413d79bd2597368238a0a99b9c3fddf9fa98ef752e0d486bbbc0588"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "5e410183e0add7b1007b62bee7702bfc91b96deaee669304da2c938d99a376da",
-        "src/core/i18n/messages/en.ts": "cdfd542860e1d10239b64ec1fbb22de366391015dc7064e3a2bfa5a0e4e809f2",
-        "src/core/i18n/messages/es.ts": "dda66224282d92015f4450e41217a33269a20f360538fb7b80cc7a68e40d7921",
-        "src/core/i18n/messages/fr.ts": "50e13a0323b0e0975bce54c7ca9c9a437358420579847d0885f0366dc88b16c4",
+        "src/core/i18n/messages/de.ts": "38d0938a93e62b58d3fd677cb369fc090b52264790cbba4cfd4bdff44e4ec1eb",
+        "src/core/i18n/messages/en.ts": "fad4b7baabea277e69376c9326e1a80432be71d8120a617dae485a3ca5663ff6",
+        "src/core/i18n/messages/es.ts": "c8b8511962c20df817fb5cb34b6d2569566ad1613f9115b664f8b1c48004331d",
+        "src/core/i18n/messages/fr.ts": "d84e27954ad4a46378091ef7e2e9392714598fa63c073e0dd5ab86a987c64e87",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "fc5bbf3f8aa8ac06aef60b9bd4fde11519fc5cd17b539143dfbdd63e2b4d2988",
-        "src/core/i18n/messages/ja.ts": "be47d6dc22a3f7d24640bfd5b99bfa1c5f6793b88d96495c57df1ebcf2509a92",
-        "src/core/i18n/messages/ko.ts": "dd596d9f5c41220a88df6ba12584e97e23f316b981ceb7a60dd6622a99657915",
-        "src/core/i18n/messages/nl.ts": "00d4544570628cd05ea9e8a734042ddac95db4589cc769b9a35ca951710ce4f8",
-        "src/core/i18n/messages/pl.ts": "3af0738fcf7f32a2adc8f1024167a54d5664891400eeba9a7e7e65e48503bc86",
-        "src/core/i18n/messages/pt-BR.ts": "07a7ddf2807c7f4d538b58eccb5a61fa1ef57981bae5511de5425ad8d05315c8",
-        "src/core/i18n/messages/ro.ts": "582cfb666f91135a2f7f29d0d7659239b516d03f9bdb61dc110f274f6a78401d",
-        "src/core/i18n/messages/ru.ts": "0d85661b067e698872cb5972aa6b0495c6834ba46d5b76025bfcca8a9edeca05",
-        "src/core/i18n/messages/source-lock.json": "dcce3c0953262fac651f6bc3cc97976e958b6873fcfec54ae88a5f0262243fe8",
-        "src/core/i18n/messages/tr.ts": "10c655a7f3e721081602c824b3a8ae4caf14212eab38d696b2a5e874881100ad",
+        "src/core/i18n/messages/it.ts": "6bed6f63666676d3ac8884903cad9582e1a915a4f461444d1796b1e148f00ee7",
+        "src/core/i18n/messages/ja.ts": "1e13aaa5f743ac457fb0ff65779cd11eae45aaef44dea4a51f8c9efc17bc085e",
+        "src/core/i18n/messages/ko.ts": "e4880cbb4b89437388d8b07ad22eb3eb3c7809424820fd3f558fc99348541e4b",
+        "src/core/i18n/messages/nl.ts": "79ea37451e3ef6936c0ad188b5037dc0b4453f87555f5f0280de2b39b556b933",
+        "src/core/i18n/messages/pl.ts": "aefdcfc7a5a483665f93816b3f57d1961a6b1295ed2fd4ae143943c5acf77db6",
+        "src/core/i18n/messages/pt-BR.ts": "dff4c6b1f68da6f340ceda33a156108315543759a12d0088e024fee948f730c8",
+        "src/core/i18n/messages/ro.ts": "f705a3f4b587f3bdcf30c82229a80039c7bcf9f3018b90dd3648756f30e47c9d",
+        "src/core/i18n/messages/ru.ts": "e0e97e351b6bc03c629d09793ff0f2ff9183467290e74f318d474bca33fe5389",
+        "src/core/i18n/messages/source-lock.json": "39bf294ce72212147669d5fa57b6a853c2f23fb7f34085f58739c3f8d16d9508",
+        "src/core/i18n/messages/tr.ts": "61ba8962bc8d44d6f2843eb1908c9fb9a7422ff6daffaa1b0ed13e8801491733",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "b81d6d8192f53b5d6e6da0ce22381ab963a99cdb28891c623965a7f1799ad853",
-        "src/core/i18n/messages/zh-CN.ts": "0919d6d8f42323f7badcfe87db824ab3dcf0ea3e014387f321300eaacb5ed7f1",
+        "src/core/i18n/messages/uk.ts": "85fd156edf02cff1c310bc0434f5403f8bcffee7c3c3b858e4a5b4fa79389eab",
+        "src/core/i18n/messages/zh-CN.ts": "d64f89173479f156b74519cf2251976ab2d6b3e5f46458c570e1bac5a28f6541",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -390,7 +390,7 @@
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
         "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "c3f34472f9a9600d6e747540eff22e66a1b18cba8e46c302fe8ff5692427c932",
-        "src/web/components/job-run-row.tsx": "aa6bcc681ebd820e643a693b7525e2326ec15303cad3e3f95ec7c628237aad51",
+        "src/web/components/job-run-row.tsx": "41a6151ea9d835c0ef4447ddebe1e7448bfa4291428b9ad55289b49ff6714a46",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
         "src/web/components/language-switcher.tsx": "69cc47bddb3c4736245b7632fba1f4d5ebe506f8214066f9cab6ed65746497ee",
         "src/web/components/library-album-coverage-badge.tsx": "3820031a5bec8bf740297694680b5930fb1efe4009f4782bf57221e7c3ecf550",
@@ -405,7 +405,7 @@
         "src/web/components/lidarr-tags.tsx": "4b244d11d1b6bdb1cf8fed2e7f015bfc9bdbeb4ac9687b4a6c4c203ce47d3a2c",
         "src/web/components/monitoring-options.tsx": "e7b92559caa013ff83c07bf5cd0576f9cafecb512b5f0efef406ee86b418f148",
         "src/web/components/mood-prompt-bar.tsx": "2ee5b1c43f76e6c14ab12ad72d753af7ef5f0f264a91401373d8a5ddda50d766",
-        "src/web/components/oauth-callback-notice.tsx": "bd755dcdc98b71ed998ce640611b5469dc1e35bcd0553398fef7ce963a640689",
+        "src/web/components/oauth-callback-notice.tsx": "0672ae55a10cce7adf2eeaeff1cc14f716fedde97b69a74293d7f1522e5181de",
         "src/web/components/pipeline-progress.tsx": "43b74abf15dedf27c2a592d988ff6251771733c2c30b04a16e2e6a1b0663d657",
         "src/web/components/playlist-card.tsx": "8a7ae5d06b8e2a0c70f5e0137eaba4c16502cb0c7f0f2e2b6f4c289ce0e51374",
         "src/web/components/playlist-form.tsx": "f0404a9943a12c38ecd306fc8a2818657fa50b32c70b00b5eb78b638de2e77f9",
@@ -444,7 +444,7 @@
         "src/web/hooks/use-keyboard-shortcuts.ts": "e0d1a28edbf39031ef10dac64fe960b720884eb35954536771926ad162082f40",
         "src/web/hooks/use-menu.ts": "e8bdda8e9e25ab8d124f2da354460abdb78915476d1af0efecc1d84a615bfb44",
         "src/web/hooks/use-popular-albums-availability.ts": "bf13931fa629db7626129492b1ca2c1bde2b9494cf5a9b857b953e9aefdb08af",
-        "src/web/hooks/use-preview.ts": "a94822bca4afdf7efb6d3725459e8eee31e9114c434b3c7eff94fe7be15683f4",
+        "src/web/hooks/use-preview.ts": "c2f16860c6d99b6b6eba1e5af73f9bc8930b58acdd08dead9c77905af602166f",
         "src/web/hooks/use-pull-to-refresh.ts": "3f2712e5eeedb351704404d837f6b82290fd4414de60274d3c70988253004a76",
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
@@ -502,14 +502,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "49c3bb8da15ad90c3b210cdf9f8927c34a4c9cf34e5d00725eef33f2d3422537",
+      "digest": "8f9c6faa171433d8f76be9590188ce20589b8b006d5c1746d0735952e20680ff",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "CHANGELOG.md"],
-        "note": "Document Account opt-ins, exact-track limitations, remote data retained after disabling, private MBID-only playlists and Last.fm reconnect. New controls follow existing Account layout; existing overview screenshots remain illustrative. Re-reviewed after integrating personal API tokens and collapsed notification settings; preserve their existing permissions, controls and documentation.",
+        "note": "Document manual-only playlist sending, restored single-request Deezer playback with exact-match feedback metadata, translated OAuth errors and service-named write-back jobs. Reviewed help and messages in all 15 locales; no layout or screenshot changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "49c3bb8da15ad90c3b210cdf9f8927c34a4c9cf34e5d00725eef33f2d3422537"
+        "digest": "8f9c6faa171433d8f76be9590188ce20589b8b006d5c1746d0735952e20680ff"
       }
     },
     "features": {
@@ -657,7 +657,7 @@
         "src/core/providers/types.ts": "69f1fdaff1779753354c24d463b9b95dd4d662722a8d289f9c9a5c5bb4c56ecc",
         "src/core/recommendations/rejection-reasons.ts": "5a0b2c5d55de9d4714c3df7d5429a48678e7b52aa73c19eb7c34ebf962f7bcf4",
         "src/core/recommendations/statuses.ts": "48cbcfd6da3f6bcf385d6223e7272a29dedc2a6a8f28773ed8db30d7cfa75d10",
-        "src/core/scrobbler-write-back.ts": "4006649626ff565a2c90b771001d4c2ef9cf8025871da09e2e91d3f17005c659",
+        "src/core/scrobbler-write-back.ts": "23f0bcdd53b4e7d93a698b6764bdb9420355cb112b76690311381262b83334e5",
         "src/core/search/catalog.ts": "ee498df214395f2ab06dde163501b63a68b61495ff470a4315706a2d7281eafd",
         "src/core/search/enrich.ts": "f9338f83f54adffc5557e715b10b977e1b203f1a222ba788611789a27eee37ab",
         "src/core/search/multi-source.ts": "177cf49dba0be2c7a43118d03e97299186ac36df6d29d93dad683dc8a5d0fb6c",
@@ -713,17 +713,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "83a6b78d15dff193cac574e69aaece82c30ba1e9e62bb92e5f7ca2011d1f1def",
+        "src/index.ts": "a4e83699bdbf5495b6a592899e8992b0c1a01f8baa83dce9630bac80b63c24bb",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "5a0382dc80e3226b32481bd0de61171d8f3bd98a9f73e50c8e16f97e6b26c175",
+      "digest": "f7cf572b6e8d7363095d446ffb4ae746fd571f85f0f23f92d9416c0c6578cfbe",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Document opt-in loves and private generated playlists, no artist-to-track guessing, isolated background delivery, caller-visible delivery failures and local-only rejections and blocks. Re-reviewed after integrating personal API tokens and collapsed notification settings; preserve their existing permissions, controls and documentation.",
+        "note": "Manual and scheduled playlist generation now carry an explicit trigger; scheduled runs cannot create ListenBrainz playlists even with consent enabled. Existing track loves, opt-in defaults and local playlist generation remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "5a0382dc80e3226b32481bd0de61171d8f3bd98a9f73e50c8e16f97e6b26c175"
+        "digest": "f7cf572b6e8d7363095d446ffb4ae746fd571f85f0f23f92d9416c0c6578cfbe"
       }
     },
     "deployment": {
