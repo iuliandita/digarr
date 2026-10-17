@@ -699,6 +699,7 @@ export const es = {
   'analytics.noDiscoveryBatches':
     'Aún no hay lotes de descubrimiento. Ejecuta un escaneo para ver tu historial aquí.',
   'analytics.batchHistory': 'Historial de lotes',
+  'analytics.pageRange': '{start}-{end} de {total}',
   'analytics.scoreDistribution': 'Distribución de puntuación',
   'analytics.noScoreData': 'Aún no hay datos de puntuación',
   'analytics.approvalRateTrend': 'Tendencia de la tasa de aprobación',

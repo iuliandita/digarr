@@ -697,6 +697,7 @@ export const nl = {
   'analytics.noDiscoveryBatches':
     'Nog geen ontdekkingsbatches. Voer hier een scan uit om je geschiedenis te bekijken.',
   'analytics.batchHistory': 'Batchgeschiedenis',
+  'analytics.pageRange': '{start}-{end} van {total}',
   'analytics.scoreDistribution': 'Scoreverdeling',
   'analytics.noScoreData': 'Nog geen scoregegevens',
   'analytics.approvalRateTrend': 'Trend goedkeuringspercentage',

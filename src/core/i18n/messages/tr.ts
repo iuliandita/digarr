@@ -687,6 +687,7 @@ export const tr = {
   'analytics.noDiscoveryBatches':
     'Henüz keşif grubu yok. Geçmişini burada görmek için bir tarama yap.',
   'analytics.batchHistory': 'Grup Geçmişi',
+  'analytics.pageRange': '{total} içinden {start}-{end}',
   'analytics.scoreDistribution': 'Puan Dağılımı',
   'analytics.noScoreData': 'Henüz puan verisi yok',
   'analytics.approvalRateTrend': 'Onay Oranı Trendi',

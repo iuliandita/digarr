@@ -701,6 +701,7 @@ export const it = {
   'analytics.noDiscoveryBatches':
     'Nessun batch di rilevamento ancora. Esegui una scansione per vedere la tua cronologia qui.',
   'analytics.batchHistory': 'Cronologia dei lotti',
+  'analytics.pageRange': '{start}-{end} di {total}',
   'analytics.scoreDistribution': 'Distribuzione del punteggio',
   'analytics.noScoreData': 'Nessun dato sul punteggio ancora',
   'analytics.approvalRateTrend': 'Andamento del tasso di approvazione',

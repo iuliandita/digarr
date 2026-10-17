@@ -697,6 +697,7 @@ export const pl = {
   'analytics.noDiscoveryBatches':
     'Nie ma jeszcze partii odkrywczych. Uruchom skanowanie, aby zobaczyć tutaj swoją historię.',
   'analytics.batchHistory': 'Historia partii',
+  'analytics.pageRange': '{start}-{end} z {total}',
   'analytics.scoreDistribution': 'Dystrybucja punktacji',
   'analytics.noScoreData': 'Nie ma jeszcze danych o wynikach',
   'analytics.approvalRateTrend': 'Trend współczynnika akceptacji',

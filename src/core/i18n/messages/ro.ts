@@ -697,6 +697,7 @@ export const ro = {
   'analytics.noDiscoveryBatches':
     'Încă nu există loturi de descoperire. Rulează o scanare pentru a vedea istoricul tău aici.',
   'analytics.batchHistory': 'Istoricul lotului',
+  'analytics.pageRange': '{start}-{end} din {total}',
   'analytics.scoreDistribution': 'Distribuția scorului',
   'analytics.noScoreData': 'Nu există date despre scor încă',
   'analytics.approvalRateTrend': 'Tendința ratei de aprobare',

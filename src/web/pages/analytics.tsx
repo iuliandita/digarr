@@ -124,8 +124,10 @@ function BatchHistoryTable({
       {totalPages > 1 && (
         <div className="flex items-center justify-between text-xs text-muted">
           <span>
-            {page * PAGE_SIZE + 1}--{Math.min((page + 1) * PAGE_SIZE, batches.length)} of{' '}
-            {batches.length}
+            {t('analytics.pageRange')
+              .replace('{start}', String(page * PAGE_SIZE + 1))
+              .replace('{end}', String(Math.min((page + 1) * PAGE_SIZE, batches.length)))
+              .replace('{total}', String(batches.length))}
           </span>
           <div className="flex gap-2">
             <button

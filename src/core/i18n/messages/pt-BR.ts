@@ -699,6 +699,7 @@ export const ptBR = {
   'analytics.noDiscoveryBatches':
     'Nenhum lote de descoberta ainda. Execute uma varredura para ver seu histórico aqui.',
   'analytics.batchHistory': 'Histórico do lote',
+  'analytics.pageRange': '{start}-{end} de {total}',
   'analytics.scoreDistribution': 'Distribuição de pontuação',
   'analytics.noScoreData': 'Ainda não há dados de pontuação',
   'analytics.approvalRateTrend': 'Tendência da taxa de aprovação',

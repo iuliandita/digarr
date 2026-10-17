@@ -685,6 +685,7 @@ export const ko = {
   'analytics.noDiscoveryBatches':
     '아직 검색 배치가 없습니다. 여기에서 기록을 보려면 스캔을 실행하세요.',
   'analytics.batchHistory': '배치 기록',
+  'analytics.pageRange': '{total}개 중 {start}-{end}',
   'analytics.scoreDistribution': '점수 분포',
   'analytics.noScoreData': '아직 점수 데이터가 없습니다.',
   'analytics.approvalRateTrend': '승인률 추세',

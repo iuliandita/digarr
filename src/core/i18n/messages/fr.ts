@@ -697,6 +697,7 @@ export const fr = {
   'analytics.noDiscoveryBatches':
     "Aucun lot de découverte pour le moment. Lance un scan pour voir l'historique ici.",
   'analytics.batchHistory': 'Historique des lots',
+  'analytics.pageRange': '{start}-{end} sur {total}',
   'analytics.scoreDistribution': 'Distribution des scores',
   'analytics.noScoreData': 'Pas encore de données de score',
   'analytics.approvalRateTrend': "Évolution du taux d'approbation",

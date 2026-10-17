@@ -691,6 +691,7 @@ export const ja = {
   'analytics.noDiscoveryBatches':
     '検出バッチはまだありません。スキャンを実行すると、ここで履歴が表示されます。',
   'analytics.batchHistory': 'バッチ履歴',
+  'analytics.pageRange': '{total} 件中 {start}-{end}',
   'analytics.scoreDistribution': 'スコア分布',
   'analytics.noScoreData': 'まだスコアデータがありません',
   'analytics.approvalRateTrend': '承認率の推移',

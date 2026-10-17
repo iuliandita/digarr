@@ -697,6 +697,7 @@ export const ru = {
   'analytics.noDiscoveryBatches':
     'Пакетов открытия пока нет. Запусти сканирование, чтобы увидеть свою историю здесь.',
   'analytics.batchHistory': 'История пакетов',
+  'analytics.pageRange': '{start}-{end} из {total}',
   'analytics.scoreDistribution': 'Распределение очков',
   'analytics.noScoreData': 'Данных о результатах пока нет',
   'analytics.approvalRateTrend': 'Тенденция уровня одобрения',

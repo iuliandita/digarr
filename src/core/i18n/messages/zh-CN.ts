@@ -649,6 +649,7 @@ export const zhCN = {
   'analytics.recommendationsPerBatch': '每批次的建议（绿色 = 已批准）',
   'analytics.noDiscoveryBatches': '尚未发现批次。运行扫描以在此处查看您的历史记录。',
   'analytics.batchHistory': '批次历史记录',
+  'analytics.pageRange': '第 {start}-{end} 条，共 {total} 条',
   'analytics.scoreDistribution': '分数分布',
   'analytics.noScoreData': '还没有分数数据',
   'analytics.approvalRateTrend': '通过率趋势',

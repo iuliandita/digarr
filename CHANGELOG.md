@@ -30,6 +30,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The analytics batch history pager shows a translated range with a plain hyphen ("1-10 of 25") instead of hard-coded English with a double hyphen (#950).
 - Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
 - The Spotify embed on recommendation cards no longer loads on page render (about 50 third-party requests, telemetry included). A local "Load Spotify player" button stands in, and nothing is requested from Spotify until you click it (#934).
 - Outbound requests to public services, notification channels, the OIDC issuer and the Bandcamp scraper now share one SSRF guard instead of three drifted copies. The Bandcamp scraper now pins the resolved IP like the others, and guarded requests that follow redirects re-check each hop instead of letting fetch follow them unchecked (#937).

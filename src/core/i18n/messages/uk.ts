@@ -694,6 +694,7 @@ export const uk = {
   'analytics.noDiscoveryBatches':
     'Партій відкриття ще немає. Запусти сканування, щоб переглянути свою історію тут.',
   'analytics.batchHistory': 'Історія партій',
+  'analytics.pageRange': '{start}-{end} з {total}',
   'analytics.scoreDistribution': 'Розподіл балів',
   'analytics.noScoreData': 'Даних про оцінки ще немає',
   'analytics.approvalRateTrend': 'Тенденція рівня схвалення',

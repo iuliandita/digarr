@@ -683,6 +683,7 @@ export const en = {
   'analytics.recommendationsPerBatch': 'Recommendations per batch (green = approved)',
   'analytics.noDiscoveryBatches': 'No discovery batches yet. Run a scan to see your history here.',
   'analytics.batchHistory': 'Batch History',
+  'analytics.pageRange': '{start}-{end} of {total}',
   'analytics.scoreDistribution': 'Score Distribution',
   'analytics.noScoreData': 'No score data yet',
   'analytics.approvalRateTrend': 'Approval Rate Trend',

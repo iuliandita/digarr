@@ -704,6 +704,7 @@ export const de = {
   'analytics.noDiscoveryBatches':
     'Noch keine Discovery-Batches. Führe hier einen Scan durch, um deinen Verlauf anzuzeigen.',
   'analytics.batchHistory': 'Chargenhistorie',
+  'analytics.pageRange': '{start}-{end} von {total}',
   'analytics.scoreDistribution': 'Punkteverteilung',
   'analytics.noScoreData': 'Noch keine Punktedaten',
   'analytics.approvalRateTrend': 'Trend der Zustimmungsrate',
