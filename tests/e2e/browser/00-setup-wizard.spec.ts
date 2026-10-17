@@ -16,6 +16,9 @@ test.describe('Setup Wizard', () => {
     await expect(lidarrButton).toBeVisible({ timeout: 10_000 })
 
     await discoverButton.click()
-    await expect(page.getByText(/AI Provider/i)).toBeVisible({ timeout: 10_000 })
+    await expect(page.getByRole('heading', { name: 'AI Provider' })).toBeVisible({
+      timeout: 10_000,
+    })
+    await expect(page.getByRole('button', { name: 'Skip for now' })).toBeEnabled()
   })
 })
