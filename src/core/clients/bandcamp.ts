@@ -202,7 +202,7 @@ function parseSearchResults(html: string, limit: number): BandcampSearchResult[]
 }
 
 export function createBandcampClient(config?: { baseUrl?: string }) {
-  const baseUrl = config?.baseUrl ?? DEFAULT_BASE_URL
+  const baseUrl = (config?.baseUrl ?? DEFAULT_BASE_URL).replace(/\/+$/, '')
 
   // 1 request per 2 seconds - Bandcamp will throttle/block higher rates
   const queue = new PQueue({ concurrency: 1, interval: 2000, intervalCap: 1 })

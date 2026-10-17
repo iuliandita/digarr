@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -191,7 +194,11 @@
       "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "docs": [
+          "CHANGELOG.md",
+          "docs/OPERATIONS.md",
+          "docs/guides/switching-backends.md"
+        ],
         "note": "Migration 0056 adds nullable album_blocks.album_title (IF NOT EXISTS); permanent album rejects store the recommendation's release-group title; full backups carry the column through the generic table restore, older backups restore it as null. rejectRecommendation now reports whether it created the block (query-only). Applied 0056 twice against an isolated test database and ran a DB-gated test for title storage and blockCreated. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. Also: Query-only changes, no schema migration: user deletion now also deletes that user's job_runs in the same transaction (documented in AUTHENTICATION.md); recommendation dedup queries release rejections past the cooldown; pending slskd jobs list oldest first. Backup, restore, and backend migration formats are unchanged. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. A permanent reject of an already blocked artist keeps the existing block untouched.",
         "breaking": "none",
         "migration": "Additive nullable column, safe to re-run. The automatic pre-migration backup covers it. Older images ignore the column, so an image rollback needs no restore; restore the pre-migration backup with the previous image only for an exact pre-upgrade database. Live upgrade from a production database was not tested.",
@@ -201,16 +208,16 @@
     "configuration": {
       "files": {
         ".env.example": "1c09ac93ed8316010e9cc6d7e970872ce291f806b9ef44a699c2b3a05c32f6d7",
-        "src/config/env.ts": "c486a63cab825c26015784e85e8f3597c11fb453bfffd4d4f05bc6a227a6b41b"
+        "src/config/env.ts": "3dadc29d08100ca9d589a8bc132ace3d636b556376ca5a7f2385d483c4a9d6bd"
       },
-      "digest": "12d6f47abd8dcc9e1196cd2db2ec6ff1dc148673e5e3d41606a0c0cd3831e84a",
+      "digest": "1762c42762e59fea474e38d72e40a8f6e1698d1351f2a524258ce47653219505",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Boolean env vars accept true/false/1/0 in any case and stop startup on other values; documented in a new Operations section with the upgrade check. Also corrected the .env.example pool-size example to the real default of 20 and documented DB_PORT, DB_POOL_MAX and DB_CONNECT_TIMEOUT_MS defaults.",
-        "breaking": "Deployments that set a boolean env var to a value other than true, false, 1 or 0 (case-insensitive) now fail to start instead of reading it as false.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "IPv6 DB_HOST is now bracketed in the built connection URL; documented DB_HOST semantics and all other settings unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "12d6f47abd8dcc9e1196cd2db2ec6ff1dc148673e5e3d41606a0c0cd3831e84a"
+        "digest": "1762c42762e59fea474e38d72e40a8f6e1698d1351f2a524258ce47653219505"
       }
     },
     "authentication": {
@@ -230,7 +237,7 @@
         "src/server/middleware/admin-guard.ts": "1a2acf1714e499b5d0117884230be20a5fdfe9775df16538766e3d51b5b93a70",
         "src/server/middleware/auth.ts": "c7ba4e9b4c4de5c06cb66fc3927f269cc0b0740e52fd4d85e143d344fc924c86",
         "src/server/middleware/csrf.ts": "9ab2a40ee3aab03876b977ce4bfe49e97fe1d09dc5020842e76d8926af6d8e04",
-        "src/server/middleware/logger.ts": "ae7c9a70e6677b658a77f4c60e2373d0db34e89d5e8f226f0f8d3b60e2d375e9",
+        "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/proxy-auth.ts": "50674c48773809fa60500d11547b64bde475d07f989d1afdaf8ff4c780345b3e",
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
@@ -249,14 +256,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "a50cbcdaa75603eade0d5922cc8c6a27e7d90aa2a993206e79f6d612cef23eb9",
+      "digest": "db4aab277af1f50bbab002ed02c46b789c148df777a523cb24538237de9a5f5e",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "Setup completion accepts no AI fields; aiProvider and aiModel must come together. Completing setup without an AI provider requires an authenticated user (401 otherwise), so public bootstrap stays AI-only. Route tests cover anonymous 401, signed-in 204 and half-specified AI 400. Whitespace-only AI providers count as no provider for the signed-in requirement.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Removed a dead token-redaction branch in the request logger; the logged path never carried a query, so auth behavior and output are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "a50cbcdaa75603eade0d5922cc8c6a27e7d90aa2a993206e79f6d612cef23eb9"
+        "digest": "db4aab277af1f50bbab002ed02c46b789c148df777a523cb24538237de9a5f5e"
       }
     },
     "api": {
@@ -275,7 +282,7 @@
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
-        "src/server/routes/artists.ts": "23ba22fbd4e76ebd763a39b4870ea9635957ce7c1acc6439fc4270896ab94904",
+        "src/server/routes/artists.ts": "63db65113b83d8a93ef2c2c9a97fca91b28b46875a28bfdb07869dc94ee6b490",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "bdacae8e030bbd51819f7f9692bca173ea5afe20d370772260e7f78110c9bb87",
         "src/server/routes/discovery-modes.ts": "daca7bc1810dc86abb1166b14e37b75fb779ae814f70a8b1faa123a2876db0cf",
@@ -312,14 +319,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "28416189940be8330330ea5b2b90a64e2652fa7ef253e9add7b2e3f505d98da5",
+      "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "PATCH /api/v1/recommendations/:id rejections now return blockCreated; documented in docs/API.md and the OpenAPI RecommendationUpdateResult schema. Additive field, existing clients unaffected. GET /api/v1/album-blocks gains albumTitle, documented with its null legacy case. Also: PATCH /settings rejects invalid cron preferences with 400; /pipeline/status is caller-scoped for non-admins; album coverage returns an empty result for MusicBrainz 404; the mode run schema declares rawUserSettings/normalizedSettings; artist top tracks and enrichment fall back on provider errors.",
-        "breaking": "Clients that saved invalid cron strings now get 400; non-admin clients no longer see other users' runs, global queue length, or lastRun in /pipeline/status.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Preview audio proxy now re-checks the host allowlist on each redirect hop; the endpoint contract and responses for valid previews are unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "28416189940be8330330ea5b2b90a64e2652fa7ef253e9add7b2e3f505d98da5"
+        "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688"
       }
     },
     "interface": {
@@ -494,7 +501,10 @@
       "digest": "2b2798e6dfdf34d60d830cf2ad98cf3ea9032e5bda0d5b7fa0f00a61f41dc472",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "docs": [
+          "CHANGELOG.md",
+          "docs/OPERATIONS.md"
+        ],
         "note": "Theme pre-paint script moved to a same-origin file (verified served under script-src 'self' with no console error on a production build), setup AI skip and field hints, blocked album titles, stack paging, undo keeps pre-existing blocks, Library Health lastError and healthy zero-count checks, playlist scheduling switch, touch targets and contrast. All strings in 15 catalogs; i18n:check passes. OPERATIONS.md updated for library health and playlist scheduling; README and API docs updated in the same branch. Screenshots not refreshed. Also: Playlists header reports a paused schedule when the global switch is off and enabled playlists have different schedules; the operations guide no longer describes the old No schedule configured quirk. The playlist scheduling switch also refreshes cached settings so later saves do not undo it.",
         "breaking": "none",
         "migration": "",
@@ -505,16 +515,16 @@
       "files": {
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
-        "src/core/clients/audiodb.ts": "64b82bbbe59efa17f758c59256cf9e990c906024d6255af8db20317ea85076b4",
-        "src/core/clients/bandcamp.ts": "bbb6516aa3ccd5beee720839f62b323b9c496de0b9d29a1e952206c746b28ba4",
+        "src/core/clients/audiodb.ts": "10b86b61f5f56c69f4237bec29b6ae8fbe519003b14a0a552ee634498ed48da4",
+        "src/core/clients/bandcamp.ts": "2941c6724ce06b5b4b7712d68d09e502c1a4a62ee0fc87002536963f7df2ae9c",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "58c31bf15f98c55afb38368f7d5c81288efc40edd36be0930427e752c7bdc9db",
         "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
-        "src/core/clients/http.ts": "5f69d2c5c03d902958cafd79cc69bfed3d3fe55ef84709714ffde4280d95dd1e",
+        "src/core/clients/http.ts": "3bc9eb47ee05c1e9675b5fbb69e9bbfef182caece0fdc63d346bd2110065f9d4",
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
-        "src/core/clients/jellyfin.ts": "860b234856aa0f2a1b1cca39dd24a5783ca3edcd5632d71f52c84489f2365e35",
+        "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
         "src/core/clients/lidarr.ts": "5b742920cd0c8e2e66299515f960df75eb3309b02bda5c63c3100236a199d72b",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
@@ -522,7 +532,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz.ts": "dae3c262ee5cc755ff51bb1e810a444f20c06a922692abe374bfa99c21e092af",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
+        "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
         "src/core/clients/slskd.ts": "0774a342c00e1899a96a0c1787265c0a8734e8cc4eb198614e1a13184ed72b9a",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
@@ -699,14 +709,14 @@
         "src/index.ts": "325b6d2bf4c3e52af3436e6c58a71412372e2bff127a7e56f8bba011871b7485",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "e77ba473fb3308d59e94b70458b8220976eb0a40c916ccd2fbdfdbfd226681c4",
+      "digest": "a23a14eee919581b4d224f0c1d2d4dc8ef8b4d867eb87db0c36f94b5d66eb769",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "Behavior fixes across integrations, pipeline dedup, scoring, search, discovery modes, scheduler init, and playlist CSV export, each listed under Fixed in the changelog; API-visible effects are in docs/API.md. Deezer artist paging stops at the requested limit, ambiguous same-name search rows are not merged, and the Bandcamp guard checks every resolved address. Also: Saved-playlist exports gate on openPlaylistExportSession and the unused one-shot createPlaylist target method is removed; scheduler registration moves to schedulePlaylists with the same playlistEnabled gating documented in the operations guide.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Client edge cases: Jellyfin unscoped paging sort, Plex empty sections and identity retry, base URL trailing slash trimming; no user-facing option or workflow changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "e77ba473fb3308d59e94b70458b8220976eb0a40c916ccd2fbdfdbfd226681c4"
+        "digest": "a23a14eee919581b4d224f0c1d2d4dc8ef8b4d867eb87db0c36f94b5d66eb769"
       }
     },
     "deployment": {
@@ -782,7 +792,9 @@
       "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "ci.yml only adds the new DB-gated tests/db/queries/reject-block-created.test.ts to the existing serial PostgreSQL integration step; no release, tagging, image or approval behavior changes. Also: The advisory macOS Colima compatibility job runs only on the weekly schedule and manual dispatch; the changelog records it and CONTRIBUTING.md and docs/MAINTENANCE.md say when to dispatch it by hand.",
         "breaking": "none",
         "migration": "",
@@ -820,7 +832,10 @@
       "digest": "4eca985808964aaf7161dff0bbaab5938f591aa48375dd7fe0a7b18b0f744974",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CONTRIBUTING.md", "CHANGELOG.md"],
+        "docs": [
+          "CONTRIBUTING.md",
+          "CHANGELOG.md"
+        ],
         "note": "The i18n check now also rejects placeholder and long-hyphen characters in src/web string literals and JSX text; CONTRIBUTING and the i18n README describe the rule. Also bumped the postgres:17-alpine digest used by the local dev setup script to match the deploy pins.",
         "breaking": "none",
         "migration": "",

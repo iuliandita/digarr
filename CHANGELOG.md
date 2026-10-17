@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Jellyfin library sync pages artists in a stable name order when no library is selected, so artists are no longer repeated or skipped between pages. A Plex library response with no sections now reads as empty instead of crashing, and a failed Plex server check is retried on the next request instead of failing until restart. A trailing slash on a service URL no longer produces `//` in request paths. The Deezer preview proxy re-checks every redirect against its host allowlist. An IPv6 `DB_HOST` now connects. (#926)
 - Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
 - Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).

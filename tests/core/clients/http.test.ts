@@ -133,6 +133,12 @@ afterAll(async () => {
 
 describe('createHttpClient', () => {
   describe('GET', () => {
+    it('tolerates trailing slashes on baseUrl', async () => {
+      const client = createHttpClient({ baseUrl: `${baseUrl}//` })
+      const result = await client.get<Record<string, string>>('/headers')
+      expect(result.host).toBeDefined()
+    })
+
     it('returns parsed JSON on 200', async () => {
       const client = createHttpClient({ baseUrl })
       const result = await client.get<{ hello: string }>('/')

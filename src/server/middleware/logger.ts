@@ -30,8 +30,6 @@ export function requestLogger(): MiddlewareHandler {
 
     const start = Date.now()
     const method = c.req.method
-    // Strip token query params from logged path to avoid leaking session tokens
-    const logPath = path.replace(/([?&])token=[^&]*/g, '$1token=***')
 
     await next()
 
@@ -47,7 +45,7 @@ export function requestLogger(): MiddlewareHandler {
     const contentLength = c.res.headers.get('content-length')
     const size = contentLength ? ` ${DIM}${contentLength}b${RESET}` : ''
 
-    const msg = `${DIM}${timestamp()}${RESET} ${method} ${logPath} ${statusStr} ${durationStr}${size}`
+    const msg = `${DIM}${timestamp()}${RESET} ${method} ${path} ${statusStr} ${durationStr}${size}`
 
     if (level === 'error') {
       console.error(msg)

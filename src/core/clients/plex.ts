@@ -215,9 +215,9 @@ export function createPlexClient(
 
   async function getMusicSections(): Promise<PlexMusicSection[]> {
     const res = await get<PlexSectionsResponse>('/library/sections')
-    return res.MediaContainer.Directory.filter((directory) => directory.type === 'artist').map(
-      (directory) => ({ key: directory.key, title: directory.title }),
-    )
+    return (res.MediaContainer.Directory ?? [])
+      .filter((directory) => directory.type === 'artist')
+      .map((directory) => ({ key: directory.key, title: directory.title }))
   }
 
   async function getMusicSectionId(): Promise<string> {
@@ -253,11 +253,16 @@ export function createPlexClient(
   let verifiedListeningBinding: Promise<void> | null = null
   async function verifyListeningBinding(): Promise<void> {
     const binding = requireListeningBinding()
-    verifiedListeningBinding ??= getIdentity().then((identity) => {
-      if (identity.machineIdentifier !== binding.machineIdentifier) {
-        throw new Error('Plex server identity changed; select the listening account again')
-      }
-    })
+    verifiedListeningBinding ??= getIdentity()
+      .then((identity) => {
+        if (identity.machineIdentifier !== binding.machineIdentifier) {
+          throw new Error('Plex server identity changed; select the listening account again')
+        }
+      })
+      .catch((err: unknown) => {
+        verifiedListeningBinding = null
+        throw err
+      })
     return verifiedListeningBinding
   }
 
