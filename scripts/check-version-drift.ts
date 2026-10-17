@@ -23,8 +23,7 @@
  *   - deploy/unraid/digarr.xml         (<Repository>, <Tag>, and <TagDescription>)
  *
  * Digest pins across deployment.yaml / values.yaml / rendered.yaml / the
- * Unraid XML comment must also be identical (same rule as the release
- * workflow's verify-digest-sync job, enforced here on every PR).
+ * Unraid XML comment must also be identical (enforced here on every PR).
  *
  * Exits 1 with a per-finding list on any violation.
  */
