@@ -182,21 +182,21 @@
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
         "src/db/queries/setup.ts": "b5ab56689644ab1b17edb6d0e94cf47531d8102965b7b44d2675f116c1a5cbf6",
-        "src/db/queries/slskd-jobs.ts": "914d7312dfcbf565381b0b8155f4d213ebb7595fe3d876f71ba46754c0f396b7",
+        "src/db/queries/slskd-jobs.ts": "65b11f984c63fd79b58812cfcf747195f0687dc504ae346272b2322481410eb2",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "781455cd84f6f583dd96f572a9c449d72ed3169473302688b69f2cf0fd88263f",
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "be7b06438873adc924dcf2d4704e42a00dbadb9013c43d8ec2d2ce2ddaf8fa82",
+      "digest": "dc1ebfc33a6bf3fc9c5f848a4c1a59e8d652154ecf2ecfad37189707dea47ef5",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
+        "note": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON); no schema, migration, backup format, or restore change.",
         "breaking": "none",
-        "migration": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
-        "digest": "be7b06438873adc924dcf2d4704e42a00dbadb9013c43d8ec2d2ce2ddaf8fa82"
+        "migration": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON); no schema, migration, backup format, or restore change.",
+        "digest": "dc1ebfc33a6bf3fc9c5f848a4c1a59e8d652154ecf2ecfad37189707dea47ef5"
       }
     },
     "configuration": {
@@ -526,7 +526,7 @@
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
-        "src/core/clients/slskd.ts": "d54ba5ddba4b6f3b3d3c8c66093f62c3c0a889e6f6c7c17ecf7889038c5cbb3b",
+        "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
         "src/core/clients/subsonic.ts": "fd3a22c4274bba4ebad45b175a2f92f1689e1bc20379f3cfa4850860eb290d7e",
@@ -658,10 +658,10 @@
         "src/core/sleep.ts": "3352e179fc1eba280f637324234c8dbed6e670bd0dc60ecb31fa9e2450ca7955",
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
-        "src/core/slskd/match-engine.ts": "8f156c84f52b2c8e1e87d85f256acf7942738a3370efda2a8b0080a9f2cdbeaf",
-        "src/core/slskd/orchestrator.ts": "ed763b20abe83e3fdca4ca45c8a640ff895eb2f0d6d74ee8884d191b91fdd03b",
+        "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
+        "src/core/slskd/orchestrator.ts": "3499ee134874f9d5dae8321c99075cfa06799ccc440a7969acddc9da8d3d54fb",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
-        "src/core/slskd/shared.ts": "c65d361ff33aa66b7cbf452e537d24f69b7fe82f76ca2ccd2558539a907e780f",
+        "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
         "src/core/subscriptions/adapters/csv-import.ts": "cef41c416380a973af8d800a725d8dd7ede1580fb885359928c5557358a1e159",
         "src/core/subscriptions/adapters/deezer.ts": "bbeffe0fe06323b5d4934656e9d358a94995798f6228116956a68a7a17c85cf8",
@@ -703,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "fcd42447afa3493d48146f4d0741e56bac779438814f2b9f91199eb05c635b21",
+      "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Album reconciliation falls back to exact normalized matches on release-group aliases (primary title first, ambiguity unchanged); release-group browse requests inc=aliases with unchanged pagination; /api/v1/albums/:mbid gains optional aliases; docs/NORMALIZATION.md updated too",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "slskd picks one peer for a release several peers share and caps automatic retries of failed jobs; documented in the slskd import section and changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "fcd42447afa3493d48146f4d0741e56bac779438814f2b9f91199eb05c635b21"
+        "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83"
       }
     },
     "deployment": {
