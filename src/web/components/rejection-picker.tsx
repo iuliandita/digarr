@@ -44,7 +44,11 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
 
   if (!open) return null
 
-  const submitLabel = permanent ? t('rejectionPicker.blockForever') : t('rejectionPicker.reject')
+  const submitLabel = permanent
+    ? t('rejectionPicker.blockForever')
+    : reason
+      ? t('rejectionPicker.reject')
+      : t('rejectionPicker.rejectNoReason')
   const permanentDisabled = reason === 'not_right_now'
 
   const handleSubmit = async () => {

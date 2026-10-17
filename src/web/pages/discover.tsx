@@ -376,6 +376,11 @@ export function DiscoverPage() {
   const [checkedIds, setCheckedIds] = useState<Set<number>>(new Set())
   const [bulkActing, setBulkActing] = useState(false)
   const [bulkRejectPickerOpen, setBulkRejectPickerOpen] = useState(false)
+  const [rejectTarget, setRejectTarget] = useState<{
+    id: number
+    prevStatus: string
+    artistName: string
+  } | null>(null)
   const [albumPickerRecId, setAlbumPickerRecId] = useState<number | null>(null)
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
   const [activeDecades, setActiveDecades] = useState<Set<Decade>>(new Set())
@@ -813,6 +818,15 @@ export function DiscoverPage() {
     [refetch, showUndo, t],
   )
 
+  const requestReject = useCallback((id: number, prevStatus?: string) => {
+    const rec = itemsRef.current.find((item) => item.id === id)
+    setRejectTarget({
+      id,
+      prevStatus: prevStatus ?? rec?.status ?? 'pending',
+      artistName: rec?.artist.name ?? '',
+    })
+  }, [])
+
   async function handleRetry(id: number) {
     setActingIds((prev) => new Set([...prev, id]))
     try {
@@ -1051,7 +1065,7 @@ export function DiscoverPage() {
         if (selectedIdRef.current != null) handleApprove(selectedIdRef.current)
       },
       r: () => {
-        if (selectedIdRef.current != null) handleReject(selectedIdRef.current)
+        if (selectedIdRef.current != null) requestReject(selectedIdRef.current)
       },
       d: () => {
         if (selectedIdRef.current != null) handleCardClick(selectedIdRef.current)
@@ -1351,13 +1365,13 @@ export function DiscoverPage() {
                         swipeEnabled ? () => handleApprove(rec.id, rec.status) : undefined
                       }
                       onSwipeLeft={
-                        swipeEnabled ? () => handleReject(rec.id, rec.status) : undefined
+                        swipeEnabled ? () => requestReject(rec.id, rec.status) : undefined
                       }
                     >
                       <RecommendationCard
                         recommendation={rec}
                         onApprove={isActing ? () => {} : handleApprove}
-                        onReject={isActing ? () => {} : handleReject}
+                        onReject={isActing ? () => {} : requestReject}
                         onClick={bulkMode ? undefined : handleCardClick}
                         isSelected={!bulkMode && selectedId === rec.id}
                         expanded={!bulkMode && isExpanded}
@@ -1420,12 +1434,12 @@ export function DiscoverPage() {
                     onSwipeRight={
                       swipeEnabled ? () => handleApprove(rec.id, rec.status) : undefined
                     }
-                    onSwipeLeft={swipeEnabled ? () => handleReject(rec.id, rec.status) : undefined}
+                    onSwipeLeft={swipeEnabled ? () => requestReject(rec.id, rec.status) : undefined}
                   >
                     <RecommendationCard
                       recommendation={rec}
                       onApprove={isActing ? () => {} : handleApprove}
-                      onReject={isActing ? () => {} : handleReject}
+                      onReject={isActing ? () => {} : requestReject}
                       onClick={bulkMode ? undefined : handleCardClick}
                       isSelected={!bulkMode && selectedId === rec.id}
                       expanded={!bulkMode && expandedId === rec.id}
@@ -1659,6 +1673,14 @@ export function DiscoverPage() {
           onCancel={() => setShowClearAllConfirm(false)}
         />
       )}
+      <RejectionPicker
+        open={rejectTarget != null}
+        artistName={rejectTarget?.artistName}
+        onClose={() => setRejectTarget(null)}
+        onSubmit={async (payload) => {
+          if (rejectTarget) await handleReject(rejectTarget.id, rejectTarget.prevStatus, payload)
+        }}
+      />
       <RejectionPicker
         open={bulkRejectPickerOpen}
         onClose={() => setBulkRejectPickerOpen(false)}

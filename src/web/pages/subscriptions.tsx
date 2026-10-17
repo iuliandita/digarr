@@ -26,6 +26,7 @@ import { SubscriptionPresets } from '../components/subscription-presets'
 import { Button } from '../components/ui/button'
 import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
+import { useMenu } from '../hooks/use-menu'
 import {
   bulkToggleSubscriptions,
   createSubscriptionApi,
@@ -45,6 +46,8 @@ import { translateDiscoveryModeLabel } from '../lib/discovery-i18n'
 import { formatDuration } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 import { formatShortDateTime } from '../lib/intl'
+import { MENU_CLASS, MENU_ITEM_CLASS } from '../lib/menu-styles'
+import { cn } from '../lib/utils'
 
 function formatDate(
   locale: string,
@@ -335,6 +338,7 @@ export default function SubscriptionsPage() {
     | null
   >(null)
   const [showPresets, setShowPresets] = useState(false)
+  const newMenu = useMenu()
   const [confirmDeleteSub, setConfirmDeleteSub] = useState<{
     id: number
     name: string
@@ -471,31 +475,61 @@ export default function SubscriptionsPage() {
         title={t('subscriptions.title')}
         actions={
           <>
-            {subscriptions && subscriptions.length > 0 && (
-              <>
-                <Button variant="outline" size="sm" onClick={() => setShowPresets((v) => !v)}>
-                  <LayoutGrid size={14} aria-hidden="true" />
-                  {t('subscriptions.presets')}
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => bulkMutation.mutate(!anyEnabled)}
-                  disabled={bulkMutation.isPending}
-                >
-                  {anyEnabled ? (
-                    <Pause size={14} aria-hidden="true" />
-                  ) : (
-                    <Play size={14} aria-hidden="true" />
-                  )}
-                  {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
-                </Button>
-              </>
+            {subscriptions && subscriptions.length >= 2 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => bulkMutation.mutate(!anyEnabled)}
+                disabled={bulkMutation.isPending}
+              >
+                {anyEnabled ? (
+                  <Pause size={14} aria-hidden="true" />
+                ) : (
+                  <Play size={14} aria-hidden="true" />
+                )}
+                {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
+              </Button>
             )}
-            <Button size="sm" onClick={() => setShowForm({ mode: 'create' })}>
-              <Plus size={14} aria-hidden="true" />
-              {t('subscriptions.new')}
-            </Button>
+            <div ref={newMenu.containerRef} className="relative inline-flex">
+              <Button
+                size="sm"
+                className="rounded-r-none"
+                onClick={() => setShowForm({ mode: 'create' })}
+              >
+                <Plus size={14} aria-hidden="true" />
+                {t('subscriptions.new')}
+              </Button>
+              <Button
+                size="sm"
+                className="rounded-l-none border-l border-accent-fg/30 px-2"
+                aria-label={t('subscriptions.newOptions')}
+                {...newMenu.triggerProps}
+              >
+                <ChevronDown size={14} aria-hidden="true" />
+              </Button>
+              {newMenu.open && (
+                <div
+                  {...newMenu.menuProps}
+                  role="menu"
+                  aria-label={t('subscriptions.newOptions')}
+                  className={cn(MENU_CLASS, 'right-0 w-48')}
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    tabIndex={-1}
+                    onClick={() => {
+                      newMenu.close(false)
+                      setShowPresets(true)
+                    }}
+                    className={cn(MENU_ITEM_CLASS, 'text-text')}
+                  >
+                    <LayoutGrid size={14} aria-hidden="true" />
+                    {t('subscriptions.fromPreset')}
+                  </button>
+                </div>
+              )}
+            </div>
           </>
         }
       />
