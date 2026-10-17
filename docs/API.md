@@ -81,7 +81,7 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-The OpenAPI document is partial: it describes 19 of the 158 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
+The OpenAPI document is partial: it describes 19 of the 159 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
 
 OpenAPI coverage currently includes auth status/login/register/session
 migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
@@ -373,6 +373,7 @@ The parser coerces rather than rejects most fields:
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
+| POST | `/api/v1/recommendations/missing-albums` | Yes | Approve selected missing studio albums for an artist using the caller's album-capable targets |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 acted-on recommendations per genre), scoped to the calling user's own feedback |
 | GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Credential availability for the popular-album approve option: Spotify token resolution succeeds and/or a Last.fm API key is stored. Does not probe album lookups; a subsequent lookup can still fail. Returns `{ available, spotify, lastfm }` (booleans). |
 
@@ -462,6 +463,15 @@ Bulk rejection does not save free-text reasons: `reasonText` is not a bulk field
 Optional target/profile overrides apply to approval. An unknown `targetId` returns `400` with `detail` `Unknown targetId: <id>`; a selected target without either artist or album approval support returns `400` with `detail` `Target does not support recommendation approval: <id>`.
 
 Bulk approval dispatches each owned recommendation by kind. Album rows use `addAlbum` targets and their release-group MBID, monitoring and searching only that release in Lidarr. An album without a release-group identity or a compatible target returns `add_failed` without artist acquisition. Artist rows retain artist approval behavior. Mixed batches return each row's outcome independently. Successful Lidarr album additions return `added_to_lidarr`; a successful non-Lidarr target, including a queued slskd acquisition, returns `approved` and keeps its outcome in `targetActions`. A queued download does not establish import completion. This corrects the v1.19.0 limitation in [#756](https://github.com/iuliandita/digarr/issues/756).
+
+**POST /api/v1/recommendations/missing-albums** body:
+```json
+{ "artistId": 42, "albumMbids": ["12345678-1234-4234-8234-123456789abc"] }
+```
+
+Use `GET /api/v1/library/album-coverage/:artistMbid` to list the current user's `missing` albums first. Both operations accept sessions and personal API tokens and are available to non-admin users; legacy-token authentication is rejected. Write scope is required for the POST. The batch accepts 1-10,000 release-group MBIDs, matching the catalog lookup bound, and checks them against fresh coverage before acquisition. Duplicate IDs are processed once. Selection uses the same Gap-Fill rule: MusicBrainz primary type `Album`, with an explicit empty secondary-type array. Live, compilation and every other secondary type are excluded. Owned albums and groups outside this selection cannot be submitted.
+
+The batch calls the existing single-album approval path for each selection, using only the caller's enabled `addAlbum` targets and their defaults. Lidarr monitors and searches each chosen album; it never changes to whole-discography monitoring. It returns `200` with `{ results: [{ albumMbid, success, targetActions }], succeeded, failed }`. An album counts as successful only when all its attempted targets succeed. A target may report a queued acquisition; this does not establish download or import completion. Per-album failures remain visible, and later albums are still attempted. Successful remote work is retained when another album or target fails. Retrying an album retries its enabled album targets, including any that already succeeded. No compatible target is an error, not a successful empty batch.
 
 ## Artist blocks
 
@@ -1007,7 +1017,7 @@ Album override notes:
 - In v2.0.0, Gap-Fill waits for all queued coverage lookups; any failure fails the manual or subscription job with the original error, without advancing any selected artist's rotation cursor or submitting partial candidates. The whole slice remains eligible for retry. Subscriptions save the error and retain their previous result count. Genuine empty coverage still succeeds and advances the cursor. A persistent lookup failure can hold the selected slice; resolve the provider error and retry. v1.19.0 instead swallows failures and marks all selected artists checked ([#797](https://github.com/iuliandita/digarr/issues/797)). This adds no schema migration or repair of existing cursor values; rollback restores swallowed failures.
 - The shared pagination also applies to artist album lists, release matching, reconciliation and Release Radar. Large catalogs can take longer or fail when a later page is unavailable. No schema migration or stored-row rewrite is added; rollback restores first-page truncation.
 - An artist MusicBrainz does not know (HTTP 404) returns `200` with no MusicBrainz album groups instead of `500`; other MusicBrainz failures still return an error ([#898](https://github.com/iuliandita/digarr/issues/898))
-- Powers the coverage badge shown on recommendation cards
+- Powers the coverage badge and missing-album checklist shown on recommendation cards. The response includes `missing: [{ albumMbid, title, releaseYear }]`; an empty list means no missing studio albums. Sessions and personal API tokens are accepted, including for non-admin users; legacy-token authentication is rejected.
 
 **GET /api/v1/library/unreconciled-albums** response notes:
 - Returns unreconciled album rows from both the current user's sources and any global sources visible to that user
