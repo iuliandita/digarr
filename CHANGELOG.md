@@ -30,7 +30,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Helm: bundled PostgreSQL with `postgresql.persistence.enabled=false` now gets an `emptyDir` for its data directory instead of a read-only path, and its NetworkPolicy carries the release namespace (#911).
 - Helm: the app switches to the `Recreate` update strategy when `backups.persistence.enabled=true`, so a rolling update no longer waits on a ReadWriteOnce volume held by the old pod (#911).
 - Helm: the egress rules now exclude IPv6 `fc00::/7` and `fe80::/10`, and the unused `LOG_LEVEL` setting is removed from the chart and the raw manifests (#911).
-- Docs: `GET /api/v1/library/sources` is documented as available to any signed-in user, the OpenAPI document now says it is partial and marks admin operations, and `bun run check:api-docs` compares the Auth column with route admin guards. Also corrected stale details (OIDC identity, Albums kind filter, album override table, probe text), documented `DB_PORT`, `DB_POOL_MAX`, and `DB_CONNECT_TIMEOUT_MS`, replaced ` -- ` dashes in prose, and noted that deleting a user keeps job history entries unlinked (#911).
+- Docs: `GET /api/v1/library/sources` is documented as available to any signed-in user, the OpenAPI document now says it is partial and marks admin operations, and `bun run check:api-docs` compares the Auth column with route admin guards. Also corrected stale details (OIDC identity, Albums kind filter, album override table, probe text), documented `DB_PORT`, `DB_POOL_MAX`, and `DB_CONNECT_TIMEOUT_MS`, and replaced ` -- ` dashes in prose (#911).
 
 - About 700 translated strings across all 14 languages were wrong, stale or misspelled: mistranslations (an AI model shown as a fashion model, a library health hint describing the wrong action), descriptions that predate English changes, missing diacritics (many in Polish and Turkish), and two different words for the same screen element. (#903)
 - About 80 more strings had lost their accents, mostly in French ("Bibliotheque", "donnees"), plus a few in Spanish, Dutch, Romanian, Turkish and Portuguese. A new advisory spell check (`bun run i18n:spell`, also a non-blocking CI job) found them and will flag new ones. (#906)
@@ -59,6 +59,29 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Analytics and Library Health are admin-only pages and now say so by sending members back to the Dashboard instead of showing zeros and failing buttons; they show an error when data fails to load. The admin Dashboard no longer starts a library rescan on every visit when some artists lack images, and Recently Approved shows only real items. (#910)
 - Library Health check names and descriptions, "not available" placeholders, Job History status labels and a few admin strings are translated in every language; German calls the Dashboard "Übersicht". Job History rows name the library source, say "failed" in text instead of a red "!", and can be filtered to failures only. (#910)
 - Smaller fixes: preview audio stops on logout, confirming a playlist delete no longer opens the playlist, blocked-artists Load More no longer adds duplicates, resetting tips rolls back if saving fails, the AI reasoning audit keeps updating while fixes run, Today's Pick recovers its image when the pick changes, the first-sync banner stops polling once dismissed or done, mobile nav labels wrap instead of being cut off, the Users page fits small screens, subscription cards show readable schedules and provider names, and a "Skip to content" link leads keyboard users past the navigation. (#910, [#901](https://github.com/iuliandita/digarr/issues/901))
+- Rejected artists and albums come back as recommendations once your rejection cooldown has passed, in scans, Quick Discover and subscriptions. Before, any rejection blocked them for good.
+- Subscriptions no longer add an artist again on every run when it is already among your recommendations.
+- Release Radar uses Spotify top artists as seeds again: they are matched to MusicBrainz by exact name instead of being dropped for having no MusicBrainz ID.
+- An artist with no popularity data is scored as average instead of least popular, and gap-fill albums are no longer sunk by an old release date, so missing back catalogue can pass the default threshold.
+- An invalid schedule (scan, digest or playlist) is refused with a 400 when you save settings, and one bad stored schedule no longer stops the other schedules from starting.
+- `GET /api/v1/pipeline/status` shows members only their own run and queue entry; admins still see the whole queue and the last batch.
+- Deleting a user also deletes their job history, including its errors and source results, as the docs already promised.
+- The discovery mode run request documents and validates `rawUserSettings` and `normalizedSettings`, the fields the server actually reads.
+- Playlist CSV exports neutralize cells that a spreadsheet would run as a formula.
+- Integrations retry server errors with a backoff instead of immediately, honor `Retry-After` on rate limits (capped at 30 seconds), keep the request timeout running while the response body downloads, and no longer repeat non-repeatable calls such as Lidarr commands or slskd searches and downloads.
+- Library health reads every page of Lidarr's missing albums instead of the first 10, with the artist included.
+- slskd searches that find nothing are failed with a message instead of waiting forever, a release is picked only after its search has finished, the oldest jobs are processed first, and names like "Dr. Dre" are no longer cut at the dot.
+- Album coverage returns an empty result for an artist MusicBrainz does not know instead of a server error, and an MBID containing "404" is no longer mistaken for a missing artist. (#898)
+- Deezer top-track errors are no longer treated as "no tracks", so the artist page falls back to cached or MusicBrainz tracks.
+- A Wikidata outage no longer marks an artist as having no Wikidata entry; the English Wikipedia link is used when your language has none.
+- The TIDAL connection test fails when search fails instead of reporting success, and its auth errors are redacted and shortened.
+- Deezer playlists, favorites and playlist tracks are read past the first page, and tracks without an artist are skipped.
+- Discogs artist names drop the " (2)" style suffix, collections and wantlists read past 300 items, and usernames are encoded in requests, as are ListenBrainz usernames and MBIDs.
+- Last.fm error responses show Last.fm's message instead of a type error, and Emby syncs no longer stop at 200 items when the server omits the total count.
+- The Bandcamp scraper caps the response size, times out a stalled download, and refuses private or internal addresses, including after redirects.
+- A failed cache write no longer fails a whole Tag Radio track lookup.
+- Search matches names in non-Latin scripts (Japanese, Korean, Chinese, Cyrillic) exactly, and merges an artist's MusicBrainz and name-only results into one row.
+- Artist Relationships only uses a MusicBrainz match with the same name, Similar Artists (Web) reports a failure when every lookup failed, and Tag Radio keeps a popularity bound of 0 instead of reading it as 100.
 
 ## v2.0.1 - 2026-10-16
 
