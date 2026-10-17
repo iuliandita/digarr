@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Outbound requests to public services, notification channels, the OIDC issuer and the Bandcamp scraper now share one SSRF guard instead of three drifted copies. The Bandcamp scraper now pins the resolved IP like the others, and guarded requests that follow redirects re-check each hop instead of letting fetch follow them unchecked (#937).
 - Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
 - CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).
 - Upgrades from releases before migrations 0024 and 0028 no longer fail on databases with duplicate rows. After the pre-migration backup, Digarr removes duplicate library sync state and match override rows (keeping the newest) and clears a duplicate email or SSO subject from every account but the oldest, then logs counts and affected user ids (#925).

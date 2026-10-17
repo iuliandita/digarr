@@ -388,6 +388,11 @@ three points, allowing multiple albums per artist to survive a single run:
 
 - Library sync replaces a source snapshot only after all source album fetches succeed. A failed fetch retains the previous snapshot and marks the run failed; MusicBrainz reconciliation failures remain separately counted.
 - Config precedence: for settings stored in the DB (single row, `id=1`), saved values override env defaults. Deployment-only options such as `DIGARR_MUSICBRAINZ_URL` and `DIGARR_MUSICBRAINZ_INTERVAL_MS` come from the environment and require a restart. Direct per-user service credentials live on `users`, with global settings as the fallback where supported; Spotify, Deezer, and TIDAL OAuth credentials live in `oauth_tokens`.
+- Outbound requests to user-supplied or public hosts go through `src/core/net/guarded-fetch.ts`: it resolves the host, rejects private,
+  loopback, link-local/metadata, CGNAT and reserved ranges (IPv4-mapped IPv6 included), pins the request to the resolved IP with
+  the original Host and TLS server name, and re-checks every redirect hop. `publicIpOnly` HTTP clients, notification channels, the
+  OIDC issuer and the Bandcamp scraper use it; notification channels with private targets enabled use the `lan` policy, which
+  allows only RFC 1918. LAN service clients (Lidarr, media servers) are deliberately unguarded.
 - Metadata, service-client, and playlist-target requests generally go through
   `createHttpClient()` in `src/core/clients/http.ts` for timeout, retry/backoff,
   JSON parsing, response-body errors, redaction, and optional TLS-skip behavior.

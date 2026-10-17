@@ -61,7 +61,7 @@ describe('post (SSRF transport)', () => {
     // Anti-rebinding: fetch targets the pinned resolved IP, not the hostname.
     expect(fetchUrl).toContain('93.184.216.34')
     expect(fetchUrl).not.toContain('example.com')
-    expect((init.headers as Record<string, string>).Host).toBe('example.com')
+    expect(new Headers(init.headers).get('host')).toBe('example.com')
   })
 
   it('keeps path tokens and header secrets out of a failed request error', async () => {
