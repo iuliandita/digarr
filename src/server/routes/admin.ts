@@ -97,18 +97,16 @@ export function adminRoutes(deps: AdminDeps) {
     if (!parsed.success) {
       const first = parsed.error.issues[0]
       const where = first?.path.length ? first.path.join('.') : 'root'
-      return c.json(
-        {
-          error: `Invalid backup file structure at ${where}: ${first?.message ?? 'unknown'}`,
-          code: 'validation_failed' as const,
-          details: parsed.error.issues.map((i) => ({
-            path: i.path,
-            code: i.code,
-            message: i.message,
-          })),
-        },
-        400,
-      )
+      const message = `Invalid backup file structure at ${where}: ${first?.message ?? 'unknown'}`
+      return problem(c, 'validation-failed', 'Validation failed', 400, message, {
+        code: 'validation_failed',
+        details: parsed.error.issues.map((i) => ({
+          path: i.path,
+          code: i.code,
+          message: i.message,
+        })),
+        error: message,
+      })
     }
     const backup: BackupFile = parsed.data as BackupFile
 
@@ -226,7 +224,15 @@ export function adminRoutes(deps: AdminDeps) {
   router.post('/api/v1/admin/migrate-backend/test', async (c) => {
     const parsed = migrateTargetSchema.safeParse(await c.req.json().catch(() => null))
     if (!parsed.success)
-      return c.json({ error: 'Invalid target', details: parsed.error.issues }, 400)
+      return problem(c, 'validation-failed', 'Validation failed', 400, 'Invalid target', {
+        code: 'validation_failed',
+        details: parsed.error.issues.map((i) => ({
+          path: i.path,
+          code: i.code,
+          message: i.message,
+        })),
+        error: 'Invalid target',
+      })
     try {
       if (parsed.data.backend === 'pglite') {
         const abs = assertSafePglitePath(parsed.data.path)

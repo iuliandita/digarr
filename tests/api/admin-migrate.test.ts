@@ -55,7 +55,13 @@ describe('POST /api/v1/admin/migrate-backend/test', () => {
     })
     expect(res.status).toBe(400)
     const body = (await res.json()) as Record<string, unknown>
-    expect(body.error).toBeTruthy()
+    expect(body).toMatchObject({
+      type: '/problems/validation-failed',
+      code: 'validation_failed',
+      detail: 'Invalid target',
+      error: 'Invalid target',
+    })
+    expect(Array.isArray(body.details)).toBe(true)
   })
 
   it('returns 400 for invalid backend value', async () => {

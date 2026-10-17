@@ -1,9 +1,10 @@
 // @vitest-environment node
 
 import { Hono } from 'hono'
-import { HTTPException } from 'hono/http-exception'
 import { describe, expect, it } from 'vitest'
+import { createSession } from '@/core/sessions'
 import { notFoundProblem, problem } from '@/server/helpers/problem'
+import { createTestApp } from '../../helpers/test-app'
 
 describe('problem helper', () => {
   it('returns RFC 9457 envelope with application/problem+json', async () => {
@@ -60,35 +61,22 @@ describe('problem helper', () => {
   })
 })
 
-describe('onError integration pattern', () => {
-  it('translates HTTPException to problem+json via a mounted handler', async () => {
-    const app = new Hono()
-    app.onError((err, c) => {
-      if (err instanceof HTTPException) {
-        return problem(c, `http-${err.status}`, err.message || 'HTTP Error', err.status)
-      }
-      return problem(c, 'internal-error', 'Internal Server Error', 500)
-    })
-    app.get('/boom', () => {
-      throw new HTTPException(422, { message: 'bad body' })
-    })
-    app.get('/crash', () => {
-      throw new Error('kaboom')
+describe('app error handler', () => {
+  it('maps a thrown HTTPException to a problem with the reason phrase and message', async () => {
+    const { app } = createTestApp()
+    await createSession(1, 'problem-test-token')
+
+    const res = await app.request('/api/v1/genres/rock/artists?limit=abc', {
+      headers: { Authorization: 'Bearer problem-test-token' },
     })
 
-    const boom = await app.request('/boom')
-    expect(boom.status).toBe(422)
-    expect(await boom.json()).toMatchObject({
-      type: '/problems/http-422',
-      status: 422,
-      title: 'bad body',
-    })
-
-    const crash = await app.request('/crash')
-    expect(crash.status).toBe(500)
-    expect(await crash.json()).toMatchObject({
-      type: '/problems/internal-error',
-      status: 500,
+    expect(res.status).toBe(400)
+    expect(res.headers.get('content-type')).toBe('application/problem+json')
+    expect(await res.json()).toEqual({
+      type: '/problems/http-400',
+      title: 'Bad Request',
+      status: 400,
+      detail: 'limit must be an integer',
     })
   })
 })

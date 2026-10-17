@@ -8,7 +8,7 @@ import type { Context } from 'hono'
 //
 // `code` is a stable i18n key (e.g. `errors.target.notFound`). The server
 // stays locale-agnostic; the client resolves the key against the active
-// locale and falls back to `detail`, then `title`, when the key is unknown.
+// locale and falls back to `title` (or `error`, when present) for unknown keys.
 // Routes that predate problem+json may also put a stable machine code there.
 //
 // `error` is a deprecated extension carrying the same text as `detail`, kept so

@@ -365,17 +365,26 @@ describe('authenticated downloads', () => {
 describe('ApiError message', () => {
   it.each([
     [
-      'a translated code over detail',
-      { title: 'Not Found', detail: 'raw', code: 'errors.auth.notAuthenticated' },
+      'a translated code over the legacy error member',
+      { title: 'Not Found', error: 'raw', code: 'errors.auth.notAuthenticated' },
       'Nicht authentifiziert',
     ],
     [
-      'detail over title for an unknown code',
-      { title: 'Bad Request', detail: 'Unknown targetId: x', code: 'validation_failed' },
+      'the legacy error member over a generic title',
+      {
+        type: '/problems/http-400',
+        title: 'Bad Request',
+        detail: 'Unknown targetId: x',
+        error: 'Unknown targetId: x',
+      },
       'Unknown targetId: x',
     ],
-    ['title without detail', { title: 'Request rejected' }, 'Request rejected'],
-    ['the legacy error member', { error: 'Old shape' }, 'Old shape'],
+    [
+      'the title of a native problem over its detail',
+      { type: '/problems/not-found', title: 'Not Found', detail: 'No route for GET /api/v1/x' },
+      'Not Found',
+    ],
+    ['the message when nothing else is set', { message: 'Plain message' }, 'Plain message'],
   ])('prefers %s', (_case, data, expected) => {
     expect(new ApiError(400, data).message).toBe(expected)
   })

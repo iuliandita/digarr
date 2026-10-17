@@ -237,7 +237,7 @@
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
-        "src/server/routes/admin.ts": "d5606fe3f7d100676691fe99e3b7732671c6c1bb2bac3d3c8ef599e4837baf95",
+        "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
         "src/server/routes/auth.ts": "2e9d4554d3b6ee056d22e3d6b5a160e67313c45b004d0ebf0ef43fe13a61b4e8",
         "src/server/routes/oauth-callbacks.ts": "f425c9a010c1c97c8a3cd8d914dd4e137d40b4d5b5883d2d773eb7e4c97b98fa",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
@@ -251,25 +251,25 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "1e6130b27097aee2d331b13f2b240e6a0524e1be37f5a2c4281065f07ab1e186",
+      "digest": "1bb0426c255d590d24e7e35cc7ba89a683db642f2af9b7a795f8669c95a3f549",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "The new problem-json middleware only rewrites the body and content type of JSON error responses that carry an error member; status codes, WWW-Authenticate, Set-Cookie and other headers are preserved, so authentication, CSRF and session behavior are unchanged. The admin 403 note in docs/API.md now says problem+json everywhere.",
+        "note": "The problem-json middleware only rewrites the body and content type of JSON error responses that carry an error member, and admin restore and migrate-backend/test validation failures now use the shared validation-failed problem; status codes, WWW-Authenticate, Set-Cookie and other headers are preserved, so authentication, admin gating, CSRF and session behavior are unchanged. The admin 403 note in docs/API.md says problem+json everywhere.",
         "breaking": "none",
         "migration": "",
-        "digest": "1e6130b27097aee2d331b13f2b240e6a0524e1be37f5a2c4281065f07ab1e186"
+        "digest": "1bb0426c255d590d24e7e35cc7ba89a683db642f2af9b7a795f8669c95a3f549"
       }
     },
     "api": {
       "files": {
         "src/server/deps.ts": "fd06cfad9f41fdf12ea969636978c9e9461f45f4378b1137911b72e4651480e1",
-        "src/server/helpers/openapi-doc.ts": "6ba0ec651231b50820fcfabdc2ce651e82deb9e38b837f1dde3529417f90e220",
+        "src/server/helpers/openapi-doc.ts": "db90cea0892f5f897e7bcd58961b8caf4c7ab75314998c208f67f8e744f8cb0b",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "819d0f0482fde33ea86bce6addf1221442fdffb9523bed5ef1c060f0495f4b8e",
-        "src/server/helpers/problem.ts": "4930fc2454bdaa319494c0d1371480424ea9d00408f527af3662fe1c06b170bd",
+        "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "598e50f60af3e97ad59abfa2d791ddab4a47d5ccaf80a65b07ae96710abdf3a6",
         "src/server/index.ts": "76da31e03232013036b95ff2c2efc155fe3e15289b1640ec4c5f6c3d4cc5a421",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
@@ -314,14 +314,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "89c592fa9e9b57ec0ff6778d56445ab92bc5b21dcefcd0447456f5347314dc68",
+      "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "All API error responses now use application/problem+json with type, title, status and detail. Legacy error bodies are converted centrally and keep a deprecated error member; validation failures use type /problems/validation-failed. docs/API.md intro, per-route error notes, 202 bodies for slskd sync and genre seed, conditional route groups and migrate-backend/test 400 vs 502 were updated, and the OpenAPI error responses were audited (bogus 400s removed from auth/status, session/migrate, jobs/health).",
+        "note": "All /api/* error responses now use application/problem+json with type, title, status and detail. Legacy error bodies are converted centrally and keep a deprecated error member; validation failures, including admin restore schema failures and migrate-backend/test input errors, use type /problems/validation-failed. The /health 503 body and non-API plain-text 404s are deliberately unchanged and documented as such. docs/API.md intro, per-route error notes, 202 bodies for slskd sync and genre seed, conditional route groups and migrate-backend/test 400 vs 502 were updated, and the OpenAPI error responses were audited (bogus 400s removed from auth/status, session/migrate, jobs/health).",
         "breaking": "Error responses change content type from application/json to application/problem+json; clients that match the exact content type must accept the new one. The error member stays (deprecated), so clients that read error keep working. Preview proxy upstream status moved to upstreamStatus, and a failed single-source library sync no longer carries status failed. No data, backup or rollback impact: rolling back the image restores the old shapes.",
         "migration": "",
-        "digest": "89c592fa9e9b57ec0ff6778d56445ab92bc5b21dcefcd0447456f5347314dc68"
+        "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be"
       }
     },
     "interface": {
@@ -442,7 +442,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "0a3a4357dbab772ccdbf14c9a6742d357899b2b7e7f909dfe5249249cd4fffc7",
-        "src/web/lib/api.ts": "6cf6b0ce58416882360dd80e7c24f65832cb5f845c37c0b49bf12dc9975c0792",
+        "src/web/lib/api.ts": "da83cbaa11fb1404b77b6b1fd87cd38f5a5af2dc9198e68f7b0b141ceed3f8f8",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "8f492100667f8e7a0123691259c404765262df68d83527f1a0b7f064e10b3f58",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "0fc032b70462fd2815581783b11b12a8c08c612689e7ef3f557c53fb5be79e34",
+      "digest": "199d1f19ca816a0b910248fa47ecd1952b061e2cc0ee19d710fe2ce6026fda63",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "The web client error message now prefers a translated code, then detail, then title, then the legacy error member, so converted errors keep showing the specific message instead of the generic HTTP reason phrase. No UI strings or catalogs changed.",
+        "note": "The web client error message prefers a translated code, then the deprecated error member when present, then title, so converted legacy errors show exactly the text users saw before and native problem types keep their previous title-based message. No UI strings or catalogs changed.",
         "breaking": "none",
         "migration": "",
-        "digest": "0fc032b70462fd2815581783b11b12a8c08c612689e7ef3f557c53fb5be79e34"
+        "digest": "199d1f19ca816a0b910248fa47ecd1952b061e2cc0ee19d710fe2ce6026fda63"
       }
     },
     "features": {
