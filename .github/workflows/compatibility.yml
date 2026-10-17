@@ -130,6 +130,20 @@ jobs:
           podman-compose -f docker-compose.yml -f docker-compose.compat.yml down -v || true
           podman-compose -f docker-compose.pglite.yml -f docker-compose.compat.yml down -v || true
 
+  docker-debian:
+    name: Debian image build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+
+      # Same base as the debian entry in release.yml's matrix; keep the two in step.
+      - name: Build Debian image
+        run: >-
+          docker build -f deploy/docker/Dockerfile
+          --build-arg RUNTIME_IMAGE=oven/bun:1.4.3-slim@sha256:14a223fa35747ec728bce300ef85888bc5f7958164d15bbba6a54b22b52a3288
+          -t digarr:debian-check .
+
   docker-macos:
     name: Docker via Colima (macOS Intel)
     # Slow and advisory: weekly schedule and manual dispatch only, never pull requests (#878).

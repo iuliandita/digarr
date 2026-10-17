@@ -23,6 +23,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Stopping a pipeline run is limited to the user who started it or an admin, and only removes your own queued run; other users' queued runs keep their place. The progress stream shows only your own runs. (#908)
 - Recommendations stored without an owner, from single-user releases, now belong to the first admin (migration 0055), and only their owner can act on them. Restoring an older backup applies the same rule. See [the upgrade note](docs/OPERATIONS.md#backup--restore). (#908)
 - CI: the macOS Docker (Colima) compatibility job now runs only weekly and on manual dispatch, so pull requests and release PRs no longer wait on it. The Podman job still runs on pull requests that touch `deploy/docker/` (#878).
+- CI: a release is now one PR, from a branch cut off `develop` straight to `main`, and the release-readiness report finds its boundary from that PR. The deploy digest-sync PR gets its required checks from a dispatched `ci.yml` run, since PRs opened with the workflow token start no checks. The `-debian` image is built (not pushed) on pull requests that touch `deploy/docker/`. The `verify-digest-sync` release job is removed because `bun run check:versions` already compares the same digests (#878, #938).
 
 ### Fixed
 

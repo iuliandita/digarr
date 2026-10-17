@@ -108,7 +108,7 @@ Run `bun run check:docs` with every change. Review affected guides and record so
 2. Make your changes, keeping commits focused
 3. Confirm `bun run lint`, `bun run typecheck`, `bun run test`, `bun run test:api-routes`, `bun run i18n:check`, `bun run check:docs` all pass
 4. Run `bun run test:e2e` if your change affects routes, workflows, or UI behavior
-5. Open a PR against `develop` and fill in the template. `main` receives release-promotion PRs from `develop`, not normal feature branches
+5. Open a PR against `develop` and fill in the template. `main` receives release PRs (a branch cut from `develop` carrying the `chore(release)` bump), not normal feature branches
 6. A maintainer will review; be ready to iterate
 
 ## Commit style
