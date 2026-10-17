@@ -1429,6 +1429,8 @@
   "setup.verifyProviderLater": "3bbdd270b7c4",
   "streaming.playShort": "f53a7ab988e2",
   "streaming.spotifyEmbedTitle": "6f2b08ff570c",
+  "streaming.spotifyLoad": "08a3ef4b4920",
+  "streaming.spotifyLoadHint": "01ae64c0edbf",
   "streaming.stopShort": "04dedf8afeb8",
   "subscriptionForm.configureInSettings": "f1d7e17bbb5f",
   "subscriptionForm.dialogCreate": "71c0549c33cd",

@@ -1624,6 +1624,8 @@ export const ja = {
   'streaming.playShort': '再生',
   'streaming.stopShort': '停止',
   'streaming.spotifyEmbedTitle': 'Spotifyプレビュー',
+  'streaming.spotifyLoad': 'Spotifyプレーヤーを読み込む',
+  'streaming.spotifyLoadHint': 'クリックするまでSpotifyへのリクエストは送信されません。',
   'discover.moodAddedSuccess': '「{0}」を追加しました。類似アーティストを検索中です',
   'discover.moodAddFailed': '「{0}」の追加に失敗しました',
   'albumPicker.noReleaseGroups': 'リリースグループが見つかりません',

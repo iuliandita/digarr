@@ -50,7 +50,7 @@ type LastFmGenreClient = {
   getArtistGenres(artistName: string, mbid?: string): Promise<string[]>
 }
 
-function artistKey(name: string): string {
+export function artistKey(name: string): string {
   return name.trim().toLowerCase()
 }
 

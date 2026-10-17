@@ -10,6 +10,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
+- Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).
 
 ### Changed
 
@@ -23,10 +24,12 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Stopping a pipeline run is limited to the user who started it or an admin, and only removes your own queued run; other users' queued runs keep their place. The progress stream shows only your own runs. (#908)
 - Recommendations stored without an owner, from single-user releases, now belong to the first admin (migration 0055), and only their owner can act on them. Restoring an older backup applies the same rule. See [the upgrade note](docs/OPERATIONS.md#backup--restore). (#908)
 - CI: the macOS Docker (Colima) compatibility job now runs only weekly and on manual dispatch, so pull requests and release PRs no longer wait on it. The Podman job still runs on pull requests that touch `deploy/docker/` (#878).
+- CI: a release is now one PR, from a branch cut off `develop` straight to `main`, and the release-readiness report finds its boundary from that PR. The deploy digest-sync PR gets its required checks from a dispatched `ci.yml` run, since PRs opened with the workflow token start no checks. The `-debian` image is built (not pushed) on pull requests that touch `deploy/docker/`. The `verify-digest-sync` release job is removed because `bun run check:versions` already compares the same digests (#878, #938).
 
 ### Fixed
 
 - Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
+- The Spotify embed on recommendation cards no longer loads on page render (about 50 third-party requests, telemetry included). A local "Load Spotify player" button stands in, and nothing is requested from Spotify until you click it (#934).
 - Default dark theme: red and accent-colored text now reaches the 4.5:1 contrast minimum on cards, and tinted red and accent badges use a lighter tint to do the same. Also: the AI provider tip sits inside the AI card and the OpenAI-compatible note under the API key field, a second Discover tip waits until the first is dismissed, rows of tabs and filters that scroll sideways fade at the edge that has more, dashboard and analytics cards in the same row match heights, and opening an admin-only Settings tab as a non-admin replaces the URL with the tab you actually see (#939).
 - Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
 - CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).

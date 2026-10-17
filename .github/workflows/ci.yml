@@ -4,6 +4,8 @@ on:
     branches: [main, develop]
   pull_request:
     branches: [main, develop]
+  # Lets the release workflow run CI on the digest-sync branch; PRs opened with the workflow token do not trigger pull_request runs (#938).
+  workflow_dispatch:
 
 permissions:
   contents: read
