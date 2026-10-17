@@ -1742,6 +1742,10 @@ export const ja = {
   'settings.channels.description':
     'スキャン完了通知とダイジェスト通知を1つ以上のチャンネルに送信します。',
   'settings.channels.add': 'チャンネルを追加',
+  'settings.channels.addConfirm': '追加',
+  'settings.channels.summary': 'チャンネル {0} 件、有効 {1} 件',
+  'settings.channels.summarySingle': 'チャンネル 1 件、有効 {0} 件',
+  'settings.channels.disabled': '無効',
   'settings.channels.empty': 'まだチャンネルが設定されていません。',
   'settings.channels.type': '種類',
   'settings.channels.enabled': '有効',

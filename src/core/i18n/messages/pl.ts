@@ -1751,6 +1751,10 @@ export const pl = {
   'settings.channels.description':
     'Wysyłaj powiadomienia o zakończeniu skanowania i podsumowania do jednego lub więcej kanałów.',
   'settings.channels.add': 'Dodaj kanał',
+  'settings.channels.addConfirm': 'Dodaj',
+  'settings.channels.summary': 'Kanałów: {0}, włączonych: {1}',
+  'settings.channels.summarySingle': '1 kanał, włączonych: {0}',
+  'settings.channels.disabled': 'Wyłączone',
   'settings.channels.empty': 'Nie skonfigurowano jeszcze żadnych kanałów.',
   'settings.channels.type': 'Typ',
   'settings.channels.enabled': 'Włączone',

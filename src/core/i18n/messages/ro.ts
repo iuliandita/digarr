@@ -1762,6 +1762,10 @@ export const ro = {
   'settings.channels.description':
     'Trimite notificări de finalizare a scanării și rezumate către unul sau mai multe canale.',
   'settings.channels.add': 'Adaugă canal',
+  'settings.channels.addConfirm': 'Adaugă',
+  'settings.channels.summary': '{0} canale, {1} activate',
+  'settings.channels.summarySingle': '1 canal, {0} activ',
+  'settings.channels.disabled': 'Dezactivat',
   'settings.channels.empty': 'Niciun canal configurat încă.',
   'settings.channels.type': 'Tip',
   'settings.channels.enabled': 'Activat',

@@ -1809,6 +1809,10 @@ export const en = {
   'settings.channels.description':
     'Send scan-complete and digest notifications to one or more channels.',
   'settings.channels.add': 'Add channel',
+  'settings.channels.addConfirm': 'Add',
+  'settings.channels.summary': '{0} channels, {1} enabled',
+  'settings.channels.summarySingle': '1 channel, {0} enabled',
+  'settings.channels.disabled': 'Disabled',
   'settings.channels.empty': 'No channels configured yet.',
   'settings.channels.type': 'Type',
   'settings.channels.enabled': 'Enabled',
