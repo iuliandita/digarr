@@ -264,7 +264,12 @@ function setupMocks(settings: Record<string, unknown> = mockSettings) {
 
 function LocationProbe() {
   const location = useLocation()
-  return <output data-testid="location">{location.search}</output>
+  return (
+    <output data-testid="location">
+      {location.search}
+      {location.hash}
+    </output>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -370,6 +375,28 @@ describe('SettingsPage', () => {
     )
   })
 
+  it.each([
+    ['jobs', '#jobs'],
+    ['system-health', '#health'],
+  ])('resolves legacy %s to the matching System section', async (legacy, hash) => {
+    setupMocks()
+    mockListJobs.mockResolvedValue({ items: [], total: 0 })
+    renderWithQuery(
+      <>
+        <SettingsPage />
+        <LocationProbe />
+      </>,
+      [`/settings?tab=${legacy}`],
+    )
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent(`?tab=system${hash}`),
+    )
+    expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-current', 'page')
+    expect(
+      screen.getByRole('region', { name: hash === '#jobs' ? 'Job History' : 'System Health' }),
+    ).toHaveFocus()
+  })
+
   it('uses translated navigation labels', async () => {
     mockGetStoredLocale.mockReturnValue('fr')
     mockGetCurrentUser.mockResolvedValue({
@@ -424,7 +451,7 @@ describe('SettingsPage', () => {
     expect(within(nav).getByText('Personal')).toBeInTheDocument()
     expect(within(nav).getByText('Library & services')).toBeInTheDocument()
     expect(within(nav).getByText('Admin')).toBeInTheDocument()
-    for (const name of ['Account', 'Connections', 'Schedule', 'Job History', 'System Health']) {
+    for (const name of ['Account', 'Connections', 'Schedule', 'System']) {
       expect(within(nav).getByRole('button', { name })).toBeInTheDocument()
     }
 
@@ -716,7 +743,7 @@ describe('SettingsPage', () => {
       expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Job History' }))
+    fireEvent.click(screen.getByRole('button', { name: 'System' }))
 
     await waitFor(() => {
       expect(screen.getByText('All')).toBeInTheDocument()
@@ -739,7 +766,7 @@ describe('SettingsPage', () => {
       expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'System Health' }))
+    fireEvent.click(screen.getByRole('button', { name: 'System' }))
 
     await waitFor(() => {
       expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)

@@ -9,7 +9,7 @@ test.describe('library reconciliation', () => {
 
     await installAuthCookie(page)
 
-    await page.goto('/library/reconciliation')
+    await page.goto('/library?tab=reconciliation')
     await expect(page.getByRole('heading', { name: 'Unreconciled Artists' })).toBeVisible()
   })
 
@@ -71,7 +71,7 @@ test.describe('library reconciliation', () => {
       await route.fulfill({ status: 204 })
     })
 
-    await page.goto('/library/reconciliation')
+    await page.goto('/library?tab=reconciliation')
 
     await expect(page.getByText('Ambiguous match', { exact: true })).toBeVisible()
     await expect(page.getByText('Lookup failed', { exact: true })).toBeVisible()

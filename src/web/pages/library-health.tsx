@@ -10,7 +10,6 @@ import { LibraryStatsDisplay } from '../components/library-stats'
 import { Button } from '../components/ui/button'
 import { Disclosure } from '../components/ui/disclosure'
 import { Notice } from '../components/ui/notice'
-import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   fixHealthCheck,
@@ -161,23 +160,21 @@ export function LibraryHealthPage() {
   const pendingRescan = rescanTimer.current !== null
 
   return (
-    <div className="p-6 space-y-8 max-w-6xl mx-auto">
-      <PageHeader
-        title={t('libraryHealth.title')}
-        actions={
-          <Button
-            onClick={() => rescanMutation.mutate()}
-            disabled={scanning || rescanMutation.isPending}
-          >
-            <RefreshCw
-              size={14}
-              className={scanning ? 'animate-spin' : undefined}
-              aria-hidden="true"
-            />
-            {scanning ? t('app.scanning') : t('libraryHealth.syncNow')}
-          </Button>
-        }
-      />
+    <div className="space-y-8">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <h2 className="text-lead font-semibold text-text">{t('libraryHealth.title')}</h2>
+        <Button
+          onClick={() => rescanMutation.mutate()}
+          disabled={scanning || rescanMutation.isPending}
+        >
+          <RefreshCw
+            size={14}
+            className={scanning ? 'animate-spin' : undefined}
+            aria-hidden="true"
+          />
+          {scanning ? t('app.scanning') : t('libraryHealth.syncNow')}
+        </Button>
+      </header>
 
       <LibraryFirstSyncBanner />
 

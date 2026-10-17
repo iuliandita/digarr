@@ -6,7 +6,6 @@ import { LibraryBulkReviewToolbar } from '../components/library-bulk-review-tool
 import { isBulkIgnoreEligible } from '../components/library-reconciliation-reason'
 import { LibraryUnreconciledAlbumRowComponent } from '../components/library-unreconciled-album-row'
 import { LibraryUnreconciledRowComponent } from '../components/library-unreconciled-row'
-import { PageHeader } from '../components/ui/page-header'
 import {
   bulkIgnoreLibraryAlbums,
   bulkIgnoreLibraryArtists,
@@ -245,8 +244,7 @@ export function LibraryReconciliationPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <PageHeader title={t('nav.reconciliation')} />
+    <div className="space-y-6">
       <section
         ref={artistSectionRef}
         tabIndex={-1}
