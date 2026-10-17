@@ -81,7 +81,7 @@ export function BlockedAlbumsTab() {
               <button
                 type="button"
                 onClick={() => unblock(row)}
-                className="text-accent hover:underline"
+                className="text-accent-text hover:underline"
               >
                 {t('settings.blockedAlbums.unblock')}
               </button>

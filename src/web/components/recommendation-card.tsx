@@ -172,7 +172,7 @@ function StatusBadge({
           {t('recommendation.addedToLidarr')}
         </span>
         {slskdStatusLabel && (
-          <span className="text-xs text-accent font-medium">{t(slskdStatusLabel)}</span>
+          <span className="text-xs text-accent-text font-medium">{t(slskdStatusLabel)}</span>
         )}
         {failedTargetError && (
           <span className="text-xs text-muted truncate max-w-[200px]" title={failedTargetError}>
@@ -186,7 +186,7 @@ function StatusBadge({
               e.stopPropagation()
               onRetryFailed(id, failedTargetIds)
             }}
-            className="text-xs text-accent underline"
+            className="text-xs text-accent-text underline"
           >
             {t('recommendation.retryFailed')}
           </button>
@@ -214,7 +214,7 @@ function StatusBadge({
               e.stopPropagation()
               onRetry(id)
             }}
-            className="text-xs text-accent underline"
+            className="text-xs text-accent-text underline"
           >
             {t('recommendation.retry')}
           </button>
@@ -223,7 +223,7 @@ function StatusBadge({
     )
   }
   if (slskdStatusLabel) {
-    return <span className="text-xs text-accent font-medium">{t(slskdStatusLabel)}</span>
+    return <span className="text-xs text-accent-text font-medium">{t(slskdStatusLabel)}</span>
   }
   return null
 }
@@ -552,7 +552,7 @@ function TopTracks({ artistId }: { artistId: number }) {
                 e.stopPropagation()
                 if (track.previewUrl) handlePlay(track.previewUrl)
               }}
-              className="text-accent hover:text-accent/80 transition-colors shrink-0 w-4 text-center"
+              className="text-accent-text hover:text-accent-text/80 transition-colors shrink-0 w-4 text-center"
               aria-label={
                 playingUrl === track.previewUrl
                   ? t('recommendation.stopPreview')
@@ -725,7 +725,7 @@ export function RecommendationCard({
                   {layout === 'list' && (
                     <span
                       data-testid="rec-kind-album"
-                      className="bg-accent/5 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                      className="bg-accent/5 text-accent-text text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
                     >
                       {t('recommendation.albumBadge')}
                     </span>
@@ -752,7 +752,7 @@ export function RecommendationCard({
                 </div>
               )}
               {layout === 'list' && (
-                <span className="shrink-0 bg-accent/5 text-accent text-xs font-semibold px-2 py-0.5 rounded">
+                <span className="shrink-0 bg-accent/5 text-accent-text text-xs font-semibold px-2 py-0.5 rounded">
                   {pct}
                 </span>
               )}
@@ -840,7 +840,7 @@ export function RecommendationCard({
                   </span>
                 )}
                 <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-sm rounded-lg px-2.5 py-1.5 flex items-baseline gap-0.5">
-                  <span className="text-accent text-lg font-bold leading-none">{pct}</span>
+                  <span className="text-accent-text text-lg font-bold leading-none">{pct}</span>
                   <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
                     {t('recommendation.match')}
                   </span>
@@ -870,7 +870,7 @@ export function RecommendationCard({
                 href={`https://musicbrainz.org/artist/${rec.artist.mbid}`}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-accent underline"
+                className="text-xs text-accent-text underline"
                 onClick={(e) => e.stopPropagation()}
               >
                 {t('recommendation.viewOnMusicBrainz')}

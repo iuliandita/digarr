@@ -22,7 +22,7 @@ export function GenreCard({ name, slug, artistCount, exampleArtists }: GenreCard
       style={{ borderTopColor: `hsl(${hue}, 45%, 45%)`, borderTopWidth: '3px' }}
     >
       <p
-        className="text-sm font-semibold text-text group-hover:text-accent transition-colors truncate"
+        className="text-sm font-semibold text-text group-hover:text-accent-text transition-colors truncate"
         title={name}
       >
         {name}

@@ -31,6 +31,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The default Youtarr dark theme now reaches 4.5:1 for text: muted text is lighter, primary buttons use a darker red behind white text, and red text, links, chips and score badges use a lighter red. Other themes look the same. Page tips use the info color instead of the accent, so they no longer read like errors in red themes. Health's "Building your library catalog" banner only shows while a first library sync is actually running, not when no library source is configured. Setup's Lidarr step asks for the API key before the Advanced section, Reconciliation hides "Select visible" when a list is empty, phone bottom-bar labels such as "Subscriptions" fit at 390px, the Discover toolbar divider lines up with the content, and the Dashboard's Recently Approved and Listening History cards match heights (#951).
 - The analytics batch history pager shows a translated range with a plain hyphen ("1-10 of 25") instead of hard-coded English with a double hyphen (#950).
 - Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
 - The Spotify embed on recommendation cards no longer loads on page render (about 50 third-party requests, telemetry included). A local "Load Spotify player" button stands in, and nothing is requested from Spotify until you click it (#934).

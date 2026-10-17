@@ -251,7 +251,7 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
                 disabled={disabled}
                 className={`w-full px-3 py-1.5 rounded-md text-sm font-medium transition-opacity ${
                   preset.id === 'ai-only' || preset.id === 'custom'
-                    ? 'border border-border text-text hover:border-accent/40 hover:text-accent disabled:opacity-50'
+                    ? 'border border-border text-text hover:border-accent/40 hover:text-accent-text disabled:opacity-50'
                     : 'bg-accent text-accent-fg hover:opacity-90 disabled:opacity-50'
                 }`}
               >

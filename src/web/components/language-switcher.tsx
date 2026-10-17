@@ -65,7 +65,7 @@ export function LanguageSwitcher({
                 }}
                 className={cn(
                   'flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-body transition-colors hover:bg-surface-2 focus-visible:bg-surface-2 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring',
-                  selected ? 'text-accent' : 'text-text',
+                  selected ? 'text-accent-text' : 'text-text',
                 )}
               >
                 {getLocaleLabel(locale)}

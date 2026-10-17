@@ -47,6 +47,8 @@
   --color-ring: var(--color-accent);
   --color-overlay: color-mix(in oklab, var(--color-bg) 70%, transparent);
   --color-accent-hover: color-mix(in oklab, var(--color-accent) 88%, var(--color-text));
+  /* Accent used as text; themes whose filled accent is too dark for text on surfaces override it */
+  --color-accent-text: var(--color-accent);
 
   --color-bg: #1a1b26;
   --color-surface: #24283b;
@@ -379,14 +381,17 @@
   --color-bg: #0f0f0f;
   --color-surface: #1a1a1a;
   --color-border: #2c2c2c;
-  --color-accent: #ff0000;
+  --color-accent: #e00000;
   --color-accent-fg: #ffffff;
+  /* Darker on hover: mixing toward text would drop white button text below 4.5:1 */
+  --color-accent-hover: #c40000;
+  --color-accent-text: #ff5c5c;
   --color-approve: #2ba640;
-  --color-reject: #ff0000;
+  --color-reject: #ff5c5c;
   --color-info: #3ea6ff;
   --color-warning: #ffd54f;
   --color-text: #f1f1f1;
-  --color-muted: #717171;
+  --color-muted: #949494;
 }
 
 [data-theme="youtarr-light"] {

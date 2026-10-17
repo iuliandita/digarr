@@ -111,7 +111,7 @@ function StackCard({
           <div>
             <span
               data-testid="rec-kind-album"
-              className="bg-accent/5 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+              className="bg-accent/5 text-accent-text text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
             >
               {t('recommendation.albumBadge')}
             </span>

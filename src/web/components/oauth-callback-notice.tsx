@@ -102,7 +102,7 @@ export function OAuthCallbackNotice() {
         {isError ? (
           <TriangleAlert size={18} className="shrink-0 text-reject" />
         ) : (
-          <CheckCircle2 size={18} className="shrink-0 text-accent" />
+          <CheckCircle2 size={18} className="shrink-0 text-accent-text" />
         )}
         <div className="space-y-1">
           <div className="text-sm font-semibold text-text">

@@ -80,7 +80,7 @@ function runStatus(
 ): { label: string; className: string } {
   if (run.status === 'failed' || run.error)
     return { label: t('common.failed'), className: 'text-reject' }
-  if (run.status === 'running') return { label: t('common.running'), className: 'text-accent' }
+  if (run.status === 'running') return { label: t('common.running'), className: 'text-accent-text' }
   if (run.status === 'stuck') return { label: t('common.stuck'), className: 'text-warning' }
   return { label: t('common.done'), className: 'text-approve' }
 }
@@ -222,7 +222,7 @@ function SubscriptionCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-text truncate">{sub.name}</span>
             {sourceLabel && (
-              <span className="text-xs px-2 py-0.5 bg-accent/5 text-accent rounded-full min-w-0 max-w-full break-words">
+              <span className="text-xs px-2 py-0.5 bg-accent/5 text-accent-text rounded-full min-w-0 max-w-full break-words">
                 {sourceLabel}
               </span>
             )}
@@ -287,7 +287,7 @@ function SubscriptionCard({
           <button
             type="button"
             onClick={onRunNow}
-            className="p-1.5 text-muted hover:text-accent transition-colors"
+            className="p-1.5 text-muted hover:text-accent-text transition-colors"
             title={t('subscriptions.runNow')}
           >
             <Play size={14} />

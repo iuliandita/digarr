@@ -168,7 +168,7 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
                 )}
                 <div className="flex gap-2 mt-1">
                   {user.isAdmin && (
-                    <span className="text-xs px-1.5 py-0.5 rounded bg-accent/5 text-accent">
+                    <span className="text-xs px-1.5 py-0.5 rounded bg-accent/5 text-accent-text">
                       {t('userManagement.adminBadge')}
                     </span>
                   )}

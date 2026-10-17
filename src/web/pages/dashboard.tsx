@@ -70,7 +70,7 @@ function SectionHeader({
     <div className="flex items-center justify-between mb-3">
       <h2 className="text-lead font-semibold text-text">{title}</h2>
       {linkText && linkTo && (
-        <Link to={linkTo} className="text-xs text-accent underline">
+        <Link to={linkTo} className="text-xs text-accent-text underline">
           {linkText}
         </Link>
       )}
@@ -94,7 +94,7 @@ function SubscriptionPulse({
           className="bg-surface border border-border rounded-surface"
           message={t('dashboard.subscriptionsEmpty')}
           action={
-            <Link to="/subscriptions" className="text-caption text-accent underline">
+            <Link to="/subscriptions" className="text-caption text-accent-text underline">
               {t('dashboard.setUpAutomaticDiscovery')}
             </Link>
           }
@@ -203,7 +203,7 @@ function ListeningHistory({
   const hasPrev = page > 0
   const hasNext = page + 1 < totalPages
   return (
-    <div>
+    <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between mb-3 gap-2">
         <h2 className="text-lead font-semibold text-text">{t('dashboard.listeningHistory')}</h2>
         <div className="flex gap-1 flex-wrap justify-end">
@@ -223,7 +223,7 @@ function ListeningHistory({
       {!data || data.tracks.length === 0 ? (
         state === 'error' ? null : (
           <EmptyState
-            className="bg-surface border border-border rounded-surface"
+            className="flex-1 justify-center bg-surface border border-border rounded-surface"
             message={t(
               state === 'loading'
                 ? 'common.loading'
@@ -233,7 +233,10 @@ function ListeningHistory({
             )}
             action={
               state === 'not_configured' && (
-                <Link to="/settings?tab=connections" className="text-caption text-accent underline">
+                <Link
+                  to="/settings?tab=connections"
+                  className="text-caption text-accent-text underline"
+                >
                   {t('dashboard.connectAccount')}
                 </Link>
               )
@@ -241,7 +244,7 @@ function ListeningHistory({
           />
         )
       ) : (
-        <div className="bg-surface border border-border rounded-lg">
+        <div className="flex-1 bg-surface border border-border rounded-lg">
           <div className="divide-y divide-border">
             {data.tracks.map((entry) => (
               <div
@@ -321,7 +324,9 @@ function RecentActivity({
                 <p className="text-xs text-muted truncate">{entry.track}</p>
               </div>
               {entry.nowPlaying ? (
-                <span className="text-xs text-accent shrink-0">{t('dashboard.nowPlaying')}</span>
+                <span className="text-xs text-accent-text shrink-0">
+                  {t('dashboard.nowPlaying')}
+                </span>
               ) : entry.playedAt ? (
                 <span className="text-xs text-muted shrink-0">
                   {formatRelativeTime(locale, entry.playedAt)}
@@ -730,7 +735,7 @@ export function Dashboard() {
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lead font-semibold text-text">{t('dashboard.todaysPick')}</h2>
-          <Link to="/discover" className="text-xs text-accent underline">
+          <Link to="/discover" className="text-xs text-accent-text underline">
             {t('dashboard.discover')}
           </Link>
         </div>
@@ -769,15 +774,15 @@ export function Dashboard() {
 
       {/* Recently Approved + Listening Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
+        <div className="flex flex-col">
           <SectionHeader
             title={t('dashboard.recentlyApproved')}
             linkText={t('dashboard.viewAll')}
             linkTo="/discover"
           />
-          <RecentlyApproved recs={approvedRecs} loading={approvedLoading} />
+          <RecentlyApproved recs={approvedRecs} loading={approvedLoading} emptyClassName="flex-1" />
         </div>
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           <ListeningHistory
             data={topArtistsData}
             loading={topArtistsLoading}

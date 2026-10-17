@@ -106,7 +106,7 @@ export function HygieneSection() {
             <p className="text-sm font-medium text-text">{t(tool.nameKey)}</p>
             <p className="text-xs text-muted">{t(tool.descKey)}</p>
             {results[tool.id] != null && (
-              <p className="text-xs text-accent mt-1">
+              <p className="text-xs text-accent-text mt-1">
                 {formatResult(results[tool.id] as Record<string, unknown>)}
               </p>
             )}
