@@ -163,7 +163,12 @@ export const ptBR = {
   'todaysPick.approveSpecificTarget': 'Aprovar para um destino específico',
   'todaysPick.discoverSimilar': 'Descobrir similares',
   'pipeline.runningFirstScan': 'Executando a primeira varredura',
-  'setup.aiDescription': 'Usado para gerar recomendações musicais. Obrigatório.',
+  'setup.aiDescription':
+    'Usado para gerar recomendações musicais. Opcional - você pode pular esta etapa e adicionar um provedor depois em Configurações.',
+  'setup.aiNotConfigured': 'Não configurado',
+  'setup.aiSkipHint':
+    'Sem um provedor de IA, o Digarr encontra artistas parecidos pelas fontes de audição que você conectar em Configurações.',
+  'setup.skipAi': 'Pular por enquanto',
   'setup.aiProvider': 'Provedor de IA',
   'setup.apiKey': 'Chave de API',
   'setup.back': 'Voltar',

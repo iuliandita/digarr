@@ -175,6 +175,20 @@ describe('SetupWizard', () => {
     expect(mockToastError).toHaveBeenCalledWith('Missing required fields: aiModel')
   })
 
+  it('lets discovery-only setup skip the AI provider (#887)', async () => {
+    mockCompleteSetup.mockResolvedValueOnce(undefined as never)
+    renderSetupWizard()
+
+    fireEvent.click(screen.getByRole('button', { name: /Just discover/i }))
+    await screen.findByText('AI Provider')
+    fireEvent.change(screen.getByLabelText('Model'), { target: { value: 'half-typed' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Skip for now' }))
+
+    expect(await screen.findByText('Not set up')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: /Start Digging/i }))
+    await vi.waitFor(() => expect(mockCompleteSetup).toHaveBeenCalledWith({}))
+  })
+
   it('uses a translated fallback model placeholder in French for openai-compatible', async () => {
     mockGetStoredLocale.mockReturnValue('fr')
     renderSetupWizard()

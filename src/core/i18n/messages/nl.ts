@@ -163,7 +163,12 @@ export const nl = {
   'todaysPick.approveSpecificTarget': 'Goedkeuren voor een specifiek doel',
   'todaysPick.discoverSimilar': 'Vergelijkbare ontdekken',
   'pipeline.runningFirstScan': 'Eerste scan wordt uitgevoerd',
-  'setup.aiDescription': 'Wordt gebruikt om muziekaanbevelingen te genereren. Vereist.',
+  'setup.aiDescription':
+    'Wordt gebruikt om muziekaanbevelingen te maken. Optioneel - je kunt deze stap overslaan en later in Instellingen een provider toevoegen.',
+  'setup.aiNotConfigured': 'Niet ingesteld',
+  'setup.aiSkipHint':
+    'Zonder AI-provider vindt Digarr vergelijkbare artiesten via de luisterbronnen die je in Instellingen koppelt.',
+  'setup.skipAi': 'Nu overslaan',
   'setup.aiProvider': 'AI-aanbieder',
   'setup.apiKey': 'API-sleutel',
   'setup.back': 'Terug',

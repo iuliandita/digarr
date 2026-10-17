@@ -162,7 +162,12 @@ export const ru = {
   'todaysPick.approveSpecificTarget': 'Одобрить для конкретной цели',
   'todaysPick.discoverSimilar': 'Найти похожих',
   'pipeline.runningFirstScan': 'Выполняется первое сканирование',
-  'setup.aiDescription': 'Используется для создания музыкальных рекомендаций. Необходимый.',
+  'setup.aiDescription':
+    'Используется для создания музыкальных рекомендаций. Необязательно - можешь пропустить этот шаг и добавить провайдера позже в Настройках.',
+  'setup.aiNotConfigured': 'Не настроено',
+  'setup.aiSkipHint':
+    'Без ИИ-провайдера Digarr находит похожих исполнителей через источники прослушивания, которые ты подключишь в Настройках.',
+  'setup.skipAi': 'Пропустить пока',
   'setup.aiProvider': 'Поставщик ИИ',
   'setup.apiKey': 'API-ключ',
   'setup.back': 'Назад',

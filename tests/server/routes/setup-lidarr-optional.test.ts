@@ -51,15 +51,12 @@ describe('Lidarr-optional setup', () => {
     expect(mockDeps.targetQueries.createTarget).not.toHaveBeenCalled()
   })
 
-  it('still requires AI provider and model', async () => {
+  it('requires a model when an AI provider is set', async () => {
     const app = createTestApp()
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        listenbrainzUsername: 'user',
-        listenbrainzToken: 'token',
-      }),
+      body: JSON.stringify({ aiProvider: 'openai' }),
     })
     expect(res.status).toBe(400)
   })

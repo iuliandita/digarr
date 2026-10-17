@@ -162,7 +162,12 @@ export const ro = {
   'todaysPick.approveSpecificTarget': 'Aprobă către o destinație specifică',
   'todaysPick.discoverSimilar': 'Descoperă similari',
   'pipeline.runningFirstScan': 'Se rulează prima scanare',
-  'setup.aiDescription': 'Folosit pentru a genera recomandări muzicale. Necesar.',
+  'setup.aiDescription':
+    'Folosit pentru a genera recomandări muzicale. Opțional - poți sări peste acest pas și adăuga un furnizor mai târziu din Setări.',
+  'setup.aiNotConfigured': 'Neconfigurat',
+  'setup.aiSkipHint':
+    'Fără un furnizor AI, Digarr găsește artiști similari prin sursele de ascultare pe care le conectezi din Setări.',
+  'setup.skipAi': 'Sari peste deocamdată',
   'setup.aiProvider': 'Furnizor AI',
   'setup.apiKey': 'Cheia API',
   'setup.back': 'Înapoi',

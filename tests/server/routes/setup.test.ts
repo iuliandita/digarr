@@ -256,6 +256,26 @@ describe('POST /api/v1/setup/complete', () => {
     expect(res.status).toBe(204)
   })
 
+  it('accepts setup without an AI provider (#887)', async () => {
+    const completeSetup = vi.fn(async () => ({ id: 1, setupComplete: true }))
+    const app = createApp(makeDeps({ completeSetup }))
+    const anonymous = await app.request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+    expect(anonymous.status).toBe(401)
+
+    const res = await app.request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-session-token' },
+      body: JSON.stringify({}),
+    })
+    expect(res.status).toBe(204)
+    expect(completeSetup).toHaveBeenCalledTimes(1)
+    expect(completeSetup).toHaveBeenCalledWith({}, expect.anything())
+  })
+
   it('strips legacy listening-source fields before persisting setup', async () => {
     const completeSetup = vi.fn(async () => ({ id: 1, setupComplete: true }))
     const app = createApp(makeDeps({ completeSetup }))

@@ -898,6 +898,45 @@ describe('PipelineOrchestrator', () => {
     expect(syncForUser).toHaveBeenCalledWith(1, expect.anything())
   })
 
+  it('completes from listening sources and records AI as skipped when no provider is set (#887)', async () => {
+    const db = makeDb()
+    const jobRecorder = {
+      start: vi.fn().mockResolvedValue(7),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
+    }
+
+    const result = await orchestrator.run({
+      db,
+      settings: { ...defaultSettings, aiProvider: null, aiApiKey: null, aiModel: null },
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      jobRecorder,
+    })
+
+    expect(result).toEqual({ batchId: 42 })
+    expect(mockDiscover).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ ai: null }),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    )
+    expect(jobRecorder.fail).not.toHaveBeenCalled()
+    expect(jobRecorder.complete).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        sourceResults: expect.objectContaining({
+          ai: { status: 'skipped', reason: 'not_configured' },
+        }),
+      }),
+    )
+  })
+
   it('throws when neither Lidarr nor listening sources nor AI are configured', async () => {
     const db = makeDb()
     const settings = {

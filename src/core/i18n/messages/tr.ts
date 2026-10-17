@@ -161,7 +161,12 @@ export const tr = {
   'todaysPick.approveSpecificTarget': 'Belirli hedefe onayla',
   'todaysPick.discoverSimilar': 'Benzerleri keşfet',
   'pipeline.runningFirstScan': 'İlk tarama çalışıyor',
-  'setup.aiDescription': 'Müzik önerileri oluşturmak için kullanılır. Gerekli.',
+  'setup.aiDescription':
+    "Müzik önerileri oluşturmak için kullanılır. İsteğe bağlı - bu adımı atlayıp daha sonra Ayarlar'dan bir sağlayıcı ekleyebilirsin.",
+  'setup.aiNotConfigured': 'Ayarlanmadı',
+  'setup.aiSkipHint':
+    "Yapay zeka sağlayıcısı olmadan Digarr, Ayarlar'da bağladığın dinleme kaynakları üzerinden benzer sanatçılar bulur.",
+  'setup.skipAi': 'Şimdilik atla',
   'setup.aiProvider': 'Yapay Zeka Sağlayıcı',
   'setup.apiKey': 'API Anahtarı',
   'setup.back': 'Geri',

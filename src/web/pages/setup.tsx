@@ -252,10 +252,12 @@ function StepAi({
   form,
   onFormChange,
   onContinue,
+  onSkip,
 }: {
   form: FormState['ai']
   onFormChange: (v: FormState['ai']) => void
   onContinue: () => void
+  onSkip: () => void
 }) {
   const { t } = useI18n()
   const needsApiKey = form.provider !== 'ollama' && form.provider !== 'openai-compatible'
@@ -386,6 +388,10 @@ function StepAi({
       >
         {t('common.continue')}
       </Button>
+      <Button variant="ghost" onClick={onSkip} className="w-full">
+        {t('setup.skipAi')}
+      </Button>
+      <p className="text-xs text-muted">{t('setup.aiSkipHint')}</p>
     </div>
   )
 }
@@ -393,11 +399,13 @@ function StepAi({
 function StepDone({
   form,
   mode,
+  aiSkipped,
   onStart,
   starting,
 }: {
   form: FormState
   mode: SetupMode
+  aiSkipped: boolean
   onStart: () => void
   starting: boolean
 }) {
@@ -412,7 +420,9 @@ function StepDone({
   }
   rows.push({
     label: t('setup.aiProvider'),
-    value: `${form.ai.provider}${form.ai.model ? ` / ${form.ai.model}` : ''}`,
+    value: aiSkipped
+      ? t('setup.aiNotConfigured')
+      : `${form.ai.provider}${form.ai.model ? ` / ${form.ai.model}` : ''}`,
   })
 
   return (
@@ -449,6 +459,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
   const [mode, setMode] = useState<SetupMode | null>(null)
   const [form, setForm] = useState<FormState>(DEFAULT_FORM)
   const [starting, setStarting] = useState(false)
+  const [aiSkipped, setAiSkipped] = useState(false)
 
   const hasServiceStep = mode === 'lidarr' || mode === 'emby'
   const totalSteps = hasServiceStep ? 4 : 3
@@ -457,12 +468,14 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
 
   async function handleStart() {
     setStarting(true)
-    const config: Record<string, unknown> = {
-      aiProvider: form.ai.provider,
-      aiModel: form.ai.model,
-      aiApiKey: form.ai.apiKey || null,
-      aiBaseUrl: form.ai.baseUrl || null,
-    }
+    const config: Record<string, unknown> = aiSkipped
+      ? {}
+      : {
+          aiProvider: form.ai.provider,
+          aiModel: form.ai.model,
+          aiApiKey: form.ai.apiKey || null,
+          aiBaseUrl: form.ai.baseUrl || null,
+        }
     // Only include Lidarr config if mode is lidarr
     if (mode === 'lidarr') {
       config.lidarrUrl = form.lidarr.url
@@ -531,13 +544,21 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
             <StepAi
               form={form.ai}
               onFormChange={(v) => setForm((f) => ({ ...f, ai: v }))}
-              onContinue={() => setStep(doneStep)}
+              onContinue={() => {
+                setAiSkipped(false)
+                setStep(doneStep)
+              }}
+              onSkip={() => {
+                setAiSkipped(true)
+                setStep(doneStep)
+              }}
             />
           )}
           {step === doneStep && (
             <StepDone
               form={form}
               mode={mode ?? 'discover'}
+              aiSkipped={aiSkipped}
               onStart={handleStart}
               starting={starting}
             />

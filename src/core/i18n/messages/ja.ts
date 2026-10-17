@@ -163,7 +163,12 @@ export const ja = {
   'todaysPick.approveSpecificTarget': '特定のターゲットに承認',
   'todaysPick.discoverSimilar': '似たアーティストを探す',
   'pipeline.runningFirstScan': '初回スキャンを実行中',
-  'setup.aiDescription': '音楽の推奨を生成するために使用されます。必須。',
+  'setup.aiDescription':
+    '音楽のおすすめを生成するために使用されます。任意 - この手順はスキップして、後で設定からプロバイダーを追加できます。',
+  'setup.aiNotConfigured': '未設定',
+  'setup.aiSkipHint':
+    'AIプロバイダーがない場合、Digarrは設定で接続したリスニングソースから似たアーティストを見つけます。',
+  'setup.skipAi': '今はスキップ',
   'setup.aiProvider': 'AIプロバイダー',
   'setup.apiKey': 'APIキー',
   'setup.back': '戻る',

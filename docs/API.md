@@ -222,7 +222,7 @@ Treat these as untrusted when rendering: the pass-through case is provider-contr
 | POST | `/api/v1/setup/complete` | Conditional | Complete initial setup; requested Lidarr/Emby services require an authenticated owner |
 
 Setup validation rules:
-- `aiProvider` and `aiModel` are required
+- AI is optional: omit both `aiProvider` and `aiModel`, or send them together; one without the other returns `400`. Setup without an AI provider requires a signed-in user (`401` otherwise), and discovery then relies on the listening sources connected later
 - Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
 - In v2.0.0, Emby is optional, but any nonblank `embyUrl`, `embyApiKey`, or `embyUserId` requires the complete trio. Incomplete Lidarr/Emby groups return `400` before persistence.
 - Requested Lidarr/Emby services require an authenticated owner who still exists; otherwise setup returns `401` without saving configuration. The browser creates or signs into an account before opening the wizard. Public AI-only API bootstrap remains available only while the existing authentication guard permits it.

@@ -162,7 +162,12 @@ export const uk = {
   'todaysPick.approveSpecificTarget': 'Схвалити для конкретної цілі',
   'todaysPick.discoverSimilar': 'Знайти схожих',
   'pipeline.runningFirstScan': 'Виконується перше сканування',
-  'setup.aiDescription': "Використовується для створення музичних рекомендацій. Обов'язковий.",
+  'setup.aiDescription':
+    "Використовується для створення музичних рекомендацій. Необов'язково - можеш пропустити цей крок і додати провайдера пізніше в Налаштуваннях.",
+  'setup.aiNotConfigured': 'Не налаштовано',
+  'setup.aiSkipHint':
+    'Без ШІ-провайдера Digarr знаходить схожих виконавців через джерела прослуховування, які ти підключиш у Налаштуваннях.',
+  'setup.skipAi': 'Пропустити поки',
   'setup.aiProvider': 'Постачальник AI',
   'setup.apiKey': 'Ключ API',
   'setup.back': 'Назад',

@@ -162,7 +162,12 @@ export const ko = {
   'todaysPick.approveSpecificTarget': '특정 대상으로 승인',
   'todaysPick.discoverSimilar': '비슷한 아티스트 찾기',
   'pipeline.runningFirstScan': '첫 스캔 실행 중',
-  'setup.aiDescription': '음악 추천을 생성하는 데 사용됩니다. 필수입니다.',
+  'setup.aiDescription':
+    '음악 추천을 생성하는 데 사용됩니다. 선택 사항 - 이 단계를 건너뛰고 나중에 설정에서 제공자를 추가할 수 있습니다.',
+  'setup.aiNotConfigured': '설정 안 됨',
+  'setup.aiSkipHint':
+    'AI 제공자가 없으면 Digarr는 설정에서 연결한 청취 소스를 통해 비슷한 아티스트를 찾습니다.',
+  'setup.skipAi': '지금은 건너뛰기',
   'setup.aiProvider': 'AI 제공자',
   'setup.apiKey': 'API 키',
   'setup.back': '뒤로',

@@ -38,9 +38,14 @@ export function setupRoutes(deps: AppDependencies) {
     )
 
     const missing: string[] = []
-    if (!sanitized.aiProvider) missing.push('aiProvider')
-    if (!sanitized.aiModel) missing.push('aiModel')
     const hasValue = (value: unknown) => typeof value === 'string' && value.trim().length > 0
+    // AI is optional: listening sources added later can drive discovery on their own
+    if (hasValue(sanitized.aiProvider) && !hasValue(sanitized.aiModel)) {
+      missing.push('aiModel (required when aiProvider is set)')
+    }
+    if (hasValue(sanitized.aiModel) && !hasValue(sanitized.aiProvider)) {
+      missing.push('aiProvider (required when aiModel is set)')
+    }
     // Lidarr is optional - only validate if partially provided
     if ((sanitized.lidarrUrl || sanitized.lidarrApiKey) && !hasValue(sanitized.lidarrApiKey)) {
       missing.push('lidarrApiKey (required when lidarrUrl is set)')
@@ -61,7 +66,10 @@ export function setupRoutes(deps: AppDependencies) {
     }
 
     const userId = c.get('userId')
-    if ((sanitized.lidarrUrl || body.embyUrl) && !userId) return notAuthenticated(c)
+    // Public bootstrap stays AI-only; anything else needs the signed-in owner
+    if ((sanitized.lidarrUrl || body.embyUrl || !sanitized.aiProvider) && !userId) {
+      return notAuthenticated(c)
+    }
 
     try {
       await deps.completeSetup(sanitized as SetupConfig, {

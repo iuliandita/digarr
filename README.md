@@ -82,7 +82,7 @@ For Compose, backend selection, and updates, follow the [Docker guide](deploy/do
 
 ## Your first recommendations
 
-1. Sign in, then choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider. Requested settings, connections, and targets save together; a failed save leaves setup retryable.
+1. Sign in, then choose Lidarr, Emby, or discovery-only in the setup wizard and configure your AI provider, or skip it and rely on the listening sources you connect later. Requested settings, connections, and targets save together; a failed save leaves setup retryable.
 2. Connect a listening source in Settings. Add library sources and targets when needed.
 3. Run a scan from Dashboard or Discover.
 4. Preview, approve, or reject suggestions. Adjust genre priorities in **Settings > Recommendations** if needed. Personal saves work for non-admins and global metadata controls are admin-only. Use Release Radar or Library Gap-Fill for albums. The net-new album toggle defaults to off and persists when saved.

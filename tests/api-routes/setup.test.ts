@@ -59,7 +59,7 @@ describe('API routes: setup', () => {
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'discover' }),
+      body: JSON.stringify({ aiProvider: 'openai' }),
     })
     expect(res.status).toBe(400)
     const body = await res.json()

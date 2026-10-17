@@ -163,7 +163,12 @@ export const de = {
   'todaysPick.approveSpecificTarget': 'Für bestimmtes Ziel genehmigen',
   'todaysPick.discoverSimilar': 'Ähnliche entdecken',
   'pipeline.runningFirstScan': 'Erster Scan läuft',
-  'setup.aiDescription': 'Wird zur Generierung von Musikempfehlungen verwendet. Erforderlich.',
+  'setup.aiDescription':
+    'Wird zur Generierung von Musikempfehlungen verwendet. Optional - du kannst diesen Schritt überspringen und später in den Einstellungen einen Anbieter hinzufügen.',
+  'setup.aiNotConfigured': 'Nicht eingerichtet',
+  'setup.aiSkipHint':
+    'Ohne KI-Anbieter findet Digarr ähnliche Künstler über die Hörquellen, die du in den Einstellungen verbindest.',
+  'setup.skipAi': 'Vorerst überspringen',
   'setup.aiProvider': 'KI-Anbieter',
   'setup.apiKey': 'API-Schlüssel',
   'setup.back': 'Zurück',

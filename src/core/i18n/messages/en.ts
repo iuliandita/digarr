@@ -161,7 +161,12 @@ export const en = {
   'todaysPick.approveSpecificTarget': 'Approve to specific target',
   'todaysPick.discoverSimilar': 'Discover similar',
   'pipeline.runningFirstScan': 'Running your first scan',
-  'setup.aiDescription': 'Used to generate music recommendations. Required.',
+  'setup.aiDescription':
+    'Used to generate music recommendations. Optional - you can skip this step and add a provider later in Settings.',
+  'setup.aiNotConfigured': 'Not set up',
+  'setup.aiSkipHint':
+    'Without an AI provider, Digarr finds similar artists through the listening sources you connect in Settings.',
+  'setup.skipAi': 'Skip for now',
   'setup.aiProvider': 'AI Provider',
   'setup.apiKey': 'API Key',
   'setup.back': 'Back',
