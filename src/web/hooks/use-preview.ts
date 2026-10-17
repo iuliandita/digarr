@@ -8,6 +8,7 @@ export type PreviewSource = {
   type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
   url: string
   embedUrl: string
+  track?: { artistName: string; trackName: string; recordingMbid?: string }
 }
 
 export type PlayOutcome =
@@ -70,15 +71,46 @@ function resolveSpotifyEmbed(spotifyUrl: string): PreviewSource | null {
 
 async function resolveDeezerPreview(artistName: string): Promise<PreviewResolution> {
   try {
+    const normalize = (name: string) =>
+      name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
     const encoded = encodeURIComponent(artistName)
-    const res = await fetch(`https://api.deezer.com/search?q=artist:"${encoded}"&limit=1`)
+    const res = await fetch(`https://api.deezer.com/search/artist?q=${encoded}&limit=100`)
     if (!res.ok) return { source: null, reason: 'lookup-failed' }
-    const data = (await res.json()) as { data?: Array<{ preview?: string }> }
+    const data = (await res.json()) as {
+      data?: Array<{ id?: number; name?: string }>
+      next?: string
+    }
     if (!Array.isArray(data?.data)) return { source: null, reason: 'lookup-failed' }
-    const track = data.data[0]
+    const matches = data.data.filter(
+      (artist) => artist.name && normalize(artist.name) === normalize(artistName),
+    )
+    if (matches.length !== 1 || data.next || !matches[0]?.id)
+      return { source: null, reason: 'no-match' }
+    const artistId = matches[0].id
+    const tracksRes = await fetch(`https://api.deezer.com/artist/${artistId}/top?limit=1`)
+    if (!tracksRes.ok) return { source: null, reason: 'lookup-failed' }
+    const tracks = (await tracksRes.json()) as {
+      data?: Array<{ preview?: string; title?: string; artist?: { id?: number; name?: string } }>
+    }
+    if (!Array.isArray(tracks?.data)) return { source: null, reason: 'lookup-failed' }
+    const track = tracks.data[0]
     if (!track) return { source: null, reason: 'no-match' }
+    if (
+      track.artist?.id !== artistId ||
+      !track.artist.name ||
+      normalize(track.artist.name) !== normalize(artistName) ||
+      !track.title?.trim()
+    )
+      return { source: null, reason: 'no-match' }
     if (!track.preview) return { source: null, reason: 'no-audio' }
-    return { source: { type: 'deezer-audio', url: track.preview, embedUrl: track.preview } }
+    return {
+      source: {
+        type: 'deezer-audio',
+        url: track.preview,
+        embedUrl: track.preview,
+        track: { artistName: track.artist.name, trackName: track.title },
+      },
+    }
   } catch {
     return { source: null, reason: 'lookup-failed' }
   }

@@ -24,6 +24,30 @@ export const ru = {
   'tokens.revokeConfirm': 'Отозвать «{name}»? Скрипты с этим токеном сразу потеряют доступ.',
   'tokens.readOnlyError': 'Этот токен разрешает только запросы GET и HEAD.',
   'tokens.notFoundError': 'Этот токен не найден.',
+  'writeBack.lastfmReconnect': 'Подключить Last.fm заново',
+  'writeBack.title': 'Отправка в скробблеры',
+  'writeBack.scope':
+    'Отправляются только одобрения конкретных треков из предпрослушивания или Audition. Отклонения, блокировки и одобрения только исполнителей остаются локальными.',
+  'writeBack.offHelp': 'Выключение останавливает будущие отправки. Уже отправленное не отменяется.',
+  'writeBack.listenbrainzLoves': 'Отправлять любимые треки в ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Отправляет MBID записи одобренного тобой трека в твой аккаунт ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Отправлять созданные плейлисты в ListenBrainz',
+  'writeBack.playlistHelp':
+    'Отдельное согласие: отправляет название плейлиста, имена исполнителей, названия треков и известные MBID записей в приватный плейлист ListenBrainz. Треки без MBID записи пропускаются.',
+  'writeBack.listenbrainzMissing':
+    'Добавь свой токен ListenBrainz в разделе подключений, чтобы включить отправку.',
+  'writeBack.lastfmLoves': 'Отправлять любимые треки в Last.fm',
+  'writeBack.lastfmHelp':
+    'Отправляет имя исполнителя и название одобренного тобой трека в твой аккаунт Last.fm.',
+  'writeBack.lastfmMissing':
+    'Для подключения Last.fm нужны твой ключ API и настройки сервера LASTFM_SHARED_SECRET и DIGARR_ENCRYPTION_KEY.',
+  'writeBack.lastfmConnected':
+    'Last.fm подключён. Включи любимые треки отдельно, чтобы начать отправку.',
+  'writeBack.lastfmConnect':
+    'Включи любимые треки, чтобы подключить Last.fm. После возвращения включи переключатель снова для начала отправки - само подключение её не включает.',
+  'writeBack.lastError': 'Последняя ошибка отправки: {0}',
+  'writeBack.loadFailed': 'Не удалось загрузить твои настройки отправки.',
   'settings.monitorMissing': 'Недостающие альбомы',
   'settings.monitorExisting': 'Имеющиеся альбомы',
   'settings.monitorLatest': 'Последний альбом',

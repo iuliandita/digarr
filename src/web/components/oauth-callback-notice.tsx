@@ -19,6 +19,7 @@ const ERROR_MESSAGE_KEYS = {
 
 const PROVIDER_LABELS = {
   spotify: 'Spotify',
+  lastfm: 'Last.fm',
   deezer: 'Deezer',
   tidal: 'TIDAL',
 } as const

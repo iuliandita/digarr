@@ -24,6 +24,31 @@ export const ro = {
     'Revoci "{name}"? Scripturile care îl folosesc vor pierde imediat accesul.',
   'tokens.readOnlyError': 'Acest token permite doar cereri GET și HEAD.',
   'tokens.notFoundError': 'Acest token nu a fost găsit.',
+  'writeBack.lastfmReconnect': 'Reconectează Last.fm',
+  'writeBack.title': 'Trimitere către scrobblere',
+  'writeBack.scope':
+    'Se trimit doar aprobările pieselor identificate exact din previzualizări sau Audition. Respingerile, blocările și aprobările doar de artiști rămân locale.',
+  'writeBack.offHelp':
+    'Dezactivarea unei opțiuni oprește trimiterile viitoare. Nu anulează ce s-a trimis deja.',
+  'writeBack.listenbrainzLoves': 'Trimite piesele favorite la ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Trimite MBID-ul înregistrării piesei pe care o aprobi către contul tău ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Trimite playlisturile generate la ListenBrainz',
+  'writeBack.playlistHelp':
+    'Acord separat: trimite titlul playlistului, numele artiștilor și pieselor și MBID-urile de înregistrare cunoscute într-un playlist privat ListenBrainz. Piesele fără MBID de înregistrare sunt omise.',
+  'writeBack.listenbrainzMissing':
+    'Adaugă tokenul tău ListenBrainz în Conexiuni ca să activezi trimiterea.',
+  'writeBack.lastfmLoves': 'Trimite piesele favorite la Last.fm',
+  'writeBack.lastfmHelp':
+    'Trimite numele artistului și al piesei pe care o aprobi către contul tău Last.fm.',
+  'writeBack.lastfmMissing':
+    'Last.fm are nevoie de cheia ta API și de setările de server LASTFM_SHARED_SECRET și DIGARR_ENCRYPTION_KEY înainte să te poți conecta.',
+  'writeBack.lastfmConnected':
+    'Last.fm este conectat. Activează explicit piesele favorite ca să începi trimiterea.',
+  'writeBack.lastfmConnect':
+    'Activează piesele favorite ca să conectezi Last.fm. După revenire, activează din nou opțiunea ca să începi trimiterea - simpla conectare nu o activează.',
+  'writeBack.lastError': 'Ultima eroare de trimitere: {0}',
+  'writeBack.loadFailed': 'Nu s-au putut încărca setările tale de trimitere.',
   'settings.monitorMissing': 'Albume lipsă',
   'settings.monitorExisting': 'Albume existente',
   'settings.monitorLatest': 'Cel mai recent album',

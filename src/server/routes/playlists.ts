@@ -1,3 +1,4 @@
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { type Context, Hono } from 'hono'
 import {
   exportPlaylistToCsv,
@@ -24,7 +25,7 @@ import {
   updatePlaylist,
 } from '@/db/queries/playlists'
 import { getSettings } from '@/db/queries/settings'
-import { mergePreferences } from '@/db/schema'
+import { artists, mergePreferences, recommendations } from '@/db/schema'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { encodeCursor } from '@/server/helpers/pagination-cursor'
@@ -173,7 +174,47 @@ export function playlistRoutes(deps: PlaylistDeps) {
     if (!loaded.ok) return loaded.response
 
     const generation = await getLatestPlaylistGeneration(db, id, userId)
-    return c.json({ ...loaded.result, generation })
+    const result = loaded.result
+    if (result.playlist.strategy !== 'audition' || result.tracks.length === 0)
+      return c.json({ ...result, generation })
+
+    const normalizeName = (name: string) => name.trim().toLowerCase()
+    const names = [...new Set(result.tracks.map((track) => normalizeName(track.artistName)))]
+    const matches = await db
+      .select({
+        artistName: artists.name,
+        artistMbid: artists.mbid,
+        recommendationId: recommendations.id,
+      })
+      .from(artists)
+      .leftJoin(
+        recommendations,
+        and(
+          eq(recommendations.artistId, artists.id),
+          eq(recommendations.userId, userId),
+          eq(recommendations.status, 'pending'),
+          eq(recommendations.kind, 'artist'),
+        ),
+      )
+      .where(inArray(sql`lower(trim(${artists.name}))`, names))
+    const byName = new Map<string, typeof matches>()
+    for (const match of matches) {
+      const name = normalizeName(match.artistName)
+      const existing = byName.get(name) ?? []
+      existing.push(match)
+      byName.set(name, existing)
+    }
+    const tracks = result.tracks.map((track) => {
+      const candidates = byName.get(normalizeName(track.artistName)) ?? []
+      if (!track.trackName?.trim() || new Set(candidates.map((row) => row.artistMbid)).size !== 1)
+        return track
+      const recommendationId = candidates
+        .map((row) => row.recommendationId)
+        .filter((id): id is number => id !== null)
+        .sort((a, b) => a - b)[0]
+      return recommendationId ? { ...track, recommendationId } : track
+    })
+    return c.json({ ...result, tracks, generation })
   })
 
   // GET /api/v1/playlists/:id/export/:format

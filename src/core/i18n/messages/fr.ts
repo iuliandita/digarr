@@ -24,6 +24,31 @@ export const fr = {
     'Révoquer « {name} » ? Les scripts qui l’utilisent perdront immédiatement l’accès.',
   'tokens.readOnlyError': 'Ce jeton autorise uniquement les requêtes GET et HEAD.',
   'tokens.notFoundError': 'Ce jeton est introuvable.',
+  'writeBack.lastfmReconnect': 'Reconnecter Last.fm',
+  'writeBack.title': 'Envoi vers les scrobblers',
+  'writeBack.scope':
+    'Seules les validations de morceaux précis depuis les extraits ou Audition sont envoyées. Les rejets, blocages et validations portant uniquement sur un artiste restent locaux.',
+  'writeBack.offHelp':
+    'Désactiver un interrupteur arrête les futurs envois. Cela ne supprime pas ce qui a déjà été envoyé.',
+  'writeBack.listenbrainzLoves': 'Envoyer les coups de cœur à ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Envoie le MBID de l’enregistrement du morceau que tu valides à ton compte ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Envoyer les playlists générées à ListenBrainz',
+  'writeBack.playlistHelp':
+    'Accord séparé : envoie le titre de la playlist, les noms des artistes et morceaux et les MBID d’enregistrement connus dans une playlist ListenBrainz privée. Les morceaux sans MBID d’enregistrement sont ignorés.',
+  'writeBack.listenbrainzMissing':
+    'Ajoute ton jeton ListenBrainz dans Connexions pour activer les envois.',
+  'writeBack.lastfmLoves': 'Envoyer les coups de cœur à Last.fm',
+  'writeBack.lastfmHelp':
+    'Envoie le nom de l’artiste et du morceau que tu valides à ton compte Last.fm.',
+  'writeBack.lastfmMissing':
+    'Last.fm a besoin de ta clé API et des réglages serveur LASTFM_SHARED_SECRET et DIGARR_ENCRYPTION_KEY pour te connecter.',
+  'writeBack.lastfmConnected':
+    'Last.fm est connecté. Active explicitement les coups de cœur pour commencer les envois.',
+  'writeBack.lastfmConnect':
+    'Active les coups de cœur pour connecter Last.fm. À ton retour, active à nouveau l’interrupteur pour commencer les envois - la connexion seule ne les active pas.',
+  'writeBack.lastError': 'Dernière erreur d’envoi : {0}',
+  'writeBack.loadFailed': 'Impossible de charger tes réglages d’envoi.',
   'settings.monitorMissing': 'Albums manquants',
   'settings.monitorExisting': 'Albums existants',
   'settings.monitorLatest': 'Dernier album',

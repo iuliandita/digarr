@@ -7,6 +7,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { AuditionQueue } from '@/web/hooks/use-audition-queue'
+import type { PreviewSource } from '@/web/hooks/use-preview'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
 
@@ -14,7 +15,8 @@ const noopPreview = {
   play: vi.fn(),
   stop: vi.fn(),
   hasPreview: () => false,
-  currentMbid: null,
+  currentMbid: null as string | null,
+  currentTrack: undefined as PreviewSource['track'],
   playing: false,
   globalPlayId: 0,
   volume: 1,
@@ -175,6 +177,8 @@ import { DiscoverPage } from '@/web/pages/discover'
 describe('DiscoverPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    noopPreview.currentMbid = null
+    noopPreview.currentTrack = undefined
     noopPreview.audition.unavailable = []
     noopPreview.audition.selectedCount = 0
     mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
@@ -457,6 +461,29 @@ describe('DiscoverPage', () => {
       )
     })
   })
+
+  it.each([
+    { previewMbid: 'mbid-test-001', hasTrack: true, expected: true },
+    { previewMbid: 'another-artist', hasTrack: true, expected: false },
+    { previewMbid: 'mbid-test-001', hasTrack: false, expected: false },
+  ])(
+    'sends exact preview context only for the approved artist: $expected',
+    async ({ previewMbid, hasTrack, expected }) => {
+      setupMockApi()
+      noopPreview.currentMbid = previewMbid
+      noopPreview.currentTrack = hasTrack
+        ? { artistName: 'Test Artist', trackName: 'The song' }
+        : undefined
+      mockApproveRecommendation.mockResolvedValue({ status: 'approved' })
+      renderWithQuery(<DiscoverPage />)
+      await screen.findByText('Test Artist')
+      fireEvent.click(screen.getAllByText('Approve')[0] as HTMLElement)
+      await waitFor(() => expect(mockApproveRecommendation).toHaveBeenCalled())
+      expect(mockApproveRecommendation.mock.calls[0]?.[1]?.feedbackTrack).toEqual(
+        expected ? noopPreview.currentTrack : undefined,
+      )
+    },
+  )
 
   it('offers popular albums from the approve dropdown', async () => {
     setupMockApi()

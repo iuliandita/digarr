@@ -24,6 +24,31 @@ export const es = {
     '¿Revocar "{name}"? Los scripts que lo usen perderán el acceso de inmediato.',
   'tokens.readOnlyError': 'Este token solo permite solicitudes GET y HEAD.',
   'tokens.notFoundError': 'No se encontró este token.',
+  'writeBack.lastfmReconnect': 'Volver a conectar Last.fm',
+  'writeBack.title': 'Envío a scrobblers',
+  'writeBack.scope':
+    'Solo se envían las aprobaciones de pistas exactas desde vistas previas o Audition. Los rechazos, bloqueos y aprobaciones solo de artistas se quedan en local.',
+  'writeBack.offHelp':
+    'Desactivar un interruptor detiene los envíos futuros. No deshace lo que ya se ha enviado.',
+  'writeBack.listenbrainzLoves': 'Enviar pistas favoritas a ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Envía el MBID de la grabación de la pista que apruebas a tu cuenta de ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Enviar playlists generadas a ListenBrainz',
+  'writeBack.playlistHelp':
+    'Permiso aparte: envía el título de la playlist, los nombres de artistas y pistas y los MBID de grabación conocidos como una playlist privada de ListenBrainz. Se omiten las pistas sin MBID de grabación.',
+  'writeBack.listenbrainzMissing':
+    'Añade tu token de ListenBrainz en Conexiones para activar los envíos.',
+  'writeBack.lastfmLoves': 'Enviar pistas favoritas a Last.fm',
+  'writeBack.lastfmHelp':
+    'Envía el nombre del artista y de la pista que apruebas a tu cuenta de Last.fm.',
+  'writeBack.lastfmMissing':
+    'Last.fm necesita tu clave API y los ajustes del servidor LASTFM_SHARED_SECRET y DIGARR_ENCRYPTION_KEY antes de que puedas conectarte.',
+  'writeBack.lastfmConnected':
+    'Last.fm está conectado. Activa explícitamente las pistas favoritas para empezar a enviar.',
+  'writeBack.lastfmConnect':
+    'Activa las pistas favoritas para conectar Last.fm. Al volver, activa otra vez el interruptor para empezar a enviar - conectarse por sí solo no lo activa.',
+  'writeBack.lastError': 'Último error de envío: {0}',
+  'writeBack.loadFailed': 'No se pudieron cargar tus ajustes de envío.',
   'settings.monitorMissing': 'Álbumes que faltan',
   'settings.monitorExisting': 'Álbumes existentes',
   'settings.monitorLatest': 'Último álbum',

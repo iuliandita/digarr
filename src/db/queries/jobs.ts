@@ -46,6 +46,27 @@ export async function getJobById(db: Database, id: number): Promise<JobRunRow | 
   return (row as JobRunRow) ?? null
 }
 
+export async function getLastWriteBackError(
+  db: Database,
+  userId: number,
+  service: 'listenbrainz' | 'lastfm',
+): Promise<string | null> {
+  const [row] = await db
+    .select({ error: jobRuns.error })
+    .from(jobRuns)
+    .where(
+      and(
+        eq(jobRuns.userId, userId),
+        eq(jobRuns.type, 'target'),
+        inArray(jobRuns.status, ['completed', 'failed']),
+        sql`${jobRuns.metadata}->>'writeBackService' = ${service}`,
+      ),
+    )
+    .orderBy(desc(jobRuns.startedAt), desc(jobRuns.id))
+    .limit(1)
+  return row?.error ?? null
+}
+
 export async function updateJobMetadata(
   db: Database,
   jobId: number,

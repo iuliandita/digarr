@@ -111,7 +111,7 @@ and privacy precautions.
 
 ### Provider OAuth transaction state
 
-Spotify, Deezer, and TIDAL connect flows keep their in-flight state in a dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row. An abandoned or failed connect therefore cannot drop a working connection.
+Spotify, Deezer, TIDAL, and Last.fm connect flows keep their in-flight state in a dedicated `oauth_pending_auths` table, never in the live `oauth_tokens` row. An abandoned or failed connect therefore cannot drop a working connection.
 
 The pending row stores SHA-256 digests of the opaque `state` and browser binding, plus encrypted callback payloads and client secrets when supplied. It expires after 10 minutes and is deleted when its `state` is redeemed, whether or not the exchange succeeds. Starting a new flow replaces any earlier unfinished one for the same user and provider. Expired rows are swept every 6 hours.
 
@@ -462,3 +462,23 @@ docker compose -f docker-compose.pglite.yml run --rm --no-deps app \
 For the bundled PostgreSQL installation, use `docker-compose.yml` and include every override file used by that installation. From the repository root of a source checkout at the same revision, the equivalent command is `bun scripts/prepare-rollback-backup.ts <input> <output>`.
 
 The input must be the automatic pre-migration backup, use backup version 1, and have no existing `data.oidcTokens` key. The output path must not exist. Provision a separate fresh database with the older image so it creates the old schema, then restore the output copy; never point the old image at the migrated database. The helper writes the copy with mode `0600`, adds only an empty `data.oidcTokens` key, refuses an existing output, and never overwrites the source. It cannot recover retired provider tokens.
+
+
+## Scrobbler write-back
+
+Write-back is off by default. In **Settings > Account**, each user controls ListenBrainz track loves, ListenBrainz generated playlists, and Last.fm track loves independently. Saving a connection alone does not consent to sending feedback.
+
+Only successful approvals of exact tracks from previews or Audition send loves. ListenBrainz receives the recording MBID; Last.fm receives the artist and track title. A track without a recording MBID cannot send a ListenBrainz love. Artist-only approvals, rejects, and blocks stay local. Turning a switch off stops future sends and does not remove remote loves or playlists already sent. Generated playlists need the separate ListenBrainz playlist switch. This sends the playlist title, artist/track names, and known recording MBIDs as a private ListenBrainz playlist. Tracks without recording MBIDs are skipped; no usable recordings produces a visible failure. Provider failures appear in Account settings and do not turn a local approval into a failure.
+
+For ListenBrainz, save your token under **Settings > Connections > Your connections**, then enable the intended switches in Account. No other user's or shared fallback token grants write access.
+
+For Last.fm:
+
+1. The operator sets `LASTFM_SHARED_SECRET` (or `LASTFM_SHARED_SECRET_FILE` pointing to a readable secret file), retains `DIGARR_ENCRYPTION_KEY`, sets `ALLOWED_ORIGIN` to the public Digarr origin, and restarts Digarr. The secret must belong to the Last.fm API application whose key users configure. It stays server-side.
+2. Each user saves that Last.fm API key in their own Connections settings. Read-only listening-history access does not require a write session.
+3. In Account, turn on Last.fm track loves to start authorization. Digarr sends `{}` to its initiate endpoint and redirects the browser to Last.fm. Complete authorization in the same browser. The one-time transaction binds the callback to the initiating account and browser; changing credentials invalidates it.
+4. On return to Account, check the connected message and turn on track loves again. Authorization stores an encrypted per-user session key but never enables sending. A pending callback cannot override an off choice. If Last.fm revokes a stored session, use **Reconnect Last.fm** in Account. Reconnecting preserves your existing sending preference, including an off choice.
+
+For non-production loopback API use without `ALLOWED_ORIGIN`, initiation can accept a loopback `redirectUri`; the bundled Account UI uses the configured public origin. Missing API key, shared secret, or encryption key disables connection in Account. Treat session keys and the shared secret as credentials: never include them in reports, URLs you share, or logs. Keep the database backup and matching encryption key for recovery; disconnecting or disabling sending does not undo remote writes.
+
+On Unraid, these are optional manual environment variables for write access; read-only Last.fm setup and the baseline template do not need them. Add the secret and encryption key privately rather than publishing their values in a template. Before upgrade, keep a consistent database backup and its matching encryption key. Rollback to an earlier image removes the write-back controls and processing; restore the matching backup if its schema requires it. Existing read-only connections remain the fallback when write-back is unavailable.

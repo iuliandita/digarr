@@ -34,6 +34,10 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 [CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
 
+## Unreleased work
+
+- Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz generated-playlist opt-in and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
+
 ## Next priorities
 
 Planned direction, in this order. Make recommendations easier to hear and use before adding more integrations.

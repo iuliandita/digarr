@@ -6,6 +6,16 @@ import { DEFAULT_PREFERENCES, mergePreferences, type Preferences } from '@/db/sc
 const partialInput = (raw: unknown) => raw as Partial<Preferences>
 
 describe('mergePreferences', () => {
+  it.each([null, {}, { scoreThreshold: 0.7 }])(
+    'defaults write-back off for existing preferences %j',
+    (raw) => {
+      expect(mergePreferences(raw)).toMatchObject({
+        listenbrainzLoveEnabled: false,
+        listenbrainzPlaylistEnabled: false,
+        lastfmLoveEnabled: false,
+      })
+    },
+  )
   it('returns defaults when input is null', () => {
     expect(mergePreferences(null)).toEqual(DEFAULT_PREFERENCES)
   })

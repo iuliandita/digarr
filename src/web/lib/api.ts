@@ -379,6 +379,8 @@ export const approveRecommendation = (
     metadataProfileId?: number
     rootFolderId?: number
     lidarrTargetId?: string
+    feedbackTrack?: { artistName: string; trackName: string; recordingMbid?: string }
+    auditionTrackId?: number
   },
 ) => updateRecommendation(id, { status: 'approved', ...options })
 export const bulkAction = (
@@ -829,6 +831,8 @@ export async function approveToTarget(
     qualityProfileId?: number
     metadataProfileId?: number
     rootFolderId?: number
+    feedbackTrack?: { artistName: string; trackName: string; recordingMbid?: string }
+    auditionTrackId?: number
   },
 ): Promise<ApprovalResponse> {
   return fetchApi(`/recommendations/${recId}`, {
@@ -921,15 +925,31 @@ export const moodDiscover = (query: string) =>
   }>('/mood/discover', { method: 'POST', body: JSON.stringify({ query }) })
 
 // OAuth
-export async function initiateOAuth(
+export function initiateOAuth(
+  provider: 'lastfm',
+  data: Record<string, never>,
+): Promise<{ authUrl: string }>
+export function initiateOAuth(
   provider: string,
   data: { clientId: string; clientSecret: string; redirectUri: string },
+): Promise<{ authUrl: string }>
+export async function initiateOAuth(
+  provider: string,
+  data: { clientId: string; clientSecret: string; redirectUri: string } | Record<string, never>,
 ): Promise<{ authUrl: string }> {
   return fetchApi(`/auth/oauth/${provider}/initiate`, {
     method: 'POST',
     body: JSON.stringify(data),
   })
 }
+
+export interface ScrobblerWriteBackStatus {
+  listenbrainz: { configured: boolean; lastError: string | null }
+  lastfm: { configured: boolean; connected: boolean; lastError: string | null }
+}
+
+export const getScrobblerWriteBackStatus = () =>
+  fetchApi<ScrobblerWriteBackStatus>('/auth/me/write-back')
 
 // User preferences (per-user scoring weights, thresholds, etc.)
 export const getUserPreferences = () => fetchApi<Record<string, unknown>>('/auth/me/preferences')
@@ -1142,6 +1162,7 @@ export type PlaylistRow = {
 }
 
 export type PlaylistTrackRow = {
+  recommendationId?: number
   id: number
   playlistId: number
   artistName: string

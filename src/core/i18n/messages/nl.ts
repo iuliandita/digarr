@@ -23,6 +23,31 @@ export const nl = {
   'tokens.revokeConfirm': '"{name}" intrekken? Scripts die het gebruiken verliezen direct toegang.',
   'tokens.readOnlyError': 'Dit token staat alleen GET- en HEAD-verzoeken toe.',
   'tokens.notFoundError': 'Dit token is niet gevonden.',
+  'writeBack.lastfmReconnect': 'Last.fm opnieuw verbinden',
+  'writeBack.title': 'Terugschrijven naar scrobblers',
+  'writeBack.scope':
+    'Alleen goedkeuringen van exacte nummers uit previews of Audition worden verstuurd. Afwijzingen, blokkades en goedkeuringen van alleen artiesten blijven lokaal.',
+  'writeBack.offHelp':
+    'Een schakelaar uitzetten stopt toekomstige verzendingen. Wat al verstuurd is, wordt niet teruggedraaid.',
+  'writeBack.listenbrainzLoves': 'Favoriete nummers naar ListenBrainz sturen',
+  'writeBack.listenbrainzHelp':
+    'Stuurt de opname-MBID van het nummer dat je goedkeurt naar je ListenBrainz-account.',
+  'writeBack.listenbrainzPlaylists': 'Gegenereerde playlists naar ListenBrainz sturen',
+  'writeBack.playlistHelp':
+    'Aparte toestemming: stuurt de playlisttitel, artiest- en nummernamen en bekende opname-MBID’s als een privéplaylist naar ListenBrainz. Nummers zonder opname-MBID worden overgeslagen.',
+  'writeBack.listenbrainzMissing':
+    'Voeg je ListenBrainz-token toe bij Verbindingen om verzending in te schakelen.',
+  'writeBack.lastfmLoves': 'Favoriete nummers naar Last.fm sturen',
+  'writeBack.lastfmHelp':
+    'Stuurt de artiest en de naam van het nummer dat je goedkeurt naar je Last.fm-account.',
+  'writeBack.lastfmMissing':
+    'Last.fm heeft je API-sleutel en de serverinstellingen LASTFM_SHARED_SECRET en DIGARR_ENCRYPTION_KEY nodig voordat je kunt verbinden.',
+  'writeBack.lastfmConnected':
+    'Last.fm is verbonden. Zet favoriete nummers expliciet aan om te beginnen met versturen.',
+  'writeBack.lastfmConnect':
+    'Zet favoriete nummers aan om Last.fm te verbinden. Zet de schakelaar na terugkeer opnieuw aan om te beginnen met versturen - alleen verbinden schakelt dit niet in.',
+  'writeBack.lastError': 'Laatste verzendfout: {0}',
+  'writeBack.loadFailed': 'Je instellingen voor terugschrijven konden niet worden geladen.',
   'settings.monitorMissing': 'Ontbrekende albums',
   'settings.monitorExisting': 'Bestaande albums',
   'settings.monitorLatest': 'Nieuwste album',

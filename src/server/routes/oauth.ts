@@ -2,6 +2,8 @@ import { createHash, randomBytes } from 'node:crypto'
 import type { Context } from 'hono'
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
+import { requestLastFmToken } from '@/core/clients/scrobbler-write-back'
+import { isEncryptionEnabled } from '@/core/crypto'
 import type { Database } from '@/db'
 import {
   consumePendingOAuth,
@@ -10,6 +12,7 @@ import {
   pendingBindingMatches,
 } from '@/db/queries/oauth-pending'
 import { deleteOAuthToken, getOAuthToken } from '@/db/queries/oauth-tokens'
+import { getUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import {
   clearOAuthTransactionCookie,
@@ -90,6 +93,59 @@ export function oauthRoutes(deps: AppDependencies) {
     const binding = createOAuthBinding()
 
     switch (provider) {
+      case 'lastfm': {
+        const connections = await getUserConnections(deps.db, userId)
+        const apiKey = connections?.lastfmApiKey
+        const sharedSecret = envConfig.lastfmSharedSecret
+        if (!apiKey || !sharedSecret || !isEncryptionEnabled()) {
+          return c.json(
+            {
+              error:
+                'Last.fm write access requires an API key, server shared secret, and encryption key',
+            },
+            400,
+          )
+        }
+        let callbackUri = envConfig.allowedOrigin
+          ? `${envConfig.allowedOrigin}/api/v1/auth/oauth/lastfm/callback`
+          : undefined
+        if (!callbackUri) {
+          if (
+            process.env.NODE_ENV === 'production' ||
+            !redirectUri ||
+            !isLoopbackRedirect(redirectUri)
+          ) {
+            return c.json({ error: 'ALLOWED_ORIGIN must be set to connect Last.fm' }, 400)
+          }
+          callbackUri = redirectUri
+        }
+        if (!setOAuthTransactionCookie(c, 'lastfm', state, binding)) {
+          return c.json({ error: 'Invalid cookie configuration' }, 500)
+        }
+        let requestToken: string
+        try {
+          requestToken = await requestLastFmToken(apiKey, sharedSecret)
+        } catch {
+          return c.json({ error: 'Last.fm authorization request failed' }, 502)
+        }
+        await createPendingOAuth(deps.db, {
+          userId,
+          provider: 'lastfm',
+          state,
+          binding,
+          payload: { requestToken },
+          clientId: apiKey,
+          clientSecret: sharedSecret,
+        })
+        const callback = new URL(callbackUri)
+        callback.searchParams.set('state', state)
+        const params = new URLSearchParams({
+          api_key: apiKey,
+          token: requestToken,
+          cb: callback.href,
+        })
+        return c.json({ authUrl: `https://www.last.fm/api/auth/?${params}` })
+      }
       case 'spotify': {
         if (!clientId || !clientSecret || !redirectUri) {
           return c.json({ error: 'clientId, clientSecret, and redirectUri are required' }, 400)
@@ -219,28 +275,35 @@ export function oauthRoutes(deps: AppDependencies) {
   // OAuth callback - exchanges code for tokens
   router.get('/api/v1/auth/oauth/:provider/callback', async (c) => {
     const provider = c.req.param('provider')
-    const code = c.req.query('code')
+    const code = c.req.query(provider === 'lastfm' ? 'token' : 'code')
     const state = c.req.query('state')
     const error = c.req.query('error') ?? c.req.query('error_reason')
+    const settingsPath = provider === 'lastfm' ? '/settings?tab=account&' : '/settings?'
 
     if (error) {
-      return c.redirect(`/settings?oauth_error=${encodeURIComponent(error)}`)
+      return c.redirect(
+        provider === 'lastfm'
+          ? `${settingsPath}oauth_error=authorization_denied`
+          : `/settings?oauth_error=${encodeURIComponent(error)}`,
+      )
     }
 
     if (!code || !state) {
-      return c.redirect('/settings?oauth_error=missing_code_or_state')
+      return c.redirect(`${settingsPath}oauth_error=missing_code_or_state`)
     }
 
     const handler = OAUTH_CALLBACK_HANDLERS[provider]
-    if (!handler) return c.redirect('/settings?oauth_error=unknown_provider')
+    if (!handler) return c.redirect(`${settingsPath}oauth_error=unknown_provider`)
 
     // The userId comes from the server-side pending row, never from the URL.
     const resolved = await resolvePending(c, deps.db, provider, state)
-    if (!resolved.ok) return c.redirect(`/settings?oauth_error=${resolved.error}`)
+    if (!resolved.ok) return c.redirect(`${settingsPath}oauth_error=${resolved.error}`)
 
     const outcome = await handler({ deps, code, pending: resolved.pending })
     return c.redirect(
-      outcome.ok ? `/settings?oauth_success=${provider}` : `/settings?oauth_error=${outcome.error}`,
+      outcome.ok
+        ? `${settingsPath}oauth_success=${provider}`
+        : `${settingsPath}oauth_error=${outcome.error}`,
     )
   })
 
@@ -261,6 +324,24 @@ export function oauthRoutes(deps: AppDependencies) {
     if (!userId) return c.json({ error: 'Authentication required' }, 401)
 
     const token = await getOAuthToken(deps.db, userId, provider)
+    if (provider === 'lastfm') {
+      const connections = await getUserConnections(deps.db, userId)
+      const configured = !!(
+        connections?.lastfmApiKey &&
+        envConfig.lastfmSharedSecret &&
+        isEncryptionEnabled()
+      )
+      return c.json({
+        configured,
+        connected:
+          configured &&
+          !!token &&
+          token.clientId === connections?.lastfmApiKey &&
+          token.clientSecret === envConfig.lastfmSharedSecret,
+        scopes: null,
+        expiresAt: null,
+      })
+    }
     return c.json({
       connected: !!token,
       scopes: token?.scopes ?? null,

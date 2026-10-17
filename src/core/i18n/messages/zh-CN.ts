@@ -22,6 +22,26 @@ export const zhCN = {
   'tokens.revokeConfirm': '撤销“{name}”？使用此令牌的脚本将立即失去访问权限。',
   'tokens.readOnlyError': '此令牌仅允许 GET 和 HEAD 请求。',
   'tokens.notFoundError': '找不到此令牌。',
+  'writeBack.lastfmReconnect': '重新连接 Last.fm',
+  'writeBack.title': '向音乐记录服务发送',
+  'writeBack.scope':
+    '仅发送从试听或 Audition 中对确切曲目的认可。拒绝、屏蔽和仅对艺人的认可会保留在本地。',
+  'writeBack.offHelp': '关闭开关会停止后续发送，不会撤销已经发送的内容。',
+  'writeBack.listenbrainzLoves': '向 ListenBrainz 发送喜爱曲目',
+  'writeBack.listenbrainzHelp': '将你认可曲目的录音 MBID 发送到你的 ListenBrainz 账户。',
+  'writeBack.listenbrainzPlaylists': '向 ListenBrainz 发送生成的播放列表',
+  'writeBack.playlistHelp':
+    '需单独授权：将播放列表标题、艺人名、曲名和已知录音 MBID 作为私密 ListenBrainz 播放列表发送。没有录音 MBID 的曲目会被跳过。',
+  'writeBack.listenbrainzMissing': '在连接设置中添加你的 ListenBrainz 令牌即可启用发送。',
+  'writeBack.lastfmLoves': '向 Last.fm 发送喜爱曲目',
+  'writeBack.lastfmHelp': '将你认可曲目的艺人名和曲名发送到你的 Last.fm 账户。',
+  'writeBack.lastfmMissing':
+    '连接 Last.fm 需要你的 API 密钥以及服务器设置 LASTFM_SHARED_SECRET 和 DIGARR_ENCRYPTION_KEY。',
+  'writeBack.lastfmConnected': 'Last.fm 已连接。请手动开启喜爱曲目以开始发送。',
+  'writeBack.lastfmConnect':
+    '开启喜爱曲目即可连接 Last.fm。返回后，请再次开启开关以开始发送 - 仅连接不会启用发送。',
+  'writeBack.lastError': '上次发送错误：{0}',
+  'writeBack.loadFailed': '无法加载你的发送设置。',
   'settings.monitorMissing': '缺失的专辑',
   'settings.monitorExisting': '已有的专辑',
   'settings.monitorLatest': '最新专辑',

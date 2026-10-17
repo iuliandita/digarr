@@ -46,6 +46,17 @@ This label does not stop the job or prove that it has stopped making progress. A
 
 `DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `PROXY_AUTH_ENABLED`, and `SKIP_TLS_VERIFY` accept `true`, `false`, `1`, or `0`, in any letter case. Any other value stops startup with an error naming the variable. Earlier releases read every unrecognized value, including `TRUE`, as `false`; check these variables before upgrading. An empty value keeps the default.
 
+## Scrobbler write-access environment
+
+| Variable | Purpose |
+|----------|---------|
+| `LASTFM_SHARED_SECRET` | Optional server-side Last.fm app secret for per-user write authorization. Must match the API key users save. Read-only Last.fm does not need it. |
+| `LASTFM_SHARED_SECRET_FILE` | Alternative readable secret-file path; do not publish the file contents. |
+| `DIGARR_ENCRYPTION_KEY` | Required before connecting Last.fm write sessions; retain with backups. |
+| `ALLOWED_ORIGIN` | Public origin used for the Last.fm callback by the Account UI. |
+
+Restart after changing these settings. Users authorize their own sessions and enable sending separately in Account; there is no global opt-in. Unraid operators can add these optional variables manually without changing the baseline template. See [scrobbler write-back](AUTHENTICATION.md#scrobbler-write-back) for data sent, failure reporting, backup, and rollback behavior.
+
 ## Unattended setup
 
 Keep first-boot access restricted until the intended admin account is verified. Migrations and configured initial-admin creation finish before HTTP opens. With no users, set both `DIGARR_INITIAL_USERNAME` and a `DIGARR_INITIAL_PASSWORD` of at least 12 characters, or leave both unset for manual registration. A partial pair, short password, or database failure stops startup. Existing users bypass these bootstrap settings without password or role changes; keep one app instance per database.

@@ -24,6 +24,27 @@ export const ko = {
     '"{name}"을 취소할까요? 이 토큰을 사용하는 스크립트는 즉시 접근할 수 없게 돼요.',
   'tokens.readOnlyError': '이 토큰은 GET 및 HEAD 요청만 허용해요.',
   'tokens.notFoundError': '이 토큰을 찾을 수 없어요.',
+  'writeBack.lastfmReconnect': 'Last.fm에 다시 연결',
+  'writeBack.title': '스크로블러로 보내기',
+  'writeBack.scope':
+    '미리 듣기나 Audition에서 정확한 곡을 승인한 경우에만 보내요. 거절, 차단, 아티스트만 승인은 로컬에 남아요.',
+  'writeBack.offHelp': '스위치를 끄면 이후 전송이 중단돼요. 이미 보낸 내용은 취소되지 않아요.',
+  'writeBack.listenbrainzLoves': '좋아하는 곡을 ListenBrainz로 보내기',
+  'writeBack.listenbrainzHelp': '승인한 곡의 녹음 MBID를 ListenBrainz 계정으로 보내요.',
+  'writeBack.listenbrainzPlaylists': '생성된 재생목록을 ListenBrainz로 보내기',
+  'writeBack.playlistHelp':
+    '별도 동의가 필요해요. 재생목록 제목, 아티스트와 곡 이름, 알려진 녹음 MBID를 비공개 ListenBrainz 재생목록으로 보내요. 녹음 MBID가 없는 곡은 건너뛰어요.',
+  'writeBack.listenbrainzMissing': '전송을 켜려면 연결 설정에서 ListenBrainz 토큰을 추가해 주세요.',
+  'writeBack.lastfmLoves': '좋아하는 곡을 Last.fm으로 보내기',
+  'writeBack.lastfmHelp': '승인한 곡의 아티스트와 곡 이름을 Last.fm 계정으로 보내요.',
+  'writeBack.lastfmMissing':
+    'Last.fm에 연결하려면 내 API 키와 LASTFM_SHARED_SECRET 및 DIGARR_ENCRYPTION_KEY 서버 설정이 필요해요.',
+  'writeBack.lastfmConnected':
+    'Last.fm에 연결됐어요. 전송을 시작하려면 좋아하는 곡을 직접 켜 주세요.',
+  'writeBack.lastfmConnect':
+    '좋아하는 곡을 켜면 Last.fm에 연결돼요. 돌아온 후 전송을 시작하려면 스위치를 다시 켜 주세요 - 연결만으로는 전송이 켜지지 않아요.',
+  'writeBack.lastError': '마지막 전송 오류: {0}',
+  'writeBack.loadFailed': '전송 설정을 불러오지 못했어요.',
   'settings.monitorMissing': '누락된 앨범',
   'settings.monitorExisting': '기존 앨범',
   'settings.monitorLatest': '최신 앨범',

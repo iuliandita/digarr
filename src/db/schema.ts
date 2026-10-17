@@ -637,6 +637,9 @@ export type Preferences = {
   fanartApiKey?: string
   metadataFallbackUrl?: string
   netNewAlbumDiscovery?: boolean // C: promote AI suggestedAlbum to a first-class album rec
+  listenbrainzLoveEnabled?: boolean
+  listenbrainzPlaylistEnabled?: boolean
+  lastfmLoveEnabled?: boolean
 }
 
 export type ScoringWeights = Preferences['scoringWeights']
@@ -666,6 +669,9 @@ export const DEFAULT_PREFERENCES: Preferences = {
   dismissedHints: [],
   subscriptionMode: null,
   netNewAlbumDiscovery: false,
+  listenbrainzLoveEnabled: false,
+  listenbrainzPlaylistEnabled: false,
+  lastfmLoveEnabled: false,
 }
 
 /**

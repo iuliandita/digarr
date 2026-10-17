@@ -47,6 +47,7 @@ describe('resolvePreviewSource', () => {
     )
     expect(result).not.toBeNull()
     expect(result?.type).toBe('spotify-embed')
+    expect(result?.track).toBeUndefined()
     expect(result?.embedUrl).toContain('autoPlay=true')
   })
 
@@ -68,7 +69,25 @@ describe('resolvePreviewSource', () => {
     )
     expect(result).not.toBeNull()
     expect(result?.type).toBe('youtube-embed')
+    expect(result?.track).toBeUndefined()
     expect(result?.embedUrl).toContain('autoplay=1')
+  })
+
+  it.each([
+    { artists: [{ id: 1, name: 'Radiohead Tribute' }] },
+    {
+      artists: [
+        { id: 1, name: 'Radiohead' },
+        { id: 2, name: 'Radiohead' },
+      ],
+    },
+  ])('rejects unmatched or ambiguous Deezer artists %j', async ({ artists }) => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: artists }) }),
+    )
+    expect(await resolvePreviewSource({ deezer: 'url' }, 'Radiohead')).toBeNull()
+    expect(fetch).toHaveBeenCalledTimes(1)
   })
 
   it('returns null for invalid Spotify URL with no fallbacks', async () => {
@@ -109,11 +128,26 @@ class FakeAudio {
 }
 
 function stubDeezerFetch() {
+  let artistName = ''
   vi.stubGlobal(
     'fetch',
-    vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: [{ preview: 'https://cdn.example/p.mp3' }] }),
+    vi.fn(async (url: string) => {
+      if (url.includes('/search/artist')) {
+        artistName = new URL(url).searchParams.get('q') ?? ''
+        return { ok: true, json: async () => ({ data: [{ id: 1, name: artistName }] }) }
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              preview: 'https://cdn.example/p.mp3',
+              title: 'Creep',
+              artist: { id: 1, name: artistName },
+            },
+          ],
+        }),
+      }
     }),
   )
 }
@@ -220,6 +254,10 @@ describe('usePreview play outcomes', () => {
       outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('started')
+    expect(result.current.state.source?.track).toEqual({
+      artistName: 'Radiohead',
+      trackName: 'Creep',
+    })
 
     await act(async () => {
       outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
@@ -306,11 +344,15 @@ describe('usePreview play outcomes', () => {
   })
 
   it.each<
-    [Record<string, string> | null, { data: Array<{ preview?: string }> } | undefined, string]
+    [
+      Record<string, string> | null,
+      { data: Array<{ id?: number; name?: string }> } | undefined,
+      string,
+    ]
   >([
     [null, undefined, 'missing-links'],
     [{ deezer: 'https://deezer.com/artist/1' }, { data: [] }, 'no-match'],
-    [{ deezer: 'https://deezer.com/artist/1' }, { data: [{}] }, 'no-audio'],
+    [{ deezer: 'https://deezer.com/artist/1' }, { data: [{}] }, 'no-match'],
     [{ deezer: 'https://deezer.com/artist/1' }, undefined, 'lookup-failed'],
   ])('reports coarse resolution failure %s', async (links, data, reason) => {
     if (data)
