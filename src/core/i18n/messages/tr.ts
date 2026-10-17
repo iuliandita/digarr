@@ -1021,8 +1021,8 @@ export const tr = {
   'importArtists.spotifyPlaylist': 'Spotify Çalma Listesi',
   'importArtists.spotifyPlaylistDescription':
     'Herhangi bir Spotify çalma listesinden sanatçı aktar',
-  'importArtists.csvFile': 'CSV Dosyası',
-  'importArtists.csvDescription': 'CSV dosyasından sanatçı adları listesi yükle',
+  'importArtists.csvFile': 'CSV/M3U/XSPF Dosyası',
+  'importArtists.csvDescription': 'CSV/M3U/XSPF dosyasından sanatçı adları listesi yükle',
   'importArtists.import': 'İçeri Aktar',
   'importArtists.connectSpotifyFirst': "Önce {0} adresinden Spotify'ı bağla",
   'importArtists.uploading': 'Yükleniyor...',
@@ -1040,6 +1040,7 @@ export const tr = {
   'importArtists.failedImport': 'Aktarım başlatılamadı',
   'importArtists.failedPlaylist': 'Çalma listesi aktarımı başlatılamadı',
   'importArtists.failedCsv': 'CSV dosyası aktarılamadı',
+  'importArtists.unreadable': '{0} girdi okunamadı',
   'librarySources.title': 'Kütüphane Kaynakları',
   'librarySources.syncAll': 'Tümünü eşitle',
   'librarySources.syncStarted': 'Eşitleme başladı',

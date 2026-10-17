@@ -1065,6 +1065,7 @@ export const importCsvFile = async (file: File) => {
     subscriptionId: number
     artistCount: number
     truncated: boolean
+    unreadable: number
   }>('/subscriptions/import/csv', {
     method: 'POST',
     body: formData,

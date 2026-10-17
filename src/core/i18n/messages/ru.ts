@@ -1038,8 +1038,8 @@ export const ru = {
   'importArtists.spotifyPlaylist': 'Плейлист Spotify',
   'importArtists.spotifyPlaylistDescription':
     'Импортировать исполнителей из любого плейлиста Spotify',
-  'importArtists.csvFile': 'CSV-файл',
-  'importArtists.csvDescription': 'Загрузи список имён исполнителей из CSV-файла',
+  'importArtists.csvFile': 'CSV/M3U/XSPF-файл',
+  'importArtists.csvDescription': 'Загрузи список имён исполнителей из CSV/M3U/XSPF-файла',
   'importArtists.import': 'Импортировать',
   'importArtists.connectSpotifyFirst': 'Сначала подключи Spotify в {0}',
   'importArtists.uploading': 'Загрузка...',
@@ -1056,6 +1056,7 @@ export const ru = {
   'importArtists.failedImport': 'Не удалось начать импорт',
   'importArtists.failedPlaylist': 'Не удалось начать импорт плейлиста',
   'importArtists.failedCsv': 'Не удалось импортировать CSV-файл',
+  'importArtists.unreadable': 'Не удалось прочитать записей: {0}',
   'librarySources.title': 'Источники библиотеки',
   'librarySources.syncAll': 'Синхронизировать всё',
   'librarySources.syncStarted': 'Синхронизация запущена',

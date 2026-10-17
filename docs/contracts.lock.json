@@ -300,7 +300,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
+        "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
         "src/server/routes/targets.ts": "345658517bab8faf0691d30cf92d08ea09d35822cef13c8aaa36b63ea88d7800",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "21d2413a636f4c89e4fd8f77277420976a86331df66834979fbed06fd66fccf0",
+      "digest": "dde14526b02f6e568a102271b2de5e9aef328a84e05305937841bc17669641a1",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md"],
         "note": "Clarify that personal-token failure limits use client IPs resolved through configured trusted proxies; retain existing token endpoint contracts and response formats.",
         "breaking": "none",
         "migration": "",
-        "digest": "21d2413a636f4c89e4fd8f77277420976a86331df66834979fbed06fd66fccf0"
+        "digest": "dde14526b02f6e568a102271b2de5e9aef328a84e05305937841bc17669641a1"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "4e634f116349d808d286ff0b264e7502460c64ffad7a02a1a5bec9b178965b3d",
-        "src/core/i18n/messages/en.ts": "4f97cae1acf0cb7c0402f4ca4eff85b2cb6d591825fde14f3893df87557cb2c3",
-        "src/core/i18n/messages/es.ts": "cd51636d72a1e7cffcbe0232d33af67b24c4a355d3b58dc05c749cad11f10ab3",
-        "src/core/i18n/messages/fr.ts": "9345259586a554b71bb55cf59e0be5a119923448a45f36865c6551e481ce50ae",
+        "src/core/i18n/messages/de.ts": "60441845edd0146d781ecb88ccefa3b73a2fdf083f4227177bf47ca166c3f1a0",
+        "src/core/i18n/messages/en.ts": "ca937ff96df1f765f45c221477598e8fc0db91dd2eb40f043b4e2052c929f020",
+        "src/core/i18n/messages/es.ts": "749856b1d6cf3ff78239c3f9710f25ffaaef907653fbdd93fa872a045987cf84",
+        "src/core/i18n/messages/fr.ts": "844f4132265eb2e47750c688e8b5dfd860e8c191e6b411bb357144283876fc10",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "55aabacc2fdc68101c19ec15d96970d9da6160bacf43e94fd84f73ebc62aa154",
-        "src/core/i18n/messages/ja.ts": "efcbf04122f33f9eaeb36a92af7998c881fbf12ae97b35eb3787c72a44f71de6",
-        "src/core/i18n/messages/ko.ts": "9f485b3baa3a43c2f452b0976e4b0bff1273caee3afa3e1994330ad0adefc3e0",
-        "src/core/i18n/messages/nl.ts": "30382499be85cb796587bb91dca74e219c663128fc8d0160995116380ceca7c3",
-        "src/core/i18n/messages/pl.ts": "5b3edcb66a667ba56a8c50ef382cbd3cf1a83cd34436c7be8b2ac0a2a88b864c",
-        "src/core/i18n/messages/pt-BR.ts": "45fa47ae69fd8e32dd929131b10fe1ffbd2925da77e9e8477079c073f45f75e6",
-        "src/core/i18n/messages/ro.ts": "6743ff5a0ef504522486e1249310d959d7c0fd9f49c8db477d7997edda63b6ea",
-        "src/core/i18n/messages/ru.ts": "b011a2729cc235a7483ef2c83cf017d89a7d95cc7274353bc7b145e52e6f7a12",
-        "src/core/i18n/messages/source-lock.json": "5b135d531df475760f8d35fd0f2f874f4294d7db7d90d11a086d2e1181afd891",
-        "src/core/i18n/messages/tr.ts": "e9e415a50586398249acff2f028b4c892eed479d8457e7783a76106384c2bcd1",
+        "src/core/i18n/messages/it.ts": "0c9d55e8a46eff8eed3a78e10670a103fa4b142d673b70d14adb6a1028226f7b",
+        "src/core/i18n/messages/ja.ts": "78f91e008991309e12b9bdd00228bab097c1b66c2b308e0bbe370d932a7c37b8",
+        "src/core/i18n/messages/ko.ts": "c85d2474f5ba822ec28ff45125ec8ee714cdf2888b1fc1c6b91408ca3acccc77",
+        "src/core/i18n/messages/nl.ts": "84dc49bdab9fddda49fd87d6f0adc1b0a7391abe9bc3b3b44585bf81074219f1",
+        "src/core/i18n/messages/pl.ts": "2c5507454fd09af63517d55759242a500b5da8815ef0f067b490fe850ba6e7f5",
+        "src/core/i18n/messages/pt-BR.ts": "dc0353c1f963012462594df361545a65f1a82d9ffcb0261ce7e97e3164cbbe5c",
+        "src/core/i18n/messages/ro.ts": "a325b14add7f731a9b92077b0e1f763b934baaa094af573b9d6ca64b0c4662b0",
+        "src/core/i18n/messages/ru.ts": "0a4fdc2b9fdee7098c3feebe61a72cc43cf0b5f33e05ee806bea606152bc3b32",
+        "src/core/i18n/messages/source-lock.json": "92960fa504d4e01ba6f4874164b230086ac3f7351de92dad65ad9d22d26f9fe4",
+        "src/core/i18n/messages/tr.ts": "a628f37f358fad3635f0ccf3d31323fb8561c0f2d840a0a610fd0b58948a5b87",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "9cc17b2bfea688e0dabc06571c3feea16897e8b6c0a73e5d78125c09508a0a4a",
-        "src/core/i18n/messages/zh-CN.ts": "02bd0dfc8cc85892d7b14522bf5d78915080acee06df962faf9b0f0eae53b9f3",
+        "src/core/i18n/messages/uk.ts": "d6df8ba1e3a4a59e98f6a8fb7d9f4e97b884004518dd29df049ac52fc1860381",
+        "src/core/i18n/messages/zh-CN.ts": "f1a1ed24061080729f9c05caf57cd52823b712dd2bee08ee09443b4c31197e70",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -388,7 +388,7 @@
         "src/web/components/genre-grid.tsx": "2596a060fa428ce620bc584ca95f7e8be74b22f2970e4a9fc21e84fc09bf71d3",
         "src/web/components/health-check-card.tsx": "ee863a2364b8f6dcf0fd6d484eb000e02bd729d287502b53b5d9af527978bf81",
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
-        "src/web/components/import-artists.tsx": "44e8953d6db6ada63f1429e3d005754abdcf98f9254346b76ae903198275ca74",
+        "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "c3f34472f9a9600d6e747540eff22e66a1b18cba8e46c302fe8ff5692427c932",
         "src/web/components/job-run-row.tsx": "aa6bcc681ebd820e643a693b7525e2326ec15303cad3e3f95ec7c628237aad51",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
@@ -448,7 +448,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "6d6dff93faf6fa34e50b0f96224e8887afeb53569587865252026c914361999d",
+        "src/web/lib/api.ts": "20434760c4a885ce04fd9dbe6c3ae74560dea012596ea47ede4e24a9bc3ef688",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -501,14 +501,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "de7f2d6ef26ab6ca441a124c098d42a0dac1fe4549489a962ce09f15ecb0d38a",
+      "digest": "273a318f20b641ef2c704e72dac4e44b7346adc5de8e407b2a9f59309c58802e",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Add an Account token warning in all 15 locales explaining that password changes and logout keep tokens active and that a compromised password requires revoking tokens separately.",
         "breaking": "none",
         "migration": "",
-        "digest": "de7f2d6ef26ab6ca441a124c098d42a0dac1fe4549489a962ce09f15ecb0d38a"
+        "digest": "273a318f20b641ef2c704e72dac4e44b7346adc5de8e407b2a9f59309c58802e"
       }
     },
     "features": {
@@ -616,6 +616,7 @@
         "src/core/pipeline/store.ts": "9637b00f39f960b4eea5c3788cca67db07d8da459b9464c995c9f86e4ad9607e",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
+        "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "4ce79d331f210736579490fa88060539c486ab7591daaa5676b66980225a6100",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
@@ -712,14 +713,14 @@
         "src/index.ts": "cd4ce3a34e4d230875e420f21965eeff03f42e4ebdd8ac71ac41310de801e676",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "2517fc89c9ed4e7f20d05830e56f7e7615fd7b1ac45d62ace7ea2e24a2240bdf",
+      "digest": "bd1ab6e1b9d0ffd05d9628982b2cf0d04becfa922054447f38f93bfe1408af03",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Review personal-token startup deprecation guidance alongside the existing Lidarr connection initialization. No token environment or container-template changes are needed.",
         "breaking": "none",
         "migration": "",
-        "digest": "2517fc89c9ed4e7f20d05830e56f7e7615fd7b1ac45d62ace7ea2e24a2240bdf"
+        "digest": "bd1ab6e1b9d0ffd05d9628982b2cf0d04becfa922054447f38f93bfe1408af03"
       }
     },
     "deployment": {
