@@ -78,7 +78,7 @@ describe('target-aware approval', () => {
     )
   })
 
-  it('approves with Lidarr target - adds to Lidarr and sets added_to_lidarr', async () => {
+  it('first approval accepts an existing Lidarr artist and sets added_to_lidarr', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       userId: 1,
       id: 1,
@@ -108,7 +108,7 @@ describe('target-aware approval', () => {
     expect(body.status).toBe('added_to_lidarr')
     expect(mockTarget.addArtist).toHaveBeenCalledWith(
       { mbid: 'mbid-1', name: 'Radiohead' },
-      expect.any(Object),
+      expect.objectContaining({ retryExisting: true }),
     )
   })
 

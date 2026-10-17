@@ -22,6 +22,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Import artists from M3U, M3U8 and XSPF playlist files in the same import section as CSV. Artists come from `#EXTINF` lines and XSPF `creator` tags. A path-only M3U entry counts only when it reads `Artist/Album/NN - Title` or a flat `Artist - Title`; anything else is skipped and reported as "N entries couldn't be read" after the import instead of guessed. Duplicates are merged, and the existing 1 MB and 500-artist limits apply (#981).
 
 ### Changed
+- First-time Lidarr artist approvals now reuse artists already in that instance instead of failing as duplicates. Deferred approvals retain waiting work across slskd failures, honor user blocks, preserve partial successes and approval ordering, and isolate failing candidates. HTTP 408/429 retry; missing albums retry only immediately after adding their artist. Scheduled retry errors in stored actions, Job History and expiry alerts redact secrets and URLs (#973).
 - Combine Library Health and Reconciliation into one Library page with tabs, and Jobs and System Health into one System settings tab. Old links still open the matching tab or section; Tools keeps one Job History shortcut. (#984)
 
 - Notification channels start collapsed. The card summarizes them ("2 channels, 1 enabled"), each channel is a collapsed row showing its type, target and enabled state, and Add channel opens the type picker. The digest schedule moved from the notifications card to Settings > Schedule, next to the other schedules. (#990)

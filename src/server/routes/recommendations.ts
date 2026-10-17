@@ -5,6 +5,7 @@ import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveProviderToken } from '@/core/provider-auth'
+import { deriveStatusFromActions } from '@/core/targets/action-status'
 import {
   hasRetryState,
   hasWaitingAction,
@@ -68,25 +69,6 @@ function summarizeTargetActions(
     }
   }
   return { total: entries.length, succeeded, failed: failures.length, failures, warnings }
-}
-
-/**
- * Derive the persisted recommendation status from the full merged target map
- * (prior attempts plus this one), so retrying one failed target never regresses
- * a rec whose other targets already succeeded.
- */
-function deriveStatusFromActions(
-  mergedActions: Record<string, unknown>,
-  lidarrArtistId: number | string | undefined,
-): string {
-  const entries = Object.entries(mergedActions) as [string, TargetActionRecord][]
-  const anyLidarrAdded = entries.some(
-    ([id, a]) => id.startsWith('lidarr-') && a?.status === 'added',
-  )
-  const anySuccess = entries.some(([, a]) => isTargetSuccess(a))
-  if (hasWaitingAction(mergedActions)) return 'waiting'
-  if (anyLidarrAdded || lidarrArtistId) return 'added_to_lidarr'
-  return anySuccess ? 'approved' : 'add_failed'
 }
 
 type ApprovalMode = 'single_target' | 'combined_lidarr_slskd'
@@ -227,7 +209,7 @@ async function addArtistToTarget(
 ): Promise<TargetExecutionResult> {
   const prior = (addOptions.priorActions as Record<string, unknown> | undefined)?.[target.id]
   if (hasRetryState(prior)) addOptions = { ...prior.retry.options, retryExisting: true }
-  else if (prior && target.type === 'lidarr') addOptions = { ...addOptions, retryExisting: true }
+  else if (target.type === 'lidarr') addOptions = { ...addOptions, retryExisting: true }
   const targetJobId = jobRecorder
     ? await jobRecorder.start({
         type: 'target',

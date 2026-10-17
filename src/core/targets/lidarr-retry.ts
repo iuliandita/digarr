@@ -6,6 +6,7 @@ const BACKOFF = [5, 15, 60, 180]
 
 export function isTemporaryLidarrFailure(error: string): boolean {
   const status = /(?:HTTP|status(?: code)?|returned)\s*[:=]?\s*(\d{3})\b/i.exec(error)?.[1]
+  if (status === '408' || status === '429') return true
   if (status && Number(status) >= 500 && Number(status) < 600) return true
   if (status && Number(status) >= 400 && Number(status) < 500) return false
   if (
@@ -15,7 +16,7 @@ export function isTemporaryLidarrFailure(error: string): boolean {
   )
     return false
   return Boolean(
-    /timeout|timed out|ETIMEDOUT|ECONNREFUSED|ECONNRESET|EHOSTUNREACH|ENOTFOUND|EAI_AGAIN|fetch failed|unable to connect|connection (?:refused|reset)|SkyHook|album not found in Lidarr|metadata (?:server|lookup)|failed to (?:load|fetch|retrieve) (?:artist|album) (?:metadata|from)/i.test(
+    /timeout|timed out|ETIMEDOUT|ECONNREFUSED|ECONNRESET|EHOSTUNREACH|ENOTFOUND|EAI_AGAIN|fetch failed|unable to connect|connection (?:refused|reset)|SkyHook|album not found in Lidarr after adding artist|metadata (?:server|lookup)|failed to (?:load|fetch|retrieve) (?:artist|album) (?:metadata|from)/i.test(
       error,
     ),
   )

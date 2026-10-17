@@ -98,6 +98,7 @@ import {
 import { retryWaitingApprovals } from './core/targets/lidarr-retry-worker'
 import { createSavedPlaylistExportTarget } from './core/targets/saved-playlist-targets'
 import { createSlskdTarget } from './core/targets/slskd'
+import { updateSlskdRecommendationAction } from './core/targets/slskd-recommendation'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { testTargetConnection } from './core/targets/test-connection'
 import type { DestinationTarget } from './core/targets/types'
@@ -414,70 +415,6 @@ function trackInFlight<T>(run: Promise<T>): Promise<T> {
   return run
 }
 
-async function updateSlskdRecommendationAction(
-  recommendationId: number,
-  targetId: number,
-  status: string,
-  error?: string,
-) {
-  const recommendation = await getRecommendation(db, recommendationId)
-  if (!recommendation) {
-    return
-  }
-
-  const jobs = await listSlskdJobsForRecommendationTarget(db, recommendationId, targetId)
-  const activeStates = new Set(['pending', 'searching', 'queued', 'downloading', 'import_pending'])
-  const activeJobs = jobs.filter((job) => activeStates.has(job.state))
-  const completedJobs = jobs.filter((job) => job.state === 'completed')
-  const failedJobs = jobs.filter((job) => job.state === 'failed')
-  const needsReview = failedJobs.some((job) => job.lastError === 'slskd search needs manual review')
-
-  let nextActionStatus = status
-  let nextActionError = error
-
-  if (activeJobs.some((job) => job.state === 'import_pending')) {
-    nextActionStatus = 'import_pending'
-    nextActionError = undefined
-  } else if (activeJobs.some((job) => job.state === 'downloading')) {
-    nextActionStatus = 'downloading'
-    nextActionError = undefined
-  } else if (activeJobs.length > 0) {
-    nextActionStatus = 'queued'
-    nextActionError = undefined
-  } else if (completedJobs.length > 0) {
-    nextActionStatus = 'added'
-    nextActionError = undefined
-  } else if (needsReview) {
-    nextActionStatus = 'needs_review'
-    nextActionError = undefined
-  } else if (failedJobs.length > 0) {
-    nextActionStatus = 'failed'
-    nextActionError =
-      nextActionError ??
-      failedJobs.find((job) => job.lastError && job.lastError.length > 0)?.lastError ??
-      undefined
-  }
-
-  const targetActions = {
-    ...(((recommendation.targetActions as Record<string, unknown> | null) ?? {}) as Record<
-      string,
-      unknown
-    >),
-    [`slskd-${targetId}`]: nextActionError
-      ? { status: nextActionStatus, error: nextActionError }
-      : { status: nextActionStatus },
-  }
-
-  const nextStatus =
-    nextActionStatus === 'failed' && recommendation.status !== 'added_to_lidarr'
-      ? 'add_failed'
-      : recommendation.status
-
-  await updateRecommendationStatus(db, recommendationId, nextStatus, {
-    targetActions,
-  })
-}
-
 const slskdOrchestrator = createSlskdOrchestrator({
   listTargets: async () => {
     const [rows, settings] = await Promise.all([getAllTargets(db), getSettings(db)])
@@ -490,7 +427,18 @@ const slskdOrchestrator = createSlskdOrchestrator({
   createJob: (input) => createSlskdJob(db, input),
   listPendingJobs: (limit) => listPendingSlskdJobs(db, limit),
   updateJobState: (id, state, extra) => updateSlskdJobState(db, id, state, extra),
-  updateRecommendationAction: updateSlskdRecommendationAction,
+  updateRecommendationAction: (id, targetId, status, error) =>
+    updateSlskdRecommendationAction(
+      {
+        getRecommendation: (id) => getRecommendation(db, id),
+        listJobs: (id, targetId) => listSlskdJobsForRecommendationTarget(db, id, targetId),
+        update: (id, status, extra) => updateRecommendationStatus(db, id, status, extra),
+      },
+      id,
+      targetId,
+      status,
+      error,
+    ),
 })
 const providerRegistry = createDefaultRegistry()
 
@@ -1573,6 +1521,17 @@ const server = serve({ fetch: app.fetch, port })
           listWaiting: () => listWaitingApprovals(db),
           getRecommendation: (id) => getRecommendation(db, id),
           getTargets: getEnabledTargetsForResolvedUser,
+          isBlocked: async (rec) => {
+            if (rec.userId == null) return false
+            const [artists, albums] = await Promise.all([
+              getBlockedArtistMbids(db, rec.userId),
+              getBlockedAlbumKeys(db, rec.userId),
+            ])
+            return (
+              artists.has(rec.artist.mbid) ||
+              Boolean(rec.recommendedReleaseGroupId && albums.has(rec.recommendedReleaseGroupId))
+            )
+          },
           update: (id, status, extra) => updateRecommendationStatus(db, id, status, extra),
           recorder: jobRecorder,
           getLocale: async (userId) =>

@@ -40,7 +40,7 @@ describe('Lidarr deferred approvals', () => {
     ['Root folder with id 503 not found', false],
     ['No root folders configured in Lidarr', false],
     ['Invalid quality profile', false],
-    ['album not found in Lidarr', true],
+    ['album not found in Lidarr', false],
   ])('classifies %s as temporary=%s', (error, temporary) => {
     expect(isTemporaryLidarrFailure(error)).toBe(temporary)
   })
@@ -68,6 +68,7 @@ describe('Lidarr deferred approvals', () => {
     const deps: LidarrRetryDeps = {
       listWaiting: async () => (rec.status === 'waiting' ? [rec] : []),
       getRecommendation: async () => rec,
+      isBlocked: vi.fn(async () => false),
       getTargets: vi.fn(async () => [
         {
           id: 'lidarr-1',
@@ -191,6 +192,150 @@ describe('Lidarr deferred approvals', () => {
     await retryWaitingApprovals(deps)
     expect(deps.recorder.start).not.toHaveBeenCalled()
   })
+
+  it.each(['artist', 'album'] as const)(
+    'fails a blocked %s without attempting or alerting',
+    async (kind) => {
+      const { deps, addArtist, getRec } = setup()
+      getRec().kind = kind
+      getRec().recommendedReleaseGroupId = kind === 'album' ? 'rg-1' : null
+      deps.isBlocked = vi.fn(async () => true)
+      await retryWaitingApprovals(deps)
+      expect(deps.isBlocked).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 7,
+          kind,
+          artist: { mbid: 'mbid', name: 'Artist' },
+          recommendedReleaseGroupId: kind === 'album' ? 'rg-1' : null,
+        }),
+      )
+      expect(addArtist).not.toHaveBeenCalled()
+      expect(deps.recorder.start).not.toHaveBeenCalled()
+      expect(getRec().targetActions?.['lidarr-1']).toMatchObject({
+        status: 'failed',
+        error: expect.stringContaining('blocked'),
+      })
+      expect(getRec().status).toBe('add_failed')
+      expect(deps.notify).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([false, true])(
+    'keeps a successful target when another expires (already notified=%s)',
+    async (alreadyNotified) => {
+      const { deps, getRec } = setup()
+      getRec().targetActions = {
+        ...getRec().targetActions,
+        'lidarr-2': { status: 'added', externalId: 42 },
+        ...(alreadyNotified
+          ? { 'lidarr-3': { status: 'failed', failureNotifiedAt: new Date(now).toISOString() } }
+          : {}),
+      }
+      deps.now = () => now + LIDARR_RETRY_WINDOW
+      await retryWaitingApprovals(deps)
+      expect(getRec().status).toBe('added_to_lidarr')
+      expect(deps.notify).toHaveBeenCalledTimes(alreadyNotified ? 0 : 1)
+    },
+  )
+
+  it.each(['getTargets', 'start', 'complete', 'fail', 'update', 'getLocale', 'notify'] as const)(
+    'continues to later candidates when %s throws',
+    async (point) => {
+      const first = setup()
+      const second = setup()
+      second.getRec().id = 2
+      second.getRec().userId = 8
+      const deps = first.deps
+      deps.listWaiting = async () => [first.getRec(), second.getRec()]
+      deps.getRecommendation = async (id) => (id === 1 ? first.getRec() : second.getRec())
+      const originalTargets = deps.getTargets
+      deps.getTargets = vi.fn(async (userId) =>
+        userId === 7 ? originalTargets(userId) : second.deps.getTargets(userId),
+      )
+      const originalUpdate = deps.update
+      deps.update = vi.fn(async (id, status, extra) =>
+        id === 1 ? originalUpdate(id, status, extra) : second.deps.update(id, status, extra),
+      )
+      const failureMessage =
+        'HTTP 503 from https://private-host/path?apikey=secret: password=hunter2'
+      const throwing = vi.fn()
+      if (point === 'getTargets')
+        deps.getTargets = throwing
+          .mockImplementationOnce(async () => {
+            throw new Error(failureMessage)
+          })
+          .mockImplementation(second.deps.getTargets)
+      else if (point === 'update')
+        deps.update = throwing
+          .mockImplementationOnce(async () => {
+            throw new Error(failureMessage)
+          })
+          .mockImplementation(second.deps.update)
+      else if (point === 'getLocale' || point === 'notify') {
+        deps.now = () => now + LIDARR_RETRY_WINDOW
+        if (point === 'getLocale')
+          deps.getLocale = throwing.mockRejectedValueOnce(new Error(failureMessage))
+        else deps.notify = throwing.mockRejectedValueOnce(new Error(failureMessage))
+      } else {
+        if (point === 'fail') first.addArtist.mockResolvedValue(failure)
+        deps.recorder[point] = throwing.mockRejectedValueOnce(new Error(failureMessage))
+      }
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+      try {
+        await retryWaitingApprovals(deps)
+        expect(second.getRec().status).toBe(
+          point === 'getLocale' || point === 'notify' ? 'add_failed' : 'added_to_lidarr',
+        )
+        expect(log).toHaveBeenCalledWith(expect.stringContaining('Recommendation 1'))
+        expect(log.mock.calls.flat().join(' ')).not.toMatch(/private-host|hunter2|apikey=secret/)
+      } finally {
+        log.mockRestore()
+      }
+    },
+  )
+
+  it.each(['getTargets', 'start'] as const)(
+    'expires even when %s keeps throwing',
+    async (point) => {
+      const { deps, addArtist, getRec } = setup()
+      const throwing = vi.fn(async () => {
+        throw new Error('service unavailable')
+      })
+      if (point === 'getTargets') deps.getTargets = throwing
+      else deps.recorder.start = throwing
+      const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+      try {
+        await retryWaitingApprovals(deps)
+        expect(getRec().status).toBe('waiting')
+        deps.now = () => now + LIDARR_RETRY_WINDOW
+        await retryWaitingApprovals(deps)
+        expect(getRec().status).toBe('add_failed')
+        expect(throwing).toHaveBeenCalledTimes(1)
+        expect(addArtist).not.toHaveBeenCalled()
+        expect(deps.notify).toHaveBeenCalledTimes(1)
+      } finally {
+        log.mockRestore()
+      }
+    },
+  )
+
+  it('redacts and caps errors before saving history, retry state, and notifications', async () => {
+    const { deps, addArtist, getRec } = setup()
+    addArtist.mockResolvedValue({
+      ...failure,
+      error: `HTTP 503 from https://host.private/api?apikey=sekret: password=hunter2 ${'x'.repeat(3000)}`,
+    })
+    await retryWaitingApprovals(deps)
+    const error = getRec().lidarrError ?? ''
+    expect(error.length).toBe(2048)
+    expect(error).not.toMatch(/host.private|sekret|hunter2/)
+    expect(deps.recorder.fail).toHaveBeenCalledWith(9, error)
+    deps.now = () => now + LIDARR_RETRY_WINDOW
+    await retryWaitingApprovals(deps)
+    expect(deps.notify).toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining(error) }),
+    )
+  })
 })
 
 it('finishes the saved combined acquisition only after Lidarr recovers', async () => {
@@ -218,6 +363,7 @@ it('finishes the saved combined acquisition only after Lidarr recovers', async (
   const deps: LidarrRetryDeps = {
     listWaiting: async () => [rec],
     getRecommendation: async () => rec,
+    isBlocked: vi.fn(async () => false),
     getTargets: async () => [
       {
         id: 'lidarr-1',

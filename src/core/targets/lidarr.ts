@@ -172,7 +172,9 @@ export function createLidarrTarget(
             success: false,
             targetType: 'lidarr',
             targetId,
-            error: 'album not found in Lidarr',
+            error: existing
+              ? 'album not found in Lidarr'
+              : 'album not found in Lidarr after adding artist (metadata may still be refreshing)',
           }
         }
 

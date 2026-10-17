@@ -7,6 +7,7 @@ vi.mock('@/core/clients/lidarr', () => ({
 
 const { createLidarrClient } = await import('@/core/clients/lidarr')
 const { createLidarrTarget } = await import('@/core/targets/lidarr')
+const { targetAction } = await import('@/core/targets/lidarr-retry')
 
 function mockLidarrClient() {
   const client = {
@@ -122,12 +123,14 @@ describe('createLidarrTarget().addAlbum', () => {
     )
 
     expect(result?.success).toBe(false)
-    expect(result?.error).toBeTruthy()
+    expect(result?.error).toBe('album not found in Lidarr')
+    if (!result) throw new Error('missing target result')
+    expect(targetAction(target, result, {}).status).toBe('failed')
     expect(client.setAlbumsMonitored).not.toHaveBeenCalled()
     expect(client.triggerCommand).not.toHaveBeenCalled()
   })
 
-  it('returns success:false with "album not found in Lidarr" when the release group is absent after add', async () => {
+  it('defers an absent album only when the artist was added in this attempt', async () => {
     vi.useFakeTimers()
     try {
       const client = mockLidarrClient()
@@ -151,7 +154,11 @@ describe('createLidarrTarget().addAlbum', () => {
       const result = await pending
 
       expect(result?.success).toBe(false)
-      expect(result?.error).toBe('album not found in Lidarr')
+      expect(result?.error).toBe(
+        'album not found in Lidarr after adding artist (metadata may still be refreshing)',
+      )
+      if (!result) throw new Error('missing target result')
+      expect(targetAction(target, result, {}).status).toBe('waiting')
       expect(client.setAlbumsMonitored).not.toHaveBeenCalled()
       expect(client.triggerCommand).not.toHaveBeenCalled()
     } finally {
