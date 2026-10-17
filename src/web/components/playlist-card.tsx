@@ -3,12 +3,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
-import {
-  deletePlaylistApi,
-  generatePlaylistApi,
-  type PlaylistRow,
-  updatePlaylistApi,
-} from '../lib/api'
+import { deletePlaylistApi, generatePlaylistApi, type PlaylistRow } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { formatShortDate } from '../lib/intl'
 import { ConfirmDialog } from './confirm-dialog'
@@ -54,37 +49,6 @@ const STRATEGY_BADGES: Record<string, { label: string; className: string }> = {
   rediscover: { label: 'playlist.strategyRediscover', className: 'bg-amber-500/15 text-amber-400' },
 }
 
-// Toggle (inline switch)
-
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean
-  onChange: (v: boolean) => void
-  label: string
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      aria-label={label}
-      onClick={() => onChange(!checked)}
-      className={`shrink-0 w-9 h-5 rounded-full transition-colors relative ${
-        checked ? 'bg-approve' : 'bg-border'
-      }`}
-    >
-      <span
-        className={`absolute top-0.5 w-4 h-4 rounded-full bg-bg transition-transform ${
-          checked ? 'left-4' : 'left-0.5'
-        }`}
-      />
-    </button>
-  )
-}
-
 // PlaylistCard
 
 type PlaylistCardProps = {
@@ -118,15 +82,6 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
       toast.error(t('playlist.generateFailed'))
     } finally {
       setGenerating(false)
-    }
-  }
-
-  async function handleToggle(enabled: boolean) {
-    try {
-      await updatePlaylistApi(playlist.id, { enabled })
-      onRefetch()
-    } catch {
-      toast.error(t('playlists.updateFailed'))
     }
   }
 
@@ -241,18 +196,8 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
             <Trash2 size={14} aria-hidden="true" />
           </button>
         </div>
-
-        {/* Right: enabled toggle */}
-        <Toggle
-          checked={playlist.enabled}
-          onChange={handleToggle}
-          label={playlist.enabled ? t('playlist.disable') : t('playlist.enable')}
-        />
       </div>
 
-      {!playlist.enabled && (
-        <p className="text-micro text-muted/60 text-center -mt-1">{t('common.disabled')}</p>
-      )}
       {showDeleteConfirm && (
         // Dialog events bubble through the React tree to the card's navigate handlers
         <div role="none" onClick={stopBubble} onKeyDown={stopBubble}>

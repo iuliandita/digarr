@@ -17,7 +17,7 @@ operation, without touching or modifying the source.
 - **Rolling back**: if you want to return to embedded PGlite after running on
   a PostgreSQL server, the same tool runs in reverse.
 
-The migration tool is for backend changes only. For selected application-data exports, use Backup & Restore (Settings > Administration). For complete disaster recovery, take a consistent database backup as described below.
+The migration tool is for backend changes only. For selected application-data exports, use Backup & Restore (Settings > Administration). For complete disaster recovery, take a consistent database backup as described below. The copy reads the running database, which has already applied migration 0057, so copied playlists keep the schedules that migration cleared on disabled playlists.
 
 ---
 

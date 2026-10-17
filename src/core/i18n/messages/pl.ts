@@ -508,13 +508,11 @@ export const pl = {
     'Wygeneruj tę playlistę z oczekujących wykonawców, aby posłuchać ich przed zatwierdzeniem.',
   'playlist.detailActionsHint':
     'Po wygenerowaniu pobierz utwory jako M3U lub XSPF albo dodaj cel playlisty, aby automatycznie wysyłać kolejne generacje do Navidrome, Jellyfin lub Plex.',
-  'playlist.disable': 'Wyłącz playlistę',
   'playlist.download': 'Pobierz',
   'playlist.downloadFailed': 'Nie udało się pobrać playlisty',
   'playlist.downloaded': 'pobrany',
   'playlist.downloading': 'Pobieram...',
   'playlist.edit': 'Edytuj playlistę',
-  'playlist.enable': 'Włącz playlistę',
   'playlist.generateFailed': 'Nie udało się rozpocząć generowania',
   'playlist.generateNow': 'Generuj teraz',
   'playlist.generatingNamed': 'Rozpoczęto generowanie playlisty',

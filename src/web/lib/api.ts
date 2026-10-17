@@ -1135,7 +1135,6 @@ export type PlaylistInsert = {
   targetIds?: number[]
   schedule?: string | null
   config?: PlaylistConfig | null
-  enabled?: boolean
 }
 
 export const getPlaylists = () => fetchApi<PlaylistRow[]>('/playlists')

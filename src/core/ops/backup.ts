@@ -742,6 +742,15 @@ export async function restoreBackup(
         WHERE user_id IS NULL
       `)
     }
+
+    // Same rule as migration 0057: older backups can carry disabled playlists that still have a schedule.
+    if (tablesRestored.playlists) {
+      await tx.execute(sql`
+        UPDATE playlists
+        SET schedule = NULL, enabled = true
+        WHERE enabled = false AND schedule IS NOT NULL
+      `)
+    }
   })
 
   return {
