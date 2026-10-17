@@ -177,11 +177,12 @@ export async function multiSourceSearch(
 
   // A name-only row (source gave no MBID) duplicates an MBID row for the same artist: fold it in.
   const normalizeKey = (name: string) => name.toLowerCase().trim()
-  const mbidRowByName = new Map<string, MergedSearchResult>()
+  // null marks a name shared by several MBID rows: folding there would pick an artist at random.
+  const mbidRowByName = new Map<string, MergedSearchResult | null>()
   for (const row of byKey.values()) {
-    if (row.mbid && !mbidRowByName.has(normalizeKey(row.name))) {
-      mbidRowByName.set(normalizeKey(row.name), row)
-    }
+    if (!row.mbid) continue
+    const name = normalizeKey(row.name)
+    mbidRowByName.set(name, mbidRowByName.has(name) ? null : row)
   }
   for (const [key, row] of [...byKey]) {
     if (row.mbid) continue

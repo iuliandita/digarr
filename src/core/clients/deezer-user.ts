@@ -72,24 +72,25 @@ export function createDeezerUserClient(accessToken: string) {
   const MAX_PAGES = 20
 
   // Follows Deezer's `next` marker by advancing `index`; capped so a looping API cannot spin.
-  async function paginate<T>(path: string, limit: number): Promise<T[]> {
+  async function paginate<T>(path: string, pageSize: number, max = Infinity): Promise<T[]> {
     const items: T[] = []
     let index = 0
-    for (let page = 0; page < MAX_PAGES; page++) {
+    for (let page = 0; page < MAX_PAGES && items.length < max; page++) {
       const res = await request<{ data?: T[]; next?: string }>(
-        `${path}&limit=${limit}&index=${index}`,
+        `${path}&limit=${pageSize}&index=${index}`,
       )
       const batch = res.data ?? []
       items.push(...batch)
       if (!res.next || batch.length === 0) break
       index += batch.length
     }
-    return items
+    return items.slice(0, max)
   }
 
   async function getFavoriteArtists(limit = 100): Promise<DeezerUserArtist[]> {
     const data = await paginate<DeezerArtistResponse['data'][number]>(
       `/user/me/artists?${authParam()}`,
+      Math.min(limit, 100),
       limit,
     )
     return data.map((a) => ({ id: a.id, name: a.name, fans: a.nb_fan }))

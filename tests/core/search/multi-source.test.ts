@@ -243,6 +243,16 @@ describe('multiSourceSearch', () => {
     expect(results[0]?.sources.map((s) => s.id).sort()).toEqual(['a', 'b'])
   })
 
+  it('keeps a name-only row separate when two MBID rows share the name', async () => {
+    const withMbids = makeSource('a', [
+      { name: 'Nirvana', mbid: mbid1, images: [], genres: [], sourceId: 'a' },
+      { name: 'Nirvana', mbid: mbid2, images: [], genres: [], sourceId: 'a' },
+    ])
+    const nameOnly = makeSource('b', [{ name: 'nirvana', images: [], genres: [], sourceId: 'b' }])
+    const results = await multiSourceSearch('nirvana', [withMbids, nameOnly])
+    expect(results).toHaveLength(3)
+  })
+
   it.each([
     ['東京事変', '東京事変'],
     ['Кино', 'кино'],

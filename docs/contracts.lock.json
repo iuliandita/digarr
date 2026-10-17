@@ -502,8 +502,8 @@
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
         "src/core/clients/audiodb.ts": "64b82bbbe59efa17f758c59256cf9e990c906024d6255af8db20317ea85076b4",
-        "src/core/clients/bandcamp.ts": "1fe1919bdee622b51e027ca6576b0fe5c4cfdc28a8441524aedb17237deb3446",
-        "src/core/clients/deezer-user.ts": "ae9e51a89ff9a96f9e40d62ffb00ca44df8086941675d1f559dc0239779177da",
+        "src/core/clients/bandcamp.ts": "bbb6516aa3ccd5beee720839f62b323b9c496de0b9d29a1e952206c746b28ba4",
+        "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "58c31bf15f98c55afb38368f7d5c81288efc40edd36be0930427e752c7bdc9db",
@@ -641,7 +641,7 @@
         "src/core/recommendations/statuses.ts": "48cbcfd6da3f6bcf385d6223e7272a29dedc2a6a8f28773ed8db30d7cfa75d10",
         "src/core/search/catalog.ts": "ee498df214395f2ab06dde163501b63a68b61495ff470a4315706a2d7281eafd",
         "src/core/search/enrich.ts": "f9338f83f54adffc5557e715b10b977e1b203f1a222ba788611789a27eee37ab",
-        "src/core/search/multi-source.ts": "ec61dfbe46a39ae863ee7c6d57de5b6c0c45c0c9212ea4ce49bb8521bc099700",
+        "src/core/search/multi-source.ts": "177cf49dba0be2c7a43118d03e97299186ac36df6d29d93dad683dc8a5d0fb6c",
         "src/core/search/relevance.ts": "1cb5314282187c74d205e7db0fce7d7b85e01053cba8b35d56f5b7cbab1b2e3f",
         "src/core/search/sources/bandcamp.ts": "8600f3f41d1b4937a4fc2540082669e6193d445e6b3e6672ff5ea5c82cb11199",
         "src/core/search/sources/deezer.ts": "1658c028a61594689096c4aa9ad1a7cec3c37fbdc7739532834e5f070eefa8d8",
@@ -694,14 +694,14 @@
         "src/index.ts": "28eab7649ed1ccb7d60b8335ab43e9803add3300786a3d4456136c5a423fd27d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "fcd53c4e2b07c9be99c1595229f715e98ed661f8eb98f68e4b5f5972efe27ff8",
+      "digest": "36821d578fea64e0791dd4f1f26af0ee2b3775710f42c4831cfba2b6544745a4",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "Behavior fixes across integrations, pipeline dedup, scoring, search, discovery modes, scheduler init, and playlist CSV export, each listed under Fixed in the changelog; API-visible effects are in docs/API.md.",
+        "note": "Behavior fixes across integrations, pipeline dedup, scoring, search, discovery modes, scheduler init, and playlist CSV export, each listed under Fixed in the changelog; API-visible effects are in docs/API.md. Deezer artist paging stops at the requested limit, ambiguous same-name search rows are not merged, and the Bandcamp guard checks every resolved address.",
         "breaking": "none",
         "migration": "",
-        "digest": "fcd53c4e2b07c9be99c1595229f715e98ed661f8eb98f68e4b5f5972efe27ff8"
+        "digest": "36821d578fea64e0791dd4f1f26af0ee2b3775710f42c4831cfba2b6544745a4"
       }
     },
     "deployment": {

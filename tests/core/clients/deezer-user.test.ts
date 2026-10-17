@@ -119,6 +119,18 @@ describe('createDeezerUserClient', () => {
       expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=25'))
     })
 
+    it('stops paging once the limit is reached', async () => {
+      const page = (start: number) =>
+        Array.from({ length: 3 }, (_, i) => ({ id: start + i, name: `A${start + i}`, nb_fan: 1 }))
+      mockGet.mockResolvedValueOnce({ data: page(0), next: 'more' })
+
+      const client = createDeezerUserClient('test-token')
+      const result = await client.getFavoriteArtists(3)
+
+      expect(result.map((a) => a.id)).toEqual([0, 1, 2])
+      expect(mockGet).toHaveBeenCalledTimes(1)
+    })
+
     it('returns empty array when data is absent', async () => {
       mockGet.mockResolvedValueOnce({})
 

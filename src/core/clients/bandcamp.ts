@@ -19,8 +19,10 @@ const MAX_REDIRECTS = 3
 
 async function assertPublicUrl(url: string): Promise<void> {
   if (isPrivateUrl(url)) throw new Error('URL points to a private/internal address')
-  const { address } = await dns.lookup(getLookupHostname(url))
-  if (isPrivateIp(address)) throw new Error('URL resolves to a private/internal IP')
+  const addresses = await dns.lookup(getLookupHostname(url), { all: true })
+  if (addresses.some(({ address }) => isPrivateIp(address))) {
+    throw new Error('URL resolves to a private/internal IP')
+  }
 }
 
 async function readCapped(res: Response): Promise<string> {
@@ -227,6 +229,7 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
         const location = res.headers.get('location')
         if (guard && res.status >= 300 && res.status < 400 && location) {
           url = new URL(location, url).toString()
+          await res.body?.cancel()
           continue
         }
         if (!res.ok) {
