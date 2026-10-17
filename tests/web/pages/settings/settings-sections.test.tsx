@@ -8,6 +8,7 @@ import * as api from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 import { LidarrPreferencesSection } from '@/web/pages/settings/lidarr-preferences'
 import { NotificationChannelsCard } from '@/web/pages/settings/notification-channels'
+import { ScheduleTab } from '@/web/pages/settings/schedule-tab'
 import { TargetsTab } from '@/web/pages/settings/targets-tab'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
@@ -120,22 +121,66 @@ describe('LidarrPreferencesSection', () => {
   })
 })
 
-describe('NotificationChannelsCard digest schedule', () => {
-  it('sends an empty digest cron when the field is cleared', async () => {
+describe('NotificationChannelsCard', () => {
+  const channels = [
+    { id: 'a', type: 'webhook', url: 'https://hooks.example.com/x', enabled: true, events: [] },
+    { id: 'b', type: 'telegram', botToken: '***', chatId: '42', enabled: false, events: [] },
+  ]
+
+  it('shows a collapsed channel summary', () => {
     renderWithQuery(
       <NotificationChannelsCard
-        settings={{ preferences: { channels: [], digestCron: '0 6 * * 1' } } as never}
+        settings={{ preferences: { channels } } as never}
         isAdmin
         onSaved={() => {}}
       />,
     )
 
-    // Disclosure panels stay mounted while collapsed, so the field is reachable directly.
-    fireEvent.change(screen.getByDisplayValue('0 6 * * 1'), { target: { value: '' } })
-    fireEvent.click(screen.getByText('Save', { selector: 'button' }))
+    expect(screen.getByText('2 channels, 1 enabled')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Notifications/ })).toHaveAttribute(
+      'aria-expanded',
+      'false',
+    )
+  })
+
+  it('reveals the type picker only after Add channel', () => {
+    renderWithQuery(
+      <NotificationChannelsCard
+        settings={{ preferences: { channels: [] } } as never}
+        isAdmin
+        onSaved={() => {}}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
+    expect(screen.queryByRole('combobox', { name: 'Type' })).not.toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Add channel' }))
+    expect(screen.getByRole('combobox', { name: 'Type' })).toBeInTheDocument()
+  })
+})
+
+describe('ScheduleTab digest schedule', () => {
+  it('saves the digest cron from the Schedule tab', async () => {
+    const onSaved = vi.fn()
+    renderWithQuery(
+      <ScheduleTab
+        settings={
+          {
+            preferences: { scheduleCron: '0 0 * * *', digestCron: '0 6 * * 1' },
+            librarySyncIntervalHours: 6,
+          } as never
+        }
+        onSaved={onSaved}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+    fireEvent.change(screen.getByDisplayValue('0 6 * * 1'), { target: { value: '0 7 * * 1' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
     await waitFor(() => expect(mocked.updateSettings).toHaveBeenCalled())
     const prefs = mocked.updateSettings.mock.calls[0]?.[0]?.preferences as Record<string, unknown>
-    expect(prefs.digestCron).toBe('')
+    expect(prefs.digestCron).toBe('0 7 * * 1')
+    await waitFor(() => expect(onSaved).toHaveBeenCalled())
   })
 })

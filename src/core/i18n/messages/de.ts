@@ -1809,6 +1809,10 @@ export const de = {
   'settings.channels.description':
     'Sende Scan-Abschluss- und Zusammenfassungs-Benachrichtigungen an einen oder mehrere Kanäle.',
   'settings.channels.add': 'Kanal hinzufügen',
+  'settings.channels.addConfirm': 'Hinzufügen',
+  'settings.channels.summary': '{0} Kanäle, {1} aktiviert',
+  'settings.channels.summarySingle': '1 Kanal, {0} aktiviert',
+  'settings.channels.disabled': 'Deaktiviert',
   'settings.channels.empty': 'Noch keine Kanäle konfiguriert.',
   'settings.channels.type': 'Typ',
   'settings.channels.enabled': 'Aktiviert',

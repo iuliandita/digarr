@@ -1773,6 +1773,10 @@ export const tr = {
   'settings.channels.description':
     'Tarama tamamlanma ve özet bildirimlerini bir veya daha fazla kanala gönder.',
   'settings.channels.add': 'Kanal ekle',
+  'settings.channels.addConfirm': 'Ekle',
+  'settings.channels.summary': '{0} kanal, {1} etkin',
+  'settings.channels.summarySingle': '1 kanal, {0} etkin',
+  'settings.channels.disabled': 'Devre dışı',
   'settings.channels.empty': 'Henüz yapılandırılmış kanal yok.',
   'settings.channels.type': 'Tür',
   'settings.channels.enabled': 'Etkin',

@@ -1794,6 +1794,10 @@ export const ptBR = {
   'settings.channels.description':
     'Envie notificações de conclusão de varredura e de resumo para um ou mais canais.',
   'settings.channels.add': 'Adicionar canal',
+  'settings.channels.addConfirm': 'Adicionar',
+  'settings.channels.summary': '{0} canais, {1} ativados',
+  'settings.channels.summarySingle': '1 canal, {0} ativado',
+  'settings.channels.disabled': 'Desativado',
   'settings.channels.empty': 'Nenhum canal configurado ainda.',
   'settings.channels.type': 'Tipo',
   'settings.channels.enabled': 'Ativado',
