@@ -318,7 +318,9 @@ releases from artists the user already tracks. These appear in Discover under th
 Artist seeds come from ListenBrainz, Spotify, or Last.fm; Plex listening history
 does not currently supply this mode. Release metadata comes from MusicBrainz.
 Kind-aware dedup keeps one album recommendation per release, including several
-releases from the same artist in one scan window.
+releases from the same artist in one scan window. The filter stage also drops albums
+already in the user's synced library, matched by release-group MBID, or by artist
+MBID plus normalized title for owned rows without an album MBID.
 
 ### Library gap-fill
 

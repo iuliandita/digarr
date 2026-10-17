@@ -5,6 +5,7 @@ import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
+import { normalizeAlbumTitle } from '@/core/library/normalize'
 import { dispatch } from '@/core/notifications'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
@@ -18,6 +19,7 @@ import { createSubsonicSource } from '@/core/plugins/subsonic'
 import type { AiProviderRegistry } from '@/core/providers/registry'
 import type { DiscoveredArtist } from '@/core/types'
 import { errMsg } from '@/core/validation'
+import { type OwnedAlbumKeys, ownedAlbumTitleKey } from '@/db/queries/library-albums'
 import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import { analyze } from './analyze'
@@ -84,21 +86,34 @@ export type AlbumFilterSets = {
   blockedArtistMbids: Set<string>
   blockedAlbumKeys: Set<string>
   existingAlbumRgs: Set<string>
+  owned?: OwnedAlbumKeys
 }
 
 /**
  * Pure predicate: should an album-kind candidate be dropped from the pipeline?
  * Drops when its artist is blocked (cascade), the album itself is blocked, or
- * the album release group is already recommended. No IO.
+ * the album release group is already recommended or already owned in the synced
+ * library (by release-group MBID, else artist MBID + normalized title). No IO.
  */
 export function shouldDropAlbumCandidate(
-  candidate: { artistMbid: string; releaseGroupMbid: string },
+  candidate: { artistMbid: string; releaseGroupMbid: string; title?: string },
   sets: AlbumFilterSets,
 ): boolean {
-  return (
+  if (
     sets.blockedArtistMbids.has(candidate.artistMbid) ||
     sets.blockedAlbumKeys.has(candidate.releaseGroupMbid) ||
     sets.existingAlbumRgs.has(candidate.releaseGroupMbid)
+  ) {
+    return true
+  }
+  const owned = sets.owned
+  if (!owned) return false
+  if (owned.releaseGroupMbids.has(candidate.releaseGroupMbid)) return true
+  return (
+    candidate.title !== undefined &&
+    owned.artistTitleKeys.has(
+      ownedAlbumTitleKey(candidate.artistMbid, normalizeAlbumTitle(candidate.title)),
+    )
   )
 }
 
@@ -525,12 +540,17 @@ export class PipelineOrchestrator extends EventEmitter {
           (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId, {
             rejectionCooldownDays: prefs.rejectionCooldownDays,
           })) ?? new Set<string>(),
+        owned: deps.userId !== undefined ? await db.getOwnedAlbumKeys?.(deps.userId) : undefined,
       }
       const albumAware = scored.filter((c) => {
         // Not an album candidate -> keep; the artist filter path handles it.
         if (c.kind !== 'album' || !c.releaseGroupMbid) return true
         return !shouldDropAlbumCandidate(
-          { artistMbid: c.mbid, releaseGroupMbid: c.releaseGroupMbid },
+          {
+            artistMbid: c.mbid,
+            releaseGroupMbid: c.releaseGroupMbid,
+            title: c.suggestedAlbum?.title,
+          },
           albumSets,
         )
       })

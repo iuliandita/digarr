@@ -1111,6 +1111,34 @@ describe('PipelineOrchestrator', () => {
     expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
   })
 
+  it('drops a release-radar album already owned in the synced library', async () => {
+    const getOwnedAlbumKeys = vi.fn().mockResolvedValue({
+      releaseGroupMbids: new Set(['rg-new']),
+      artistTitleKeys: new Set<string>(),
+    })
+    const db = {
+      ...makeDb(),
+      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
+      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
+      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set<string>()),
+      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
+      getOwnedAlbumKeys,
+    }
+    mockScore.mockReturnValue(albumScored as never)
+    mockFilter.mockImplementation((artists) => artists as never)
+
+    await orchestrator.run({
+      db,
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+    })
+
+    expect(getOwnedAlbumKeys).toHaveBeenCalledWith(1)
+    expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
+  })
+
   it('fire-and-forgets first library sync when user has no prior sync state', async () => {
     const db = makeDb()
     const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
