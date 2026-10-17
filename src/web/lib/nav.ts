@@ -7,7 +7,6 @@ import {
   LayoutDashboard,
   ListMusic,
   type LucideIcon,
-  RefreshCw,
   Search,
 } from 'lucide-react'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -55,23 +54,17 @@ export const PRIMARY_NAV: NavItem[] = [
 // Admin-only; the server enforces access, this only controls what the nav offers.
 export const TOOLS_NAV: NavItem[] = [
   {
-    to: '/library/health',
-    labelKey: 'nav.health',
+    to: '/library?tab=health',
+    labelKey: 'nav.library',
     icon: HeartPulse,
-    isActive: under('/library/health'),
-  },
-  {
-    to: '/library/reconciliation',
-    labelKey: 'nav.reconciliation',
-    icon: RefreshCw,
-    isActive: under('/library/reconciliation'),
+    isActive: under('/library'),
   },
   { to: '/analytics', labelKey: 'nav.analytics', icon: BarChart3, isActive: under('/analytics') },
   {
-    to: '/settings?tab=jobs',
+    to: '/settings?tab=system#jobs',
     labelKey: 'jobHistory.title',
     icon: History,
-    isActive: (location) => settingsTab(location) === 'jobs',
+    isActive: (location) => settingsTab(location) === 'system',
   },
 ]
 
@@ -91,7 +84,7 @@ export const DISCOVER_TABS: Omit<NavItem, 'icon'>[] = [
 
 export function isSettingsActive(location: Location): boolean {
   return (
-    (location.pathname === '/settings' && settingsTab(location) !== 'jobs') ||
+    (location.pathname === '/settings' && settingsTab(location) !== 'system') ||
     location.pathname === '/users'
   )
 }

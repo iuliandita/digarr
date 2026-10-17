@@ -3,13 +3,11 @@ import { useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AdministrationTab } from '../../components/admin/administration-tab'
 import { OAuthCallbackNotice } from '../../components/oauth-callback-notice'
-import { SystemHealthCard } from '../../components/system-health-card'
 import { Button } from '../../components/ui/button'
 import { PageHeader } from '../../components/ui/page-header'
 import { Skeleton } from '../../components/ui/skeleton'
 import { getCurrentUser, getSettings } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
-import JobHistoryPage from '../job-history'
 import { UserManagementPage } from '../user-management'
 import { AccountTab } from './account-tab'
 import { AuthTab } from './auth-tab'
@@ -17,6 +15,7 @@ import { ConnectionsTab } from './connections-tab'
 import { RecommendationsTab } from './recommendations-tab'
 import { ScheduleTab } from './schedule-tab'
 import { SettingsNav } from './settings-nav'
+import { SystemTab } from './system-tab'
 import { LEGACY_BLOCKED_TAB, resolveTab, type Tab } from './tabs'
 import { TargetsTab } from './targets-tab'
 
@@ -56,9 +55,17 @@ export function SettingsPage() {
     if (userPending || requestedTab === null || requestedTab === tab) return
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('tab', tab)
-    if (requestedTab === LEGACY_BLOCKED_TAB) {
+    const legacyHash =
+      requestedTab === LEGACY_BLOCKED_TAB
+        ? '#blocked'
+        : tab === 'system' && requestedTab === 'jobs'
+          ? '#jobs'
+          : tab === 'system' && requestedTab === 'system-health'
+            ? '#health'
+            : null
+    if (legacyHash) {
       navigate(
-        { pathname: location.pathname, search: nextParams.toString(), hash: '#blocked' },
+        { pathname: location.pathname, search: nextParams.toString(), hash: legacyHash },
         { replace: true },
       )
       return
@@ -121,8 +128,7 @@ export function SettingsPage() {
           {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
           {tab === 'users' && <UserManagementPage embedded />}
           {tab === 'administration' && <AdministrationTab />}
-          {tab === 'jobs' && <JobHistoryPage embedded />}
-          {tab === 'system-health' && <SystemHealthCard embedded />}
+          {tab === 'system' && <SystemTab />}
         </div>
       </div>
     </div>
