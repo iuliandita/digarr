@@ -24,7 +24,7 @@ export function requireUser(c: Context<HonoEnv>): RequireUserResult {
   return { ok: true, userId }
 }
 
-/** Caller is authenticated by a real session. Rejects legacy-token auth (userId=1). */
+/** Per-user auth, including personal tokens. Rejects the legacy deployment token (userId=1). */
 export function requireSessionUser(c: Context<HonoEnv>): RequireUserResult {
   const auth = requireUser(c)
   if (!auth.ok) return auth
@@ -44,7 +44,7 @@ export async function requireAdmin(
   }
   const auth = requireUser(c)
   if (!auth.ok) return auth
-  const isAdmin = await resolveAdmin(auth.userId, getUserById, false, c.get('legacyTokenAuth'))
+  const isAdmin = await resolveAdmin(c, getUserById)
   if (!isAdmin) {
     return { ok: false, response: adminRequired(c) }
   }

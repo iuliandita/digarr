@@ -1,4 +1,4 @@
-import { Hono } from 'hono'
+import { type Context, Hono } from 'hono'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import {
   type LidarrDefaults,
@@ -11,7 +11,7 @@ import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { notFoundProblem } from '@/server/helpers/problem'
-import { adminGuard } from '@/server/middleware/admin-guard'
+import { adminGuard, effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import {
   approveOptionsQuerySchema,
   lidarrAddSchema,
@@ -76,7 +76,11 @@ export function lidarrRoutes(deps: AppDependencies) {
   // as RootFolder carries freeSpace (and the types may gain fields later).
   // With ?targetId the lists and defaults come from the Lidarr instance that
   // target actually uses, so a separate instance never shows server IDs.
-  async function picker(targetId: number | undefined, userId: number | undefined) {
+  async function picker(
+    c: Context<HonoEnv>,
+    targetId: number | undefined,
+    userId: number | undefined,
+  ) {
     let client: ReturnType<typeof createLidarrClient>
     let defaults: LidarrDefaults
     if (targetId === undefined) {
@@ -85,7 +89,11 @@ export function lidarrRoutes(deps: AppDependencies) {
     } else {
       const target = await deps.targetQueries.getTarget(targetId)
       const caller = userId ? await deps.getUserById(userId) : null
-      if (target?.type !== 'lidarr' || !caller || (!caller.isAdmin && target.userId !== userId)) {
+      if (
+        target?.type !== 'lidarr' ||
+        !caller ||
+        (!effectiveIsAdmin(c, caller) && target.userId !== userId)
+      ) {
         return null
       }
       const connection = resolveLidarrTargetConnection(target.config, await deps.getSettings())
@@ -104,7 +112,7 @@ export function lidarrRoutes(deps: AppDependencies) {
     zQuery(approveOptionsQuerySchema),
     zJson(lidarrTagSchema),
     async (c) => {
-      const resolved = await picker(c.req.valid('query').targetId, c.get('userId'))
+      const resolved = await picker(c, c.req.valid('query').targetId, c.get('userId'))
       if (!resolved)
         return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
       const tag = await resolved.client.createTag(c.req.valid('json').label)
@@ -113,7 +121,7 @@ export function lidarrRoutes(deps: AppDependencies) {
   )
 
   router.get('/api/v1/lidarr/approve-options', zQuery(approveOptionsQuerySchema), async (c) => {
-    const resolved = await picker(c.req.valid('query').targetId, c.get('userId'))
+    const resolved = await picker(c, c.req.valid('query').targetId, c.get('userId'))
     if (!resolved)
       return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
     const { client, defaults } = resolved

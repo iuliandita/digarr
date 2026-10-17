@@ -10,7 +10,7 @@ import { playlists } from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
 
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
-const retireSql = readFileSync('drizzle/0057_playlist_enabled_retire.sql', 'utf8')
+const retireSql = readFileSync('drizzle/0058_playlist_enabled_retire.sql', 'utf8')
 
 describe('playlist enabled retirement migration', () => {
   it('clears schedules on disabled playlists, leaves other rows alone, and is safe to re-run', async () => {
