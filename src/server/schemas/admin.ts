@@ -14,7 +14,11 @@ export const backupDataSchema = z.strictObject({
   settings: tableArray,
   users: tableArray,
   oauthTokens: tableArray,
-  apiTokens: tableArray.optional(),
+  // Accept and discard credentials from older exports, regardless of their shape.
+  apiTokens: z
+    .unknown()
+    .transform(() => undefined)
+    .optional(),
   oidcTokens: tableArray.optional(),
   targets: tableArray,
   subscriptions: tableArray,

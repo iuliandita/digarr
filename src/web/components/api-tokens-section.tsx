@@ -83,6 +83,7 @@ export function ApiTokensSection({ isAdmin }: { isAdmin: boolean }) {
     <section className="space-y-3">
       <h2 className="text-lead font-semibold text-text">{t('tokens.title')}</h2>
       <p className="text-sm text-muted">{t('tokens.description')}</p>
+      <p className="text-sm text-muted">{t('tokens.passwordWarning')}</p>
       {isPending && <p role="status">{t('common.loading')}</p>}
       {error && (
         <p role="alert" className="text-sm text-muted">

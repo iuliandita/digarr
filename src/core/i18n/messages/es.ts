@@ -1,6 +1,8 @@
 export const es = {
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dale a cada script tuyo una credencial que puedas revocar.',
+  'tokens.passwordWarning':
+    'Cambiar la contraseña y cerrar sesión no desactiva los tokens de API. Revócalos si tu contraseña se vio comprometida.',
   'tokens.empty': 'Todavía no tienes tokens de API.',
   'tokens.prefix': 'Prefijo del token',
   'tokens.scope': 'Permisos',

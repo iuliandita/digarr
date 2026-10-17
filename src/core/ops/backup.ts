@@ -52,7 +52,6 @@ import type {
 } from './types'
 
 type BackupTable =
-  | typeof apiTokens
   | typeof albumBlocks
   | typeof artistBlocks
   | typeof artistGenreAliases
@@ -228,7 +227,6 @@ async function readBackup(
       settings: settingsRows,
       users: userRows,
       oauthTokens: oauthRows,
-      apiTokens: await read(apiTokens),
       targets: targetRows,
       subscriptions: subRows,
       jobRuns: jobRunRows,
@@ -459,7 +457,6 @@ const RESTORE_ORDER = [
     recordingArtistCache,
     recordingArtistCache.recordingMbid,
   ),
-  createRestoreSpec('apiTokens', apiTokens, apiTokens.tokenHash),
   createRestoreSpec('oauthTokens', oauthTokens),
   createRestoreSpec('targets', targets),
   createRestoreSpec('subscriptions', subscriptions),
@@ -543,14 +540,16 @@ export class PartialBackupConflictError extends Error {
 async function checkRestoreSafety(tx: RestoreTx, backup: BackupFile): Promise<void> {
   const included = RESTORE_ORDER.filter((spec) => Array.isArray(backup.data[spec.key]))
   const includedTables = new Set<AnyPgTable>(included.map((spec) => spec.table))
-  const omittedReferences = RESTORE_ORDER.filter((spec) => !includedTables.has(spec.table)).map(
-    (spec) => ({
-      spec,
-      references: getTableConfig(spec.table)
-        .foreignKeys.map((fk) => fk.reference())
-        .filter((ref) => includedTables.has(ref.foreignTable)),
-    }),
-  )
+  const omittedReferences = [
+    ...RESTORE_ORDER.filter((spec) => !includedTables.has(spec.table)),
+    // User replacement must not cascade-delete excluded credentials.
+    { key: 'apiTokens', table: apiTokens },
+  ].map((spec) => ({
+    spec,
+    references: getTableConfig(spec.table)
+      .foreignKeys.map((fk) => fk.reference())
+      .filter((ref) => includedTables.has(ref.foreignTable)),
+  }))
   const lockedTables = new Set<AnyPgTable>(includedTables)
   for (const { spec, references } of omittedReferences) {
     if (references.length > 0) lockedTables.add(spec.table)

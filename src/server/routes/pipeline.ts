@@ -144,13 +144,7 @@ export function pipelineRoutes(deps: AppDependencies) {
   // The current write and its bookkeeping drain before the pipeline stops.
   router.post('/api/v1/pipeline/cancel', async (c) => {
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-      c.get('apiTokenScope'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
     const result = deps.orchestrator.cancel(userId, { canStopOthers: isAdmin })
     if (result.forbidden) {
       return problem(
@@ -228,13 +222,7 @@ export function pipelineRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/pipeline/status', async (c) => {
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-      c.get('apiTokenScope'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
     const queuePosition = userId ? deps.orchestrator.queuePositionFor(userId) : 0
     // Non-admins see only their own run and queue entry; batches carry no owner.
     const ownRun = deps.orchestrator.isRunning && deps.orchestrator.currentUserId === userId

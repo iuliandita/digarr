@@ -44,13 +44,7 @@ export async function requireAdmin(
   }
   const auth = requireUser(c)
   if (!auth.ok) return auth
-  const isAdmin = await resolveAdmin(
-    auth.userId,
-    getUserById,
-    false,
-    c.get('legacyTokenAuth'),
-    c.get('apiTokenScope'),
-  )
+  const isAdmin = await resolveAdmin(c, getUserById)
   if (!isAdmin) {
     return { ok: false, response: adminRequired(c) }
   }

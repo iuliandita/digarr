@@ -7,6 +7,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
 import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
+import { effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import { VERSION } from '@/version'
 import { openapiDoc } from './helpers/openapi-doc'
 import { problem, statusTitle } from './helpers/problem'
@@ -220,7 +221,7 @@ export function createApp(deps: AppDependencies) {
     return c.json({
       authenticated: !!user,
       userId: user?.id,
-      isAdmin: user?.isAdmin ?? false,
+      isAdmin: effectiveIsAdmin(c, user),
       required: userCount > 0 || !!envConfig.authToken || setupComplete,
       hasUsers: userCount > 0,
       oidcEnabled,

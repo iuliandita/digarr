@@ -4,7 +4,7 @@ import { eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { envConfig } from '@/config/env'
-import { createBackup, restoreBackup } from '@/core/ops/backup'
+import { createBackup, PartialBackupConflictError, restoreBackup } from '@/core/ops/backup'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { Database } from '@/db'
 import { apiTokenQueries, hashApiToken } from '@/db/queries/api-tokens'
@@ -154,6 +154,47 @@ describe('personal API tokens', () => {
   )
 
   it.each(['read', 'write', 'admin'] as const)(
+    'limits cross-user target access to admin scope for an admin-owned %s token',
+    async (scope) => {
+      const { createLidarrClient } = await import('@/core/clients/lidarr')
+      const client = vi
+        .spyOn(await import('@/core/clients/lidarr'), 'createLidarrClient')
+        .mockReturnValue({
+          getQualityProfiles: async () => [{ id: 1, name: 'FLAC' }],
+          getMetadataProfiles: async () => [{ id: 1, name: 'Standard' }],
+          getRootFolders: async () => [{ id: 1, path: '/music' }],
+        } as unknown as ReturnType<typeof createLidarrClient>)
+      try {
+        vi.mocked(deps.targetQueries.getTarget).mockResolvedValue({
+          id: 5,
+          type: 'lidarr',
+          userId: 2,
+          name: 'other target',
+          enabled: true,
+          config: { url: 'http://lidarr.example', apiKey: 'key' },
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        })
+        const { token } = await mint(scope)
+        const options = await app.request('/api/v1/lidarr/approve-options?targetId=5', {
+          headers: bearer(token),
+        })
+        expect(options.status).toBe(scope === 'admin' ? 200 : 404)
+        if (scope !== 'read') {
+          const tested = await app.request('/api/v1/targets/5/test', {
+            method: 'POST',
+            headers: bearer(token),
+          })
+          expect(tested.status).toBe(scope === 'admin' ? 200 : 404)
+          expect(deps.testTargetConnection).toHaveBeenCalledTimes(scope === 'admin' ? 1 : 0)
+        }
+      } finally {
+        client.mockRestore()
+      }
+    },
+  )
+
+  it.each(['read', 'write', 'admin'] as const)(
     'allows normal per-user preference writes with %s scope',
     async (scope) => {
       const { token } = await mint(scope)
@@ -297,24 +338,45 @@ describe('personal API tokens', () => {
     )
   })
 
-  it('rate limits failed token auth by socket IP and leaves valid credentials working', async () => {
-    const headers = bearer('dga_invalid')
-    for (let i = 0; i < 20; i++) {
-      expect(
-        (
-          await app.request('/api/v1/auth/validate', {
-            headers: { ...headers, 'X-Forwarded-For': `198.51.100.${i}` },
-          })
-        ).status,
-      ).toBe(401)
+  it('blocks exhausted socket IPs before credential lookup and resets the failure budget', async () => {
+    vi.useFakeTimers()
+    try {
+      const resolveApiToken = vi.fn(apiTokenQueries(db).resolve)
+      const guarded = new Hono<HonoEnv>()
+      guarded.use(
+        '*',
+        authGuard({
+          hasUsers: async () => true,
+          isSetupComplete: async () => true,
+          resolveApiToken,
+        }),
+      )
+      guarded.get('/api/v1/test', (c) => c.json({ ok: true }))
+      const { token } = await mint()
+      const request = (value: string, ip = '192.0.2.1', forwarded = '198.51.100.1') =>
+        guarded.request(
+          '/api/v1/test',
+          {
+            headers: { ...bearer(value), 'X-Forwarded-For': forwarded },
+          },
+          { remoteAddress: ip },
+        )
+      for (let i = 0; i < 21; i++) expect((await request(token)).status).toBe(200)
+      for (let i = 0; i < 20; i++) {
+        expect((await request('dga_invalid', '192.0.2.1', `198.51.100.${i}`)).status).toBe(401)
+      }
+      resolveApiToken.mockClear()
+      const limited = await request('dga_invalid')
+      expect(limited.status).toBe(429)
+      expect(limited.headers.get('Retry-After')).toBeTruthy()
+      expect((await request(token)).status).toBe(429)
+      expect(resolveApiToken).not.toHaveBeenCalled()
+      expect((await request(token, '192.0.2.2')).status).toBe(200)
+      vi.advanceTimersByTime(60_001)
+      expect((await request(token)).status).toBe(200)
+    } finally {
+      vi.useRealTimers()
     }
-    const limited = await app.request('/api/v1/auth/validate', { headers })
-    expect(limited.status).toBe(429)
-    expect(limited.headers.get('Retry-After')).toBeTruthy()
-    const { token } = await mint()
-    expect((await app.request('/api/v1/auth/validate', { headers: bearer(token) })).status).toBe(
-      204,
-    )
   })
 
   it('keeps explicit token scopes behind a trusted sign-in proxy', async () => {
@@ -395,57 +457,43 @@ describe('personal API tokens', () => {
     },
   )
 
-  it('round-trips hashes and metadata through the backup API and natural-key restore', async () => {
+  it('excludes tokens from exports and ignores saved tokens without changing current credentials', async () => {
     const created = await mint('admin')
+    const savedRows = await db.select().from(apiTokens)
     const backupResponse = await app.request('/api/v1/admin/backup', {
       method: 'POST',
       headers: bearer('owner-session'),
     })
     expect(backupResponse.status).toBe(200)
     const backup = await backupResponse.json()
-    expect(backup.data.apiTokens).toHaveLength(1)
-    expect(backup.data.apiTokens[0].tokenHash).toBe(hashApiToken(created.token))
-    expect(JSON.stringify(backup)).not.toContain(created.token)
-    const restore = await app.request('/api/v1/admin/restore?confirm=true', {
-      method: 'POST',
-      headers: { ...bearer('owner-session'), 'Content-Type': 'application/json' },
-      body: JSON.stringify(backup),
-    })
-    expect(restore.status).toBe(200)
-    await restoreBackup(db, backup)
-    expect((await createBackup(db)).data.apiTokens).toEqual(
-      backup.data.apiTokens.map((row: Record<string, unknown>) => ({
-        ...row,
-        createdAt: new Date(String(row.createdAt)),
-      })),
+    expect(backup.data).not.toHaveProperty('apiTokens')
+    expect(JSON.stringify(backup)).not.toContain(savedRows[0]?.tokenHash)
+    backup.data.apiTokens = savedRows
+    const restore = () =>
+      app.request('/api/v1/admin/restore?confirm=true', {
+        method: 'POST',
+        headers: { ...bearer('owner-session'), 'Content-Type': 'application/json' },
+        body: JSON.stringify(backup),
+      })
+    // Replacing users must not cascade-delete credentials that were not exported.
+    expect((await restore()).status).toBe(422)
+    expect(await db.select().from(apiTokens)).toEqual(savedRows)
+    await expect(restoreBackup(db, backup, { force: true })).rejects.toBeInstanceOf(
+      PartialBackupConflictError,
     )
-    expect((await app.request('/api/v1/users', { headers: bearer(created.token) })).status).toBe(
-      200,
-    )
-    const duplicate = structuredClone(backup)
-    // Repeat a natural key across upsert chunks without duplicate keys in one INSERT.
-    duplicate.data.apiTokens = [
-      ...Array.from({ length: 1000 }, (_, i) => ({
-        ...backup.data.apiTokens[0],
-        id: i + 1,
-        tokenHash: hashApiToken(`fixture-${i}`),
-      })),
-      {
-        ...backup.data.apiTokens[0],
-        id: 1001,
-        tokenHash: hashApiToken('fixture-0'),
-        name: 'updated',
-      },
-    ]
-    await restoreBackup(db, duplicate)
+    await apiTokenQueries(db).revoke(1, created.id)
+    expect((await restore()).status).toBe(200)
+    expect(await db.select().from(apiTokens)).toEqual([])
     expect(
-      (
-        await db
-          .select()
-          .from(apiTokens)
-          .where(eq(apiTokens.tokenHash, hashApiToken('fixture-0')))
-      )[0]?.name,
-    ).toBe('updated')
+      (await app.request('/api/v1/auth/validate', { headers: bearer(created.token) })).status,
+    ).toBe(401)
+
+    await mint()
+    const current = await db.select().from(apiTokens)
+    const result = await restoreBackup(db, { ...backup, data: { apiTokens: savedRows } })
+    expect(result.tablesRestored).not.toHaveProperty('apiTokens')
+    expect(await db.select().from(apiTokens)).toEqual(current)
+    expect((await createBackup(db)).data).not.toHaveProperty('apiTokens')
   })
 
   it('can rerun the generated migration without changing existing tokens', async () => {

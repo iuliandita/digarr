@@ -1,6 +1,8 @@
 export const ro = {
   'tokens.title': 'Tokenuri API',
   'tokens.description': 'Dă-le scripturilor tale propriile credențiale pe care le poți revoca.',
+  'tokens.passwordWarning':
+    'Schimbarea parolei și deconectarea păstrează tokenurile API active. Revocă-le dacă parola ta a fost compromisă.',
   'tokens.empty': 'Nu ai încă tokenuri API.',
   'tokens.prefix': 'Prefixul tokenului',
   'tokens.scope': 'Permisiuni',

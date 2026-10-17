@@ -1,6 +1,8 @@
 export const nl = {
   'tokens.title': 'API-tokens',
   'tokens.description': 'Geef je scripts hun eigen intrekbare inloggegevens.',
+  'tokens.passwordWarning':
+    'API-tokens blijven actief als je je wachtwoord wijzigt of uitlogt. Trek ze in als je wachtwoord is uitgelekt.',
   'tokens.empty': 'Je hebt nog geen API-tokens.',
   'tokens.prefix': 'Tokenvoorvoegsel',
   'tokens.scope': 'Rechten',

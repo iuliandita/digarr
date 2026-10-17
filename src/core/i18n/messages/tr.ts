@@ -1,6 +1,8 @@
 export const tr = {
   'tokens.title': 'API belirteçleri',
   'tokens.description': 'Betiklerine iptal edebileceğin ayrı kimlik bilgileri ver.',
+  'tokens.passwordWarning':
+    'Parolanı değiştirsen veya çıkış yapsan da API belirteçlerin etkin kalır. Parolan ele geçirildiyse bunları iptal et.',
   'tokens.empty': 'Henüz API belirtecin yok.',
   'tokens.prefix': 'Belirteç öneki',
   'tokens.scope': 'Yetkiler',

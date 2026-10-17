@@ -1,6 +1,8 @@
 export const zhCN = {
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
+  'tokens.passwordWarning':
+    '更改密码或退出登录后，API 令牌仍然有效。如果你的密码已泄露，请撤销这些令牌。',
   'tokens.empty': '你还没有 API 令牌。',
   'tokens.prefix': '令牌前缀',
   'tokens.scope': '权限范围',

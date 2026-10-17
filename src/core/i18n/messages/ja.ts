@@ -1,6 +1,8 @@
 export const ja = {
   'tokens.title': 'APIトークン',
   'tokens.description': 'スクリプト専用の取り消し可能な認証情報を作成できます。',
+  'tokens.passwordWarning':
+    'パスワードの変更やログアウト後もAPIトークンは有効です。パスワードが漏えいした場合は、トークンを取り消してください。',
   'tokens.empty': 'APIトークンはまだありません。',
   'tokens.prefix': 'トークンの接頭辞',
   'tokens.scope': '権限',

@@ -1,6 +1,8 @@
 export const de = {
   'tokens.title': 'API-Tokens',
   'tokens.description': 'Gib deinen Skripten eigene widerrufbare Zugangsdaten.',
+  'tokens.passwordWarning':
+    'Passwortänderungen und Abmelden lassen API-Tokens aktiv. Widerrufe sie, wenn dein Passwort kompromittiert wurde.',
   'tokens.empty': 'Du hast noch keine API-Tokens.',
   'tokens.prefix': 'Token-Präfix',
   'tokens.scope': 'Berechtigung',

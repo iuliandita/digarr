@@ -26,6 +26,7 @@ import {
   prepareSessionCookie,
 } from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
+import { effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
   changePasswordSchema,
@@ -97,7 +98,7 @@ export function authRoutes(deps: AppDependencies) {
     const { name, scope, expiresInDays } = c.req.valid('json')
     const user = await deps.getUserById(auth.userId)
     if (!user) return sessionAuthRequired(c)
-    if (scope === 'admin' && !user.isAdmin) return adminRequired(c)
+    if (scope === 'admin' && !effectiveIsAdmin(c, user)) return adminRequired(c)
     const expiresAt = expiresInDays ? new Date(Date.now() + expiresInDays * 86_400_000) : null
     return c.json(await tokens.create(auth.userId, name, scope, expiresAt), 201)
   })

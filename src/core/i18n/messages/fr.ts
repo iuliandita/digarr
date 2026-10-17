@@ -1,6 +1,8 @@
 export const fr = {
   'tokens.title': 'Jetons API',
   'tokens.description': 'Donne à tes scripts leurs propres identifiants révocables.',
+  'tokens.passwordWarning':
+    'Les changements de mot de passe et la déconnexion laissent les jetons API actifs. Révoque-les si ton mot de passe a été compromis.',
   'tokens.empty': 'Tu n’as pas encore de jetons API.',
   'tokens.prefix': 'Préfixe du jeton',
   'tokens.scope': 'Permissions',

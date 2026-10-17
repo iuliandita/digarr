@@ -10,7 +10,7 @@ import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { notFoundProblem } from '@/server/helpers/problem'
-import { adminGuard } from '@/server/middleware/admin-guard'
+import { adminGuard, effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import { approveOptionsQuerySchema, lidarrAddSchema } from '@/server/schemas/lidarr'
 import { zJson, zQuery } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
@@ -82,7 +82,11 @@ export function lidarrRoutes(deps: AppDependencies) {
     } else {
       const target = await deps.targetQueries.getTarget(targetId)
       const caller = userId ? await deps.getUserById(userId) : null
-      if (target?.type !== 'lidarr' || !caller || (!caller.isAdmin && target.userId !== userId)) {
+      if (
+        target?.type !== 'lidarr' ||
+        !caller ||
+        (!effectiveIsAdmin(c, caller) && target.userId !== userId)
+      ) {
         return notFoundProblem(c, 'target-not-found', 'Target not found', 'errors.target.notFound')
       }
       const connection = resolveLidarrTargetConnection(target.config, await deps.getSettings())

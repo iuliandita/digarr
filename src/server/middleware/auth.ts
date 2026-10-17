@@ -63,6 +63,7 @@ export function authGuard(options: {
     windowMs: 60_000,
     max: 20,
     keyPrefix: 'api-token-failures',
+    countResponse: (c) => c.res.status === 401 && c.get('authMethod') !== 'api-token',
   })
   return createMiddleware<HonoEnv>(async (c, next) => {
     const publicPath =
@@ -99,7 +100,10 @@ export function authGuard(options: {
     }
 
     // Try session token first
-    if (credential?.token) {
+    if (
+      credential?.token &&
+      !(credential.source === 'bearer' && credential.token.startsWith('dga_'))
+    ) {
       const session = await getSession(credential.token)
       if (session) {
         c.set('userId', session.userId)
@@ -128,27 +132,29 @@ export function authGuard(options: {
     }
 
     if (credential?.source === 'bearer' && credential.token.startsWith('dga_')) {
-      const token = await options.resolveApiToken?.(credential.token)
-      if (!token) {
-        return failedTokenLimit(c, async () => {
+      return failedTokenLimit(c, async () => {
+        const token = await options.resolveApiToken?.(credential.token)
+        if (!token) {
           c.res = notAuthenticated(c)
-        })
-      }
-      c.set('userId', token.userId)
-      c.set('authMethod', 'api-token')
-      c.set('apiTokenScope', token.scope)
-      if (token.scope === 'read' && !['GET', 'HEAD'].includes(c.req.method)) {
-        return problem(
-          c,
-          'token-read-only',
-          'Read-only token',
-          403,
-          undefined,
-          undefined,
-          'tokens.readOnlyError',
-        )
-      }
-      return next()
+          return
+        }
+        c.set('userId', token.userId)
+        c.set('authMethod', 'api-token')
+        c.set('apiTokenScope', token.scope)
+        if (token.scope === 'read' && !['GET', 'HEAD'].includes(c.req.method)) {
+          c.res = problem(
+            c,
+            'token-read-only',
+            'Read-only token',
+            403,
+            undefined,
+            undefined,
+            'tokens.readOnlyError',
+          )
+          return
+        }
+        await next()
+      })
     }
 
     if (publicPath) return next()

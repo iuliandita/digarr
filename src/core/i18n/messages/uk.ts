@@ -1,6 +1,8 @@
 export const uk = {
   'tokens.title': 'Токени API',
   'tokens.description': 'Створи для своїх скриптів окремі облікові дані, які можна відкликати.',
+  'tokens.passwordWarning':
+    'Зміна пароля та вихід не вимикають токени API. Відклич їх, якщо твій пароль було скомпрометовано.',
   'tokens.empty': 'У тебе ще немає токенів API.',
   'tokens.prefix': 'Префікс токена',
   'tokens.scope': 'Права',

@@ -1,45 +1,30 @@
+import type { Context } from 'hono'
 import { createMiddleware } from 'hono/factory'
-import type { ApiTokenScope } from '@/db/schema'
 import { adminRequired } from '@/server/helpers/auth-problems'
 import type { HonoEnv } from '@/server/types'
 
 type GetUserById = (id: number) => Promise<{ isAdmin: boolean } | null>
 
-/**
- * Middleware that rejects non-admin users with 403.
- * Legacy token auth (no userId) is NOT admin - users should migrate to session auth.
- * authSkipped (fresh installs) is allowed through because the setup guard already
- * blocks non-setup API paths when setup is not complete.
- */
-export function adminGuard(getUserById: GetUserById) {
-  return createMiddleware<HonoEnv>(async (c, next) => {
-    if (c.get('authSkipped')) return next()
-    if (c.get('legacyTokenAuth')) return adminRequired(c)
-    const scope = c.get('apiTokenScope')
-    if (scope && scope !== 'admin') return adminRequired(c)
-    const uid = c.get('userId')
-    if (!uid) return adminRequired(c)
-    const u = await getUserById(uid)
-    if (!u?.isAdmin) return adminRequired(c)
-    await next()
-  })
+export function effectiveIsAdmin(c: Context<HonoEnv>, user: { isAdmin: boolean } | null): boolean {
+  if (c.get('legacyTokenAuth')) return false
+  const scope = c.get('apiTokenScope')
+  if (scope && scope !== 'admin') return false
+  return user?.isAdmin ?? false
 }
 
-/**
- * Inline admin check for routes that need the isAdmin boolean for branching.
- * authSkipped (fresh installs) grants admin because the setup guard already
- * blocks non-setup paths when setup is not complete.
- */
+/** Fresh installs pass because the setup guard already blocks non-setup API paths. */
 export async function resolveAdmin(
-  userId: number | undefined,
+  c: Context<HonoEnv>,
   getUserById: GetUserById,
-  authSkipped?: boolean,
-  legacyTokenAuth?: boolean,
-  apiTokenScope?: ApiTokenScope,
 ): Promise<boolean> {
-  if (authSkipped) return true
-  if (legacyTokenAuth || (apiTokenScope && apiTokenScope !== 'admin')) return false
-  if (!userId) return false
-  const user = await getUserById(userId)
-  return user?.isAdmin ?? false
+  if (c.get('authSkipped')) return true
+  const uid = c.get('userId')
+  return effectiveIsAdmin(c, uid ? await getUserById(uid) : null)
+}
+
+export function adminGuard(getUserById: GetUserById) {
+  return createMiddleware<HonoEnv>(async (c, next) => {
+    if (!(await resolveAdmin(c, getUserById))) return adminRequired(c)
+    await next()
+  })
 }

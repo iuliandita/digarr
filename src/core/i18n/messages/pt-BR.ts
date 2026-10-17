@@ -1,6 +1,8 @@
 export const ptBR = {
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dê aos seus scripts credenciais próprias que você pode revogar.',
+  'tokens.passwordWarning':
+    'Mudar a senha e sair da conta mantém os tokens de API ativos. Revogue-os se sua senha foi comprometida.',
   'tokens.empty': 'Você ainda não tem tokens de API.',
   'tokens.prefix': 'Prefixo do token',
   'tokens.scope': 'Permissões',

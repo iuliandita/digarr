@@ -1,6 +1,8 @@
 export const en = {
   'tokens.title': 'API tokens',
   'tokens.description': 'Give your scripts their own revocable credential.',
+  'tokens.passwordWarning':
+    'Password changes and logout keep API tokens active. Revoke them if your password was compromised.',
   'tokens.empty': 'You have no API tokens yet.',
   'tokens.prefix': 'Token prefix',
   'tokens.scope': 'Scope',

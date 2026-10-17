@@ -1,6 +1,8 @@
 export const pl = {
   'tokens.title': 'Tokeny API',
   'tokens.description': 'Daj swoim skryptom osobne dane dostępu, które możesz unieważnić.',
+  'tokens.passwordWarning':
+    'Zmiana hasła i wylogowanie pozostawiają tokeny API aktywne. Unieważnij je, jeśli twoje hasło wyciekło.',
   'tokens.empty': 'Nie masz jeszcze tokenów API.',
   'tokens.prefix': 'Prefiks tokena',
   'tokens.scope': 'Uprawnienia',

@@ -1,6 +1,8 @@
 export const ko = {
   'tokens.title': 'API 토큰',
   'tokens.description': '스크립트마다 취소할 수 있는 별도 인증 정보를 만들어 주세요.',
+  'tokens.passwordWarning':
+    '비밀번호를 바꾸거나 로그아웃해도 API 토큰은 계속 유효해요. 비밀번호가 유출됐다면 토큰을 취소해 주세요.',
   'tokens.empty': '아직 API 토큰이 없어요.',
   'tokens.prefix': '토큰 접두사',
   'tokens.scope': '권한 범위',

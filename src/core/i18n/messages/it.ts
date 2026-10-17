@@ -1,6 +1,8 @@
 export const it = {
   'tokens.title': 'Token API',
   'tokens.description': 'Dai ai tuoi script credenziali revocabili dedicate.',
+  'tokens.passwordWarning':
+    'I cambi di password e la disconnessione lasciano attivi i token API. Revocali se la tua password è stata compromessa.',
   'tokens.empty': 'Non hai ancora token API.',
   'tokens.prefix': 'Prefisso del token',
   'tokens.scope': 'Permessi',
