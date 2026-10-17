@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { cellSafe, parseCsvRow } from '@/core/csv/cell-safe'
+import { cellSafe, parseCsvRow, parseCsvRows } from '@/core/csv/cell-safe'
 
 describe('cellSafe (export-side sanitization)', () => {
   it('strips leading formula-trigger characters', () => {
@@ -79,5 +79,16 @@ describe('CSV round-trip with hostile input', () => {
     expect(dataRow.startsWith('+')).toBe(false)
     expect(dataRow.startsWith('-')).toBe(false)
     expect(dataRow.startsWith('@')).toBe(false)
+  })
+})
+
+describe('parseCsvRows (RFC 4180)', () => {
+  it('keeps newlines and escaped quotes inside quoted fields and handles CRLF', () => {
+    const csv = 'artist,note\r\n"Foo\nBar","say ""hi"""\r\n\r\nBaz,x'
+    expect(parseCsvRows(csv)).toEqual([
+      ['artist', 'note'],
+      ['Foo\nBar', 'say "hi"'],
+      ['Baz', 'x'],
+    ])
   })
 })

@@ -292,7 +292,8 @@ export type DigestStats = {
  * Aggregate notification-digest stats for the trailing window starting at
  * `since`. Derived from existing tables (no bookmark/migration):
  * - `discovered`: recommendations created in the window.
- * - `added`: recommendations approved or added to Lidarr in the window.
+ * - `added`: recommendations approved or added to Lidarr in the window
+ *   (by action time, so older recommendations acted on now count).
  * - `runs`: discovery job runs (pipeline/subscription/quick_discover) that
  *   completed in the window.
  */
@@ -307,7 +308,7 @@ export async function getDigestStats(db: Database, since: Date): Promise<DigestS
       .from(recommendations)
       .where(
         and(
-          gte(recommendations.createdAt, since),
+          gte(recommendations.actedOnAt, since),
           inArray(recommendations.status, ['approved', 'added_to_lidarr']),
         ),
       ),

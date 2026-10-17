@@ -200,4 +200,19 @@ describe('reconcileAlbumsForArtist', () => {
     })
     expect(onMbError).toHaveBeenCalledOnce()
   })
+
+  it('keeps a valid source MBID on rows left unmatched by a failed lookup or mismatch', async () => {
+    const failed = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ mbid: ALBUM_MBID })], {
+      mbClient: { getReleaseGroups: vi.fn().mockRejectedValue(new Error('503')) },
+    })
+    expect(failed[0]).toMatchObject({ albumMbid: ALBUM_MBID, unreconciledReason: 'lookup_failed' })
+
+    const mismatch = await reconcileAlbumsForArtist(
+      ARTIST_MBID,
+      [album({ mbid: ALBUM_MBID }), album({ sourceAlbumId: 'src-2', mbid: 'not-an-mbid' })],
+      { mbClient: { getReleaseGroups: vi.fn().mockResolvedValue([]) } },
+    )
+    expect(mismatch[0]).toMatchObject({ albumMbid: ALBUM_MBID, unreconciledReason: 'no_candidate' })
+    expect(mismatch[1]).toMatchObject({ albumMbid: null, unreconciledReason: 'no_candidate' })
+  })
 })

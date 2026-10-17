@@ -26,6 +26,13 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The notification digest now counts recommendations approved or added during the period by when you acted on them, not when they were created, so older recommendations approved this week are included (#927).
+- The ListenBrainz subscription source now respects the subscription's maximum artists per run (#927).
+- Subscription runs report the number of recommendations actually saved as new artists, not the number that passed filtering (#927).
+- CSV imports handle quoted fields that contain line breaks, escaped quotes and Windows line endings (#927).
+- The library album sync keeps the album ID your source provided when the MusicBrainz lookup fails or finds no match, instead of discarding it (#927).
+- slskd: if saving the job state right after starting a Lidarr import fails, it is retried so the import is tracked to completion instead of being marked failed while Lidarr moves the files (#927).
+- Shutdown now waits for running subscription and playlist jobs, as well as the pipeline, before closing the database (#927).
 - Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
 - Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).

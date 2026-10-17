@@ -274,7 +274,9 @@ export async function runSubscription(
       })
     }
 
-    const artistsNew = filtered.length
+    // store() skips rows that fail to insert, so the batch stats hold the real count.
+    const storedStats = batchId ? await queries.getBatchStats?.(batchId) : null
+    const artistsNew = batchId ? (storedStats?.added ?? filtered.length) : 0
 
     await jobRecorder.complete(jobId, {
       metadata: { adapterType: subscription.sourceType, artistsFound, artistsNew },

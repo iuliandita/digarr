@@ -78,11 +78,14 @@ export async function reconcileAlbumsForArtist(
 
   return albums.map((album) => {
     const titleNormalized = normalizeAlbumTitle(album.title)
+    // A source-provided MBID survives unmatched rows; the reason still flags them.
+    const sourceMbid = isValidMbid(album.mbid) ? album.mbid : null
 
     if (releaseGroupLookupFailed) {
       return makeRow(album, titleNormalized, artistMbid, {
         releaseYear: album.releaseYear ?? null,
         primaryType: album.primaryType ?? null,
+        albumMbid: sourceMbid,
         unreconciledReason: 'lookup_failed',
       })
     }
@@ -109,6 +112,7 @@ export async function reconcileAlbumsForArtist(
       return makeRow(album, titleNormalized, artistMbid, {
         releaseYear: album.releaseYear ?? null,
         primaryType: album.primaryType ?? null,
+        albumMbid: sourceMbid,
         unreconciledReason: 'no_candidate',
       })
     }
@@ -149,6 +153,7 @@ export async function reconcileAlbumsForArtist(
     return makeRow(album, titleNormalized, artistMbid, {
       releaseYear: album.releaseYear ?? null,
       primaryType: album.primaryType ?? null,
+      albumMbid: sourceMbid,
       unreconciledReason: 'ambiguous',
     })
   })

@@ -9,6 +9,7 @@ import type {
 import { buildLidarrManualImport } from '@/core/slskd/importer'
 import { selectBestSlskdCandidate } from '@/core/slskd/match-engine'
 import { buildSlskdWorkKey } from '@/core/slskd/runner'
+import { normalizeInteger } from '@/core/slskd/shared'
 
 type SlskdPendingJobBase = { id: number }
 type SlskdActiveJobState = 'pending' | 'searching' | 'queued' | 'downloading' | 'import_pending'
@@ -133,15 +134,12 @@ export type SlskdOrchestrator<_TJob extends SlskdPendingJobBase = SlskdPendingJo
 }
 
 const MAX_IMPORT_CHECKS = 12
+const CHECKPOINT_ATTEMPTS = 3
+const CHECKPOINT_RETRY_MS = 200
 const SEARCH_MAX_AGE_MS = 10 * 60 * 1000
 
 function normalizeBoolean(value: unknown): boolean {
   return value === true
-}
-
-function normalizeInteger(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
 }
 
 function normalizeString(value: unknown): string | null {
@@ -556,7 +554,9 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     const command = await lidarr.manualImport(manualImport.files)
     const commandId = normalizeInteger(command.id)
     if (!commandId) throw new Error('Lidarr ManualImport did not return a command id')
-    await deps.updateJobState(job.id, 'import_pending', {
+    // Lidarr is already moving files; losing this checkpoint would fail the job
+    // while the import proceeds, so retry before giving up.
+    const checkpoint = {
       slskdDownloadId: firstTransferId ?? job.slskdDownloadId,
       selectedResult: {
         ...selected,
@@ -568,7 +568,21 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
         },
       },
       lastError: null,
-    })
+    }
+    for (let attempt = 1; ; attempt++) {
+      try {
+        await deps.updateJobState(job.id, 'import_pending', checkpoint)
+        break
+      } catch (err: unknown) {
+        if (attempt >= CHECKPOINT_ATTEMPTS) {
+          const reason = err instanceof Error ? err.message : String(err)
+          throw new Error(
+            `Lidarr ManualImport command ${commandId} was started but its checkpoint could not be saved: ${reason}`,
+          )
+        }
+        await new Promise((resolve) => setTimeout(resolve, CHECKPOINT_RETRY_MS * attempt))
+      }
+    }
     await updateRecommendationAction(job.recommendationId, job.targetId, 'import_pending')
   }
 

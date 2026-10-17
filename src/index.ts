@@ -394,6 +394,15 @@ const orchestrator = new PipelineOrchestrator()
 const scheduler = new SubscriptionScheduler()
 const playlistScheduler = new PlaylistScheduler()
 
+// Subscription and playlist runs write to the DB, so shutdown waits on them before closeDb.
+const inFlightJobs = new Set<Promise<unknown>>()
+function trackInFlight<T>(run: Promise<T>): Promise<T> {
+  inFlightJobs.add(run)
+  const done = () => inFlightJobs.delete(run)
+  run.then(done, done)
+  return run
+}
+
 async function updateSlskdRecommendationAction(
   recommendationId: number,
   targetId: number,
@@ -835,7 +844,11 @@ function setCachedAdapterRegistry(userId: number | null, registry: AdapterRegist
   adapterRegistryCache.set(key, { registry, builtAt: Date.now() })
 }
 
-async function executeSubscription(subscriptionId: number): Promise<void> {
+function executeSubscription(subscriptionId: number): Promise<void> {
+  return trackInFlight(runSubscriptionById(subscriptionId))
+}
+
+async function runSubscriptionById(subscriptionId: number): Promise<void> {
   const sub = await getSubscription(db, subscriptionId)
   if (!sub) {
     console.warn(`[subscription-runner] Subscription ${subscriptionId} not found - skipping`)
@@ -1026,7 +1039,7 @@ async function executeSubscription(subscriptionId: number): Promise<void> {
 }
 
 async function executePlaylistGeneration(playlistId: number): Promise<void> {
-  return withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId))
+  return trackInFlight(withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId)))
 }
 
 async function generatePlaylistContents(playlistId: number): Promise<void> {
@@ -1622,6 +1635,13 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
           resolve()
         }, 25_000)
       })
+    }
+    if (inFlightJobs.size > 0) {
+      console.log(`Waiting for ${inFlightJobs.size} subscription/playlist run(s) to finish...`)
+      await Promise.race([
+        Promise.allSettled([...inFlightJobs]),
+        new Promise((resolve) => setTimeout(resolve, 25_000)),
+      ])
     }
     await waitForGenreWarmers()
     await closeDb()
