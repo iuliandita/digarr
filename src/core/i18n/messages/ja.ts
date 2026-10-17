@@ -5,6 +5,13 @@ export const ja = {
   'tokens.mcpCopy': '設定をコピー',
   'tokens.mcpCopied': '設定をコピーしました',
   'tokens.mcpCopyFailed': 'コピーできませんでした。設定を選択して手動でコピーしてください。',
+  'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
+  'settings.slskdPathIncomplete':
+    'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
+  'settings.slskdPathOk':
+    'slskd に接続しました - Lidarr からダウンロードフォルダーが見えます。完了済みのダウンロードが入っているか確認してください。',
   'tokens.title': 'APIトークン',
   'tokens.description': 'スクリプト専用の取り消し可能な認証情報を作成できます。',
   'tokens.passwordWarning':

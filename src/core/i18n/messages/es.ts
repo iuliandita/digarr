@@ -5,6 +5,14 @@ export const es = {
   'tokens.mcpCopy': 'Copiar configuración',
   'tokens.mcpCopied': 'Configuración copiada',
   'tokens.mcpCopyFailed': 'No se pudo copiar. Selecciona la configuración y cópiala manualmente.',
+  'settings.slskdSearchInterval':
+    'Intervalo mínimo entre búsquedas en segundos (1-60, predeterminado 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr no puede encontrar o listar la ruta de descarga. Revisa tu montaje y los permisos de lectura.',
+  'settings.slskdPathIncomplete':
+    'La ruta parece una carpeta de descargas incompletas. Usa tu carpeta de descargas completadas.',
+  'settings.slskdPathOk':
+    'Conectado a slskd - Lidarr ve la carpeta de descarga. Comprueba que contiene tus descargas completadas.',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dale a cada script tuyo una credencial que puedas revocar.',
   'tokens.passwordWarning':

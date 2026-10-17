@@ -5,6 +5,11 @@ export const zhCN = {
   'tokens.mcpCopy': '复制配置',
   'tokens.mcpCopied': '配置已复制',
   'tokens.mcpCopyFailed': '无法复制。请选择配置并手动复制。',
+  'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
+  'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
+  'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
+  'settings.slskdPathOk':
+    '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
   'tokens.passwordWarning':

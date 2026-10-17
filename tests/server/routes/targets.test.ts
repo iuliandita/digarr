@@ -15,6 +15,7 @@ const mockDeps = {
   },
   getUserById: vi.fn().mockResolvedValue({ isAdmin: true }),
   testTargetConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
+  getSettings: vi.fn().mockResolvedValue({ lidarrUrl: 'http://lidarr:8686', lidarrApiKey: 'srv' }),
 }
 
 const { targetRoutes } = await import('@/server/routes/targets')
@@ -320,6 +321,32 @@ describe('target routes', () => {
     expect(test.status).toBe(200)
     expect(remove.status).toBe(204)
   })
+
+  it.each([
+    ['server connection', { useServerConnection: true }, 'http://lidarr:8686', 'srv'],
+    ['separate instance', { url: 'http://other:8686', apiKey: 'own' }, 'http://other:8686', 'own'],
+  ])(
+    'resolves a linked Lidarr target (%s) before testing slskd',
+    async (_n, linkedConfig, url, apiKey) => {
+      mockDeps.targetQueries.getTarget.mockImplementation(async (id: number) =>
+        id === 1
+          ? {
+              id: 1,
+              userId: 1,
+              type: 'slskd',
+              config: { lidarrTargetId: 2, lidarrDownloadPath: '/dl' },
+            }
+          : { id: 2, userId: 1, type: 'lidarr', enabled: true, config: linkedConfig },
+      )
+      const res = await createTestApp().request('/api/v1/targets/1/test', { method: 'POST' })
+      expect(res.status).toBe(200)
+      expect(mockDeps.testTargetConnection).toHaveBeenCalledWith(
+        'slskd',
+        expect.anything(),
+        expect.objectContaining({ url, apiKey }),
+      )
+    },
+  )
 
   it('denies non-admin mutations and testing for another user target', async () => {
     mockDeps.getUserById.mockResolvedValue({ isAdmin: false })

@@ -5,6 +5,13 @@ export const ptBR = {
   'tokens.mcpCopy': 'Copiar configuração',
   'tokens.mcpCopied': 'Configuração copiada',
   'tokens.mcpCopyFailed': 'Não foi possível copiar. Selecione a configuração e copie manualmente.',
+  'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
+  'settings.slskdPathUnavailable':
+    'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
+  'settings.slskdPathIncomplete':
+    'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
+  'settings.slskdPathOk':
+    'Conectado ao slskd - O Lidarr vê a pasta de download. Confira se ela contém seus downloads concluídos.',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dê aos seus scripts credenciais próprias que você pode revogar.',
   'tokens.passwordWarning':
