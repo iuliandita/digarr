@@ -3,7 +3,6 @@ import { Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
-import type { MessageKey } from '@/core/i18n/messages/types'
 import { PlaylistCard } from '../components/playlist-card'
 import { PlaylistForm } from '../components/playlist-form'
 import { PlaylistSchedulingToggle } from '../components/playlist-scheduling-toggle'
@@ -20,51 +19,6 @@ import {
   updatePlaylistApi,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
-
-function getCronLabels(t: (key: MessageKey) => string): Record<string, string> {
-  return {
-    '0 0 * * *': t('common.daily'),
-    '0 6 * * 1': t('common.everyMonday'),
-    '0 8 * * 1': t('common.everyMonday'),
-    '0 8 * * 0': t('common.everySunday'),
-    '0 8 * * 1,4': t('common.monThu'),
-    '0 8 1,15 * *': t('common.firstAndFifteenth'),
-    '0 8 1 * *': t('common.monthly'),
-  }
-}
-
-function formatNextRun(locale: string, nextRun: string): string {
-  const date = new Date(nextRun)
-  const diffMinutes = Math.round((date.getTime() - Date.now()) / 60_000)
-  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-  if (diffMinutes < 0) return formatter.format(diffMinutes, 'minute')
-  if (diffMinutes < 60) return formatter.format(diffMinutes, 'minute')
-  const diffHours = Math.round(diffMinutes / 60)
-  if (diffHours < 24) return formatter.format(diffHours, 'hour')
-  return formatter.format(Math.round(diffHours / 24), 'day')
-}
-
-function formatSchedulerSubtitle(info: {
-  locale: string
-  t: (key: MessageKey) => string
-  nextRun: string | null
-  cron: string | null
-  enabled: boolean
-  hasSchedules: boolean
-}): string {
-  if (info.enabled && info.nextRun) {
-    return `${info.t('playlists.nextGeneration')} ${formatNextRun(info.locale, info.nextRun)}`
-  }
-  if (info.enabled && info.cron) {
-    const label = getCronLabels(info.t)[info.cron] ?? info.cron
-    return `${info.t('playlists.scheduled')}: ${label}`
-  }
-  // The scheduler reports one cron only when every playlist shares it.
-  if (!info.enabled && (info.cron || info.hasSchedules)) {
-    return info.t('playlists.schedulePaused')
-  }
-  return info.t('playlists.noScheduleConfigured')
-}
 
 function SkeletonGrid() {
   return (
@@ -92,7 +46,7 @@ function SkeletonGrid() {
 // PlaylistsPage
 
 export function PlaylistsPage() {
-  const { locale, t } = useI18n()
+  const { t } = useI18n()
   const queryClient = useQueryClient()
   const location = useLocation()
   const navigate = useNavigate()
@@ -166,16 +120,7 @@ export function PlaylistsPage() {
     <div className="p-6 space-y-6 max-w-6xl mx-auto pb-24 md:pb-6">
       <PageHeader
         title={t('playlists.title')}
-        description={
-          schedulerInfo
-            ? formatSchedulerSubtitle({
-                ...schedulerInfo,
-                hasSchedules: playlists.some((playlist) => playlist.enabled && playlist.schedule),
-                locale,
-                t,
-              })
-            : t('playlists.automaticDigestGeneration')
-        }
+        description={t('playlists.automaticDigestGeneration')}
         actions={
           <Button onClick={openCreate}>
             <Plus size={15} aria-hidden="true" />
@@ -184,7 +129,9 @@ export function PlaylistsPage() {
         }
       />
 
-      {schedulerInfo && <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} />}
+      {schedulerInfo && (
+        <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} nextRun={schedulerInfo.nextRun} />
+      )}
 
       {/* Content */}
       {isLoading ? (

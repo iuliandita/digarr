@@ -534,17 +534,14 @@ export const de = {
   'playlists.created': 'Playlist erstellt',
   'playlists.emptyHint':
     'Erstelle Playlists aus genehmigten oder ausstehenden Künstlern, lade sie als M3U oder XSPF herunter oder sende sie an Spotify, Navidrome, Jellyfin, Emby oder Plex.',
-  'playlists.nextGeneration': 'Nächste Generation',
-  'playlists.noScheduleConfigured': 'Kein Zeitplan konfiguriert',
   'playlists.playlistPlural': 'Wiedergabelisten',
   'playlists.playlistSingular': 'Wiedergabeliste',
+  'playlists.nextGeneration': 'Nächste Generation',
   'playlists.schedulingLabel': 'Geplante Erstellung',
   'playlists.schedulingOnHint': 'Playlists mit Zeitplan werden automatisch neu erstellt.',
   'playlists.schedulingPausedHint':
     'Pausiert: Playlists mit Zeitplan werden erst neu erstellt, wenn du das einschaltest. Manuelles Erstellen funktioniert weiterhin.',
   'playlists.schedulingSaveFailed': 'Playlist-Zeitplanung konnte nicht geändert werden',
-  'playlists.schedulePaused': 'Zeitplan pausiert',
-  'playlists.scheduled': 'Geplant',
   'playlists.updateFailed': 'Die Wiedergabeliste konnte nicht aktualisiert werden',
   'playlists.updated': 'Playlist aktualisiert',
   'playlistForm.dialogCreate': 'Playlist erstellen',

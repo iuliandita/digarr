@@ -34,12 +34,15 @@ RUN --mount=type=cache,target=/root/.bun/install/cache,sharing=locked \
 # checkov:skip=CKV_DOCKER_7: Default and release override runtime images are version-and-digest pinned.
 FROM ${RUNTIME_IMAGE}
 
+# The app never needs privilege elevation; dropping setuid/setgid bits removes the
+# mount/su paths that unfixed util-linux CVEs could reach (#863).
 RUN if [ -f /etc/alpine-release ]; then \
     apk add --no-cache 'libcrypto3>=3.5.8-r0' 'libssl3>=3.5.8-r0'; \
     elif [ -f /etc/debian_version ]; then \
     apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     rm -rf /var/lib/apt/lists/*; \
-    fi
+    fi && \
+    find / -xdev -type f \( -perm -4000 -o -perm -2000 \) -exec chmod a-s {} +
 
 # The backend bundle retains custom process.env reads, so preserve the build
 # identity in the runtime image as well as the builder stage.

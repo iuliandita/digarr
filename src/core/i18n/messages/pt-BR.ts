@@ -531,17 +531,14 @@ export const ptBR = {
   'playlists.created': 'Lista de reprodução criada',
   'playlists.emptyHint':
     'Crie playlists a partir de artistas aprovados ou pendentes, baixe-as como M3U ou XSPF, ou envie-as para Spotify, Navidrome, Jellyfin, Emby ou Plex.',
-  'playlists.nextGeneration': 'Próxima geração',
-  'playlists.noScheduleConfigured': 'Nenhuma programação configurada',
   'playlists.playlistPlural': 'listas de reprodução',
   'playlists.playlistSingular': 'lista de reprodução',
+  'playlists.nextGeneration': 'Próxima geração',
   'playlists.schedulingLabel': 'Geração agendada',
   'playlists.schedulingOnHint': 'Playlists com agendamento são geradas de novo sozinhas.',
   'playlists.schedulingPausedHint':
     'Pausado: playlists com agendamento não são geradas de novo até você ativar isto. Gerar uma playlist manualmente continua funcionando.',
   'playlists.schedulingSaveFailed': 'Não foi possível alterar o agendamento das playlists',
-  'playlists.schedulePaused': 'Agenda pausada',
-  'playlists.scheduled': 'Agendado',
   'playlists.updateFailed': 'Falha ao atualizar a playlist',
   'playlists.updated': 'Lista de reprodução atualizada',
   'playlistForm.dialogCreate': 'Criar playlist',
