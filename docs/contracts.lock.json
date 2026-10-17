@@ -441,7 +441,7 @@
         "src/web/hooks/use-pull-to-refresh.ts": "3f2712e5eeedb351704404d837f6b82290fd4414de60274d3c70988253004a76",
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
-        "src/web/index.css": "aff2a8d1b8be7773b6af60d32c38360a0dd803adc5ecc52095a71262414f6760",
+        "src/web/index.css": "7baf8e166a863745c45831a791c6bcbe8443ce7c4dd19c1f9cabaa5b483b421c",
         "src/web/lib/api.ts": "da83cbaa11fb1404b77b6b1fd87cd38f5a5af2dc9198e68f7b0b141ceed3f8f8",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "6d7720e0cf5c36af0d75c9a4329f9d35ce3192a341f63592b2f8f30585c3186f",
+      "digest": "d5721c94168e31dfd991df53349e1a4593fa8e81e6a0211dbb3b5fc160eccee4",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Library sources summary strings moved to catalog keys; no API or setting change.",
+        "note": "Theme token changes for AA contrast in every theme except the default Youtarr theme, which is unchanged. CHANGELOG Fixed entry covers it; README theme claim and Youtarr screenshots are unaffected.",
         "breaking": "none",
         "migration": "",
-        "digest": "6d7720e0cf5c36af0d75c9a4329f9d35ce3192a341f63592b2f8f30585c3186f"
+        "digest": "d5721c94168e31dfd991df53349e1a4593fa8e81e6a0211dbb3b5fc160eccee4"
       }
     },
     "features": {
