@@ -111,10 +111,13 @@ const pair = (fg: string, on: string): Pair => ({
   color: (t) => [t(`--color-${fg}`), t(`--color-${on}`)],
 })
 
-const tint = (fg: string, fill: string): Pair => ({
+const tint = (fg: string, fill: string, alpha = 5): Pair => ({
   fg,
-  on: `${fill}/5 over surface`,
-  color: (t) => [t(`--color-${fg}`), overlay(t(`--color-${fill}`), t('--color-surface'), 0.05)],
+  on: `${fill}/${alpha} over surface`,
+  color: (t) => [
+    t(`--color-${fg}`),
+    overlay(t(`--color-${fill}`), t('--color-surface'), alpha / 100),
+  ],
 })
 
 const PAIRS: Pair[] = [
@@ -129,6 +132,13 @@ const PAIRS: Pair[] = [
   tint('reject', 'reject'),
   // destructive buttons: bg-reject text-bg
   pair('bg', 'reject'),
+  // filled approve buttons: bg-approve text-bg
+  pair('bg', 'approve'),
+  // status text; bg-{color}/5..20 tints are the levels used in src/web
+  ...['approve', 'info', 'warning'].flatMap((c) => [
+    pair(c, 'surface'),
+    ...[5, 10, 20].map((a) => tint(c, c, a)),
+  ]),
 ]
 
 const themeIds = COLOR_THEMES.flatMap(({ id }) => [`${id}-dark`, `${id}-light`])

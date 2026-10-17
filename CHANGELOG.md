@@ -30,6 +30,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - CI: a release is now one PR, from a branch cut off `develop` straight to `main`, and the release-readiness report finds its boundary from that PR. The deploy digest-sync PR gets its required checks from a dispatched `ci.yml` run, since PRs opened with the workflow token start no checks. The `-debian` image is built (not pushed) on pull requests that touch `deploy/docker/`. The `verify-digest-sync` release job is removed because `bun run check:versions` already compares the same digests (#878, #938).
 
 ### Fixed
+- Green, blue and amber status text (approve, info, warning) and the filled Approve button now reach the 4.5:1 contrast minimum in every color theme, including on the tinted badge and notice backgrounds; most light themes were well below it. Each color moved only in lightness, so the hue is unchanged (#966).
 
 - The Playlists page header now describes the page instead of repeating the schedule status; the next generation time now shows in the Scheduled generation row, and the lint run is clean again after removing an unused admin check from the Dashboard. (#954, #957, #962)
 - Library reconciliation now matches an artist stored under a MusicBrainz alias or sort name, such as 아이유, 방탄소년단 or 블랙핑크, instead of leaving it without a candidate. Matching is still exact after normalization, a match on the primary name wins over an alias match, and several alias matches still count as ambiguous (#958).
