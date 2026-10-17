@@ -989,8 +989,8 @@ export const en = {
   'importArtists.likedSongsDescription': "Import artists you've liked on Spotify",
   'importArtists.spotifyPlaylist': 'Spotify Playlist',
   'importArtists.spotifyPlaylistDescription': 'Import artists from any Spotify playlist',
-  'importArtists.csvFile': 'CSV File',
-  'importArtists.csvDescription': 'Upload a list of artist names from a CSV file',
+  'importArtists.csvFile': 'CSV/M3U/XSPF File',
+  'importArtists.csvDescription': 'Upload a list of artist names from a CSV/M3U/XSPF file',
   'importArtists.import': 'Import',
   'importArtists.connectSpotifyFirst': 'Connect Spotify in {0} first',
   'importArtists.uploading': 'Uploading...',
@@ -1008,6 +1008,7 @@ export const en = {
   'importArtists.failedImport': 'Failed to start import',
   'importArtists.failedPlaylist': 'Failed to start playlist import',
   'importArtists.failedCsv': 'Failed to import CSV file',
+  'importArtists.unreadable': "{0} entries couldn't be read",
 
   // Library Sources Panel
   'librarySources.title': 'Library Sources',

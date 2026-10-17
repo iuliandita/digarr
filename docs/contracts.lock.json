@@ -296,7 +296,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "d229a6fabf5f6cdb2fdd16a5271d97256f5d5c4bb655be65378609e4345840fc",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
+        "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
         "src/server/routes/targets.ts": "465b143b07d89b66bdafd28d80766955069fd3ad53d2278f555a96290a25d45b",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
@@ -314,14 +314,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be",
+      "digest": "875132e9c98b24de1341de78783e4aac2ed34a216e92413409d190cd84a84f20",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "All /api/* error responses now use application/problem+json with type, title, status and detail. Legacy error bodies are converted centrally and keep a deprecated error member; validation failures, including admin restore schema failures and migrate-backend/test input errors, use type /problems/validation-failed. The /health 503 body and non-API plain-text 404s are deliberately unchanged and documented as such. docs/API.md intro, per-route error notes, 202 bodies for slskd sync and genre seed, conditional route groups and migrate-backend/test 400 vs 502 were updated, and the OpenAPI error responses were audited (bogus 400s removed from auth/status, session/migrate, jobs/health).",
-        "breaking": "Error responses change content type from application/json to application/problem+json; clients that match the exact content type must accept the new one. The error member stays (deprecated), so clients that read error keep working. Preview proxy upstream status moved to upstreamStatus, and a failed single-source library sync no longer carries status failed. No data, backup or rollback impact: rolling back the image restores the old shapes.",
+        "note": "POST /api/v1/subscriptions/import/csv now also accepts M3U, M3U8 and XSPF files by extension and returns an unreadable count; caps and response shape otherwise unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "5df30873779c25006a368269066917a7c738541214a8abcbe3e7403275d1c2be"
+        "digest": "875132e9c98b24de1341de78783e4aac2ed34a216e92413409d190cd84a84f20"
       }
     },
     "interface": {
@@ -332,24 +332,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "18285f0bb1129a841643d7cbd2838d139ddefd915baf6247c31b8a90f385b29c",
-        "src/core/i18n/messages/en.ts": "f37aab78aad841b15d6daffc6f154c45bb89b02634f651fad936bc76e3de2fcf",
-        "src/core/i18n/messages/es.ts": "e979a910f7db68dd7bc081bbc71273e80672500b0d4aa79631f66be5b8581807",
-        "src/core/i18n/messages/fr.ts": "38f9baaeda1b9b5bae8c97aa497908e978631a3f2f9878655c47d1313ac109b6",
+        "src/core/i18n/messages/de.ts": "8e6445a341ee9370bd6e4012d74806c0de77846f60f935bdc95472168e7d643c",
+        "src/core/i18n/messages/en.ts": "19f918f971f5c34cad4a69d6c8764e85fb9daf75199b35cc37076fc9ae19ba4f",
+        "src/core/i18n/messages/es.ts": "dadf22ccdb304416948b8208610dbb7ee3c2f0b438a5ac451a19bd5ffcd1260f",
+        "src/core/i18n/messages/fr.ts": "705e6dced42ffaa8bb5f267a32458a8c142ff86748fce83ce521cf67bc60c853",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "bd8dc41e4c3a48355ad6accd77bd267b1d25ef550f19adf7ef4cc9cd75fe1fca",
-        "src/core/i18n/messages/ja.ts": "ad497f89c6549981f690937a8cc7a288a941329002cc9ca54b1370a1ed7f4a9c",
-        "src/core/i18n/messages/ko.ts": "ac89d930945f36f363fab11f9b7c4bfb3bad8d2ded16871b59da383f6f531ab5",
-        "src/core/i18n/messages/nl.ts": "42b82d8790ecf499e5bb44e7010e4b797aef51f5f13f5cc98394912c52099f9e",
-        "src/core/i18n/messages/pl.ts": "82dacf0e1f1b3be6d64438d785caf62b7075771fb563a2a13428f2014c41670b",
-        "src/core/i18n/messages/pt-BR.ts": "b1d1f940c92743298074492a202a12fac8d858bc0eeefc863840668572a32392",
-        "src/core/i18n/messages/ro.ts": "1f92e996976afe191e96b655b0b920d1bfd552cbfd47399ed003a633ed42afc2",
-        "src/core/i18n/messages/ru.ts": "696f4e456e199a09a4e62248ca56917e57a63a009b6b6a236666790663f74964",
-        "src/core/i18n/messages/source-lock.json": "eae036f304855a74a14b59127adc3ae7aeb05bdacc999d81f9ac0bcc6daebc74",
-        "src/core/i18n/messages/tr.ts": "75e22507a92d14464ff65636ed2fd30fe740ff800e2a7cfa1a08ecce518a6d19",
+        "src/core/i18n/messages/it.ts": "a950ebca9f9a8dd2e5d828d42bd68e9991e38a5f233a383412531d2ee4e29a5f",
+        "src/core/i18n/messages/ja.ts": "4c858569d85632e824ab50f25b8cb3504116d76ca57575cbb621dfc4a6fd6fb6",
+        "src/core/i18n/messages/ko.ts": "ef6c5362b755f353e73553d1ef2620eb995c04511939ebdce40f82c973bb88f3",
+        "src/core/i18n/messages/nl.ts": "f7ee867c3178ef32272953208b8e68a06043553f208e2b633d29cefd95fc90a8",
+        "src/core/i18n/messages/pl.ts": "e8da451aae94f2be06b212457d7729e886e3ff90af11f7f0d8d8900c78d0a5c6",
+        "src/core/i18n/messages/pt-BR.ts": "56f93c586966c5e02bb3b7df6b1d4f811eed57f248b5b29a5001262f9c1b076d",
+        "src/core/i18n/messages/ro.ts": "df9a41ee57d2a2858f7d6d3ad40f108ebe3d331b151725a6e2d3c3dfa9987c86",
+        "src/core/i18n/messages/ru.ts": "bebfc5877c48bef194e17cc4924d95b279ef7c8e4c250965fe14bca06c627d54",
+        "src/core/i18n/messages/source-lock.json": "71b4d3f44466eb168ff2c8282088eca92c376193e415c5bbd151c3918aa2e0e5",
+        "src/core/i18n/messages/tr.ts": "5c89b37bd921a62a254d48e62f975a1a7c72b9933ad8b9cc4125c76922e201e2",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "28232cef0e5a674a17eac8ababf5311526ee2636509bc6190793b668b70e86b2",
-        "src/core/i18n/messages/zh-CN.ts": "042210cf74886102f449cd04a144d9e77e04a68139d1afa4435a9bfaeff1d75e",
+        "src/core/i18n/messages/uk.ts": "827379f7e96c88636660b7f54b9207f71f97271c12fee3e84eecaa093552b3ef",
+        "src/core/i18n/messages/zh-CN.ts": "903116cf42b398509ee4aa11746ec98f87108bf64eb1c689de2a79ec10340106",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -383,7 +383,7 @@
         "src/web/components/genre-grid.tsx": "2596a060fa428ce620bc584ca95f7e8be74b22f2970e4a9fc21e84fc09bf71d3",
         "src/web/components/health-check-card.tsx": "ee863a2364b8f6dcf0fd6d484eb000e02bd729d287502b53b5d9af527978bf81",
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
-        "src/web/components/import-artists.tsx": "44e8953d6db6ada63f1429e3d005754abdcf98f9254346b76ae903198275ca74",
+        "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "c3f34472f9a9600d6e747540eff22e66a1b18cba8e46c302fe8ff5692427c932",
         "src/web/components/job-run-row.tsx": "aa6bcc681ebd820e643a693b7525e2326ec15303cad3e3f95ec7c628237aad51",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
@@ -442,7 +442,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "da83cbaa11fb1404b77b6b1fd87cd38f5a5af2dc9198e68f7b0b141ceed3f8f8",
+        "src/web/lib/api.ts": "4a9015f853693f03620cfd506388126a1e9f3959c14c524bdc72a3244f92598f",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "dfcf56c3905809b2c61f15976cddd33cdd104f7a7d66770c2084a6f647a573ea",
+      "digest": "f18b710a8b532732e671270531f1dc191ad090950e8da0d03194f6a32a1cf16d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/SCREENSHOTS.md"],
-        "note": "Reject opens the reason picker in every Discover view, the mood search collapses until opened, and Subscriptions header controls move into the New menu; changelog and Discover toolbar guide updated.",
+        "docs": ["README.md", "CHANGELOG.md"],
+        "note": "Import picker accepts CSV, M3U, M3U8 and XSPF, the card names all three formats, and a toast reports entries that could not be read.",
         "breaking": "none",
         "migration": "",
-        "digest": "dfcf56c3905809b2c61f15976cddd33cdd104f7a7d66770c2084a6f647a573ea"
+        "digest": "f18b710a8b532732e671270531f1dc191ad090950e8da0d03194f6a32a1cf16d"
       }
     },
     "features": {
@@ -608,6 +608,7 @@
         "src/core/pipeline/store.ts": "9637b00f39f960b4eea5c3788cca67db07d8da459b9464c995c9f86e4ad9607e",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
+        "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "4ce79d331f210736579490fa88060539c486ab7591daaa5676b66980225a6100",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
@@ -703,14 +704,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83",
+      "digest": "db883bd3a1e8a2382bd5da9e969a0aeced2271957f4efb74d9a34c04a1d01c87",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "slskd picks one peer for a release several peers share and caps automatic retries of failed jobs; a manual retry clears the skipped peers; documented in the slskd import section and changelog.",
+        "docs": ["README.md", "CHANGELOG.md"],
+        "note": "Playlist-file import reads artists from EXTINF lines, XSPF creator tags, or unambiguous file paths; ambiguous entries are counted as unreadable instead of guessed.",
         "breaking": "none",
         "migration": "",
-        "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83"
+        "digest": "db883bd3a1e8a2382bd5da9e969a0aeced2271957f4efb74d9a34c04a1d01c87"
       }
     },
     "deployment": {

@@ -12,6 +12,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
 - Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).
 
+- Import artists from M3U, M3U8 and XSPF playlist files in the same import section as CSV. Artists come from `#EXTINF` lines and XSPF `creator` tags. A path-only M3U entry counts only when it reads `Artist/Album/NN - Title` or a flat `Artist - Title`; anything else is skipped and reported as "N entries couldn't be read" after the import instead of guessed. Duplicates are merged, and the existing 1 MB and 500-artist limits apply (#981).
+
 ### Changed
 
 - Make Discover consistent across views. Reject opens the same reason picker in stack, grid and list (and from the `r` key), and the picker's button reads "Reject without a reason" until you choose one, so skipping stays one click. In stack view `a` and `r` now work next to the arrow keys. The mood search collapses to a button until you click it or press `/`, and stays open while it has text or focus. On Subscriptions, Pause all and Resume all only show from two subscriptions up, and Presets moved into the New button's menu as From a preset (#985) (#993).

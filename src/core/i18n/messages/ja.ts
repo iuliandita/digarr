@@ -991,8 +991,9 @@ export const ja = {
   'importArtists.spotifyPlaylist': 'Spotify プレイリスト',
   'importArtists.spotifyPlaylistDescription':
     '任意の Spotify プレイリストからアーティストをインポートします',
-  'importArtists.csvFile': 'CSV ファイル',
-  'importArtists.csvDescription': 'CSV ファイルからアーティスト名のリストをアップロードします',
+  'importArtists.csvFile': 'CSV/M3U/XSPF ファイル',
+  'importArtists.csvDescription':
+    'CSV/M3U/XSPF ファイルからアーティスト名のリストをアップロードします',
   'importArtists.import': 'インポート',
   'importArtists.connectSpotifyFirst': '先に {0} で Spotify を接続してください',
   'importArtists.uploading': 'アップロード中...',
@@ -1010,6 +1011,7 @@ export const ja = {
   'importArtists.failedImport': 'インポートの開始に失敗しました',
   'importArtists.failedPlaylist': 'プレイリストのインポート開始に失敗しました',
   'importArtists.failedCsv': 'CSV ファイルのインポートに失敗しました',
+  'importArtists.unreadable': '{0} 件の項目を読み取れませんでした',
   'librarySources.title': 'ライブラリソース',
   'librarySources.syncAll': 'すべて同期',
   'librarySources.syncStarted': '同期を開始しました',
