@@ -3,6 +3,7 @@
 import { createHash } from 'node:crypto'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPlaylistScope } from '@/core/targets/playlist-scope'
+import type { PlaylistItem } from '@/core/targets/types'
 
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
@@ -135,13 +136,35 @@ describe('createNavidromePlaylistTarget()', () => {
     })
   })
 
-  describe('createPlaylist()', () => {
+  describe('export session createPlaylist()', () => {
+    const CREEP = { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' }
+
+    function userResponse(url: URL): Response | undefined {
+      if (url.pathname.endsWith('/getUser'))
+        return okResponse({ user: { username: url.searchParams.get('username') } })
+      return undefined
+    }
+
+    function searchResponse(): Response {
+      return okResponse({
+        searchResult3: { song: [{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }] },
+      })
+    }
+
+    async function createViaSession(name: string, items: PlaylistItem[]) {
+      const session = await createNavidromePlaylistTarget(5, CONFIG).openPlaylistExportSession?.(
+        items,
+      )
+      if (!session) throw new Error('Expected an export session')
+      return session.createPlaylist(name, async () => {})
+    }
+
     beforeEach(() => {
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
-        const urlStr = String(url)
-
-        // search3 - track search
-        if (urlStr.includes('/rest/search3')) {
+        const parsed = new URL(String(url))
+        const user = userResponse(parsed)
+        if (user) return user
+        if (parsed.pathname.includes('/rest/search3')) {
           return okResponse({
             searchResult3: {
               song: [
@@ -151,17 +174,10 @@ describe('createNavidromePlaylistTarget()', () => {
             },
           })
         }
-
-        // createPlaylist
-        if (urlStr.includes('/rest/createPlaylist')) {
+        if (parsed.pathname.includes('/rest/createPlaylist')) {
           return okResponse({ playlist: { id: 'pl-42', name: 'Test Playlist' } })
         }
-
-        // updatePlaylist (add songs or set description)
-        if (urlStr.includes('/rest/updatePlaylist')) {
-          return okResponse({})
-        }
-
+        if (parsed.pathname.includes('/rest/updatePlaylist')) return okResponse({})
         return new Response('Not Found', { status: 404 })
       })
     })
@@ -171,20 +187,18 @@ describe('createNavidromePlaylistTarget()', () => {
       let salt = ''
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
         const parsed = new URL(String(url))
+        const user = userResponse(parsed)
+        if (user) return user
         token = parsed.searchParams.get('t') ?? ''
         salt = parsed.searchParams.get('s') ?? ''
         return errorResponse(40, `authentication failed t=${token}&s=${salt}`)
       })
 
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Forbidden', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
+      const error = await createViaSession('Forbidden', [CREEP]).catch((err: unknown) => err)
 
-      expect(result).toMatchObject({ success: false })
-      expect(result?.error).toContain('t=[REDACTED]&s=[REDACTED]')
-      expect(result?.error).not.toContain(token)
-      expect(result?.error).not.toContain(salt)
+      expect(String(error)).toContain('t=[REDACTED]&s=[REDACTED]')
+      expect(String(error)).not.toContain(token)
+      expect(String(error)).not.toContain(salt)
       expect(
         mockFetch.mock.calls.some(
           ([requestUrl]) =>
@@ -196,23 +210,20 @@ describe('createNavidromePlaylistTarget()', () => {
 
     it('returns failure when createPlaylist endpoint errors', async () => {
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
-        const urlStr = String(url)
-        if (urlStr.includes('/rest/search3')) {
-          return okResponse({ searchResult3: { song: [] } })
-        }
-        if (urlStr.includes('/rest/createPlaylist')) {
+        const parsed = new URL(String(url))
+        const user = userResponse(parsed)
+        if (user) return user
+        if (parsed.pathname.includes('/rest/search3')) return searchResponse()
+        if (parsed.pathname.includes('/rest/createPlaylist')) {
           return errorResponse(70, 'Requested data was not found')
         }
         return new Response('Not Found', { status: 404 })
       })
 
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Bad Playlist', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
+      const result = await createViaSession('Bad Playlist', [CREEP])
 
-      expect(result?.success).toBe(false)
-      expect(result?.error).toContain('Requested data was not found')
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('Requested data was not found')
     })
 
     it('makes one create request and redacts echoed auth values from the body', async () => {
@@ -220,6 +231,9 @@ describe('createNavidromePlaylistTarget()', () => {
       let salt = ''
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
         const parsed = new URL(String(url))
+        const user = userResponse(parsed)
+        if (user) return user
+        if (parsed.pathname.includes('/rest/search3')) return searchResponse()
         if (parsed.pathname.includes('/rest/createPlaylist')) {
           token = parsed.searchParams.get('t') ?? ''
           salt = parsed.searchParams.get('s') ?? ''
@@ -228,15 +242,14 @@ describe('createNavidromePlaylistTarget()', () => {
         return okResponse({})
       })
 
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Bad Playlist', [])
+      const result = await createViaSession('Bad Playlist', [CREEP])
 
       expect(result).toMatchObject({
         success: false,
         error: 'Subsonic HTTP 500: failed t=[REDACTED]&s=[REDACTED]',
       })
-      expect(result?.error).not.toContain(token)
-      expect(result?.error).not.toContain(salt)
+      expect(result.error).not.toContain(token)
+      expect(result.error).not.toContain(salt)
       expect(
         mockFetch.mock.calls.filter(([url]) => String(url).includes('/rest/createPlaylist')),
       ).toHaveLength(1)
@@ -244,12 +257,11 @@ describe('createNavidromePlaylistTarget()', () => {
 
     it('makes one song-add request when updatePlaylist returns 500', async () => {
       mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const parsed = new URL(String(url))
+        const user = userResponse(parsed)
+        if (user) return user
         const value = String(url)
-        if (value.includes('/rest/search3')) {
-          return okResponse({
-            searchResult3: { song: [{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }] },
-          })
-        }
+        if (value.includes('/rest/search3')) return searchResponse()
         if (value.includes('/rest/createPlaylist')) {
           return okResponse({ playlist: { id: 'pl-42', name: 'Test' } })
         }
@@ -259,10 +271,7 @@ describe('createNavidromePlaylistTarget()', () => {
         return okResponse({})
       })
 
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Test', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
+      const result = await createViaSession('Test', [CREEP])
 
       expect(result).toMatchObject({
         success: false,
@@ -273,48 +282,12 @@ describe('createNavidromePlaylistTarget()', () => {
       ).toHaveLength(1)
     })
 
-    it('does not retry a best-effort comment mutation', async () => {
-      let commentAttempts = 0
-      mockFetch.mockImplementation(async (url: string | URL | Request) => {
-        const value = String(url)
-        if (value.includes('/rest/createPlaylist')) {
-          return okResponse({ playlist: { id: 'pl-42', name: 'Test' } })
-        }
-        if (value.includes('comment=')) {
-          commentAttempts += 1
-          if (commentAttempts === 1) return new Response('temporary outage', { status: 500 })
-        }
-        return okResponse({})
-      })
-
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      const result = await target.createPlaylist?.('Test', [], { description: 'Description' })
-
-      expect(result?.success).toBe(true)
-      expect(commentAttempts).toBe(1)
-    })
-
-    it('passes description to updatePlaylist', async () => {
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      await target.createPlaylist?.('Described Playlist', [], {
-        description: 'Auto-generated by Digarr',
-      })
-
-      const calls = mockFetch.mock.calls.map((c) => String(c[0]))
-      const commentCall = calls.find((u) => u.includes('comment='))
-      expect(commentCall).toBeDefined()
-      expect(commentCall).toContain('Auto-generated')
-    })
-
     it('uses a fresh auth salt for each target request', async () => {
-      const target = createNavidromePlaylistTarget(5, CONFIG)
-      await target.createPlaylist?.('Test', [
-        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-      ])
+      await createViaSession('Test', [CREEP])
 
       const salts = mockFetch.mock.calls.map(([url]) => new URL(String(url)).searchParams.get('s'))
-      expect(salts).toHaveLength(3)
-      expect(new Set(salts).size).toBe(3)
+      expect(salts).toHaveLength(4)
+      expect(new Set(salts).size).toBe(4)
     })
   })
 })

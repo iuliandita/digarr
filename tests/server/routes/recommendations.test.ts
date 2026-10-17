@@ -297,7 +297,9 @@ describe('GET /api/v1/recommendations', () => {
   it('passes filters to listRecommendations', async () => {
     const listRecommendations = vi.fn(async () => ({ items: [], total: 0 }))
     const app = createApp(makeDeps({ listRecommendations }))
-    await authedRequest(app, '/api/v1/recommendations?status=pending&limit=5&offset=10')
+    const res = await authedRequest(app, '/api/v1/recommendations?status=pending&limit=5&offset=10')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ items: [], total: 0 })
     expect(listRecommendations).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'pending', limit: 5, offset: 10 }),
     )

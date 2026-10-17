@@ -7,31 +7,47 @@ function ok(body: unknown): Response {
   return new Response(JSON.stringify(body))
 }
 
+const CONFIG = { url: 'http://emby:8096', apiKey: 'key', userId: 'user-1' }
+const ITEM = { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' }
+
+function embyFetch(
+  options: { search?: () => Promise<Response>; create?: () => Promise<Response> } = {},
+) {
+  return vi.fn().mockImplementation(async (url: string) => {
+    const { pathname } = new URL(url)
+    if (pathname === '/System/Info') return ok({ Id: 'emby-server' })
+    if (pathname === '/Users/user-1') return ok({ Id: 'user-1', ServerId: 'emby-server' })
+    if (pathname === '/Users/user-1/Items') {
+      return options.search
+        ? options.search()
+        : ok({ Items: [{ Id: 'track-1', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' }] })
+    }
+    if (pathname === '/Playlists') {
+      return options.create ? options.create() : ok({ Id: 'playlist-1' })
+    }
+    return new Response('Not Found', { status: 404 })
+  })
+}
+
+function playlistPosts(fetchMock: ReturnType<typeof vi.fn>) {
+  return fetchMock.mock.calls.filter(([url]) => new URL(String(url)).pathname === '/Playlists')
+}
+
+async function createViaSession(config: Parameters<typeof createEmbyPlaylistTarget>[1] = CONFIG) {
+  const session = await createEmbyPlaylistTarget(9, config).openPlaylistExportSession?.([ITEM])
+  if (!session) throw new Error('Expected an export session')
+  return session.createPlaylist('Weekly Discoveries', async () => {})
+}
+
 describe('createEmbyPlaylistTarget', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
   })
 
   it('creates a playlist and returns playlist metadata', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi
-        .fn()
-        .mockResolvedValueOnce(
-          ok({ Items: [{ Id: 'track-1', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' }] }),
-        )
-        .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' })),
-    )
+    vi.stubGlobal('fetch', embyFetch())
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
-
-    const result = await target.createPlaylist?.('Weekly Discoveries', [
-      { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
-    ])
+    const result = await createViaSession()
 
     expect(result).toMatchObject({
       success: true,
@@ -42,50 +58,30 @@ describe('createEmbyPlaylistTarget', () => {
   })
 
   it('prefers an exact title+artist match instead of the first near-match', async () => {
-    const fetchMock = vi.fn()
-    fetchMock
-      .mockResolvedValueOnce(
+    const fetchMock = embyFetch({
+      search: async () =>
         ok({
           Items: [
             { Id: 'partial', Name: 'Roygbiv (Live)', AlbumArtist: 'Boards of Canada' },
             { Id: 'exact', Name: 'Roygbiv', AlbumArtist: 'Boards of Canada' },
           ],
         }),
-      )
-      .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
+    })
     vi.stubGlobal('fetch', fetchMock)
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
+    const result = await createViaSession()
 
-    const result = await target.createPlaylist?.('Weekly Discoveries', [
-      { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
-    ])
-
-    const [, postInit] = fetchMock.mock.calls[1] as [string, RequestInit]
+    const [, postInit] = playlistPosts(fetchMock)[0] as [string, RequestInit]
     const body = JSON.parse(postInit.body as string) as { Ids: string[] }
     expect(body.Ids).toEqual(['exact'])
     expect(result).toMatchObject({ success: true, itemsAdded: 1 })
   })
 
   it('passes Bun TLS skip options when configured', async () => {
-    const fetchMock = vi.fn()
-    fetchMock
-      .mockResolvedValueOnce(ok({ Items: [] }))
-      .mockResolvedValueOnce(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
+    const fetchMock = embyFetch()
     vi.stubGlobal('fetch', fetchMock)
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'https://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-      skipTlsVerify: true,
-    })
-
-    await target.createPlaylist?.('Weekly Discoveries', [])
+    await createViaSession({ ...CONFIG, url: 'https://emby:8096', skipTlsVerify: true })
 
     const firstCall = fetchMock.mock.calls[0] as [string, RequestInit]
     expect(firstCall[1]).toMatchObject({
@@ -94,88 +90,41 @@ describe('createEmbyPlaylistTarget', () => {
   })
 
   it('fails without creating a playlist when track search fails', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockImplementation((url: string | URL | Request, init?: RequestInit) => {
-        if (String(url).includes('/Items') && (!init?.method || init.method === 'GET')) {
-          return Promise.reject(new Error('search transport failed'))
-        }
-        return Promise.resolve(ok({ Id: 'playlist-1', Name: 'Weekly Discoveries' }))
-      })
+    const fetchMock = embyFetch({
+      search: () => Promise.reject(new Error('search transport failed')),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
-
-    const result = await target.createPlaylist?.('Weekly Discoveries', [
-      { artistName: 'Boards of Canada', artistMbid: 'mbid-1', trackName: 'Roygbiv' },
-    ])
-
-    expect(result).toMatchObject({ success: false, error: 'search transport failed' })
-    expect(
-      fetchMock.mock.calls.some(
-        ([url, init]) =>
-          String(url).includes('/Playlists') &&
-          (init as RequestInit | undefined)?.method === 'POST',
-      ),
-    ).toBe(false)
+    await expect(createViaSession()).rejects.toThrow('search transport failed')
+    expect(playlistPosts(fetchMock)).toHaveLength(0)
   })
 
   it('fails when Emby does not return a playlist ID', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(ok({ Name: 'Weekly Discoveries' })))
+    vi.stubGlobal('fetch', embyFetch({ create: async () => ok({ Name: 'Weekly Discoveries' }) }))
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
-
-    const result = await target.createPlaylist?.('Weekly Discoveries', [])
-
-    expect(result).toMatchObject({
+    expect(await createViaSession()).toMatchObject({
       success: false,
       error: 'Emby did not return a playlist ID',
     })
   })
 
   it('retains the Emby response body in API errors', async () => {
-    const fetchMock = vi.fn().mockResolvedValueOnce(
-      new Response('playlist database unavailable', {
-        status: 500,
-      }),
-    )
+    const fetchMock = embyFetch({
+      create: async () => new Response('playlist database unavailable', { status: 500 }),
+    })
     vi.stubGlobal('fetch', fetchMock)
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
-
-    const result = await target.createPlaylist?.('Weekly Discoveries', [])
-
-    expect(result).toMatchObject({
+    expect(await createViaSession()).toMatchObject({
       success: false,
       error: 'Emby API 500: playlist database unavailable',
     })
-    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(playlistPosts(fetchMock)).toHaveLength(1)
   })
 
   it('returns a provider-shaped error for malformed JSON', async () => {
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValueOnce(new Response('not-json')))
+    vi.stubGlobal('fetch', embyFetch({ create: async () => new Response('not-json') }))
 
-    const target = createEmbyPlaylistTarget(9, {
-      url: 'http://emby:8096',
-      apiKey: 'key',
-      userId: 'user-1',
-    })
-
-    const result = await target.createPlaylist?.('Weekly Discoveries', [])
-
-    expect(result).toMatchObject({
+    expect(await createViaSession()).toMatchObject({
       success: false,
       error: 'Emby API 200: Invalid JSON: not-json',
     })

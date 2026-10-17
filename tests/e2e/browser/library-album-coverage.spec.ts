@@ -4,7 +4,7 @@ import { ensureAdminToken, installAuthCookie } from './auth'
 test.describe('library album coverage', () => {
   test('shows the album coverage popover from discover', async ({ page }) => {
     const token = await ensureAdminToken(page.request, { completeSetup: true })
-    test.skip(!token, 'Requires a working local Postgres test database')
+    expect(token).toBeTruthy()
     if (!token) return
 
     await installAuthCookie(page)

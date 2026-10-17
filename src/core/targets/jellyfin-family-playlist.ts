@@ -118,35 +118,6 @@ export function createJellyfinFamilyPlaylistTarget(
     type,
     capabilities: ['createPlaylist'],
 
-    async createPlaylist(name: string, items: PlaylistItem[]): Promise<PlaylistResult> {
-      try {
-        const itemIds = await resolveItems(items)
-
-        const playlist = await postOnce<{ Id?: string }>('/Playlists', {
-          Name: name,
-          UserId: userId,
-          MediaType: 'Audio',
-          Ids: itemIds,
-        })
-        const playlistId = playlist.Id
-        if (!playlistId) {
-          throw new Error(`${serviceName} did not return a playlist ID`)
-        }
-
-        return {
-          success: true,
-          targetType: type,
-          targetId,
-          playlistId,
-          playlistName: name,
-          itemsAdded: itemIds.length,
-          itemsSkipped: items.length - itemIds.length,
-        }
-      } catch (error) {
-        return failure(error)
-      }
-    },
-
     async openPlaylistExportSession(items) {
       try {
         if (items.length === 0) throw new Error('No playlist tracks were provided')

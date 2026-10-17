@@ -1,9 +1,9 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { DestinationTarget } from '@/core/targets/types'
+import type { DestinationTarget, PlaylistItem } from '@/core/targets/types'
 
-// Jellyfin and Navidrome playlist targets share one behavioral contract for
-// createPlaylist(); transport details live in the adapters below. Protocol-specific
+// Jellyfin and Navidrome playlist targets share one behavioral contract for creating a
+// playlist through an export session; transport details live in the adapters below. Protocol-specific
 // cases (auth, entry replacement, pagination, redaction) stay in each target's own suite.
 
 const mockFetch = vi.fn()
@@ -21,6 +21,7 @@ type Flavor = {
   forbiddenError: string
   make: () => DestinationTarget
   serve: (songs: Song[], remotePlaylistId: string) => void
+  isSearch: (url: string) => boolean
   /** Number of requests that wrote a playlist (create or add). */
   writeRequests: () => number
   createRequests: () => number
@@ -46,6 +47,11 @@ const jellyfin: Flavor = {
   serve: (songs, remotePlaylistId) => {
     mockFetch.mockImplementation(async (url: string | URL | Request, init?: RequestInit) => {
       const urlStr = String(url)
+      const { pathname } = new URL(urlStr)
+      if (pathname === '/System/Info') return new Response(JSON.stringify({ Id: 'jf-server' }))
+      if (pathname === '/Users/user-uuid-1') {
+        return new Response(JSON.stringify({ Id: 'user-uuid-1' }))
+      }
       if (urlStr.includes('/Items') && (!init?.method || init.method === 'GET')) {
         return new Response(
           JSON.stringify({
@@ -65,6 +71,7 @@ const jellyfin: Flavor = {
       return new Response('Not Found', { status: 404 })
     })
   },
+  isSearch: (url) => url.includes('/Items'),
   writeRequests: () => mockFetch.mock.calls.filter(([u, i]) => jellyfinPost(u, i)).length,
   createRequests: () => mockFetch.mock.calls.filter(([u, i]) => jellyfinPost(u, i)).length,
   searchRequests: () =>
@@ -98,6 +105,7 @@ const navidrome: Flavor = {
   serve: (songs, remotePlaylistId) => {
     mockFetch.mockImplementation(async (url: string | URL | Request) => {
       const urlStr = String(url)
+      if (urlStr.includes('/rest/getUser')) return subsonicOk({ user: { username: 'admin' } })
       if (urlStr.includes('/rest/search3')) {
         return subsonicOk({
           searchResult3: {
@@ -112,6 +120,7 @@ const navidrome: Flavor = {
       return new Response('Not Found', { status: 404 })
     })
   },
+  isSearch: (url) => url.includes('/rest/search3'),
   writeRequests: () =>
     mockFetch.mock.calls.filter(([u]) => /\/rest\/(createPlaylist|updatePlaylist)/.test(String(u)))
       .length,
@@ -133,8 +142,14 @@ afterEach(() => {
 })
 
 describe.each([jellyfin, navidrome])(
-  '$name playlist target createPlaylist() contract',
+  '$name playlist target export-session create contract',
   (flavor) => {
+    async function createViaSession(name: string, items: PlaylistItem[]) {
+      const session = await flavor.make().openPlaylistExportSession?.(items)
+      if (!session) throw new Error('Expected an export session')
+      return session.createPlaylist(name, async () => {})
+    }
+
     it('has correct id, type, and capabilities', () => {
       const target = flavor.make()
       expect(target.id).toBe(`${flavor.targetType}-${flavor.targetId}`)
@@ -152,49 +167,50 @@ describe.each([jellyfin, navidrome])(
         'remote-pl-1',
       )
 
-      const result = await flavor.make().createPlaylist?.('My Playlist', [CREEP, KARMA])
+      const result = await createViaSession('My Playlist', [CREEP, KARMA])
 
-      expect(result?.success).toBe(true)
-      expect(result?.playlistId).toBe('remote-pl-1')
-      expect(result?.playlistName).toBe('My Playlist')
-      expect(result?.itemsAdded).toBe(2)
-      expect(result?.targetType).toBe(flavor.targetType)
-      expect(result?.targetId).toBe(flavor.targetId)
+      expect(result.success).toBe(true)
+      expect(result.playlistId).toBe('remote-pl-1')
+      expect(result.playlistName).toBe('My Playlist')
+      expect(result.itemsAdded).toBe(2)
+      expect(result.targetType).toBe(flavor.targetType)
+      expect(result.targetId).toBe(flavor.targetId)
     })
 
     it('skips items without trackName', async () => {
-      flavor.serve([], 'remote-pl-2')
+      flavor.serve([{ id: 'song-1', title: 'Creep', artist: 'Radiohead' }], 'remote-pl-2')
 
-      const result = await flavor
-        .make()
-        .createPlaylist?.('Artist Only', [{ artistName: 'Radiohead', artistMbid: 'mbid-rh' }])
+      const result = await createViaSession('Artist Only', [
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh' },
+        CREEP,
+      ])
 
-      expect(result?.success).toBe(true)
-      expect(result?.itemsAdded).toBe(0)
-      expect(flavor.searchRequests()).toBe(0)
+      expect(result).toMatchObject({ success: true, itemsAdded: 1, itemsSkipped: 1 })
+      expect(flavor.searchRequests()).toBe(1)
       expect(flavor.createRequests()).toBe(1)
-      expect(flavor.writeRequests()).toBe(1)
     })
 
-    it('handles tracks not found in the library gracefully', async () => {
+    it('refuses to create a playlist when no tracks are found in the library', async () => {
       flavor.serve([], 'remote-pl-3')
 
-      const result = await flavor
-        .make()
-        .createPlaylist?.('Empty Playlist', [
+      await expect(
+        createViaSession('Empty Playlist', [
           { artistName: 'Ghost Band', artistMbid: 'mbid-x', trackName: 'Missing' },
-        ])
-
-      expect(result?.success).toBe(true)
-      expect(result?.itemsAdded).toBe(0)
+        ]),
+      ).rejects.toThrow()
+      expect(flavor.writeRequests()).toBe(0)
     })
 
     it('fails without creating a playlist when track search is forbidden', async () => {
-      mockFetch.mockResolvedValueOnce(new Response('forbidden', { status: 403 }))
+      flavor.serve([], 'remote-pl-5')
+      const served = mockFetch.getMockImplementation()
+      mockFetch.mockImplementation(async (url: string | URL | Request, init?: RequestInit) =>
+        flavor.isSearch(String(url))
+          ? new Response('forbidden', { status: 403 })
+          : served?.(url, init),
+      )
 
-      const result = await flavor.make().createPlaylist?.('Forbidden', [CREEP])
-
-      expect(result).toMatchObject({ success: false, error: flavor.forbiddenError })
+      await expect(createViaSession('Forbidden', [CREEP])).rejects.toThrow(flavor.forbiddenError)
       expect(flavor.createRequests()).toBe(0)
     })
 
@@ -207,9 +223,9 @@ describe.each([jellyfin, navidrome])(
         'remote-pl-4',
       )
 
-      const result = await flavor.make().createPlaylist?.('Test', [CREEP])
+      const result = await createViaSession('Test', [CREEP])
 
-      expect(result?.success).toBe(true)
+      expect(result.success).toBe(true)
       expect(flavor.addedSongIds()).toContain('song-exact')
       expect(flavor.addedSongIds()).not.toContain('song-partial')
     })

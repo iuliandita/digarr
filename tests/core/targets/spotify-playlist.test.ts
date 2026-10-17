@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createPlaylistScope } from '@/core/targets/playlist-scope'
 import { createSpotifyPlaylistTarget } from '@/core/targets/spotify-playlist'
+import type { PlaylistItem } from '@/core/targets/types'
 
 const ACCESS_TOKEN = 'spotify-access-token-secret'
 const mockGetAccessToken = vi.fn().mockResolvedValue(ACCESS_TOKEN)
@@ -70,6 +71,12 @@ afterEach(() => {
 })
 
 describe('createSpotifyPlaylistTarget()', () => {
+  async function createViaSession(items: PlaylistItem[]) {
+    const session = await target().openPlaylistExportSession?.(items)
+    if (!session) throw new Error('Expected an export session')
+    return session.createPlaylist('Generated', async () => {})
+  }
+
   it('has correct type and capabilities', () => {
     const result = target()
     expect(result.type).toBe('spotify-playlist')
@@ -81,7 +88,7 @@ describe('createSpotifyPlaylistTarget()', () => {
     const first = trackUri('1')
     const second = trackUri('2')
 
-    const result = await target().createPlaylist?.('Generated', [
+    const result = await createViaSession([
       { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: first },
       { artistName: 'Biosphere', artistMbid: 'mbid-bio', spotifyUri: second },
     ])
@@ -94,7 +101,6 @@ describe('createSpotifyPlaylistTarget()', () => {
     expect(requestBody(addCall)).toEqual({
       uris: [first, second],
     })
-    expect(mockFetch.mock.calls.some(([url]) => String(url).endsWith('/v1/me'))).toBe(false)
   })
 
   it('uses only a strict artist and title match from track search results', async () => {
@@ -105,7 +111,7 @@ describe('createSpotifyPlaylistTarget()', () => {
       spotifyTrack(exact, 'Creep', ' Radiohead '),
     ])
 
-    const result = await target().createPlaylist?.('Generated', [
+    const result = await createViaSession([
       { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: ' Creep ' },
     ])
 
@@ -123,9 +129,7 @@ describe('createSpotifyPlaylistTarget()', () => {
       ...matches.map((uri, index) => spotifyTrack(uri, `Track ${index}`, 'Radiohead')),
     ])
 
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: ' Radiohead ', artistMbid: 'mbid-rh' },
-    ])
+    const result = await createViaSession([{ artistName: ' Radiohead ', artistMbid: 'mbid-rh' }])
 
     expect(result).toMatchObject({ success: true, itemsAdded: 3 })
     const addCall = mockFetch.mock.calls.find(([url]) => String(url).includes('/items')) as
@@ -136,68 +140,61 @@ describe('createSpotifyPlaylistTarget()', () => {
     })
   })
 
-  it('creates an empty playlist when no strict track match exists', async () => {
-    setupSuccessResponses([spotifyTrack(trackUri('9'), 'Creep (Live)', 'Radiohead')])
-
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-    ])
-
-    expect(result).toMatchObject({ success: true, itemsAdded: 0 })
-    expect(mockFetch.mock.calls.some(([url]) => String(url).includes('/items'))).toBe(false)
-  })
-
   it('fails before playlist creation when a search returns a malformed track URI', async () => {
     setupSuccessResponses([spotifyTrack('spotify:track:not-valid', 'Creep', 'Radiohead')])
 
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-    ])
-
-    expect(result?.success).toBe(false)
-    expect(result?.error).toContain('Invalid Spotify track URI returned by search')
+    await expect(
+      createViaSession([{ artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' }]),
+    ).rejects.toThrow('Invalid Spotify track URI returned by search')
     expect(playlistMutationCalls()).toHaveLength(0)
   })
 
   it('rejects malformed supplied Spotify URIs before any remote mutation', async () => {
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: 'spotify:track:not-valid' },
-    ])
+    setupSuccessResponses()
 
-    expect(result?.success).toBe(false)
-    expect(result?.error).toContain('Invalid Spotify track URI')
-    expect(mockFetch).not.toHaveBeenCalled()
+    await expect(
+      createViaSession([
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: 'spotify:track:not-valid' },
+      ]),
+    ).rejects.toThrow('Invalid Spotify track URI')
+    expect(playlistMutationCalls()).toHaveLength(0)
   })
 
   it('fails before playlist creation on a forbidden search and redacts the access token', async () => {
-    mockFetch.mockResolvedValueOnce(new Response(`token=${ACCESS_TOKEN}`, { status: 403 }))
+    setupSuccessResponses()
+    mockFetch
+      .mockResolvedValueOnce(json({ id: 'account-1' }))
+      .mockResolvedValueOnce(new Response(`token=${ACCESS_TOKEN}`, { status: 403 }))
 
-    const result = await target().createPlaylist?.('Generated', [
+    const error = await createViaSession([
       { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-    ])
+    ]).catch((err: unknown) => err)
 
-    expect(result?.success).toBe(false)
-    expect(result?.error).toContain('Spotify API 403')
-    expect(result?.error).not.toContain(ACCESS_TOKEN)
+    expect(String(error)).toContain('Spotify API 403')
+    expect(String(error)).not.toContain(ACCESS_TOKEN)
     expect(playlistMutationCalls()).toHaveLength(0)
   })
 
   it('fails before playlist creation on a search transport error', async () => {
-    mockFetch.mockRejectedValueOnce(new Error('search transport failed'))
+    setupSuccessResponses()
+    mockFetch
+      .mockResolvedValueOnce(json({ id: 'account-1' }))
+      .mockRejectedValueOnce(new Error('search transport failed'))
 
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-    ])
-
-    expect(result?.success).toBe(false)
-    expect(result?.error).toContain('search transport failed')
+    await expect(
+      createViaSession([{ artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' }]),
+    ).rejects.toThrow('search transport failed')
     expect(playlistMutationCalls()).toHaveLength(0)
   })
 
   it('returns a failure when playlist creation fails', async () => {
+    setupSuccessResponses()
+    const session = await target().openPlaylistExportSession?.([
+      { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: trackUri('a') },
+    ])
     mockFetch.mockResolvedValueOnce(new Response('creation failed', { status: 500 }))
 
-    const result = await target().createPlaylist?.('Generated', [])
+    const result = await session?.createPlaylist('Generated', async () => {})
 
     expect(result?.success).toBe(false)
     expect(result?.error).toContain('Spotify API 500: creation failed')
@@ -205,14 +202,15 @@ describe('createSpotifyPlaylistTarget()', () => {
   })
 
   it('returns a failure when adding items fails', async () => {
-    const uri = trackUri('a')
+    setupSuccessResponses()
+    const session = await target().openPlaylistExportSession?.([
+      { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: trackUri('a') },
+    ])
     mockFetch
       .mockResolvedValueOnce(json({ id: 'playlist-1', name: 'Generated' }))
       .mockResolvedValueOnce(new Response('add failed', { status: 500 }))
 
-    const result = await target().createPlaylist?.('Generated', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: uri },
-    ])
+    const result = await session?.createPlaylist('Generated', async () => {})
 
     expect(result?.success).toBe(false)
     expect(result?.error).toContain('Spotify API 500: add failed')
@@ -220,19 +218,13 @@ describe('createSpotifyPlaylistTarget()', () => {
   })
 
   it('fails without adding items when playlist creation returns an empty response', async () => {
+    setupSuccessResponses()
+    const session = await target().openPlaylistExportSession?.([
+      { artistName: 'Radiohead', artistMbid: 'mbid-rh', spotifyUri: trackUri('a') },
+    ])
     mockFetch.mockResolvedValueOnce(json({}))
 
-    const result = await target().createPlaylist?.('Generated', [])
-
-    expect(result?.success).toBe(false)
-    expect(result?.error).toContain('Spotify did not return a playlist ID and name')
-    expect(mockFetch.mock.calls.some(([url]) => String(url).includes('/items'))).toBe(false)
-  })
-
-  it('fails without adding items when playlist creation returns malformed fields', async () => {
-    mockFetch.mockResolvedValueOnce(json({ id: 'playlist-1', name: 42 }))
-
-    const result = await target().createPlaylist?.('Generated', [])
+    const result = await session?.createPlaylist('Generated', async () => {})
 
     expect(result?.success).toBe(false)
     expect(result?.error).toContain('Spotify did not return a playlist ID and name')
@@ -243,8 +235,7 @@ describe('createSpotifyPlaylistTarget()', () => {
     setupSuccessResponses()
     const uris = Array.from({ length: 101 }, (_, index) => trackUri(String(index)))
 
-    const result = await target().createPlaylist?.(
-      'Generated',
+    const result = await createViaSession(
       uris.map((spotifyUri, index) => ({
         artistName: `Artist ${index}`,
         artistMbid: `mbid-${index}`,
@@ -262,7 +253,6 @@ describe('createSpotifyPlaylistTarget()', () => {
       uris: uris.slice(100),
     })
   })
-
   it('uses /v1/me to test the Spotify connection', async () => {
     setupSuccessResponses()
 

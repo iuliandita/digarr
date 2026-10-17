@@ -46,6 +46,8 @@ import type {
   OpsDb,
   RestoreOptions,
   RestoreResult,
+  TolerantBackupFile,
+  TolerantBackupOptions,
 } from './types'
 
 type BackupTable =
@@ -126,8 +128,17 @@ async function probeLiveSchema(db: Pick<OpsDb, 'execute'>): Promise<SchemaProbe>
 async function selectAll(
   db: Pick<OpsDb, 'select'>,
   table: BackupTable,
+): Promise<Record<string, unknown>[]>
+async function selectAll(
+  db: Pick<OpsDb, 'select'>,
+  table: BackupTable,
+  probe: SchemaProbe | undefined,
+): Promise<Record<string, unknown>[] | undefined>
+async function selectAll(
+  db: Pick<OpsDb, 'select'>,
+  table: BackupTable,
   probe?: SchemaProbe,
-): Promise<Record<string, unknown>[]> {
+): Promise<Record<string, unknown>[] | undefined> {
   if (!probe) {
     return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
   }
@@ -135,7 +146,7 @@ async function selectAll(
   const liveColumns = probe.live.get(name)
   if (!liveColumns) {
     probe.absent.tables.push(name)
-    return undefined as unknown as Record<string, unknown>[]
+    return undefined
   }
   const present: Record<string, AnyPgColumn> = {}
   const missing: string[] = []
@@ -171,8 +182,24 @@ function tableHash(rows: Record<string, unknown>[]): string {
 
 export async function createBackup(
   db: Pick<OpsDb, 'select' | 'execute'>,
-  options: BackupOptions = {},
-): Promise<BackupFile> {
+  options: TolerantBackupOptions,
+): Promise<TolerantBackupFile>
+export async function createBackup(
+  db: Pick<OpsDb, 'select' | 'execute'>,
+  options?: BackupOptions,
+): Promise<BackupFile>
+export async function createBackup(
+  db: Pick<OpsDb, 'select' | 'execute'>,
+  options: BackupOptions | TolerantBackupOptions = {},
+): Promise<BackupFile | TolerantBackupFile> {
+  return readBackup(db, options)
+}
+
+// Without tolerateMissingSchema every key is read, so the strict overloads hold.
+async function readBackup(
+  db: Pick<OpsDb, 'select' | 'execute'>,
+  options: BackupOptions | TolerantBackupOptions,
+): Promise<TolerantBackupFile> {
   const { includeCaches = false, full = true, tolerateMissingSchema = false } = options
   const probe = tolerateMissingSchema ? await probeLiveSchema(db) : undefined
   const read = (table: BackupTable) => selectAll(db, table, probe)
@@ -189,7 +216,7 @@ export async function createBackup(
   const trackRows = await read(playlistTracks)
   const blockRows = await read(artistBlocks)
 
-  const backup: BackupFile = {
+  const backup: TolerantBackupFile = {
     version: 1,
     appVersion: getAppVersion(),
     createdAt: new Date().toISOString(),
@@ -239,9 +266,14 @@ export async function createBackup(
 
 export async function createBackupSnapshot(
   db: OpsDb,
-  options: BackupOptions = {},
-): Promise<BackupFile> {
-  return db.transaction((tx) => createBackup(tx, options), {
+  options: TolerantBackupOptions,
+): Promise<TolerantBackupFile>
+export async function createBackupSnapshot(db: OpsDb, options?: BackupOptions): Promise<BackupFile>
+export async function createBackupSnapshot(
+  db: OpsDb,
+  options: BackupOptions | TolerantBackupOptions = {},
+): Promise<BackupFile | TolerantBackupFile> {
+  return db.transaction((tx) => readBackup(tx, options), {
     isolationLevel: 'repeatable read',
     accessMode: 'read only',
   })
