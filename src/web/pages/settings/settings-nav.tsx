@@ -8,7 +8,6 @@ const TAB_LABELS: Record<Tab, MessageKey> = {
   connections: 'settings.tabs.connections',
   targets: 'settings.tabs.targets',
   recommendations: 'settings.tabs.recommendations',
-  blocked: 'settings.tabs.blocked',
   schedule: 'settings.tabs.schedule',
   account: 'settings.tabs.account',
   auth: 'settings.tabs.authentication',

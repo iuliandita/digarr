@@ -1,9 +1,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
 import { AdministrationTab } from '../../components/admin/administration-tab'
-import { BlockedAlbumsTab } from '../../components/blocked-albums-tab'
-import { BlockedArtistsTab } from '../../components/blocked-artists-tab'
 import { OAuthCallbackNotice } from '../../components/oauth-callback-notice'
 import { SystemHealthCard } from '../../components/system-health-card'
 import { Button } from '../../components/ui/button'
@@ -19,7 +17,7 @@ import { ConnectionsTab } from './connections-tab'
 import { RecommendationsTab } from './recommendations-tab'
 import { ScheduleTab } from './schedule-tab'
 import { SettingsNav } from './settings-nav'
-import { resolveTab, type Tab } from './tabs'
+import { LEGACY_BLOCKED_TAB, resolveTab, type Tab } from './tabs'
 import { TargetsTab } from './targets-tab'
 
 function SettingsSkeleton() {
@@ -43,6 +41,8 @@ export function SettingsPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
+  const navigate = useNavigate()
   const { data: currentUser, isPending: userPending } = useQuery({
     queryKey: ['currentUser'],
     queryFn: getCurrentUser,
@@ -56,8 +56,15 @@ export function SettingsPage() {
     if (userPending || requestedTab === null || requestedTab === tab) return
     const nextParams = new URLSearchParams(searchParams)
     nextParams.set('tab', tab)
+    if (requestedTab === LEGACY_BLOCKED_TAB) {
+      navigate(
+        { pathname: location.pathname, search: nextParams.toString(), hash: '#blocked' },
+        { replace: true },
+      )
+      return
+    }
     setSearchParams(nextParams, { replace: true })
-  }, [userPending, requestedTab, tab, searchParams, setSearchParams])
+  }, [userPending, requestedTab, tab, searchParams, setSearchParams, navigate, location.pathname])
   const {
     data,
     isLoading: loading,
@@ -109,12 +116,6 @@ export function SettingsPage() {
           {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
           {tab === 'targets' && <TargetsTab />}
           {tab === 'recommendations' && <RecommendationsTab isAdmin={isAdmin} />}
-          {tab === 'blocked' && (
-            <div className="space-y-8">
-              <BlockedArtistsTab />
-              <BlockedAlbumsTab />
-            </div>
-          )}
           {tab === 'schedule' && <ScheduleTab settings={data} />}
           {tab === 'account' && <AccountTab />}
           {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}

@@ -3,7 +3,7 @@ import { toast } from 'sonner'
 import { type BlockedAlbumApi, deleteAlbumBlock, listAlbumBlocks } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
-export function BlockedAlbumsTab() {
+export function BlockedAlbumsTab({ onChange }: { onChange?: () => void } = {}) {
   const { locale, t } = useI18n()
   const [items, setItems] = useState<BlockedAlbumApi[]>([])
   const [loading, setLoading] = useState(false)
@@ -30,6 +30,7 @@ export function BlockedAlbumsTab() {
     setItems((prev) => prev.filter((x) => x.id !== row.id))
     try {
       await deleteAlbumBlock(row.releaseGroupMbid)
+      onChange?.()
       toast.success(t('settings.blockedAlbums.unblock_success'))
     } catch {
       toast.error(t('settings.blockedAlbums.unblock_failed'))

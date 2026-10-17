@@ -698,6 +698,7 @@ export const ptBR = {
   'analytics.noDiscoveryBatches':
     'Nenhum lote de descoberta ainda. Execute uma varredura para ver seu histórico aqui.',
   'analytics.batchHistory': 'Histórico do lote',
+  'analytics.moreCharts': 'Mais gráficos',
   'analytics.pageRange': '{start}-{end} de {total}',
   'analytics.scoreDistribution': 'Distribuição de pontuação',
   'analytics.noScoreData': 'Ainda não há dados de pontuação',
@@ -1273,6 +1274,7 @@ export const ptBR = {
   'settings.emailSaved': 'E-mail atualizado',
   'settings.emailTaken': 'Esse e-mail já está em uso',
   'settings.changePassword': 'Alterar senha',
+  'settings.security': 'Segurança',
   'settings.currentPassword': 'Senha atual',
   'settings.newPassword': 'Nova senha',
   'settings.confirmNewPassword': 'Confirmar nova senha',

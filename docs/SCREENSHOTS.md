@@ -111,6 +111,6 @@ The Account page offers password-confirmed SSO linking when OIDC is enabled and 
 
 This older capture shows ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL, plus the top of the Plex card. The current Your Connections UI also includes Jellyfin, Emby, Subsonic, and Discogs. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
 
-## Settings > Blocked
+## Settings > Recommendations > Blocked
 
-The screenshot capture script can produce `settings-blocked.png` for Settings > Blocked. That surface now includes separate permanent artist and album blocklists; no `settings-blocked.png` artifact is currently checked in.
+The screenshot capture script can produce `settings-blocked.png` by opening `/settings?tab=blocked`, which lands on the Blocked section at the bottom of Settings > Recommendations. That section holds separate permanent artist and album blocklists; no `settings-blocked.png` artifact is currently checked in.

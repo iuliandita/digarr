@@ -703,6 +703,7 @@ export const de = {
   'analytics.noDiscoveryBatches':
     'Noch keine Discovery-Batches. Führe hier einen Scan durch, um deinen Verlauf anzuzeigen.',
   'analytics.batchHistory': 'Chargenhistorie',
+  'analytics.moreCharts': 'Weitere Diagramme',
   'analytics.pageRange': '{start}-{end} von {total}',
   'analytics.scoreDistribution': 'Punkteverteilung',
   'analytics.noScoreData': 'Noch keine Punktedaten',
@@ -1280,6 +1281,7 @@ export const de = {
   'settings.emailSaved': 'E-Mail aktualisiert',
   'settings.emailTaken': 'Diese E-Mail wird bereits verwendet',
   'settings.changePassword': 'Passwort ändern',
+  'settings.security': 'Sicherheit',
   'settings.currentPassword': 'Aktuelles Passwort',
   'settings.newPassword': 'Neues Passwort',
   'settings.confirmNewPassword': 'Neues Passwort bestätigen',

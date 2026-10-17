@@ -693,6 +693,7 @@ export const uk = {
   'analytics.noDiscoveryBatches':
     'Партій відкриття ще немає. Запусти сканування, щоб переглянути свою історію тут.',
   'analytics.batchHistory': 'Історія партій',
+  'analytics.moreCharts': 'Більше графіків',
   'analytics.pageRange': '{start}-{end} з {total}',
   'analytics.scoreDistribution': 'Розподіл балів',
   'analytics.noScoreData': 'Даних про оцінки ще немає',
@@ -1269,6 +1270,7 @@ export const uk = {
   'settings.emailSaved': 'Пошту оновлено',
   'settings.emailTaken': 'Ця електронна пошта вже використовується',
   'settings.changePassword': 'Змінити пароль',
+  'settings.security': 'Безпека',
   'settings.currentPassword': 'Поточний пароль',
   'settings.newPassword': 'Новий пароль',
   'settings.confirmNewPassword': 'Підтверди новий пароль',
