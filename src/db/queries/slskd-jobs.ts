@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { SLSKD_ACTIVE_JOB_STATES, slskdJobs } from '@/db/schema'
 
@@ -185,7 +185,7 @@ export async function listPendingSlskdJobs(db: Database, limit = 50): Promise<Sl
     .select()
     .from(slskdJobs)
     .where(inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
-    .orderBy(desc(slskdJobs.createdAt), desc(slskdJobs.id))
+    .orderBy(asc(slskdJobs.createdAt), asc(slskdJobs.id))
     .limit(limit)
 
   return rows as SlskdJobRow[]

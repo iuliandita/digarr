@@ -23,6 +23,17 @@ describe('scoreSlskdCandidate()', () => {
   })
 })
 
+describe('scoreSlskdCandidate() artist names with dots', () => {
+  it.each(['Dr. Dre - 2001', 'Dr. Dre - 2001.flac'])('keeps "Dr. Dre" in %s', (filename) => {
+    const scored = scoreSlskdCandidate(
+      { artistName: 'Dr. Dre', releaseTitle: '2001' },
+      { filename },
+    )
+    expect(scored.artistMatch).toBe(true)
+    expect(scored.titleMatch).toBe(true)
+  })
+})
+
 describe('selectBestSlskdCandidate()', () => {
   it('queues an exact audio release with cover art and metadata companions', () => {
     const selected = selectBestSlskdCandidate(release, [

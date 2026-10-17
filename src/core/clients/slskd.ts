@@ -254,6 +254,12 @@ export function createSlskdClient(url: string, apiKey: string, skipTlsVerify = f
     return http.post('/api/v0/searches', { searchText: queryText })
   }
 
+  async function isSearchComplete(searchId: string): Promise<boolean> {
+    const search = await http.get<Record<string, unknown>>(`/api/v0/searches/${searchId}`)
+    if (typeof search.isComplete === 'boolean') return search.isComplete
+    return typeof search.state === 'string' && search.state.includes('Completed')
+  }
+
   async function getSearchResults(searchId: string): Promise<SlskdSearchResult[]> {
     const raw = await http.get<unknown>(`/api/v0/searches/${searchId}/responses`)
     return mapSearchResponses(raw)
@@ -283,6 +289,7 @@ export function createSlskdClient(url: string, apiKey: string, skipTlsVerify = f
   return {
     testConnection,
     createSearch,
+    isSearchComplete,
     getSearchResults,
     enqueueResult,
     getDownloads,

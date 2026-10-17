@@ -432,6 +432,70 @@ describe('createSlskdOrchestrator', () => {
     expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
   })
 
+  it.each([
+    {
+      name: 'finished search with no results',
+      complete: true,
+      updatedAt: now,
+      error: 'slskd search finished with no results',
+    },
+    {
+      name: 'incomplete search past the max age',
+      complete: false,
+      updatedAt: new Date(Date.now() - 60 * 60 * 1000),
+      error: 'slskd search timed out with no results',
+    },
+  ])('fails a searching job for $name', async ({ complete, updatedAt, error }) => {
+    const updateJobState = vi.fn(async () => makeJob())
+    const slskdClient = {
+      createSearch: vi.fn(),
+      isSearchComplete: vi.fn(async () => complete),
+      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+      enqueueResult: vi.fn(),
+      getDownloads: vi.fn(async () => []),
+    }
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({ state: 'searching', slskdSearchId: 'search-1', updatedAt }),
+      ]),
+      processPendingJobs: vi.fn(async () => {}),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+    } as never)
+
+    await orchestrator.triggerSync()
+
+    expect(updateJobState).toHaveBeenCalledWith(1, 'failed', { lastError: error })
+  })
+
+  it('does not pick a candidate while the search is still running', async () => {
+    const updateJobState = vi.fn(async () => makeJob())
+    const slskdClient = {
+      createSearch: vi.fn(),
+      isSearchComplete: vi.fn(async () => false),
+      getSearchResults: vi.fn(
+        async (): Promise<SlskdSearchResult[]> => [
+          { id: 'r1', filename: 'x.flac', username: 'peer', size: 1 },
+        ],
+      ),
+      enqueueResult: vi.fn(),
+      getDownloads: vi.fn(async () => []),
+    }
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({ state: 'searching', slskdSearchId: 'search-1', updatedAt: new Date() }),
+      ]),
+      processPendingJobs: vi.fn(async () => {}),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+    } as never)
+
+    await orchestrator.triggerSync()
+
+    expect(updateJobState).not.toHaveBeenCalled()
+    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
+  })
+
   it('waits until every expected slskd file succeeds', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const getDownloads = vi.fn(async () => [
