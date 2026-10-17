@@ -180,7 +180,7 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "a3b4f1921e3e8977e2be35cd0183746cb436845419170998d908f293cbf35189",
-        "src/db/queries/recommendations.ts": "7e4e784186d4a2bc4baf3e80f63f1dc9f5843ba615552068c18bb1e560f50ca2",
+        "src/db/queries/recommendations.ts": "da802d466851ced080cec921b5d4e2a96ba9fec2507fd5a8736a44d5ae8b9871",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
@@ -192,14 +192,14 @@
         "src/db/schema.ts": "b219690cde29e92b9de0a9b3774aeda66b5fe0ce5c5e2ab2ddae305dd78a8275",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "bca14e17b77d68937dac58f611615f444736aadb2b2a683a60220f62e7e3ac82",
+      "digest": "0e45c42c4f04bb6bc6fcb014d5d29c502baf7a1a44226c09950000acf1c2776b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Persist waiting approval timing and options in existing target_actions JSON without a new schema migration. Document normal backups, completing waiting work before rollback, and restoring a pre-upgrade backup with the earlier image.",
+        "docs": ["docs/OPERATIONS.md", "docs/API.md"],
+        "note": "Document persisted waiting actions, stable approval timestamps, and continued retries after partial success. No schema or backup format changes; existing outage rollback guidance remains applicable.",
         "breaking": "none",
         "migration": "",
-        "digest": "bca14e17b77d68937dac58f611615f444736aadb2b2a683a60220f62e7e3ac82"
+        "digest": "0e45c42c4f04bb6bc6fcb014d5d29c502baf7a1a44226c09950000acf1c2776b"
       }
     },
     "configuration": {
@@ -296,7 +296,7 @@
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "6516a6d9957239d66b3f09d59cca516c981560218d2189de0c22a7212c7dcb9c",
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
-        "src/server/routes/recommendations.ts": "94179b76ec915724b8ba468e470f67beffe8ae20fefe88a770ad7871e8144a75",
+        "src/server/routes/recommendations.ts": "577edde345c9d57678a4176dec1603d835cd5aea46a2292b610670b604d0738e",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "25b32983ab15a7460a9204b552d0b156762053b86d5af6315a6da0a21fd1c40b",
+      "digest": "41c303e8a2c7654510e475be29d120f517c8831a984c3196ebb454ad4e09dce2",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
-        "note": "Document waiting approval state, persisted retry fields, immediate manual retry with saved options and accurate Job History, bulk waiting counts, and the opt-in approval_failed payload.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Document first-approval existing-artist reuse, block checks, transient status codes, contextual album failures, and merged target status precedence.",
         "breaking": "none",
         "migration": "",
-        "digest": "25b32983ab15a7460a9204b552d0b156762053b86d5af6315a6da0a21fd1c40b"
+        "digest": "41c303e8a2c7654510e475be29d120f517c8831a984c3196ebb454ad4e09dce2"
       }
     },
     "interface": {
@@ -688,6 +688,7 @@
         "src/core/subscriptions/registry.ts": "e496eadb3677a25b220f3ed8684b3f20cb0f079a96c288a3d3815fa29746afbc",
         "src/core/subscriptions/runner.ts": "b8f37fb7a3423ad468007d7772db6f5f1bb211e59fcd08ebaf18bf5e61c367c1",
         "src/core/subscriptions/types.ts": "1f191181ee309346291407f7125a01edf88d2eb65f95247a1e5713129a5d9112",
+        "src/core/targets/action-status.ts": "cfa09e111312ce4d47bda3679e6328f18efbea6262ade6037bcdf34d80d99ccb",
         "src/core/targets/emby-playlist.ts": "517b800456ce079a87380f8cb38817ef3bf54aa0f6d55f6e30ea089ef6551401",
         "src/core/targets/export-csv.ts": "60c7f330c976f623d4e94f1d412a919134947add60f3b6725550187f4c0055a1",
         "src/core/targets/export-json.ts": "f418e541febdc4771b1c11a920688e187f46126b3a622a61fe0048f940ce5b6a",
@@ -696,14 +697,15 @@
         "src/core/targets/jellyfin-family-playlist.ts": "9fc24c3bc84086bce655551c2a69ac103030ac100e9b1a47bff33244093c59ed",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
         "src/core/targets/lidarr-connection.ts": "f60cd7104c3fca9ef32158c2c621d560c8c909d326b405fca870ef9962e0b26a",
-        "src/core/targets/lidarr-retry-worker.ts": "0cd89826b1dbe6045647cb16d23da4414ec5b3afd5059aee2766b4cd1131d2c4",
-        "src/core/targets/lidarr-retry.ts": "3529ef9fd6b283a8eeafefb4bb13caceb85826f61a3ee38ed8d6091439ae491a",
-        "src/core/targets/lidarr.ts": "02f0eeb08761259c86b54496310b9818dcada39092fc68eebaf9dd0ebc419f7f",
+        "src/core/targets/lidarr-retry-worker.ts": "64ae330cbaf0d0c4621a6ab5af569ac91ab775fc7a26328f1ba14d0539af4fc9",
+        "src/core/targets/lidarr-retry.ts": "91f6866561df182f65bba364479bd28fd831b9fadfdb1911cf8c9f0c11944777",
+        "src/core/targets/lidarr.ts": "1846d5dc01e38057beda63a6280727f7b2a7b3881f61dee795f06dfd2cc76f29",
         "src/core/targets/navidrome-playlist.ts": "18d6ed252fc2e072e373d76f25d5dd06b0a0f9521cd333b33946221a8ccfaea7",
         "src/core/targets/playlist-match.ts": "051b1bedde97c023449b349903f915360dbad5d211bc7b9051438bd08785e375",
         "src/core/targets/playlist-scope.ts": "e9d9c18cd05fcc1b9637b7ceccf6e7ff0bde629e27652da1ac785a84f810268e",
         "src/core/targets/plex-playlist.ts": "b872c41978872109e7a0cda8fbcca165bf318b2180413bbe39bce024f06ec794",
         "src/core/targets/saved-playlist-targets.ts": "811d2ca1198c4f17dff7ed08d9e6b9fd0c5a2d3937dd58b2d436f614af8cb74d",
+        "src/core/targets/slskd-recommendation.ts": "dde9e2ed0a59fc3a749a475eb0d0624da25c0060470771bddf1d9aff72be2598",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
         "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
@@ -712,17 +714,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "ffa512d798d955e41ad12646ba892fa95d8a7595fe931ff00d5f28236a34d84f",
+        "src/index.ts": "a121fc29bdeaa8c6009aaa8c567acf3f80fc6df64d6b1da1454db8cc243ea010",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "df22f552feafe3fb027d37bce3b8896af099c486f17d983c76d1866c333c95ab",
+      "digest": "28a312412df9cde0ed0da6d6f73c9faa892714b1ff6c18232326e372e73aacf6",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document persisted 24-hour Lidarr retry backoff, current target resolution, duplicate prevention, combined acquisition continuation, job-level album search retries, one expiry alert attempt, and the single-process constraint. HTTP adds and commands remain non-repeatable.",
+        "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
+        "note": "Document isolated scheduled retries, user block enforcement, partial-success precedence, approval ordering, and redacted scheduled retry errors. No deployment or companion template changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "df22f552feafe3fb027d37bce3b8896af099c486f17d983c76d1866c333c95ab"
+        "digest": "28a312412df9cde0ed0da6d6f73c9faa892714b1ff6c18232326e372e73aacf6"
       }
     },
     "deployment": {
