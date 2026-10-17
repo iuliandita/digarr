@@ -31,6 +31,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Container images drop all setuid/setgid bits. The Debian base shipped 11 (mount, umount, su, passwd and others), which the unfixed util-linux findings could reach; the app runs as uid 1000 and never needs them. The scan findings themselves stay until Debian ships fixes (#863).
 - The analytics batch history pager shows a translated range with a plain hyphen ("1-10 of 25") instead of hard-coded English with a double hyphen (#950).
 - Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
 - The Spotify embed on recommendation cards no longer loads on page render (about 50 third-party requests, telemetry included). A local "Load Spotify player" button stands in, and nothing is requested from Spotify until you click it (#934).

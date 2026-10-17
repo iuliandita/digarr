@@ -716,7 +716,7 @@
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "738483693115f2b9b3444c43b9367d7e4140568378fe2abe3a25f80a34457628",
-        "deploy/docker/Dockerfile": "8dccb5a8d7e2badf59e7aa264f547a6715f1c03bf7e88185c5716d736cbe6893",
+        "deploy/docker/Dockerfile": "ea53912a3ba45cfca3d245cbe005e57a7782327eb0cd891fbb6d8820ba7c9ad1",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -750,14 +750,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "4ace0fcbf609df0c46ffc325a6a7dae7b8e566438f026ef01ff99f25a14698d5",
+      "digest": "5b56c5669cc549a283217eb326dbb97efb21450b74fdd100ddfa3115a16a47f7",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Comment-only change in the Helm values file; no chart behavior, defaults or image pins changed.",
+        "outcome": "docs-updated",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Runtime images strip all setuid/setgid bits after package upgrades; verified both Debian and Alpine builds have zero such files, run as uid 1000 and pass /health. OPERATIONS Debian fallback row notes it; scan findings unchanged, #863 stays open. No env, volume, port or Unraid template change.",
         "breaking": "none",
         "migration": "",
-        "digest": "4ace0fcbf609df0c46ffc325a6a7dae7b8e566438f026ef01ff99f25a14698d5"
+        "digest": "5b56c5669cc549a283217eb326dbb97efb21450b74fdd100ddfa3115a16a47f7"
       }
     },
     "release": {
