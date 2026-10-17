@@ -1012,8 +1012,9 @@ export const fr = {
   'importArtists.spotifyPlaylist': 'Playlist Spotify',
   'importArtists.spotifyPlaylistDescription':
     "Importe des artistes depuis n'importé quelle playlist Spotify",
-  'importArtists.csvFile': 'Fichier CSV',
-  'importArtists.csvDescription': "Télécharge une liste de noms d'artistes depuis un fichier CSV",
+  'importArtists.csvFile': 'Fichier CSV/M3U/XSPF',
+  'importArtists.csvDescription':
+    "Télécharge une liste de noms d'artistes depuis un fichier CSV/M3U/XSPF",
   'importArtists.import': 'Importer',
   'importArtists.connectSpotifyFirst': "Connecte d'abord Spotify dans {0}",
   'importArtists.uploading': 'Téléchargement...',
@@ -1031,6 +1032,7 @@ export const fr = {
   'importArtists.failedImport': "Échec du démarrage de l'importation",
   'importArtists.failedPlaylist': "Échec du démarrage de l'importation de la playlist",
   'importArtists.failedCsv': "Échec de l'importation du fichier CSV",
+  'importArtists.unreadable': "{0} entrées n'ont pas pu être lues",
   'librarySources.title': 'Sources de bibliothèque',
   'librarySources.syncAll': 'Tout synchroniser',
   'librarySources.syncStarted': 'Synchronisation démarrée',
