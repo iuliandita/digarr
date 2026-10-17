@@ -1,4 +1,12 @@
 export const it = {
+  'settings.monitorMissing': 'Album mancanti',
+  'settings.monitorExisting': 'Album esistenti',
+  'settings.monitorLatest': 'Ultimo album',
+  'settings.monitorFirst': 'Primo album',
+  'lidarr.tags': 'Etichette Lidarr',
+  'lidarr.newTag': 'Nuova etichetta',
+  'lidarr.createTag': 'Crea etichetta',
+  'lidarr.tagCreateFailed': 'Impossibile creare l’etichetta',
   'app.closeMenu': 'Chiudi menu',
   'app.openMenu': 'Apri menu',
   'app.runScan': 'Avvia scansione',

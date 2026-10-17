@@ -1,4 +1,12 @@
 export const zhCN = {
+  'settings.monitorMissing': '缺失的专辑',
+  'settings.monitorExisting': '已有的专辑',
+  'settings.monitorLatest': '最新专辑',
+  'settings.monitorFirst': '首张专辑',
+  'lidarr.tags': 'Lidarr 标签',
+  'lidarr.newTag': '新标签',
+  'lidarr.createTag': '创建标签',
+  'lidarr.tagCreateFailed': '无法创建标签',
   'app.closeMenu': '关闭菜单',
   'app.openMenu': '打开菜单',
   'app.runScan': '开始扫描',

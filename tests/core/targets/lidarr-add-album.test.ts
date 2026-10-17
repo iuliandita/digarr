@@ -24,6 +24,27 @@ function mockLidarrClient() {
 }
 
 describe('createLidarrTarget().addAlbum', () => {
+  it.each([true, false])(
+    'applies tags only to a newly added artist (existing=%s)',
+    async (existing) => {
+      const client = mockLidarrClient()
+      client.findArtistByMbid.mockResolvedValue(existing ? { id: 42 } : null)
+      client.getAlbums.mockResolvedValue([{ id: 7, foreignAlbumId: 'rg-1' }])
+      const target = createLidarrTarget(1, { url: 'http://lidarr', apiKey: 'k', tags: [3] })
+      await target.addAlbum?.({ artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' })
+      if (existing) expect(client.addArtist).not.toHaveBeenCalled()
+      else
+        expect(client.addArtist).toHaveBeenCalledWith(
+          'a1',
+          'Artist',
+          undefined,
+          undefined,
+          undefined,
+          { monitorOption: 'none', tags: [3] },
+        )
+    },
+  )
+
   it('capabilities includes addAlbum', () => {
     mockLidarrClient()
     const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })

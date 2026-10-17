@@ -1,4 +1,12 @@
 export const pl = {
+  'settings.monitorMissing': 'Brakujące albumy',
+  'settings.monitorExisting': 'Istniejące albumy',
+  'settings.monitorLatest': 'Najnowszy album',
+  'settings.monitorFirst': 'Pierwszy album',
+  'lidarr.tags': 'Tagi Lidarr',
+  'lidarr.newTag': 'Nowy tag',
+  'lidarr.createTag': 'Utwórz tag',
+  'lidarr.tagCreateFailed': 'Nie udało się utworzyć tagu',
   'app.closeMenu': 'Zamknij menu',
   'app.openMenu': 'Otwórz menu',
   'app.runScan': 'Uruchom skanowanie',

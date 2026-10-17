@@ -753,6 +753,26 @@ describe('PATCH /api/v1/settings', () => {
     expect(updateSettings).not.toHaveBeenCalled()
   })
 
+  it.each(['lidarrUrl', 'lidarrApiKey'] as const)(
+    'clears reference target tags when %s changes',
+    async (field) => {
+      const deps = makeDeps()
+      vi.mocked(deps.targetQueries.getAllTargets).mockResolvedValue([
+        { id: 5, type: 'lidarr', config: { useServerConnection: true, tags: [4] } },
+        { id: 6, type: 'lidarr', config: { url: 'http://other', apiKey: 'k', tags: [4] } },
+      ] as never)
+      const response = await authedRequest(createApp(deps), '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: field === 'lidarrUrl' ? 'http://new:8686' : 'new-key' }),
+      })
+      expect(response.status).toBe(200)
+      expect(deps.targetQueries.updateTarget).toHaveBeenCalledExactlyOnceWith(5, {
+        config: { useServerConnection: true },
+      })
+    },
+  )
+
   it('calls updateSettings and returns updated settings', async () => {
     const updateSettings = vi.fn(async () => {})
     const updatedSettings = { ...mockSettings, lidarrUrl: 'http://new:8686' }
