@@ -1,6 +1,6 @@
 # Authentication
 
-Digarr supports four authentication modes. Most deployments only need one.
+Digarr supports per-user sessions, personal API tokens, OIDC, trusted proxy authentication, and a legacy deployment token. Most deployments only need one interactive sign-in method.
 
 ## Users and targets
 
@@ -14,7 +14,7 @@ The first user becomes admin; admins can promote additional users in Settings > 
 
 In Settings > Targets, admins choose **Assigned user** when adding or editing a target. Each user's approvals use only their assigned targets. Create separate targets if several users need the same Lidarr instance. Admins manage the connection; ordinary users can test and use it without seeing saved credentials.
 
-Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Job history entries for the user (including their errors, metadata, and source results) are deleted with them. Shared artists and batch history remain.
+Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, personal API tokens, provider credentials, playlists, blocks, and library records. Job history entries for the user (including their errors, metadata, and source results) are deleted with them. Shared artists and batch history remain.
 
 ## Session auth (default)
 
@@ -345,12 +345,27 @@ The CIDR parser validates strictly. Misconfigured entries crash boot with a
 clear error rather than silently widening trust. Use tight ranges that match
 your actual reverse-proxy network.
 
+## Personal API tokens
+
+For scripts and automation, open **Settings > Account > API tokens**. Create a token with a name, scope, and an optional expiry (never, 30, 90, or 365 days). Copy the value while it is shown: closing the dialog hides it permanently. The list shows its prefix, scope, creation time, last use, and expiry. Revoke a token to stop its access immediately; deleting its user also deletes it. Password changes and browser logout do not revoke personal tokens. Revoke them separately when retiring a script or if your password was compromised.
+
+Send `Authorization: Bearer dga_<secret>` on API requests. Personal tokens are accepted only through that header, never through cookies or query parameters. They need no CSRF header. Browser cookies keep their existing same-origin and CSRF requirements. An explicit personal token takes precedence over sign-in proxy headers and browser cookies, so its permissions still apply behind a trusted proxy.
+
+- `read` allows only GET and HEAD, with the user's ordinary permissions.
+- `write` allows ordinary user actions, including writes, but never admin privileges, even when the owner is an admin.
+- `admin` can be created only by admins and permits admin operations only while the owner is currently an admin. Demotion removes that access on the next request; it does not turn the token into a read-only token.
+
+Personal tokens can use ordinary per-user account and library actions; OIDC account linking still requires a cookie session. Listing, creating, and revoking tokens always require an active **cookie session**; personal tokens, bearer sessions, and proxy-only requests cannot manage tokens. On a proxy deployment, the cookie issued during sign-in must already be present and valid for the same user. There is no cross-user admin token listing or revocation endpoint; an owner manages their own tokens.
+
+Only a SHA-256 hash is stored, alongside an eight-character display prefix. The full `dga_` value contains 32 random bytes encoded as base64url and is returned only on creation. Expired, revoked, unknown, and deleted-user tokens return the usual `401` problem details. Failed personal-token authentication is limited to 20 attempts per minute per client IP, in memory in one process, with `429` and `Retry-After` once exhausted. Behind a proxy, configure `PROXY_AUTH_TRUSTED_PROXIES`: only trusted socket peers may supply `X-Forwarded-For`, and the right-most entry outside the trusted proxy CIDRs identifies the client. Missing or malformed headers fall back to the socket IP. The failure budget is checked before any credential lookup; once exhausted, all personal-token attempts from that IP return `429` until the window resets. Successful requests do not consume the budget. Browser sessions remain available. Last-used updates happen at most once per minute per token.
+
+Personal API tokens are not backed up or copied between backends. JSON exports omit the token table, and restore ignores any `apiTokens` data in older or newer files. A restore that replaces or removes users deletes those users' tokens by cascade; tokens remain valid when their users are left unchanged. Recreate tokens after restoring onto a fresh instance. Native database snapshots include the token table and can reactivate revoked credentials when restored; review and revoke them after native recovery. See [the migration and rollback instructions](guides/switching-backends.md#personal-api-token-migration) before upgrading.
+
 ## Legacy token auth (deprecated)
 
 `DIGARR_AUTH_TOKEN` authenticates as `userId=1` without admin rights. It is
 retained for backwards compatibility with older deployments and will be
-removed in a future release. Migrate to a per-user bearer session, browser
-session auth, or OIDC.
+removed in a future release. Its behavior is unchanged. Migrate scripts to [personal API tokens](#personal-api-tokens); use browser sessions or OIDC for interactive access. Startup logs this deprecation once when the variable is configured.
 
 ## Generate a new encryption key
 

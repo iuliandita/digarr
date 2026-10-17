@@ -256,12 +256,7 @@ export function settingsRoutes(deps: AppDependencies) {
 
   router.get('/api/v1/settings', async (c) => {
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
     const response = await buildSettingsResponse(deps, userId, isAdmin)
     if (!response) {
       return c.json({ error: 'Settings not found' }, 404)
@@ -353,12 +348,7 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     const userId = c.get('userId')
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
     const storedSettings =
       Object.hasOwn(sanitized, 'preferences') || Object.hasOwn(sanitized, 'skipTlsVerify')
         ? await deps.getSettings()
@@ -588,12 +578,7 @@ export function settingsRoutes(deps: AppDependencies) {
       acceptLanguage: c.req.header('Accept-Language'),
     })
     const service = c.req.param('service')
-    const isAdmin = await resolveAdmin(
-      c.get('userId'),
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
     if (!isAdmin && service !== 'plex') {
       return problem(
         c,
@@ -852,15 +837,7 @@ export function settingsRoutes(deps: AppDependencies) {
 
   // Test webhook by sending a test payload to the configured URL
   router.post('/api/v1/settings/test-webhook', async (c) => {
-    const userId = c.get('userId')
-    if (
-      !(await resolveAdmin(
-        userId,
-        deps.getUserById,
-        c.get('authSkipped'),
-        c.get('legacyTokenAuth'),
-      ))
-    ) {
+    if (!(await resolveAdmin(c, deps.getUserById))) {
       return problem(
         c,
         'admin-required',

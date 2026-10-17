@@ -26,12 +26,7 @@ export function dashboardRoutes(deps: AppDependencies) {
       return c.json({ error: 'limit must be an integer' }, 400)
     }
 
-    const isAdmin = await resolveAdmin(
-      userId,
-      deps.getUserById,
-      c.get('authSkipped'),
-      c.get('legacyTokenAuth'),
-    )
+    const isAdmin = await resolveAdmin(c, deps.getUserById)
 
     const activity = await deps.dashboardQueries.getRecentActivity(userId, isAdmin, limit)
     return c.json(activity)

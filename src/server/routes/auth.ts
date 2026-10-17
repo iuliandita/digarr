@@ -1,5 +1,5 @@
 import { lookup } from 'node:dns/promises'
-import { type Context, Hono } from 'hono'
+import { type Context, Hono, type MiddlewareHandler } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword, verifyPassword } from '@/core/auth'
@@ -7,12 +7,14 @@ import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
 import { isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
-import { deleteSession, SessionRotationConflictError } from '@/core/sessions'
+import { deleteSession, getSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
+import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
 import { FirstUserRequiredError, toUserResponse, updateUserPreferences } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
+import { adminRequired, sessionAuthRequired } from '@/server/helpers/auth-problems'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser } from '@/server/helpers/require-user'
 import {
@@ -24,16 +26,18 @@ import {
   prepareSessionCookie,
 } from '@/server/helpers/session-auth'
 import { resolveRequestLocale } from '@/server/locale'
+import { effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import {
   changePasswordSchema,
+  createApiTokenSchema,
   registerSchema,
   updateEmailSchema,
   updateLocaleSchema,
   updatePreferencesSchema,
 } from '@/server/schemas/auth'
 import { preferencesSchema, preferredGenreListSchema } from '@/server/schemas/settings'
-import { zJson } from '@/server/schemas/validator'
+import { idParamSchema, zJson, zParam } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
 
 // Pre-computed at module load so "username not found" still pays the scrypt
@@ -69,6 +73,52 @@ const ALLOWED_PREF_KEYS = new Set([
 
 export function authRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
+
+  const tokens = apiTokenQueries(deps.db)
+  const cookieSessionRequired: MiddlewareHandler<HonoEnv> = async (c, next) => {
+    if (c.get('authMethod') !== 'session-cookie') {
+      const cookieToken = getCookie(c, SESSION_COOKIE_NAME)
+      const session =
+        c.get('authMethod') === 'proxy' && cookieToken ? await getSession(cookieToken) : null
+      if (!session || session.userId !== c.get('userId')) return sessionAuthRequired(c)
+    }
+    c.header('Cache-Control', 'no-store')
+    return next()
+  }
+  router.use('/api/v1/auth/tokens', cookieSessionRequired)
+  router.use('/api/v1/auth/tokens/*', cookieSessionRequired)
+  router.get('/api/v1/auth/tokens', async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    return c.json(await tokens.list(auth.userId))
+  })
+  router.post('/api/v1/auth/tokens', zJson(createApiTokenSchema), async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const { name, scope, expiresInDays } = c.req.valid('json')
+    const user = await deps.getUserById(auth.userId)
+    if (!user) return sessionAuthRequired(c)
+    if (scope === 'admin' && !effectiveIsAdmin(c, user)) return adminRequired(c)
+    const expiresAt = expiresInDays ? new Date(Date.now() + expiresInDays * 86_400_000) : null
+    return c.json(await tokens.create(auth.userId, name, scope, expiresAt), 201)
+  })
+  router.delete('/api/v1/auth/tokens/:id', zParam(idParamSchema), async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const { id } = c.req.valid('param')
+    if (!(await tokens.revoke(auth.userId, id))) {
+      return problem(
+        c,
+        'token-not-found',
+        'Token not found',
+        404,
+        undefined,
+        undefined,
+        'tokens.notFoundError',
+      )
+    }
+    return c.body(null, 204)
+  })
 
   const passwordSessions = deps.passwordSessions ?? sessionQueries(deps.db)
 

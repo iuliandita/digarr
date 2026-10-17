@@ -5,7 +5,7 @@ import { problem } from '@/server/helpers/problem'
 import type { HonoEnv } from '@/server/types'
 
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS'])
-const HEADER_AUTH = new Set(['session-bearer', 'legacy-bearer'])
+const HEADER_AUTH = new Set(['session-bearer', 'legacy-bearer', 'api-token'])
 const QUERY_AUTH = new Set(['session-query', 'legacy-query'])
 
 function rejectRequest(c: Context<HonoEnv>) {

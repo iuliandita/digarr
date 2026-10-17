@@ -4,7 +4,9 @@ import { createMiddleware } from 'hono/factory'
 import { envConfig } from '@/config/env'
 import { getSession } from '@/core/sessions'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
+import { getClientIp } from '@/server/helpers/client-ip'
 import { problem } from '@/server/helpers/problem'
+import { rateLimiter } from '@/server/middleware/rate-limit'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import type { AuthMethod, HonoEnv } from '@/server/types'
 
@@ -54,7 +56,17 @@ const QUERY_TOKEN_PATHS = new Set(['/api/v1/pipeline/events', '/api/v1/preview/a
 export function authGuard(options: {
   hasUsers: () => Promise<boolean>
   isSetupComplete: () => Promise<boolean>
+  resolveApiToken?: (
+    token: string,
+  ) => Promise<{ userId: number; scope: import('@/db/schema').ApiTokenScope } | null>
 }) {
+  const failedTokenLimit = rateLimiter({
+    windowMs: 60_000,
+    max: 20,
+    keyPrefix: 'api-token-failures',
+    getIp: getClientIp,
+    countResponse: (c) => c.res.status === 401 && c.get('authMethod') !== 'api-token',
+  })
   return createMiddleware<HonoEnv>(async (c, next) => {
     const publicPath =
       !c.req.path.startsWith('/api/v1/') ||
@@ -90,7 +102,10 @@ export function authGuard(options: {
     }
 
     // Try session token first
-    if (credential?.token) {
+    if (
+      credential?.token &&
+      !(credential.source === 'bearer' && credential.token.startsWith('dga_'))
+    ) {
       const session = await getSession(credential.token)
       if (session) {
         c.set('userId', session.userId)
@@ -108,7 +123,7 @@ export function authGuard(options: {
       safeCompare(credential.token, legacyToken)
     ) {
       console.warn(
-        `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} - no admin access, no per-user features. Migrate to user sessions.`,
+        `[auth] DEPRECATED: Legacy token auth from ${c.req.header('x-forwarded-for') ?? 'direct'} - no admin access, no per-user features. Migrate to personal API tokens in Settings > Account.`,
       )
       // Assign userId=1 (first user) so downstream queries scope correctly
       // instead of matching NULL userId records
@@ -116,6 +131,32 @@ export function authGuard(options: {
       c.set('legacyTokenAuth', true)
       c.set('authMethod', credential.source === 'bearer' ? 'legacy-bearer' : 'legacy-query')
       return next()
+    }
+
+    if (credential?.source === 'bearer' && credential.token.startsWith('dga_')) {
+      return failedTokenLimit(c, async () => {
+        const token = await options.resolveApiToken?.(credential.token)
+        if (!token) {
+          c.res = notAuthenticated(c)
+          return
+        }
+        c.set('userId', token.userId)
+        c.set('authMethod', 'api-token')
+        c.set('apiTokenScope', token.scope)
+        if (token.scope === 'read' && !['GET', 'HEAD'].includes(c.req.method)) {
+          c.res = problem(
+            c,
+            'token-read-only',
+            'Read-only token',
+            403,
+            undefined,
+            undefined,
+            'tokens.readOnlyError',
+          )
+          return
+        }
+        await next()
+      })
     }
 
     if (publicPath) return next()
