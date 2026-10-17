@@ -1031,6 +1031,10 @@ export const ptBR = {
   'librarySources.justNow': 'agora mesmo',
   'librarySources.minAgo': 'há {0} min',
   'librarySources.hoursAgo': 'há {0} h',
+  'librarySources.artistCount': '{0} artistas',
+  'librarySources.albumCount': '{0} álbuns',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} exatos, {2} ancorados, {3} desambiguados, {4} não reconciliados',
   'librarySources.mbWarning':
     '{0} consultas ao MusicBrainz falharam. Os artistas afetados ficam sem reconciliação e serão tentados novamente na próxima sincronização.',
   'libraryStats.artists': 'Artistas',

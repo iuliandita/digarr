@@ -124,6 +124,23 @@ function unreconciledRow(
   }
 }
 
+type MBSearchArtist = Awaited<ReturnType<MBClient['searchArtist']>>['artists'][number]
+
+function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: string): boolean {
+  const names: unknown[] = [candidate['sort-name']]
+  if (Array.isArray(candidate.aliases)) {
+    for (const alias of candidate.aliases) {
+      names.push(alias?.name, alias?.['sort-name'])
+    }
+  }
+  return names.some(
+    (name) =>
+      typeof name === 'string' &&
+      name.trim() !== '' &&
+      normalizeArtistName(name) === nameNormalized,
+  )
+}
+
 /**
  * Reconcile a single source artist to a MusicBrainz MBID.
  *
@@ -131,6 +148,7 @@ function unreconciledRow(
  *  0. Override (user assertion beats everything)
  *  1. Source-provided MBID (trust the source)
  *  2. Cache short-circuit + MB API lookup with strict normalize-equal filter
+ *     (primary name first, then aliases and sort name)
  *  3. Anchor against already-known MBIDs (Task 9)
  *  4. Exact normalized name match (Task 9)
  *  5. Album-overlap disambiguation (Task 10)
@@ -184,9 +202,14 @@ export async function reconcileArtist(
     )
     return lookupFailedRow(artist, nameNormalized, ctx)
   }
-  const candidates = (mbResult.artists ?? []).filter(
-    (c) => normalizeArtistName(c.name) === nameNormalized,
-  )
+  // A primary-name match outranks alias matches, so an alias shared with
+  // another artist cannot turn a clean primary match into an ambiguity.
+  const searchArtists = mbResult.artists ?? []
+  const primaryMatches = searchArtists.filter((c) => normalizeArtistName(c.name) === nameNormalized)
+  const candidates =
+    primaryMatches.length > 0
+      ? primaryMatches
+      : searchArtists.filter((c) => matchesAliasOrSortName(c, nameNormalized))
 
   if (candidates.length === 0) {
     ctx.counts.unreconciledNoCandidate += 1

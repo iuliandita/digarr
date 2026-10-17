@@ -134,6 +134,35 @@ describe('hardcoded UI string checks', () => {
   })
 })
 
+describe('bare words next to JSX expressions', () => {
+  it.each([
+    ['pager', "<span>{start}-{end} of{' '}{total}</span>"],
+    ['word after expression', '<Badge>{count} pending</Badge>'],
+    ['word between expressions', '<p>{a} and {b}</p>'],
+    ['multi-line text', "<p>\n  {a},{' '}\n  disambiguated, {b}\n</p>"],
+  ])('flags %s', (_name, source) => {
+    expect(findHardcodedUiStrings('example.tsx', source).length).toBeGreaterThan(0)
+  })
+
+  it.each([
+    ['separators and numbers', '<p>{a} - {b} / {c} : ({d}) {e}% x {f} 12</p>'],
+    ['catalog calls', "<p>{t('a.b')} {name}</p>"],
+    ['protected terms', '<p>{count} Spotify</p>'],
+    ['else branches', 'if (a) {\n  x()\n} else {\n  y()\n}'],
+    ['type assertions', 'const a = b as Record<string, number>\nconst c = d as const satisfies E'],
+    ['generics', 'const labels: Record<string, string> = {}'],
+    ['object literals', 'const o = { a: { b: 1 }, key: { c: 2 } }'],
+  ])('ignores %s', (_name, source) => {
+    expect(findHardcodedUiStrings('example.tsx', source)).toEqual([])
+  })
+
+  it('flags a double hyphen between expressions', () => {
+    expect(findDashLiterals('example.tsx', '<span>{start}--{end}</span>')).toEqual([
+      'example.tsx:1: "--"',
+    ])
+  })
+})
+
 describe('findDashLiterals', () => {
   it.each([
     ["const empty = value ?? '--'", '"\'--\'"'],

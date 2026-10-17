@@ -1033,6 +1033,10 @@ export const it = {
   'librarySources.justNow': 'proprio ora',
   'librarySources.minAgo': '{0} min fa',
   'librarySources.hoursAgo': '{0} h fa',
+  'librarySources.artistCount': '{0} artisti',
+  'librarySources.albumCount': '{0} album',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} esatti, {2} ancorati, {3} disambiguati, {4} non riconciliati',
   'librarySources.mbWarning':
     '{0} richieste a MusicBrainz non riuscite. Gli artisti interessati restano non riconciliati e verranno riprovati alla prossima sincronizzazione.',
   'libraryStats.artists': 'Artisti',

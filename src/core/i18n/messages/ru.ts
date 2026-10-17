@@ -1033,6 +1033,10 @@ export const ru = {
   'librarySources.justNow': 'только что',
   'librarySources.minAgo': '{0} мин назад',
   'librarySources.hoursAgo': '{0} ч назад',
+  'librarySources.artistCount': 'исполнителей: {0}',
+  'librarySources.albumCount': 'альбомов: {0}',
+  'librarySources.matchSummary':
+    'MBID: {0}, точных: {1}, привязанных: {2}, уточнённых: {3}, несопоставленных: {4}',
   'librarySources.mbWarning':
     '{0} запросов к MusicBrainz не удались. Затронутые исполнители остаются не сопоставленными и будут повторены при следующей синхронизации.',
   'libraryStats.artists': 'Исполнители',

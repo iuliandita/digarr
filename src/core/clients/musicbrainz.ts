@@ -49,6 +49,14 @@ export type MBSearchResult = {
   artists: Array<{
     id: string
     name: string
+    'sort-name'?: string
+    aliases?: Array<{
+      name?: string
+      'sort-name'?: string
+      locale?: string | null
+      type?: string | null
+      primary?: boolean | null
+    }>
     disambiguation?: string
     tags?: Array<{ name: string; count: number }>
     score: number

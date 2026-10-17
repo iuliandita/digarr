@@ -1028,6 +1028,10 @@ export const uk = {
   'librarySources.justNow': 'щойно',
   'librarySources.minAgo': '{0} хв тому',
   'librarySources.hoursAgo': '{0} год тому',
+  'librarySources.artistCount': 'виконавців: {0}',
+  'librarySources.albumCount': 'альбомів: {0}',
+  'librarySources.matchSummary':
+    "MBID: {0}, точних: {1}, прив'язаних: {2}, уточнених: {3}, неузгоджених: {4}",
   'librarySources.mbWarning':
     '{0} запитів до MusicBrainz не вдалися. Постраждалі виконавці залишаться незіставленими і будуть повторені при наступній синхронізації.',
   'libraryStats.artists': 'Виконавці',

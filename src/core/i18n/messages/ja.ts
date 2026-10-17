@@ -1021,6 +1021,10 @@ export const ja = {
   'librarySources.justNow': 'たった今',
   'librarySources.minAgo': '{0} 分前',
   'librarySources.hoursAgo': '{0} 時間前',
+  'librarySources.artistCount': '{0} アーティスト',
+  'librarySources.albumCount': '{0} アルバム',
+  'librarySources.matchSummary':
+    'MBID {0} 件、完全一致 {1} 件、アンカー一致 {2} 件、曖昧さ解消 {3} 件、未照合 {4} 件',
   'librarySources.mbWarning':
     '{0} 件の MusicBrainz クエリが失敗しました。影響を受けたアーティストは未照合のままで、次回の同期で再試行されます。',
   'libraryStats.artists': 'アーティスト',

@@ -332,24 +332,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "44563f2adb39b781ac21015a412f3d517e1bc7b257d94f05cfa5ba0a1f7b7356",
-        "src/core/i18n/messages/en.ts": "d90094bccf738e1794525056eeb61f8ff51df823470178827d6dfdd62370fcaf",
-        "src/core/i18n/messages/es.ts": "cd41b0c1089c491d9bcbbb293c739fa331ef9c3948230a9b193a0c52c6769d79",
-        "src/core/i18n/messages/fr.ts": "9a27e7264784e3143e705c6a0f9b12e76cc5105ff92cbac9196dc18dbf439c7e",
+        "src/core/i18n/messages/de.ts": "e3847ad711dc17e3d710d558fd05c7c6eb3a3a54d840783ad4e277645726ff67",
+        "src/core/i18n/messages/en.ts": "05889bf3cbef9db9a6f88165a38da28a239f0a306f1ff510a8798b1c57aba675",
+        "src/core/i18n/messages/es.ts": "369229c3297db95d021453b858b1e9f8a8bdcb5d1793f557c49822f407fc2107",
+        "src/core/i18n/messages/fr.ts": "299d6f4b6e3a16ad76d7e72671eec22672fd2a1ff310eaecb65559f316151ebc",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "f810cce991d987de5e5885a9cae9d09afa51d4e0ffc8e17939e76f5364d885e1",
-        "src/core/i18n/messages/ja.ts": "43093f44b0e0be5442cfef2ca97ae05ddd07c0e62c2fe671dbf5b7305cde67f3",
-        "src/core/i18n/messages/ko.ts": "4b4fb1a2d263dc737aebb487b01c95a2abba12328ce7049189b9b79f0685f39f",
-        "src/core/i18n/messages/nl.ts": "97f891870be39f3ecdbc505464cd5889623fa36f795f4bc7e9b2b70c21deb2be",
-        "src/core/i18n/messages/pl.ts": "ce2cca9dd72349b4babe4d3dce001d873af8e9981e29ad5456225e7f6093f023",
-        "src/core/i18n/messages/pt-BR.ts": "b06dd669d6742668fe587eb90b93be86299b490c3a23922ce66397af155fde20",
-        "src/core/i18n/messages/ro.ts": "c18cbe2a934b615657a46e5390186d63e15160aca2cf429baafc9240745f7394",
-        "src/core/i18n/messages/ru.ts": "252b0084f04b94f987b5da7ac95d60044c53800f9eb766d158aeca2d86c16bbe",
-        "src/core/i18n/messages/source-lock.json": "16871147c1b321b34468671df8defc11ce66863ec12845e4b71f57c340c8d235",
-        "src/core/i18n/messages/tr.ts": "ac7c85c89976991ff2f05242da6e0c4796836cb6cbc9e0f7d297d08d34e757f1",
+        "src/core/i18n/messages/it.ts": "f4758e7cd3d5b2c0ca319ced673a018c798e81bbc2fef781510fa3fc573a9cd1",
+        "src/core/i18n/messages/ja.ts": "2d17624c6b86736db6caf0e1e819b909656daecf7cf838eacdf6b36b16d1c2c9",
+        "src/core/i18n/messages/ko.ts": "5eb2e9cecbfc2f3493a51d3424b7b5a56cdf755b10c274174f0ece146511da2c",
+        "src/core/i18n/messages/nl.ts": "19eeece711213122de6880046cafba698a7d16501a42e29a5fe2f6a63d040bb6",
+        "src/core/i18n/messages/pl.ts": "38a4e8d604673648beee9bb2f318bb5b9585bd712b6bbf3a4d9ae3f01d2802bb",
+        "src/core/i18n/messages/pt-BR.ts": "36eb74bbe4eb7315ce380013a1fb4adc1a06c680522de344203a64160ceb698b",
+        "src/core/i18n/messages/ro.ts": "21976807dd65b424101b10d47ffdad233311c7fe17371c02b8d5b2783e8ca23d",
+        "src/core/i18n/messages/ru.ts": "da6a3f1c2db99c58e5e8a57b3762073c3b94a8203a3501ea8fb701f2f1fa03f4",
+        "src/core/i18n/messages/source-lock.json": "c3902bddccd811453b612c1b0e704328c02bfa89a21dfb4a7e637f35bfd341a4",
+        "src/core/i18n/messages/tr.ts": "4a1d9fe7f331b14ffde7fab2d8b2e854110b50ba4a70a790fbee769d897d00ed",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "2498f414634282eece9dd5f163d4f9212a07978cbd26e6f4f5eff804aca5cf59",
-        "src/core/i18n/messages/zh-CN.ts": "5791df28c1043e8c17f8ef4d8d65149a0c007778341b3ed4732d13bc5da24240",
+        "src/core/i18n/messages/uk.ts": "29afe8d043ff2d5075f484454b1c50f3e87d9bdbe7ddcc957c65b626e91cae5d",
+        "src/core/i18n/messages/zh-CN.ts": "744b65f81d1ff31630358fed6ca15ee45698d63e8c07bdbc004c93023b2c3c8f",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -392,7 +392,7 @@
         "src/web/components/library-bulk-review-toolbar.tsx": "be2d3d85af74003a60b090e5d4e31ad48db26117a23f97f21ccc4fb8bffeefa7",
         "src/web/components/library-first-sync-banner.tsx": "968c6f13401822d4ca88b4fdb6892c31c2ded9b71f379fc8a818dac7957119bd",
         "src/web/components/library-reconciliation-reason.tsx": "947b0c9c1f0c8e0a86032e56ba99b6413205f77ec95d2056f03b12eb582bb6ee",
-        "src/web/components/library-sources-panel.tsx": "1562fef9b89f3a8eeadeb775866b7a5c5dc60188f46f5cdb2fb8357146ed5cdd",
+        "src/web/components/library-sources-panel.tsx": "b5069730635dcda44fd2fa2bfefdf8e0739ba79b748b309d735503eddadf3c5a",
         "src/web/components/library-stats.tsx": "a7832a2b45207e4adbb94b7ac985e96be76e58e618be91dbafbc97d62740f2dd",
         "src/web/components/library-unreconciled-album-row.tsx": "1533e4a52f3056967954c9cb752bec34a9f75887516eb84d9a00b806ebdecc80",
         "src/web/components/library-unreconciled-review-row.tsx": "23e2850de8a021e3254c421463a6bf3ded9198da9fd18d8285c03f54062d8943",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "a96b361a167b6925f529e4482c135f8332f4f4d0ab2b6f60ec8b9e21f83f6dcf",
+      "digest": "d5721c94168e31dfd991df53349e1a4593fa8e81e6a0211dbb3b5fc160eccee4",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "Theme token changes for AA contrast in every theme except the default Youtarr theme, which is unchanged. CHANGELOG Fixed entry covers it; README theme claim and Youtarr screenshots are unaffected.",
         "breaking": "none",
         "migration": "",
-        "digest": "a96b361a167b6925f529e4482c135f8332f4f4d0ab2b6f60ec8b9e21f83f6dcf"
+        "digest": "d5721c94168e31dfd991df53349e1a4593fa8e81e6a0211dbb3b5fc160eccee4"
       }
     },
     "features": {
@@ -522,7 +522,7 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "dae3c262ee5cc755ff51bb1e810a444f20c06a922692abe374bfa99c21e092af",
+        "src/core/clients/musicbrainz.ts": "6c31717640cf78530d5e48b954207dfe1bff740561b8d16bd00f380973b7d6ab",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -570,7 +570,7 @@
         "src/core/library/health-scheduler.ts": "1bc22e2658aadf5ddc910e2951196e021792bb268f5c4986773b409ae8d28592",
         "src/core/library/health.ts": "ed9120f65aab5f0b3c1d7b79c12dc88ee519409d55c2191e006f9f09b6c1f39d",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "c83146b23164c23c47afb44d462d6e39ec4e4c5cd8e372e647ae5f532fa13a7f",
+        "src/core/library/reconciler.ts": "77d8c99af24ec8892609bcbab693fb4b4e4b3ed8f8d66023fa5924135b4568e5",
         "src/core/library/scheduler.ts": "334383301fc5695b84f88ab478534f966eaf10e4c858d9ba3d5cf9f644a319c5",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -703,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2",
+      "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Notification transport, publicIpOnly clients and Bandcamp share one resolve-and-pin guard; blocked targets fail without retry backoff. ARCHITECTURE documents the guard, allowPrivateTarget semantics in API.md unchanged",
+        "docs": ["CHANGELOG.md"],
+        "note": "Reconciler accepts MusicBrainz candidates by alias or sort name when no primary name matches. CHANGELOG has the Fixed entry; docs/NORMALIZATION.md (outside this domain) describes the candidate rule. ARCHITECTURE.md does not describe the reconciler match rule. No API, config or schema change.",
         "breaking": "none",
         "migration": "",
-        "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2"
+        "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a"
       }
     },
     "deployment": {
@@ -804,7 +804,7 @@
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
-        "scripts/i18n-check.ts": "ca4231676415928e5a58616139865491c65cbde1c0ac73c262c35c7763a676f3",
+        "scripts/i18n-check.ts": "e1fa772e327079efbb7292e88fbaa705708eb815f6b723b521a71bd26b0a0b3c",
         "scripts/i18n-machine-translate.ts": "fc2551b0deca5e789b2afb6cdb1864042789dae66869e582a7af992a8043f592",
         "scripts/i18n-source-lock.ts": "4c4e956bca944562784aee5bba959c0cc9c21537e85e42af9c1b99d7b6cb74c6",
         "scripts/i18n-spell.ts": "1477e836997708feebe0314ca48b57238f19b15552b394d50f053f08c9916037",
@@ -816,14 +816,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "28595be019405f39976070ac4f0dd6a237199676bdecf88c8f052fa0b97486a7",
+      "digest": "ef63a04156567506d1ae856c89133e8d232039d38f6635633bce201b2aca3a3b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/MAINTENANCE.md", "CHANGELOG.md"],
-        "note": "Comment-only change in the version drift script header after removing verify-digest-sync; release procedure documented in MAINTENANCE.",
+        "docs": ["CHANGELOG.md"],
+        "note": "i18n check extended to JSX text next to expressions; no workflow change.",
         "breaking": "none",
         "migration": "",
-        "digest": "28595be019405f39976070ac4f0dd6a237199676bdecf88c8f052fa0b97486a7"
+        "digest": "ef63a04156567506d1ae856c89133e8d232039d38f6635633bce201b2aca3a3b"
       }
     }
   }

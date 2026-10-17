@@ -100,6 +100,7 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'es:playlist.sourceLocal',
   'es:settings.groups.personal',
   'fr:nav.albums',
+  'fr:librarySources.albumCount',
   'fr:search.sources',
   'fr:search.sourcesActive',
   'fr:discover.kindFilter',
@@ -125,6 +126,7 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'it:discoveryMode.option.canada',
   'it:preview.volume',
   'nl:nav.albums',
+  'nl:librarySources.albumCount',
   'nl:discover.statusFilter',
   'nl:discover.kind.albums',
   'nl:settings.tips',
@@ -153,6 +155,8 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
 const UI_LITERAL_ALLOWLIST = new Set([
   ...PROTECTED_I18N_TERMS,
   'digarr',
+  'PGlite',
+  'PostgreSQL',
   'OpenAI-Compatible',
   'j/k',
   'openid profile email',
@@ -168,8 +172,26 @@ function shouldFlagUiLiteral(value: string): boolean {
   return !UI_LITERAL_ALLOWLIST.has(normalized)
 }
 
+// Text that sits directly after a closing '}' or '>' and before an opening '{' or '<'.
+// Code characters are excluded so statements and operators are not mistaken for JSX text.
+const JSX_TEXT_SEGMENT = /([}>])([^<>{};=()[\]|&?\\'"`]*)(?=[<{])/g
+const CODE_KEYWORD_SEGMENT =
+  /^\s*(?:else|catch|finally|try|do|as|satisfies)\b|\b(?:const|let|var|function|class|extends|implements|return|export|import|type|interface|async|await|new|if|for|while|switch|case|default|void|typeof|Record|Array|ReturnType|Promise|Set|Map|Partial|Omit|Pick|number|string|boolean|unknown)\b|^\s*[\w$]+:\s*$|^\s*,/
+
+function* findJsxTextSegments(source: string): Generator<{ index: number; text: string }> {
+  for (const match of source.matchAll(JSX_TEXT_SEGMENT)) {
+    if (match.index == null) continue
+    if (match[1] === '>' && /[=-]/.test(source[match.index - 1] ?? '')) continue
+    const text = match[2] ?? ''
+    if (CODE_KEYWORD_SEGMENT.test(text)) continue
+    if (/^<[A-Za-z]/.test(source.slice(match.index + 1 + text.length)) && /\S$/.test(text)) continue
+    yield { index: match.index + 1, text }
+  }
+}
+
 export function findHardcodedUiStrings(file: string, source: string): string[] {
   const issues: string[] = []
+  const seen = new Set<number>()
   const add = (index: number, value: string) => {
     const normalized = value.replace(/\s+/g, ' ').trim()
     if (!shouldFlagUiLiteral(normalized)) return
@@ -177,7 +199,12 @@ export function findHardcodedUiStrings(file: string, source: string): string[] {
     const line = before.split('\n').length
     const lastNewline = before.lastIndexOf('\n')
     const column = index - lastNewline
-    issues.push(`${file}:${line}:${column}: "${normalized}"`)
+    const start = index + (value.length - value.trimStart().length)
+    const issue = `${file}:${line}:${column}: "${normalized}"`
+    if (!seen.has(start)) {
+      seen.add(start)
+      issues.push(issue)
+    }
   }
 
   const patterns = [
@@ -198,6 +225,9 @@ export function findHardcodedUiStrings(file: string, source: string): string[] {
       if (value == null || match.index == null) continue
       add(match.index + match[0].indexOf(value), value)
     }
+  }
+  for (const { index, text } of findJsxTextSegments(source)) {
+    if (/^\s*[A-Za-z]/.test(text)) add(index, text)
   }
   return issues
 }
@@ -273,6 +303,11 @@ export function findDashLiterals(file: string, source: string): string[] {
       const line = code.slice(0, match.index).split('\n').length
       issues.push(`${file}:${line}: ${JSON.stringify(match[0])}`)
     }
+  }
+  for (const { index, text } of findJsxTextSegments(code)) {
+    if (!text.includes('--')) continue
+    const line = code.slice(0, index).split('\n').length
+    issues.push(`${file}:${line}: "--"`)
   }
   return issues
 }

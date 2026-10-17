@@ -129,14 +129,17 @@ export function LibrarySourcesPanel() {
                 {counts != null && (
                   <div className="space-y-2">
                     <div className="text-xs text-muted">
-                      {counts.total} artists
+                      {t('librarySources.artistCount').replace('{0}', String(counts.total))}
                       {typeof counts.albumsSynced === 'number'
-                        ? ` - ${counts.albumsSynced} albums`
+                        ? ` - ${t('librarySources.albumCount').replace('{0}', String(counts.albumsSynced))}`
                         : ''}
                       {' - '}
-                      {counts.matchedMbid} MBID, {counts.matchedNameExact} exact,{' '}
-                      {counts.matchedNameAnchored} anchored, {counts.matchedDisambiguated}{' '}
-                      disambiguated, {unreconciled} unreconciled
+                      {t('librarySources.matchSummary')
+                        .replace('{0}', String(counts.matchedMbid))
+                        .replace('{1}', String(counts.matchedNameExact))
+                        .replace('{2}', String(counts.matchedNameAnchored))
+                        .replace('{3}', String(counts.matchedDisambiguated))
+                        .replace('{4}', String(unreconciled))}
                     </div>
 
                     {typeof counts.mbApiCallsFailed === 'number' && counts.mbApiCallsFailed > 0 && (

@@ -140,6 +140,89 @@ describe('reconcileArtist - Step 2 (cache short-circuit)', () => {
   })
 })
 
+describe('reconcileArtist - Step 2 (alias and sort-name candidates)', () => {
+  function ctxWith(artists: unknown[]) {
+    return makeCtx({
+      mbClient: {
+        searchArtist: vi.fn().mockResolvedValue({ artists }),
+        getReleaseGroups: vi.fn().mockResolvedValue([]),
+      },
+    })
+  }
+
+  it('accepts a candidate whose alias equals the library name', async () => {
+    const ctx = ctxWith([
+      {
+        id: VALID_MBID,
+        name: 'IU',
+        'sort-name': 'IU',
+        score: 100,
+        aliases: [
+          { name: 'Lee Ji-eun', 'sort-name': 'Lee, Ji-eun', locale: 'en', primary: null },
+          {
+            name: '아이유',
+            'sort-name': '아이유',
+            locale: 'ko',
+            type: 'Artist name',
+            primary: true,
+          },
+        ],
+      },
+    ])
+    const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: '아이유' }, 'plex', ctx)
+    expect(result.mbid).toBe(VALID_MBID)
+    expect(result.matchMethod).toBe('name_exact')
+    expect(ctx.counts.matchedNameExact).toBe(1)
+  })
+
+  it('accepts a candidate whose sort name equals the library name', async () => {
+    const ctx = ctxWith([
+      { id: VALID_MBID, name: 'Nick Cave', 'sort-name': 'Cave, Nick', score: 90 },
+    ])
+    const result = await reconcileArtist(
+      { sourceArtistId: 'rk-1', name: 'Cave, Nick' },
+      'plex',
+      ctx,
+    )
+    expect(result.mbid).toBe(VALID_MBID)
+  })
+
+  it('rejects a candidate with no matching name, alias or sort name', async () => {
+    const ctx = ctxWith([
+      {
+        id: VALID_MBID,
+        name: 'BTS',
+        'sort-name': 'BTS',
+        score: 80,
+        aliases: [{ name: 'Bangtan Boys' }, { 'sort-name': null }, null, { name: 42 }],
+      },
+    ])
+    const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: '블랙핑크' }, 'plex', ctx)
+    expect(result.mbid).toBeNull()
+    expect(result.unreconciledReason).toBe('no_candidate')
+  })
+
+  it('prefers a primary-name match over an alias match', async () => {
+    const ctx = ctxWith([
+      { id: OTHER_MBID, name: 'Someone Else', score: 100, aliases: [{ name: 'Bush' }] },
+      { id: VALID_MBID, name: 'Bush', score: 90 },
+    ])
+    const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: 'Bush' }, 'plex', ctx)
+    expect(result.mbid).toBe(VALID_MBID)
+    expect(result.matchMethod).toBe('name_exact')
+  })
+
+  it('returns ambiguous when several candidates match only by alias', async () => {
+    const ctx = ctxWith([
+      { id: VALID_MBID, name: 'Artist A', score: 100, aliases: [{ name: 'Shared' }] },
+      { id: OTHER_MBID, name: 'Artist B', score: 95, 'sort-name': 'Shared' },
+    ])
+    const result = await reconcileArtist({ sourceArtistId: 'rk-1', name: 'Shared' }, 'plex', ctx)
+    expect(result.mbid).toBeNull()
+    expect(result.unreconciledReason).toBe('ambiguous')
+  })
+})
+
 describe('reconcileArtist - Step 3 (anchoring)', () => {
   it('anchors when MB returns multiple candidates and one matches knownMbids', async () => {
     const ctx = makeCtx({
