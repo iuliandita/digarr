@@ -1,7 +1,9 @@
 import { type Context, Hono } from 'hono'
 import {
   clearDefaultsOnInstanceChange,
+  type LidarrServerSettings,
   normalizeLidarrTargetConfig,
+  resolveLidarrTargetConnection,
 } from '@/core/targets/lidarr-connection'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
@@ -28,9 +30,11 @@ type TargetDeps = {
     deleteTarget: (id: number) => Promise<void>
   }
   getUserById: (id: number) => Promise<{ isAdmin: boolean } | null>
+  getSettings?: () => Promise<LidarrServerSettings | null | undefined>
   testTargetConnection: (
     type: string,
     config: Record<string, unknown>,
+    linkedLidarrConfig?: Record<string, unknown>,
   ) => Promise<ServiceTestResult>
 }
 
@@ -199,7 +203,19 @@ export function targetRoutes(deps: TargetDeps) {
     if (!loaded.ok) return loaded.response
     const target = loaded.target
 
-    const result = await deps.testTargetConnection(target.type, target.config)
+    let linkedConfig: Record<string, unknown> | undefined
+    if (target.type === 'slskd' && target.config.lidarrTargetId != null) {
+      const linked = await deps.targetQueries.getTarget(Number(target.config.lidarrTargetId))
+      if (linked?.type === 'lidarr' && linked.enabled && linked.userId === target.userId) {
+        // A target linked to the server connection stores no url/apiKey of its own.
+        const settings = deps.getSettings ? await deps.getSettings() : null
+        const connection = resolveLidarrTargetConnection(linked.config, settings)
+        linkedConfig = connection ? { ...linked.config, ...connection } : linked.config
+      }
+    }
+    const result = linkedConfig
+      ? await deps.testTargetConnection(target.type, target.config, linkedConfig)
+      : await deps.testTargetConnection(target.type, target.config)
     return c.json(result)
   })
 

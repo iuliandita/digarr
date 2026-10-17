@@ -1,4 +1,12 @@
 export const fr = {
+  'settings.slskdSearchInterval':
+    'Intervalle minimal entre recherches en secondes (1-60, défaut 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr ne peut pas trouver ou lister le chemin de téléchargement. Vérifie ton montage et les droits de lecture.',
+  'settings.slskdPathIncomplete':
+    'Le chemin ressemble à un dossier de téléchargements incomplets. Utilise ton dossier de téléchargements terminés.',
+  'settings.slskdPathOk':
+    'Connecté à slskd - Lidarr voit le dossier de téléchargement. Vérifie que tes téléchargements terminés y sont.',
   'tokens.title': 'Jetons API',
   'tokens.description': 'Donne à tes scripts leurs propres identifiants révocables.',
   'tokens.passwordWarning':
