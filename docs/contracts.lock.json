@@ -763,7 +763,7 @@
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
-        ".github/workflows/ci.yml": "eaf10aeac96b1925f1653fef2e2efbab40b805f3c87c8844e777eb129f391f2d",
+        ".github/workflows/ci.yml": "99b17224a38348afdd693f70c068c857bff45562ec1e4e2ee254462b41503105",
         ".github/workflows/compatibility.yml": "c5f286e828ba590189437c5a10fbe53cdd929b5713f22d6d587b4f5aeffd9a3f",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
@@ -778,14 +778,14 @@
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "642580775861ae3957c531b9ca1c34ff5a375ab717e84ad45dd7fca14399f9a7",
+      "digest": "69cfb86358b0e659fd12a58b282a938f704883538fc2e64867471c4e2e115c58",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Combined CI change: the Postgres job runs every DB-gated suite serially with DIGARR_REQUIRE_TEST_DB, and the postgres service image uses the current 17-alpine digest; no release workflow, versioning, image or tagging behavior changes.",
+        "note": "ci.yml only adds the new DB-gated tests/db/queries/reject-block-created.test.ts to the existing serial PostgreSQL integration step; no release, tagging, image or approval behavior changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "642580775861ae3957c531b9ca1c34ff5a375ab717e84ad45dd7fca14399f9a7"
+        "digest": "69cfb86358b0e659fd12a58b282a938f704883538fc2e64867471c4e2e115c58"
       }
     },
     "maintenance": {
