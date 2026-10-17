@@ -14,6 +14,9 @@ export interface StoreDb {
     options?: { rejectionCooldownDays?: number },
   ) => Promise<Set<string>>
   getBlockedAlbumKeys?: (userId: number) => Promise<Set<string>>
+  getOwnedAlbumKeys?: (
+    userId: number,
+  ) => Promise<import('@/db/queries/library-albums').OwnedAlbumKeys>
   getArtistGenreCacheByMbids?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByMbids']
   getArtistGenreCacheByAliases?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByAliases']
   upsertArtistGenres?: import('./genre-backfill').GenreBackfillDb['upsertArtistGenres']

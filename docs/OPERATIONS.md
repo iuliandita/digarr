@@ -129,7 +129,7 @@ History analysis allows at most 5,000 entries (25 pages) per requested period. I
 
 Plex history IDs can arrive as bare rating keys or `/library/metadata/<id>` paths. Entries without usable artist and track IDs are skipped, including plays of removed media. If a page contains in-range tracks but none are usable, Digarr logs a count-only warning. Dashboard listening requests do not create Job History entries; inspect the container logs when Plex has plays but the dashboard is empty.
 
-Release Radar currently requires ListenBrainz, Spotify, or Last.fm for artist seeds, even when Plex listening works. It looks up new releases through MusicBrainz.
+Release Radar currently requires ListenBrainz, Spotify, or Last.fm for artist seeds, even when Plex listening works. It looks up new releases through MusicBrainz and skips albums already in your synced library, so run a library sync first if owned albums still show up.
 
 ## Importing slskd downloads into Lidarr
 
