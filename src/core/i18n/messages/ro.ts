@@ -1645,6 +1645,8 @@ export const ro = {
   'streaming.playShort': 'REDĂ',
   'streaming.stopShort': 'OPREȘTE',
   'streaming.spotifyEmbedTitle': 'Previzualizare Spotify',
+  'streaming.spotifyLoad': 'Încarcă playerul Spotify',
+  'streaming.spotifyLoadHint': 'Nu se cere nimic de la Spotify până nu dai clic.',
   'discover.moodAddedSuccess': '„{0}" a fost adăugat; căutăm artiști similari',
   'discover.moodAddFailed': 'Adăugarea „{0}" a eșuat',
   'albumPicker.noReleaseGroups': 'Nu s-au găsit grupuri de lansări',

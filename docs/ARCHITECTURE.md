@@ -272,7 +272,7 @@ reuse, and queue advancement remain in the SPA. Bridge initialization is
 bounded and falls back to the standard Spotify iframe for standalone previews;
 an active audition queue skips the unavailable item. YouTube embeds have no
 equivalent completion signal in this integration and use a bounded 30-second
-fallback.
+fallback. The inline Spotify embed on expanded recommendation cards stays a local placeholder button until clicked, so no Spotify request happens on render.
 
 Audition retains per-item unavailable reasons after skipping or queue completion, independently of playback state. New runs reset the summary and retrying an item replaces its prior failure. Reasons describe observable lookup and playback outcomes; browser fetch rejection does not establish CORS or provider outage, and Spotify controller failure does not establish account access. Stale audio callbacks and superseded resolutions cannot advance a newer queue item. No approval writes occur during playback.
 

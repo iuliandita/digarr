@@ -1643,6 +1643,8 @@ export const nl = {
   'streaming.playShort': 'AFSPELEN',
   'streaming.stopShort': 'STOPPEN',
   'streaming.spotifyEmbedTitle': 'Spotify-voorbeeld',
+  'streaming.spotifyLoad': 'Spotify-speler laden',
+  'streaming.spotifyLoadHint': 'Er wordt niets bij Spotify opgevraagd tot je klikt.',
   'discover.moodAddedSuccess': '"{0}" toegevoegd; vergelijkbare artiesten worden gezocht',
   'discover.moodAddFailed': '"{0}" kon niet worden toegevoegd',
   'albumPicker.noReleaseGroups': 'Geen releasegroepen gevonden',

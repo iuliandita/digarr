@@ -1512,6 +1512,8 @@ export const zhCN = {
   'streaming.playShort': '播放',
   'streaming.stopShort': '停止',
   'streaming.spotifyEmbedTitle': 'Spotify 预览',
+  'streaming.spotifyLoad': '加载 Spotify 播放器',
+  'streaming.spotifyLoadHint': '点击之前不会向 Spotify 发送任何请求。',
   'discover.moodAddedSuccess': '已添加"{0}",正在寻找相似艺术家',
   'discover.moodAddFailed': '添加"{0}"失败',
   'albumPicker.noReleaseGroups': '未找到发行组',

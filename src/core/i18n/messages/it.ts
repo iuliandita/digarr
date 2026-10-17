@@ -1651,6 +1651,8 @@ export const it = {
   'streaming.playShort': 'RIPRODUCI',
   'streaming.stopShort': 'INTERROMPI',
   'streaming.spotifyEmbedTitle': 'Anteprima Spotify',
+  'streaming.spotifyLoad': 'Carica il player di Spotify',
+  'streaming.spotifyLoadHint': 'Nessuna richiesta a Spotify finché non clicchi.',
   'discover.moodAddedSuccess': '«{0}» aggiunto, ricerca di artisti simili in corso',
   'discover.moodAddFailed': 'Impossibile aggiungere «{0}»',
   'albumPicker.noReleaseGroups': 'Nessun gruppo di pubblicazioni trovato',
