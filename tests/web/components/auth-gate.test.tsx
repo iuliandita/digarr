@@ -627,4 +627,23 @@ describe('AuthGate', () => {
     await waitFor(() => expect(queryClient.getQueryData(['settings'])).toBeUndefined())
     expect(screen.getByText('secret area')).toBeInTheDocument()
   })
+
+  it('shows an accessible loading state only after a short delay while auth resolves', async () => {
+    vi.useFakeTimers()
+    try {
+      apiMocks.getAuthStatus.mockReturnValue(new Promise(() => {}))
+      renderGate()
+
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      expect(screen.queryByText('Loading...')).not.toBeInTheDocument()
+      expect(screen.queryByText('secret area')).not.toBeInTheDocument()
+
+      await act(async () => {
+        await vi.advanceTimersByTimeAsync(250)
+      })
+      expect(screen.getByRole('status')).toHaveTextContent('Loading...')
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })

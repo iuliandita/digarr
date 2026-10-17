@@ -215,6 +215,8 @@ export const en = {
   'setup.readyDescription': "Here's what you've configured:",
   'setup.readyTitle': 'Ready to go',
   'setup.skipTlsVerification': 'Skip TLS verification',
+  'setup.skipTlsVerificationHint':
+    'Disables certificate checks. Only use this on a network you trust.',
   'setup.startDigging': 'Start Digging',
   'setup.starting': 'Starting...',
   'setup.continueRequires': 'To continue, fill in: {0}',
@@ -1588,6 +1590,10 @@ export const en = {
   'errorBoundary.title': 'Something went wrong',
   'errorBoundary.retry': 'Try again',
   'errorBoundary.home': 'Go home',
+  'errorBoundary.body':
+    'Reloading usually fixes it. If it keeps happening, include the details below in a bug report.',
+  'errorBoundary.reload': 'Reload',
+  'errorBoundary.details': 'Details',
 
   // Keyboard shortcuts
   'keyboardShortcuts.title': 'Keyboard shortcuts',

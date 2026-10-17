@@ -218,6 +218,8 @@ export const ru = {
   'setup.readyDescription': 'Вот что ты настроил:',
   'setup.readyTitle': 'Готов к работе',
   'setup.skipTlsVerification': 'Пропустить проверку TLS',
+  'setup.skipTlsVerificationHint':
+    'Отключает проверку сертификатов. Используй это только в сети, которой доверяешь.',
   'setup.startDigging': 'Начать',
   'setup.starting': 'Запуск...',
   'setup.continueRequires': 'Чтобы продолжить, заполни: {0}',
@@ -1584,6 +1586,10 @@ export const ru = {
   'errorBoundary.title': 'Что-то пошло не так',
   'errorBoundary.retry': 'Повторить',
   'errorBoundary.home': 'На главную',
+  'errorBoundary.body':
+    'Обычно помогает перезагрузка страницы. Если ошибка повторяется, приложи подробности ниже к отчёту об ошибке.',
+  'errorBoundary.reload': 'Перезагрузить',
+  'errorBoundary.details': 'Подробности',
   'keyboardShortcuts.title': 'Сочетания клавиш',
   'keyboardShortcuts.close': 'Закрыть сочетания клавиш',
   'keyboardShortcuts.nextCard': 'Следующая карточка',

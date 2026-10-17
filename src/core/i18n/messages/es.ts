@@ -219,6 +219,8 @@ export const es = {
   'setup.readyDescription': 'Esto es lo que has configurado:',
   'setup.readyTitle': 'Listo para ir',
   'setup.skipTlsVerification': 'Saltar la verificación TLS',
+  'setup.skipTlsVerificationHint':
+    'Desactiva la comprobación de certificados. Úsalo solo en una red de confianza.',
   'setup.startDigging': 'Empezar',
   'setup.starting': 'Empezando...',
   'setup.continueRequires': 'Para continuar, rellena: {0}',
@@ -1585,6 +1587,10 @@ export const es = {
   'errorBoundary.title': 'Algo salió mal',
   'errorBoundary.retry': 'Reintentar',
   'errorBoundary.home': 'Ir al inicio',
+  'errorBoundary.body':
+    'Recargar suele solucionarlo. Si sigue pasando, incluye los detalles de abajo en un informe de error.',
+  'errorBoundary.reload': 'Recargar',
+  'errorBoundary.details': 'Detalles',
   'keyboardShortcuts.title': 'Atajos de teclado',
   'keyboardShortcuts.close': 'Cerrar atajos',
   'keyboardShortcuts.nextCard': 'Siguiente tarjeta',

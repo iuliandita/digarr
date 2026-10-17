@@ -219,6 +219,8 @@ export const nl = {
   'setup.readyDescription': 'Dit is wat je hebt geconfigureerd:',
   'setup.readyTitle': 'Klaar om te gaan',
   'setup.skipTlsVerification': 'Sla TLS-verificatie over',
+  'setup.skipTlsVerificationHint':
+    'Schakelt de certificaatcontrole uit. Gebruik dit alleen op een netwerk dat je vertrouwt.',
   'setup.startDigging': 'Aan de slag',
   'setup.starting': 'Beginnen...',
   'setup.continueRequires': 'Vul in om verder te gaan: {0}',
@@ -1580,6 +1582,10 @@ export const nl = {
   'errorBoundary.title': 'Er is iets misgegaan',
   'errorBoundary.retry': 'Opnieuw proberen',
   'errorBoundary.home': 'Naar startpagina',
+  'errorBoundary.body':
+    'Opnieuw laden lost het meestal op. Blijft het gebeuren, voeg dan de details hieronder toe aan een bugmelding.',
+  'errorBoundary.reload': 'Opnieuw laden',
+  'errorBoundary.details': 'Technische details',
   'keyboardShortcuts.title': 'Sneltoetsen',
   'keyboardShortcuts.close': 'Sneltoetsen sluiten',
   'keyboardShortcuts.nextCard': 'Volgende kaart',

@@ -218,6 +218,8 @@ export const ro = {
   'setup.readyDescription': 'Iată ce ai configurat:',
   'setup.readyTitle': 'Gata de plecare',
   'setup.skipTlsVerification': 'Omite verificarea TLS',
+  'setup.skipTlsVerificationHint':
+    'Dezactivează verificarea certificatelor. Folosește-o doar într-o rețea în care ai încredere.',
   'setup.startDigging': 'Începe',
   'setup.starting': 'Se pornește...',
   'setup.continueRequires': 'Ca să continui, completează: {0}',
@@ -1582,6 +1584,10 @@ export const ro = {
   'errorBoundary.title': 'A apărut o problemă',
   'errorBoundary.retry': 'Încearcă din nou',
   'errorBoundary.home': 'Mergi la început',
+  'errorBoundary.body':
+    'De obicei, reîncărcarea rezolvă problema. Dacă se repetă, include detaliile de mai jos într-un raport de bug.',
+  'errorBoundary.reload': 'Reîncarcă',
+  'errorBoundary.details': 'Detalii',
   'keyboardShortcuts.title': 'Scurtături de tastatură',
   'keyboardShortcuts.close': 'Închide scurtăturile',
   'keyboardShortcuts.nextCard': 'Cardul următor',

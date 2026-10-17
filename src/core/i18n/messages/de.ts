@@ -219,6 +219,8 @@ export const de = {
   'setup.readyDescription': 'Folgendes hast du konfiguriert:',
   'setup.readyTitle': 'Bereit',
   'setup.skipTlsVerification': 'TLS-Überprüfung überspringen',
+  'setup.skipTlsVerificationHint':
+    'Deaktiviert die Zertifikatsprüfung. Nutze das nur in einem Netzwerk, dem du vertraust.',
   'setup.startDigging': "Los geht's",
   'setup.starting': 'Beginnt...',
   'setup.continueRequires': 'Zum Fortfahren ausfüllen: {0}',
@@ -1597,6 +1599,10 @@ export const de = {
   'errorBoundary.title': 'Etwas ist schiefgelaufen',
   'errorBoundary.retry': 'Erneut versuchen',
   'errorBoundary.home': 'Zur Startseite',
+  'errorBoundary.body':
+    'Neu laden behebt das meistens. Wenn es immer wieder passiert, hänge die Details unten an einen Fehlerbericht an.',
+  'errorBoundary.reload': 'Neu laden',
+  'errorBoundary.details': 'Technische Details',
   'keyboardShortcuts.title': 'Tastenkombinationen',
   'keyboardShortcuts.close': 'Tastenkombinationen schließen',
   'keyboardShortcuts.nextCard': 'Weiter zur nächsten Karte',

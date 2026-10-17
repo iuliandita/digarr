@@ -1,3 +1,4 @@
+import { Loader2 } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
@@ -257,7 +258,7 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
     }
   }
 
-  if (state === 'loading') return null
+  if (state === 'loading') return <DelayedLoading />
   if (state === 'unavailable') {
     return <ServerUnavailable retrying={retrying} onRetry={() => void retryStatus()} />
   }
@@ -284,6 +285,32 @@ export function AuthGate({ children }: { children: React.ReactNode }) {
       }}
       oidcEnabled={oidcEnabled}
     />
+  )
+}
+
+// Delayed so fast auth checks never flash a spinner.
+const LOADING_DELAY_MS = 200
+
+function DelayedLoading() {
+  const { t } = useI18n()
+  const [visible, setVisible] = useState(false)
+  useEffect(() => {
+    const timer = window.setTimeout(() => setVisible(true), LOADING_DELAY_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="min-h-screen bg-bg flex flex-col items-center justify-center gap-3 p-4"
+    >
+      {visible && (
+        <>
+          <Loader2 className="h-6 w-6 animate-spin text-accent" aria-hidden="true" />
+          <span className="text-sm text-muted">{t('common.loading')}</span>
+        </>
+      )}
+    </div>
   )
 }
 

@@ -219,6 +219,8 @@ export const pl = {
   'setup.readyDescription': 'Oto, co skonfigurowałeś:',
   'setup.readyTitle': 'Gotowy do pracy',
   'setup.skipTlsVerification': 'Pomiń weryfikację TLS',
+  'setup.skipTlsVerificationHint':
+    'Wyłącza sprawdzanie certyfikatów. Używaj tego tylko w sieci, której ufasz.',
   'setup.startDigging': 'Zacznij',
   'setup.starting': 'Zaczynam...',
   'setup.continueRequires': 'Aby kontynuować, uzupełnij: {0}',
@@ -1575,6 +1577,10 @@ export const pl = {
   'errorBoundary.title': 'Coś poszło nie tak',
   'errorBoundary.retry': 'Spróbuj ponownie',
   'errorBoundary.home': 'Przejdź do strony głównej',
+  'errorBoundary.body':
+    'Zwykle pomaga ponowne załadowanie. Jeśli problem wraca, dołącz szczegóły poniżej do zgłoszenia błędu.',
+  'errorBoundary.reload': 'Załaduj ponownie',
+  'errorBoundary.details': 'Szczegóły',
   'keyboardShortcuts.title': 'Skróty klawiaturowe',
   'keyboardShortcuts.close': 'Zamknij skróty',
   'keyboardShortcuts.nextCard': 'Następna karta',
