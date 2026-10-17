@@ -155,7 +155,7 @@
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
         "src/core/ops/types.ts": "3ebc33955a0c551acf465666af27ece23d746d1fa7fe4385626375087d19f5b9",
-        "src/core/ops/upgrade.ts": "88f08f73e9a8ba682c09b552bb58a701d79cc788bff5c20209e11260239acffd",
+        "src/core/ops/upgrade.ts": "4669ea8a13bbb3394c882ff880dce481be8f65b635bbc798545329fd08239583",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
         "src/db/connect.ts": "8ceabe90f6765e1700741b20561967406d166a88f542dc10b0bf62151ac2983c",
         "src/db/index.ts": "b7542782e276e575fc784669a6269da82ac84a07f8f69eab514c87dc8eb4ed2e",
@@ -188,14 +188,14 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f",
+      "digest": "5521b73fd94abc22c3fad441095df81de988e5c1baefb6b9d1b5f399bd3a1d01",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0056 adds nullable album_blocks.album_title (IF NOT EXISTS); permanent album rejects store the recommendation's release-group title; full backups carry the column through the generic table restore, older backups restore it as null. rejectRecommendation now reports whether it created the block (query-only). Applied 0056 twice against an isolated test database and ran a DB-gated test for title storage and blockCreated. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. Also: Query-only changes, no schema migration: user deletion now also deletes that user's job_runs in the same transaction (documented in AUTHENTICATION.md); recommendation dedup queries release rejections past the cooldown; pending slskd jobs list oldest first. Backup, restore, and backend migration formats are unchanged. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. A permanent reject of an already blocked artist keeps the existing block untouched.",
-        "breaking": "none",
-        "migration": "Additive nullable column, safe to re-run. The automatic pre-migration backup covers it. Older images ignore the column, so an image rollback needs no restore; restore the pre-migration backup with the previous image only for an exact pre-upgrade database. Live upgrade from a production database was not tested.",
-        "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f"
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Pre-flight now removes duplicate library sync state and match override rows (newest kept) and clears duplicate users.email and users.oidc_subject on all but the oldest account when migration 0024 or 0028 is pending, after the auto-backup and in one transaction; OPERATIONS documents the behavior and log output.",
+        "breaking": "none: no schema change; databases already past 0028 skip the step, and only installs with duplicate rows see data changes, which are logged with counts and user ids.",
+        "migration": "The pre-migration auto-backup is written before cleanup and keeps the original rows; with DIGARR_AUTO_BACKUP=false take a native backup first. Rollback restores that backup with the previous image. Validated with a synthetic PGlite upgrade from 0023 seeded with duplicates; no live Postgres upgrade was tested.",
+        "digest": "5521b73fd94abc22c3fad441095df81de988e5c1baefb6b9d1b5f399bd3a1d01"
       }
     },
     "configuration": {
