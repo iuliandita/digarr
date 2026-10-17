@@ -237,7 +237,7 @@
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
-        "src/server/middleware/rate-limit.ts": "55487a8842af56559d02376e20252632a2f555eb03d0a02f5b11a2f9d67ddd15",
+        "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
@@ -254,14 +254,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba",
+      "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md"],
-        "note": "Document per-client personal-token failure budgets, trusted proxy forwarding, and socket fallback for missing or malformed headers.",
+        "docs": ["docs/AUTHENTICATION.md", "CHANGELOG.md"],
+        "note": "Document trusted-proxy client IP buckets for all in-memory limiters, socket fallback for untrusted peers, and unchanged limits and windows.",
         "breaking": "none",
         "migration": "",
-        "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba"
+        "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7"
       }
     },
     "api": {
@@ -301,7 +301,7 @@
         "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
-        "src/server/routes/targets.ts": "345658517bab8faf0691d30cf92d08ea09d35822cef13c8aaa36b63ea88d7800",
+        "src/server/routes/targets.ts": "02e6eab2324feee8b00957d15308867a70a60b78cf64360459d779f3031573c2",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "ffeec60dfc61cbad7818ed8a48e89c2fbf01ea3cec454e5ac6ef7332eae4c482",
+      "digest": "25b32983ab15a7460a9204b552d0b156762053b86d5af6315a6da0a21fd1c40b",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md"],
         "note": "Document waiting approval state, persisted retry fields, immediate manual retry with saved options and accurate Job History, bulk waiting counts, and the opt-in approval_failed payload.",
         "breaking": "none",
         "migration": "",
-        "digest": "ffeec60dfc61cbad7818ed8a48e89c2fbf01ea3cec454e5ac6ef7332eae4c482"
+        "digest": "25b32983ab15a7460a9204b552d0b156762053b86d5af6315a6da0a21fd1c40b"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "df51c21b33bf4680b46598ed351fc4b76ab6d339c3c4c291a7e10d2cb43688d4",
-        "src/core/i18n/messages/en.ts": "611c78ecf2a2afef08db23878187ea934cef56c2ab78101c5d4cd41b9d972ae9",
-        "src/core/i18n/messages/es.ts": "e17a3ea2d4f7ee2e0e19939eb70e22ec9f59fb3b436213b0049b7baa4188f055",
-        "src/core/i18n/messages/fr.ts": "fc361ac5090fc95a661190c3a37b404d6192ca9d3d5bdc5d719b523cfaa5f4e8",
+        "src/core/i18n/messages/de.ts": "314f2c31370cb26f9c7d6c42959f3e2d6b9fd92304892fc1c1af6ddbac2894a0",
+        "src/core/i18n/messages/en.ts": "19327e8acd456336c9b1e802ebcd22a8fdc5a8be26643ea49acbc61d8558a71c",
+        "src/core/i18n/messages/es.ts": "a471c361d319e5a105f7c9216eda44d3adbea56aa116b98d0f631506809fbbf3",
+        "src/core/i18n/messages/fr.ts": "c9408dd065bd7da603ffa9f72794caba2d32e6f53b564ea31360e6c05b62222e",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "bbe1d8eafc87b3054c36ea2f303993252328242296073828f51b8cd7063e54b5",
-        "src/core/i18n/messages/ja.ts": "8bdb7c26f5cee0f114848455e4f8efd6fb14a4a601799dcc7e4ec743f975304d",
-        "src/core/i18n/messages/ko.ts": "afdfce59685f42b5db5554a0147b94b6086c1e31b743aebaf922550c11cb1945",
-        "src/core/i18n/messages/nl.ts": "723318669a7ea6a544e8c88a13ec8c0123c0597b1667d535e42beaa1402c8ff4",
-        "src/core/i18n/messages/pl.ts": "49c7638a13528f095bbb4afc8a18fc332fce7a08bcf64a05ffac3b73fe4e145d",
-        "src/core/i18n/messages/pt-BR.ts": "9f7643fed2a1d3f3d2232dcf2a9d4663e1da44fbc898d90161d6648c7a9134ce",
-        "src/core/i18n/messages/ro.ts": "1dfe873d3362b21df70ef23a30d5a575180e6769dd0911a3c1a1a7d9fe63af12",
-        "src/core/i18n/messages/ru.ts": "bf79f7fcec6743ca1e75245e284483e0ef9990e9748ada3efe39390d66a29855",
-        "src/core/i18n/messages/source-lock.json": "5ba71c5e3ee43318aad55068faabd3e7d7dddaeb2dfbbaab80ba0333209a26fa",
-        "src/core/i18n/messages/tr.ts": "a8eee8038d26e401678bf8990f8e084967100eef6af6a0d711e10b657471002e",
+        "src/core/i18n/messages/it.ts": "be11370491e38de1f3bcf91f6165ee89280e75126db356ece559f69d6060d3de",
+        "src/core/i18n/messages/ja.ts": "23f4e7b976a79af8d071022517239c2213249cac20e17fe08c7f5abefa4de5fa",
+        "src/core/i18n/messages/ko.ts": "68b1af3d89c21df484f8cdf964bfbac5d79ec876b8bfc3cc8fe0056f8cc24400",
+        "src/core/i18n/messages/nl.ts": "1e1d43339225042f2128365b144ff3816a51dfc2f55a45b3002cdd0f235aa4e3",
+        "src/core/i18n/messages/pl.ts": "de3633410537703b6c04b72b911f34ae5963531438c8911a02fe0422497e2d05",
+        "src/core/i18n/messages/pt-BR.ts": "e16a00011a6e7bf97a0486ee4d3ee9a8d47e000de456afc3a05e11df2d097ca7",
+        "src/core/i18n/messages/ro.ts": "0d92fa430e364aa2ca314a423ab20d02728390a71da0a4d75bc52a0ea0ab3763",
+        "src/core/i18n/messages/ru.ts": "16b704367bed86630ead8b3b20003057e753a62093098100a1e3a3a1a33e60ec",
+        "src/core/i18n/messages/source-lock.json": "fc7a2ea10ae0b6513f0278055591c7a134f5630d54c93b21fa0782f92114b062",
+        "src/core/i18n/messages/tr.ts": "3295ab76bda46afb0f5f717c4818acddad76d4540115e842a6674a2cb9e114d4",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "e87f47c279dc91adfad5acbeb949bc37294576fdfd99aafe913cb33975f97dd7",
-        "src/core/i18n/messages/zh-CN.ts": "b4213c80ea1071114d1e3573fcb6eb3d4f10f3b9daecb0bbe36e0120bb12df91",
+        "src/core/i18n/messages/uk.ts": "1a92eca1124f73eb5010bc5dc985340b172334b86adeb99a71db1293f099d508",
+        "src/core/i18n/messages/zh-CN.ts": "b93f8e3de544f29d69ff2abb2580ed1658ecf830e9d74770a0595af1c7c90bec",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -448,7 +448,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "20434760c4a885ce04fd9dbe6c3ae74560dea012596ea47ede4e24a9bc3ef688",
+        "src/web/lib/api.ts": "6eafcc32d8a5df4015da2b7c613252297d31130820de5ec5a700f1463ddb740c",
         "src/web/lib/approval.ts": "17d8039f2b3ad3831c3e5a4ce0b766d9a23e9fc21494539df09901877ca805fd",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -493,7 +493,7 @@
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
         "src/web/pages/settings/system-tab.tsx": "c4a4982336f7b2bc6ff4602a495feccd462c4b337915d464625521c9bf41f225",
         "src/web/pages/settings/tabs.ts": "6357a22ef5a0417e789f5f0c29bccc64093e5a519c5252e0f238138fe6ea4e28",
-        "src/web/pages/settings/targets-tab.tsx": "a5133ab80a2919021b414bb83f76cfe40b35ccb2b6cfc0fd8e2d6c91aa4257e5",
+        "src/web/pages/settings/targets-tab.tsx": "8702767a39d95377a20532356a7368007cde32d903b5b45999be5e811d9de222",
         "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
         "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
         "src/web/pages/subscriptions.tsx": "0c7c7c6d4d5a4754fc0681c00d07cd805a51fa48bacca067d2486803db21fe8d",
@@ -501,14 +501,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "18f11ae95834756c27545d86822431ae402c3a9fda310319c09f8393762a9892",
+      "digest": "f6b03b48b9211b2da9c4347f25d315cd8a043984457778a2a785573c1ba39f7c",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document Waiting for Lidarr, next retry time, Approved tab visibility, immediate Retry, and opt-in expiry alerts inside expanded notification channels. Preserve the collapsed channel controls, moved digest schedule, and all 15 catalogs.",
         "breaking": "none",
         "migration": "",
-        "digest": "18f11ae95834756c27545d86822431ae402c3a9fda310319c09f8393762a9892"
+        "digest": "f6b03b48b9211b2da9c4347f25d315cd8a043984457778a2a785573c1ba39f7c"
       }
     },
     "features": {
@@ -526,7 +526,7 @@
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
-        "src/core/clients/lidarr.ts": "93707c7b08d5220e2435db3027bac4636cad1052408799a496eaaf67b279856c",
+        "src/core/clients/lidarr.ts": "5ccd301db48fcf530f644d01904385808cfe283d6b3b73b8184e70330f971412",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
@@ -668,7 +668,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "3499ee134874f9d5dae8321c99075cfa06799ccc440a7969acddc9da8d3d54fb",
+        "src/core/slskd/orchestrator.ts": "a33e94e8e2a3a89f43db35484841b32dc03d8ceb1e622ed70404f435e12dc565",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -706,7 +706,7 @@
         "src/core/targets/saved-playlist-targets.ts": "811d2ca1198c4f17dff7ed08d9e6b9fd0c5a2d3937dd58b2d436f614af8cb74d",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
-        "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
+        "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
         "src/core/targets/types.ts": "d8d14e4aeeba404319121190de38f84bbedaf2eaa2715d84ba311e403b3cc09d",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
@@ -715,14 +715,14 @@
         "src/index.ts": "ffa512d798d955e41ad12646ba892fa95d8a7595fe931ff00d5f28236a34d84f",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "b2ea8ef1120ebab710105143e49c591574da96941b954bdb8cf6f29c5daf1eef",
+      "digest": "df22f552feafe3fb027d37bce3b8896af099c486f17d983c76d1866c333c95ab",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document persisted 24-hour Lidarr retry backoff, current target resolution, duplicate prevention, combined acquisition continuation, job-level album search retries, one expiry alert attempt, and the single-process constraint. HTTP adds and commands remain non-repeatable.",
         "breaking": "none",
         "migration": "",
-        "digest": "b2ea8ef1120ebab710105143e49c591574da96941b954bdb8cf6f29c5daf1eef"
+        "digest": "df22f552feafe3fb027d37bce3b8896af099c486f17d983c76d1866c333c95ab"
       }
     },
     "deployment": {

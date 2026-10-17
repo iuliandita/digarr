@@ -1,12 +1,10 @@
 // @vitest-environment node
 import { Hono } from 'hono'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { envConfig } from '@/config/env'
 import { __shutdownRateLimiter, rateLimiter } from '@/server/middleware/rate-limit'
 import type { HonoEnv } from '@/server/types'
 
-// The limiter keys off socket-level IP to defeat forged X-Forwarded-For.
-// Hono's Request interface lets tests inject `c.env.remoteAddress` via the
-// second arg to app.request() so we can simulate distinct clients.
 function buildApp(mw: ReturnType<typeof rateLimiter>) {
   const app = new Hono<{ Bindings: { remoteAddress?: string } }>()
   app.use('*', mw)
@@ -14,10 +12,13 @@ function buildApp(mw: ReturnType<typeof rateLimiter>) {
   return app
 }
 
+const originalProxies = envConfig.proxyAuthTrustedProxies
+
 const env = (ip: string) => ({ remoteAddress: ip })
 
 describe('rateLimiter', () => {
   afterEach(() => {
+    Object.defineProperty(envConfig, 'proxyAuthTrustedProxies', { value: originalProxies })
     __shutdownRateLimiter()
   })
 
@@ -91,6 +92,38 @@ describe('rateLimiter', () => {
     expect(b2.status).toBe(429)
   })
 
+  it.each([
+    {
+      name: 'trusted proxy separates forwarded clients',
+      socket: '10.0.0.1',
+      forwarded: ['203.0.113.1', '203.0.113.2'],
+      expected: 200,
+    },
+    {
+      name: 'untrusted socket ignores forged forwarded clients',
+      socket: '198.51.100.1',
+      forwarded: ['203.0.113.1', '203.0.113.2'],
+      expected: 429,
+    },
+    {
+      name: 'missing forwarded header falls back to socket',
+      socket: '10.0.0.1',
+      forwarded: [undefined, undefined],
+      expected: 429,
+    },
+  ])('$name', async ({ socket, forwarded, expected }) => {
+    Object.defineProperty(envConfig, 'proxyAuthTrustedProxies', {
+      value: '10.0.0.0/8',
+      configurable: true,
+    })
+    const app = buildApp(rateLimiter({ max: 1, windowMs: 60_000 }))
+    const request = (ip: string | undefined) =>
+      app.request('/', { headers: ip ? { 'X-Forwarded-For': ip } : {} }, env(socket))
+    expect((await request(forwarded[0])).status).toBe(200)
+    expect((await request(forwarded[1])).status).toBe(expected)
+    expect((await request(forwarded[0])).status).toBe(429)
+  })
+
   it('separate keyPrefix limiters do not share state', async () => {
     const a = rateLimiter({ max: 1, windowMs: 60_000, keyPrefix: 'A' })
     const b = rateLimiter({ max: 1, windowMs: 60_000, keyPrefix: 'B' })
@@ -103,7 +136,7 @@ describe('rateLimiter', () => {
 
   it('falls back to "unknown" bucket when no socket IP is available', async () => {
     const app = buildApp(rateLimiter({ max: 2, windowMs: 60_000, keyPrefix: 'unk' }))
-    // No env argument -> getSocketIp returns null -> key = "unk:unknown".
+    // No env argument -> getClientIp returns null -> key = "unk:unknown".
     const r1 = await app.request('/')
     expect(r1.status).toBe(200)
     const r2 = await app.request('/')
