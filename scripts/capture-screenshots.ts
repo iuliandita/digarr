@@ -62,9 +62,9 @@ const specs: PageSpec[] = [
   // genre-detail is inserted dynamically after finding a slug
   { path: '/playlists', file: 'playlists.png', theme: 'dark' },
   { path: '/subscriptions', file: 'subscriptions.png', theme: 'dark' },
-  { path: '/library/health', file: 'library-health.png', theme: 'dark' },
+  { path: '/library?tab=health', file: 'library-health.png', theme: 'dark' },
   {
-    path: '/library/health',
+    path: '/library?tab=health',
     file: 'library-sources.png',
     theme: 'dark',
     onPage: async (page) => {
@@ -83,7 +83,7 @@ const specs: PageSpec[] = [
       }
     },
   },
-  { path: '/library/reconciliation', file: 'library-reconciliation.png', theme: 'dark' },
+  { path: '/library?tab=reconciliation', file: 'library-reconciliation.png', theme: 'dark' },
   { path: '/analytics', file: 'analytics.png', theme: 'dark' },
   { path: '/settings', file: 'settings.png', theme: 'dark' },
   { path: '/settings?tab=account', file: 'settings-account.png', theme: 'dark' },

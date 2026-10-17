@@ -65,11 +65,15 @@ In v1.19.0, playlist details also show the latest local generation outcome, sele
 
 ![Subscriptions](screenshots/subscriptions.png)
 
-## Library Health
+## Library - Health
+
+Open `/library?tab=health`. The historical capture predates the shared Library tabs.
 
 ![Library Health](screenshots/library-health.png)
 
-## Library Reconciliation
+## Library - Reconciliation
+
+Open `/library?tab=reconciliation`. The historical capture predates the shared Library tabs.
 
 ![Library Reconciliation](screenshots/library-reconciliation.png)
 
@@ -79,7 +83,7 @@ Shipped in `v0.17.0`: unreconciled-artist review plus manual correct/ignore over
 
 ![Library Sources Panel](screenshots/library-sources.png)
 
-Admin panel on the Library Health page. Shipped in `v0.17.0` and expanded in `v0.18.0` with per-source album sync counts and snapshot status. Polished in `v0.19.0` with album sync coverage summaries.
+Admin panel on Library > Health. Shipped in `v0.17.0` and expanded in `v0.18.0` with per-source album sync counts and snapshot status. Polished in `v0.19.0` with album sync coverage summaries.
 
 ## Analytics
 

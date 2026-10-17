@@ -9,7 +9,10 @@ describe('resolveTab', () => {
     ['users', false, 'connections'],
     ['system-health', false, 'connections'],
     ['users', true, 'users'],
-    ['jobs', true, 'jobs'],
+    ['jobs', true, 'system'],
+    ['system-health', true, 'system'],
+    ['system', true, 'system'],
+    ['system', false, 'connections'],
     ['blocked', false, 'recommendations'],
   ] as const)('%s (admin: %s) resolves to %s', (requested, isAdmin, expected) => {
     expect(resolveTab(requested, isAdmin)).toBe(expected)
