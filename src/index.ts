@@ -130,6 +130,7 @@ import {
   upsertGenre,
 } from './db/queries/genres'
 import * as jobQueries from './db/queries/jobs'
+import { getOwnedAlbumKeys } from './db/queries/library-albums'
 import {
   getLibraryHealthState,
   markLibraryHealthScanFailed,
@@ -315,6 +316,7 @@ const storeDb: StoreDb = {
   getExistingAlbumReleaseGroupMbids: (userId, options) =>
     getExistingAlbumReleaseGroupMbids(db, userId, options),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
+  getOwnedAlbumKeys: (userId) => getOwnedAlbumKeys(db, userId),
   getArtistGenreCacheByMbids: (mbids) => getArtistGenreCacheByMbids(db, mbids),
   getArtistGenreCacheByAliases: (aliases) => getArtistGenreCacheByAliases(db, aliases),
   upsertArtistGenres: (data) => upsertArtistGenres(db, data),
