@@ -56,8 +56,12 @@ const CHECK_ICONS: Record<string, React.ReactNode> = {
   'missing-wikidata': <BookOpen size={16} className="text-muted shrink-0" />,
 }
 
-function severitySurfaceClass(severity: HealthCheckResult['severity']): string {
+type Tone = HealthCheckResult['severity'] | 'healthy'
+
+function severitySurfaceClass(severity: Tone): string {
   switch (severity) {
+    case 'healthy':
+      return 'border-approve/30 bg-approve/5'
     case 'error':
       return 'border-reject/30 bg-reject/5'
     case 'warning':
@@ -67,8 +71,10 @@ function severitySurfaceClass(severity: HealthCheckResult['severity']): string {
   }
 }
 
-function severityDotClass(severity: HealthCheckResult['severity']): string {
+function severityDotClass(severity: Tone): string {
   switch (severity) {
+    case 'healthy':
+      return 'bg-approve'
     case 'error':
       return 'bg-reject'
     case 'warning':
@@ -78,8 +84,10 @@ function severityDotClass(severity: HealthCheckResult['severity']): string {
   }
 }
 
-function severityBadgeClass(severity: HealthCheckResult['severity']): string {
+function severityBadgeClass(severity: Tone): string {
   switch (severity) {
+    case 'healthy':
+      return 'bg-approve/15 text-approve'
     case 'error':
       return 'bg-reject/15 text-reject'
     case 'warning':
@@ -106,21 +114,21 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
     ? check.items
     : check.items.slice(0, PREVIEW_COUNT)
   const hasMore = check.items.length > PREVIEW_COUNT
-  const fixDisabled = fixing || check.count === 0 || !check.fixable
+  const healthy = check.count === 0
+  const tone: Tone = healthy ? 'healthy' : check.severity
+  const fixDisabled = fixing || !check.fixable
   const fixHintKey = FIX_HINT_KEYS[check.id]
   const textKeys = CHECK_TEXT_KEYS[check.id]
 
   return (
-    <div
-      className={`border ${severitySurfaceClass(check.severity)} rounded-lg p-4 flex flex-col gap-3`}
-    >
+    <div className={`border ${severitySurfaceClass(tone)} rounded-lg p-4 flex flex-col gap-3`}>
       {/* Header */}
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="text-sm font-semibold text-text flex items-center gap-1.5">
             <span
               aria-hidden="true"
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${severityDotClass(check.severity)}`}
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${severityDotClass(tone)}`}
             />
             {CHECK_ICONS[check.id]}
             {textKeys ? t(textKeys.name) : check.name}
@@ -130,7 +138,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
           </p>
         </div>
         <span
-          className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${severityBadgeClass(check.severity)}`}
+          className={`shrink-0 text-xs font-semibold px-2 py-0.5 rounded-full ${severityBadgeClass(tone)}`}
         >
           {check.count}
         </span>
@@ -179,7 +187,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
       )}
 
       {/* Fix button + hint */}
-      {check.fixable && (
+      {check.fixable && !healthy && (
         <div className="pt-1 space-y-1.5">
           {fixHintKey && <p className="text-xs text-muted italic">{t(fixHintKey)}</p>}
           <Button

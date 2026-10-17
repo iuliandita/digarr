@@ -49,4 +49,21 @@ describe('HealthCheckCard', () => {
     )
     expect(screen.getByText('Future Check')).toBeInTheDocument()
   })
+
+  it.each([
+    [0, false],
+    [3, true],
+  ])('with %i findings shows the Fix button: %s', (count, showsFix) => {
+    const { container } = render(
+      <I18nProvider>
+        <HealthCheckCard
+          check={{ ...check('missing-metadata', 'Missing Metadata'), fixable: true, count }}
+          onFix={vi.fn()}
+          fixing={false}
+        />
+      </I18nProvider>,
+    )
+    expect(screen.queryAllByRole('button').length > 0).toBe(showsFix)
+    expect(container.firstElementChild?.className.includes('border-approve')).toBe(!showsFix)
+  })
 })
