@@ -522,7 +522,7 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "dae3c262ee5cc755ff51bb1e810a444f20c06a922692abe374bfa99c21e092af",
+        "src/core/clients/musicbrainz.ts": "6c31717640cf78530d5e48b954207dfe1bff740561b8d16bd00f380973b7d6ab",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -570,7 +570,7 @@
         "src/core/library/health-scheduler.ts": "1bc22e2658aadf5ddc910e2951196e021792bb268f5c4986773b409ae8d28592",
         "src/core/library/health.ts": "ed9120f65aab5f0b3c1d7b79c12dc88ee519409d55c2191e006f9f09b6c1f39d",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "c83146b23164c23c47afb44d462d6e39ec4e4c5cd8e372e647ae5f532fa13a7f",
+        "src/core/library/reconciler.ts": "77d8c99af24ec8892609bcbab693fb4b4e4b3ed8f8d66023fa5924135b4568e5",
         "src/core/library/scheduler.ts": "334383301fc5695b84f88ab478534f966eaf10e4c858d9ba3d5cf9f644a319c5",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -703,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2",
+      "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Notification transport, publicIpOnly clients and Bandcamp share one resolve-and-pin guard; blocked targets fail without retry backoff. ARCHITECTURE documents the guard, allowPrivateTarget semantics in API.md unchanged",
+        "docs": ["CHANGELOG.md"],
+        "note": "Reconciler accepts MusicBrainz candidates by alias or sort name when no primary name matches. CHANGELOG has the Fixed entry; docs/NORMALIZATION.md (outside this domain) describes the candidate rule. ARCHITECTURE.md does not describe the reconciler match rule. No API, config or schema change.",
         "breaking": "none",
         "migration": "",
-        "digest": "c6ab8f1a6fa64adcf49230cfddeeb446c821eb3cb91ceb6a0e423698dba0a2a2"
+        "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a"
       }
     },
     "deployment": {
