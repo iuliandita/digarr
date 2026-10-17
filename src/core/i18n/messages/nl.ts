@@ -528,17 +528,14 @@ export const nl = {
   'playlists.created': 'Afspeellijst gemaakt',
   'playlists.emptyHint':
     'Maak afspeellijsten van goedgekeurde of openstaande artiesten, download ze als M3U of XSPF, of stuur ze naar Spotify, Navidrome, Jellyfin, Emby of Plex.',
-  'playlists.nextGeneration': 'Volgende generatie',
-  'playlists.noScheduleConfigured': 'Geen schema geconfigureerd',
   'playlists.playlistPlural': 'afspeellijsten',
   'playlists.playlistSingular': 'afspeellijst',
+  'playlists.nextGeneration': 'Volgende generatie',
   'playlists.schedulingLabel': 'Geplande generatie',
   'playlists.schedulingOnHint': 'Playlists met een schema worden vanzelf opnieuw gemaakt.',
   'playlists.schedulingPausedHint':
     'Gepauzeerd: playlists met een schema worden pas opnieuw gemaakt als je dit aanzet. Handmatig genereren werkt nog steeds.',
   'playlists.schedulingSaveFailed': 'Kon de playlistplanning niet wijzigen',
-  'playlists.schedulePaused': 'Schema onderbroken',
-  'playlists.scheduled': 'Gepland',
   'playlists.updateFailed': 'Kan de afspeellijst niet updaten',
   'playlists.updated': 'Afspeellijst bijgewerkt',
   'playlistForm.dialogCreate': 'Afspeellijst maken',

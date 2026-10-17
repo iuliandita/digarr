@@ -525,17 +525,14 @@ export const ja = {
   'playlists.created': 'プレイリストが作成されました',
   'playlists.emptyHint':
     '承認済みまたは保留中のアーティストからプレイリストを作り、M3U や XSPF でダウンロードしたり、Spotify、Navidrome、Jellyfin、Emby、Plex に送ったりできます。',
-  'playlists.nextGeneration': '次回の生成',
-  'playlists.noScheduleConfigured': 'スケジュールが設定されていません',
   'playlists.playlistPlural': 'プレイリスト',
   'playlists.playlistSingular': 'プレイリスト',
+  'playlists.nextGeneration': '次回の生成',
   'playlists.schedulingLabel': 'スケジュール生成',
   'playlists.schedulingOnHint': 'スケジュールのあるプレイリストは自動で再生成されます。',
   'playlists.schedulingPausedHint':
     '一時停止中: これをオンにするまで、スケジュールのあるプレイリストは再生成されません。手動での生成は引き続き使えます。',
   'playlists.schedulingSaveFailed': 'プレイリストのスケジュール設定を変更できませんでした',
-  'playlists.schedulePaused': 'スケジュールが一時停止されました',
-  'playlists.scheduled': '予定されている',
   'playlists.updateFailed': 'プレイリストの更新に失敗しました',
   'playlists.updated': 'プレイリストが更新されました',
   'playlistForm.dialogCreate': 'プレイリストを作成',

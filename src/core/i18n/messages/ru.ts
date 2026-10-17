@@ -530,17 +530,14 @@ export const ru = {
   'playlists.created': 'Плейлист создан',
   'playlists.emptyHint':
     'Собирай плейлисты из одобренных или ожидающих исполнителей, скачивай их в M3U или XSPF или отправляй в Spotify, Navidrome, Jellyfin, Emby или Plex.',
-  'playlists.nextGeneration': 'Следующая генерация',
-  'playlists.noScheduleConfigured': 'Расписание не настроено',
   'playlists.playlistPlural': 'плейлисты',
   'playlists.playlistSingular': 'список воспроизведения',
+  'playlists.nextGeneration': 'Следующая генерация',
   'playlists.schedulingLabel': 'Создание по расписанию',
   'playlists.schedulingOnHint': 'Плейлисты с расписанием обновляются сами.',
   'playlists.schedulingPausedHint':
     'Приостановлено: плейлисты с расписанием не обновляются, пока ты это не включишь. Ручное создание по-прежнему работает.',
   'playlists.schedulingSaveFailed': 'Не удалось изменить расписание плейлистов',
-  'playlists.schedulePaused': 'Расписание приостановлено',
-  'playlists.scheduled': 'Запланировано',
   'playlists.updateFailed': 'Не удалось обновить плейлист.',
   'playlists.updated': 'Плейлист обновлен',
   'playlistForm.dialogCreate': 'Создать плейлист',

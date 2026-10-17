@@ -530,17 +530,14 @@ export const it = {
   'playlists.created': 'Playlist creata',
   'playlists.emptyHint':
     'Crea playlist da artisti approvati o in attesa, scaricale come M3U o XSPF, oppure inviale a Spotify, Navidrome, Jellyfin, Emby o Plex.',
-  'playlists.nextGeneration': 'Prossima generazione',
-  'playlists.noScheduleConfigured': 'Nessuna pianificazione configurata',
   'playlists.playlistPlural': 'playlist',
   'playlists.playlistSingular': 'playlist',
+  'playlists.nextGeneration': 'Prossima generazione',
   'playlists.schedulingLabel': 'Generazione programmata',
   'playlists.schedulingOnHint': 'Le playlist con una programmazione si rigenerano da sole.',
   'playlists.schedulingPausedHint':
     'In pausa: le playlist con una programmazione non vengono rigenerate finché non lo attivi. La generazione manuale funziona comunque.',
   'playlists.schedulingSaveFailed': 'Impossibile modificare la programmazione delle playlist',
-  'playlists.schedulePaused': 'Programma sospeso',
-  'playlists.scheduled': 'Programmato',
   'playlists.updateFailed': 'Impossibile aggiornare la playlist',
   'playlists.updated': 'Playlist aggiornata',
   'playlistForm.dialogCreate': 'Crea playlist',

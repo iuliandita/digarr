@@ -22,7 +22,6 @@ import {
   approveRecommendation,
   approveToTarget,
   type GenreCoverage,
-  getAuthStatus,
   getDashboardActivity,
   getDashboardGenreCoverage,
   getDashboardTaste,
@@ -489,8 +488,6 @@ export function Dashboard() {
   const [listenRange, setListenRange] = useState<ListeningTopRange>('this_month')
   const [listenPage, setListenPage] = useState(0)
   const LISTEN_PAGE_SIZE = 5
-  const { data: authStatus } = useQuery({ queryKey: ['auth-status'], queryFn: getAuthStatus })
-  const isAdmin = authStatus?.isAdmin ?? false
 
   // Pending pick - fetch 10 so skip has runway
   const { data: pickData, isLoading: pickLoading } = useQuery({
