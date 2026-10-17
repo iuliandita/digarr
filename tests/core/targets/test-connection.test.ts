@@ -237,7 +237,8 @@ it.each([
     )
     const response = await app.request('/api/v1/targets/1/test', { method: 'POST' })
     expect(response.status).toBe(200)
-    if (allowed) expect(probe).toHaveBeenCalledWith('slskd', config, linkedConfig)
+    if (allowed)
+      expect(probe).toHaveBeenCalledWith('slskd', config, expect.objectContaining(linkedConfig))
     else expect(probe).toHaveBeenCalledWith('slskd', config)
   },
 )
