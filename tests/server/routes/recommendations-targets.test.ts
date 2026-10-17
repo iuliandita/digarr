@@ -194,7 +194,7 @@ describe('target-aware approval', () => {
       id: 'spotify-playlist-1',
       type: 'spotify-playlist',
       capabilities: ['createPlaylist'],
-      createPlaylist: vi.fn(),
+      openPlaylistExportSession: vi.fn(),
       testConnection: vi.fn(),
     }
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
@@ -213,7 +213,7 @@ describe('target-aware approval', () => {
       'approved',
       expect.objectContaining({ targetActions: {} }),
     )
-    expect(spotifyTarget.createPlaylist).not.toHaveBeenCalled()
+    expect(spotifyTarget.openPlaylistExportSession).not.toHaveBeenCalled()
   })
 
   it('approves to specific target via targetId', async () => {
@@ -567,7 +567,7 @@ describe('target-aware approval', () => {
       id: 'spotify-playlist-1',
       type: 'spotify-playlist',
       capabilities: ['createPlaylist'],
-      createPlaylist: vi.fn(),
+      openPlaylistExportSession: vi.fn(),
       testConnection: vi.fn(),
     }
     mockDeps.getEnabledTargetsForUser.mockResolvedValue([spotifyTarget])
@@ -581,7 +581,7 @@ describe('target-aware approval', () => {
 
     const body = await res.json()
     expect(body.results[0].status).toBe('approved')
-    expect(spotifyTarget.createPlaylist).not.toHaveBeenCalled()
+    expect(spotifyTarget.openPlaylistExportSession).not.toHaveBeenCalled()
   })
 
   it('returns a per-target summary on partial failure', async () => {

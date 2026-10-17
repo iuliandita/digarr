@@ -4,7 +4,7 @@ import pg from 'pg'
 import { afterAll, beforeEach, describe, expect, it } from 'vitest'
 import { tryConsume } from '@/core/clients/rate-limiter'
 import * as schema from '@/db/schema'
-import { failIfDbRequired } from '../../helpers/require-db'
+import { assertDisposableDatabase, failIfDbRequired } from '../../helpers/require-db'
 
 const { Pool } = pg
 
@@ -26,6 +26,7 @@ describe('rate-limiter', () => {
       failIfDbRequired(new Error('DATABASE_URL is not set'))
       return
     }
+    assertDisposableDatabase(DATABASE_URL)
     try {
       await db.execute(sql`DELETE FROM rate_limit_buckets`)
     } catch (err) {

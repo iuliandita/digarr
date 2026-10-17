@@ -66,6 +66,12 @@ describe('createPlexPlaylistTarget', () => {
     expect(new Headers(init.headers).get('X-Plex-Token')).toBe(CONFIG.token)
   })
 
+  async function createViaSession(name: string, items: PlaylistItem[]) {
+    const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.(items)
+    if (!session) throw new Error('Expected an export session')
+    return session.createPlaylist(name, async () => {})
+  }
+
   it('uses the exact search match when creating a playlist', async () => {
     const fetchMock = vi.fn().mockImplementation((url: string | URL | Request) => {
       const value = String(url)
@@ -105,7 +111,7 @@ describe('createPlexPlaylistTarget', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [
+    const result = await createViaSession('Picks', [
       { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
     ])
 
@@ -127,7 +133,7 @@ describe('createPlexPlaylistTarget', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [ITEM])
+    const result = await createViaSession('Picks', [ITEM])
 
     expect(result).toMatchObject({
       success: false,
@@ -140,14 +146,18 @@ describe('createPlexPlaylistTarget', () => {
   })
 
   it('fails without creating a playlist when track search is forbidden', async () => {
-    const fetchMock = vi.fn().mockResolvedValue(new Response('forbidden', { status: 403 }))
+    const fetchMock = vi
+      .fn()
+      .mockImplementation((url: string | URL | Request) =>
+        Promise.resolve(
+          String(url).includes('/hubs/search')
+            ? new Response('forbidden', { status: 403 })
+            : ok({ MediaContainer: { machineIdentifier: 'machine-1' } }),
+        ),
+      )
     vi.stubGlobal('fetch', fetchMock)
 
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [
-      { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
-    ])
-
-    expect(result).toMatchObject({ success: false, error: 'Plex API 403: forbidden' })
+    await expect(createViaSession('Picks', [ITEM])).rejects.toThrow('Plex API 403: forbidden')
     expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/playlists?'))).toBe(false)
   })
 
@@ -159,7 +169,7 @@ describe('createPlexPlaylistTarget', () => {
     })
     vi.stubGlobal('fetch', fetchMock)
 
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [ITEM])
+    const result = await createViaSession('Picks', [ITEM])
 
     expect(result).toMatchObject({
       success: false,
@@ -209,42 +219,11 @@ describe('createPlexPlaylistTarget', () => {
       return Promise.resolve(ok({ MediaContainer: { machineIdentifier: 'machine-1' } }))
     })
     vi.stubGlobal('fetch', fetchMock)
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks & favorites', [
+    const result = await createViaSession('Picks & favorites', [
       ITEM,
       { ...ITEM, trackName: 'No Surprises' },
     ])
     expect(result).toMatchObject({ success: true, itemsAdded: 2 })
-  })
-
-  it.each([{ items: [] }, { items: [ITEM] }])(
-    'does not send an empty playlist when no local tracks resolve',
-    async ({ items }) => {
-      const fetchMock = vi.fn().mockResolvedValue(ok({ MediaContainer: { Hub: [] } }))
-      vi.stubGlobal('fetch', fetchMock)
-      const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', items)
-      expect(result).toMatchObject({
-        success: false,
-        error: 'No playlist tracks were found in the Plex library',
-      })
-      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/playlists?'))).toBe(false)
-    },
-  )
-
-  it('refuses to create a playlist with a missing server identifier', async () => {
-    const fetchMock = vi
-      .fn()
-      .mockImplementation((url: string) =>
-        Promise.resolve(
-          url.includes('/hubs/search') ? trackResponse() : ok({ MediaContainer: {} }),
-        ),
-      )
-    vi.stubGlobal('fetch', fetchMock)
-    const result = await createPlexPlaylistTarget(4, CONFIG).createPlaylist?.('Picks', [ITEM])
-    expect(result).toMatchObject({
-      success: false,
-      error: 'Plex did not return a server machine identifier',
-    })
-    expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/playlists?'))).toBe(false)
   })
 })
 

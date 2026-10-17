@@ -69,7 +69,13 @@ describe('exact playlist track matching', () => {
             : []),
         ]
         let body: unknown
-        if (parsed.pathname === '/rest/search3') {
+        if (parsed.pathname === '/rest/getUser') {
+          body = { user: { username: 'admin' } }
+        } else if (parsed.pathname === '/System/Info') {
+          body = { Id: 'server-1' }
+        } else if (parsed.pathname === '/Users/user-1') {
+          body = { Id: 'user-1' }
+        } else if (parsed.pathname === '/rest/search3') {
           body = { searchResult3: { song: candidates } }
         } else if (parsed.pathname.endsWith('/Items')) {
           body = {
@@ -139,17 +145,15 @@ describe('exact playlist track matching', () => {
           artistMbid: 'mbid-1',
           trackName: ' TEARdrop ',
         })
-      const result = await target.createPlaylist?.('Picks', items)
-      if (!partial && target.type === 'plex-playlist') {
-        expect(result).toMatchObject({
-          success: false,
-          error: 'No playlist tracks were found in the Plex library',
-        })
+      const opening = target.openPlaylistExportSession?.(items)
+      if (!partial) {
+        await expect(opening).rejects.toThrow()
         expect(created).toBe(0)
       } else {
-        expect(result).toMatchObject({
+        const session = await opening
+        expect(await session?.createPlaylist('Picks', async () => {})).toMatchObject({
           success: true,
-          itemsAdded: partial ? 1 : 0,
+          itemsAdded: 1,
           itemsSkipped: 4,
         })
         expect(created).toBe(1)

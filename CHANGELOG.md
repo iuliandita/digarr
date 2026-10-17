@@ -22,9 +22,11 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Boolean environment settings (`DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `PROXY_AUTH_ENABLED`, `SKIP_TLS_VERIFY`) accept `true`, `false`, `1` or `0` in any case, and any other value stops startup with an error naming the variable. Before, anything except lowercase `true` or `1`, including `TRUE`, counted as false. Check these before upgrading. (#908)
 - Stopping a pipeline run is limited to the user who started it or an admin, and only removes your own queued run; other users' queued runs keep their place. The progress stream shows only your own runs. (#908)
 - Recommendations stored without an owner, from single-user releases, now belong to the first admin (migration 0055), and only their owner can act on them. Restoring an older backup applies the same rule. See [the upgrade note](docs/OPERATIONS.md#backup--restore). (#908)
+- CI: the macOS Docker (Colima) compatibility job now runs only weekly and on manual dispatch, so pull requests and release PRs no longer wait on it. The Podman job still runs on pull requests that touch `deploy/docker/` (#878).
 
 ### Fixed
 
+- Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
 - Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).
 - Helm: bundled PostgreSQL with `postgresql.persistence.enabled=false` now gets an `emptyDir` for its data directory instead of a read-only path, and its NetworkPolicy carries the release namespace (#911).

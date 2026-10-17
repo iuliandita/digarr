@@ -86,9 +86,9 @@ For route, workflow, or UI changes, run `bun run test:e2e` before opening a PR. 
 
 ### Container compatibility checks
 
-The Compatibility workflow tests rootless Podman on Linux and Docker through Colima on hosted macOS Intel. The macOS job remains advisory. Its VM startup has a 15-minute limit and uses explicit guest DNS resolvers, following [Colima's DNS guidance](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#colima-cannot-access-the-internet). Startup failures collect VM diagnostics; later failures also collect host and guest DNS diagnostics. Persistent failures still fail the job after the existing bounded Compose retries.
+The Compatibility workflow tests rootless Podman on Linux and Docker through Colima on hosted macOS Intel. The macOS job remains advisory and runs only on the weekly schedule and manual dispatch; pull requests, including release PRs, run the Podman job alone. Its VM startup has a 15-minute limit and uses explicit guest DNS resolvers, following [Colima's DNS guidance](https://github.com/abiosoft/colima/blob/main/docs/FAQ.md#colima-cannot-access-the-internet). Startup failures collect VM diagnostics; later failures also collect host and guest DNS diagnostics. Persistent failures still fail the job after the existing bounded Compose retries.
 
-Changes to this bootstrap need an actual macOS workflow run: verify PostgreSQL, PGlite, and persistence after restart, plus the final assertion gate. A working Docker daemon alone does not establish application compatibility. The final gate runs even after failure and requires readiness and both backend assertions.
+Changes to this bootstrap need an actual macOS workflow run, started with `gh workflow run compatibility.yml --ref <branch>`: verify PostgreSQL, PGlite, and persistence after restart, plus the final assertion gate. A working Docker daemon alone does not establish application compatibility. The final gate runs even after failure and requires readiness and both backend assertions.
 
 ## Translations
 

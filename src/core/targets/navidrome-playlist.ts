@@ -148,8 +148,7 @@ export function createNavidromePlaylistTarget(
     name: string,
     songIds: string[],
     itemCount: number,
-    onCreated?: (playlistId: string) => Promise<void>,
-    description?: string,
+    onCreated: (playlistId: string) => Promise<void>,
   ): Promise<PlaylistResult> {
     let playlistId: string | undefined
     try {
@@ -161,16 +160,11 @@ export function createNavidromePlaylistTarget(
         throw new Error('Navidrome did not return a playlist ID')
       }
       playlistId = created.playlist.id
-      await onCreated?.(playlistId)
+      await onCreated(playlistId)
       if (songIds.length > 0) {
         await subsonicFetch(apiPath('updatePlaylist', { playlistId, songIdToAdd: songIds }), {
           retries: 0,
         })
-      }
-      if (description) {
-        await subsonicFetch(apiPath('updatePlaylist', { playlistId, comment: description }), {
-          retries: 0,
-        }).catch(() => {})
       }
       return result(playlistId, name, songIds, itemCount)
     } catch (error) {
@@ -183,15 +177,6 @@ export function createNavidromePlaylistTarget(
     name: 'Navidrome Playlist',
     type: 'navidrome-playlist',
     capabilities: ['createPlaylist'],
-
-    async createPlaylist(name, items, options): Promise<PlaylistResult> {
-      try {
-        const songIds = await resolveTracks(items)
-        return await createPrepared(name, songIds, items.length, undefined, options?.description)
-      } catch (error) {
-        return failure(error)
-      }
-    },
 
     async openPlaylistExportSession(items) {
       const itemCount = items.length
