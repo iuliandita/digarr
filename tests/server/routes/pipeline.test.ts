@@ -86,6 +86,9 @@ function makeMockOrchestrator(isRunning = false) {
     cancel: vi.fn(() => ({ cancelled: isRunning })),
     queueLength: isRunning ? 1 : 0,
     queuePositionFor: vi.fn(() => 0),
+    currentUserId: isRunning ? 1 : undefined,
+    stage: isRunning ? 'resolve' : null,
+    stageMessage: null,
   })
 }
 
@@ -380,9 +383,39 @@ describe('GET /api/v1/pipeline/status', () => {
     expect(body.running).toBe(true)
   })
 
+  it('hides other users runs and queue from non-admins, shows them to admins', async () => {
+    const mock = makeMockOrchestrator(true)
+    mock.currentUserId = 2
+    mock.queueLength = 3
+    const orchestrator = mock as unknown as AppDependencies['orchestrator']
+    const lastBatch = { id: 42, createdAt: new Date('2024-06-01'), status: 'completed' }
+    const getLastBatch = vi.fn(async () => lastBatch)
+
+    const user = createApp(makeDeps({ orchestrator, getLastBatch }))
+    const userBody = await (await authedRequest(user, '/api/v1/pipeline/status')).json()
+    expect(userBody).toMatchObject({ running: false, stage: null, queueLength: 0 })
+    expect(userBody.lastRun).toBeUndefined()
+
+    const admin = createApp(
+      makeDeps({
+        orchestrator,
+        getLastBatch,
+        getUserById: vi.fn(async () => ({ id: 1, isAdmin: true })) as never,
+      }),
+    )
+    const adminBody = await (await authedRequest(admin, '/api/v1/pipeline/status')).json()
+    expect(adminBody).toMatchObject({ running: true, stage: 'resolve', queueLength: 3 })
+    expect(adminBody.lastRun.batchId).toBe(42)
+  })
+
   it('includes lastRun when a batch exists', async () => {
     const lastBatch = { id: 42, createdAt: new Date('2024-06-01'), status: 'completed' }
-    const app = createApp(makeDeps({ getLastBatch: vi.fn(async () => lastBatch) }))
+    const app = createApp(
+      makeDeps({
+        getLastBatch: vi.fn(async () => lastBatch),
+        getUserById: vi.fn(async () => ({ id: 1, isAdmin: true })) as never,
+      }),
+    )
     const res = await authedRequest(app, '/api/v1/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
@@ -865,7 +898,9 @@ describe('quick-discover seed policy and completed storage counts', () => {
       expect(storeDb.getLibraryArtistsForUser).toHaveBeenCalledWith(1, { onlyReconciled: true })
       expect(storeDb.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(17, 1)
       expect(storeDb.getBlockedMbids).toHaveBeenCalledExactlyOnceWith(1)
-      expect(storeDb.getExistingRecommendationMbids).toHaveBeenCalledWith(1)
+      expect(storeDb.getExistingRecommendationMbids).toHaveBeenCalledWith(1, {
+        rejectionCooldownDays: 17,
+      })
       expect(deps.jobRecorder?.complete).toHaveBeenCalledWith(1, {
         metadata: { seedArtist: 'Seed Artist', artistsDiscovered: 0, artistsStored: 0 },
       })

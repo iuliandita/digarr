@@ -226,14 +226,23 @@ export function pipelineRoutes(deps: AppDependencies) {
   })
 
   router.get('/api/v1/pipeline/status', async (c) => {
-    const lastBatch = await deps.getLastBatch()
     const userId = c.get('userId')
+    const isAdmin = await resolveAdmin(
+      userId,
+      deps.getUserById,
+      c.get('authSkipped'),
+      c.get('legacyTokenAuth'),
+    )
+    const queuePosition = userId ? deps.orchestrator.queuePositionFor(userId) : 0
+    // Non-admins see only their own run and queue entry; batches carry no owner.
+    const ownRun = deps.orchestrator.isRunning && deps.orchestrator.currentUserId === userId
+    const lastBatch = isAdmin ? await deps.getLastBatch() : null
     return c.json({
-      running: deps.orchestrator.isRunning,
-      stage: deps.orchestrator.stage,
-      message: deps.orchestrator.stageMessage,
-      queueLength: deps.orchestrator.queueLength,
-      queuePosition: userId ? deps.orchestrator.queuePositionFor(userId) : 0,
+      running: isAdmin ? deps.orchestrator.isRunning : ownRun,
+      stage: isAdmin || ownRun ? deps.orchestrator.stage : null,
+      message: isAdmin || ownRun ? deps.orchestrator.stageMessage : null,
+      queueLength: isAdmin ? deps.orchestrator.queueLength : queuePosition > 0 ? 1 : 0,
+      queuePosition,
       lastRun: lastBatch
         ? {
             batchId: lastBatch.id,
@@ -352,8 +361,12 @@ export function pipelineRoutes(deps: AppDependencies) {
         const blockedMbids = quickDiscoverUserId
           ? await deps.storeDb.getBlockedMbids(quickDiscoverUserId)
           : new Set<string>()
-        const seedExistingMbids =
-          await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
+        const seedExistingMbids = await deps.storeDb.getExistingRecommendationMbids(
+          quickDiscoverUserId,
+          {
+            rejectionCooldownDays: prefs.rejectionCooldownDays,
+          },
+        )
         for (const mbid of seedExistingMbids) libraryMbids.add(mbid)
 
         let artistsStored = 0
@@ -460,8 +473,12 @@ export function pipelineRoutes(deps: AppDependencies) {
             ? await deps.storeDb.getFeedbackHistory(quickDiscoverUserId)
             : await deps.storeDb.getFeedbackHistory()
           const scored = score(resolved, [], prefs.scoringWeights, feedbackHistory)
-          const existingMbids =
-            await deps.storeDb.getExistingRecommendationMbids(quickDiscoverUserId)
+          const existingMbids = await deps.storeDb.getExistingRecommendationMbids(
+            quickDiscoverUserId,
+            {
+              rejectionCooldownDays: prefs.rejectionCooldownDays,
+            },
+          )
           for (const mbid of existingMbids) libraryMbids.add(mbid)
 
           const filtered = filter(
