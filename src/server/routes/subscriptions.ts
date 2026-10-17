@@ -405,16 +405,28 @@ export function subscriptionRoutes(deps: AppDependencies) {
       return c.json({ error: 'File too large (max 1MB)' }, 413)
     }
 
-    const { parseCsvArtists } = await import('@/core/subscriptions/adapters/csv-import')
+    const { parsePlaylistFile, playlistFormatFor, PlaylistFormatError } = await import(
+      '@/core/playlist-import'
+    )
     const text = await file.text()
-    const artists = parseCsvArtists(text, 500)
+    const format = playlistFormatFor(file.name)
+    let parsed: Awaited<ReturnType<typeof parsePlaylistFile>>
+    try {
+      parsed = parsePlaylistFile(text, format, 500)
+    } catch (err) {
+      if (err instanceof PlaylistFormatError) {
+        return c.json({ error: err.message }, 400)
+      }
+      throw err
+    }
+    const { artists, unreadable } = parsed
 
     if (artists.length === 0) {
-      return c.json({ error: 'No valid artist names found in CSV' }, 400)
+      return c.json({ error: 'No valid artist names found in file' }, 400)
     }
 
     const subscription = await deps.subscriptionQueries.createSubscription({
-      name: `CSV Import (${artists.length} artists)`,
+      name: `${format === 'csv' ? 'CSV' : 'Playlist file'} Import (${artists.length} artists)`,
       userId,
       sourceType: 'csv-import',
       sourceProvider: 'csv',
@@ -437,6 +449,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
         subscriptionId: subscription.id,
         artistCount: artists.length,
         truncated,
+        unreadable,
       },
       202,
     )

@@ -1014,8 +1014,8 @@ export const uk = {
   'importArtists.spotifyPlaylist': 'Плейлист Spotify',
   'importArtists.spotifyPlaylistDescription':
     'Імпортувати виконавців з будь-якого плейлиста Spotify',
-  'importArtists.csvFile': 'CSV-файл',
-  'importArtists.csvDescription': 'Завантаж список імен виконавців із CSV-файлу',
+  'importArtists.csvFile': 'CSV/M3U/XSPF-файл',
+  'importArtists.csvDescription': 'Завантаж список імен виконавців із CSV/M3U/XSPF-файлу',
   'importArtists.import': 'Імпортувати',
   'importArtists.connectSpotifyFirst': 'Спочатку підключи Spotify у {0}',
   'importArtists.uploading': 'Завантаження...',
@@ -1033,6 +1033,7 @@ export const uk = {
   'importArtists.failedImport': 'Не вдалося розпочати імпорт',
   'importArtists.failedPlaylist': 'Не вдалося розпочати імпорт плейлиста',
   'importArtists.failedCsv': 'Не вдалося імпортувати CSV-файл',
+  'importArtists.unreadable': 'Не вдалося прочитати записів: {0}',
   'librarySources.title': 'Джерела бібліотеки',
   'librarySources.syncAll': 'Синхронізувати все',
   'librarySources.syncStarted': 'Синхронізацію розпочато',

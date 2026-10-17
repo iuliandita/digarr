@@ -584,7 +584,7 @@ Path params:
 | GET | `/api/v1/subscriptions/:id/runs` | Yes | Run history |
 | POST | `/api/v1/subscriptions/import/spotify-liked-songs` | Yes | Create/reuse the helper Spotify Liked Songs subscription and trigger an import run (202) |
 | POST | `/api/v1/subscriptions/import/spotify-playlist` | Yes | Create/reuse a Spotify playlist import subscription (URL, URI, or bare ID). Returns 202; inspect run history for the outcome. |
-| POST | `/api/v1/subscriptions/import/csv` | Yes | Upload CSV of artist names (multipart form, field: `file`, max 1MB, 500 artists). Returns 202. |
+| POST | `/api/v1/subscriptions/import/csv` | Yes | Upload a CSV of artist names, or an M3U/M3U8/XSPF playlist, chosen by file extension (multipart form, field: `file`, max 1MB, 500 artists). M3U reads `#EXTINF` artist names and falls back to unambiguous `Artist/Album/NN - Title` or `Artist - Title` paths; XSPF reads `<creator>`. Returns 202 with `unreadable` (entries whose artist could not be determined). Malformed XSPF or one with a DOCTYPE/ENTITY declaration returns 400. |
 | POST | `/api/v1/subscriptions/import/deezer-favorites` | Yes | Create/reuse Deezer Favorites subscription and trigger import (202) |
 | POST | `/api/v1/subscriptions/import/deezer-followed` | Yes | Create/reuse Deezer Followed Artists subscription and trigger import (202) |
 | GET | `/api/v1/subscriptions/import/deezer-playlists` | Yes | List user's Deezer playlists |

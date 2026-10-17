@@ -296,7 +296,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "f8b9bfda112ff9467b440179138c442669e5b8f1c2d5d93ae5f248570b6e563b",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
+        "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
         "src/server/routes/targets.ts": "1ef1370a76382a80ad31149efdde468c38c6074e312ae607aa6311428f35dbf1",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
@@ -314,14 +314,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "6292b30eb9fabf9675e4980202755480d5d9377060502ec29a076b62a8aeeb15",
+      "digest": "3acb3913c3f61607e5cb2524cb737f3ae01995f3f8a2a50576829fb998516245",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document the saved slskd target test's same-owner Lidarr probe and optional translated result key without exposing credentials or paths. The slskd target test resolves a linked Lidarr target through the server connection when it uses one.",
         "breaking": "none",
         "migration": "",
-        "digest": "6292b30eb9fabf9675e4980202755480d5d9377060502ec29a076b62a8aeeb15"
+        "digest": "3acb3913c3f61607e5cb2524cb737f3ae01995f3f8a2a50576829fb998516245"
       }
     },
     "interface": {
@@ -332,24 +332,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "beb6f1c5169c7d7260ce366c79adf69f10c2facb4d3c9f9cbd4ca1f2805e3241",
-        "src/core/i18n/messages/en.ts": "5e3988e9a0d8cf5198f1424349fa7c8fb51cad9330dad5133f31ada19bd0c6e1",
-        "src/core/i18n/messages/es.ts": "2d0b0a12408a8e1db72f386384b3bd3da027a1e75fce5e406dc51fdb3e5cc67c",
-        "src/core/i18n/messages/fr.ts": "2a4da20b78a26214b62acbdf4362420dbc2b6df9686194fd9dbcc217fcc1e055",
+        "src/core/i18n/messages/de.ts": "08939ed11495235e49ee081721c83d2ff7c0fe5366451e39e21482eeba85231d",
+        "src/core/i18n/messages/en.ts": "f74b1c322c1efdb1d71e78b6e72830c7817f4563a8483dc0fc6eb93d7875cff1",
+        "src/core/i18n/messages/es.ts": "0ac24caf817d9a6bd2fc819e3d586fce4bf21c86f8a7a3f6eb7583f1839ff110",
+        "src/core/i18n/messages/fr.ts": "9489993d18a29baa876c14ebf9d06cd5918aef2dfaf0840b3daaec105fba006f",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "e1aca40e5a3a6ae97c1f9b62a1597f835b40c351a11171561bc01274ceb82529",
-        "src/core/i18n/messages/ja.ts": "4739e971440fddc0adc6b5c373548e775ffe935a24c075e955442d47f9473bf5",
-        "src/core/i18n/messages/ko.ts": "603215a1524c30f1bbb508f3e32677e5ff8a3988ea9746835fa6d12e36d2f30d",
-        "src/core/i18n/messages/nl.ts": "c3fe217866b5c25327c7911d51b76f3748ceb70d9ad66eab8a680169661e8a71",
-        "src/core/i18n/messages/pl.ts": "10683e3ae773d0ff116956ae06c475a9ef5263ac4c34662c8c1ac4163b42380e",
-        "src/core/i18n/messages/pt-BR.ts": "5cfae386941b0d5f05b4fe06ae0cce391209138679ff1d60ad447002f0306fc6",
-        "src/core/i18n/messages/ro.ts": "7bbe003c7a468b621b5902ea7066d111b92a5c84d4252ac39d7061898b21181c",
-        "src/core/i18n/messages/ru.ts": "09814d879f4622ff6c459e2c73e97e9e68e2ec1ff41615f1738d76d9e7d4dbd3",
-        "src/core/i18n/messages/source-lock.json": "de470983177c36f2c9f2e0f61d1b0f99875149acd1e351cb8733299395c1e57a",
-        "src/core/i18n/messages/tr.ts": "adccbaa194fb9d5359816ae4fb48dec5b2b6994e53d12cbecd3e27cb13170b28",
+        "src/core/i18n/messages/it.ts": "7a3389fa4b269090d168f5890eb6a1389f1e0e13c8735b25ae6301ce426680b0",
+        "src/core/i18n/messages/ja.ts": "5063da927f33a9408e715e35f06606be420d658d2fb02c9691c46662c7f21228",
+        "src/core/i18n/messages/ko.ts": "dec5fbc7be1a0abd180c9e8f82eee420379e6ef651ae7fd3b93537bf56bf4a65",
+        "src/core/i18n/messages/nl.ts": "c155a4f024815ea897954704a26c2d7dceaaebf38c8b586f15b37b0011aaf1b3",
+        "src/core/i18n/messages/pl.ts": "17735265aaa591c73981d1187a038459b7c84c5496a3a5f6960dacf870b19e91",
+        "src/core/i18n/messages/pt-BR.ts": "fb58ea894804aa277d5d00308b68f8c6b74542aab30292f87751b4c4aa7b0380",
+        "src/core/i18n/messages/ro.ts": "6e52976ea30cd64d62de53c4fab48c022d042ecdba1d93de6cc71a9b53f12ba0",
+        "src/core/i18n/messages/ru.ts": "6a55394233353dbb4c3152e33bd98e09ed62f846137e171e4e2e1223fd5ced06",
+        "src/core/i18n/messages/source-lock.json": "01e52b89123e5566fe51a40ebd4d3058f41ff5dfce3b78ad08e2746df10deb55",
+        "src/core/i18n/messages/tr.ts": "60e76bc3edb64171d447e736962faeaf973e950c32b8d7ef6d778fd29a6b0010",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "47e0ad28242f8d3f967f4c78e4ad438f0f4444edee267b00b386f1dd05060e75",
-        "src/core/i18n/messages/zh-CN.ts": "188dd78bffbeeebbe5761328b5dabfb0584712c0b3777c68af466fdc9235e202",
+        "src/core/i18n/messages/uk.ts": "b56f4a0bfea4ee0fb8a944959e1ef131aaf8980986ccc2ce260098df15d7b4af",
+        "src/core/i18n/messages/zh-CN.ts": "6310dfd0681c9701f520b00e840714f5626c4fd44d50d63ce051c95a19630757",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -383,7 +383,7 @@
         "src/web/components/genre-grid.tsx": "2596a060fa428ce620bc584ca95f7e8be74b22f2970e4a9fc21e84fc09bf71d3",
         "src/web/components/health-check-card.tsx": "ee863a2364b8f6dcf0fd6d484eb000e02bd729d287502b53b5d9af527978bf81",
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
-        "src/web/components/import-artists.tsx": "44e8953d6db6ada63f1429e3d005754abdcf98f9254346b76ae903198275ca74",
+        "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "c3f34472f9a9600d6e747540eff22e66a1b18cba8e46c302fe8ff5692427c932",
         "src/web/components/job-run-row.tsx": "aa6bcc681ebd820e643a693b7525e2326ec15303cad3e3f95ec7c628237aad51",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
@@ -443,7 +443,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "e620f80691e259deb066d9b3556f471d13d34379a0130d32073e90f0d79f5d1d",
+        "src/web/lib/api.ts": "b703119b8149414c08eec43a2b5ba529723cc15d28588d46aea76927f77cb243",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -496,14 +496,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "9ceb0f7a621012eba1614a54166203fb2dc7870eebf9fbd54cef63c33b71fd71",
+      "digest": "29a2b4135ff8b5a7a11d6008fbd9e829095b3d42c8c404217e841a69f7784ee9",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document the search interval field, saved-target testing, translated path results, and empty-directory and custom-mapping limits. No container defaults, mounts, or companion templates change.",
         "breaking": "none",
         "migration": "",
-        "digest": "9ceb0f7a621012eba1614a54166203fb2dc7870eebf9fbd54cef63c33b71fd71"
+        "digest": "29a2b4135ff8b5a7a11d6008fbd9e829095b3d42c8c404217e841a69f7784ee9"
       }
     },
     "features": {
@@ -611,6 +611,7 @@
         "src/core/pipeline/store.ts": "9637b00f39f960b4eea5c3788cca67db07d8da459b9464c995c9f86e4ad9607e",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
+        "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "4ce79d331f210736579490fa88060539c486ab7591daaa5676b66980225a6100",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
@@ -707,14 +708,14 @@
         "src/index.ts": "5b0e1a5764ce06a11e2881dc728a797d0ec8ecf19d9511b39382be91ec1c2031",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "d6c32020cefa161186b56059e55c3720591f6e1de56c86ced8e95c7b6439b491",
+      "digest": "8d3d45c3024a3cb6551fab2dc386044237318db9a82d1a0c53731d17ba085676",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Document per-target 3-second search pacing, 1-60-second bounds, retryable 409/429 cooldowns capped at one hour, restart resets, and the Lidarr path probe. No schema migration is needed; rollback restores previous search behavior.",
         "breaking": "none",
         "migration": "",
-        "digest": "d6c32020cefa161186b56059e55c3720591f6e1de56c86ced8e95c7b6439b491"
+        "digest": "8d3d45c3024a3cb6551fab2dc386044237318db9a82d1a0c53731d17ba085676"
       }
     },
     "deployment": {
