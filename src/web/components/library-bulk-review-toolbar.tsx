@@ -37,11 +37,12 @@ export function LibraryBulkReviewToolbar({
           {t('libraryReconciliation.clearVisible')}
         </Button>
       )}
+      {/* The live region stays mounted at zero so clearing a selection is still announced. */}
       <span
         role="status"
         aria-live="polite"
         aria-atomic="true"
-        className="min-w-0 break-words text-text"
+        className={selectedCount > 0 ? 'min-w-0 break-words text-text' : 'sr-only'}
       >
         {t('libraryReconciliation.selectedCount').replace('{0}', String(selectedCount))}
         {limitReached && (
@@ -54,14 +55,11 @@ export function LibraryBulkReviewToolbar({
           </>
         )}
       </span>
-      <Button
-        type="button"
-        variant="destructive"
-        onClick={onIgnore}
-        disabled={busy || selectedCount === 0}
-      >
-        {t('libraryReconciliation.ignoreSelected')}
-      </Button>
+      {selectedCount > 0 && (
+        <Button type="button" variant="destructive" onClick={onIgnore} disabled={busy}>
+          {t('libraryReconciliation.ignoreSelected')}
+        </Button>
+      )}
       {error && (
         <span role="alert" className="min-w-0 break-words text-text">
           {error}

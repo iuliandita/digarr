@@ -3,7 +3,9 @@ import { useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { Hint } from '../components/hint'
 import { StatCard } from '../components/stat-card'
+import { Disclosure } from '../components/ui/disclosure'
 import { Notice } from '../components/ui/notice'
+import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   type AnalyticsBatch,
@@ -54,6 +56,7 @@ function statusBadge(status: string, t: (key: MessageKey) => string) {
 }
 
 const PAGE_SIZE = 10
+const SECTION_HEADING = 'text-lead font-semibold text-text'
 
 function BatchHistoryTable({
   batches,
@@ -458,14 +461,13 @@ export function AnalyticsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <h1 className="sr-only">{t('analytics.title')}</h1>
+      <PageHeader title={t('analytics.title')} />
       <Hint id="analytics-intro-tip" type="inline">
         {t('analytics.introTip')}
       </Hint>
 
       {anyError && <Notice tone="error">{t('analytics.loadFailed')}</Notice>}
 
-      {/* Overview cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard
           label={t('analytics.totalRecs')}
@@ -490,51 +492,22 @@ export function AnalyticsPage() {
         />
       </div>
 
-      {/* Discovery over time chart */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('analytics.discoveryOverTime')}
-        </h2>
-        {batches && batches.length > 0 ? (
-          <>
-            <p className="text-xs text-muted -mt-2">{t('analytics.recommendationsPerBatch')}</p>
-            <DiscoveryChart batches={batches} />
-          </>
-        ) : (
-          <div className="bg-surface border border-border rounded-lg p-6 text-center">
-            <p className="text-sm text-muted">{t('analytics.noDiscoveryBatches')}</p>
-          </div>
-        )}
-      </div>
-
-      {/* Batch history */}
-      <div className="space-y-3">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('analytics.batchHistory')}
-        </h2>
-        <BatchHistoryTable batches={batches ?? null} loading={batchesLoading} locale={locale} />
-      </div>
-
-      {/* Score distribution + Approval trend + Time to act */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3 lg:items-stretch">
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('analytics.scoreDistribution')}
-          </h2>
-          {scoreDist && scoreDist.length > 0 ? (
-            <div className="flex-1">
-              <ScoreDistribution buckets={scoreDist} />
-            </div>
+        <section className="flex flex-col gap-3 lg:col-span-2">
+          <h2 className={SECTION_HEADING}>{t('analytics.discoveryOverTime')}</h2>
+          {batches && batches.length > 0 ? (
+            <>
+              <p className="text-xs text-muted -mt-2">{t('analytics.recommendationsPerBatch')}</p>
+              <DiscoveryChart batches={batches} />
+            </>
           ) : (
             <div className="flex-1 bg-surface border border-border rounded-lg p-6 text-center flex items-center justify-center">
-              <p className="text-sm text-muted">{t('analytics.noScoreData')}</p>
+              <p className="text-sm text-muted">{t('analytics.noDiscoveryBatches')}</p>
             </div>
           )}
-        </div>
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('analytics.approvalRateTrend')}
-          </h2>
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 className={SECTION_HEADING}>{t('analytics.approvalRateTrend')}</h2>
           {trend && trend.length > 1 ? (
             <div className="flex-1">
               <ApprovalTrendChart trend={trend} />
@@ -544,11 +517,12 @@ export function AnalyticsPage() {
               <p className="text-sm text-muted">{t('analytics.needMoreBatches')}</p>
             </div>
           )}
-        </div>
-        <div className="flex flex-col gap-3">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('analytics.timeToAct')}
-          </h2>
+        </section>
+      </div>
+
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+        <section className="flex flex-col gap-3">
+          <h2 className={SECTION_HEADING}>{t('analytics.timeToAct')}</h2>
           {timeToAct && timeToAct.length > 0 ? (
             <div className="flex-1">
               <TimeToActCards data={timeToAct} />
@@ -558,24 +532,32 @@ export function AnalyticsPage() {
               <p className="text-sm text-muted">{t('analytics.noTimingData')}</p>
             </div>
           )}
-        </div>
+        </section>
+        <section className="flex flex-col gap-3">
+          <h2 className={SECTION_HEADING}>{t('analytics.scoreDistribution')}</h2>
+          {scoreDist && scoreDist.length > 0 ? (
+            <div className="flex-1">
+              <ScoreDistribution buckets={scoreDist} />
+            </div>
+          ) : (
+            <div className="flex-1 bg-surface border border-border rounded-lg p-6 text-center flex items-center justify-center">
+              <p className="text-sm text-muted">{t('analytics.noScoreData')}</p>
+            </div>
+          )}
+        </section>
+        <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
+          <h2 className={SECTION_HEADING}>{t('analytics.topGenresByApprovalRate')}</h2>
+          <GenreBreakdown genres={genres ?? null} loading={genresLoading} />
+        </section>
+        <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
+          <h2 className={SECTION_HEADING}>{t('analytics.sourceEffectiveness')}</h2>
+          <SourceScores sources={sources ?? null} loading={sourcesLoading} />
+        </section>
       </div>
 
-      {/* Genre breakdown + Source scores side by side on large screens */}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="flex flex-col gap-3 [&>:last-child]:flex-1">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('analytics.topGenresByApprovalRate')}
-          </h2>
-          <GenreBreakdown genres={genres ?? null} loading={genresLoading} />
-        </div>
-        <div className="flex flex-col gap-3 [&>:last-child]:flex-1">
-          <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-            {t('analytics.sourceEffectiveness')}
-          </h2>
-          <SourceScores sources={sources ?? null} loading={sourcesLoading} />
-        </div>
-      </div>
+      <Disclosure title={t('analytics.batchHistory')}>
+        <BatchHistoryTable batches={batches ?? null} loading={batchesLoading} locale={locale} />
+      </Disclosure>
     </div>
   )
 }

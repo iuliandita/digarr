@@ -89,11 +89,7 @@ function SubscriptionPulse({
   if (!subs || subs.length === 0) {
     return (
       <div>
-        <SectionHeader
-          title={t('dashboard.subscriptions')}
-          linkText={t('dashboard.getStarted')}
-          linkTo="/subscriptions"
-        />
+        <SectionHeader title={t('dashboard.subscriptions')} />
         <EmptyState
           className="bg-surface border border-border rounded-surface"
           message={t('dashboard.subscriptionsEmpty')}
@@ -389,6 +385,29 @@ function TasteProfile({
   )
 }
 
+function activitySignature(entry: ActivityEntry): string {
+  const d = entry.data
+  return [
+    entry.type,
+    d.username,
+    d.artistName,
+    d.subscriptionName,
+    d.artistsNew,
+    d.discovered,
+  ].join('|')
+}
+
+// Consecutive identical entries (e.g. repeated empty scans) collapse into one row with a count.
+function groupActivity(entries: ActivityEntry[]): { entry: ActivityEntry; count: number }[] {
+  const groups: { entry: ActivityEntry; count: number }[] = []
+  for (const entry of entries) {
+    const last = groups[groups.length - 1]
+    if (last && activitySignature(last.entry) === activitySignature(entry)) last.count++
+    else groups.push({ entry, count: 1 })
+  }
+  return groups
+}
+
 function ActivityFeed({
   entries,
   loading,
@@ -411,7 +430,7 @@ function ActivityFeed({
           <EmptyState className="py-6" message={t('dashboard.activityEmpty')} />
         ) : (
           <div className="divide-y divide-border">
-            {entries.map((entry) => (
+            {groupActivity(entries).map(({ entry, count }) => (
               <div
                 key={`${entry.type}-${entry.timestamp}-${entry.data.artistName ?? entry.data.subscriptionName ?? ''}`}
                 className="flex items-center gap-3 px-4 py-2.5"
@@ -440,6 +459,11 @@ function ActivityFeed({
                       `${t('dashboard.activityScan')}: ${entry.data.discovered} ${t('dashboard.activityDiscovered')}`}
                   </p>
                 </div>
+                {count > 1 && (
+                  <span className="text-xs text-muted shrink-0">
+                    {t('dashboard.activityRepeated').replace('{0}', String(count))}
+                  </span>
+                )}
                 <span className="text-xs text-muted shrink-0">
                   {formatRelativeTime(locale, entry.timestamp)}
                 </span>
@@ -736,9 +760,12 @@ export function Dashboard() {
         />
       </section>
 
-      <Hint id="dashboard-feedback-tip" type="spotlight">
-        {t('dashboard.feedbackTip')}
-      </Hint>
+      {/* The empty taste profile already says this, so only show it once there is data. */}
+      {tasteData && tasteData.length > 0 && (
+        <Hint id="dashboard-feedback-tip" type="spotlight">
+          {t('dashboard.feedbackTip')}
+        </Hint>
+      )}
 
       {/* Recently Approved + Listening Activity */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

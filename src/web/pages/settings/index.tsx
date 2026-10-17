@@ -7,6 +7,7 @@ import { BlockedArtistsTab } from '../../components/blocked-artists-tab'
 import { OAuthCallbackNotice } from '../../components/oauth-callback-notice'
 import { SystemHealthCard } from '../../components/system-health-card'
 import { Button } from '../../components/ui/button'
+import { PageHeader } from '../../components/ui/page-header'
 import { Skeleton } from '../../components/ui/skeleton'
 import { getCurrentUser, getSettings } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
@@ -79,7 +80,7 @@ export function SettingsPage() {
   if (loading || userPending) {
     return (
       <div className="p-6 space-y-6 max-w-6xl mx-auto">
-        <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+        <PageHeader title={t('settings.title')} />
         <SettingsSkeleton />
       </div>
     )
@@ -100,7 +101,7 @@ export function SettingsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <h1 className="text-2xl font-bold text-text mb-6">{t('settings.title')}</h1>
+      <PageHeader title={t('settings.title')} />
       <OAuthCallbackNotice />
       <div className="grid gap-6 md:grid-cols-[13.75rem_minmax(0,1fr)]">
         <SettingsNav active={tab} onChange={handleTabChange} isAdmin={isAdmin} />

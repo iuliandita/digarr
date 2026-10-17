@@ -7,6 +7,9 @@ import type { MessageKey } from '@/core/i18n/messages/types'
 import { PlaylistCard } from '../components/playlist-card'
 import { PlaylistForm } from '../components/playlist-form'
 import { PlaylistSchedulingToggle } from '../components/playlist-scheduling-toggle'
+import { Button } from '../components/ui/button'
+import { EmptyState } from '../components/ui/empty-state'
+import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   createPlaylistApi,
@@ -161,30 +164,25 @@ export function PlaylistsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto pb-24 md:pb-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3">
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold text-text">{t('playlists.title')}</h1>
-          <p className="text-xs text-muted mt-0.5">
-            {schedulerInfo
-              ? formatSchedulerSubtitle({
-                  ...schedulerInfo,
-                  hasSchedules: playlists.some((playlist) => playlist.enabled && playlist.schedule),
-                  locale,
-                  t,
-                })
-              : t('playlists.automaticDigestGeneration')}
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={openCreate}
-          className="flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 transition-opacity self-start sm:self-auto"
-        >
-          <Plus size={15} aria-hidden="true" />
-          {t('playlists.create')}
-        </button>
-      </div>
+      <PageHeader
+        title={t('playlists.title')}
+        description={
+          schedulerInfo
+            ? formatSchedulerSubtitle({
+                ...schedulerInfo,
+                hasSchedules: playlists.some((playlist) => playlist.enabled && playlist.schedule),
+                locale,
+                t,
+              })
+            : t('playlists.automaticDigestGeneration')
+        }
+        actions={
+          <Button onClick={openCreate}>
+            <Plus size={15} aria-hidden="true" />
+            {t('playlists.create')}
+          </Button>
+        }
+      />
 
       {schedulerInfo && <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} />}
 
@@ -192,18 +190,19 @@ export function PlaylistsPage() {
       {isLoading ? (
         <SkeletonGrid />
       ) : isEmpty ? (
-        <div className="py-12 text-center space-y-4">
-          <p className="text-muted text-sm max-w-sm mx-auto">{t('playlists.empty')}</p>
-          <button
-            type="button"
-            onClick={openCreate}
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            <Plus size={15} aria-hidden="true" />
-            {t('playlists.create')}
-          </button>
-          <p className="text-xs text-muted max-w-sm mx-auto">{t('playlists.emptyHint')}</p>
-        </div>
+        <EmptyState
+          className="py-12"
+          message={t('playlists.empty')}
+          action={
+            <>
+              <Button onClick={openCreate}>
+                <Plus size={15} aria-hidden="true" />
+                {t('playlists.create')}
+              </Button>
+              <p className="text-xs text-muted max-w-sm mx-auto">{t('playlists.emptyHint')}</p>
+            </>
+          }
+        />
       ) : (
         <>
           <div className="flex items-center justify-between">

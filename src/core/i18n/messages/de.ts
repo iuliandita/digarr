@@ -262,6 +262,7 @@ export const de = {
     'Hier ist noch nichts. Die Aktivität wird angezeigt, wenn du neue Künstler entdeckst und genehmigst.',
   'dashboard.activityNew': 'neu',
   'dashboard.activityRejected': 'Abgelehnt',
+  'dashboard.activityRepeated': '{0}-mal',
   'dashboard.activityScan': 'Scannen',
   'dashboard.addToLidarrFailed': 'Das Hinzufügen zu Lidarr ist fehlgeschlagen',
   'dashboard.addedToLidarr': 'Zu Lidarr hinzugefügt',
@@ -275,7 +276,6 @@ export const de = {
   'dashboard.foundLastRun': 'letzten Lauf gefunden',
   'dashboard.genreCoverage': 'Genre-Daten verfügbar: {0}/{1}',
   'dashboard.genreCoveragePending': 'Ausstehende Genre-Datenaktualisierungen: {0}',
-  'dashboard.getStarted': 'Loslegen',
   'dashboard.listeningEmpty': 'Kein Hörverlauf für diesen Zeitraum. Wähle einen anderen Zeitraum.',
   'dashboard.listeningFailed':
     'Der Hörverlauf konnte nicht geladen werden. Prüfe deine Verbindungen oder versuche es erneut.',

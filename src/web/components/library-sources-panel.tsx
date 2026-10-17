@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { getLibrarySources, triggerLibrarySync } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { Button } from './ui/button'
 
 function statusColor(status: string | null): string {
   if (status === 'completed') return 'text-approve'
@@ -57,22 +58,23 @@ export function LibrarySourcesPanel() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-          {t('librarySources.title')}
-        </h2>
-        <button
-          type="button"
+      <div className="flex justify-end">
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
             setPendingTarget(null)
             syncMutation.mutate(undefined)
           }}
           disabled={isSyncing}
-          className="flex items-center gap-2 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 transition-opacity"
         >
-          <RefreshCw size={14} className={allPending ? 'animate-spin' : undefined} />
+          <RefreshCw
+            size={14}
+            className={allPending ? 'animate-spin' : undefined}
+            aria-hidden="true"
+          />
           {t('librarySources.syncAll')}
-        </button>
+        </Button>
       </div>
 
       {sources.length === 0 ? (

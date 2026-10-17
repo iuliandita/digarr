@@ -8,6 +8,7 @@ import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
+import { PageHeader } from '../components/ui/page-header'
 import {
   createUserApi,
   deleteUserApi,
@@ -82,19 +83,23 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
     )
   }
 
+  const addUserButton = (
+    <Button size="sm" onClick={() => setShowForm((v) => !v)}>
+      <Plus size={14} className="mr-1" />
+      {t('userManagement.addUser')}
+    </Button>
+  )
+
   return (
     <div className={embedded ? 'space-y-6' : 'p-6 space-y-6 max-w-6xl mx-auto'}>
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        {embedded ? (
+      {embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lead font-semibold text-text">{t('userManagement.title')}</h2>
-        ) : (
-          <h1 className="text-2xl font-bold text-text">{t('userManagement.title')}</h1>
-        )}
-        <Button size="sm" onClick={() => setShowForm((v) => !v)}>
-          <Plus size={14} className="mr-1" />
-          {t('userManagement.addUser')}
-        </Button>
-      </div>
+          {addUserButton}
+        </div>
+      ) : (
+        <PageHeader title={t('userManagement.title')} actions={addUserButton} />
+      )}
 
       {showForm && (
         <form

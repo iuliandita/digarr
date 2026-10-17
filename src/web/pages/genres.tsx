@@ -5,7 +5,10 @@ import type { GenreInfo } from '../../core/genre/types'
 import { DiscoverTabs } from '../components/discover-tabs'
 import { GenreGrid } from '../components/genre-grid'
 import { Hint } from '../components/hint'
+import { Button } from '../components/ui/button'
+import { EmptyState } from '../components/ui/empty-state'
 import { Input } from '../components/ui/input'
+import { PageHeader } from '../components/ui/page-header'
 import { usePullToRefresh } from '../hooks/use-pull-to-refresh'
 import { getCurrentUser, getGenres, searchGenres, seedGenres } from '../lib/api'
 import { useI18n } from '../lib/i18n'
@@ -81,20 +84,19 @@ export function GenresPage() {
         </div>
       )}
       <DiscoverTabs />
-      {/* Header + search */}
-      <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="flex-1">
-          <h1 className="text-lg font-semibold text-text">{t('genres.title')}</h1>
-          <p className="text-xs text-muted mt-0.5">{t('genres.subtitle')}</p>
-        </div>
-        <Input
-          type="search"
-          placeholder={t('genres.searchPlaceholder')}
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="sm:w-64"
-        />
-      </div>
+      <PageHeader
+        title={t('genres.title')}
+        description={t('genres.subtitle')}
+        actions={
+          <Input
+            type="search"
+            placeholder={t('genres.searchPlaceholder')}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="sm:w-64"
+          />
+        }
+      />
 
       <Hint id="genres-browse-tip" type="inline">
         {t('genres.browseTip')}
@@ -102,19 +104,17 @@ export function GenresPage() {
 
       {/* Empty state with seed button */}
       {isEmpty ? (
-        <div className="py-16 text-center space-y-4">
-          <p className="text-muted text-sm">{t('genres.empty')}</p>
-          {isAdmin && (
-            <button
-              type="button"
-              onClick={handleSeed}
-              disabled={seeding}
-              className="px-4 py-2 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {seeding ? t('genres.seeding') : t('genres.seedFromLibrary')}
-            </button>
-          )}
-        </div>
+        <EmptyState
+          className="py-16"
+          message={t('genres.empty')}
+          action={
+            isAdmin && (
+              <Button onClick={handleSeed} disabled={seeding}>
+                {seeding ? t('genres.seeding') : t('genres.seedFromLibrary')}
+              </Button>
+            )
+          }
+        />
       ) : (
         <div className="space-y-2">
           {isSearching ? (
@@ -129,9 +129,7 @@ export function GenresPage() {
             </p>
           ) : (
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
-                {t('genres.libraryGenres')}
-              </h2>
+              <h2 className="text-lead font-semibold text-text">{t('genres.libraryGenres')}</h2>
               {!loading && (
                 <span className="text-xs text-muted">
                   {libraryGenres.length}{' '}

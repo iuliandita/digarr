@@ -23,6 +23,8 @@ import {
   type SubscriptionFormData,
 } from '../components/subscription-form'
 import { SubscriptionPresets } from '../components/subscription-presets'
+import { Button } from '../components/ui/button'
+import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   bulkToggleSubscriptions,
@@ -202,7 +204,7 @@ function SubscriptionCard({
   const actionLabel = t('subscriptions.addToRecommendations')
 
   return (
-    <div className="bg-surface border border-border rounded-lg">
+    <div data-testid="subscription-card" className="bg-surface border border-border rounded-lg">
       <div className="p-4 flex items-start gap-3">
         <button
           type="button"
@@ -465,51 +467,42 @@ export default function SubscriptionsPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-xl font-bold text-text">{t('subscriptions.title')}</h1>
-        <div className="flex items-center gap-2">
-          {subscriptions && subscriptions.length > 0 && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowPresets((v) => !v)}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
-              >
-                <LayoutGrid size={14} />
-                {t('subscriptions.presets')}
-              </button>
-              <button
-                type="button"
-                onClick={() => bulkMutation.mutate(!anyEnabled)}
-                disabled={bulkMutation.isPending}
-                className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 disabled:opacity-60 transition-colors"
-              >
-                {anyEnabled ? <Pause size={14} /> : <Play size={14} />}
-                {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
-              </button>
-            </>
-          )}
-          <button
-            type="button"
-            onClick={() => setShowForm({ mode: 'create' })}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-accent-fg rounded-md text-sm font-medium hover:opacity-90 transition-opacity"
-          >
-            <Plus size={14} />
-            {t('subscriptions.new')}
-          </button>
-        </div>
-      </div>
+      <PageHeader
+        title={t('subscriptions.title')}
+        actions={
+          <>
+            {subscriptions && subscriptions.length > 0 && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => setShowPresets((v) => !v)}>
+                  <LayoutGrid size={14} aria-hidden="true" />
+                  {t('subscriptions.presets')}
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => bulkMutation.mutate(!anyEnabled)}
+                  disabled={bulkMutation.isPending}
+                >
+                  {anyEnabled ? (
+                    <Pause size={14} aria-hidden="true" />
+                  ) : (
+                    <Play size={14} aria-hidden="true" />
+                  )}
+                  {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
+                </Button>
+              </>
+            )}
+            <Button size="sm" onClick={() => setShowForm({ mode: 'create' })}>
+              <Plus size={14} aria-hidden="true" />
+              {t('subscriptions.new')}
+            </Button>
+          </>
+        }
+      />
 
       <Hint id="subscriptions-intro-tip" type="spotlight">
         {t('subscriptions.introTip')}
       </Hint>
-
-      <ImportArtists
-        spotifyConnected={spotifyStatus?.connected ?? false}
-        defaultExpanded={!subscriptions || subscriptions.length === 0}
-        onImportStarted={invalidate}
-      />
 
       {/* Loading state */}
       {isLoading && (
@@ -609,6 +602,14 @@ export default function SubscriptionsPage() {
             />
           ))}
         </div>
+      )}
+
+      {!isLoading && (
+        <ImportArtists
+          spotifyConnected={spotifyStatus?.connected ?? false}
+          defaultExpanded={!subscriptions || subscriptions.length === 0}
+          onImportStarted={invalidate}
+        />
       )}
 
       {/* Form dialog */}

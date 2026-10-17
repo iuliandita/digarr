@@ -262,6 +262,7 @@ export const ptBR = {
     'Nada aqui ainda. A atividade aparecerá conforme você descobre e aprova novos artistas.',
   'dashboard.activityNew': 'novo',
   'dashboard.activityRejected': 'Rejeitado',
+  'dashboard.activityRepeated': '{0} vezes',
   'dashboard.activityScan': 'Varredura',
   'dashboard.addToLidarrFailed': 'Falha ao adicionar ao Lidarr',
   'dashboard.addedToLidarr': 'Adicionado ao Lidarr',
@@ -275,7 +276,6 @@ export const ptBR = {
   'dashboard.foundLastRun': 'encontrado na última execução',
   'dashboard.genreCoverage': 'Dados de gênero disponíveis: {0}/{1}',
   'dashboard.genreCoveragePending': 'Atualizações de dados de gênero pendentes: {0}',
-  'dashboard.getStarted': 'Começar',
   'dashboard.listeningEmpty': 'Nenhum histórico de reprodução neste período. Tente outro período.',
   'dashboard.listeningFailed':
     'Não foi possível carregar o histórico de reprodução. Verifique suas conexões ou tente novamente.',

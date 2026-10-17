@@ -261,6 +261,7 @@ export const uk = {
     'Тут ще нічого немає. Активність відображатиметься, коли ти знаходитимеш та затверджуватимеш нових виконавців.',
   'dashboard.activityNew': 'новий',
   'dashboard.activityRejected': 'Відхилено',
+  'dashboard.activityRepeated': 'Повторів: {0}',
   'dashboard.activityScan': 'Сканувати',
   'dashboard.addToLidarrFailed': 'Не вдалося додати в Lidarr',
   'dashboard.addedToLidarr': 'Додано в Lidarr',
@@ -274,7 +275,6 @@ export const uk = {
   'dashboard.foundLastRun': 'знайдено останній запуск',
   'dashboard.genreCoverage': 'Дані про жанри доступні: {0}/{1}',
   'dashboard.genreCoveragePending': 'Очікують оновлення даних про жанри: {0}',
-  'dashboard.getStarted': 'Почни роботу',
   'dashboard.listeningEmpty': 'За цей період немає історії прослуховування. Спробуй інший період.',
   'dashboard.listeningFailed':
     'Не вдалося завантажити історію прослуховування. Перевір підключення або спробуй ще раз.',

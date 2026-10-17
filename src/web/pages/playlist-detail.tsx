@@ -5,6 +5,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { Hint } from '../components/hint'
+import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   exportPlaylistApi,
@@ -75,7 +76,7 @@ function detectSource(track: PlaylistTrackRow): string {
 
 function DetailSkeleton() {
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
+    <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <Skeleton className="h-4 w-24" />
       <div className="space-y-2">
         <Skeleton className="h-8 w-64" />
@@ -356,7 +357,7 @@ export function PlaylistDetailPage() {
 
   if (error || !data) {
     return (
-      <div className="p-6 max-w-4xl mx-auto">
+      <div className="p-6 max-w-6xl mx-auto">
         <button
           type="button"
           onClick={() => navigate('/playlists')}
@@ -378,7 +379,7 @@ export function PlaylistDetailPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto pb-24 md:pb-6">
+    <div className="p-6 space-y-6 max-w-6xl mx-auto pb-24 md:pb-6">
       {/* Back nav */}
       <button
         type="button"
@@ -388,37 +389,49 @@ export function PlaylistDetailPage() {
         &larr; {t('playlist.backToPlaylists')}
       </button>
 
-      {/* Title + meta */}
-      <div className="space-y-3">
-        <div className="flex items-start gap-3 flex-wrap">
-          <h1 className="text-2xl font-bold text-text leading-tight">{playlist.name}</h1>
-          <span
-            className={`mt-0.5 text-micro font-medium px-2 py-0.5 rounded-full ${badge.className}`}
-          >
-            {badge.label.startsWith('playlist.') ? t(badge.label as never) : badge.label}
-          </span>
-        </div>
-        <div className="flex flex-wrap gap-4 text-xs text-muted">
-          <span>
-            {t('common.schedule')}:{' '}
-            <span className="text-text">{formatSchedule(playlist.schedule, t)}</span>
-          </span>
-          <span>
-            {t('playlist.lastGenerated')}:{' '}
-            <span className="text-text">
-              {formatRelativeTime(locale, playlist.lastGeneratedAt, t('common.never'))}
+      <PageHeader
+        title={playlist.name}
+        description={
+          <span className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs">
+            <span className={`text-micro font-medium px-2 py-0.5 rounded-full ${badge.className}`}>
+              {badge.label.startsWith('playlist.') ? t(badge.label as never) : badge.label}
             </span>
-          </span>
-          {playlist.trackCount != null && (
             <span>
-              {t('playlist.tracks')}: <span className="text-text">{playlist.trackCount}</span>
+              {t('common.schedule')}:{' '}
+              <span className="text-text">{formatSchedule(playlist.schedule, t)}</span>
             </span>
-          )}
-          {!playlist.enabled && (
-            <span className="text-muted/60 italic">{t('common.disabled')}</span>
-          )}
-        </div>
-      </div>
+            <span>
+              {t('playlist.lastGenerated')}:{' '}
+              <span className="text-text">
+                {formatRelativeTime(locale, playlist.lastGeneratedAt, t('common.never'))}
+              </span>
+            </span>
+            {playlist.trackCount != null && (
+              <span>
+                {t('playlist.tracks')}: <span className="text-text">{playlist.trackCount}</span>
+              </span>
+            )}
+            {!playlist.enabled && (
+              <span className="text-muted/60 italic">{t('common.disabled')}</span>
+            )}
+          </span>
+        }
+        actions={
+          <PlaylistActions
+            playlist={playlist}
+            onEdit={handleEdit}
+            onRefetch={() => {
+              polling.current = {
+                playlistId: numId,
+                deadline: Date.now() + 300_000,
+                previousJobId: data.generation?.jobId ?? null,
+                awaitingNewJob: true,
+              }
+              refetch()
+            }}
+          />
+        }
+      />
 
       <Hint id="playlist-detail-intro-tip" type="inline">
         {t(
@@ -427,29 +440,12 @@ export function PlaylistDetailPage() {
         {t('playlist.detailActionsHint')}
       </Hint>
 
-      {/* Actions */}
-      <PlaylistActions
-        playlist={playlist}
-        onEdit={handleEdit}
-        onRefetch={() => {
-          polling.current = {
-            playlistId: numId,
-            deadline: Date.now() + 300_000,
-            previousJobId: data.generation?.jobId ?? null,
-            awaitingNewJob: true,
-          }
-          refetch()
-        }}
-      />
-
       <GenerationSummary generation={data.generation} />
 
       {/* Track listing */}
       <div className="space-y-1">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs text-muted uppercase tracking-wide font-semibold">
-            {t('playlist.tracks')}
-          </p>
+          <h2 className="text-lead font-semibold text-text">{t('playlist.tracks')}</h2>
           {tracks.length > 0 && (
             <span className="text-xs text-muted">{`${tracks.length} ${t('playlist.total')}`}</span>
           )}

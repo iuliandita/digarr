@@ -261,6 +261,7 @@ export const ja = {
     'ここにはまだ何もありません。新しいアーティストを発見して承認すると、アクティビティが表示されます。',
   'dashboard.activityNew': '新しい',
   'dashboard.activityRejected': '拒否されました',
+  'dashboard.activityRepeated': '{0}回',
   'dashboard.activityScan': 'スキャン',
   'dashboard.addToLidarrFailed': 'Lidarrへの追加に失敗しました',
   'dashboard.addedToLidarr': 'Lidarrに追加されました',
@@ -274,7 +275,6 @@ export const ja = {
   'dashboard.foundLastRun': '前回の実行で見つかりました',
   'dashboard.genreCoverage': 'ジャンルデータあり: {0}/{1}',
   'dashboard.genreCoveragePending': 'ジャンルデータ更新待ち: {0}',
-  'dashboard.getStarted': '始めましょう',
   'dashboard.listeningEmpty': 'この期間の再生履歴はありません。別の期間を選んでください。',
   'dashboard.listeningFailed':
     '再生履歴を読み込めませんでした。接続を確認するか、もう一度お試しください。',

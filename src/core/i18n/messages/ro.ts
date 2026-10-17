@@ -261,6 +261,7 @@ export const ro = {
     'Nimic aici încă. Activitatea va apărea pe măsură ce descoperi și aprobi artiști noi.',
   'dashboard.activityNew': 'nou',
   'dashboard.activityRejected': 'Respins',
+  'dashboard.activityRepeated': '{0} ori',
   'dashboard.activityScan': 'Scanează',
   'dashboard.addToLidarrFailed': 'Nu s-a putut adăuga la Lidarr',
   'dashboard.addedToLidarr': 'Adăugat la Lidarr',
@@ -274,7 +275,6 @@ export const ro = {
   'dashboard.foundLastRun': 'găsit ultima cursă',
   'dashboard.genreCoverage': 'Date despre gen disponibile: {0}/{1}',
   'dashboard.genreCoveragePending': 'Actualizări ale datelor despre gen în așteptare: {0}',
-  'dashboard.getStarted': 'Începe',
   'dashboard.listeningEmpty':
     'Nu există istoric de ascultare pentru această perioadă. Încearcă altă perioadă.',
   'dashboard.listeningFailed':

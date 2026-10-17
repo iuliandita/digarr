@@ -3,6 +3,7 @@ import { SearchIcon } from 'lucide-react'
 import { useDeferredValue, useState } from 'react'
 import { SearchResultCard } from '../components/search-result-card'
 import { Disclosure } from '../components/ui/disclosure'
+import { PageHeader } from '../components/ui/page-header'
 import { getSearchSources, searchArtists } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { cn } from '../lib/utils'
@@ -96,10 +97,7 @@ export function SearchPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
-      <div>
-        <h1 className="text-xl font-bold text-text mb-1">{t('search.title')}</h1>
-        <p className="text-sm text-muted">{t('search.subtitle')}</p>
-      </div>
+      <PageHeader title={t('search.title')} description={t('search.subtitle')} />
 
       {/* Search input */}
       <div className="relative">

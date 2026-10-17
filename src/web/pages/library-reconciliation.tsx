@@ -6,6 +6,7 @@ import { LibraryBulkReviewToolbar } from '../components/library-bulk-review-tool
 import { isBulkIgnoreEligible } from '../components/library-reconciliation-reason'
 import { LibraryUnreconciledAlbumRowComponent } from '../components/library-unreconciled-album-row'
 import { LibraryUnreconciledRowComponent } from '../components/library-unreconciled-row'
+import { PageHeader } from '../components/ui/page-header'
 import {
   bulkIgnoreLibraryAlbums,
   bulkIgnoreLibraryArtists,
@@ -245,6 +246,7 @@ export function LibraryReconciliationPage() {
 
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
+      <PageHeader title={t('nav.reconciliation')} />
       <section
         ref={artistSectionRef}
         tabIndex={-1}
@@ -252,7 +254,7 @@ export function LibraryReconciliationPage() {
         className="space-y-6"
       >
         <div className="space-y-1">
-          <h1 className="text-xl font-bold text-text">{t('libraryReconciliation.title')}</h1>
+          <h2 className="text-lead font-semibold text-text">{t('libraryReconciliation.title')}</h2>
           <p className="text-sm text-muted">
             {isLoading
               ? t('libraryReconciliation.loadingArtists')
@@ -299,9 +301,9 @@ export function LibraryReconciliationPage() {
         {!isError &&
           [...grouped.entries()].map(([source, rows]) => (
             <section key={source} className="space-y-3">
-              <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
+              <h3 className="text-body font-semibold text-text">
                 {source} ({rows.length})
-              </h2>
+              </h3>
               <div className="space-y-2">
                 {rows.map((row) => (
                   <LibraryUnreconciledRowComponent
@@ -330,7 +332,9 @@ export function LibraryReconciliationPage() {
         className="space-y-3"
       >
         <div className="space-y-1">
-          <h2 className="text-xl font-bold text-text">{t('libraryReconciliation.albumsTitle')}</h2>
+          <h2 className="text-lead font-semibold text-text">
+            {t('libraryReconciliation.albumsTitle')}
+          </h2>
           <p className="text-sm text-muted">
             {isAlbumLoading
               ? t('libraryReconciliation.loadingAlbums')

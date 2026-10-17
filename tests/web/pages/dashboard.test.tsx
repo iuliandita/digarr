@@ -347,6 +347,26 @@ describe('Dashboard', () => {
     })
   })
 
+  it('collapses consecutive identical activity rows into one with a count', async () => {
+    setupMocks()
+    const scan = (timestamp: string) => ({
+      type: 'scan_completed' as const,
+      timestamp,
+      data: { discovered: 0 },
+    })
+    mockGetDashboardActivity.mockResolvedValue([
+      scan('2026-01-03T00:00:00Z'),
+      scan('2026-01-02T00:00:00Z'),
+      scan('2026-01-01T00:00:00Z'),
+      { type: 'approved', timestamp: '2025-12-31T00:00:00Z', data: { artistName: 'Mogwai' } },
+    ])
+    renderWithQuery(<Dashboard />)
+
+    expect(await screen.findByText(/Approved Mogwai/)).toBeInTheDocument()
+    expect(screen.getAllByText('Scan: 0 discovered')).toHaveLength(1)
+    expect(screen.getByText('3 times')).toBeInTheDocument()
+  })
+
   it('renders subscription pulse', async () => {
     setupMocks()
     renderWithQuery(<Dashboard />)
@@ -411,7 +431,7 @@ describe('Dashboard', () => {
     renderWithQuery(<Dashboard />)
 
     expect(await screen.findByText('Abonnements')).toBeInTheDocument()
-    expect(screen.getByText('Commencer')).toBeInTheDocument()
+    expect(screen.getByText('Configurer la découverte automatique')).toBeInTheDocument()
   })
 
   it('localizes playlist card metadata labels in French', () => {

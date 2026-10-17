@@ -261,6 +261,7 @@ export const ru = {
     'Здесь пока ничего. Активность будет отображаться по мере того, как ты находишь и одобряешь новых исполнителей.',
   'dashboard.activityNew': 'новый',
   'dashboard.activityRejected': 'Отклонено',
+  'dashboard.activityRepeated': 'Повторов: {0}',
   'dashboard.activityScan': 'Сканировать',
   'dashboard.addToLidarrFailed': 'Не удалось добавить в Lidarr',
   'dashboard.addedToLidarr': 'Добавлено в Lidarr',
@@ -274,7 +275,6 @@ export const ru = {
   'dashboard.foundLastRun': 'найдено в ходе последнего запуска',
   'dashboard.genreCoverage': 'Данные о жанрах доступны: {0}/{1}',
   'dashboard.genreCoveragePending': 'Ожидают обновления данных о жанрах: {0}',
-  'dashboard.getStarted': 'Начать',
   'dashboard.listeningEmpty': 'За этот период нет истории прослушивания. Попробуй другой период.',
   'dashboard.listeningFailed':
     'Не удалось загрузить историю прослушивания. Проверь подключения или попробуй ещё раз.',

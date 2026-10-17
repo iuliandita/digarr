@@ -579,6 +579,22 @@ describe('LibraryReconciliationPage', () => {
     expect(within(albums).getByText('Selected: 1')).toBeInTheDocument()
   })
 
+  it('shows the bulk ignore action only while something is selected', async () => {
+    mockGetLibraryUnreconciled.mockResolvedValue({ items: [makeRow()] })
+    renderWithQuery(<LibraryReconciliationPage />)
+
+    const artists = await screen.findByRole('region', { name: 'Unreconciled Artists' })
+    const checkbox = await within(artists).findByRole('checkbox', { name: 'Select artist Bush' })
+    expect(within(artists).queryByRole('button', { name: 'Ignore selected' })).toBeNull()
+
+    fireEvent.click(checkbox)
+    expect(within(artists).getByRole('button', { name: 'Ignore selected' })).toBeEnabled()
+
+    fireEvent.click(checkbox)
+    expect(within(artists).queryByRole('button', { name: 'Ignore selected' })).toBeNull()
+    expect(within(artists).getByRole('status')).toHaveTextContent('Selected: 0')
+  })
+
   it('keeps artist controls busy until bulk invalidations settle', async () => {
     mockGetLibraryUnreconciled.mockResolvedValue({ items: [makeRow()] })
     const request = deferred<void>()
@@ -603,7 +619,8 @@ describe('LibraryReconciliationPage', () => {
     request.resolve()
     await waitFor(() => expect(client.invalidateQueries).toHaveBeenCalledTimes(3))
     expect(checkbox).toBeDisabled()
-    expect(within(artists).getByRole('button', { name: 'Ignore selected' })).toBeDisabled()
+    expect(within(artists).getByRole('button', { name: 'Select visible' })).toBeDisabled()
+    expect(within(artists).queryByRole('button', { name: 'Ignore selected' })).toBeNull()
 
     for (const invalidation of invalidations) invalidation.resolve()
     await waitFor(() => expect(within(artists).getByText('Selected: 0')).toBeInTheDocument())
