@@ -4,7 +4,8 @@ import { eq, sql } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { envConfig } from '@/config/env'
-import { createBackup, PartialBackupConflictError, restoreBackup } from '@/core/ops/backup'
+import { createBackup, restoreBackup } from '@/core/ops/backup'
+import type { BackupFile } from '@/core/ops/types'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { Database } from '@/db'
 import { apiTokenQueries, hashApiToken } from '@/db/queries/api-tokens'
@@ -457,7 +458,7 @@ describe('personal API tokens', () => {
     },
   )
 
-  it('excludes tokens from exports and ignores saved tokens without changing current credentials', async () => {
+  it('excludes tokens from backups and allows restore to replace users and delete their tokens', async () => {
     const created = await mint('admin')
     const savedRows = await db.select().from(apiTokens)
     const backupResponse = await app.request('/api/v1/admin/backup', {
@@ -475,24 +476,28 @@ describe('personal API tokens', () => {
         headers: { ...bearer('owner-session'), 'Content-Type': 'application/json' },
         body: JSON.stringify(backup),
       })
-    // Replacing users must not cascade-delete credentials that were not exported.
-    expect((await restore()).status).toBe(422)
-    expect(await db.select().from(apiTokens)).toEqual(savedRows)
-    await expect(restoreBackup(db, backup, { force: true })).rejects.toBeInstanceOf(
-      PartialBackupConflictError,
-    )
-    await apiTokenQueries(db).revoke(1, created.id)
     expect((await restore()).status).toBe(200)
     expect(await db.select().from(apiTokens)).toEqual([])
     expect(
       (await app.request('/api/v1/auth/validate', { headers: bearer(created.token) })).status,
     ).toBe(401)
+  })
 
-    await mint()
+  it('keeps tokens valid when restore leaves their user unchanged and ignores saved tokens', async () => {
+    const created = await mint()
     const current = await db.select().from(apiTokens)
-    const result = await restoreBackup(db, { ...backup, data: { apiTokens: savedRows } })
+    const backup = await createBackup(db)
+    const result = await restoreBackup(db, {
+      ...backup,
+      // Selective restores may omit users, leaving their credentials intact.
+      data: { settings: backup.data.settings, apiTokens: [] } as BackupFile['data'],
+    })
     expect(result.tablesRestored).not.toHaveProperty('apiTokens')
     expect(await db.select().from(apiTokens)).toEqual(current)
+    expect((await db.select().from(users).where(eq(users.id, 1)))[0]?.username).toBe('owner')
+    expect(
+      (await app.request('/api/v1/auth/validate', { headers: bearer(created.token) })).status,
+    ).toBe(204)
     expect((await createBackup(db)).data).not.toHaveProperty('apiTokens')
   })
 

@@ -241,7 +241,7 @@ For rollback, restore the previous image's verified native backup into a separat
 
 ## Personal API token migration
 
-Migration 0057 creates `api_tokens`, including its cascading user foreign key and unique SHA-256 token hash. No raw token values enter the database, JSON exports, or backend copies. Existing sessions and `DIGARR_AUTH_TOKEN` keep their behavior. Personal API tokens are excluded from JSON backups and backend copies between PostgreSQL and PGlite. Restore ignores any saved `apiTokens` key and preserves existing tokens by refusing user replacement while tokens exist, even with `force=true`. Use a fresh destination database and recreate tokens after recovery or switching backends.
+Migration 0057 creates `api_tokens`, including its cascading user foreign key and unique SHA-256 token hash. No raw token values enter the database, JSON exports, or backend copies. Existing sessions and `DIGARR_AUTH_TOKEN` keep their behavior. Personal API tokens are excluded from JSON backups and backend copies between PostgreSQL and PGlite. Restore ignores any saved `apiTokens` key. Replacing or removing users deletes their tokens by cascade; tokens remain valid when their users are left unchanged. Use a fresh destination database and recreate tokens after recovery or switching backends.
 
 Before upgrading, stop application writes and take a complete consistent native database backup with the matching encryption key. Start the new image to apply migration 0057 automatically, sign in, and create a short-lived token in Settings > Account. Verify a GET request with its bearer header, then revoke it and check for `401`.
 

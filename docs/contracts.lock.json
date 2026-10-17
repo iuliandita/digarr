@@ -147,7 +147,7 @@
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "c9e1fc5ce94c60923c2d12d4abe4a4b4a181c56cb41696588c95cb6284fe461d",
         "scripts/rotation-sites.ts": "6b25ef3f836cdc7a333fd493a09ae4bd770bded277ba164f01decbd3bf68d882",
-        "src/core/ops/backup.ts": "60e8c0d9b2c620def419a9f18117f29efb70aebf6aee5cb7eed87d7478f349f8",
+        "src/core/ops/backup.ts": "0768b93e9e2e5fb0f8817ac1fa5bcf27bffc1d7d713e87122958633074b3000b",
         "src/core/ops/cron-scheduler.ts": "62757dc647de6281604bafee4a1683908d2733d2e0ef98641fc8ecf0bb29a4c6",
         "src/core/ops/encrypt-legacy.ts": "e870353b8906200355d717907d488f82b2dd85b2dfd067201d7b063da606e5c8",
         "src/core/ops/encryption-sites.ts": "7ac3926596fd13bc8d5e82d4900235b420166936bb98f2091efe056c96b04c19",
@@ -192,14 +192,14 @@
         "src/db/schema.ts": "9a01750dc37e7fdbc653249065cdc7b5dd87f3cd988862a4a2967314e05a8cef",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "baa0e5fc9ca533ecbbb470fc53baa4cc10d5a8282b1dd7635bc53b3f5b734d14",
+      "digest": "3f41e0d285d7b7f42dcaa7b1f8ab49c738707e3b4885d56406d66480004d8017",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Exclude personal API tokens from JSON exports, restore, and backend copies; ignore saved token data and refuse user replacement that would cascade-delete destination tokens. Document fresh-instance token recreation and native-snapshot recovery risks.",
+        "note": "Exclude personal API tokens from JSON exports, restore, and backend copies. Allow user replacement to cascade-delete tokens during disaster recovery; preserve tokens when users are left unchanged. Document fresh-instance token recreation and native-snapshot recovery risks.",
         "breaking": "none",
-        "migration": "Migration 0057 adds hash-only tokens without changing sessions. Take a consistent native backup and retain the encryption key before upgrade; recreate tokens after JSON recovery or backend migration. Image rollback leaves the table unused; exact rollback requires the matching native backup and prior image.",
-        "digest": "baa0e5fc9ca533ecbbb470fc53baa4cc10d5a8282b1dd7635bc53b3f5b734d14"
+        "migration": "Migration 0057 adds hash-only tokens without changing sessions. Take a consistent native backup and retain the encryption key before upgrade; recreate tokens after JSON recovery or backend migration. Restore may remove replaced users tokens. Image rollback leaves the table unused; exact rollback requires the matching native backup and prior image.",
+        "digest": "3f41e0d285d7b7f42dcaa7b1f8ab49c738707e3b4885d56406d66480004d8017"
       }
     },
     "configuration": {
