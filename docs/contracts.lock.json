@@ -155,7 +155,7 @@
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
         "src/core/ops/types.ts": "3ebc33955a0c551acf465666af27ece23d746d1fa7fe4385626375087d19f5b9",
-        "src/core/ops/upgrade.ts": "88f08f73e9a8ba682c09b552bb58a701d79cc788bff5c20209e11260239acffd",
+        "src/core/ops/upgrade.ts": "4669ea8a13bbb3394c882ff880dce481be8f65b635bbc798545329fd08239583",
         "src/db/backend.ts": "9fa10571c5dd38ac40c4fc4fe9b5ce2b79466c051632ef6612942eef135bf9b9",
         "src/db/connect.ts": "8ceabe90f6765e1700741b20561967406d166a88f542dc10b0bf62151ac2983c",
         "src/db/index.ts": "b7542782e276e575fc784669a6269da82ac84a07f8f69eab514c87dc8eb4ed2e",
@@ -188,29 +188,29 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "29cc9392654c5155d802a2919f76878c22e962e5040b53e91a75c4e70944108f",
+      "digest": "f4ee8a06e88eee168c8ebf6ad69becbf0ee9c9aaec5fe42a9390359edb426aaf",
       "review": {
         "outcome": "no-impact",
         "docs": [],
         "note": "Score histogram top bucket now spans 90-100 and includes a score of 1.0; read-only analytics query, no backup, restore or stored data effect.",
         "breaking": "none",
-        "migration": "Score histogram top bucket now spans 90-100 and includes a score of 1.0; read-only analytics query, no backup, restore or stored data effect.",
-        "digest": "29cc9392654c5155d802a2919f76878c22e962e5040b53e91a75c4e70944108f"
+        "migration": "No migration; read-only analytics query, so upgrade, rollback and backups are unaffected.",
+        "digest": "f4ee8a06e88eee168c8ebf6ad69becbf0ee9c9aaec5fe42a9390359edb426aaf"
       }
     },
     "configuration": {
       "files": {
         ".env.example": "1c09ac93ed8316010e9cc6d7e970872ce291f806b9ef44a699c2b3a05c32f6d7",
-        "src/config/env.ts": "c486a63cab825c26015784e85e8f3597c11fb453bfffd4d4f05bc6a227a6b41b"
+        "src/config/env.ts": "3dadc29d08100ca9d589a8bc132ace3d636b556376ca5a7f2385d483c4a9d6bd"
       },
-      "digest": "12d6f47abd8dcc9e1196cd2db2ec6ff1dc148673e5e3d41606a0c0cd3831e84a",
+      "digest": "1762c42762e59fea474e38d72e40a8f6e1698d1351f2a524258ce47653219505",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Boolean env vars accept true/false/1/0 in any case and stop startup on other values; documented in a new Operations section with the upgrade check. Also corrected the .env.example pool-size example to the real default of 20 and documented DB_PORT, DB_POOL_MAX and DB_CONNECT_TIMEOUT_MS defaults.",
-        "breaking": "Deployments that set a boolean env var to a value other than true, false, 1 or 0 (case-insensitive) now fail to start instead of reading it as false.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "IPv6 DB_HOST is now bracketed in the built connection URL; documented DB_HOST semantics and all other settings unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "12d6f47abd8dcc9e1196cd2db2ec6ff1dc148673e5e3d41606a0c0cd3831e84a"
+        "digest": "1762c42762e59fea474e38d72e40a8f6e1698d1351f2a524258ce47653219505"
       }
     },
     "authentication": {
@@ -230,7 +230,7 @@
         "src/server/middleware/admin-guard.ts": "1a2acf1714e499b5d0117884230be20a5fdfe9775df16538766e3d51b5b93a70",
         "src/server/middleware/auth.ts": "c7ba4e9b4c4de5c06cb66fc3927f269cc0b0740e52fd4d85e143d344fc924c86",
         "src/server/middleware/csrf.ts": "aeac94c8dae8b439362430551ee9de9c3f6be95e5b543a4b164a226fb9db4821",
-        "src/server/middleware/logger.ts": "ae7c9a70e6677b658a77f4c60e2373d0db34e89d5e8f226f0f8d3b60e2d375e9",
+        "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/proxy-auth.ts": "50674c48773809fa60500d11547b64bde475d07f989d1afdaf8ff4c780345b3e",
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
@@ -249,14 +249,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "2d08d4b08db8178c88e2357d4362be48cf00174886568bdaf663c041191ea104",
+      "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "CSRF origin rejection now carries the errors.csrf.originMismatch code and an ALLOWED_ORIGIN hint; documented in API.md. The check itself is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "2d08d4b08db8178c88e2357d4362be48cf00174886568bdaf663c041191ea104"
+        "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430"
       }
     },
     "api": {
@@ -275,7 +275,7 @@
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
-        "src/server/routes/artists.ts": "23ba22fbd4e76ebd763a39b4870ea9635957ce7c1acc6439fc4270896ab94904",
+        "src/server/routes/artists.ts": "63db65113b83d8a93ef2c2c9a97fca91b28b46875a28bfdb07869dc94ee6b490",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "bdacae8e030bbd51819f7f9692bca173ea5afe20d370772260e7f78110c9bb87",
         "src/server/routes/discovery-modes.ts": "daca7bc1810dc86abb1166b14e37b75fb779ae814f70a8b1faa123a2876db0cf",
@@ -312,14 +312,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "28416189940be8330330ea5b2b90a64e2652fa7ef253e9add7b2e3f505d98da5",
+      "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "PATCH /api/v1/recommendations/:id rejections now return blockCreated; documented in docs/API.md and the OpenAPI RecommendationUpdateResult schema. Additive field, existing clients unaffected. GET /api/v1/album-blocks gains albumTitle, documented with its null legacy case. Also: PATCH /settings rejects invalid cron preferences with 400; /pipeline/status is caller-scoped for non-admins; album coverage returns an empty result for MusicBrainz 404; the mode run schema declares rawUserSettings/normalizedSettings; artist top tracks and enrichment fall back on provider errors.",
-        "breaking": "Clients that saved invalid cron strings now get 400; non-admin clients no longer see other users' runs, global queue length, or lastRun in /pipeline/status.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Preview audio proxy now re-checks the host allowlist on each redirect hop; the endpoint contract and responses for valid previews are unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "28416189940be8330330ea5b2b90a64e2652fa7ef253e9add7b2e3f505d98da5"
+        "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688"
       }
     },
     "interface": {
@@ -505,16 +505,16 @@
       "files": {
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
-        "src/core/clients/audiodb.ts": "64b82bbbe59efa17f758c59256cf9e990c906024d6255af8db20317ea85076b4",
-        "src/core/clients/bandcamp.ts": "bbb6516aa3ccd5beee720839f62b323b9c496de0b9d29a1e952206c746b28ba4",
+        "src/core/clients/audiodb.ts": "10b86b61f5f56c69f4237bec29b6ae8fbe519003b14a0a552ee634498ed48da4",
+        "src/core/clients/bandcamp.ts": "2941c6724ce06b5b4b7712d68d09e502c1a4a62ee0fc87002536963f7df2ae9c",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "58c31bf15f98c55afb38368f7d5c81288efc40edd36be0930427e752c7bdc9db",
         "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
-        "src/core/clients/http.ts": "5f69d2c5c03d902958cafd79cc69bfed3d3fe55ef84709714ffde4280d95dd1e",
+        "src/core/clients/http.ts": "3bc9eb47ee05c1e9675b5fbb69e9bbfef182caece0fdc63d346bd2110065f9d4",
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
-        "src/core/clients/jellyfin.ts": "860b234856aa0f2a1b1cca39dd24a5783ca3edcd5632d71f52c84489f2365e35",
+        "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
         "src/core/clients/lidarr.ts": "5b742920cd0c8e2e66299515f960df75eb3309b02bda5c63c3100236a199d72b",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
@@ -522,7 +522,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz.ts": "dae3c262ee5cc755ff51bb1e810a444f20c06a922692abe374bfa99c21e092af",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "e259f23e9a44b2964ee3cf7820e4598bcbb4936ac6906e546e380d81ee02b6e3",
+        "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
         "src/core/clients/slskd.ts": "0774a342c00e1899a96a0c1787265c0a8734e8cc4eb198614e1a13184ed72b9a",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
@@ -699,14 +699,14 @@
         "src/index.ts": "325b6d2bf4c3e52af3436e6c58a71412372e2bff127a7e56f8bba011871b7485",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "e77ba473fb3308d59e94b70458b8220976eb0a40c916ccd2fbdfdbfd226681c4",
+      "digest": "a23a14eee919581b4d224f0c1d2d4dc8ef8b4d867eb87db0c36f94b5d66eb769",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "Behavior fixes across integrations, pipeline dedup, scoring, search, discovery modes, scheduler init, and playlist CSV export, each listed under Fixed in the changelog; API-visible effects are in docs/API.md. Deezer artist paging stops at the requested limit, ambiguous same-name search rows are not merged, and the Bandcamp guard checks every resolved address. Also: Saved-playlist exports gate on openPlaylistExportSession and the unused one-shot createPlaylist target method is removed; scheduler registration moves to schedulePlaylists with the same playlistEnabled gating documented in the operations guide.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Client edge cases: Jellyfin unscoped paging sort, Plex empty sections and identity retry, base URL trailing slash trimming; no user-facing option or workflow changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "e77ba473fb3308d59e94b70458b8220976eb0a40c916ccd2fbdfdbfd226681c4"
+        "digest": "a23a14eee919581b4d224f0c1d2d4dc8ef8b4d867eb87db0c36f94b5d66eb769"
       }
     },
     "deployment": {
@@ -729,13 +729,13 @@
         "deploy/helm/digarr/templates/namespace.yaml": "38db44ecfb8fc3c9e0fdae6c3a4fdff368045792148bc50d5aac9084f06cfb79",
         "deploy/helm/digarr/templates/networkpolicy.yaml": "7521c1785ddc9d7c421c988eba91a9f69b5014b32faccae8937036c891f6cf7b",
         "deploy/helm/digarr/templates/poddisruptionbudget.yaml": "347a307af10959a4b072a14c652ea2f5f2d4be2a14f430836185597bd8a638c7",
-        "deploy/helm/digarr/templates/postgresql.yaml": "8be8aa822a44a4e50b87c9491a947e78385810c7cfed1eff9d6762715a0a83ba",
+        "deploy/helm/digarr/templates/postgresql.yaml": "9137d8138846ad4232bc5e4f0a5bf8c49ddc1490fb138d06ac1c80e3b916b70a",
         "deploy/helm/digarr/templates/pvc-backups.yaml": "fb7fe632896d72816ceafe0686b613bf9a745495066f047c376ae26d6fdd34f1",
         "deploy/helm/digarr/templates/pvc-data.yaml": "5cc04414b649788dc59b8f16011040cbbbd831fe317459d80c78ceca22e905f4",
         "deploy/helm/digarr/templates/secret.yaml": "45ad4a36aef48d158de7000975ad1b8cb03c0654a6602252e0ff78a9e65fa197",
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
-        "deploy/helm/digarr/values.schema.json": "a95e23dfcbebdf876e05b7593c14b7fb347e36fe3b155bc132503249bc072d63",
+        "deploy/helm/digarr/values.schema.json": "c12ee464acc5e99ace2ce59051265ff1146e5d3b82282dcb3a8568759d0b1ee1",
         "deploy/helm/digarr/values.yaml": "d1b01903153323c48a2b26ef4cb4a9f49768d6dbbdcdeced6aa7bbf9310adae9",
         "deploy/k8s/deployment.yaml": "e5c5c0fc36a8c19dbde13a95d067ea365c6ab7992c540fc4e83779ad9b4c402c",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
@@ -746,24 +746,19 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "a6f1106efc0499273c20fe2b3254ff5fb1a27f8e0952a4a8ecd9dcafad17cf8b",
+      "digest": "97cff5340a57d53184cb4199cf4f2941dce3f64dae4a1aaef80fd05e35096dca",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/docker/README.md",
-          "deploy/helm/digarr/README.md",
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Compose postgres service drops env_file; chart adds networkPolicy.extraEgress, a PGDATA emptyDir without persistence, Recreate with a persistent backups volume, IPv6 ULA and link-local exclusions, namespace on the database policy, install warnings, and removes unused LOG_LEVEL; Postgres image digest bumped. Docker and chart READMEs document each, plus the PostgreSQL 15 requirement and image.digest null.",
+        "docs": ["deploy/helm/digarr/README.md", "CHANGELOG.md"],
+        "note": "Bundled PostgreSQL now reads POSTGRES_PASSWORD from database.existingSecret; chart README documents the required key; schema rejects unknown top-level values",
         "breaking": "none",
         "migration": "",
-        "digest": "a6f1106efc0499273c20fe2b3254ff5fb1a27f8e0952a4a8ecd9dcafad17cf8b"
+        "digest": "97cff5340a57d53184cb4199cf4f2941dce3f64dae4a1aaef80fd05e35096dca"
       }
     },
     "release": {
       "files": {
-        ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
+        ".github/workflows/backmerge-develop.yml": "1a05e83e619424a285f68c3a68b6deda928cd2f2847e8c40c8512a60bc384f00",
         ".github/workflows/ci.yml": "99b17224a38348afdd693f70c068c857bff45562ec1e4e2ee254462b41503105",
         ".github/workflows/compatibility.yml": "8cb19bc64f338d8db901a064e6b3423fd2fd7bd7d17f60056c217f2ef557b599",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
@@ -773,20 +768,20 @@
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
-        ".github/workflows/release.yml": "59df9e5106292421322e75b2f358ad69053a57efc83f1d73bb03095434a6b43f",
+        ".github/workflows/release.yml": "bb258949da21064583b7fe5ff3d50682cf4442800fd68b1d4d60cbfc44bbd1af",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a",
+      "digest": "c25f8176270b13f1c7388c1a0416c1c530e572ce2a693e50fadb260ccb35a52f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "ci.yml only adds the new DB-gated tests/db/queries/reject-block-created.test.ts to the existing serial PostgreSQL integration step; no release, tagging, image or approval behavior changes. Also: The advisory macOS Colima compatibility job runs only on the weekly schedule and manual dispatch; the changelog records it and CONTRIBUTING.md and docs/MAINTENANCE.md say when to dispatch it by hand.",
+        "note": "Release workflow refuses tags not reachable from main; back-merge conflict PR branches from main so it has a real diff; no release procedure change",
         "breaking": "none",
         "migration": "",
-        "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a"
+        "digest": "c25f8176270b13f1c7388c1a0416c1c530e572ce2a693e50fadb260ccb35a52f"
       }
     },
     "maintenance": {

@@ -214,6 +214,16 @@ describe('buildDatabaseUrl', () => {
     expect(buildDatabaseUrl()).toBe('postgresql://a:b@host:5432/mydb')
   })
 
+  it.each([
+    ['::1', '[::1]'],
+    ['[::1]', '[::1]'],
+    ['db.local', 'db.local'],
+  ])('brackets only bare IPv6 DB_HOST (%s)', async (host, expected) => {
+    setEnv({ DB_HOST: host, DB_USER: 'u', DB_NAME: 'd' })
+    const { buildDatabaseUrl } = await import('@/config/env')
+    expect(buildDatabaseUrl()).toBe(`postgresql://u@${expected}:5432/d`)
+  })
+
   it('builds URL from individual DB_* vars', async () => {
     setEnv({ DB_HOST: 'myhost', DB_USER: 'usr', DB_PASS: 'pw', DB_NAME: 'testdb', DB_PORT: '5433' })
     const { buildDatabaseUrl } = await import('@/config/env')

@@ -598,3 +598,41 @@ describe('GET /api/v1/artists/:id/enrichment', () => {
     expect(res.status).toBe(404)
   })
 })
+
+describe('preview audio proxy redirects', () => {
+  const GOOD = 'https://cdns-preview-a.dzcdn.net/stream/a.mp3'
+  const audio = () => new Response('abc', { headers: { 'Content-Type': 'audio/mpeg' } })
+  const redirect = (to: string) => new Response(null, { status: 302, headers: { Location: to } })
+
+  it('follows a redirect that stays on the allowlist', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(redirect('https://cdns-preview-b.dzcdn.net/stream/b.mp3'))
+      .mockResolvedValueOnce(audio())
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(GOOD)}`)
+    expect(res.status).toBe(200)
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ redirect: 'manual' })
+    fetchMock.mockRestore()
+  })
+
+  it('refuses a redirect to a non-allowlisted host', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(redirect('http://169.254.169.254/latest'))
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(GOOD)}`)
+    expect(res.status).toBe(502)
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+    fetchMock.mockRestore()
+  })
+
+  it('stops after too many redirects', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => redirect(GOOD))
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(GOOD)}`)
+    expect(res.status).toBe(502)
+    expect(fetchMock.mock.calls.length).toBeLessThanOrEqual(4)
+    fetchMock.mockRestore()
+  })
+})

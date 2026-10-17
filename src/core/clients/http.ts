@@ -45,7 +45,6 @@ export type HttpRequestOptions = {
 
 export function createHttpClient(config: HttpClientConfig) {
   const {
-    baseUrl,
     headers = {},
     timeout = 10_000,
     retries = 3,
@@ -54,6 +53,7 @@ export function createHttpClient(config: HttpClientConfig) {
     followRedirects = false,
     onRequest,
   } = config
+  const baseUrl = config.baseUrl.replace(/\/+$/, '')
 
   async function send(
     method: string,
