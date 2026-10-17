@@ -55,7 +55,11 @@ export function artistRoutes(deps: AppDependencies) {
     // Always fetch fresh from Deezer (preview URLs are signed and expire)
     let tracks: TopTrack[] = []
     if (deezerId) {
-      tracks = await deezer.getArtistTopTracks(deezerId, 5)
+      try {
+        tracks = await deezer.getArtistTopTracks(deezerId, 5)
+      } catch {
+        // Deezer failed; fall through to cached names / MusicBrainz
+      }
     }
 
     // Fallback: use cached track names if Deezer fails but we have prior data
@@ -155,7 +159,13 @@ export function artistRoutes(deps: AppDependencies) {
       })
     }
 
-    const result = await wikidata.getArtistEnrichment(row.mbid, locale)
+    let result: Awaited<ReturnType<typeof wikidata.getArtistEnrichment>>
+    try {
+      result = await wikidata.getArtistEnrichment(row.mbid, locale)
+    } catch {
+      // Outage or bad response: skip the negative cache so the next view retries.
+      return c.json(emptyPayload)
+    }
     if (!result.wikidataId && !result.description) {
       await deps.db.update(artists).set({ wikidataFailedAt: new Date() }).where(eq(artists.id, id))
       return c.json(emptyPayload)
