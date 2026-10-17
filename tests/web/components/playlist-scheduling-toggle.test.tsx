@@ -15,12 +15,12 @@ vi.mock('@/web/lib/locale-storage', () => ({
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/web/lib/api', () => ({ getAuthStatus: vi.fn(), updateSettings: vi.fn() }))
 
-function renderToggle(enabled: boolean) {
+function renderToggle(enabled: boolean, nextRun: string | null = null) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <QueryClientProvider client={client}>
       <I18nProvider>
-        <PlaylistSchedulingToggle enabled={enabled} />
+        <PlaylistSchedulingToggle enabled={enabled} nextRun={nextRun} />
       </I18nProvider>
     </QueryClientProvider>,
   )
@@ -41,6 +41,13 @@ describe('PlaylistSchedulingToggle (#921)', () => {
     await waitFor(() =>
       expect(updateSettings).toHaveBeenCalledWith({ preferences: { playlistEnabled: true } }),
     )
+  })
+
+  it('shows the next generation time while scheduling is on', async () => {
+    vi.mocked(getAuthStatus).mockResolvedValue({ isAdmin: true } as never)
+    renderToggle(true, new Date(Date.now() + 3 * 3_600_000 + 60_000).toISOString())
+
+    expect(await screen.findByText('Next generation in 3 hours')).toBeInTheDocument()
   })
 
   it('is hidden from members', async () => {

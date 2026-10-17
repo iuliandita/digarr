@@ -129,7 +129,9 @@ export function PlaylistsPage() {
         }
       />
 
-      {schedulerInfo && <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} />}
+      {schedulerInfo && (
+        <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} nextRun={schedulerInfo.nextRun} />
+      )}
 
       {/* Content */}
       {isLoading ? (

@@ -530,6 +530,7 @@ export const nl = {
     'Maak afspeellijsten van goedgekeurde of openstaande artiesten, download ze als M3U of XSPF, of stuur ze naar Spotify, Navidrome, Jellyfin, Emby of Plex.',
   'playlists.playlistPlural': 'afspeellijsten',
   'playlists.playlistSingular': 'afspeellijst',
+  'playlists.nextGeneration': 'Volgende generatie',
   'playlists.schedulingLabel': 'Geplande generatie',
   'playlists.schedulingOnHint': 'Playlists met een schema worden vanzelf opnieuw gemaakt.',
   'playlists.schedulingPausedHint':

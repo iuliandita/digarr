@@ -532,6 +532,7 @@ export const ru = {
     'Собирай плейлисты из одобренных или ожидающих исполнителей, скачивай их в M3U или XSPF или отправляй в Spotify, Navidrome, Jellyfin, Emby или Plex.',
   'playlists.playlistPlural': 'плейлисты',
   'playlists.playlistSingular': 'список воспроизведения',
+  'playlists.nextGeneration': 'Следующая генерация',
   'playlists.schedulingLabel': 'Создание по расписанию',
   'playlists.schedulingOnHint': 'Плейлисты с расписанием обновляются сами.',
   'playlists.schedulingPausedHint':

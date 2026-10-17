@@ -528,6 +528,7 @@ export const uk = {
     'Створюй плейлисти зі схвалених або очікуваних виконавців, завантажуй їх у M3U чи XSPF або надсилай в Spotify, Navidrome, Jellyfin, Emby чи Plex.',
   'playlists.playlistPlural': 'списки відтворення',
   'playlists.playlistSingular': 'список відтворення',
+  'playlists.nextGeneration': 'Наступне покоління',
   'playlists.schedulingLabel': 'Створення за розкладом',
   'playlists.schedulingOnHint': 'Плейлисти з розкладом оновлюються самі.',
   'playlists.schedulingPausedHint':

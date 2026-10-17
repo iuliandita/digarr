@@ -527,6 +527,7 @@ export const ja = {
     '承認済みまたは保留中のアーティストからプレイリストを作り、M3U や XSPF でダウンロードしたり、Spotify、Navidrome、Jellyfin、Emby、Plex に送ったりできます。',
   'playlists.playlistPlural': 'プレイリスト',
   'playlists.playlistSingular': 'プレイリスト',
+  'playlists.nextGeneration': '次回の生成',
   'playlists.schedulingLabel': 'スケジュール生成',
   'playlists.schedulingOnHint': 'スケジュールのあるプレイリストは自動で再生成されます。',
   'playlists.schedulingPausedHint':

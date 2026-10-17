@@ -521,6 +521,7 @@ export const tr = {
     "Onaylanan veya bekleyen sanatçılardan çalma listeleri oluştur, M3U ya da XSPF olarak indir veya Spotify, Navidrome, Jellyfin, Emby ya da Plex'e gönder.",
   'playlists.playlistPlural': 'çalma listeleri',
   'playlists.playlistSingular': 'çalma listesi',
+  'playlists.nextGeneration': 'Gelecek nesil',
   'playlists.schedulingLabel': 'Zamanlanmış oluşturma',
   'playlists.schedulingOnHint':
     'Zamanlaması olan çalma listeleri kendiliğinden yeniden oluşturulur.',

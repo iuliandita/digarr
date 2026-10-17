@@ -536,6 +536,7 @@ export const de = {
     'Erstelle Playlists aus genehmigten oder ausstehenden Künstlern, lade sie als M3U oder XSPF herunter oder sende sie an Spotify, Navidrome, Jellyfin, Emby oder Plex.',
   'playlists.playlistPlural': 'Wiedergabelisten',
   'playlists.playlistSingular': 'Wiedergabeliste',
+  'playlists.nextGeneration': 'Nächste Generation',
   'playlists.schedulingLabel': 'Geplante Erstellung',
   'playlists.schedulingOnHint': 'Playlists mit Zeitplan werden automatisch neu erstellt.',
   'playlists.schedulingPausedHint':

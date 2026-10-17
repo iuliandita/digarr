@@ -531,6 +531,7 @@ export const es = {
     'Crea listas a partir de artistas aprobados o pendientes, descárgalas como M3U o XSPF, o envíalas a Spotify, Navidrome, Jellyfin, Emby o Plex.',
   'playlists.playlistPlural': 'listas de reproducción',
   'playlists.playlistSingular': 'lista de reproducción',
+  'playlists.nextGeneration': 'Próxima generación',
   'playlists.schedulingLabel': 'Generación programada',
   'playlists.schedulingOnHint': 'Las playlists con programación se regeneran solas.',
   'playlists.schedulingPausedHint':

@@ -530,6 +530,7 @@ export const ro = {
     'Creează playlisturi din artiști aprobați sau în așteptare, descarcă-le ca M3U sau XSPF ori trimite-le în Spotify, Navidrome, Jellyfin, Emby sau Plex.',
   'playlists.playlistPlural': 'liste de redare',
   'playlists.playlistSingular': 'lista de redare',
+  'playlists.nextGeneration': 'Generația următoare',
   'playlists.schedulingLabel': 'Generare programată',
   'playlists.schedulingOnHint': 'Playlisturile cu program se regenerează singure.',
   'playlists.schedulingPausedHint':

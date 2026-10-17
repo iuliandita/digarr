@@ -533,6 +533,7 @@ export const ptBR = {
     'Crie playlists a partir de artistas aprovados ou pendentes, baixe-as como M3U ou XSPF, ou envie-as para Spotify, Navidrome, Jellyfin, Emby ou Plex.',
   'playlists.playlistPlural': 'listas de reprodução',
   'playlists.playlistSingular': 'lista de reprodução',
+  'playlists.nextGeneration': 'Próxima geração',
   'playlists.schedulingLabel': 'Geração agendada',
   'playlists.schedulingOnHint': 'Playlists com agendamento são geradas de novo sozinhas.',
   'playlists.schedulingPausedHint':

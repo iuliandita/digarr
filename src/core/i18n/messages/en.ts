@@ -520,6 +520,7 @@ export const en = {
     'Build playlists from approved or pending artists, download them as M3U or XSPF, or push them to Spotify, Navidrome, Jellyfin, Emby, or Plex.',
   'playlists.playlistPlural': 'playlists',
   'playlists.playlistSingular': 'playlist',
+  'playlists.nextGeneration': 'Next generation',
   'playlists.schedulingLabel': 'Scheduled generation',
   'playlists.schedulingOnHint': 'Playlists with a schedule regenerate on their own.',
   'playlists.schedulingPausedHint':

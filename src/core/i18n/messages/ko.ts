@@ -523,6 +523,7 @@ export const ko = {
     '승인했거나 대기 중인 아티스트로 플레이리스트를 만들고, M3U나 XSPF로 내려받거나 Spotify, Navidrome, Jellyfin, Emby, Plex로 보낼 수 있습니다.',
   'playlists.playlistPlural': '재생목록',
   'playlists.playlistSingular': '재생목록',
+  'playlists.nextGeneration': '다음 생성',
   'playlists.schedulingLabel': '예약 생성',
   'playlists.schedulingOnHint': '일정이 있는 플레이리스트는 자동으로 다시 생성됩니다.',
   'playlists.schedulingPausedHint':

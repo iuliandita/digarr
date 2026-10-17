@@ -529,6 +529,7 @@ export const fr = {
     "Crée des playlists à partir d'artistes approuvés ou en attente, télécharge-les en M3U ou XSPF, ou envoie-les vers Spotify, Navidrome, Jellyfin, Emby ou Plex.",
   'playlists.playlistPlural': 'listes de lecture',
   'playlists.playlistSingular': 'liste de lecture',
+  'playlists.nextGeneration': 'Prochaine generation',
   'playlists.schedulingLabel': 'Génération planifiée',
   'playlists.schedulingOnHint': "Les playlists planifiées se régénèrent d'elles-mêmes.",
   'playlists.schedulingPausedHint':

@@ -4,9 +4,24 @@ import { toast } from 'sonner'
 import { getAuthStatus, updateSettings } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
+function formatNextRun(locale: string, nextRun: string): string {
+  const diffMinutes = Math.round((new Date(nextRun).getTime() - Date.now()) / 60_000)
+  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
+  if (diffMinutes < 60) return formatter.format(diffMinutes, 'minute')
+  const diffHours = Math.round(diffMinutes / 60)
+  if (diffHours < 24) return formatter.format(diffHours, 'hour')
+  return formatter.format(Math.round(diffHours / 24), 'day')
+}
+
 /** Admin switch for the global preferences.playlistEnabled flag (#921). */
-export function PlaylistSchedulingToggle({ enabled }: { enabled: boolean }) {
-  const { t } = useI18n()
+export function PlaylistSchedulingToggle({
+  enabled,
+  nextRun = null,
+}: {
+  enabled: boolean
+  nextRun?: string | null
+}) {
+  const { locale, t } = useI18n()
   const queryClient = useQueryClient()
   const hintId = useId()
   const [saving, setSaving] = useState(false)
@@ -51,7 +66,11 @@ export function PlaylistSchedulingToggle({ enabled }: { enabled: boolean }) {
         {t('playlists.schedulingLabel')}
       </button>
       <p id={hintId} className="text-xs text-muted sm:pt-0.5">
-        {enabled ? t('playlists.schedulingOnHint') : t('playlists.schedulingPausedHint')}
+        {!enabled
+          ? t('playlists.schedulingPausedHint')
+          : nextRun
+            ? `${t('playlists.nextGeneration')} ${formatNextRun(locale, nextRun)}`
+            : t('playlists.schedulingOnHint')}
       </p>
     </div>
   )

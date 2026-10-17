@@ -530,6 +530,7 @@ export const pl = {
     'Twórz playlisty z zatwierdzonych lub oczekujących wykonawców, pobieraj je jako M3U lub XSPF albo wysyłaj do Spotify, Navidrome, Jellyfin, Emby lub Plex.',
   'playlists.playlistPlural': 'listy odtwarzania',
   'playlists.playlistSingular': 'playlista',
+  'playlists.nextGeneration': 'Następna generacja',
   'playlists.schedulingLabel': 'Generowanie według harmonogramu',
   'playlists.schedulingOnHint': 'Playlisty z harmonogramem odświeżają się same.',
   'playlists.schedulingPausedHint':

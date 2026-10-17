@@ -488,6 +488,7 @@ export const zhCN = {
     '用已批准或待定的艺人生成播放列表，下载为 M3U 或 XSPF，或推送到 Spotify、Navidrome、Jellyfin、Emby 或 Plex。',
   'playlists.playlistPlural': '播放列表',
   'playlists.playlistSingular': '播放列表',
+  'playlists.nextGeneration': '下一代',
   'playlists.schedulingLabel': '定时生成',
   'playlists.schedulingOnHint': '设有计划的播放列表会自动重新生成。',
   'playlists.schedulingPausedHint':
