@@ -93,10 +93,10 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
                 type="button"
                 aria-pressed={reason === r}
                 onClick={() => setReason(r)}
-                className={`text-left px-3 py-2 rounded-md border text-sm transition-colors ${
+                className={`min-h-11 text-left px-3 py-2 rounded-md border text-sm text-text transition-colors sm:min-h-0 ${
                   reason === r
-                    ? 'bg-accent/10 border-accent text-text'
-                    : 'bg-bg border-border text-muted hover:text-text'
+                    ? 'bg-accent/10 border-accent font-medium'
+                    : 'bg-surface-2 border-border hover:border-accent/50'
                 }`}
               >
                 {t(`rejectionReason.${r}`)}
@@ -132,12 +132,7 @@ export function RejectionPicker({ open, onClose, onSubmit, artistName }: Props) 
             <Button size="sm" variant="ghost" onClick={onClose} disabled={submitting}>
               {t('rejectionPicker.cancel')}
             </Button>
-            <Button
-              size="sm"
-              variant={permanent ? 'destructive' : 'outline'}
-              onClick={handleSubmit}
-              disabled={submitting}
-            >
+            <Button size="sm" variant="destructive" onClick={handleSubmit} disabled={submitting}>
               {submitLabel}
             </Button>
           </div>
