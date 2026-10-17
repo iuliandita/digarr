@@ -165,13 +165,13 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
           </Link>
           <Link
             to="/discover/modes?mode=release-radar"
-            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+            className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discoveryMode.release-radar.label')}
           </Link>
           <Link
             to="/settings?tab=recommendations#net-new-album-discovery"
-            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+            className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('settings.netNewAlbumDiscovery')}
           </Link>
@@ -187,7 +187,7 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
         <div className="flex items-center justify-center gap-3">
           <Link
             to="/subscriptions"
-            className="px-3 py-1.5 text-sm text-accent border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
+            className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discover.importArtists')}
           </Link>
@@ -1119,8 +1119,8 @@ export function DiscoverPage() {
 
       {/* Daily controls in one row; bulk and rare tools live in More */}
       {/* z-45: its menus must clear the bottom bars (z-40) but stay under dialogs (z-50) */}
-      <div className="sticky top-0 z-45 bg-bg border-b border-border px-6 pt-4 pb-3">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="sticky top-0 z-45 bg-bg px-6 pt-4">
+        <div className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
           <fieldset className="scroll-fade-x flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-surface border border-border bg-surface p-1 [scrollbar-width:none] md:w-auto">
             <legend className="sr-only">{t('discover.statusFilter')}</legend>
             {(Object.keys(FILTER_LABELS) as FilterTab[]).map((tab) => (
@@ -1470,7 +1470,11 @@ export function DiscoverPage() {
           <span className="text-muted tabular-nums">
             {t('albumPicker.selectedCount').replace('{0}', String(checkedIds.size))}
           </span>
-          <button type="button" onClick={handleSelectAll} className="text-xs text-accent underline">
+          <button
+            type="button"
+            onClick={handleSelectAll}
+            className="text-xs text-accent-text underline"
+          >
             {t('common.all')}
           </button>
           <button
@@ -1520,7 +1524,7 @@ export function DiscoverPage() {
           <button
             type="button"
             onClick={handleUndo}
-            className="text-accent font-medium hover:underline"
+            className="text-accent-text font-medium hover:underline"
           >
             {t('discover.undo')}
           </button>

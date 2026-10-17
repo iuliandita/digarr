@@ -36,7 +36,7 @@ export function Hint({ id, type = 'inline', children, className = '' }: HintProp
   if (type === 'spotlight') {
     return (
       <div
-        className={`flex items-start gap-2 px-3 py-2 rounded-md border border-accent/30 bg-accent/8 text-sm ${className}`}
+        className={`flex items-start gap-2 px-3 py-2 rounded-md border border-info/30 bg-info/8 text-sm ${className}`}
       >
         <span className="flex-1 text-text">{children}</span>
         <button

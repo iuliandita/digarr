@@ -172,7 +172,7 @@ export function SearchResultCard({ result }: SearchResultCardProps) {
               type="button"
               onClick={handleQuickDiscover}
               disabled={queuing}
-              className="flex items-center gap-1 text-micro text-accent hover:opacity-80 transition-opacity disabled:opacity-50"
+              className="flex items-center gap-1 text-micro text-accent-text hover:opacity-80 transition-opacity disabled:opacity-50"
               title={t('searchResultCard.addToQueue')}
             >
               <Zap size={12} />

@@ -124,7 +124,7 @@ function StepMode({
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-              <MonitorPlay size={18} className="text-accent" />
+              <MonitorPlay size={18} className="text-accent-text" />
             </div>
             <div>
               <span className="text-sm font-medium text-text">Emby</span>
@@ -144,7 +144,7 @@ function StepMode({
         >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center">
-              <Compass size={18} className="text-accent" />
+              <Compass size={18} className="text-accent-text" />
             </div>
             <div>
               <span className="text-sm font-medium text-text">{t('setup.discoveryOnlyLabel')}</span>
@@ -182,6 +182,15 @@ function StepLidarr({
           onChange={(e) => onFormChange({ ...form, url: e.target.value })}
         />
       </Field>
+      <Field label={t('setup.apiKey')} id="lidarr-apikey">
+        <Input
+          id="lidarr-apikey"
+          type="password"
+          placeholder={t('setup.lidarrApiKeyPlaceholder')}
+          value={form.apiKey}
+          onChange={(e) => onFormChange({ ...form, apiKey: e.target.value })}
+        />
+      </Field>
       <Disclosure title={t('settings.advancedSettings')} defaultOpen={form.skipTlsVerify}>
         <label className="flex items-center gap-2 text-sm text-muted cursor-pointer">
           <input
@@ -194,15 +203,6 @@ function StepLidarr({
         </label>
         <p className="mt-2 text-xs text-warning">{t('setup.skipTlsVerificationHint')}</p>
       </Disclosure>
-      <Field label={t('setup.apiKey')} id="lidarr-apikey">
-        <Input
-          id="lidarr-apikey"
-          type="password"
-          placeholder={t('setup.lidarrApiKeyPlaceholder')}
-          value={form.apiKey}
-          onChange={(e) => onFormChange({ ...form, apiKey: e.target.value })}
-        />
-      </Field>
       <p className="text-xs text-muted">{t('setup.connectionTestsContinueLidarr')}</p>
       <Button onClick={onContinue} disabled={!form.url || !form.apiKey} className="w-full">
         {t('common.continue')}
@@ -382,7 +382,7 @@ function StepAi({
                 href={link.url}
                 target="_blank"
                 rel="noreferrer"
-                className="text-xs text-accent underline"
+                className="text-xs text-accent-text underline"
               >
                 {t('setup.getApiKey')}
               </a>
@@ -565,7 +565,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
       <div className="w-full max-w-md">
         <h1 className="sr-only">{t('setup.title')}</h1>
         <div className="mb-8 text-center">
-          <span className="text-3xl font-bold text-accent">digarr</span>
+          <span className="text-3xl font-bold text-accent-text">digarr</span>
           <p className="text-muted text-sm mt-1">{t('setup.initialSetup')}</p>
         </div>
 

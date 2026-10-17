@@ -306,7 +306,7 @@ function DelayedLoading() {
     >
       {visible && (
         <>
-          <Loader2 className="h-6 w-6 animate-spin text-accent" aria-hidden="true" />
+          <Loader2 className="h-6 w-6 animate-spin text-accent-text" aria-hidden="true" />
           <span className="text-sm text-muted">{t('common.loading')}</span>
         </>
       )}
@@ -376,7 +376,7 @@ function LoginForm({
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            <span className="text-accent">digarr</span>
+            <span className="text-accent-text">digarr</span>
           </CardTitle>
           <CardDescription>{t('auth.loginDescription')}</CardDescription>
         </CardHeader>
@@ -494,7 +494,7 @@ function RegisterForm({
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            <span className="text-accent">digarr</span>
+            <span className="text-accent-text">digarr</span>
           </CardTitle>
           <CardDescription>{t('auth.registerDescription')}</CardDescription>
         </CardHeader>

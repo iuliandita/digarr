@@ -143,7 +143,7 @@ function ProviderPicker({
                 !configured
                   ? 'border-border text-muted/50 cursor-not-allowed bg-surface/50'
                   : selected
-                    ? 'border-accent/50 bg-accent/5 text-accent'
+                    ? 'border-accent/50 bg-accent/5 text-accent-text'
                     : 'border-border text-muted hover:border-accent/40 hover:text-text'
               }`}
               title={configured ? undefined : t('subscriptionForm.configureInSettings')}

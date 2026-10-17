@@ -63,7 +63,7 @@ export function CronPicker({ value, onChange }: CronPickerProps) {
               onClick={() => onChange(preset.cron)}
               className={`text-left px-3 py-2 rounded text-sm transition-colors ${
                 value === preset.cron
-                  ? 'bg-accent/5 text-accent border border-accent/30'
+                  ? 'bg-accent/5 text-accent-text border border-accent/30'
                   : 'bg-surface border border-border text-text hover:border-accent/40'
               }`}
             >

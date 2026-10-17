@@ -63,6 +63,18 @@ describe('LibraryFirstSyncBanner polling', () => {
     expect(getLibrarySources).toHaveBeenCalledTimes(2)
   })
 
+  it.each([
+    ['no sources are configured', [], false],
+    ['a source is idle', [source('success', 10)], false],
+    ['a resync is reusing the cache', [source('running', 5)], false],
+    ['a first sync is running', [source('running', 0)], true],
+  ])('visibility when %s', async (_label, sources, visible) => {
+    vi.mocked(getLibrarySources).mockResolvedValue({ sources })
+    renderBanner()
+    await tick(0)
+    expect(screen.queryByText('Building your library catalog') !== null).toBe(visible)
+  })
+
   it('stops polling after dismissal', async () => {
     vi.mocked(getLibrarySources).mockResolvedValue({ sources: [source('running', 0)] })
     renderBanner()

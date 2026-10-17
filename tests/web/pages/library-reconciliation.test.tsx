@@ -595,6 +595,31 @@ describe('LibraryReconciliationPage', () => {
     expect(within(artists).getByRole('status')).toHaveTextContent('Selected: 0')
   })
 
+  it.each([
+    ['artists', true, false],
+    ['albums', false, true],
+  ])(
+    'hides Select visible only in the empty section (rows in %s)',
+    async (_label, hasArtists, hasAlbums) => {
+      mockGetLibraryUnreconciled.mockResolvedValue({ items: hasArtists ? [makeRow()] : [] })
+      mockGetLibraryUnreconciledAlbums.mockResolvedValue({
+        items: hasAlbums ? [makeAlbumRow()] : [],
+      })
+      renderWithQuery(<LibraryReconciliationPage />)
+
+      const artists = await screen.findByRole('region', { name: 'Unreconciled Artists' })
+      const albums = await screen.findByRole('region', { name: 'Unreconciled Albums' })
+      await waitFor(() => expect(within(artists).getByRole('status')).toBeInTheDocument())
+      await waitFor(() => expect(within(albums).getByRole('status')).toBeInTheDocument())
+      expect(within(artists).queryByRole('button', { name: 'Select visible' }) !== null).toBe(
+        hasArtists,
+      )
+      expect(within(albums).queryByRole('button', { name: 'Select visible' }) !== null).toBe(
+        hasAlbums,
+      )
+    },
+  )
+
   it('keeps artist controls busy until bulk invalidations settle', async () => {
     mockGetLibraryUnreconciled.mockResolvedValue({ items: [makeRow()] })
     const request = deferred<void>()

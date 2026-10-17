@@ -9,9 +9,8 @@ const STORAGE_KEY = 'digarr.firstSyncBannerDismissed'
 type LibrarySources = Awaited<ReturnType<typeof getLibrarySources>>['sources']
 
 function isFirstSync(sources: LibrarySources): boolean {
-  return (
-    sources.length === 0 ||
-    sources.some((s) => s.lastSyncStatus === 'running' && (s.lastSyncCounts?.cacheHits ?? 0) === 0)
+  return sources.some(
+    (s) => s.lastSyncStatus === 'running' && (s.lastSyncCounts?.cacheHits ?? 0) === 0,
   )
 }
 
@@ -44,7 +43,7 @@ export function LibraryFirstSyncBanner() {
   }
 
   return (
-    <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-4 relative">
+    <div className="bg-surface border border-border rounded-lg px-4 py-4 relative">
       <button
         type="button"
         onClick={dismiss}

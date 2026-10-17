@@ -68,7 +68,7 @@ export function FiltersPopover({
         className={cn(
           TRIGGER_CLASS,
           count > 0
-            ? 'border-accent/40 bg-accent/5 text-accent'
+            ? 'border-accent/40 bg-accent/5 text-accent-text'
             : 'border-border bg-surface text-muted hover:text-text',
         )}
       >
@@ -181,7 +181,7 @@ function MenuItem({
       className={cn(
         MENU_ITEM_CLASS,
         disabled && 'cursor-not-allowed opacity-50',
-        checked ? 'text-accent' : tone === 'reject' ? 'text-reject' : 'text-text',
+        checked ? 'text-accent-text' : tone === 'reject' ? 'text-reject' : 'text-text',
       )}
     >
       {children}

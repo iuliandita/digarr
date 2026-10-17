@@ -201,7 +201,7 @@ function ToolsMenu() {
                 role="menuitem"
                 tabIndex={-1}
                 aria-current={itemActive ? 'page' : undefined}
-                className={cn(MENU_ITEM_CLASS, itemActive ? 'text-accent' : 'text-text')}
+                className={cn(MENU_ITEM_CLASS, itemActive ? 'text-accent-text' : 'text-text')}
               >
                 <item.icon size={16} aria-hidden="true" className="shrink-0 text-muted" />
                 {t(item.labelKey)}
@@ -267,7 +267,7 @@ function ThemePicker({
                   aria-checked={mode === m}
                   tabIndex={-1}
                   onClick={() => onModeChange(m)}
-                  className={cn(MENU_ITEM_CLASS, mode === m ? 'text-accent' : 'text-text')}
+                  className={cn(MENU_ITEM_CLASS, mode === m ? 'text-accent-text' : 'text-text')}
                 >
                   <Icon size={14} aria-hidden="true" />
                   <span>{label}</span>
@@ -301,7 +301,7 @@ function ThemePicker({
                     onClick={() => onColorThemeChange(theme.id)}
                     className={cn(
                       MENU_ITEM_CLASS,
-                      colorTheme === theme.id ? 'text-accent' : 'text-text',
+                      colorTheme === theme.id ? 'text-accent-text' : 'text-text',
                     )}
                   >
                     <span
@@ -528,7 +528,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4 lg:gap-6">
-              <Link to="/" className="text-title font-bold text-accent focus-ring rounded-control">
+              <Link
+                to="/"
+                className="text-title font-bold text-accent-text focus-ring rounded-control"
+              >
                 digarr
               </Link>
               <ul className="hidden items-center gap-1 md:flex">

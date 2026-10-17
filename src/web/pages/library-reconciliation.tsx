@@ -289,6 +289,7 @@ export function LibraryReconciliationPage() {
           <LibraryBulkReviewToolbar
             selectedCount={artistSelection.size}
             eligibleCount={artistEligibleRows.length}
+            hasRows={items.length > 0}
             busy={artistBusy}
             error={artistBulkError}
             limitReached={artistSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
@@ -367,6 +368,7 @@ export function LibraryReconciliationPage() {
           <LibraryBulkReviewToolbar
             selectedCount={albumSelection.size}
             eligibleCount={albumEligibleRows.length}
+            hasRows={albumItems.length > 0}
             busy={albumBusy}
             error={albumBulkError}
             limitReached={albumSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
