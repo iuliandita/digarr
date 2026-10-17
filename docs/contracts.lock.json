@@ -164,7 +164,7 @@
         "src/db/queries/album-blocks.ts": "f5c2ad8c89d7be8aabc10e574724cb223e50de91729ea474e21e15d72c159924",
         "src/db/queries/analytics.ts": "8430a4df3fc44021b57cb6410e69522fcd16d0dad7a09aec9c70daa31723c19b",
         "src/db/queries/artist-blocks.ts": "88fee42a98ec0483cd2bfbc296404765ce74e671a404c10eeebc8afba288e9a1",
-        "src/db/queries/artist-metadata.ts": "438bcc902049655e108102a6dc6d180018416106b0e5140ba123d78eb73577c9",
+        "src/db/queries/artist-metadata.ts": "51250a52df988acc71f442ad2c687e15b26bab874f18c21ccc47a71cd7faaf78",
         "src/db/queries/artists.ts": "ba4d5b665cf57127b7a5b549a0812966e605622ace93596116e0c9fb5182f221",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "61f6f7a54bd99be90b9305b3348844948b281d44fb90d020a68bdaf5d809c3d7",
@@ -188,14 +188,14 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "edf87141c6a2d528e5ad03c1d60286993b3d06d9a8c2eee4863c856a236b6088",
+      "digest": "1fd0e4f9690a8730af3e99628898a70f60a20ae84eb36d74cef0d2a44997f723",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Score histogram top bucket now spans 90-100 and includes a score of 1.0; read-only analytics query, no backup, restore or stored data effect.",
+        "note": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
         "breaking": "none",
-        "migration": "No migration; read-only analytics query, so upgrade, rollback and backups are unaffected.",
-        "digest": "edf87141c6a2d528e5ad03c1d60286993b3d06d9a8c2eee4863c856a236b6088"
+        "migration": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
+        "digest": "1fd0e4f9690a8730af3e99628898a70f60a20ae84eb36d74cef0d2a44997f723"
       }
     },
     "configuration": {
@@ -596,7 +596,7 @@
         "src/core/pipeline/discover.ts": "1b09622f0c84dfe1a0e4e9029eeadad56986b0f8d468726ceff0537f4a56c09c",
         "src/core/pipeline/enrich.ts": "3744493e0cbad7c12aa697af3f9b8b429506e8a57566f1b3bbc0ad509ba318ff",
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
-        "src/core/pipeline/genre-backfill.ts": "63a7d5ebc180fa1a15b2c0fb9266b416f468fc75c07aecc6360072ccbc133d19",
+        "src/core/pipeline/genre-backfill.ts": "65cc5401afdf79c9039ce898a3660ba3b742d7c6a7a59f5a5a9cdca1ed72f43b",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
         "src/core/pipeline/orchestrator.ts": "b8b4159425d90865e007e4e6648b7d85d71d097ee598dd78be3277f9d9012df5",
         "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
@@ -700,14 +700,14 @@
         "src/index.ts": "fb2e4767cd8e59ce544916ad4e334d348f3207781b3f5adbc2d056da52015773",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "c3060437711945b2be900aeea3ea1553c44799f4609dbed9a658101fce839d12",
+      "digest": "dd21aa946ca3d2653514915f28e199cf4ba1891cc569a14aa844394421ea687b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Subscription counts and ListenBrainz cap, RFC 4180 CSV import, source album MBIDs kept on unmatched rows (still listed as unresolved), slskd command id retry and shared helpers, shutdown drains subscription and playlist runs; behavior described in the changelog",
+        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
+        "note": "Export the genre alias key helper so the normalization contract test can pin it; behavior unchanged. Architecture now links the new name normalization plan.",
         "breaking": "none",
         "migration": "",
-        "digest": "c3060437711945b2be900aeea3ea1553c44799f4609dbed9a658101fce839d12"
+        "digest": "dd21aa946ca3d2653514915f28e199cf4ba1891cc569a14aa844394421ea687b"
       }
     },
     "deployment": {
