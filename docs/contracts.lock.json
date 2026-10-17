@@ -182,21 +182,21 @@
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
         "src/db/queries/setup.ts": "b5ab56689644ab1b17edb6d0e94cf47531d8102965b7b44d2675f116c1a5cbf6",
-        "src/db/queries/slskd-jobs.ts": "65b11f984c63fd79b58812cfcf747195f0687dc504ae346272b2322481410eb2",
+        "src/db/queries/slskd-jobs.ts": "fab637cf124846376531e53c6f399eb234f4f6bc71fa0f46861a9ab2a81f4f84",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "781455cd84f6f583dd96f572a9c449d72ed3169473302688b69f2cf0fd88263f",
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "dc1ebfc33a6bf3fc9c5f848a4c1a59e8d652154ecf2ecfad37189707dea47ef5",
+      "digest": "9195f2747bd447b8801ff4355077a3842c588cc852a9c6abdf401129d33d4907",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON); no schema, migration, backup format, or restore change.",
+        "note": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON, cleared on manual retry); no schema, migration, backup format, or restore change.",
         "breaking": "none",
-        "migration": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON); no schema, migration, backup format, or restore change.",
-        "digest": "dc1ebfc33a6bf3fc9c5f848a4c1a59e8d652154ecf2ecfad37189707dea47ef5"
+        "migration": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON, cleared on manual retry); no schema, migration, backup format, or restore change.",
+        "digest": "9195f2747bd447b8801ff4355077a3842c588cc852a9c6abdf401129d33d4907"
       }
     },
     "configuration": {
@@ -707,7 +707,7 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "slskd picks one peer for a release several peers share and caps automatic retries of failed jobs; documented in the slskd import section and changelog.",
+        "note": "slskd picks one peer for a release several peers share and caps automatic retries of failed jobs; a manual retry clears the skipped peers; documented in the slskd import section and changelog.",
         "breaking": "none",
         "migration": "",
         "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83"

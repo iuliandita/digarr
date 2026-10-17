@@ -260,12 +260,16 @@ describe('slskd job queries', () => {
     }
   })
 
-  it('manual retry of a parked job resets the attempt count', async () => {
+  it('manual retry of a parked job resets attempts and the failed-peer list', async () => {
     const failed = {
       id: 9,
       state: 'failed',
       attempts: 9,
-      selectedResult: null,
+      selectedResult: {
+        username: 'peer-a',
+        files: [{ filename: 'Artist\\Album\\01.flac', size: 1 }],
+        failedReleases: [{ username: 'peer-b', directory: 'Artist\\Album' }],
+      },
       updatedAt: new Date(Date.now() - HOUR - 1),
     }
     const db = makeDb({
@@ -277,7 +281,7 @@ describe('slskd job queries', () => {
     await createSlskdJob(db as unknown as Database, retryInput('standalone_approval'))
 
     expect(db._mocks.updateSet).toHaveBeenCalledWith(
-      expect.objectContaining({ state: 'pending', attempts: 0 }),
+      expect.objectContaining({ state: 'pending', attempts: 0, selectedResult: null }),
     )
   })
 

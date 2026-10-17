@@ -96,7 +96,8 @@ async function retryFailedSlskdJob(
     : MANUAL_RETRY_COOLDOWN_MS
   if (Date.now() - updatedAt.getTime() < cooldown) return row
 
-  const failedReleases = collectFailedReleases(row.selectedResult)
+  // A manual retry starts clean: the failure may have been a setup problem, not a bad release.
+  const failedReleases = automatic ? collectFailedReleases(row.selectedResult) : []
 
   const [retried] = await db
     .update(slskdJobs)
