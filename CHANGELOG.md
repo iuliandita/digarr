@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
 - Default dark theme: red and accent-colored text now reaches the 4.5:1 contrast minimum on cards, and tinted red and accent badges use a lighter tint to do the same. Also: the AI provider tip sits inside the AI card and the OpenAI-compatible note under the API key field, a second Discover tip waits until the first is dismissed, rows of tabs and filters that scroll sideways fade at the edge that has more, dashboard and analytics cards in the same row match heights, and opening an admin-only Settings tab as a non-admin replaces the URL with the tab you actually see (#939).
 - Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
 - CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).
