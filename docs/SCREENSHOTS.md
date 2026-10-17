@@ -17,6 +17,10 @@ In v2.0.0, first-time browser setup starts with account creation before the exis
 
 In v1.19.0, listening tiles distinguish an unconfigured account, empty history, and a failed fetch. Network or request failures retain cached entries with a retry notice. In v2.0.0, upstream failures returned by the API as HTTP 200 with `status: error` also retain cached entries and show a retry notice; v1.19.0 can replace them with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
+The upcoming customizable dashboard (#995) replaces the fixed layout shown above. Customize lists every card, including hidden and empty cards, with visibility, size, pointer drag handles, move buttons, and arrow-key reordering. Screen readers hear the new position. Small, medium, and large span one, two, and three desktop columns and fill the width on phones. Reset to default restores Today's Pick, Your decisions, Listening, Genres, and Subscriptions. The layout follows the signed-in account. Empty cards hide unless Show empty cards is enabled; listening-source failures remain visible in the affected view. When Today's Pick has no recommendations, Run Scan stays available in the dashboard header.
+
+Your decisions switches between Approved and All; Listening switches between Top artists and Recently Played. Card headings link to their source page. Genres, Subscriptions, Discover's pending and decision views, and Settings > Connections expose the same visibility preference through Show on dashboard. The existing screenshot capture script still navigates to `/` for both dashboard themes; its selectors need no update. The images above predate these controls.
+
 ## Dashboard (light)
 
 ![Dashboard Light](screenshots/dashboard-light.png)

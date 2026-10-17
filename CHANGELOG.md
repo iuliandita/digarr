@@ -8,7 +8,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Customize the Dashboard per account: show or hide every card, drag or use move buttons and arrow keys to reorder, choose one to three desktop columns, and reset to the curated layout. Empty cards hide by default with an option to keep them visible. Your decisions combines approvals and rejections; Listening switches between top artists and recent plays. Card titles link to their source pages, which have a Show on dashboard switch. All 15 languages are supported (#995).
+
 - Personal API tokens in Settings > Account for scripts and automation, with read, write, or admin scope, optional expiry, one-time reveal, last-used metadata, and immediate revocation. Stored as SHA-256 hashes only and excluded from application backups and backend copies. Recreate tokens after recovery onto a fresh instance; password changes and logout keep them active, so revoke them if a password was compromised. Read/write tokens never inherit admin access, and exhausted failed-auth budgets block credential lookups. Legacy `DIGARR_AUTH_TOKEN` keeps working with a startup deprecation pointing at personal tokens. Migration 0057 adds a table; take a complete backup before upgrading. Rolling back leaves it unused and tokens stop working on older images; existing sessions remain supported. (#978)
+
 - Lidarr approvals and auto-approval now offer missing, existing, latest and first-album monitoring. Each Lidarr target can set default tags, with per-approval overrides and tag creation from its own instance. Tags also apply when an album approval adds a missing artist (#974) (#975).
 
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).

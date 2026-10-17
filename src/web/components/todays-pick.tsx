@@ -153,10 +153,10 @@ export function TodaysPick({
     : null
 
   return (
-    <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col md:flex-row">
-      {/* Banner - full width on mobile, left half on md+ */}
+    <div className="bg-surface border border-border rounded-lg overflow-hidden flex flex-col @min-[38rem]:flex-row">
+      {/* Banner - full width in narrow cards, left half in wide cards */}
       <div
-        className="relative shrink-0 h-56 md:h-auto md:w-1/2 md:min-h-[20rem]"
+        className="relative shrink-0 h-56 @min-[38rem]:h-auto @min-[38rem]:w-1/2 @min-[38rem]:min-h-[20rem]"
         style={bannerStyle}
       >
         {hasImage && (
@@ -170,7 +170,7 @@ export function TodaysPick({
             }}
           />
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent md:bg-gradient-to-r md:from-transparent md:via-black/20 md:to-black/60" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent @min-[38rem]:bg-gradient-to-r @min-[38rem]:from-transparent @min-[38rem]:via-black/20 @min-[38rem]:to-black/60" />
 
         {/* Score badge */}
         <div
@@ -185,7 +185,7 @@ export function TodaysPick({
           </span>
         </div>
 
-        {/* Artist name / logo - bottom on mobile, left on md+ */}
+        {/* Artist name / logo - bottom in narrow cards, left in wide cards */}
         <div className="absolute bottom-3 left-4 right-4">
           {artist.logoUrl ? (
             <img
@@ -200,17 +200,17 @@ export function TodaysPick({
             />
           ) : null}
           <h3
-            className={`text-white font-bold text-xl md:text-2xl leading-tight drop-shadow-lg truncate${artist.logoUrl ? ' hidden' : ''}`}
+            className={`text-white font-bold text-xl @min-[38rem]:text-2xl leading-tight drop-shadow-lg truncate${artist.logoUrl ? ' hidden' : ''}`}
           >
             {artist.name}
           </h3>
         </div>
       </div>
 
-      {/* Right column on md+ */}
+      {/* Right column in wide cards */}
       <div className="flex flex-col flex-1 min-w-0">
         {/* Content */}
-        <div className="p-4 md:p-5 overflow-y-auto min-h-0 flex-1 space-y-3">
+        <div className="p-4 @min-[38rem]:p-5 overflow-y-auto min-h-0 flex-1 space-y-3">
           {artist.genres && artist.genres.length > 0 && (
             <div className="flex flex-wrap gap-1">
               {artist.genres.slice(0, 6).map((genre) => (
@@ -225,7 +225,7 @@ export function TodaysPick({
           )}
 
           {rec.aiReasoning && (
-            <p className="text-xs md:text-sm text-muted line-clamp-5 md:line-clamp-6">
+            <p className="text-xs @min-[38rem]:text-sm text-muted line-clamp-5 @min-[38rem]:line-clamp-6">
               {highlightedReasoning}
             </p>
           )}
@@ -242,14 +242,14 @@ export function TodaysPick({
         </div>
 
         {/* Hint above action buttons */}
-        <div className="px-4 md:px-5 pt-2">
+        <div className="px-4 @min-[38rem]:px-5 pt-2">
           <Hint id="todays-pick-skip-tip" type="inline">
             {t('todaysPick.skipHint')}
           </Hint>
         </div>
 
         {/* Action buttons */}
-        <div className="px-4 md:px-5 pb-4 pt-2 flex gap-2 shrink-0">
+        <div className="px-4 @min-[38rem]:px-5 pb-4 pt-2 flex gap-2 shrink-0">
           <button
             type="button"
             onClick={() => onReject(rec.id)}

@@ -34,6 +34,10 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 [CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
 
+## In development
+
+- Customizable dashboard (#995): account-saved card visibility, order, size, source-page switches, merged decision and listening views, and reset. This is unreleased; see the [changelog](../CHANGELOG.md#unreleased).
+
 ## Next priorities
 
 Planned direction, in this order. Make recommendations easier to hear and use before adding more integrations.

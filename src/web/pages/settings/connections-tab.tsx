@@ -3,6 +3,7 @@ import { Check, Copy } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
+import { DashboardCardToggle } from '../../components/dashboard-card-toggle'
 import { Field } from '../../components/field'
 import { GenreCoverageSummary } from '../../components/genre-coverage-summary'
 import { Hint } from '../../components/hint'
@@ -846,9 +847,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
         </>
       )}
 
-      <div className="pt-2">
-        <h2 className="text-lead font-semibold text-text">{t('settings.yourConnections')}</h2>
-        <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
+      <div className="pt-2 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <h2 className="text-lead font-semibold text-text">{t('settings.yourConnections')}</h2>
+          <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
+        </div>
+        <DashboardCardToggle cardId="listening" />
       </div>
 
       <Hint id="settings-connections-tip" type="inline">

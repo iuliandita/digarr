@@ -81,6 +81,8 @@ vi.mock('@/web/components/ui/skeleton', () => ({
 }))
 
 vi.mock('@/web/lib/api', () => ({
+  getUserPreferences: vi.fn().mockResolvedValue({}),
+  updateUserPreferences: vi.fn().mockResolvedValue(undefined),
   bulkToggleSubscriptions: vi.fn(),
   createSubscriptionApi: vi.fn(),
   deleteSubscriptionApi: vi.fn(),
