@@ -6,6 +6,7 @@ import type {
 } from '@/core/clients/lidarr'
 import type { SlskdSearchFile } from '@/core/clients/slskd'
 import { normalizeAlbumTitle } from '@/core/library/normalize'
+import { normalizeInteger, remoteDirectory } from '@/core/slskd/shared'
 import { isSupportedAudioFile } from './audio'
 
 export type SlskdImportRelease = {
@@ -22,19 +23,6 @@ export type SlskdImportClient = Pick<
   ReturnType<typeof createLidarrClient>,
   'getAlbums' | 'getManualImport' | 'updateManualImport' | 'getTracks'
 >
-
-function normalizeInteger(value: unknown): number | null {
-  const parsed = Number(value)
-  return Number.isSafeInteger(parsed) && parsed > 0 ? parsed : null
-}
-
-function remoteDirectory(filename: string): string {
-  return filename
-    .split(/[\\/]+/)
-    .filter(Boolean)
-    .slice(0, -1)
-    .join('\\')
-}
 
 function remoteBasename(filename: string): string {
   return (

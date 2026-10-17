@@ -765,6 +765,109 @@ describe('createSlskdOrchestrator', () => {
     )
   })
 
+  it('retries the import checkpoint so the ManualImport command id is not lost', async () => {
+    const updateJobState = vi.fn(async () => makeJob()).mockRejectedValueOnce(new Error('db blip'))
+    const manualImport = vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'queued' }))
+    const selectedResult = makeSelectedResult()
+    const transfers = (selectedResult.files as Array<{ filename: string; size: number }>).map(
+      (file, index) => ({
+        id: `d-${index}`,
+        username: 'peer-a',
+        filename: file.filename,
+        size: file.size,
+        state: 'Completed, Succeeded',
+      }),
+    )
+    const lidarrClient = {
+      getWantedMissing: vi.fn(async () => []),
+      getManualImport: vi.fn(async () => [
+        {
+          path: '/downloads/Music Has the Right to Children/01 - Wildlife Analysis.flac',
+          artist: { id: 77 },
+          album: { id: 808 },
+          tracks: [{ id: 1001 }],
+          quality: { quality: { id: 7, name: 'FLAC' } },
+          rejections: [],
+        },
+        {
+          path: '/downloads/Music Has the Right to Children/02 - An Eagle in Your Mind.flac',
+          artist: { id: 77 },
+          album: { id: 808 },
+          tracks: [{ id: 1002 }],
+          quality: { quality: { id: 7, name: 'FLAC' } },
+          rejections: [],
+        },
+      ]),
+      getTracks: vi.fn(async () => [
+        { id: 1001, albumId: 808, hasFile: false },
+        { id: 1002, albumId: 808, hasFile: false },
+      ]),
+      manualImport,
+    }
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({
+          state: 'downloading',
+          recommendationId: 301,
+          selectedResult,
+          lidarrArtistId: 77,
+          lidarrAlbumId: 808,
+        }),
+      ]),
+      listTargets: vi.fn(async () => [
+        makeTarget(),
+        makeTarget({
+          id: 12,
+          type: 'lidarr',
+          config: { url: 'http://lidarr.local', apiKey: 'li-key' },
+        }),
+      ]),
+      createSlskdClient: vi.fn(() => ({
+        createSearch: vi.fn(),
+        getSearchResults: vi.fn(),
+        enqueueResult: vi.fn(),
+        getDownloads: vi.fn(async () => [
+          {
+            username: 'peer-a',
+            directories: [
+              {
+                directory: 'Boards of Canada\\Music Has the Right to Children',
+                fileCount: 2,
+                files: transfers,
+              },
+            ],
+          },
+        ]),
+      })),
+      createLidarrClient: vi.fn(() => lidarrClient),
+      updateJobState,
+    } as never)
+
+    await orchestrator.triggerSync()
+
+    expect(manualImport).toHaveBeenCalledTimes(1)
+    expect(updateJobState).not.toHaveBeenCalledWith(1, 'failed', expect.anything())
+    expect(updateJobState).toHaveBeenCalledTimes(2)
+    expect(manualImport).toHaveBeenCalledWith([
+      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1001] }),
+      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1002] }),
+    ])
+    expect(updateJobState).toHaveBeenCalledWith(
+      1,
+      'import_pending',
+      expect.objectContaining({
+        selectedResult: expect.objectContaining({
+          import: {
+            commandId: 991,
+            albumId: 808,
+            expectedTrackIds: [1001, 1002],
+            checks: 0,
+          },
+        }),
+      }),
+    )
+  })
+
   it('does not resubmit ManualImport and only completes after every expected track hasFile', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const manualImport = vi.fn()

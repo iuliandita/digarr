@@ -3,6 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { createCsvImportAdapter, parseCsvArtists } from '@/core/subscriptions/adapters/csv-import'
 
 describe('parseCsvArtists', () => {
+  it('keeps a quoted artist name that spans lines', () => {
+    expect(parseCsvArtists('artist,genre\n"Foo\nBar",rock\nBaz,pop')).toEqual(['Foo\nBar', 'Baz'])
+  })
+
   it('parses header row with "artist" column', () => {
     const csv = 'artist,genre\nRadiohead,alt-rock\nPortishead,trip-hop'
     expect(parseCsvArtists(csv)).toEqual(['Radiohead', 'Portishead'])

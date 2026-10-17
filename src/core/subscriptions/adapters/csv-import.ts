@@ -1,4 +1,4 @@
-import { parseCsvRow } from '@/core/csv/cell-safe'
+import { parseCsvRows } from '@/core/csv/cell-safe'
 import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 
 const KNOWN_HEADERS = ['artist', 'artist_name', 'artist name', 'name']
@@ -9,15 +9,11 @@ const KNOWN_HEADERS = ['artist', 'artist_name', 'artist name', 'name']
  * Uses RFC 4180 row parsing and strips formula-trigger prefixes per field.
  */
 export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
-  const lines = csv
-    .replace(/\r\n/g, '\n')
-    .split('\n')
-    .filter((line) => line.length > 0)
+  const rows = parseCsvRows(csv)
 
-  if (lines.length === 0) return []
+  if (rows.length === 0) return []
 
-  const firstLine = lines[0] as string
-  const headerFields = parseCsvRow(firstLine).map((col) => col.trim().toLowerCase())
+  const headerFields = (rows[0] as string[]).map((col) => col.trim().toLowerCase())
   const headerIdx = headerFields.findIndex((col) => KNOWN_HEADERS.includes(col))
 
   let artistColumn: number
@@ -26,7 +22,7 @@ export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
   if (headerIdx !== -1) {
     artistColumn = headerIdx
     startRow = 1
-  } else if (headerFields.length === 1 && !firstLine.includes(',')) {
+  } else if (headerFields.length === 1) {
     artistColumn = 0
     startRow = 0
   } else {
@@ -37,8 +33,8 @@ export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
   const seen = new Set<string>()
   const artists: string[] = []
 
-  for (let i = startRow; i < lines.length && artists.length < maxArtists; i++) {
-    const cols = parseCsvRow(lines[i] as string)
+  for (let i = startRow; i < rows.length && artists.length < maxArtists; i++) {
+    const cols = rows[i] as string[]
     const name = (cols[artistColumn] ?? '').trim()
     if (!name) continue
     const key = name.toLowerCase()

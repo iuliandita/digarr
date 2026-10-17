@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { remoteDirectory, splitRemotePath } from '@/core/slskd/shared'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
@@ -79,14 +80,6 @@ function asSearchFile(value: unknown): SlskdSearchFile | null {
     ...(typeof row.bitrate === 'number' ? { bitrate: row.bitrate } : {}),
     ...(typeof row.extension === 'string' ? { extension: row.extension } : {}),
   }
-}
-
-function splitRemotePath(filename: string): string[] {
-  return filename.split(/[\\/]+/).filter(Boolean)
-}
-
-function remoteDirectory(filename: string): string {
-  return splitRemotePath(filename).slice(0, -1).join('\\')
 }
 
 function isDiscDirectory(name: string): boolean {

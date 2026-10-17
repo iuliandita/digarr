@@ -346,4 +346,27 @@ describe('runSubscription', () => {
       expect.objectContaining({ lastError: 'adapter exploded' }),
     )
   })
+
+  it('reports the stored count when some inserts did not land', async () => {
+    const artists = [{ name: 'A', similarityScore: 1, source: 'test' }]
+    const adapter = makeAdapter({ fetch: vi.fn().mockResolvedValue({ artists }) })
+    const deps = makeDeps({
+      queries: {
+        updateSubscription: vi.fn().mockResolvedValue(undefined),
+        getBatchStats: vi.fn().mockResolvedValue({ added: 1 }),
+      },
+    })
+    resolveMock.mockResolvedValue([{}, {}, {}] as never)
+    scoreMock.mockReturnValue([] as never)
+    filterMock.mockReturnValue([{}, {}, {}] as never)
+    storeMock.mockResolvedValue(99)
+
+    const result = await runSubscription(makeSubscription(), adapter, deps)
+
+    expect(result.artistsNew).toBe(1)
+    expect(deps.queries.updateSubscription).toHaveBeenCalledWith(
+      1,
+      expect.objectContaining({ lastResultCount: 1 }),
+    )
+  })
 })

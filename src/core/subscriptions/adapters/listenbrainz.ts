@@ -69,33 +69,42 @@ export function createListenBrainzAdapter(deps: {
 
     async fetch(
       config: Record<string, unknown>,
-      _options?: { limit?: number },
+      options?: { limit?: number },
     ): Promise<AdapterResult> {
-      const feedType = String(config.feedType ?? 'fresh-releases').trim()
-
-      if (feedType === 'fresh-releases') {
-        return fetchFreshReleases(deps.token)
-      }
-
-      if (feedType === 'weekly-jams') {
-        return fetchWeeklyJams(deps.username, deps.token)
-      }
-
-      if (feedType === 'artist-radio') {
-        return fetchArtistRadio(deps, config)
-      }
-
-      if (feedType === 'similar-users') {
-        return fetchSimilarUsers(deps, config)
-      }
-
-      if (feedType === 'tag-radio') {
-        return fetchTagRadio(deps, config)
-      }
-
-      return { artists: [] }
+      const result = await fetchFeed(deps, config)
+      const limit = options?.limit
+      return limit && limit > 0 ? { ...result, artists: result.artists.slice(0, limit) } : result
     },
   }
+}
+
+async function fetchFeed(
+  deps: { username: string; token: string },
+  config: Record<string, unknown>,
+): Promise<AdapterResult> {
+  const feedType = String(config.feedType ?? 'fresh-releases').trim()
+
+  if (feedType === 'fresh-releases') {
+    return fetchFreshReleases(deps.token)
+  }
+
+  if (feedType === 'weekly-jams') {
+    return fetchWeeklyJams(deps.username, deps.token)
+  }
+
+  if (feedType === 'artist-radio') {
+    return fetchArtistRadio(deps, config)
+  }
+
+  if (feedType === 'similar-users') {
+    return fetchSimilarUsers(deps, config)
+  }
+
+  if (feedType === 'tag-radio') {
+    return fetchTagRadio(deps, config)
+  }
+
+  return { artists: [] }
 }
 
 async function fetchFreshReleases(token: string): Promise<AdapterResult> {

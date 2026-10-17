@@ -252,4 +252,10 @@ describe('createListenBrainzAdapter', () => {
     global.fetch = savedFetch
     noJamsServer.close()
   })
+
+  it('applies the per-run limit option', async () => {
+    const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
+    const result = await adapter.fetch({ feedType: 'fresh-releases' }, { limit: 2 })
+    expect(result.artists.map((a) => a.name)).toEqual(['Artist One', 'Artist Two'])
+  })
 })
