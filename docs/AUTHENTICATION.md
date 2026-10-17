@@ -14,7 +14,7 @@ The first user becomes admin; admins can promote additional users in Settings > 
 
 In Settings > Targets, admins choose **Assigned user** when adding or editing a target. Each user's approvals use only their assigned targets. Create separate targets if several users need the same Lidarr instance. Admins manage the connection; ordinary users can test and use it without seeing saved credentials.
 
-Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Shared artists and batch history remain. Job history entries also remain: they lose their link to the deleted user but keep their recorded type, status, errors, and metadata.
+Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, provider credentials, playlists, blocks, and library records. Job history entries for the user (including their errors, metadata, and source results) are deleted with them. Shared artists and batch history remain.
 
 ## Session auth (default)
 

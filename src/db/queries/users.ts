@@ -5,7 +5,7 @@ import { isUniqueViolation } from '@/core/db-errors'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import type { Database, DbOrTx } from '@/db'
 import type { Preferences } from '@/db/schema'
-import { sessions, users } from '@/db/schema'
+import { jobRuns, sessions, users } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 type UserRow = typeof users.$inferSelect
@@ -373,6 +373,7 @@ export async function listUsers(
 export async function deleteUser(db: Database, id: number): Promise<void> {
   await db.transaction(async (tx) => {
     await guardLastAdmin(tx, id)
+    await tx.delete(jobRuns).where(eq(jobRuns.userId, id))
     await tx.delete(users).where(eq(users.id, id))
   })
 }
