@@ -578,7 +578,7 @@
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
-        "src/core/library/store.ts": "fb0ec48a2d9797c8593e2cd42f328ad8236214088ac18dfd1be1f955ca204e79",
+        "src/core/library/store.ts": "1a11c18e0c0e106cd864b99ab8dc5da668b0d0fc7ced106aa761ac44fb664d37",
         "src/core/library/sync.ts": "2a4bda0806ab5aae742a1474b85cf0952759ef97e198a19a35bc077a6dcd5c07",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
@@ -700,14 +700,14 @@
         "src/index.ts": "fb2e4767cd8e59ce544916ad4e334d348f3207781b3f5adbc2d056da52015773",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "1a1f6781b082124551bbf9a072bd051449073484b3e677ef48415ff25f81a12b",
+      "digest": "c4d475926e310fb53562300a6da607ec0c8630b30e3d1425af427f81f271a746",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Bug fixes to subscription caps and counts, CSV parsing, album MBID retention, slskd checkpoint retry and shutdown drain; no new settings or UI",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Unresolved-album list also includes unmatched rows that keep their source MBID; internal query fix with no documented behavior change",
         "breaking": "none",
         "migration": "",
-        "digest": "1a1f6781b082124551bbf9a072bd051449073484b3e677ef48415ff25f81a12b"
+        "digest": "c4d475926e310fb53562300a6da607ec0c8630b30e3d1425af427f81f271a746"
       }
     },
     "deployment": {

@@ -670,7 +670,8 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
         )
         .where(
           and(
-            isNull(libraryAlbums.albumMbid),
+            // Unmatched rows can keep their source MBID, so the reason is what marks them.
+            or(isNull(libraryAlbums.albumMbid), isNotNull(libraryAlbums.unreconciledReason)),
             or(eq(libraryAlbums.userId, userId), isNull(libraryAlbums.userId)),
             isNull(libraryAlbumMatchOverrides.id),
           ),

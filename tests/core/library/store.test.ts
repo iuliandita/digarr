@@ -580,6 +580,27 @@ describe('LibrarySyncStore', () => {
     expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(0)
   })
 
+  it('listUnreconciledAlbumsForUser keeps unmatched rows that carry a source MBID', async () => {
+    const store = createLibrarySyncStore(db)
+    await store.replaceLibrarySnapshot(
+      userId,
+      'plex',
+      [],
+      [
+        reconciledAlbum({
+          sourceAlbumId: 'album-src-mbid',
+          sourceArtistId: 'artist-1',
+          title: 'Source Tagged',
+          albumMbid: 'b1a9c0e9-d987-4042-ae91-78d6a3267d69',
+          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          unreconciledReason: 'lookup_failed',
+        }),
+      ],
+    )
+
+    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(1)
+  })
+
   it('bulk ignores albums and hides them from unreconciled rows', async () => {
     const store = createLibrarySyncStore(db)
     const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
