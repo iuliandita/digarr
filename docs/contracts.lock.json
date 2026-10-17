@@ -193,9 +193,9 @@
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
+        "note": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON, cleared on manual retry); no schema, migration, backup format, or restore change.",
         "breaking": "none",
-        "migration": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
+        "migration": "Query-only change to slskd failed-job retry (attempt cap, backoff, failed peer kept in the existing selected_result JSON, cleared on manual retry); no schema, migration, backup format, or restore change.",
         "digest": "9195f2747bd447b8801ff4355077a3842c588cc852a9c6abdf401129d33d4907"
       }
     },
@@ -706,8 +706,8 @@
       "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Album reconciliation falls back to exact normalized matches on release-group aliases (primary title first, ambiguity unchanged); release-group browse requests inc=aliases with unchanged pagination; /api/v1/albums/:mbid gains optional aliases; docs/NORMALIZATION.md updated too",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "slskd picks one peer for a release several peers share and caps automatic retries of failed jobs; a manual retry clears the skipped peers; documented in the slskd import section and changelog.",
         "breaking": "none",
         "migration": "",
         "digest": "259f8736c312d72a588f8945f517142142115b9ec8c8c07db16ae059640aaa83"
