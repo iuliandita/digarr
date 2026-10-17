@@ -217,7 +217,14 @@ function RecommendationsTabInner({
         librarySeedRatio,
         autoApproveEnabled,
         autoApproveThreshold,
-        autoApproveMonitorOption: autoApproveMonitorOption as 'all' | 'new' | 'none',
+        autoApproveMonitorOption: autoApproveMonitorOption as
+          | 'all'
+          | 'new'
+          | 'missing'
+          | 'existing'
+          | 'latest'
+          | 'first'
+          | 'none',
         netNewAlbumDiscovery,
         fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
         metadataFallbackUrl: metadataFallbackUrl || undefined,
@@ -392,6 +399,11 @@ function RecommendationsTabInner({
                   className="mt-1 w-full bg-bg border border-border rounded text-sm text-text px-2 py-1.5"
                 >
                   <option value="all">{t('settings.monitorAll')}</option>
+                  <option value="missing">{t('settings.monitorMissing')}</option>
+                  <option value="existing">{t('settings.monitorExisting')}</option>
+                  <option value="latest">{t('settings.monitorLatest')}</option>
+                  <option value="first">{t('settings.monitorFirst')}</option>
+
                   <option value="new">{t('settings.monitorNew')}</option>
                   <option value="none">{t('settings.monitorNone')}</option>
                 </select>

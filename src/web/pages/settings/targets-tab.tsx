@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { Hint } from '../../components/hint'
+import { LidarrTags } from '../../components/lidarr-tags'
 import { Button } from '../../components/ui/button'
 import {
   createTargetApi,
@@ -247,7 +248,8 @@ function buildLidarrConfig(
   isEditing: boolean,
   instanceChanged: boolean,
 ): Record<string, unknown> {
-  if (useServerConnection) return { useServerConnection: true }
+  const tags = instanceChanged ? [] : (config.tags ?? '').split(',').filter(Boolean).map(Number)
+  if (useServerConnection) return { useServerConnection: true, tags }
   const base = isEditing
     ? (buildTargetConfigPatch(targetType, config) ?? {})
     : normalizeTargetConfig(targetType.value, config)
@@ -256,7 +258,7 @@ function buildLidarrConfig(
     if (config[key]) defaults[key] = Number(config[key])
     else if (isEditing) defaults[key] = null
   }
-  return { ...base, ...defaults, useServerConnection: false }
+  return { ...base, ...defaults, tags, useServerConnection: false }
 }
 
 function LidarrInstanceDefaults({
@@ -321,6 +323,32 @@ function LidarrInstanceDefaults({
         })}
       </div>
     </div>
+  )
+}
+
+function LidarrTargetTags({
+  targetId,
+  value,
+  onChange,
+}: {
+  targetId: number
+  value: string
+  onChange: (value: string) => void
+}) {
+  const { t } = useI18n()
+  const { data, isError } = useQuery({
+    queryKey: ['lidarrApproveOptions', targetId],
+    queryFn: () => getLidarrApproveOptions(targetId),
+  })
+  if (isError) return <p className="text-xs text-reject">{t('approveDialog.loadFailed')}</p>
+  if (!data) return <p className="text-xs text-muted">{t('common.loading')}</p>
+  return (
+    <LidarrTags
+      targetId={targetId}
+      available={data.tags ?? []}
+      value={value.split(',').filter(Boolean).map(Number)}
+      onChange={(tags) => onChange(tags.join(','))}
+    />
   )
 }
 
@@ -510,7 +538,10 @@ function AddTargetDialog({
                 <input
                   type="checkbox"
                   checked={!useServerConnection}
-                  onChange={(e) => setUseServerConnection(!e.target.checked)}
+                  onChange={(e) => {
+                    setUseServerConnection(!e.target.checked)
+                    setConfig((previous) => ({ ...previous, tags: '' }))
+                  }}
                 />
                 {t('settings.targetLidarrUseOtherInstance')}
               </label>
@@ -564,6 +595,17 @@ function AddTargetDialog({
                 targetId={initialTarget.id}
                 config={config}
                 onChange={(key, value) => setConfig((previous) => ({ ...previous, [key]: value }))}
+              />
+            ) : (
+              <p className="text-xs text-muted">{t('settings.targetLidarrDefaultsSaveFirst')}</p>
+            ))}
+
+          {isLidarr &&
+            (initialTarget && useServerConnection === initialUsesServer && !instanceChanged ? (
+              <LidarrTargetTags
+                targetId={initialTarget.id}
+                value={config.tags ?? ''}
+                onChange={(tags) => setConfig((previous) => ({ ...previous, tags }))}
               />
             ) : (
               <p className="text-xs text-muted">{t('settings.targetLidarrDefaultsSaveFirst')}</p>

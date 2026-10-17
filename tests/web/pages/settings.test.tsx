@@ -1500,6 +1500,7 @@ describe('SettingsPage', () => {
           qualityProfileId: null,
           metadataProfileId: null,
           rootFolderId: null,
+          tags: [],
           useServerConnection: false,
         },
       })
@@ -1534,7 +1535,7 @@ describe('SettingsPage', () => {
         name: 'Other Lidarr',
         userId: 1,
         enabled: true,
-        config: { url: 'http://new:8686', useServerConnection: false },
+        config: { url: 'http://new:8686', useServerConnection: false, tags: [] },
       }),
     )
   })
@@ -1556,7 +1557,7 @@ describe('SettingsPage', () => {
         type: 'lidarr',
         userId: 2,
         name: 'Lidarr',
-        config: { useServerConnection: true },
+        config: { useServerConnection: true, tags: [] },
       }),
     )
   })
@@ -1577,7 +1578,7 @@ describe('SettingsPage', () => {
         type: 'lidarr',
         userId: 1,
         name: 'Lidarr',
-        config: { url: 'http://other:8686', apiKey: 'key', useServerConnection: false },
+        config: { url: 'http://other:8686', apiKey: 'key', useServerConnection: false, tags: [] },
       }),
     )
   })
@@ -1633,6 +1634,7 @@ describe('SettingsPage', () => {
           qualityProfileId: null,
           metadataProfileId: null,
           rootFolderId: null,
+          tags: [],
           useServerConnection: false,
         },
       }),

@@ -9,9 +9,15 @@ export const lidarrAddSchema = z
     qualityProfileId: z.number().int().positive().optional(),
     metadataProfileId: z.number().int().positive().optional(),
     rootFolderId: z.number().int().positive().optional(),
+    tags: z.array(z.number().int().positive()).max(100).optional(),
+    monitorOption: z
+      .enum(['all', 'new', 'missing', 'existing', 'latest', 'first', 'none'])
+      .optional(),
   })
   .strict()
 
 export const approveOptionsQuerySchema = z.object({
   targetId: z.coerce.number().int().positive().optional(),
 })
+
+export const lidarrTagSchema = z.object({ label: z.string().trim().min(1).max(100) }).strict()

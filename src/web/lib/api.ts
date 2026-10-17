@@ -372,6 +372,7 @@ export const updateRecommendation = (id: number, body: Record<string, unknown>) 
 export const approveRecommendation = (
   id: number,
   options?: {
+    tags?: number[]
     monitorOption?: string
     selectedAlbumIds?: string[]
     qualityProfileId?: number
@@ -526,10 +527,12 @@ export const getTimeToAct = () => fetchApi<TimeToAct[]>('/analytics/time-to-act'
 // Non-admin-safe picker data: profile names + root-folder paths only, no
 // freeSpace/structure. Used by the approve dialog and per-user Lidarr defaults.
 export type LidarrApproveOptions = {
+  tags?: Array<{ id: number; label: string }>
   qualityProfiles: Array<{ id: number; name: string }>
   metadataProfiles: Array<{ id: number; name: string }>
   rootFolders: Array<{ id: number; path: string }>
   defaults?: {
+    tags?: number[]
     qualityProfileId: number | null
     metadataProfileId: number | null
     rootFolderId: number | null
@@ -542,6 +545,12 @@ export const getLidarrApproveOptions = (targetId?: number) =>
     targetId === undefined
       ? '/lidarr/approve-options'
       : `/lidarr/approve-options?targetId=${encodeURIComponent(String(targetId))}`,
+  )
+
+export const createLidarrTag = (label: string, targetId?: number) =>
+  fetchApi<{ id: number; label: string }>(
+    `/lidarr/tags${targetId === undefined ? '' : `?targetId=${targetId}`}`,
+    { method: 'POST', body: JSON.stringify({ label }) },
   )
 
 // Library Health
@@ -814,6 +823,7 @@ export async function approveToTarget(
   options?: {
     approvalMode?: 'single_target' | 'combined_lidarr_slskd'
     lidarrTargetId?: string
+    tags?: number[]
     monitorOption?: string
     selectedAlbumIds?: string[]
     qualityProfileId?: number

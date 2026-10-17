@@ -628,7 +628,7 @@ export type Preferences = {
   lidarrPublicUrl?: string // browser-accessible Lidarr URL (may differ from API URL)
   autoApproveEnabled?: boolean
   autoApproveThreshold?: number // 0-1: minimum score to auto-approve
-  autoApproveMonitorOption?: 'all' | 'new' | 'none'
+  autoApproveMonitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none'
   playlistSize?: number // default 25
   playlistSchedule?: string // cron, default '0 6 * * 1' (Monday 6am)
   playlistEnabled?: boolean // default false

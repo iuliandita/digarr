@@ -15,6 +15,7 @@ import { dispatch } from '@/core/notifications'
 import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
 import { isConnectedToken } from '@/core/provider-auth'
 import { redactSecrets } from '@/core/providers/retry'
+import { usesServerConnection } from '@/core/targets/lidarr-connection'
 import { validateAiBaseUrl } from '@/core/url-safety'
 import { getUserConnections, type UserConnections, updateUserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
@@ -499,6 +500,25 @@ export function settingsRoutes(deps: AppDependencies) {
     }
 
     if (Object.keys(globalFields).length > 0) {
+      if ('lidarrUrl' in globalFields || 'lidarrApiKey' in globalFields) {
+        const previous = storedSettings ?? (await deps.getSettings())
+        const changed =
+          ('lidarrUrl' in globalFields && globalFields.lidarrUrl !== previous?.lidarrUrl) ||
+          ('lidarrApiKey' in globalFields && globalFields.lidarrApiKey !== previous?.lidarrApiKey)
+        if (changed) {
+          for (const target of await deps.targetQueries.getAllTargets()) {
+            if (
+              target.type !== 'lidarr' ||
+              !usesServerConnection(target.config) ||
+              !target.config.tags
+            )
+              continue
+            const config = { ...target.config }
+            delete config.tags
+            await deps.targetQueries.updateTarget(target.id, { config })
+          }
+        }
+      }
       await deps.updateSettings(globalFields)
     }
 

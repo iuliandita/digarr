@@ -164,6 +164,7 @@ describe('personal API tokens', () => {
           getQualityProfiles: async () => [{ id: 1, name: 'FLAC' }],
           getMetadataProfiles: async () => [{ id: 1, name: 'Standard' }],
           getRootFolders: async () => [{ id: 1, path: '/music' }],
+          getTags: async () => [],
         } as unknown as ReturnType<typeof createLidarrClient>)
       try {
         vi.mocked(deps.targetQueries.getTarget).mockResolvedValue({
