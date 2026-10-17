@@ -518,8 +518,6 @@ export const en = {
   'playlists.created': 'Playlist created',
   'playlists.emptyHint':
     'Build playlists from approved or pending artists, download them as M3U or XSPF, or push them to Spotify, Navidrome, Jellyfin, Emby, or Plex.',
-  'playlists.nextGeneration': 'Next generation',
-  'playlists.noScheduleConfigured': 'No schedule configured',
   'playlists.playlistPlural': 'playlists',
   'playlists.playlistSingular': 'playlist',
   'playlists.schedulingLabel': 'Scheduled generation',
@@ -527,8 +525,6 @@ export const en = {
   'playlists.schedulingPausedHint':
     'Paused: playlists with a schedule are not regenerated until you turn this on. Generating a playlist by hand still works.',
   'playlists.schedulingSaveFailed': "Couldn't change playlist scheduling",
-  'playlists.schedulePaused': 'Schedule paused',
-  'playlists.scheduled': 'Scheduled',
   'playlists.updateFailed': 'Failed to update playlist',
   'playlists.updated': 'Playlist updated',
   'playlistForm.dialogCreate': 'Create playlist',

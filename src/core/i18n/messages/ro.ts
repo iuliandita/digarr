@@ -528,8 +528,6 @@ export const ro = {
   'playlists.created': 'Lista de redare creată',
   'playlists.emptyHint':
     'Creează playlisturi din artiști aprobați sau în așteptare, descarcă-le ca M3U sau XSPF ori trimite-le în Spotify, Navidrome, Jellyfin, Emby sau Plex.',
-  'playlists.nextGeneration': 'Generația următoare',
-  'playlists.noScheduleConfigured': 'Nu a fost configurat niciun program',
   'playlists.playlistPlural': 'liste de redare',
   'playlists.playlistSingular': 'lista de redare',
   'playlists.schedulingLabel': 'Generare programată',
@@ -537,8 +535,6 @@ export const ro = {
   'playlists.schedulingPausedHint':
     'Pus pe pauză: playlisturile cu program nu se regenerează până nu activezi asta. Generarea manuală funcționează în continuare.',
   'playlists.schedulingSaveFailed': 'Nu s-a putut schimba programarea playlisturilor',
-  'playlists.schedulePaused': 'Programare întreruptă',
-  'playlists.scheduled': 'Programat',
   'playlists.updateFailed': 'Nu s-a putut actualiza lista de redare',
   'playlists.updated': 'Lista de redare a fost actualizată',
   'playlistForm.dialogCreate': 'Creează lista de redare',

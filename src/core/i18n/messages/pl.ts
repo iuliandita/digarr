@@ -528,8 +528,6 @@ export const pl = {
   'playlists.created': 'Utworzono playlistę',
   'playlists.emptyHint':
     'Twórz playlisty z zatwierdzonych lub oczekujących wykonawców, pobieraj je jako M3U lub XSPF albo wysyłaj do Spotify, Navidrome, Jellyfin, Emby lub Plex.',
-  'playlists.nextGeneration': 'Następna generacja',
-  'playlists.noScheduleConfigured': 'Nie skonfigurowano harmonogramu',
   'playlists.playlistPlural': 'listy odtwarzania',
   'playlists.playlistSingular': 'playlista',
   'playlists.schedulingLabel': 'Generowanie według harmonogramu',
@@ -537,8 +535,6 @@ export const pl = {
   'playlists.schedulingPausedHint':
     'Wstrzymane: playlisty z harmonogramem nie są odświeżane, dopóki tego nie włączysz. Ręczne generowanie nadal działa.',
   'playlists.schedulingSaveFailed': 'Nie udało się zmienić harmonogramu playlist',
-  'playlists.schedulePaused': 'Harmonogram wstrzymany',
-  'playlists.scheduled': 'Zaplanowane',
   'playlists.updateFailed': 'Nie udało się zaktualizować listy odtwarzania',
   'playlists.updated': 'Playlista zaktualizowana',
   'playlistForm.dialogCreate': 'Utwórz playlistę',

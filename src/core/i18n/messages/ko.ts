@@ -521,8 +521,6 @@ export const ko = {
   'playlists.created': '재생목록이 생성되었습니다.',
   'playlists.emptyHint':
     '승인했거나 대기 중인 아티스트로 플레이리스트를 만들고, M3U나 XSPF로 내려받거나 Spotify, Navidrome, Jellyfin, Emby, Plex로 보낼 수 있습니다.',
-  'playlists.nextGeneration': '다음 생성',
-  'playlists.noScheduleConfigured': '구성된 일정이 없습니다.',
   'playlists.playlistPlural': '재생목록',
   'playlists.playlistSingular': '재생목록',
   'playlists.schedulingLabel': '예약 생성',
@@ -530,8 +528,6 @@ export const ko = {
   'playlists.schedulingPausedHint':
     '일시 중지됨: 이 기능을 켜기 전까지 일정이 있는 플레이리스트는 다시 생성되지 않습니다. 수동 생성은 계속 사용할 수 있습니다.',
   'playlists.schedulingSaveFailed': '플레이리스트 예약 설정을 변경하지 못했습니다',
-  'playlists.schedulePaused': '일정이 일시중지되었습니다.',
-  'playlists.scheduled': '예정됨',
   'playlists.updateFailed': '재생목록을 업데이트하지 못했습니다.',
   'playlists.updated': '재생목록이 업데이트되었습니다.',
   'playlistForm.dialogCreate': '플레이리스트 만들기',

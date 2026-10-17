@@ -529,8 +529,6 @@ export const es = {
   'playlists.created': 'Lista de reproducción creada',
   'playlists.emptyHint':
     'Crea listas a partir de artistas aprobados o pendientes, descárgalas como M3U o XSPF, o envíalas a Spotify, Navidrome, Jellyfin, Emby o Plex.',
-  'playlists.nextGeneration': 'Próxima generación',
-  'playlists.noScheduleConfigured': 'No hay horario configurado',
   'playlists.playlistPlural': 'listas de reproducción',
   'playlists.playlistSingular': 'lista de reproducción',
   'playlists.schedulingLabel': 'Generación programada',
@@ -538,8 +536,6 @@ export const es = {
   'playlists.schedulingPausedHint':
     'En pausa: las playlists con programación no se regeneran hasta que lo actives. Generar una playlist a mano sigue funcionando.',
   'playlists.schedulingSaveFailed': 'No se pudo cambiar la programación de playlists',
-  'playlists.schedulePaused': 'Horario en pausa',
-  'playlists.scheduled': 'Programado',
   'playlists.updateFailed': 'No se pudo actualizar la lista de reproducción',
   'playlists.updated': 'Lista de reproducción actualizada',
   'playlistForm.dialogCreate': 'Crear lista',
