@@ -836,6 +836,34 @@ describe('GET /api/v1/library/unreconciled', () => {
 })
 
 describe('GET /api/v1/library/album-coverage/:artistMbid', () => {
+  it('returns an empty studio album listing for the current user', async () => {
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const { app, albumCoverage } = makeSyncApp(undefined, undefined, { userId: 73 })
+
+    const res = await authedRequest(app, `/api/v1/library/album-coverage/${artistMbid}`)
+
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ ownedCount: 0, totalCount: 0, missing: [] })
+    expect(albumCoverage.getCoverageForArtist).toHaveBeenCalledWith(73, artistMbid)
+  })
+
+  it('returns a failure rather than an empty listing when coverage fails', async () => {
+    const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const { app } = makeSyncApp(undefined, undefined, {
+        albumCoverageOverride: {
+          getCoverageForArtist: vi.fn().mockRejectedValue(new Error('upstream unavailable')),
+        },
+      })
+      const res = await authedRequest(app, `/api/v1/library/album-coverage/${artistMbid}`)
+      expect(res.status).toBe(500)
+      expect(await res.text()).not.toContain('upstream unavailable')
+    } finally {
+      log.mockRestore()
+    }
+  })
+
   it('returns owned and missing studio albums for the current user', async () => {
     const artistMbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
     const coverage = {

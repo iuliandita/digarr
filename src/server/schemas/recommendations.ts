@@ -9,6 +9,14 @@ const MAX_BULK_IDS = 500
 
 export const recommendationIdParamSchema = idParamSchema
 
+export const missingAlbumsSchema = z.object({
+  artistId: z.number().int().positive(),
+  albumMbids: z
+    .array(z.uuid().transform((id) => id.toLowerCase()))
+    .min(1)
+    .max(10_000),
+})
+
 export const recommendationStatusSchema = z.enum(['approved', 'rejected', 'pending'])
 export const approvalModeSchema = z.enum(['single_target', 'combined_lidarr_slskd'])
 export const monitorOptionSchema = z.enum([

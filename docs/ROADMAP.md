@@ -34,6 +34,10 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 [CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
 
+## Unreleased
+
+- Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
+
 ## Next priorities
 
 Planned direction, in this order. Make recommendations easier to hear and use before adding more integrations.

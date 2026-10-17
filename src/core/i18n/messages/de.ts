@@ -1852,4 +1852,16 @@ export const de = {
   'discover.secondaryTaste': 'Weitere bevorzugte Genres',
   'discover.scoreOrder': 'Nach Bewertung',
   'errors.preferences.invalidGenres': 'Ungültige Genre-Prioritäten',
+  'missingAlbums.action': 'Fehlende Alben abrufen',
+  'missingAlbums.title': 'Fehlende Studioalben',
+  'missingAlbums.description': 'Wähle die Alben aus, die du für {artist} möchtest.',
+  'missingAlbums.selected': '{selected} von {total} ausgewählt',
+  'missingAlbums.confirm': 'Ausgewählte Alben abrufen',
+  'missingAlbums.empty': 'Du hast bereits alle Studioalben.',
+  'missingAlbums.loadError': 'Fehlende Alben konnten nicht geladen werden.',
+  'missingAlbums.approveError':
+    'Die ausgewählten Alben konnten nicht freigegeben werden. Versuch es erneut.',
+  'missingAlbums.result': '{succeeded} freigegeben, {failed} fehlgeschlagen.',
+  'missingAlbums.failed': 'Fehlgeschlagen - erneut versuchen',
+  'missingAlbums.success': 'Freigegeben',
 } as const
