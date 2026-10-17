@@ -4,7 +4,7 @@ import { ensureAdminToken, installAuthCookie } from './auth'
 test.describe('library sync', () => {
   test('library sources panel renders and Sync all triggers the API request', async ({ page }) => {
     const token = await ensureAdminToken(page.request, { completeSetup: true })
-    test.skip(!token, 'Requires a working local Postgres test database')
+    expect(token).toBeTruthy()
     if (!token) return
 
     await installAuthCookie(page)

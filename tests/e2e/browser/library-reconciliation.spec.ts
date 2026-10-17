@@ -4,7 +4,7 @@ import { ensureAdminToken, installAuthCookie } from './auth'
 test.describe('library reconciliation', () => {
   test('reconciliation page renders for an admin session', async ({ page }) => {
     const token = await ensureAdminToken(page.request, { completeSetup: true })
-    test.skip(!token, 'Requires a working local Postgres test database')
+    expect(token).toBeTruthy()
     if (!token) return
 
     await installAuthCookie(page)
@@ -15,7 +15,7 @@ test.describe('library reconciliation', () => {
 
   test('bulk ignores only eligible visible artists after confirmation', async ({ page }) => {
     const token = await ensureAdminToken(page.request, { completeSetup: true })
-    test.skip(!token, 'Requires a working local Postgres test database')
+    expect(token).toBeTruthy()
     if (!token) return
 
     await installAuthCookie(page)
