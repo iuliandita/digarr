@@ -1682,6 +1682,8 @@ export const ptBR = {
   'settings.targetLidarrInstanceDefaults': 'Padrões desta instância',
   'settings.targetLidarrDefaultsSaveFirst':
     'Salve o destino primeiro e depois edite-o para escolher perfis e uma pasta raiz desta instância.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'A URL ou a chave de API mudou. Salve e depois edite o destino de novo para escolher perfis e uma pasta raiz da nova instância.',
   'settings.targetLidarrDefaultsUnset': 'Primeiro disponível',
   'cardStack.counter': '{0} de {1}',
   'cardStack.swipeHint': 'Deslize para a direita para aprovar, para a esquerda para rejeitar',

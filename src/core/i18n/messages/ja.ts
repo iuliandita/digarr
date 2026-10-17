@@ -1661,6 +1661,8 @@ export const ja = {
   'settings.targetLidarrInstanceDefaults': 'このインスタンスのデフォルト',
   'settings.targetLidarrDefaultsSaveFirst':
     '先にターゲットを保存してから編集すると、このインスタンスのプロファイルとルートフォルダを選択できます。',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
   'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
   'cardStack.counter': '{1} 件中 {0} 件目',
   'cardStack.swipeHint': '右にスワイプで承認、左にスワイプで拒否',

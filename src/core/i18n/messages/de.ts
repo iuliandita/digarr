@@ -1697,6 +1697,8 @@ export const de = {
   'settings.targetLidarrInstanceDefaults': 'Standardwerte für diese Instanz',
   'settings.targetLidarrDefaultsSaveFirst':
     'Speichere das Ziel zuerst und bearbeite es dann, um Profile und einen Stammordner aus dieser Instanz auszuwählen.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL oder API-Schlüssel wurden geändert. Speichere und bearbeite das Ziel dann erneut, um Profile und einen Stammordner aus der neuen Instanz auszuwählen.',
   'settings.targetLidarrDefaultsUnset': 'Erste verfügbare',
   'cardStack.counter': '{0} von {1}',
   'cardStack.swipeHint': 'Nach rechts wischen zum Genehmigen, nach links zum Ablehnen',

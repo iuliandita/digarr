@@ -1662,6 +1662,8 @@ export const tr = {
   'settings.targetLidarrInstanceDefaults': 'Bu örnek için varsayılanlar',
   'settings.targetLidarrDefaultsSaveFirst':
     'Önce hedefi kaydet, ardından bu örnekten profil ve kök klasör seçmek için düzenle.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
   'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
   'cardStack.counter': '{0} / {1}',
   'cardStack.swipeHint': 'Onaylamak için sağa, reddetmek için sola kaydır',

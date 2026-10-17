@@ -1683,6 +1683,8 @@ export const ru = {
   'settings.targetLidarrInstanceDefaults': 'Значения по умолчанию для этого экземпляра',
   'settings.targetLidarrDefaultsSaveFirst':
     'Сначала сохрани цель, затем отредактируй её, чтобы выбрать профили и корневую папку этого экземпляра.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL или API-ключ изменились. Сохрани, затем снова отредактируй цель, чтобы выбрать профили и корневую папку нового экземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Первый доступный',
   'cardStack.counter': '{0} из {1}',
   'cardStack.swipeHint': 'Свайп вправо - одобрить, влево - отклонить',

@@ -1688,6 +1688,8 @@ export const it = {
   'settings.targetLidarrInstanceDefaults': 'Valori predefiniti per questa istanza',
   'settings.targetLidarrDefaultsSaveFirst':
     'Salva prima la destinazione, poi modificala per scegliere profili e una cartella radice da questa istanza.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    "L'URL o la chiave API sono cambiati. Salva, poi modifica di nuovo la destinazione per scegliere profili e una cartella radice dalla nuova istanza.",
   'settings.targetLidarrDefaultsUnset': 'Primo disponibile',
   'cardStack.counter': '{0} di {1}',
   'cardStack.swipeHint': 'Scorri a destra per approvare, a sinistra per rifiutare',

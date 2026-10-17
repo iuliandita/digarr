@@ -1546,6 +1546,8 @@ export const zhCN = {
   'settings.targetLidarrInstanceDefaults': '此实例的默认值',
   'settings.targetLidarrDefaultsSaveFirst':
     '请先保存目标，然后编辑它以从此实例选择配置文件和根目录。',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL 或 API 密钥已更改。请先保存，然后再次编辑目标，以从新实例选择配置文件和根目录。',
   'settings.targetLidarrDefaultsUnset': '第一个可用项',
   'cardStack.counter': '第 {0} / 共 {1}',
   'cardStack.swipeHint': '向右滑动批准，向左滑动拒绝',

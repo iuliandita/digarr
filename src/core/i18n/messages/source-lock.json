@@ -1329,6 +1329,7 @@
   "settings.tabs.users": "6b0cc904d081",
   "settings.targetAddFailed": "0b391bf03272",
   "settings.targetAdded": "ae12385efda9",
+  "settings.targetLidarrDefaultsInstanceChanged": "65cad72fd44d",
   "settings.targetLidarrDefaultsSaveFirst": "5d968af8689e",
   "settings.targetLidarrDefaultsUnset": "98a61e9c945a",
   "settings.targetLidarrInstanceDefaults": "c0438b649cf3",

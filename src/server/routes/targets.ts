@@ -1,5 +1,8 @@
 import { type Context, Hono } from 'hono'
-import { normalizeLidarrTargetConfig } from '@/core/targets/lidarr-connection'
+import {
+  clearDefaultsOnInstanceChange,
+  normalizeLidarrTargetConfig,
+} from '@/core/targets/lidarr-connection'
 import type { ServiceTestResult } from '@/core/types'
 import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets'
 import { notAuthenticated } from '@/server/helpers/auth-problems'
@@ -150,7 +153,9 @@ export function targetRoutes(deps: TargetDeps) {
       if (allowed.config) {
         allowed.config = mergeConfig(loaded.target.config, allowed.config)
         if (loaded.target.type === 'lidarr') {
-          allowed.config = normalizeLidarrTargetConfig(allowed.config)
+          allowed.config = normalizeLidarrTargetConfig(
+            clearDefaultsOnInstanceChange(loaded.target.config, allowed.config),
+          )
         }
       }
       if (

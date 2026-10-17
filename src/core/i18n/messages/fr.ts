@@ -1690,6 +1690,8 @@ export const fr = {
   'settings.targetLidarrInstanceDefaults': 'Valeurs par défaut de cette instance',
   'settings.targetLidarrDefaultsSaveFirst':
     "Enregistre d'abord la cible, puis modifie-la pour choisir les profils et un dossier racine de cette instance.",
+  'settings.targetLidarrDefaultsInstanceChanged':
+    "L'URL ou la clé API a changé. Enregistre, puis modifie à nouveau la cible pour choisir les profils et un dossier racine de la nouvelle instance.",
   'settings.targetLidarrDefaultsUnset': 'Premier disponible',
   'cardStack.counter': '{0} sur {1}',
   'cardStack.swipeHint': 'Glisse à droite pour approuver, à gauche pour rejeter',

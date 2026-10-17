@@ -1639,6 +1639,8 @@ export const ko = {
   'settings.targetLidarrInstanceDefaults': '이 인스턴스의 기본값',
   'settings.targetLidarrDefaultsSaveFirst':
     '먼저 대상을 저장한 다음 편집하면 이 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL 또는 API 키가 변경되었습니다. 저장한 다음 대상을 다시 편집하면 새 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
   'settings.targetLidarrDefaultsUnset': '첫 번째 사용 가능 항목',
   'cardStack.counter': '{1} 중 {0}',
   'cardStack.swipeHint': '오른쪽으로 밀어 승인, 왼쪽으로 밀어 거부',

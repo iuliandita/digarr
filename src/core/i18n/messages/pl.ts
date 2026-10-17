@@ -1672,6 +1672,8 @@ export const pl = {
   'settings.targetLidarrInstanceDefaults': 'Domyślne dla tej instancji',
   'settings.targetLidarrDefaultsSaveFirst':
     'Najpierw zapisz cel, a potem go edytuj, żeby wybrać profile i folder główny z tej instancji.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'Adres URL lub klucz API się zmienił. Zapisz, a potem ponownie edytuj cel, żeby wybrać profile i folder główny z nowej instancji.',
   'settings.targetLidarrDefaultsUnset': 'Pierwszy dostępny',
   'cardStack.counter': '{0} z {1}',
   'cardStack.swipeHint': 'Przesuń w prawo, aby zatwierdzić, w lewo, aby odrzucić',

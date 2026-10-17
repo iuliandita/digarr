@@ -238,19 +238,21 @@ const LIDARR_DEFAULT_KEYS = ['qualityProfileId', 'metadataProfileId', 'rootFolde
 
 // A server-connection target stores only the flag; the server drops any stale
 // url/key. A separate instance sends its own fields plus its default IDs, with
-// null clearing an ID back to "first available".
+// null clearing an ID back to "first available". After a url/key change the
+// picked IDs belong to the old instance, so none are sent (the server clears them).
 function buildLidarrConfig(
   targetType: AddTargetType,
   config: Record<string, string>,
   useServerConnection: boolean,
   isEditing: boolean,
+  instanceChanged: boolean,
 ): Record<string, unknown> {
   if (useServerConnection) return { useServerConnection: true }
   const base = isEditing
     ? (buildTargetConfigPatch(targetType, config) ?? {})
     : normalizeTargetConfig(targetType.value, config)
   const defaults: Record<string, number | null> = {}
-  for (const key of LIDARR_DEFAULT_KEYS) {
+  for (const key of instanceChanged ? [] : LIDARR_DEFAULT_KEYS) {
     if (config[key]) defaults[key] = Number(config[key])
     else if (isEditing) defaults[key] = null
   }
@@ -380,6 +382,11 @@ function AddTargetDialog({
   const isEditing = Boolean(initialTarget)
   const isLidarr = type === 'lidarr'
   const hideConnectionFields = isLidarr && useServerConnection
+  // The saved key is masked out of the form, so any typed key is a change.
+  const instanceChanged =
+    isEditing &&
+    ((config.url ?? '').trim() !== String(initialTarget?.config.url ?? '').trim() ||
+      Boolean(config.apiKey))
 
   async function handleSave() {
     if (!type || !selectedType) return
@@ -387,7 +394,7 @@ function AddTargetDialog({
     try {
       if (initialTarget) {
         const configPatch = isLidarr
-          ? buildLidarrConfig(selectedType, config, useServerConnection, true)
+          ? buildLidarrConfig(selectedType, config, useServerConnection, true, instanceChanged)
           : buildTargetConfigPatch(selectedType, config)
         await updateTargetApi(initialTarget.id, {
           name: name || selectedType.label,
@@ -402,7 +409,7 @@ function AddTargetDialog({
           userId,
           name: name || selectedType.label,
           config: isLidarr
-            ? buildLidarrConfig(selectedType, config, useServerConnection, false)
+            ? buildLidarrConfig(selectedType, config, useServerConnection, false, false)
             : normalizeTargetConfig(type, config),
         })
         toast.success(t('settings.targetAdded'))
@@ -548,7 +555,11 @@ function AddTargetDialog({
 
           {isLidarr &&
             !useServerConnection &&
-            (initialTarget && !initialUsesServer ? (
+            (initialTarget && !initialUsesServer && instanceChanged ? (
+              <p className="text-xs text-muted">
+                {t('settings.targetLidarrDefaultsInstanceChanged')}
+              </p>
+            ) : initialTarget && !initialUsesServer ? (
               <LidarrInstanceDefaults
                 targetId={initialTarget.id}
                 config={config}

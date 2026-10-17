@@ -84,6 +84,23 @@ export function normalizeLidarrTargetConfig(
   return normalized
 }
 
+// Default IDs belong to the instance they were picked from. When a separate
+// target's url or apiKey changes, drop them so the next add falls back to the
+// new instance's first profile/folder until new ones are picked.
+export function clearDefaultsOnInstanceChange(
+  stored: Record<string, unknown>,
+  merged: Record<string, unknown>,
+): Record<string, unknown> {
+  if (usesServerConnection(merged) || usesServerConnection(stored)) return merged
+  const storedUrl = typeof stored.url === 'string' ? stored.url : ''
+  const mergedUrl = typeof merged.url === 'string' ? merged.url : ''
+  const urlChanged = storedUrl.trim() !== mergedUrl.trim()
+  if (!urlChanged && stored.apiKey === merged.apiKey) return merged
+  const cleared = { ...merged }
+  for (const key of DEFAULT_KEYS) delete cleared[key]
+  return cleared
+}
+
 // Concrete config for code that reads url/apiKey off a target row (slskd
 // imports, connection tests). Reference rows get the current server values.
 export function withResolvedLidarrConnection<T extends { type: string; config: unknown }>(
@@ -99,8 +116,22 @@ export function withResolvedLidarrConnection<T extends { type: string; config: u
   return { ...row, config: resolved }
 }
 
-function normalizeUrl(url: string): string {
-  return url.trim().replace(/\/+$/, '').toLowerCase()
+// Scheme and host are case-insensitive and URL parsing drops default ports;
+// path and query stay exact because Lidarr behind a reverse proxy can live at
+// case-sensitive paths.
+function connectionKey(url: string): string | null {
+  try {
+    const parsed = new URL(url.trim())
+    const path = parsed.pathname.replace(/\/+$/, '')
+    return `${parsed.protocol}//${parsed.host}${path}${parsed.search}`
+  } catch {
+    return null
+  }
+}
+
+function sameInstanceUrl(a: string, b: string): boolean {
+  const left = connectionKey(a)
+  return left !== null && left === connectionKey(b)
 }
 
 export function matchesServerConnection(
@@ -109,7 +140,7 @@ export function matchesServerConnection(
 ): boolean {
   const server = serverLidarrConnection(settings)
   if (!server || typeof config.url !== 'string' || typeof config.apiKey !== 'string') return false
-  return normalizeUrl(config.url) === normalizeUrl(server.url) && config.apiKey === server.apiKey
+  return sameInstanceUrl(config.url, server.url) && config.apiKey === server.apiKey
 }
 
 type LidarrTargetStore = {

@@ -1676,6 +1676,8 @@ export const uk = {
   'settings.targetLidarrInstanceDefaults': 'Типові значення для цього екземпляра',
   'settings.targetLidarrDefaultsSaveFirst':
     'Спочатку збережи ціль, потім відредагуй її, щоб вибрати профілі й кореневу папку цього екземпляра.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Перший доступний',
   'cardStack.counter': '{0} з {1}',
   'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч - щоб відхилити',

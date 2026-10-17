@@ -1682,6 +1682,8 @@ export const ro = {
   'settings.targetLidarrInstanceDefaults': 'Valori implicite pentru această instanță',
   'settings.targetLidarrDefaultsSaveFirst':
     'Salvează mai întâi ținta, apoi editeaz-o ca să alegi profiluri și un dosar rădăcină din această instanță.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL-ul sau cheia API s-a schimbat. Salvează, apoi editează din nou ținta ca să alegi profiluri și un dosar rădăcină din noua instanță.',
   'settings.targetLidarrDefaultsUnset': 'Primul disponibil',
   'cardStack.counter': '{0} din {1}',
   'cardStack.swipeHint': 'Glisează dreapta pentru a aproba, stânga pentru a respinge',

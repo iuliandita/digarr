@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import {
+  clearDefaultsOnInstanceChange,
   linkLidarrTargetsToServerConnection,
   normalizeLidarrTargetConfig,
   resolveLidarrTargetConnection,
@@ -9,6 +10,7 @@ import {
 } from '@/core/targets/lidarr-connection'
 
 const server = { lidarrUrl: 'http://lidarr:8686', lidarrApiKey: 'server-key', skipTlsVerify: true }
+const proxied = { lidarrUrl: 'http://lidarr/music', lidarrApiKey: 'server-key' }
 
 describe('resolveLidarrTargetConnection', () => {
   it('reads a reference target from the current server settings', () => {
@@ -94,6 +96,8 @@ describe('linkLidarrTargetsToServerConnection', () => {
       [1, { url: 'http://lidarr:8686/', apiKey: 'server-key', skipTlsVerify: false }],
       [2, { url: 'http://other:8686', apiKey: 'other-key' }],
       [3, { url: 'http://lidarr:8686', apiKey: 'different-key' }],
+      [4, { url: 'HTTP://Lidarr:80/', apiKey: 'server-key' }],
+      [5, { url: 'http://lidarr/Music', apiKey: 'server-key' }],
     ])
     const store = {
       listLidarrTargets: vi.fn(async () => [...rows].map(([id, config]) => ({ id, config }))),
@@ -104,6 +108,7 @@ describe('linkLidarrTargetsToServerConnection', () => {
 
     expect(await linkLidarrTargetsToServerConnection(server, store)).toEqual([1])
     expect(rows.get(1)).toEqual({ useServerConnection: true })
+    expect(rows.get(4)).toMatchObject({ url: 'HTTP://Lidarr:80/' })
     expect(rows.get(2)).toEqual({ url: 'http://other:8686', apiKey: 'other-key' })
     expect(rows.get(3)).toMatchObject({ apiKey: 'different-key' })
 
@@ -115,5 +120,41 @@ describe('linkLidarrTargetsToServerConnection', () => {
     const store = { listLidarrTargets: vi.fn(), updateTargetConfig: vi.fn() }
     expect(await linkLidarrTargetsToServerConnection({ lidarrUrl: '' }, store)).toEqual([])
     expect(store.listLidarrTargets).not.toHaveBeenCalled()
+  })
+})
+
+describe('linkLidarrTargetsToServerConnection URL matching', () => {
+  it('matches scheme, host and default port case-insensitively but keeps path case exact', async () => {
+    const rows = new Map<number, Record<string, unknown>>([
+      [1, { url: 'HTTP://Lidarr:80/music/', apiKey: 'server-key' }],
+      [2, { url: 'http://lidarr/Music', apiKey: 'server-key' }],
+    ])
+    const store = {
+      listLidarrTargets: vi.fn(async () => [...rows].map(([id, config]) => ({ id, config }))),
+      updateTargetConfig: vi.fn(async (id: number, config: Record<string, unknown>) => {
+        rows.set(id, config)
+      }),
+    }
+    expect(await linkLidarrTargetsToServerConnection(proxied, store)).toEqual([1])
+    expect(rows.get(2)).toEqual({ url: 'http://lidarr/Music', apiKey: 'server-key' })
+  })
+})
+
+describe('clearDefaultsOnInstanceChange', () => {
+  const stored = { url: 'http://a:8686', apiKey: 'k', qualityProfileId: 2, rootFolderId: 3 }
+
+  it('drops default IDs when the url or key changes and keeps them otherwise', () => {
+    expect(clearDefaultsOnInstanceChange(stored, { ...stored, url: 'http://b:8686' })).toEqual({
+      url: 'http://b:8686',
+      apiKey: 'k',
+    })
+    expect(clearDefaultsOnInstanceChange(stored, { ...stored, apiKey: 'new' })).toEqual({
+      url: 'http://a:8686',
+      apiKey: 'new',
+    })
+    expect(clearDefaultsOnInstanceChange(stored, { ...stored, rootFolderId: 4 })).toEqual({
+      ...stored,
+      rootFolderId: 4,
+    })
   })
 })

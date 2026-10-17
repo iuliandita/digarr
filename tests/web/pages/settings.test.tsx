@@ -1430,6 +1430,39 @@ describe('SettingsPage', () => {
     })
   })
 
+  it('hides instance pickers and sends no stale IDs after the target URL changes', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 1,
+        type: 'lidarr',
+        name: 'Other Lidarr',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://lidarr:8686', apiKey: '***', qualityProfileId: 1 },
+      },
+    ])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+    expect(await screen.findByLabelText('Quality Profile')).toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://new:8686' } })
+    expect(screen.queryByLabelText('Quality Profile')).toBeNull()
+    expect(screen.getByText(/The URL or API key changed/)).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+    await waitFor(() =>
+      expect(mockUpdateTargetApi).toHaveBeenCalledWith(7, {
+        name: 'Other Lidarr',
+        userId: 1,
+        enabled: true,
+        config: { url: 'http://new:8686', useServerConnection: false },
+      }),
+    )
+  })
+
   it('lets an admin assign a Lidarr target to another user', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([])

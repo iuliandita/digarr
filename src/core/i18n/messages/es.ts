@@ -1685,6 +1685,8 @@ export const es = {
   'settings.targetLidarrInstanceDefaults': 'Valores predeterminados de esta instancia',
   'settings.targetLidarrDefaultsSaveFirst':
     'Guarda primero el destino y luego edítalo para elegir perfiles y una carpeta raíz de esta instancia.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'La URL o la clave API cambiaron. Guarda y luego vuelve a editar el destino para elegir perfiles y una carpeta raíz de la nueva instancia.',
   'settings.targetLidarrDefaultsUnset': 'Primera disponible',
   'cardStack.counter': '{0} de {1}',
   'cardStack.swipeHint': 'Desliza a la derecha para aprobar, a la izquierda para rechazar',

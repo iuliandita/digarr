@@ -297,7 +297,7 @@
         "src/server/routes/settings.ts": "d229a6fabf5f6cdb2fdd16a5271d97256f5d5c4bb655be65378609e4345840fc",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
-        "src/server/routes/targets.ts": "196f83e0eedbf3aafe9885fd42091068155b8950769349eeb79af5cd7db0f8e6",
+        "src/server/routes/targets.ts": "c5ab428dcca6c024959d241a071432d02c5b37ac437920ddbbe7bdab35bde390",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
@@ -314,14 +314,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "7edb2d99e0e39ac71ca21d9e3e429e2c991d8ed2b78b56ca1b209ccfbafaf450",
+      "digest": "5c5f5033d8157596f7d91b5aec9c7aab93a5665ebbb295bbfe2207d0b7657a25",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "approve-options gains optional targetId (owner-checked, admin any, 404 otherwise) and returns effective defaults; target create/patch normalize Lidarr config; explicit profile IDs on approval apply only to one scoped Lidarr target.",
+        "note": "approve-options gains optional targetId (owner-checked, admin any, 404 otherwise) and returns effective defaults; target create/patch normalize Lidarr config and PATCH clears per-target default IDs when url or apiKey changes; explicit profile IDs on approval apply only to one scoped Lidarr target.",
         "breaking": "Lidarr target config may now be {useServerConnection:true} with no url or apiKey; clients reading url from Lidarr targets must handle its absence.",
         "migration": "",
-        "digest": "7edb2d99e0e39ac71ca21d9e3e429e2c991d8ed2b78b56ca1b209ccfbafaf450"
+        "digest": "5c5f5033d8157596f7d91b5aec9c7aab93a5665ebbb295bbfe2207d0b7657a25"
       }
     },
     "interface": {
@@ -332,24 +332,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "9f36ca8e9072e7f56709b6300aa50426afb4d3088edfb16843de80654c07ff89",
-        "src/core/i18n/messages/en.ts": "b96febfe0d8a90cf975e8111cdb52cde5193b76891da43ad7fc6baf1008b97cc",
-        "src/core/i18n/messages/es.ts": "5d91df2dbc0014935f7087ab6526796485dfc9a95d84c5c2cdb9abcbe814a14f",
-        "src/core/i18n/messages/fr.ts": "7bf19bf9d09b5554af4836498b5b4228fe5b42c8fa03981774ab708b525f7c36",
+        "src/core/i18n/messages/de.ts": "7bd0e63b2993a5046454dfffeb229a40f2f038e7147d558efb464834fde2186b",
+        "src/core/i18n/messages/en.ts": "139a7a6d3adfbb966501bea958ad71b66094bf36de216ba9e0e1e46062979964",
+        "src/core/i18n/messages/es.ts": "79222582feac239f5eacc8d2f7200132ebce1c728407037eca8bd7ff09054384",
+        "src/core/i18n/messages/fr.ts": "d130cbd219671727e97f552f35a78b207c6944de42461aca60ea0fa1e335543d",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "f93da11ca57223f58d605e152f6beaff8e122dadc93c8a6a46b30d6f7d634717",
-        "src/core/i18n/messages/ja.ts": "6f7eceb16c0ceea760d2c11ac4db495e093116bbd604530ad4890bf3d8d866d7",
-        "src/core/i18n/messages/ko.ts": "d95da3bdc022fa892c3b21cfc12c165161c8455ff8082c0f38255e602055c98d",
-        "src/core/i18n/messages/nl.ts": "f3d4be619b5dfa1851bc5e507e0749ce342bb168a657436803b348270957146f",
-        "src/core/i18n/messages/pl.ts": "b985a33867b6258997a30e5d1e2594f1f327154ca72915d3f738beea1e85be4d",
-        "src/core/i18n/messages/pt-BR.ts": "9af686dac90e638201add0a8bd382de4ef88f093fae2b8df6c31b6a9dbf7ce04",
-        "src/core/i18n/messages/ro.ts": "1347da5f9fc15d9f2571e72beea1b80d381d5fb8b2a996cf952a3ab3f6267c08",
-        "src/core/i18n/messages/ru.ts": "c6c88f176a2578b9420efdcfb3d9b4dd3619067d8e383d72101dc088ea76da32",
-        "src/core/i18n/messages/source-lock.json": "825ffe39f0f7bbe5c69689834adc69f5799632c0c73f9be41a700bad5b044e43",
-        "src/core/i18n/messages/tr.ts": "ebfe4de5a1a03a35ae02830a440e0b7974813ae5b8dd1a4c405bdff58ea4b0a9",
+        "src/core/i18n/messages/it.ts": "10807dbf550fe9265f6e95a65f83fdbc371ac4545ecbad4be083f2989114e501",
+        "src/core/i18n/messages/ja.ts": "00d055328805ad2cd5d709d99db3574ffb09b6d2771f33c5075d9b753aca23d6",
+        "src/core/i18n/messages/ko.ts": "3b828878d0ccd8a492df6be0edd594700e38b53bb3366107d70eaed8f804ba7e",
+        "src/core/i18n/messages/nl.ts": "bd9354a2e305e4c74c0d1e340679d2b53b0a059a7dc7c2c477468f61cb8b4673",
+        "src/core/i18n/messages/pl.ts": "289b8bfb52a9f90aa0ab088a1cfb31269ba7bb32a95edf38efcb6603f035be40",
+        "src/core/i18n/messages/pt-BR.ts": "48285a77811f90f2a1b77b9bb18980a29b5db0e506d84114a36adc1df0d04581",
+        "src/core/i18n/messages/ro.ts": "89df7f329aaafbbd6ea79a25b081d1d5e2a8d31334e3e8a0f3e6c33f3588207d",
+        "src/core/i18n/messages/ru.ts": "877eb64a29b0471341b60243a5393edbe80b635ba785a25ddb75e2d04a2250d5",
+        "src/core/i18n/messages/source-lock.json": "03ceb69ad5096329a9bb176f52d2beab0539fb155639c806195f23074f678a56",
+        "src/core/i18n/messages/tr.ts": "0b169b69af87545f25f59f47f34ad148a8d09d211cf35c34bed6d38d09d2cdd1",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "e486a16b982a7b6160db9749ea91306ed1407d786a7b9a518cdd40ecebadf50b",
-        "src/core/i18n/messages/zh-CN.ts": "3c8cbd522a4fa81bfb0d1e2b686858feb1ba32855b81f1c532839615bdb7ba00",
+        "src/core/i18n/messages/uk.ts": "445eeaeb95da282df3d0f34bbaa2efbea0f2bb02ff467dfa2f717160ad34c1fd",
+        "src/core/i18n/messages/zh-CN.ts": "cc350bf20d97bee20914087f6d8df35a61ec62004d66c62e6d05a7cc4cd72049",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -485,7 +485,7 @@
         "src/web/pages/settings/settings-nav.tsx": "9e7457c0561810d4aeb70e5483925f8cf848516c9067a6710af5e0f88d9aa9d8",
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
         "src/web/pages/settings/tabs.ts": "c3bbed204fcbabad289f54544e48333a5c1ee8e47652213f924ba5c42664a602",
-        "src/web/pages/settings/targets-tab.tsx": "79af9d7193604aa01fe23522f635ecaec2c629b2369e28fbd28c4620ee204b15",
+        "src/web/pages/settings/targets-tab.tsx": "6774cf12ef3a06342a47241cd7d614997e8f86fed51d48173cc6337f93347b41",
         "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
         "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
         "src/web/pages/subscriptions.tsx": "ca1218a1e5f5f1299092bf6b59179646000afa6b81d421642dccccf276c98374",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "1c09eaf396468de377ad6c3b1cabfd94fdc613bb9064d47cbea1945e5f10f249",
+      "digest": "3a6deb77410365e149a03becf60eee1d5c0eaf9e480a8dc671992b008f27ec1a",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Lidarr defaults moved into the Lidarr connection card; Targets tab adds server-connection mode, a different-instance toggle and per-instance pickers; approve dialog collapses profile pickers under Lidarr options; new strings in all 15 locales.",
+        "note": "Lidarr defaults moved into the Lidarr connection card; Targets tab adds server-connection mode, a different-instance toggle and per-instance pickers that hide with a hint after a url/key edit; approve dialog collapses profile pickers under Lidarr options; new strings in all 15 locales.",
         "breaking": "none",
         "migration": "",
-        "digest": "1c09eaf396468de377ad6c3b1cabfd94fdc613bb9064d47cbea1945e5f10f249"
+        "digest": "3a6deb77410365e149a03becf60eee1d5c0eaf9e480a8dc671992b008f27ec1a"
       }
     },
     "features": {
@@ -686,7 +686,7 @@
         "src/core/targets/export-xspf.ts": "c2e20b23a58ae57697aa1d6d9f9cb993fb5336cd199a2c59683b37bd8b600f02",
         "src/core/targets/jellyfin-family-playlist.ts": "9fc24c3bc84086bce655551c2a69ac103030ac100e9b1a47bff33244093c59ed",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
-        "src/core/targets/lidarr-connection.ts": "6b78a28e25ea59b31e78c96b92a17a2dec0acb68233357567756fb6f7fde0069",
+        "src/core/targets/lidarr-connection.ts": "cf28e2fefbc70315f8e82046c3ad4018158f741791657239530439dc866fa500",
         "src/core/targets/lidarr.ts": "23f048f5213f7c8ef0edfb438a8c83afa8bb766315162aa634aedde15472132e",
         "src/core/targets/navidrome-playlist.ts": "18d6ed252fc2e072e373d76f25d5dd06b0a0f9521cd333b33946221a8ccfaea7",
         "src/core/targets/playlist-match.ts": "051b1bedde97c023449b349903f915360dbad5d211bc7b9051438bd08785e375",
@@ -704,14 +704,14 @@
         "src/index.ts": "5b0e1a5764ce06a11e2881dc728a797d0ec8ecf19d9511b39382be91ec1c2031",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "813f31286ba4f0b5234aed41d5982bec4907a37f0e60d7361a8a2fcb1a1ae76c",
+      "digest": "741f61e3dcc666af02915861b1e89635b5ef46c8a6d03c02ec4d7c56384a0505",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/API.md"],
-        "note": "Lidarr targets resolve the server connection at use time via useServerConnection; separate instances use only their own default IDs, unset IDs fall back to the instance's first profile/folder; auto-approve and approvals no longer inject preference IDs into every target; startup links exact url+key copies.",
+        "note": "Lidarr targets resolve the server connection at use time via useServerConnection; separate instances use only their own default IDs, cleared when url or apiKey changes, unset IDs fall back to the instance's first profile/folder; startup links url+key copies matching scheme/host case-insensitively and path exactly.",
         "breaking": "Server-connection Lidarr targets store only useServerConnection; older images cannot use them and fail approvals until the target is edited back to a URL and key or the pre-upgrade backup is restored.",
         "migration": "",
-        "digest": "813f31286ba4f0b5234aed41d5982bec4907a37f0e60d7361a8a2fcb1a1ae76c"
+        "digest": "741f61e3dcc666af02915861b1e89635b5ef46c8a6d03c02ec4d7c56384a0505"
       }
     },
     "deployment": {
