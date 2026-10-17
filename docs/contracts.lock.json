@@ -297,7 +297,7 @@
         "src/server/routes/settings.ts": "d229a6fabf5f6cdb2fdd16a5271d97256f5d5c4bb655be65378609e4345840fc",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "bc91e106c253820878a7b80f4a3013e35dab6c95b0546bcbcd0e3ed9fb545e99",
-        "src/server/routes/targets.ts": "ecdebdefcd34f467441dd9f51e3d3128afdc406cf1ac6fc471905b37d1456c1c",
+        "src/server/routes/targets.ts": "1ef1370a76382a80ad31149efdde468c38c6074e312ae607aa6311428f35dbf1",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
@@ -314,14 +314,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "0d4a186fdb501a5960999a742e6f07a68a397433cf22109fd7ac1d337c997cb7",
+      "digest": "660b6a4abe7cf6015308a6e1b23c9bf12481e241e34d8eb38563a263b8e29ec4",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document the saved slskd target test's same-owner Lidarr probe and optional translated result key without exposing credentials or paths.",
+        "note": "Document the saved slskd target test's same-owner Lidarr probe and optional translated result key without exposing credentials or paths. The slskd target test resolves a linked Lidarr target through the server connection when it uses one.",
         "breaking": "none",
         "migration": "",
-        "digest": "0d4a186fdb501a5960999a742e6f07a68a397433cf22109fd7ac1d337c997cb7"
+        "digest": "660b6a4abe7cf6015308a6e1b23c9bf12481e241e34d8eb38563a263b8e29ec4"
       }
     },
     "interface": {
