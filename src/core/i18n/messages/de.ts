@@ -1042,6 +1042,10 @@ export const de = {
   'librarySources.justNow': 'gerade eben',
   'librarySources.minAgo': 'vor {0} Min.',
   'librarySources.hoursAgo': 'vor {0} Std.',
+  'librarySources.artistCount': '{0} Künstler',
+  'librarySources.albumCount': '{0} Alben',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} exakt, {2} verankert, {3} eindeutig zugeordnet, {4} nicht abgeglichen',
   'librarySources.mbWarning':
     '{0} MusicBrainz-Abfragen fehlgeschlagen. Betroffene Künstler bleiben unabgeglichen und werden beim nächsten Sync erneut versucht.',
   'libraryStats.artists': 'Künstler',

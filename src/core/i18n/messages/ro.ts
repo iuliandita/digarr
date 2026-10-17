@@ -1035,6 +1035,10 @@ export const ro = {
   'librarySources.justNow': 'chiar acum',
   'librarySources.minAgo': 'acum {0} min',
   'librarySources.hoursAgo': 'acum {0} h',
+  'librarySources.artistCount': '{0} artiști',
+  'librarySources.albumCount': '{0} albume',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} exacte, {2} ancorate, {3} dezambiguizate, {4} nereconciliate',
   'librarySources.mbWarning':
     '{0} cereri MusicBrainz au eșuat. Artiștii afectați rămân nereconciliați și vor fi reîncercați la următoarea sincronizare.',
   'libraryStats.artists': 'Artiști',

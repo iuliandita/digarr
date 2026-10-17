@@ -1020,6 +1020,10 @@ export const tr = {
   'librarySources.justNow': 'az önce',
   'librarySources.minAgo': '{0} dk önce',
   'librarySources.hoursAgo': '{0} sa önce',
+  'librarySources.artistCount': '{0} sanatçı',
+  'librarySources.albumCount': '{0} albüm',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} tam eşleşme, {2} sabitlenmiş, {3} ayrıştırılmış, {4} eşleştirilmemiş',
   'librarySources.mbWarning':
     '{0} MusicBrainz sorgusu başarısız oldu. Etkilenen sanatçılar eşleşmemiş olarak kalır ve bir sonraki eşitlemede tekrar denenir.',
   'libraryStats.artists': 'Sanatçılar',

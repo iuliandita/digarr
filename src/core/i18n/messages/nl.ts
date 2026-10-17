@@ -1031,6 +1031,10 @@ export const nl = {
   'librarySources.justNow': 'zojuist',
   'librarySources.minAgo': '{0} min. geleden',
   'librarySources.hoursAgo': '{0} u geleden',
+  'librarySources.artistCount': '{0} artiesten',
+  'librarySources.albumCount': '{0} albums',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} exact, {2} verankerd, {3} ondubbelzinnig gemaakt, {4} niet afgestemd',
   'librarySources.mbWarning':
     '{0} MusicBrainz-verzoeken mislukt. Getroffen artiesten blijven niet gekoppeld en worden bij de volgende synchronisatie opnieuw geprobeerd.',
   'libraryStats.artists': 'Artiesten',

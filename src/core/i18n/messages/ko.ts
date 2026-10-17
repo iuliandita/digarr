@@ -1010,6 +1010,10 @@ export const ko = {
   'librarySources.justNow': '방금',
   'librarySources.minAgo': '{0}분 전',
   'librarySources.hoursAgo': '{0}시간 전',
+  'librarySources.artistCount': '아티스트 {0}명',
+  'librarySources.albumCount': '앨범 {0}개',
+  'librarySources.matchSummary':
+    'MBID {0}개, 정확 일치 {1}개, 앵커 일치 {2}개, 모호성 해소 {3}개, 미조정 {4}개',
   'librarySources.mbWarning':
     'MusicBrainz 조회 {0}건이 실패했습니다. 해당 아티스트는 매칭되지 않은 상태로 유지되며 다음 동기화 때 다시 시도됩니다.',
   'libraryStats.artists': '아티스트',

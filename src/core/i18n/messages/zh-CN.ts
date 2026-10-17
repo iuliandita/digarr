@@ -948,6 +948,10 @@ export const zhCN = {
   'librarySources.justNow': '刚刚',
   'librarySources.minAgo': '{0} 分钟前',
   'librarySources.hoursAgo': '{0} 小时前',
+  'librarySources.artistCount': '{0} 位艺术家',
+  'librarySources.albumCount': '{0} 张专辑',
+  'librarySources.matchSummary':
+    'MBID {0} 个，精确匹配 {1} 个，锚定匹配 {2} 个，已消歧 {3} 个，未对账 {4} 个',
   'librarySources.mbWarning':
     '{0} 次 MusicBrainz 查询失败。受影响的艺术家未匹配，将在下次同步时重试。',
   'libraryStats.artists': '艺术家',

@@ -1024,6 +1024,10 @@ export const en = {
   'librarySources.justNow': 'just now',
   'librarySources.minAgo': '{0} min ago',
   'librarySources.hoursAgo': '{0} h ago',
+  'librarySources.artistCount': '{0} artists',
+  'librarySources.albumCount': '{0} albums',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} exact, {2} anchored, {3} disambiguated, {4} unreconciled',
   'librarySources.mbWarning':
     '{0} MusicBrainz lookups failed. Affected artists are left unreconciled and will retry next sync.',
 

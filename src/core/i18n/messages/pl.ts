@@ -1030,6 +1030,10 @@ export const pl = {
   'librarySources.justNow': 'przed chwilą',
   'librarySources.minAgo': '{0} min temu',
   'librarySources.hoursAgo': '{0} godz. temu',
+  'librarySources.artistCount': '{0} wykonawców',
+  'librarySources.albumCount': '{0} albumów',
+  'librarySources.matchSummary':
+    '{0} MBID, {1} dokładnych, {2} zakotwiczonych, {3} ujednoznacznionych, {4} niedopasowanych',
   'librarySources.mbWarning':
     '{0} zapytań MusicBrainz nie powiodło się. Artyści nie zostali dopasowani i zostaną ponownie sprawdzeni przy następnej synchronizacji.',
   'libraryStats.artists': 'Artyści',
