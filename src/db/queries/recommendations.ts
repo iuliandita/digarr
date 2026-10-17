@@ -226,6 +226,7 @@ export async function rejectRecommendation(
         artistId: recommendations.artistId,
         kind: recommendations.kind,
         releaseGroupMbid: recommendations.recommendedReleaseGroupId,
+        releaseGroupTitle: recommendations.recommendedReleaseGroupTitle,
       })
     if (!rec) return null
 
@@ -238,6 +239,7 @@ export async function rejectRecommendation(
           userId: params.userId,
           artistId: rec.artistId,
           releaseGroupMbid: rec.releaseGroupMbid,
+          albumTitle: rec.releaseGroupTitle,
           reason: params.reason ?? undefined,
           reasonText: params.reasonText ?? undefined,
           source: 'rejection',

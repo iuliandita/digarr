@@ -62,14 +62,19 @@ export function BlockedAlbumsTab() {
           >
             <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2 min-w-0">
-                <span className="font-medium text-text truncate">{row.artistName}</span>
+                <span className="font-medium text-text truncate">
+                  {row.albumTitle ?? row.releaseGroupMbid}
+                </span>
                 {row.reason && (
                   <span className="text-xs px-2 py-0.5 rounded-full bg-bg border border-border text-muted">
                     {t(`rejectionReason.${row.reason}`)}
                   </span>
                 )}
               </div>
-              <span className="text-xs text-muted truncate">{row.releaseGroupMbid}</span>
+              <span className="text-sm text-muted truncate">{row.artistName}</span>
+              {row.albumTitle && (
+                <span className="text-xs text-muted truncate">{row.releaseGroupMbid}</span>
+              )}
             </div>
             <div className="flex items-center gap-3 text-xs text-muted">
               <span>{new Date(row.blockedAt).toLocaleDateString(locale)}</span>

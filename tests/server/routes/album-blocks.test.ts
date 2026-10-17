@@ -26,6 +26,7 @@ describe('GET /api/v1/album-blocks', () => {
       artistName: 'Artist A',
       artistMbid: 'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa',
       releaseGroupMbid: 'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb',
+      albumTitle: 'Album B',
       reason: 'already_own',
       reasonText: null,
       blockedAt: new Date('2026-04-25T12:00:00Z'),
@@ -38,6 +39,7 @@ describe('GET /api/v1/album-blocks', () => {
     expect(body.items).toHaveLength(1)
     expect(body.items[0]?.blockedAt).toBe('2026-04-25T12:00:00.000Z')
     expect(body.items[0]?.releaseGroupMbid).toBe('bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb')
+    expect(body.items[0]?.albumTitle).toBe('Album B')
     expect(listAlbumBlocks).toHaveBeenCalledWith(1)
   })
 })

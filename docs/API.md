@@ -500,6 +500,7 @@ are keyed by MusicBrainz release-group MBID and are independent of artist blocks
       "artistName": "Example Artist",
       "artistMbid": "11111111-1111-1111-1111-111111111111",
       "releaseGroupMbid": "00000000-0000-0000-0000-000000000000",
+      "albumTitle": "Example Album",
       "reason": "wrong_style",
       "reasonText": null,
       "blockedAt": "2026-07-12T00:00:00.000Z"
@@ -507,6 +508,8 @@ are keyed by MusicBrainz release-group MBID and are independent of artist blocks
   ]
 }
 ```
+
+`albumTitle` is the album title stored when the block was created; blocks created before the field was added have `null`.
 
 `:releaseGroupMbid` must be a UUID. Invalid values return `400`; a successful delete
 returns `204` even when the row is already absent.

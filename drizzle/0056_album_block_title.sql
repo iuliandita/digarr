@@ -1,0 +1,1 @@
+ALTER TABLE "album_blocks" ADD COLUMN IF NOT EXISTS "album_title" text;

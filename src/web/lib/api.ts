@@ -1337,6 +1337,7 @@ export type BlockedAlbumApi = {
   artistName: string
   artistMbid: string | null
   releaseGroupMbid: string
+  albumTitle: string | null
   reason: RejectionReason | null
   reasonText: string | null
   blockedAt: string

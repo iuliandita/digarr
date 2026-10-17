@@ -285,7 +285,12 @@ describe('getGenreArtists', () => {
 })
 
 describe('rejectRecommendation', () => {
-  type RejectedRow = { artistId: number; kind: string; releaseGroupMbid: string | null }
+  type RejectedRow = {
+    artistId: number
+    kind: string
+    releaseGroupMbid: string | null
+    releaseGroupTitle?: string | null
+  }
 
   function tableName(tableArg: unknown): string | undefined {
     const nameSymbol = Object.getOwnPropertySymbols(tableArg as object).find(
@@ -323,6 +328,7 @@ describe('rejectRecommendation', () => {
       artistId: 10,
       kind: 'album',
       releaseGroupMbid: 'rg-mbid-1',
+      releaseGroupTitle: 'Example Album',
     })
 
     const artistId = await rejectRecommendation(db, {
@@ -340,6 +346,7 @@ describe('rejectRecommendation', () => {
       userId: 5,
       artistId: 10,
       releaseGroupMbid: 'rg-mbid-1',
+      albumTitle: 'Example Album',
       reason: 'wrong_style',
       reasonText: 'not my style',
       source: 'rejection',

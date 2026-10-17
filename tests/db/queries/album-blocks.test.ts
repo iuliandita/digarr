@@ -84,6 +84,7 @@ describe('createAlbumBlock', () => {
       userId: 1,
       artistId: 10,
       releaseGroupMbid: 'rg-mbid-1',
+      albumTitle: null,
       reason: 'already_own',
       reasonText: 'I have it on vinyl',
       source: 'rejection',

@@ -854,6 +854,7 @@ export const albumBlocks = pgTable(
       .notNull()
       .references(() => artists.id, { onDelete: 'cascade' }),
     releaseGroupMbid: text('release_group_mbid').notNull(),
+    albumTitle: text('album_title'),
     reason: text('reason'),
     reasonText: text('reason_text'),
     source: text('source').notNull().default('rejection'),
