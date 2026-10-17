@@ -123,7 +123,7 @@ export function SettingsPage() {
           {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
           {tab === 'targets' && <TargetsTab />}
           {tab === 'recommendations' && <RecommendationsTab />}
-          {tab === 'schedule' && <ScheduleTab settings={data} />}
+          {tab === 'schedule' && <ScheduleTab settings={data} onSaved={refetch} />}
           {tab === 'account' && <AccountTab />}
           {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
           {tab === 'users' && <UserManagementPage embedded />}

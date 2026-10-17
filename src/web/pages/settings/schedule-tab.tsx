@@ -18,10 +18,11 @@ const PRESETS: CronPreset[] = [
   { label: 'Monthly', value: '0 0 1 * *' },
 ]
 
-export function ScheduleTab({ settings }: { settings: Settings }) {
+export function ScheduleTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
   const prefs = settings.preferences ?? {}
   const [cron, setCron] = useState(prefs.scheduleCron ?? '0 0 * * *')
+  const [digestCron, setDigestCron] = useState(prefs.digestCron ?? '')
   const [librarySyncIntervalHours, setLibrarySyncIntervalHours] = useState(
     String(settings.librarySyncIntervalHours ?? 6),
   )
@@ -38,10 +39,12 @@ export function ScheduleTab({ settings }: { settings: Settings }) {
     setSaving(true)
     try {
       await updateSettings({
-        preferences: { ...prefs, scheduleCron: cron },
+        // '' (not undefined) so clearing the field actually disables the digest server-side.
+        preferences: { ...prefs, scheduleCron: cron, digestCron: digestCron.trim() },
         librarySyncIntervalHours: Number.parseInt(librarySyncIntervalHours, 10) || 6,
       })
       toast.success(t('settings.scheduleSaved'))
+      onSaved()
     } catch {
       toast.error(t('settings.scheduleFailed'))
     } finally {
@@ -102,6 +105,19 @@ export function ScheduleTab({ settings }: { settings: Settings }) {
               />
             </Field>
             <p className="text-xs text-muted">{t('settings.librarySyncIntervalHelp')}</p>
+          </section>
+
+          <section className="space-y-2">
+            <Field label={t('settings.fieldDigestCron')} id="digest-cron">
+              <Input
+                id="digest-cron"
+                placeholder="0 6 * * 1"
+                value={digestCron}
+                onChange={(e) => setDigestCron(e.target.value)}
+                className="font-mono"
+              />
+            </Field>
+            <p className="text-xs text-muted">{t('settings.digestCronHelp')}</p>
           </section>
         </div>
       </Disclosure>

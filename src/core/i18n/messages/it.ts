@@ -1822,6 +1822,10 @@ export const it = {
   'settings.channels.description':
     'Invia notifiche di completamento scansione e di riepilogo a uno o più canali.',
   'settings.channels.add': 'Aggiungi canale',
+  'settings.channels.addConfirm': 'Aggiungi',
+  'settings.channels.summary': '{0} canali, {1} abilitati',
+  'settings.channels.summarySingle': '1 canale, {0} abilitato',
+  'settings.channels.disabled': 'Disabilitato',
   'settings.channels.empty': 'Nessun canale ancora configurato.',
   'settings.channels.type': 'Tipo',
   'settings.channels.enabled': 'Abilitato',
