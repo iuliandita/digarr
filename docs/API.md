@@ -531,7 +531,7 @@ Path params:
 
 **PATCH /api/v1/subscriptions/:id** accepts only these optional fields: `name`, `enabled`, `sourceConfig`, `maxArtistsPerRun`, `listenerRange`, `cron`, `scoreThreshold` (0 to 1), `scoringWeightPreset`, and `scoringWeightOverrides`. The body is strict: any other key, including `sourceType`, `sourceProvider`, `action`, and a `null` `scoreThreshold`, returns `400` validation failure, so send only the fields you are changing. Success returns `204`; a subscription that does not exist or belongs to another user returns `404` problem+json. Changing `enabled` or `cron` reschedules the job.
 
-In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog and adds optional `secondaryTypes` metadata when MusicBrainz provides a valid string array. This list is not restricted to studio albums; the coverage-only rule below does not change album picking, Release Radar or release matching.
+In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog and adds optional `secondaryTypes` metadata when MusicBrainz provides a valid string array. It also returns an optional `aliases` string array with the release group's MusicBrainz alias names and sort names, omitted when there are none. This list is not restricted to studio albums; the coverage-only rule below does not change album picking, Release Radar or release matching.
 
 **GET /api/v1/preview/audio** is rate limited to 30 requests per minute. Query params:
 - `url` - Deezer CDN preview URL (must match `*.dzcdn.net`)

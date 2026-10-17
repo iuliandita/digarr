@@ -69,6 +69,19 @@ export type MBReleaseGroup = {
   type: string
   secondaryTypes?: string[]
   firstReleaseDate?: string
+  aliases?: string[]
+}
+
+function releaseGroupAliasNames(aliases: unknown): string[] {
+  if (!Array.isArray(aliases)) return []
+  const names = new Set<string>()
+  for (const alias of aliases) {
+    if (!alias || typeof alias !== 'object') continue
+    for (const name of [alias.name, alias['sort-name']]) {
+      if (typeof name === 'string' && name.trim() !== '') names.add(name)
+    }
+  }
+  return [...names]
 }
 
 export type MBRecording = {
@@ -245,6 +258,7 @@ export function createMusicBrainzClient() {
       const params = new URLSearchParams({
         artist: artistMbid,
         type: types.join('|'),
+        inc: 'aliases',
         fmt: 'json',
         limit: String(limit),
         offset: String(offset),
@@ -258,6 +272,7 @@ export function createMusicBrainzClient() {
           'primary-type'?: string
           'secondary-types'?: unknown
           'first-release-date'?: string
+          aliases?: unknown
         }>
       }>(`/release-group?${params}`)
 
@@ -300,6 +315,7 @@ export function createMusicBrainzClient() {
       for (const group of groups) {
         if (seenIds.has(group.id)) continue
         seenIds.add(group.id)
+        const aliases = releaseGroupAliasNames(group.aliases)
         releaseGroups.push({
           id: group.id,
           title: group.title,
@@ -310,6 +326,7 @@ export function createMusicBrainzClient() {
               ? group['secondary-types']
               : undefined,
           firstReleaseDate: group['first-release-date'],
+          ...(aliases.length > 0 ? { aliases } : {}),
         })
       }
       if (seenIds.size === previousSize) {

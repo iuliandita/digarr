@@ -522,7 +522,7 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz.ts": "6c31717640cf78530d5e48b954207dfe1bff740561b8d16bd00f380973b7d6ab",
+        "src/core/clients/musicbrainz.ts": "e032ee869d7ba9d71672a5027693422efe4bd450e4984dd3de439fa442dc6022",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -566,7 +566,7 @@
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "1cd1e0124fa698c7f54a5ebc6dea64ef200e850b7cd2da9d7f96b3c251ec02ab",
         "src/core/library/album-coverage.ts": "2f3f7e53e1b3608440e2c436da94b7498f159ecb48acb30b75da41190331df48",
-        "src/core/library/album-reconciler.ts": "4c1c6e592b92a86a1fc783cdd4540644fd82158948dca24ea051c39900681ca5",
+        "src/core/library/album-reconciler.ts": "63fe8125b397b32e58fa9cfd65bc0d7a7b1800b2aba07e2d9adc33fb59fee0b9",
         "src/core/library/health-scheduler.ts": "1bc22e2658aadf5ddc910e2951196e021792bb268f5c4986773b409ae8d28592",
         "src/core/library/health.ts": "ed9120f65aab5f0b3c1d7b79c12dc88ee519409d55c2191e006f9f09b6c1f39d",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
@@ -703,14 +703,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a",
+      "digest": "fcd42447afa3493d48146f4d0741e56bac779438814f2b9f91199eb05c635b21",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Reconciler accepts MusicBrainz candidates by alias or sort name when no primary name matches. CHANGELOG has the Fixed entry; docs/NORMALIZATION.md (outside this domain) describes the candidate rule. ARCHITECTURE.md does not describe the reconciler match rule. No API, config or schema change.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Album reconciliation falls back to exact normalized matches on release-group aliases (primary title first, ambiguity unchanged); release-group browse requests inc=aliases with unchanged pagination; /api/v1/albums/:mbid gains optional aliases; docs/NORMALIZATION.md updated too",
         "breaking": "none",
         "migration": "",
-        "digest": "7bb9342b41c3a967939b9aa6108f43f76afdf6caff9c31cb02ed87ea0980be6a"
+        "digest": "fcd42447afa3493d48146f4d0741e56bac779438814f2b9f91199eb05c635b21"
       }
     },
     "deployment": {

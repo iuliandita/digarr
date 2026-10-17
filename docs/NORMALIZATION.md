@@ -18,7 +18,7 @@ Several tables store a normalized artist name or album title and use it as a loo
 ### `library_albums.title_normalized`
 
 - Rule: `normalizeAlbumTitle()` in the same file. NFD, strip marks, lowercase, drop parenthesized or bracketed `deluxe`/`expanded`/`remaster(ed)`/`edition` qualifiers, collapse whitespace, trim.
-- Written by `src/core/library/album-reconciler.ts`. Album matching compares freshly normalized MusicBrainz titles in memory; the stored value is only returned by the library API (`titleNormalized`).
+- Written by `src/core/library/album-reconciler.ts`. Album matching compares freshly normalized MusicBrainz release-group titles in memory, falling back to the release groups' aliases when no primary title matches; the stored value is only returned by the library API (`titleNormalized`).
 - No index on it. Raw input is kept in `title`.
 
 ### `artist_genre_aliases.name_normalized`

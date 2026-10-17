@@ -215,4 +215,83 @@ describe('reconcileAlbumsForArtist', () => {
     expect(mismatch[0]).toMatchObject({ albumMbid: ALBUM_MBID, unreconciledReason: 'no_candidate' })
     expect(mismatch[1]).toMatchObject({ albumMbid: null, unreconciledReason: 'no_candidate' })
   })
+
+  it('matches a library title stored under a release-group alias', async () => {
+    const mbClient = {
+      getReleaseGroups: vi.fn().mockResolvedValue([
+        {
+          id: ALBUM_MBID,
+          title: '꽃갈피',
+          type: 'EP',
+          firstReleaseDate: '2014-05-16',
+          aliases: ['A Flower Bookmark'],
+        },
+      ]),
+    }
+
+    const rows = await reconcileAlbumsForArtist(
+      ARTIST_MBID,
+      [album({ title: 'A Flower Bookmark' })],
+      { mbClient },
+    )
+
+    expect(rows[0]).toMatchObject({
+      albumMbid: ALBUM_MBID,
+      matchMethod: 'title_exact',
+      releaseYear: 2014,
+      unreconciledReason: null,
+    })
+  })
+
+  it('prefers a primary-title match over an alias match', async () => {
+    const mbClient = {
+      getReleaseGroups: vi.fn().mockResolvedValue([
+        { id: ALBUM_MBID, title: 'Palette', type: 'Album', firstReleaseDate: '2017-04-21' },
+        {
+          id: ALBUM_MBID_2,
+          title: '팔레트',
+          type: 'Single',
+          firstReleaseDate: '2017-04-21',
+          aliases: ['Palette'],
+        },
+      ]),
+    }
+
+    const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ title: 'Palette' })], {
+      mbClient,
+    })
+
+    expect(rows[0]).toMatchObject({ albumMbid: ALBUM_MBID, unreconciledReason: null })
+  })
+
+  it('rejects a title that matches neither a primary title nor an alias', async () => {
+    const mbClient = {
+      getReleaseGroups: vi
+        .fn()
+        .mockResolvedValue([
+          { id: ALBUM_MBID, title: '꽃갈피', type: 'EP', aliases: ['A Flower Bookmark', 42, ''] },
+        ]),
+    }
+
+    const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ title: 'Modern Times' })], {
+      mbClient,
+    })
+
+    expect(rows[0]).toMatchObject({ albumMbid: null, unreconciledReason: 'no_candidate' })
+  })
+
+  it('treats several alias-only matches as ambiguous', async () => {
+    const mbClient = {
+      getReleaseGroups: vi.fn().mockResolvedValue([
+        { id: ALBUM_MBID, title: '꽃갈피', type: 'EP', aliases: ['Bookmark'] },
+        { id: ALBUM_MBID_2, title: '꽃갈피 둘', type: 'EP', aliases: ['Bookmark'] },
+      ]),
+    }
+
+    const rows = await reconcileAlbumsForArtist(ARTIST_MBID, [album({ title: 'Bookmark' })], {
+      mbClient,
+    })
+
+    expect(rows[0]).toMatchObject({ albumMbid: null, unreconciledReason: 'ambiguous' })
+  })
 })

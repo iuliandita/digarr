@@ -50,6 +50,18 @@ function makeRow(
   }
 }
 
+type MBReleaseGroup = Awaited<ReturnType<MBClient['getReleaseGroups']>>[number]
+
+function matchesAlias(releaseGroup: MBReleaseGroup, titleNormalized: string): boolean {
+  if (!Array.isArray(releaseGroup.aliases)) return false
+  return releaseGroup.aliases.some(
+    (name) =>
+      typeof name === 'string' &&
+      name.trim() !== '' &&
+      normalizeAlbumTitle(name) === titleNormalized,
+  )
+}
+
 export async function reconcileAlbumsForArtist(
   artistMbid: string,
   albums: LibraryAlbum[],
@@ -104,9 +116,15 @@ export async function reconcileAlbumsForArtist(
       })
     }
 
-    const candidates = releaseGroups.filter(
+    // A primary-title match outranks alias matches, so an alias shared with
+    // another release group cannot turn a clean primary match into an ambiguity.
+    const primaryMatches = releaseGroups.filter(
       (rg) => normalizeAlbumTitle(rg.title) === titleNormalized,
     )
+    const candidates =
+      primaryMatches.length > 0
+        ? primaryMatches
+        : releaseGroups.filter((rg) => matchesAlias(rg, titleNormalized))
 
     if (candidates.length === 0) {
       return makeRow(album, titleNormalized, artistMbid, {

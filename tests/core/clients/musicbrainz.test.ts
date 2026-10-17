@@ -520,6 +520,33 @@ describe('createMusicBrainzClient', () => {
       })
     })
 
+    it('requests release-group aliases and keeps only usable alias names', async () => {
+      mockFetch.mockResolvedValueOnce(
+        makeJsonResponse({
+          'release-groups': [
+            {
+              id: 'rg-1',
+              title: '꽃갈피',
+              'primary-type': 'EP',
+              aliases: [
+                { name: 'A Flower Bookmark', 'sort-name': 'A Flower Bookmark' },
+                { name: '', 'sort-name': 'Flower Bookmark, A' },
+                null,
+                { name: 7 },
+              ],
+            },
+            { id: 'rg-2', title: 'Palette', 'primary-type': 'Album', aliases: 'nope' },
+          ],
+        }),
+      )
+      const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
+
+      const [url] = mockFetch.mock.calls[0] as [string]
+      expect(new URL(url).searchParams.get('inc')).toBe('aliases')
+      expect(result[0]?.aliases).toEqual(['A Flower Bookmark', 'Flower Bookmark, A'])
+      expect(result[1]).not.toHaveProperty('aliases')
+    })
+
     it('maps missing primary-type to "Other"', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_RG_RESPONSE))
       const client = createMusicBrainzClient()
@@ -652,6 +679,7 @@ describe('createMusicBrainzClient', () => {
           expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
             artist: MOCK_ARTIST_MBID,
             type: 'album',
+            inc: 'aliases',
             fmt: 'json',
             limit: '100',
             offset: String(index * 100),
