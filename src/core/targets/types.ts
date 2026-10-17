@@ -80,12 +80,6 @@ export interface DestinationTarget {
     options?: TargetAddOptions,
   ): Promise<TargetResult>
 
-  createPlaylist?(
-    name: string,
-    items: PlaylistItem[],
-    options?: { description?: string; public?: boolean; replace?: boolean },
-  ): Promise<PlaylistResult>
-
   openPlaylistExportSession?(items: PlaylistItem[]): Promise<PlaylistExportSession>
 
   testConnection(): Promise<ServiceTestResult>

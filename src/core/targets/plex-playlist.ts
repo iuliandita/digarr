@@ -143,42 +143,6 @@ export function createPlexPlaylistTarget(
     type: 'plex-playlist',
     capabilities: ['createPlaylist'],
 
-    async createPlaylist(
-      name: string,
-      items: PlaylistItem[],
-      _options?: { description?: string; public?: boolean; replace?: boolean },
-    ): Promise<PlaylistResult> {
-      try {
-        const ratingKeys = await resolveItems(items)
-        const { machineIdentifier: machineId } = await getServerInfo()
-        const params = new URLSearchParams({
-          type: 'audio',
-          title: name,
-          smart: '0',
-          uri: contentUri(machineId, ratingKeys),
-        })
-
-        const created = await postOnce<PlexPlaylistCreateResponse>(`/playlists?${params}`)
-
-        const playlist = created.MediaContainer.Metadata?.[0]
-        if (!playlist) {
-          throw new Error('Plex did not return a playlist after creation')
-        }
-
-        return {
-          success: true,
-          targetType: 'plex-playlist',
-          targetId,
-          playlistId: playlist.ratingKey,
-          playlistName: playlist.title,
-          itemsAdded: ratingKeys.length,
-          itemsSkipped: items.length - ratingKeys.length,
-        }
-      } catch (err: unknown) {
-        return failure(err)
-      }
-    },
-
     async openPlaylistExportSession(items) {
       try {
         if (items.length === 0) throw new Error('No playlist tracks were provided')

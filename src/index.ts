@@ -87,11 +87,8 @@ import type {
   MusicBrainzClient as SubMBClient,
   SubscriptionConfig,
 } from './core/subscriptions/types'
-import { createEmbyPlaylistTarget } from './core/targets/emby-playlist'
-import { createJellyfinPlaylistTarget } from './core/targets/jellyfin-playlist'
 import { createLidarrTarget } from './core/targets/lidarr'
-import { createNavidromePlaylistTarget } from './core/targets/navidrome-playlist'
-import { createPlexPlaylistTarget } from './core/targets/plex-playlist'
+import { createSavedPlaylistExportTarget } from './core/targets/saved-playlist-targets'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
 import { testTargetConnection } from './core/targets/test-connection'
@@ -1120,42 +1117,11 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
 
       const targets: Array<{ targetId: number; target: DestinationTarget }> = []
       for (const targetRow of enabledTargetRows) {
-        let target: DestinationTarget | null = null
-
-        if (targetRow.type === 'navidrome-playlist') {
-          target = createNavidromePlaylistTarget(targetRow.id, {
-            url: targetRow.config.url as string,
-            username: targetRow.config.username as string,
-            password: targetRow.config.password as string,
-          })
-        } else if (targetRow.type === 'jellyfin-playlist') {
-          target = createJellyfinPlaylistTarget(targetRow.id, {
-            url: targetRow.config.url as string,
-            apiKey: targetRow.config.apiKey as string,
-            userId: targetRow.config.userId as string,
-            skipTlsVerify:
-              (targetRow.config.skipTlsVerify as boolean | undefined) ?? globalSkipTlsVerify,
-          })
-        } else if (targetRow.type === 'emby-playlist') {
-          target = createEmbyPlaylistTarget(targetRow.id, {
-            url: targetRow.config.url as string,
-            apiKey: targetRow.config.apiKey as string,
-            userId: targetRow.config.userId as string,
-            skipTlsVerify:
-              (targetRow.config.skipTlsVerify as boolean | undefined) ?? globalSkipTlsVerify,
-          })
-        } else if (targetRow.type === 'plex-playlist') {
-          target = createPlexPlaylistTarget(targetRow.id, {
-            url: targetRow.config.url as string,
-            token: targetRow.config.token as string,
-          })
-        } else if (targetRow.type === 'spotify-playlist') {
-          target = createSpotifyPlaylistTarget(targetRow.id, {
-            getAccessToken: () => resolveProviderToken(db, userId, 'spotify'),
-          })
-        }
-
-        if (target?.createPlaylist) targets.push({ targetId: targetRow.id, target })
+        const target = createSavedPlaylistExportTarget(targetRow, {
+          globalSkipTlsVerify,
+          getSpotifyAccessToken: () => resolveProviderToken(db, userId, 'spotify'),
+        })
+        if (target) targets.push({ targetId: targetRow.id, target })
       }
 
       await pushSavedPlaylistToTargets(

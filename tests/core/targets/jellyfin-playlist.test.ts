@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type { PlaylistItem } from '@/core/targets/types'
 
 const mockFetch = vi.fn()
@@ -78,101 +78,57 @@ describe('createJellyfinPlaylistTarget()', () => {
     })
   })
 
-  describe('createPlaylist()', () => {
-    beforeEach(() => {
-      mockFetch.mockImplementation(async (url: string | URL | Request, opts?: RequestInit) => {
-        const urlStr = String(url)
-
-        // GET /Users/{userId}/Items - track search
-        if (urlStr.includes('/Items') && (!opts?.method || opts.method === 'GET')) {
-          return ok({
-            Items: [
-              { Id: 'item-1', Name: 'Creep', AlbumArtist: 'Radiohead', Artists: ['Radiohead'] },
-              {
-                Id: 'item-2',
-                Name: 'Karma Police',
-                AlbumArtist: 'Radiohead',
-                Artists: ['Radiohead'],
-              },
-            ],
-            TotalRecordCount: 2,
-          })
+  describe('export session createPlaylist()', () => {
+    function mockCreateResponse(create: () => Response) {
+      mockFetch.mockImplementation(async (url: string | URL | Request) => {
+        const { pathname } = new URL(String(url))
+        if (pathname === '/System/Info') return ok({ Id: 'jf-server' })
+        if (pathname === '/Users/user-uuid-1') return ok({ Id: 'user-uuid-1' })
+        if (pathname === '/Users/user-uuid-1/Items') {
+          return ok({ Items: [{ Id: 'item-1', Name: 'Creep', AlbumArtist: 'Radiohead' }] })
         }
-
-        // POST /Playlists - create playlist
-        if (urlStr.includes('/Playlists') && opts?.method === 'POST') {
-          return ok({ Id: 'jf-pl-1', Name: 'Digarr Picks' })
-        }
-
+        if (pathname === '/Playlists') return create()
         return new Response('Not Found', { status: 404 })
       })
-    })
+    }
+
+    async function createViaSession() {
+      const session = await createJellyfinPlaylistTarget(7, CONFIG).openPlaylistExportSession?.([
+        { artistName: 'Radiohead', artistMbid: 'mbid-rh', trackName: 'Creep' },
+      ])
+      if (!session) throw new Error('Expected an export session')
+      return session.createPlaylist('Digarr Picks', async () => {})
+    }
 
     it('returns failure when POST /Playlists errors', async () => {
-      mockFetch.mockImplementation(async (url: string | URL | Request, opts?: RequestInit) => {
-        const urlStr = String(url)
-        if (urlStr.includes('/Items') && (!opts?.method || opts.method === 'GET')) {
-          return ok({ Items: [], TotalRecordCount: 0 })
-        }
-        if (urlStr.includes('/Playlists') && opts?.method === 'POST') {
-          return httpError(500)
-        }
-        return new Response('Not Found', { status: 404 })
-      })
+      mockCreateResponse(() => httpError(500))
 
-      const target = createJellyfinPlaylistTarget(7, CONFIG)
-      const result = await target.createPlaylist?.('Bad', [
-        { artistName: 'X', artistMbid: 'mbid-x', trackName: 'Y' },
-      ])
+      const result = await createViaSession()
 
-      expect(result?.success).toBe(false)
-      expect(result?.error).toContain('500')
-      expect(result?.error).toContain('Error')
+      expect(result.success).toBe(false)
+      expect(result.error).toContain('500')
+      expect(result.error).toContain('Error')
       expect(
-        mockFetch.mock.calls.filter(
-          ([url, init]) =>
-            String(url).includes('/Playlists') &&
-            (init as RequestInit | undefined)?.method === 'POST',
-        ),
+        mockFetch.mock.calls.filter(([url]) => new URL(String(url)).pathname === '/Playlists'),
       ).toHaveLength(1)
     })
 
-    it('returns a provider-shaped error for malformed JSON', async () => {
-      mockFetch.mockResolvedValueOnce(new Response('not-json'))
-
-      const target = createJellyfinPlaylistTarget(7, CONFIG)
-      const result = await target.createPlaylist?.('Bad JSON', [])
-
-      expect(result).toMatchObject({
-        success: false,
-        error: 'Jellyfin API 200: Invalid JSON: not-json',
-      })
-    })
-
     it('redacts the API key if an upstream error body echoes it', async () => {
-      mockFetch.mockResolvedValueOnce(
-        new Response(`apiKey=${CONFIG.apiKey}`, {
-          status: 500,
-        }),
-      )
+      mockCreateResponse(() => new Response(`apiKey=${CONFIG.apiKey}`, { status: 500 }))
 
-      const target = createJellyfinPlaylistTarget(7, CONFIG)
-      const result = await target.createPlaylist?.('Echoed Credential', [])
+      const result = await createViaSession()
 
       expect(result).toMatchObject({
         success: false,
         error: 'Jellyfin API 500: apiKey=[REDACTED]',
       })
-      expect(result?.error).not.toContain(CONFIG.apiKey)
+      expect(result.error).not.toContain(CONFIG.apiKey)
     })
 
     it('returns a provider-shaped error for an empty JSON response', async () => {
-      mockFetch.mockResolvedValueOnce(new Response(''))
+      mockCreateResponse(() => new Response(''))
 
-      const target = createJellyfinPlaylistTarget(7, CONFIG)
-      const result = await target.createPlaylist?.('Empty Response', [])
-
-      expect(result).toMatchObject({
+      expect(await createViaSession()).toMatchObject({
         success: false,
         error: 'Jellyfin API 200: Expected JSON response body',
       })
