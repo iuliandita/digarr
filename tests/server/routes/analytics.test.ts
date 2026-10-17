@@ -295,3 +295,25 @@ describe('GET /api/v1/analytics/sources', () => {
     expect(body[1].approvalRate).toBeCloseTo(0.333, 2)
   })
 })
+
+describe('analytics admin guard', () => {
+  it.each(['overview', 'batches', 'genres', 'sources', 'scores', 'trend', 'time-to-act'])(
+    'rejects a non-admin on /api/v1/analytics/%s',
+    async (route) => {
+      const execute = vi.fn(async () => ({ rows: [] }))
+      const app = createApp(
+        makeDeps({
+          db: { execute } as unknown as AppDependencies['db'],
+          getUserById: vi.fn(async () => ({
+            id: 1,
+            username: 'member',
+            isAdmin: false,
+          })) as unknown as AppDependencies['getUserById'],
+        }),
+      )
+      const res = await authedRequest(app, `/api/v1/analytics/${route}`)
+      expect(res.status).toBe(403)
+      expect(execute).not.toHaveBeenCalled()
+    },
+  )
+})
