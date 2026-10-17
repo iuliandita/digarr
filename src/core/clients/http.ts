@@ -60,15 +60,17 @@ export function createHttpClient(config: HttpClientConfig) {
     path: string,
     body?: unknown,
     options: HttpRequestOptions = {},
-  ): Promise<Response> {
+  ): Promise<{ status: number; text: string }> {
     const url = `${baseUrl}${path}`
-    const maxRetries = options.retries ?? retries
+    // Retrying a non-idempotent call (command, enqueue, add) can run it twice.
+    const maxRetries = options.retries ?? (RETRYABLE_METHODS.has(method) ? retries : 0)
     const requestTimeout = options.timeout ?? timeout
     onRequest?.(method, url)
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       const controller = new AbortController()
       const timer = setTimeout(() => controller.abort(), requestTimeout)
+      let delayMs: number
 
       try {
         const prepared = await prepareRequest(
@@ -91,8 +93,8 @@ export function createHttpClient(config: HttpClientConfig) {
 
         const res = await fetch(prepared.url, prepared.init)
 
-        clearTimeout(timer)
-        if (res.ok) return res
+        // The timer stays armed through the body read so a stalled body cannot hang the caller.
+        if (res.ok) return { status: res.status, text: await res.text() }
 
         if (!followRedirects && res.status >= 300 && res.status < 400) {
           const location = res.headers.get('location')
@@ -104,21 +106,15 @@ export function createHttpClient(config: HttpClientConfig) {
         }
 
         const errorBody = await readResponseText(res)
-        if (res.status >= 400 && res.status < 500) {
+        const retryable = res.status === 429 || res.status >= 500
+        if (!retryable || attempt >= maxRetries) {
           throw new HttpError(res.status, errorBody, url)
         }
-        if (attempt >= maxRetries) {
-          throw new HttpError(res.status, errorBody, url)
-        }
+        delayMs =
+          (res.status === 429 ? parseRetryAfterMs(res.headers.get('retry-after')) : null) ??
+          backoffMs(attempt)
       } catch (err: unknown) {
-        clearTimeout(timer)
-        if (err instanceof HttpError) {
-          if (err.status >= 500 && attempt < maxRetries) {
-            await sleep(2 ** attempt * 500)
-            continue
-          }
-          throw err
-        }
+        if (err instanceof HttpError) throw err
         if (attempt >= maxRetries) {
           // A bare AbortError reads as "This operation was aborted", which tells
           // the user nothing about which budget they blew or that it is tunable.
@@ -127,8 +123,12 @@ export function createHttpClient(config: HttpClientConfig) {
           }
           throw err
         }
-        await sleep(2 ** attempt * 500)
+        delayMs = backoffMs(attempt)
+      } finally {
+        clearTimeout(timer)
       }
+
+      await sleep(delayMs)
     }
 
     throw new Error(`Request failed after ${maxRetries} retries: ${method} ${redactUrlForLog(url)}`)
@@ -141,15 +141,14 @@ export function createHttpClient(config: HttpClientConfig) {
     options: HttpRequestOptions = {},
   ): Promise<T> {
     const url = `${baseUrl}${path}`
-    const res = await send(method, path, body, options)
-    const text = await res.text()
+    const { status, text } = await send(method, path, body, options)
     if (!text) {
-      throw new HttpError(res.status, 'Expected JSON response body', url)
+      throw new HttpError(status, 'Expected JSON response body', url)
     }
     try {
       return JSON.parse(text) as T
     } catch {
-      throw new HttpError(res.status, `Invalid JSON: ${text.slice(0, 200)}`, url)
+      throw new HttpError(status, `Invalid JSON: ${text.slice(0, 200)}`, url)
     }
   }
 
@@ -258,6 +257,27 @@ export class HttpTimeoutError extends Error {
   }
 
   public url: string
+}
+
+const RETRYABLE_METHODS = new Set(['GET', 'HEAD'])
+const MAX_RETRY_AFTER_MS = 30_000
+
+function backoffMs(attempt: number): number {
+  return 2 ** attempt * 500
+}
+
+/** Retry-After as seconds or an HTTP-date, capped; null when absent or unparseable. */
+function parseRetryAfterMs(raw: string | null): number | null {
+  if (!raw) return null
+  const value = raw.trim()
+  let ms: number
+  if (/^\d+$/.test(value)) ms = Number(value) * 1000
+  else {
+    const date = Date.parse(value)
+    if (Number.isNaN(date)) return null
+    ms = Math.max(0, date - Date.now())
+  }
+  return Math.min(ms, MAX_RETRY_AFTER_MS)
 }
 
 function sleep(ms: number): Promise<void> {
