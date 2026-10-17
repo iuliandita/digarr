@@ -26,6 +26,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Upgrades from releases before migrations 0024 and 0028 no longer fail on databases with duplicate rows. After the pre-migration backup, Digarr removes duplicate library sync state and match override rows (keeping the newest) and clears a duplicate email or SSO subject from every account but the oldest, then logs counts and affected user ids (#925).
 - Playlists: the page header now says "Schedule paused" when scheduled generation is switched off and your playlists use different schedules; before, it said "No schedule configured" even though each playlist showed its schedule. Scheduled generation still needs the admin-only `playlistEnabled` switch; see [Operations](docs/OPERATIONS.md).
 - Unraid: the bundled template now maps `/app/backups`, so the automatic pre-migration backups survive container updates. Stores that still show only the Data path need the same Path added by hand; see the Unraid guide (#911).
 - Docker Compose: the `postgres` service no longer loads the whole `.env`, so app secrets stay out of the database container. `POSTGRES_USER`, `POSTGRES_DB`, and `POSTGRES_PASSWORD` set in `.env` no longer reach PostgreSQL; use `DB_USER`, `DB_NAME`, and `secrets/postgres_password` instead (#911).
