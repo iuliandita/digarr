@@ -68,6 +68,16 @@ describe('playlist export helpers', () => {
     expect(result).toContain('Massive Attack,Teardrop,https://www.deezer.com/track/456')
   })
 
+  it.each(['=HYPERLINK("x")', '+1', '-2', '@SUM(A1)'])(
+    'neutralizes formula prefix %s in CSV cells',
+    (artistName) => {
+      const row = exportPlaylistToCsv([
+        { ...(SAMPLE[0] as ExportablePlaylistTrack), artistName },
+      ]).split('\n')[1]
+      expect(row).not.toMatch(/(^|,)"?[=+\-@]/)
+    },
+  )
+
   it('exports M3U entries with artist and track names', () => {
     const result = exportPlaylistToM3u(SAMPLE)
     expect(result).toContain('#EXTM3U')
