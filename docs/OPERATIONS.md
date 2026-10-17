@@ -92,7 +92,7 @@ Delivery remains at least once: a crash after sending but before saving can dupl
 
 ## Library health
 
-Library Health offers scheduled sync and `Sync Now`. Failed album fetches preserve the previous library snapshot. When the last health scan failed or was partial, the page shows a warning with the stored error. Admins can inspect failures in Job History.
+Library > Health (`/library?tab=health`) offers scheduled sync and `Sync Now`. Failed album fetches preserve the previous library snapshot. When the last health scan failed or was partial, the page shows a warning with the stored error. Admins can inspect failures in Settings > System, which contains Job History and Health sections. The Tools menu keeps one Job History shortcut to `/settings?tab=system#jobs`. Library > Reconciliation (`/library?tab=reconciliation`) contains artist and album matching controls. Old `/library/health` and `/library/reconciliation` links redirect to the matching Library tab; `?tab=jobs` and `?tab=system-health` resolve to the matching System section.
 
 ## Large Lidarr libraries
 
