@@ -218,6 +218,105 @@ describe('slskd job queries', () => {
     )
   })
 
+  const HOUR = 60 * 60 * 1000
+  const retryInput = (sourceType: string) => ({
+    targetId: 2,
+    sourceType,
+    workKey: 'artist:mbid-1',
+    artistMbid: '11111111-1111-1111-1111-111111111111',
+    artistName: 'Example Artist',
+    releaseTitle: 'Example Release',
+  })
+
+  it.each([
+    ['first retry waits one hour', 1, 0.5 * HOUR, false],
+    ['first retry runs after one hour', 1, HOUR + 1, true],
+    ['second retry waits six hours', 2, 5 * HOUR, false],
+    ['second retry runs after six hours', 2, 6 * HOUR + 1, true],
+    ['third retry waits a day', 3, 23 * HOUR, false],
+    ['third retry runs after a day', 3, 24 * HOUR + 1, true],
+    ['parks after the retry cap however long it waits', 4, 1000 * HOUR, false],
+  ])('automatic wanted-list retry backoff: %s', async (_name, attempts, ageMs, retries) => {
+    const failed = {
+      id: 9,
+      state: 'failed',
+      attempts,
+      selectedResult: null,
+      updatedAt: new Date(Date.now() - ageMs),
+    }
+    const db = makeDb({
+      insertedRows: [],
+      selectedRows: [failed],
+      updatedRows: [{ ...failed, state: 'pending' }],
+    })
+
+    await createSlskdJob(db as unknown as Database, retryInput('lidarr_wanted'))
+
+    expect(db.update).toHaveBeenCalledTimes(retries ? 1 : 0)
+    if (retries) {
+      expect(db._mocks.updateSet).toHaveBeenCalledWith(
+        expect.not.objectContaining({ attempts: expect.anything() }),
+      )
+    }
+  })
+
+  it('manual retry of a parked job resets attempts and the failed-peer list', async () => {
+    const failed = {
+      id: 9,
+      state: 'failed',
+      attempts: 9,
+      selectedResult: {
+        username: 'peer-a',
+        files: [{ filename: 'Artist\\Album\\01.flac', size: 1 }],
+        failedReleases: [{ username: 'peer-b', directory: 'Artist\\Album' }],
+      },
+      updatedAt: new Date(Date.now() - HOUR - 1),
+    }
+    const db = makeDb({
+      insertedRows: [],
+      selectedRows: [failed],
+      updatedRows: [{ ...failed, state: 'pending' }],
+    })
+
+    await createSlskdJob(db as unknown as Database, retryInput('standalone_approval'))
+
+    expect(db._mocks.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({ state: 'pending', attempts: 0, selectedResult: null }),
+    )
+  })
+
+  it('remembers the failed peer folder and carries earlier failures forward', async () => {
+    const failed = {
+      id: 9,
+      state: 'failed',
+      attempts: 2,
+      selectedResult: {
+        username: 'peer-b',
+        files: [{ filename: 'Artist\\Album\\01.flac', size: 1 }],
+        failedReleases: [{ username: 'peer-a', directory: 'Artist\\Album' }],
+      },
+      updatedAt: new Date(Date.now() - 7 * HOUR),
+    }
+    const db = makeDb({
+      insertedRows: [],
+      selectedRows: [failed],
+      updatedRows: [{ ...failed, state: 'pending' }],
+    })
+
+    await createSlskdJob(db as unknown as Database, retryInput('lidarr_wanted'))
+
+    expect(db._mocks.updateSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        selectedResult: {
+          failedReleases: [
+            { username: 'peer-a', directory: 'Artist\\Album' },
+            { username: 'peer-b', directory: 'Artist\\Album' },
+          ],
+        },
+      }),
+    )
+  })
+
   it('createSlskdJob retries once when a conflicting active row disappears before lookup', async () => {
     const row = { id: 13, workKey: 'artist:mbid-1', state: 'pending' }
     const db = makeDb({
