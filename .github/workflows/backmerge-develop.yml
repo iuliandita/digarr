@@ -55,12 +55,13 @@ jobs:
           # Conflicted: leave it to a human, but leave it visible.
           git merge --abort
           branch="chore/backmerge-main-${GITHUB_SHA::8}"
-          git switch -c "$branch" origin/develop
+          git switch -c "$branch" origin/main
           git push --force-with-lease origin "$branch"
           {
             printf 'Merging `main` into `develop` conflicts, so it needs manual resolution.\n\n'
-            printf 'Resolve locally:\n\n'
-            printf '```sh\ngit switch develop && git pull\ngit merge origin/main\n# resolve, then\ngit push origin develop\n```\n'
+            printf 'This branch is main at the commit that failed to merge. Resolve locally:\n\n'
+            printf '```sh\ngit fetch origin && git switch develop && git pull\ngit merge origin/main\n# resolve, then\ngit push origin develop\n```\n\n'
+            printf 'Then close this PR and delete the branch.\n'
           } > /tmp/backmerge-body.md
           gh pr create --base develop --head "$branch" \
             --title "chore(release): back-merge main into develop" \

@@ -452,3 +452,18 @@ describe('jellyfin library selection', () => {
     })
   })
 })
+
+describe('jellyfin unscoped artist paging', () => {
+  it('sorts by name so pages do not overlap or skip', async () => {
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+    mockGet.mockResolvedValueOnce({ TotalRecordCount: 0, Items: [] })
+    await client.getAllArtists()
+    const path = String(mockGet.mock.calls[0]?.[0])
+    expect(path).toContain('SortBy=SortName')
+    expect(path).toContain('SortOrder=Ascending')
+  })
+})

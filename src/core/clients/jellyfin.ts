@@ -210,6 +210,8 @@ export function createJellyfinClient(
         const params = new URLSearchParams({
           IncludeItemTypes: 'MusicArtist',
           Recursive: 'true',
+          SortBy: 'SortName',
+          SortOrder: 'Ascending',
           Fields: 'Genres,ProviderIds',
           StartIndex: String(startIndex),
           Limit: String(pageSize),

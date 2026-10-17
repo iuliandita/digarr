@@ -39,7 +39,7 @@ export type AudiodbClient = ReturnType<typeof createAudiodbClient>
 
 export function createAudiodbClient(config: AudiodbClientConfig) {
   const apiKey = config.apiKey || '123'
-  const rootBase = config.baseUrl ?? DEFAULT_BASE
+  const rootBase = (config.baseUrl ?? DEFAULT_BASE).replace(/\/+$/, '')
   const baseUrl = `${rootBase}/${apiKey}`
 
   const http = createHttpClient({

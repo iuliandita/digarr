@@ -26,6 +26,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
+- CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).
+- Upgrades from releases before migrations 0024 and 0028 no longer fail on databases with duplicate rows. After the pre-migration backup, Digarr removes duplicate library sync state and match override rows (keeping the newest) and clears a duplicate email or SSO subject from every account but the oldest, then logs counts and affected user ids (#925).
+- Jellyfin library sync pages artists in a stable name order when no library is selected, so artists are no longer repeated or skipped between pages. A Plex library response with no sections now reads as empty instead of crashing, and a failed Plex server check is retried on the next request instead of failing until restart. A trailing slash on a service URL no longer produces `//` in request paths. The Deezer preview proxy re-checks every redirect against its host allowlist. An IPv6 `DB_HOST` now connects. (#926)
 - The notification digest now counts recommendations approved or added during the period by when you acted on them, not when they were created, so older recommendations approved this week are included (#927).
 - The ListenBrainz subscription source now respects the subscription's maximum artists per run (#927).
 - Subscription runs report the number of recommendations actually saved as new artists, not the number that passed filtering (#927).

@@ -1,4 +1,5 @@
 import { readFileSync } from 'node:fs'
+import { isIP } from 'node:net'
 import { assertCidr } from '@/core/auth/cidr'
 
 function env(key: string): string | undefined {
@@ -201,7 +202,8 @@ export function buildDatabaseUrl(): string {
   if (dbHost && dbUser && dbName) {
     const port = dbPort ?? 5432
     const pass = dbPass ? `:${encodeURIComponent(dbPass)}` : ''
-    return `postgresql://${encodeURIComponent(dbUser)}${pass}@${dbHost}:${port}/${encodeURIComponent(dbName)}`
+    const host = isIP(dbHost) === 6 ? `[${dbHost}]` : dbHost
+    return `postgresql://${encodeURIComponent(dbUser)}${pass}@${host}:${port}/${encodeURIComponent(dbName)}`
   }
 
   throw new Error('DATABASE_URL or DB_HOST + DB_USER + DB_NAME must be set')

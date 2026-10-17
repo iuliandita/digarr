@@ -779,3 +779,21 @@ describe('plex client.searchTracks()', () => {
     )
   })
 })
+
+describe('plex edge cases (#926)', () => {
+  it('getMusicSections treats a response without Directory as empty', async () => {
+    mockGet.mockResolvedValueOnce({ MediaContainer: { size: 0 } })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN)
+    await expect(client.getMusicSections()).resolves.toEqual([])
+  })
+
+  it('retries the identity check after a failed lookup', async () => {
+    mockGet
+      .mockRejectedValueOnce(new Error('plex down'))
+      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+      .mockResolvedValueOnce({ MediaContainer: { totalSize: 0, Metadata: [] } })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+    await expect(client.getRecentlyPlayed()).rejects.toThrow('plex down')
+    await expect(client.getRecentlyPlayed()).resolves.toEqual([])
+  })
+})
