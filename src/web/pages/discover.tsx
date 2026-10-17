@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -433,40 +433,77 @@ export function DiscoverPage() {
 
   const decadesParam = activeDecades.size > 0 ? [...activeDecades].join(',') : undefined
 
-  const queryParams: Record<string, string> = {
+  const filterParams: Record<string, string> = {
     sort: tasteOrdering === 'score' ? 'score_desc' : 'taste',
-    limit: String(PAGE_SIZE),
-    offset: String(page * PAGE_SIZE),
   }
   const statusParam = STATUS_PARAM[filter]
   const kindParam = KIND_PARAM[kindFilter]
-  if (statusParam) queryParams.status = statusParam
-  if (decadesParam) queryParams.decades = decadesParam
-  if (kindParam) queryParams.kind = kindParam
+  if (statusParam) filterParams.status = statusParam
+  if (decadesParam) filterParams.decades = decadesParam
+  if (kindParam) filterParams.kind = kindParam
   if (tasteOrdering === 'primary' || tasteOrdering === 'secondary') {
-    queryParams.tasteTier = tasteOrdering
+    filterParams.tasteTier = tasteOrdering
   }
 
-  const {
-    data,
-    isLoading: loading,
-    error: loadError,
-  } = useQuery({
-    queryKey: [
-      'recommendations',
-      {
-        filter,
-        kind: kindFilter,
-        page,
-        tasteOrdering,
-        decades: [...activeDecades].sort().join(','),
-      },
-    ],
-    queryFn: () => getRecommendations(queryParams),
+  const filterKey = {
+    filter,
+    kind: kindFilter,
+    tasteOrdering,
+    decades: [...activeDecades].sort().join(','),
+  }
+  const isStack = viewMode === 'stack'
+
+  const pagedQuery = useQuery({
+    queryKey: ['recommendations', { ...filterKey, page }],
+    queryFn: () =>
+      getRecommendations({
+        ...filterParams,
+        limit: String(PAGE_SIZE),
+        offset: String(page * PAGE_SIZE),
+      }),
+    enabled: !isStack,
   })
 
-  const items = (data?.items ?? []) as Recommendation[]
-  const total = data?.total ?? 0
+  // The stack walks every page instead of one grid page (#882).
+  const stackQuery = useInfiniteQuery({
+    queryKey: ['recommendations', 'stack', filterKey],
+    queryFn: ({ pageParam }) =>
+      getRecommendations({
+        ...filterParams,
+        limit: String(PAGE_SIZE),
+        offset: String(pageParam),
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last, pages) => {
+      const loaded = pages.reduce((n, p) => n + p.items.length, 0)
+      return last.items.length > 0 && loaded < last.total ? loaded : undefined
+    },
+    enabled: isStack,
+  })
+  const { hasNextPage, isFetchingNextPage, fetchNextPage } = stackQuery
+  const loadMoreStack = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
+
+  const stackItems = useMemo(() => {
+    const seen = new Set<number>()
+    const out: Recommendation[] = []
+    for (const p of stackQuery.data?.pages ?? []) {
+      for (const rec of p.items as Recommendation[]) {
+        if (seen.has(rec.id)) continue
+        seen.add(rec.id)
+        out.push(rec)
+      }
+    }
+    return out
+  }, [stackQuery.data])
+
+  const loading = isStack ? stackQuery.isLoading : pagedQuery.isLoading
+  const loadError = isStack ? stackQuery.error : pagedQuery.error
+  const items = isStack ? stackItems : ((pagedQuery.data?.items ?? []) as Recommendation[])
+  const total = isStack
+    ? (stackQuery.data?.pages.at(-1)?.total ?? 0)
+    : (pagedQuery.data?.total ?? 0)
   const FILTER_LABELS: Record<FilterTab, string> = {
     all: t('discover.all'),
     pending: t('discover.pending'),
@@ -521,7 +558,7 @@ export function DiscoverPage() {
 
   // Warm status
 
-  const mbids = items
+  const mbids = (isStack ? [] : items)
     .map((r) => r.artist.mbid)
     .filter(Boolean)
     .join(',')
@@ -1268,6 +1305,9 @@ export function DiscoverPage() {
           ) : (
             <CardStack
               recommendations={items}
+              totalCount={total}
+              resetKey={JSON.stringify(filterKey)}
+              onNearEnd={loadMoreStack}
               onApprove={handleApprove}
               onReject={handleReject}
               onDetail={(id) => {

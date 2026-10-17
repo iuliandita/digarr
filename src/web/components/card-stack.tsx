@@ -17,6 +17,12 @@ export type RejectPayload = {
 
 type CardStackProps = {
   recommendations: Recommendation[]
+  /** Server-side total; defaults to the loaded count. */
+  totalCount?: number
+  /** Changing this (e.g. a new filter) returns to the first card. */
+  resetKey?: string
+  /** Called as the user nears the last loaded card so the next page can load. */
+  onNearEnd?: () => void
   onApprove: (id: number, prevStatus?: string) => void
   onReject: (id: number, prevStatus?: string, payload?: RejectPayload) => void
   onDetail: (id: number) => void
@@ -225,7 +231,17 @@ function StackCard({
  * Dating-app style card stack: one card at a time, swipe left/right to act.
  * Arrow keys also navigate.
  */
-export function CardStack({ recommendations, onApprove, onReject, onDetail }: CardStackProps) {
+const NEAR_END_CARDS = 5
+
+export function CardStack({
+  recommendations,
+  totalCount,
+  resetKey,
+  onNearEnd,
+  onApprove,
+  onReject,
+  onDetail,
+}: CardStackProps) {
   const { t } = useI18n()
   const [index, setIndex] = useState(0)
   const [exiting, setExiting] = useState<'left' | 'right' | null>(null)
@@ -245,17 +261,29 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
   const approveRef = useRef<() => void>(() => {})
   const rejectRef = useRef<() => void>(() => {})
 
-  // Reset to first card when the recommendations array identity changes.
-  // We track the ref here and trigger via the effect below.
-  const prevRecsRef = useRef(recommendations)
-  const recsChanged = prevRecsRef.current !== recommendations
-  if (recsChanged) prevRecsRef.current = recommendations
+  const shownIdRef = useRef<number | undefined>(undefined)
 
-  // biome-ignore lint/correctness/useExhaustiveDependencies: intentionally react to array identity change, not contents
+  // biome-ignore lint/correctness/useExhaustiveDependencies: a new resetKey alone returns to the first card
   useEffect(() => {
     setIndex(0)
     setExiting(null)
+  }, [resetKey])
+
+  // A refetch or an appended page keeps the card on screen instead of jumping back to the start.
+  useEffect(() => {
+    const shownId = shownIdRef.current
+    if (shownId === undefined) return
+    const at = recommendations.findIndex((r) => r.id === shownId)
+    setIndex((i) => (at >= 0 ? at : Math.max(0, Math.min(i, recommendations.length - 1))))
   }, [recommendations])
+
+  useEffect(() => {
+    shownIdRef.current = rec?.id
+  })
+
+  useEffect(() => {
+    if (total > 0 && index >= total - NEAR_END_CARDS) onNearEnd?.()
+  }, [index, total, onNearEnd])
 
   // Keyboard: left arrow = reject, right arrow = approve, up/down = navigate
   useEffect(() => {
@@ -362,7 +390,7 @@ export function CardStack({ recommendations, onApprove, onReject, onDetail }: Ca
         <span className="tabular-nums font-medium">
           {t('cardStack.counter')
             .replace('{0}', String(index + 1))
-            .replace('{1}', String(total))}
+            .replace('{1}', String(Math.max(totalCount ?? total, total)))}
         </span>
         <button
           type="button"
