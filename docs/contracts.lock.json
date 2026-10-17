@@ -171,6 +171,7 @@
         "src/db/queries/gap-fill.ts": "a892a9108aaef2e231e02ec5453c2875b90fad105e660287101f4e5f601c8b50",
         "src/db/queries/genres.ts": "0f143655c07c8ea6d1d006cff284025c1ab3744be0cfde25116673dafbb894ba",
         "src/db/queries/jobs.ts": "a6775840d13252785016c64c3f8d820dbd236d3d2eb121593b6079214b05b525",
+        "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
         "src/db/queries/oauth-pending.ts": "7857a14e93ecdf60f1d9d90e96e61844da20a22f1623efa22f71117e87607dd3",
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
@@ -188,14 +189,14 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "edf87141c6a2d528e5ad03c1d60286993b3d06d9a8c2eee4863c856a236b6088",
+      "digest": "8c8cd6f1c9de96c0410acbfe3dfe81a4c3d31c8ce9321d16a43f7641d99e20ac",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Score histogram top bucket now spans 90-100 and includes a score of 1.0; read-only analytics query, no backup, restore or stored data effect.",
+        "note": "Adds a read-only query over library_albums; no schema, stored data, backup, or restore change.",
         "breaking": "none",
-        "migration": "No migration; read-only analytics query, so upgrade, rollback and backups are unaffected.",
-        "digest": "edf87141c6a2d528e5ad03c1d60286993b3d06d9a8c2eee4863c856a236b6088"
+        "migration": "None: no schema or data change; rollback restores the old filter with no data impact.",
+        "digest": "8c8cd6f1c9de96c0410acbfe3dfe81a4c3d31c8ce9321d16a43f7641d99e20ac"
       }
     },
     "configuration": {
@@ -599,11 +600,11 @@
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
         "src/core/pipeline/genre-backfill.ts": "63a7d5ebc180fa1a15b2c0fb9266b416f468fc75c07aecc6360072ccbc133d19",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
-        "src/core/pipeline/orchestrator.ts": "b8b4159425d90865e007e4e6648b7d85d71d097ee598dd78be3277f9d9012df5",
+        "src/core/pipeline/orchestrator.ts": "22d2436e65444dbc891ecef8584cf24568898c7d9757e2cf140960239c035a6c",
         "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
         "src/core/pipeline/scheduler.ts": "108abc5f29c6c4595407d8b26137d4068b24fd71b44d5ccd92161a28a8ecbed2",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
-        "src/core/pipeline/store.ts": "7b9d3fef5db51638fe965a114087f3e09222bfead362332df26a30e3e3303ce1",
+        "src/core/pipeline/store.ts": "9637b00f39f960b4eea5c3788cca67db07d8da459b9464c995c9f86e4ad9607e",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
@@ -698,17 +699,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "fb2e4767cd8e59ce544916ad4e334d348f3207781b3f5adbc2d056da52015773",
+        "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "1bdb699a2092a75309eb682a9419958ba51667f9b3424ff5d1db3c9be0b1cb67",
+      "digest": "381639ac34cfa4bb4dffbf564b89f9a780a5483595f05806028974b83b14a939",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
         "note": "Notification transport, publicIpOnly clients and Bandcamp share one resolve-and-pin guard; blocked targets fail without retry backoff. ARCHITECTURE documents the guard, allowPrivateTarget semantics in API.md unchanged",
         "breaking": "none",
         "migration": "",
-        "digest": "1bdb699a2092a75309eb682a9419958ba51667f9b3424ff5d1db3c9be0b1cb67"
+        "digest": "381639ac34cfa4bb4dffbf564b89f9a780a5483595f05806028974b83b14a939"
       }
     },
     "deployment": {
