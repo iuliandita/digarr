@@ -58,6 +58,14 @@ describe('createSlskdClient', () => {
     expect(result).toEqual({ id: 'search-1' })
   })
 
+  it.each([409, 429])('does not repeat a rejected search (HTTP %s)', async (status) => {
+    const error = Object.assign(new Error('Search rejected'), { status })
+    mockPost.mockRejectedValueOnce(error)
+    const client = createSlskdClient('http://slskd.local:5030', 'test-api-key')
+    await expect(client.createSearch('Artist Album')).rejects.toBe(error)
+    expect(mockPost).toHaveBeenCalledTimes(1)
+  })
+
   it('GETs search results for a search id', async () => {
     mockGet.mockResolvedValueOnce([
       {

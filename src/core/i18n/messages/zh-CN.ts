@@ -1,4 +1,9 @@
 export const zhCN = {
+  'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
+  'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
+  'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
+  'settings.slskdPathOk':
+    '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',
   'app.closeMenu': '关闭菜单',
   'app.openMenu': '打开菜单',
   'app.runScan': '开始扫描',

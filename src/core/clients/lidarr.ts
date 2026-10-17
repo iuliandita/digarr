@@ -402,6 +402,30 @@ export function createLidarrClient(
     return http.get<LidarrTrack[]>(`/api/v1/track?${query}`)
   }
 
+  async function canListPath(path: string): Promise<boolean> {
+    const separator = path.includes('\\') ? '\\' : '/'
+    const directory = path.replace(/[\\/]+$/, '') + separator
+    const params = new URLSearchParams({ path: directory, includeFiles: 'false' })
+    const listing = await http.get<{ directories?: unknown }>(`/api/v1/filesystem?${params}`, {
+      retries: 0,
+    })
+    if (!Array.isArray(listing.directories)) return false
+    // Lidarr returns an empty list for missing folders too; verify the parent entry.
+    const trimmed = directory.slice(0, -1)
+    const index = trimmed.lastIndexOf(separator)
+    if (index < 0 || trimmed === '') return trimmed === ''
+    const parent = trimmed.slice(0, index + 1)
+    const parentParams = new URLSearchParams({ path: parent, includeFiles: 'false' })
+    const result = await http.get<{ directories?: Array<{ path?: string }> }>(
+      `/api/v1/filesystem?${parentParams}`,
+      { retries: 0 },
+    )
+    return (
+      Array.isArray(result.directories) &&
+      result.directories.some((entry) => entry.path?.replace(/[\\/]+$/, '') === trimmed)
+    )
+  }
+
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       const profiles = await http.get<QualityProfile[]>('/api/v1/qualityprofile')
@@ -434,5 +458,6 @@ export function createLidarrClient(
     getMetadataProfiles,
     getRootFolders,
     testConnection,
+    canListPath,
   }
 }

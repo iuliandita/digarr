@@ -20,7 +20,9 @@ type AddTargetField =
       key: string
       label: string
       placeholder: string
-      type?: 'password' | 'url' | 'text'
+      type?: 'password' | 'url' | 'text' | 'number'
+      min?: number
+      max?: number
     }
   | {
       kind: 'select'
@@ -89,6 +91,14 @@ function getTargetTypes(
               label: target.name,
             })),
           ],
+        },
+        {
+          key: 'searchIntervalSeconds',
+          label: t('settings.slskdSearchInterval'),
+          placeholder: '3',
+          type: 'number',
+          min: 1,
+          max: 60,
         },
         {
           key: 'lidarrDownloadPath',
@@ -206,6 +216,9 @@ function normalizeTargetConfig(
   const normalizedEntries = Object.entries(config).filter(([, value]) => value !== '')
   const normalizedConfig = Object.fromEntries(normalizedEntries) as Record<string, unknown>
 
+  if (type === 'slskd' && 'searchIntervalSeconds' in config) {
+    normalizedConfig.searchIntervalSeconds = Number(config.searchIntervalSeconds || 3)
+  }
   if (type === 'slskd' && config.lidarrTargetId === '') normalizedConfig.lidarrTargetId = null
   if (type === 'slskd' && typeof normalizedConfig.lidarrTargetId === 'string') {
     const lidarrTargetId = Number.parseInt(normalizedConfig.lidarrTargetId, 10)
@@ -419,6 +432,8 @@ function AddTargetDialog({
                       <input
                         id={fieldId}
                         type={field.type ?? 'text'}
+                        min={field.min}
+                        max={field.max}
                         value={config[field.key] ?? ''}
                         onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         placeholder={field.placeholder}
@@ -491,14 +506,21 @@ export function TargetsTab() {
     setTesting(id)
     try {
       const result = await testTargetApi(id)
+      const key = result.details?.messageKey
+      const message =
+        key === 'settings.slskdPathIncomplete' ||
+        key === 'settings.slskdPathUnavailable' ||
+        key === 'settings.slskdPathOk'
+          ? t(key)
+          : result.message
       setTestResults((prev) => ({
         ...prev,
-        [id]: { success: result.success, message: result.message },
+        [id]: { success: result.success, message },
       }))
       if (result.success) {
         toast.success(t('settings.targetTestSuccess'))
       } else {
-        toast.error(result.message || t('settings.targetTestFailed'))
+        toast.error(message || t('settings.targetTestFailed'))
       }
     } catch {
       toast.error(t('settings.targetTestFailed'))

@@ -8,6 +8,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
+- The slskd connection test checks the linked Lidarr download directory, reports missing or unlistable paths and likely incomplete folders, and shows the result in your language (#972).
+
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
 - Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).

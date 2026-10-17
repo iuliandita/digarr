@@ -1,6 +1,7 @@
 // @vitest-environment node
 
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { HttpError } from '@/core/clients/http'
 import type { SlskdSearchResult } from '@/core/clients/slskd'
 import { createSlskdOrchestrator } from '@/core/slskd/orchestrator'
 
@@ -1260,4 +1261,91 @@ describe('createSlskdOrchestrator', () => {
     )
     expect(slskdClient.createSearch).toHaveBeenCalledTimes(2)
   })
+})
+
+describe('search pacing', () => {
+  afterEach(() => vi.useRealTimers())
+
+  it('spaces searches across jobs and coalesces concurrent ticks', async () => {
+    vi.useFakeTimers()
+    const starts: number[] = []
+    const createSearch = vi.fn(async () => {
+      starts.push(Date.now())
+      return { id: `search-${starts.length}` }
+    })
+    const jobs = [makeJob(), makeJob({ id: 2 })]
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: async () => jobs,
+      createSlskdClient: () => ({ createSearch, getSearchResults: async () => [] }),
+      updateJobState: vi.fn(),
+    } as never)
+    const first = orchestrator.triggerSync()
+    expect(orchestrator.triggerSync()).toBe(first)
+    await vi.advanceTimersByTimeAsync(2999)
+    expect(createSearch).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    await first
+    expect(Number(starts[1]) - Number(starts[0])).toBe(3000)
+    jobs.splice(1)
+    const next = orchestrator.triggerSync()
+    await vi.advanceTimersByTimeAsync(2999)
+    expect(createSearch).toHaveBeenCalledTimes(2)
+    await vi.advanceTimersByTimeAsync(1)
+    await next
+    expect(Number(starts[2]) - Number(starts[1])).toBe(3000)
+  })
+
+  it.each([
+    [0, 1000],
+    [90, 60000],
+    ['bad', 3000],
+  ])('bounds a configured gap of %s', async (configured, gap) => {
+    vi.useFakeTimers()
+    const createSearch = vi.fn(async () => ({ id: 'search' }))
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: async () => [makeJob(), makeJob({ id: 2 })],
+      listTargets: async () => [makeTarget({ config: { searchIntervalSeconds: configured } })],
+      createSlskdClient: () => ({ createSearch, getSearchResults: async () => [] }),
+      updateJobState: vi.fn(),
+    } as never)
+    const run = orchestrator.triggerSync()
+    await vi.advanceTimersByTimeAsync(Number(gap) - 1)
+    expect(createSearch).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    await run
+    expect(createSearch).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([409, 429])(
+    'defers HTTP %s without failing jobs and caps exponential backoff',
+    async (status) => {
+      vi.useFakeTimers()
+      const createSearch = vi
+        .fn()
+        .mockRejectedValue(new HttpError(status, 'private detail', 'http://slskd.test'))
+      const updateJobState = vi.fn()
+      const orchestrator = createSlskdOrchestrator({
+        listPendingJobs: async () => [makeJob(), makeJob({ id: 2 })],
+        createSlskdClient: () => ({ createSearch }),
+        updateJobState,
+      } as never)
+      for (const delay of [0, 600000, 1200000, 2400000, 3600000, 3600000]) {
+        if (delay) {
+          await vi.advanceTimersByTimeAsync(delay - 1)
+          const calls = createSearch.mock.calls.length
+          await orchestrator.triggerSync()
+          expect(createSearch).toHaveBeenCalledTimes(calls)
+          await vi.advanceTimersByTimeAsync(1)
+        }
+        const calls = createSearch.mock.calls.length
+        await orchestrator.triggerSync()
+        expect(createSearch).toHaveBeenCalledTimes(calls + 1)
+      }
+      expect(updateJobState.mock.calls.every((call) => call[1] === 'searching')).toBe(true)
+      expect(updateJobState).toHaveBeenLastCalledWith(1, 'searching', {
+        attempts: 0,
+        lastError: null,
+      })
+    },
+  )
 })

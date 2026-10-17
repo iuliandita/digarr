@@ -1,4 +1,11 @@
 export const de = {
+  'settings.slskdSearchInterval': 'Mindestabstand zwischen Suchen in Sekunden (1-60, Standard 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr kann den Downloadpfad nicht finden oder auflisten. Prüfe deine Einbindung und Leserechte.',
+  'settings.slskdPathIncomplete':
+    'Der Downloadpfad sieht nach einem Ordner für unvollständige Downloads aus. Nutze deinen Ordner für abgeschlossene Downloads.',
+  'settings.slskdPathOk':
+    'Mit slskd verbunden - Lidarr sieht den Downloadordner. Prüfe, ob er deine abgeschlossenen Downloads enthält.',
   'app.closeMenu': 'Menü schließen',
   'app.openMenu': 'Menü öffnen',
   'app.runScan': 'Scan starten',

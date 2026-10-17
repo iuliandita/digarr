@@ -27,6 +27,7 @@ type TargetDeps = {
   testTargetConnection: (
     type: string,
     config: Record<string, unknown>,
+    linkedLidarrConfig?: Record<string, unknown>,
   ) => Promise<ServiceTestResult>
 }
 
@@ -189,7 +190,16 @@ export function targetRoutes(deps: TargetDeps) {
     if (!loaded.ok) return loaded.response
     const target = loaded.target
 
-    const result = await deps.testTargetConnection(target.type, target.config)
+    let linkedConfig: Record<string, unknown> | undefined
+    if (target.type === 'slskd' && target.config.lidarrTargetId != null) {
+      const linked = await deps.targetQueries.getTarget(Number(target.config.lidarrTargetId))
+      if (linked?.type === 'lidarr' && linked.enabled && linked.userId === target.userId) {
+        linkedConfig = linked.config
+      }
+    }
+    const result = linkedConfig
+      ? await deps.testTargetConnection(target.type, target.config, linkedConfig)
+      : await deps.testTargetConnection(target.type, target.config)
     return c.json(result)
   })
 

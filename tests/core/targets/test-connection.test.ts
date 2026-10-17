@@ -1,6 +1,9 @@
 // @vitest-environment node
+import { Hono } from 'hono'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { testTargetConnection } from '@/core/targets/test-connection'
+import { targetRoutes } from '@/server/routes/targets'
+import type { HonoEnv } from '@/server/types'
 
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
@@ -123,3 +126,118 @@ describe('testTargetConnection', () => {
     },
   )
 })
+
+describe('linked slskd path probe', () => {
+  const config = {
+    url: 'https://slskd.test',
+    apiKey: 'secret',
+    lidarrTargetId: 12,
+    lidarrDownloadPath: '/downloads',
+  }
+  const linked = { url: 'https://lidarr.test', apiKey: 'lidarr-secret', skipTlsVerify: true }
+
+  it.each([
+    {
+      name: 'OK',
+      listing: { directories: [] },
+      parent: { directories: [{ path: '/downloads/' }] },
+      success: true,
+      key: 'settings.slskdPathOk',
+    },
+    {
+      name: 'missing',
+      listing: { directories: [] },
+      parent: { directories: [] },
+      success: false,
+      key: 'settings.slskdPathUnavailable',
+    },
+    {
+      name: 'malformed',
+      listing: {},
+      parent: {},
+      success: false,
+      key: 'settings.slskdPathUnavailable',
+    },
+  ])('reports $name paths', async ({ listing, parent, success, key }) => {
+    fetchMock
+      .mockResolvedValueOnce(json({ version: '1' }))
+      .mockResolvedValueOnce(json(listing))
+      .mockResolvedValueOnce(json(parent))
+    const result = await testTargetConnection('slskd', config, linked)
+    expect(result).toMatchObject({ success, details: { messageKey: key } })
+    const url = new URL(fetchMock.mock.calls[1]?.[0])
+    expect(url.pathname).toBe('/api/v1/filesystem')
+    expect(url.searchParams.get('path')).toBe('/downloads/')
+    expect(url.searchParams.get('includeFiles')).toBe('false')
+    expect(new Headers(fetchMock.mock.calls[1]?.[1].headers).get('X-Api-Key')).toBe('lidarr-secret')
+    expect(fetchMock.mock.calls[1]?.[1]).toMatchObject({ tls: { rejectUnauthorized: false } })
+  })
+
+  it.each(['/downloads/incomplete', 'C:\\downloads\\Incomplete\\artist', '/in-progress'])(
+    'warns about %s',
+    async (path) => {
+      fetchMock.mockResolvedValueOnce(json({ version: '1' }))
+      expect(
+        await testTargetConnection('slskd', { ...config, lidarrDownloadPath: path }, linked),
+      ).toMatchObject({ success: false, details: { messageKey: 'settings.slskdPathIncomplete' } })
+      expect(fetchMock).toHaveBeenCalledTimes(1)
+    },
+  )
+
+  it.each([403, 404])('reports a path error for HTTP %s without secrets', async (status) => {
+    fetchMock
+      .mockResolvedValueOnce(json({ version: '1' }))
+      .mockResolvedValueOnce(new Response('lidarr-secret', { status }))
+    const result = await testTargetConnection('slskd', config, linked)
+    expect(result).toMatchObject({
+      success: false,
+      details: { messageKey: 'settings.slskdPathUnavailable' },
+    })
+    expect(result.message).not.toContain('lidarr-secret')
+  })
+
+  it('fails closed if the linked connection is unavailable', async () => {
+    fetchMock.mockResolvedValueOnce(json({ version: '1' }))
+    expect(await testTargetConnection('slskd', config)).toMatchObject({
+      success: false,
+      details: { messageKey: 'settings.slskdPathUnavailable' },
+    })
+    expect(fetchMock).toHaveBeenCalledTimes(1)
+  })
+})
+
+it.each([
+  { userId: 1, enabled: true, type: 'lidarr', allowed: true },
+  { userId: 2, enabled: true, type: 'lidarr', allowed: false },
+  { userId: 1, enabled: false, type: 'lidarr', allowed: false },
+  { userId: 1, enabled: true, type: 'slskd', allowed: false },
+])(
+  'only resolves an enabled same-owner Lidarr connection: %j',
+  async ({ userId, enabled, type, allowed }) => {
+    const linkedConfig = { url: 'http://lidarr.test', apiKey: 'secret' }
+    const config = { lidarrTargetId: 12, lidarrDownloadPath: '/downloads' }
+    const probe = vi.fn(async () => ({ success: true, message: 'ok' }))
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', 1)
+      await next()
+    })
+    app.route(
+      '/',
+      targetRoutes({
+        getUserById: async () => ({ isAdmin: false }),
+        targetQueries: {
+          getTarget: async (id: number) =>
+            id === 1
+              ? { id: 1, type: 'slskd', userId: 1, config }
+              : { id: 12, type, userId, enabled, config: linkedConfig },
+        },
+        testTargetConnection: probe,
+      } as never),
+    )
+    const response = await app.request('/api/v1/targets/1/test', { method: 'POST' })
+    expect(response.status).toBe(200)
+    if (allowed) expect(probe).toHaveBeenCalledWith('slskd', config, linkedConfig)
+    else expect(probe).toHaveBeenCalledWith('slskd', config)
+  },
+)

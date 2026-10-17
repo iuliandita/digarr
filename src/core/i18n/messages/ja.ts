@@ -1,4 +1,11 @@
 export const ja = {
+  'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
+  'settings.slskdPathIncomplete':
+    'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
+  'settings.slskdPathOk':
+    'slskd に接続しました - Lidarr からダウンロードフォルダーが見えます。完了済みのダウンロードが入っているか確認してください。',
   'app.closeMenu': 'メニューを閉じる',
   'app.openMenu': 'メニューを開く',
   'app.runScan': 'スキャンを開始',
