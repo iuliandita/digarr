@@ -227,4 +227,31 @@ describe('multiSourceSearch', () => {
     const results = await multiSourceSearch('zzznomatch', [makeSource('a', [])])
     expect(results).toEqual([])
   })
+
+  it('folds a name-only row into the MBID row and combines library flags', async () => {
+    const withMbid = makeSource('a', [
+      { name: 'Portishead', mbid: mbid1, images: [], genres: [], sourceId: 'a' },
+    ])
+    const nameOnly = makeSource('b', [
+      { name: ' portishead ', images: [], genres: [], sourceId: 'b' },
+    ])
+    const results = await multiSourceSearch('portishead', [withMbid, nameOnly], {
+      libraryMbids: new Set([mbid1]),
+    })
+    expect(results).toHaveLength(1)
+    expect(results[0]).toMatchObject({ mbid: mbid1, inLibrary: true })
+    expect(results[0]?.sources.map((s) => s.id).sort()).toEqual(['a', 'b'])
+  })
+
+  it.each([
+    ['東京事変', '東京事変'],
+    ['Кино', 'кино'],
+  ])('keeps the exact non-Latin match under a tight limit: %s', async (query, name) => {
+    const src = makeSource('a', [
+      { name: `${name} extra words`, mbid: mbid2, images: [], genres: [], sourceId: 'a' },
+      { name, mbid: mbid1, images: [], genres: [], sourceId: 'a' },
+    ])
+    const results = await multiSourceSearch(query, [src], { limit: 1 })
+    expect(results.map((r) => r.mbid)).toEqual([mbid1])
+  })
 })

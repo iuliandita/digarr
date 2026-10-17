@@ -51,7 +51,24 @@ export function createSimilarArtistWebMode(): DiscoveryModeDefinition {
         sources.some((source) => source.id === provider),
       )
       const limit = getNormalizedLimit(request, 25)
-      const adapter = createSimilarAdapter(sources, {
+      // The adapter swallows per-call errors; count them to tell "all failed" from "no results".
+      let calls = 0
+      let failures = 0
+      let lastError: unknown
+      const trackedSources: DiscoverySource[] = sources.map((source) => ({
+        ...source,
+        getSimilarArtists: async (...args: Parameters<DiscoverySource['getSimilarArtists']>) => {
+          calls += 1
+          try {
+            return await source.getSimilarArtists(...args)
+          } catch (err) {
+            failures += 1
+            lastError = err
+            throw err
+          }
+        },
+      }))
+      const adapter = createSimilarAdapter(trackedSources, {
         searchArtist: createMusicBrainzClient().searchArtist,
       })
       const result = await adapter.fetch(
@@ -62,6 +79,10 @@ export function createSimilarArtistWebMode(): DiscoveryModeDefinition {
         },
         { limit },
       )
+      if (calls > 0 && failures === calls) {
+        const detail = lastError instanceof Error ? lastError.message : String(lastError)
+        throw new Error(`All similar-artist lookups failed: ${detail}`)
+      }
 
       return {
         candidates: result.artists.slice(0, limit).map((artist) => ({

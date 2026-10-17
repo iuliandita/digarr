@@ -157,4 +157,25 @@ describe('lb-tag-radio discovery mode', () => {
     expect(mode.advancedFields.some((f) => f.key === 'rawTagExpression')).toBe(true)
     expect(mode.advancedFields.some((f) => f.key === 'count')).toBe(true)
   })
+
+  it.each([
+    [
+      { popBegin: 0, popEnd: 0 },
+      { popBegin: 0, popEnd: 0 },
+    ],
+    [{}, { popBegin: 0, popEnd: 100 }],
+    [
+      { popBegin: '', popEnd: 'abc' },
+      { popBegin: 0, popEnd: 100 },
+    ],
+  ])('popularity bounds %j -> %j', async (settings, expected) => {
+    mockGetTagRadio.mockResolvedValueOnce([])
+    mockResolve.mockResolvedValueOnce([])
+    const mode = createListenBrainzTagRadioMode()
+    await mode.executor(makeRequest({ tags: [{ tag: 'jazz', weight: 1 }], ...settings }))
+    expect(mockGetTagRadio).toHaveBeenCalledWith(
+      expect.any(Array),
+      expect.objectContaining(expected),
+    )
+  })
 })

@@ -50,6 +50,23 @@ function popularityTieBreaker(result: MergedSearchResult): number {
   return popularity + normalizedListeners + sourceConfidence + imageBonus
 }
 
+function mergeInto(target: MergedSearchResult, extra: MergedSearchResult): void {
+  const urls = new Set(target.images.map((i) => i.url))
+  for (const img of extra.images) if (!urls.has(img.url)) target.images.push(img)
+  for (const g of extra.genres) if (!target.genres.includes(g)) target.genres.push(g)
+  if (extra.popularity !== undefined) {
+    target.popularity = Math.max(target.popularity ?? 0, extra.popularity)
+  }
+  if (extra.listeners !== undefined) {
+    target.listeners = Math.max(target.listeners ?? 0, extra.listeners)
+  }
+  for (const src of extra.sources) {
+    if (!target.sources.some((s) => s.id === src.id)) target.sources.push(src)
+  }
+  target.inLibrary = target.inLibrary || extra.inLibrary
+  target.inRecommendations = target.inRecommendations || extra.inRecommendations
+}
+
 async function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
   return Promise.race([
     promise,
@@ -156,6 +173,22 @@ export async function multiSourceSearch(
       }
       byKey.set(key, merged)
     }
+  }
+
+  // A name-only row (source gave no MBID) duplicates an MBID row for the same artist: fold it in.
+  const normalizeKey = (name: string) => name.toLowerCase().trim()
+  const mbidRowByName = new Map<string, MergedSearchResult>()
+  for (const row of byKey.values()) {
+    if (row.mbid && !mbidRowByName.has(normalizeKey(row.name))) {
+      mbidRowByName.set(normalizeKey(row.name), row)
+    }
+  }
+  for (const [key, row] of [...byKey]) {
+    if (row.mbid) continue
+    const target = mbidRowByName.get(normalizeKey(row.name))
+    if (!target) continue
+    mergeInto(target, row)
+    byKey.delete(key)
   }
 
   const merged = Array.from(byKey.values())

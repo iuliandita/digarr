@@ -96,6 +96,18 @@ describe('artist-relationships mode', () => {
     expect(result.candidates.map((c) => c.name)).toEqual(['Collaborator'])
   })
 
+  it('skips a seed whose search hit is not a name match', async () => {
+    mockSearchArtist.mockResolvedValue({
+      artists: [{ id: 'other', name: 'Seed Tribute', score: 90 }],
+    })
+
+    const mode = createArtistRelationshipsMode()
+    const result = await mode.executor(makeRequest({ seedArtists: ['Seed'] }))
+
+    expect(mockLookupArtistRelations).not.toHaveBeenCalled()
+    expect(result.candidates).toEqual([])
+  })
+
   it('throws when no seed artists are provided', async () => {
     const mode = createArtistRelationshipsMode()
     await expect(mode.executor(makeRequest({ seedArtists: [] }))).rejects.toThrow(/seed artist/i)
