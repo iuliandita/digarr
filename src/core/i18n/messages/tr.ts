@@ -1626,6 +1626,8 @@ export const tr = {
   'streaming.playShort': 'OYNAT',
   'streaming.stopShort': 'DURDUR',
   'streaming.spotifyEmbedTitle': 'Spotify önizlemesi',
+  'streaming.spotifyLoad': 'Spotify oynatıcısını yükle',
+  'streaming.spotifyLoadHint': "Sen tıklayana kadar Spotify'dan hiçbir şey istenmez.",
   'discover.moodAddedSuccess': '"{0}" eklendi; benzer sanatçılar aranıyor',
   'discover.moodAddFailed': '"{0}" eklenemedi',
   'albumPicker.noReleaseGroups': 'Yayın grubu bulunamadı',

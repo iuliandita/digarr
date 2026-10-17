@@ -1,5 +1,8 @@
+import { useContext, useState } from 'react'
 import { isHttpUrl } from '@/core/validation'
 import { useI18n } from '../lib/i18n'
+import { PreviewContext } from '../lib/preview-context'
+import { Button } from './ui/button'
 
 type StreamingLinksProps = {
   streamingUrls: Record<string, string> | null
@@ -80,8 +83,28 @@ function extractSpotifyId(url: string): { type: string; id: string } | null {
 
 function SpotifyEmbed({ url }: SpotifyEmbedProps) {
   const { t } = useI18n()
+  const preview = useContext(PreviewContext)
+  const [activated, setActivated] = useState(false)
   const parsed = extractSpotifyId(url)
   if (!parsed) return null
+  if (!activated) {
+    return (
+      <div className="mt-2 flex flex-col items-start gap-1 rounded border border-border bg-surface/50 p-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            preview?.stop()
+            setActivated(true)
+          }}
+        >
+          {t('streaming.spotifyLoad')}
+        </Button>
+        <p className="text-caption text-muted">{t('streaming.spotifyLoadHint')}</p>
+      </div>
+    )
+  }
   const embedUrl = `https://open.spotify.com/embed/${parsed.type}/${parsed.id}?utm_source=generator`
   return (
     <iframe

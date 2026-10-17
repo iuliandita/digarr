@@ -1647,6 +1647,8 @@ export const ru = {
   'streaming.playShort': 'ВОСПРОИЗВЕСТИ',
   'streaming.stopShort': 'ОСТАНОВИТЬ',
   'streaming.spotifyEmbedTitle': 'Предпросмотр Spotify',
+  'streaming.spotifyLoad': 'Загрузить плеер Spotify',
+  'streaming.spotifyLoadHint': 'Пока ты не нажмёшь, к Spotify запросов нет.',
   'discover.moodAddedSuccess': '«{0}» добавлено; ищем похожих исполнителей',
   'discover.moodAddFailed': 'Не удалось добавить «{0}»',
   'albumPicker.noReleaseGroups': 'Группы релизов не найдены',

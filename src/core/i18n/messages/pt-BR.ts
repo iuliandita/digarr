@@ -1645,6 +1645,8 @@ export const ptBR = {
   'streaming.playShort': 'REPRODUZIR',
   'streaming.stopShort': 'PARAR',
   'streaming.spotifyEmbedTitle': 'Prévia do Spotify',
+  'streaming.spotifyLoad': 'Carregar player do Spotify',
+  'streaming.spotifyLoadHint': 'Nada é solicitado ao Spotify até você clicar.',
   'discover.moodAddedSuccess': '"{0}" adicionado; descobrindo artistas similares',
   'discover.moodAddFailed': 'Falha ao adicionar "{0}"',
   'albumPicker.noReleaseGroups': 'Nenhum grupo de lançamento encontrado',

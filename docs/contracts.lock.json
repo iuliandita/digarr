@@ -164,7 +164,7 @@
         "src/db/queries/album-blocks.ts": "f5c2ad8c89d7be8aabc10e574724cb223e50de91729ea474e21e15d72c159924",
         "src/db/queries/analytics.ts": "8430a4df3fc44021b57cb6410e69522fcd16d0dad7a09aec9c70daa31723c19b",
         "src/db/queries/artist-blocks.ts": "88fee42a98ec0483cd2bfbc296404765ce74e671a404c10eeebc8afba288e9a1",
-        "src/db/queries/artist-metadata.ts": "438bcc902049655e108102a6dc6d180018416106b0e5140ba123d78eb73577c9",
+        "src/db/queries/artist-metadata.ts": "51250a52df988acc71f442ad2c687e15b26bab874f18c21ccc47a71cd7faaf78",
         "src/db/queries/artists.ts": "ba4d5b665cf57127b7a5b549a0812966e605622ace93596116e0c9fb5182f221",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "61f6f7a54bd99be90b9305b3348844948b281d44fb90d020a68bdaf5d809c3d7",
@@ -189,14 +189,14 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "8c8cd6f1c9de96c0410acbfe3dfe81a4c3d31c8ce9321d16a43f7641d99e20ac",
+      "digest": "be7b06438873adc924dcf2d4704e42a00dbadb9013c43d8ec2d2ce2ddaf8fa82",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Adds a read-only query over library_albums; no schema, stored data, backup, or restore change.",
+        "note": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
         "breaking": "none",
-        "migration": "None: no schema or data change; rollback restores the old filter with no data impact.",
-        "digest": "8c8cd6f1c9de96c0410acbfe3dfe81a4c3d31c8ce9321d16a43f7641d99e20ac"
+        "migration": "Extract the artist_metadata key rule into an exported artistMetadataKey helper used by lookupByName; the stored key, query, and restore behavior are unchanged.",
+        "digest": "be7b06438873adc924dcf2d4704e42a00dbadb9013c43d8ec2d2ce2ddaf8fa82"
       }
     },
     "configuration": {
@@ -332,24 +332,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "f9de68b2e60ab88ad5ea7434aed99491f92a1b53adf2beecb146b23647d0c85c",
-        "src/core/i18n/messages/en.ts": "b1a66ba055094da6f929d4bb7c60654f8542f5f9491b01f730b40f30afe1ebbb",
-        "src/core/i18n/messages/es.ts": "9995c04cac2eb5a17b4225816aa6c92e0d2823b7d1be3233033355feb1266345",
-        "src/core/i18n/messages/fr.ts": "2c51da0def272eba1e72a2ce0ea6b619976653cd3eda961987ede48e1919716d",
+        "src/core/i18n/messages/de.ts": "18cec4d06af2f12cff10640184383e498ee289b762706c7144ea42c46b9d7ce2",
+        "src/core/i18n/messages/en.ts": "a9254abfdf65596bfbf6393fefa45c452a1e41a24f3dc6b761b04bdc44ada9a5",
+        "src/core/i18n/messages/es.ts": "ee51cdcf526ed2fb409a9fa5a886666ca9d73b2b5f3f1c888e7d3681d4b1fb29",
+        "src/core/i18n/messages/fr.ts": "ec0411269b7739c1743d65acecdda1755f94effbf5e31f3196675b2b54ec8046",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "b1c432ac6c58732515615b833697672894d1ba5689b52ca1232f0fe9acb23018",
-        "src/core/i18n/messages/ja.ts": "e732f82896634a0f8ee8a657fcbba23cd0fa0ab2b1bb129b02394ebd5902ccb0",
-        "src/core/i18n/messages/ko.ts": "71b84aa8333ae4de27494a6c784fa289959df0ea928db097511c2116f1415dcc",
-        "src/core/i18n/messages/nl.ts": "0b37ba280af2fca9cf96da2038468eec57a41778e4e155ad5cb4b71624f95aad",
-        "src/core/i18n/messages/pl.ts": "69199c71e4eed2b48cb39db523bb05abe839353127471ffc32e31a286a2ecd0b",
-        "src/core/i18n/messages/pt-BR.ts": "aae6d2bb7cd1407081367275488ccf7eefa26b1534ba2a66fedfd901cc1e9255",
-        "src/core/i18n/messages/ro.ts": "f9044fb182b48f3739071dbb5c61c28c4c97381b69fa19ce5b5a6294237728e1",
-        "src/core/i18n/messages/ru.ts": "14c41dd79d7ec9ff1c0fccc6140dff1ade0b3621476df2dd80870cb9803f2b08",
-        "src/core/i18n/messages/source-lock.json": "63331aa5ee78e892c1d8b64476604f22322b6244cde4ccff95fad2beca00ba7d",
-        "src/core/i18n/messages/tr.ts": "0148bc7cdf5b5703ff110734b0b9733b7f1dac12aae34c0ec3b7430defeafd24",
+        "src/core/i18n/messages/it.ts": "f927f8b484f5b74ed9f3371c4e877a4b8619229b6b49d18151ccaf7485cbc919",
+        "src/core/i18n/messages/ja.ts": "66dcc62705b3ada95ab31bd25a63c79f479e7a506f02e65669aaee889289def9",
+        "src/core/i18n/messages/ko.ts": "9f82c26d80d57bb4fa1132475d94ac68bf1e6ef5ee2904d2ef4c24dd4744511f",
+        "src/core/i18n/messages/nl.ts": "7396f1c62af8477a335a49a76803be2a239367847eb3e48af72e4d3c08395213",
+        "src/core/i18n/messages/pl.ts": "bedb57162ac6a4ed5f22e9daf778498abbb901fe1b48e3df18475c2e2c9edc0c",
+        "src/core/i18n/messages/pt-BR.ts": "6ec91b4f98c23a019ca13b5e96844ffa392fada4904d5253eb35691042a4f2d7",
+        "src/core/i18n/messages/ro.ts": "ae213982f8015ea064e4cdee24158fb6022d025f932f331357a31990336896e6",
+        "src/core/i18n/messages/ru.ts": "d0868debcc562c94867590e976915f7deca47bec8c547b72f962e7337685b1a7",
+        "src/core/i18n/messages/source-lock.json": "3f6fbf3b3d649a255731f8c5a3eab51bd1680be266cc6ca40ae02a4b15286618",
+        "src/core/i18n/messages/tr.ts": "c3930e838008187b27903094b4cad9469025901adfef389533bad72090e0f057",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "60f028ab359e8986873c2e3eb9fd15e55d643a8e58f7c20a82914208ffbb7ddb",
-        "src/core/i18n/messages/zh-CN.ts": "4a79133c827ce9934ef08f0ab51ac7d54f4780ba9df709e717e416dad1fe5f27",
+        "src/core/i18n/messages/uk.ts": "ee78a24a3c9ad131b609006bde36f2c7d5087d9fa0d8cec0880577af20cd8c42",
+        "src/core/i18n/messages/zh-CN.ts": "cbe8864da2e3fba9eb84e383c3e91098690e08f6a497b943859bbf0232d1aa82",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -412,7 +412,7 @@
         "src/web/components/service-card.tsx": "4f672dfbad64797629c8a925ee28e815693028d0dd6aa38e3c5c2dac3b15f29f",
         "src/web/components/service-icons.tsx": "ce541e708edbb32690718a4ace135a50ea63297c4f7ed22a7576cb70939214a6",
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
-        "src/web/components/streaming-links.tsx": "e5232ff1098807f2ce2b96668a219d7a327694a6d1736b82c2a2037f7810bfce",
+        "src/web/components/streaming-links.tsx": "30d58c3c644b9cadd64cfbe1321af237c696076851e96263a6fd012a15261807",
         "src/web/components/subscription-form.tsx": "209fd2a5081c174aa03dfbff202fdd7c8e219ceeb397c31e462253835cc3c7ac",
         "src/web/components/subscription-presets.tsx": "7066d62e8c23aee1bebd73e80a6bd5579c0e85b384157f05cb19aa493d13e78f",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
@@ -493,14 +493,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "199d1f19ca816a0b910248fa47ecd1952b061e2cc0ee19d710fe2ce6026fda63",
+      "digest": "41d6581a15c12dd641f381078b99eedc7d649b271ed7464984fb4dbb68a36cfe",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "The web client error message prefers a translated code, then the deprecated error member when present, then title, so converted legacy errors show exactly the text users saw before and native problem types keep their previous title-based message. No UI strings or catalogs changed.",
         "breaking": "none",
         "migration": "",
-        "digest": "199d1f19ca816a0b910248fa47ecd1952b061e2cc0ee19d710fe2ce6026fda63"
+        "digest": "41d6581a15c12dd641f381078b99eedc7d649b271ed7464984fb4dbb68a36cfe"
       }
     },
     "features": {
@@ -598,7 +598,7 @@
         "src/core/pipeline/discover.ts": "1b09622f0c84dfe1a0e4e9029eeadad56986b0f8d468726ceff0537f4a56c09c",
         "src/core/pipeline/enrich.ts": "3744493e0cbad7c12aa697af3f9b8b429506e8a57566f1b3bbc0ad509ba318ff",
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
-        "src/core/pipeline/genre-backfill.ts": "63a7d5ebc180fa1a15b2c0fb9266b416f468fc75c07aecc6360072ccbc133d19",
+        "src/core/pipeline/genre-backfill.ts": "65cc5401afdf79c9039ce898a3660ba3b742d7c6a7a59f5a5a9cdca1ed72f43b",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
         "src/core/pipeline/orchestrator.ts": "22d2436e65444dbc891ecef8584cf24568898c7d9757e2cf140960239c035a6c",
         "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
@@ -702,14 +702,14 @@
         "src/index.ts": "caf830af8373c077184ecaef65a29b45794abc63a04ac6d3869127f3679e2414",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "b3526c3c097be26b06fdbe09deaa9215c8f0c03509a27803654f45f992db1d46",
+      "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Release Radar and other album candidates now skip albums already in the synced library; documented in architecture and operations notes.",
+        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
+        "note": "Export the genre alias key helper so the normalization contract test can pin it; behavior unchanged. Architecture now links the new name normalization plan.",
         "breaking": "none",
         "migration": "",
-        "digest": "b3526c3c097be26b06fdbe09deaa9215c8f0c03509a27803654f45f992db1d46"
+        "digest": "080326b68577401aabfbf0e080fa42e52ffd16792369f05d552fa7268cb8ec76"
       }
     },
     "deployment": {

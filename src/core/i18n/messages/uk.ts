@@ -1639,6 +1639,8 @@ export const uk = {
   'streaming.playShort': 'ВІДТВОРИТИ',
   'streaming.stopShort': 'ЗУПИНИТИ',
   'streaming.spotifyEmbedTitle': 'Попередній перегляд Spotify',
+  'streaming.spotifyLoad': 'Завантажити плеєр Spotify',
+  'streaming.spotifyLoadHint': 'Доки ти не натиснеш, запитів до Spotify немає.',
   'discover.moodAddedSuccess': '«{0}» додано; шукаємо схожих виконавців',
   'discover.moodAddFailed': 'Не вдалося додати «{0}»',
   'albumPicker.noReleaseGroups': 'Груп релізів не знайдено',

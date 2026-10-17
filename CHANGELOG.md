@@ -10,6 +10,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
+- Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).
 
 ### Changed
 
@@ -29,6 +30,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - Release Radar no longer recommends albums already in your synced library. Owned albums are matched by release-group MBID, with a normalized artist and title match for library albums that have no MBID (#935).
+- The Spotify embed on recommendation cards no longer loads on page render (about 50 third-party requests, telemetry included). A local "Load Spotify player" button stands in, and nothing is requested from Spotify until you click it (#934).
 - Helm: with `database.existingSecret` and the bundled PostgreSQL, the server now reads `POSTGRES_PASSWORD` from that Secret instead of a chart-managed Secret that was never created. The Secret needs both `DATABASE_URL` and `POSTGRES_PASSWORD`. `values.schema.json` also rejects unknown top-level values, so a typo like `replicaCnt` fails `helm lint` instead of being ignored (#924).
 - CI: the back-merge conflict PR now carries main's changes instead of an empty diff, and the release workflow refuses a `v*` tag whose commit is not on `main` (#924).
 - Upgrades from releases before migrations 0024 and 0028 no longer fail on databases with duplicate rows. After the pre-migration backup, Digarr removes duplicate library sync state and match override rows (keeping the newest) and clears a duplicate email or SSO subject from every account but the oldest, then logs counts and affected user ids (#925).
