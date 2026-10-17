@@ -729,13 +729,13 @@
         "deploy/helm/digarr/templates/namespace.yaml": "38db44ecfb8fc3c9e0fdae6c3a4fdff368045792148bc50d5aac9084f06cfb79",
         "deploy/helm/digarr/templates/networkpolicy.yaml": "7521c1785ddc9d7c421c988eba91a9f69b5014b32faccae8937036c891f6cf7b",
         "deploy/helm/digarr/templates/poddisruptionbudget.yaml": "347a307af10959a4b072a14c652ea2f5f2d4be2a14f430836185597bd8a638c7",
-        "deploy/helm/digarr/templates/postgresql.yaml": "8be8aa822a44a4e50b87c9491a947e78385810c7cfed1eff9d6762715a0a83ba",
+        "deploy/helm/digarr/templates/postgresql.yaml": "9137d8138846ad4232bc5e4f0a5bf8c49ddc1490fb138d06ac1c80e3b916b70a",
         "deploy/helm/digarr/templates/pvc-backups.yaml": "fb7fe632896d72816ceafe0686b613bf9a745495066f047c376ae26d6fdd34f1",
         "deploy/helm/digarr/templates/pvc-data.yaml": "5cc04414b649788dc59b8f16011040cbbbd831fe317459d80c78ceca22e905f4",
         "deploy/helm/digarr/templates/secret.yaml": "45ad4a36aef48d158de7000975ad1b8cb03c0654a6602252e0ff78a9e65fa197",
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
-        "deploy/helm/digarr/values.schema.json": "a95e23dfcbebdf876e05b7593c14b7fb347e36fe3b155bc132503249bc072d63",
+        "deploy/helm/digarr/values.schema.json": "c12ee464acc5e99ace2ce59051265ff1146e5d3b82282dcb3a8568759d0b1ee1",
         "deploy/helm/digarr/values.yaml": "d1b01903153323c48a2b26ef4cb4a9f49768d6dbbdcdeced6aa7bbf9310adae9",
         "deploy/k8s/deployment.yaml": "e5c5c0fc36a8c19dbde13a95d067ea365c6ab7992c540fc4e83779ad9b4c402c",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
@@ -746,24 +746,19 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "a6f1106efc0499273c20fe2b3254ff5fb1a27f8e0952a4a8ecd9dcafad17cf8b",
+      "digest": "97cff5340a57d53184cb4199cf4f2941dce3f64dae4a1aaef80fd05e35096dca",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "deploy/docker/README.md",
-          "deploy/helm/digarr/README.md",
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
-        "note": "Compose postgres service drops env_file; chart adds networkPolicy.extraEgress, a PGDATA emptyDir without persistence, Recreate with a persistent backups volume, IPv6 ULA and link-local exclusions, namespace on the database policy, install warnings, and removes unused LOG_LEVEL; Postgres image digest bumped. Docker and chart READMEs document each, plus the PostgreSQL 15 requirement and image.digest null.",
+        "docs": ["deploy/helm/digarr/README.md", "CHANGELOG.md"],
+        "note": "Bundled PostgreSQL now reads POSTGRES_PASSWORD from database.existingSecret; chart README documents the required key; schema rejects unknown top-level values",
         "breaking": "none",
         "migration": "",
-        "digest": "a6f1106efc0499273c20fe2b3254ff5fb1a27f8e0952a4a8ecd9dcafad17cf8b"
+        "digest": "97cff5340a57d53184cb4199cf4f2941dce3f64dae4a1aaef80fd05e35096dca"
       }
     },
     "release": {
       "files": {
-        ".github/workflows/backmerge-develop.yml": "8d0f9d262ecaff00f6a79de3e4fc330f6d927df182e108a883f96507a4bc30f9",
+        ".github/workflows/backmerge-develop.yml": "1a05e83e619424a285f68c3a68b6deda928cd2f2847e8c40c8512a60bc384f00",
         ".github/workflows/ci.yml": "99b17224a38348afdd693f70c068c857bff45562ec1e4e2ee254462b41503105",
         ".github/workflows/compatibility.yml": "8cb19bc64f338d8db901a064e6b3423fd2fd7bd7d17f60056c217f2ef557b599",
         ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
@@ -773,20 +768,20 @@
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/release-readiness.yml": "c69fa5bd0eebcbaf3f5866a6ad9defdbe7a7f425343a2a7afdd6099259ee7477",
-        ".github/workflows/release.yml": "59df9e5106292421322e75b2f358ad69053a57efc83f1d73bb03095434a6b43f",
+        ".github/workflows/release.yml": "bb258949da21064583b7fe5ff3d50682cf4442800fd68b1d4d60cbfc44bbd1af",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a",
+      "digest": "c25f8176270b13f1c7388c1a0416c1c530e572ce2a693e50fadb260ccb35a52f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "ci.yml only adds the new DB-gated tests/db/queries/reject-block-created.test.ts to the existing serial PostgreSQL integration step; no release, tagging, image or approval behavior changes. Also: The advisory macOS Colima compatibility job runs only on the weekly schedule and manual dispatch; the changelog records it and CONTRIBUTING.md and docs/MAINTENANCE.md say when to dispatch it by hand.",
+        "note": "Release workflow refuses tags not reachable from main; back-merge conflict PR branches from main so it has a real diff; no release procedure change",
         "breaking": "none",
         "migration": "",
-        "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a"
+        "digest": "c25f8176270b13f1c7388c1a0416c1c530e572ce2a693e50fadb260ccb35a52f"
       }
     },
     "maintenance": {

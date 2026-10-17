@@ -75,6 +75,8 @@ Supply raw usernames, passwords, and database names in chart values. The chart p
 
 v2.0.0 includes the runtime database-name correction for reserved characters or names such as `.` and `..` ([#834](https://github.com/iuliandita/digarr/issues/834)). v1.19.0 images still require URI-unreserved database names other than `.` or `..`, even with an encoded URL. Before upgrading an existing installation with unusual names, follow the [database identifier precautions](../../../docs/guides/switching-backends.md#database-identifier-upgrades).
 
+With bundled PostgreSQL, `database.existingSecret` is also read by the PostgreSQL StatefulSet: the Secret needs `POSTGRES_PASSWORD` (the server password) next to `DATABASE_URL`, and the password inside the URL must match it. `postgresql.auth.password` is not used in that case.
+
 For a user-managed database, `database.existingSecret` can supply a complete `DATABASE_URL`. The chart uses that Secret without constructing or re-encoding its URL; percent-encode the URL's username, password, and database-name components yourself.
 
 For embedded PGlite, set `database.backend=pglite`. This skips the bundled PostgreSQL and uses a data PVC by default. Keep `database.pglite.persistence.enabled=true` and `replicaCount=1`. Allow at least 768Mi memory for the app, as the database shares the process memory; larger libraries may need more. Keep backup persistence enabled too. The chart defaults to a 512Mi app limit, so raise it explicitly for PGlite:
@@ -104,7 +106,7 @@ backups:
 | `database.backend` | `postgres` | `postgres` or embedded `pglite`. |
 | `postgresql.enabled` | `true` | Bundled PostgreSQL; ignored with `pglite`. |
 | `postgresql.auth.password` | _unset_ | **Required** for the bundled PostgreSQL backend. |
-| `database.existingSecret` | _unset_ | Reference a pre-created Secret with `DATABASE_URL`. |
+| `database.existingSecret` | _unset_ | Reference a pre-created Secret with `DATABASE_URL`. With bundled PostgreSQL it must also hold `POSTGRES_PASSWORD`. |
 | `resources.limits.memory` | `512Mi` | Raise to at least `768Mi` for PGlite; the example uses `1Gi`. |
 | `backups.persistence.enabled` | `false` | PVC-backed `/app/backups` instead of emptyDir. |
 | `extraEnv` | `[]` | Extra env vars (e.g. `DIGARR_ENCRYPTION_KEY`). |
