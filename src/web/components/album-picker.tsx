@@ -186,7 +186,7 @@ export function AlbumPicker({
                           <div className="flex items-center gap-1.5">
                             <span className="text-sm text-text truncate">{album.title}</span>
                             {isSuggested && (
-                              <span className="text-micro px-1.5 py-0.5 rounded-full bg-accent/20 text-accent shrink-0">
+                              <span className="text-micro px-1.5 py-0.5 rounded-full bg-accent/5 text-accent shrink-0">
                                 {t('albumPicker.aiPick')}
                               </span>
                             )}

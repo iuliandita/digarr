@@ -108,13 +108,13 @@ function SubscriptionPulse({
   }
 
   return (
-    <div>
+    <div className="flex h-full flex-col">
       <SectionHeader
         title={t('dashboard.subscriptions')}
         linkText={t('dashboard.manage')}
         linkTo="/subscriptions"
       />
-      <div className="bg-surface border border-border rounded-lg divide-y divide-border">
+      <div className="flex-1 bg-surface border border-border rounded-lg divide-y divide-border">
         {subs.slice(0, 5).map((sub) => {
           const job = scheduler?.jobs.find((j) => j.name === `subscription-${sub.id}`)
           const nextRun = job?.nextRun ? formatRelativeTime(locale, job.nextRun) : null
@@ -350,9 +350,9 @@ function TasteProfile({
 }) {
   const { t } = useI18n()
   return (
-    <div>
+    <div className="flex h-full flex-col">
       <SectionHeader title={t('dashboard.yourTaste')} />
-      <div className="bg-surface border border-border rounded-lg p-4">
+      <div className="flex-1 bg-surface border border-border rounded-lg p-4">
         {loading ? (
           <div className="space-y-3">
             {['t1', 't2', 't3', 't4', 't5'].map((k) => (
@@ -779,10 +779,10 @@ export function Dashboard() {
 
       {/* Subscription Pulse + Taste Profile */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-3">
+        <div>
           <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
         </div>
-        <div className="space-y-3">
+        <div>
           <TasteProfile genres={tasteData} coverage={genreCoverageData} loading={tasteLoading} />
         </div>
       </div>

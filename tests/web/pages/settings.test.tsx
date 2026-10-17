@@ -3,7 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '@/web/App'
@@ -258,6 +258,11 @@ function setupMocks(settings: Record<string, unknown> = mockSettings) {
   })
 }
 
+function LocationProbe() {
+  const location = useLocation()
+  return <output data-testid="location">{location.search}</output>
+}
+
 // ---------------------------------------------------------------------------
 // Tests
 // ---------------------------------------------------------------------------
@@ -337,6 +342,28 @@ describe('SettingsPage', () => {
 
     expect(await screen.findByText('Genre data available: 18/25')).toBeInTheDocument()
     expect(screen.getByText('Pending genre data updates: 4')).toBeInTheDocument()
+  })
+
+  it('replaces an admin-only tab in the URL when a non-admin opens it', async () => {
+    mockGetCurrentUser.mockResolvedValue({
+      id: 2,
+      username: 'listener',
+      isAdmin: false,
+      preferredLocale: 'en',
+    })
+    setupMocks()
+    renderWithQuery(
+      <>
+        <SettingsPage />
+        <LocationProbe />
+      </>,
+      ['/settings?tab=jobs'],
+    )
+
+    expect(await screen.findByText('Genre data available: 18/25')).toBeInTheDocument()
+    await waitFor(() =>
+      expect(screen.getByTestId('location')).toHaveTextContent('?tab=connections'),
+    )
   })
 
   it('uses translated navigation labels', async () => {

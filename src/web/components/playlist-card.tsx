@@ -105,7 +105,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
 
   const badge = STRATEGY_BADGES[playlist.strategy] ?? {
     label: playlist.strategy,
-    className: 'bg-accent/15 text-accent',
+    className: 'bg-accent/5 text-accent',
   }
 
   async function handleGenerate() {
@@ -197,7 +197,7 @@ export function PlaylistCard({ playlist, onEdit, onRefetch }: PlaylistCardProps)
             type="button"
             onClick={handleGenerate}
             disabled={generating}
-            className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-accent/15 text-accent rounded hover:bg-accent/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1.5 text-xs bg-accent/5 text-accent rounded hover:bg-accent/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             title={t('playlist.generateNow')}
           >
             {generating ? (

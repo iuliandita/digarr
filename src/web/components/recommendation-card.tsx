@@ -725,7 +725,7 @@ export function RecommendationCard({
                   {layout === 'list' && (
                     <span
                       data-testid="rec-kind-album"
-                      className="bg-accent/15 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+                      className="bg-accent/5 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
                     >
                       {t('recommendation.albumBadge')}
                     </span>
@@ -752,7 +752,7 @@ export function RecommendationCard({
                 </div>
               )}
               {layout === 'list' && (
-                <span className="shrink-0 bg-accent/20 text-accent text-xs font-semibold px-2 py-0.5 rounded">
+                <span className="shrink-0 bg-accent/5 text-accent text-xs font-semibold px-2 py-0.5 rounded">
                   {pct}
                 </span>
               )}

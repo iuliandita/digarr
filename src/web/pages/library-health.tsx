@@ -196,7 +196,7 @@ export function LibraryHealthPage() {
 
       {/* Scanning indicator */}
       {scanning && (
-        <div className="bg-accent/10 border border-accent/30 rounded-lg px-4 py-3 text-sm text-accent flex items-center gap-2">
+        <div className="bg-accent/5 border border-accent/30 rounded-lg px-4 py-3 text-sm text-accent flex items-center gap-2">
           <RefreshCw size={14} className="animate-spin shrink-0" />
           {t('libraryHealth.scanningBanner')}
         </div>

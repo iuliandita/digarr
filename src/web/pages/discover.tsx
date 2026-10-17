@@ -31,6 +31,7 @@ import { Button } from '../components/ui/button'
 import { EmptyState as UiEmptyState } from '../components/ui/empty-state'
 import { Notice } from '../components/ui/notice'
 import { Skeleton } from '../components/ui/skeleton'
+import { useHints } from '../hooks/use-hints'
 import { useKeyboardShortcuts } from '../hooks/use-keyboard-shortcuts'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
 import type { PreviewFailureReason } from '../hooks/use-preview'
@@ -352,6 +353,7 @@ function FeedbackInsights() {
 // Discover page
 
 export function DiscoverPage() {
+  const { isHintDismissed } = useHints()
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const preview = usePreviewContext()
@@ -1119,7 +1121,7 @@ export function DiscoverPage() {
       {/* z-45: its menus must clear the bottom bars (z-40) but stay under dialogs (z-50) */}
       <div className="sticky top-0 z-45 bg-bg border-b border-border px-6 pt-4 pb-3">
         <div className="flex flex-wrap items-center gap-2">
-          <fieldset className="flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-surface border border-border bg-surface p-1 [scrollbar-width:none] md:w-auto">
+          <fieldset className="scroll-fade-x flex w-full min-w-0 items-center gap-1 overflow-x-auto rounded-surface border border-border bg-surface p-1 [scrollbar-width:none] md:w-auto">
             <legend className="sr-only">{t('discover.statusFilter')}</legend>
             {(Object.keys(FILTER_LABELS) as FilterTab[]).map((tab) => (
               <button
@@ -1289,11 +1291,13 @@ export function DiscoverPage() {
         {!bulkMode && viewMode !== 'stack' && items.length > 0 && (
           <>
             <p className="text-xs text-muted sm:hidden mb-4">{t('discover.swipeHint')}</p>
-            <div className="hidden sm:block mb-4">
-              <Hint id="discover-cards-tip" type="inline">
-                {t('discover.cardsTip')}
-              </Hint>
-            </div>
+            {isHintDismissed('mood-bar-intro') && (
+              <div className="hidden sm:block mb-4">
+                <Hint id="discover-cards-tip" type="inline">
+                  {t('discover.cardsTip')}
+                </Hint>
+              </div>
+            )}
           </>
         )}
 
@@ -1497,7 +1501,7 @@ export function DiscoverPage() {
             type="button"
             onClick={handleBulkReject}
             disabled={checkedIds.size === 0 || bulkActing}
-            className="px-3 py-1 bg-reject/20 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-3 py-1 bg-reject/5 text-reject border border-reject/40 rounded text-sm font-medium hover:bg-reject/30 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {t('recommendation.reject')}
             {checkedIds.size > 0 ? ` (${checkedIds.size})` : ''}

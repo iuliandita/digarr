@@ -89,11 +89,11 @@ function severityBadgeClass(severity: Tone): string {
     case 'healthy':
       return 'bg-approve/15 text-approve'
     case 'error':
-      return 'bg-reject/15 text-reject'
+      return 'bg-reject/5 text-reject'
     case 'warning':
       return 'bg-warning/15 text-warning'
     case 'info':
-      return 'bg-accent/15 text-accent'
+      return 'bg-accent/5 text-accent'
   }
 }
 

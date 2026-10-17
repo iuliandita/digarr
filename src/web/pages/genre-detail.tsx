@@ -63,7 +63,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-text truncate">{artist.name}</p>
-          <span className="shrink-0 text-micro font-semibold px-1.5 py-0.5 rounded bg-accent/20 text-accent">
+          <span className="shrink-0 text-micro font-semibold px-1.5 py-0.5 rounded bg-accent/5 text-accent">
             {(artist.score * 100).toFixed(0)}
           </span>
         </div>

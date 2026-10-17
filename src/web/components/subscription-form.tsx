@@ -143,7 +143,7 @@ function ProviderPicker({
                 !configured
                   ? 'border-border text-muted/50 cursor-not-allowed bg-surface/50'
                   : selected
-                    ? 'border-accent/50 bg-accent/15 text-accent'
+                    ? 'border-accent/50 bg-accent/5 text-accent'
                     : 'border-border text-muted hover:border-accent/40 hover:text-text'
               }`}
               title={configured ? undefined : t('subscriptionForm.configureInSettings')}
@@ -433,7 +433,7 @@ export function SubscriptionForm({
           </h2>
 
           {error && (
-            <div className="text-sm text-reject bg-reject/10 border border-reject/20 rounded px-3 py-2">
+            <div className="text-sm text-reject bg-reject/5 border border-reject/20 rounded px-3 py-2">
               {error}
             </div>
           )}

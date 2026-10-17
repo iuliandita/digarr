@@ -135,7 +135,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
           </h2>
 
           {error && (
-            <div className="text-sm text-reject bg-reject/10 border border-reject/20 rounded px-3 py-2">
+            <div className="text-sm text-reject bg-reject/5 border border-reject/20 rounded px-3 py-2">
               {error}
             </div>
           )}

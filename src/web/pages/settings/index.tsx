@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { AdministrationTab } from '../../components/admin/administration-tab'
 import { BlockedAlbumsTab } from '../../components/blocked-albums-tab'
@@ -47,7 +48,15 @@ export function SettingsPage() {
   })
   const isAdmin = currentUser?.isAdmin ?? false
   // Resolve only once the role is known, or admin deep links would fall back while it loads
-  const tab = resolveTab(searchParams.get('tab'), isAdmin)
+  const requestedTab = searchParams.get('tab')
+  const tab = resolveTab(requestedTab, isAdmin)
+  // Keep the URL honest when a link names a tab this user can't open
+  useEffect(() => {
+    if (userPending || requestedTab === null || requestedTab === tab) return
+    const nextParams = new URLSearchParams(searchParams)
+    nextParams.set('tab', tab)
+    setSearchParams(nextParams, { replace: true })
+  }, [userPending, requestedTab, tab, searchParams, setSearchParams])
   const {
     data,
     isLoading: loading,

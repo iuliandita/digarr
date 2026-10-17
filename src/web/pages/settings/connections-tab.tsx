@@ -606,9 +606,6 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           </div>
 
           {/* AI Provider */}
-          <Hint id="settings-ai-tip" type="inline">
-            {t('settings.aiTip')}
-          </Hint>
           <div>
             <ServiceCard
               name={aiProviderLabel}
@@ -661,6 +658,9 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
               onEdit={() => markEdited('ai')}
               icon={<AiProviderIcon />}
             >
+              <Hint id="settings-ai-tip" type="inline">
+                {t('settings.aiTip')}
+              </Hint>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Field label={t('settings.fieldProvider')} id="ai-provider">
                   <Select
@@ -714,6 +714,11 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                     value={aiApiKey}
                     onChange={(e) => setAiApiKey(e.target.value)}
                   />
+                  {aiProvider === 'openai-compatible' && (
+                    <p className="text-xs text-muted mt-1">
+                      {t('settings.aiOpenAiCompatibleHelp')}
+                    </p>
+                  )}
                 </Field>
               )}
               {(aiProvider === 'ollama' || aiProvider === 'openai-compatible') && (
@@ -730,9 +735,6 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                     onChange={(e) => setAiBaseUrl(e.target.value)}
                   />
                 </Field>
-              )}
-              {aiProvider === 'openai-compatible' && (
-                <p className="text-xs text-muted">{t('settings.aiOpenAiCompatibleHelp')}</p>
               )}
               {(() => {
                 const local = isLocalAiProvider(aiProvider, aiBaseUrl)

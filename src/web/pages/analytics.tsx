@@ -563,13 +563,13 @@ export function AnalyticsPage() {
 
       {/* Genre breakdown + Source scores side by side on large screens */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3 [&>:last-child]:flex-1">
           <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
             {t('analytics.topGenresByApprovalRate')}
           </h2>
           <GenreBreakdown genres={genres ?? null} loading={genresLoading} />
         </div>
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3 [&>:last-child]:flex-1">
           <h2 className="text-sm font-semibold text-text uppercase tracking-wide">
             {t('analytics.sourceEffectiveness')}
           </h2>

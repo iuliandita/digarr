@@ -428,7 +428,7 @@ export function DiscoveryModeForm({
       </div>
 
       {error && (
-        <div className="rounded-md border border-reject/20 bg-reject/10 px-3 py-2 text-sm text-reject">
+        <div className="rounded-md border border-reject/20 bg-reject/5 px-3 py-2 text-sm text-reject">
           {error}
         </div>
       )}

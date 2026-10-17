@@ -572,7 +572,7 @@ export function TargetsTab() {
                       className={`rounded-full px-2 py-0.5 text-xs ${
                         testResult.success
                           ? 'bg-approve/15 text-approve'
-                          : 'bg-reject/15 text-reject'
+                          : 'bg-reject/5 text-reject'
                       }`}
                     >
                       {testResult.success

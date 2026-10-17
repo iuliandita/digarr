@@ -8,7 +8,7 @@ export function DiscoverTabs({ className }: { className?: string }) {
   const location = useLocation()
   return (
     <nav aria-label={t('nav.discover')} className={cn('border-b border-border', className)}>
-      <ul className="-mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
+      <ul className="scroll-fade-x -mb-px flex gap-1 overflow-x-auto [scrollbar-width:none]">
         {DISCOVER_TABS.map((tab) => {
           const active = tab.isActive(location)
           return (

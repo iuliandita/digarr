@@ -111,7 +111,7 @@ function StackCard({
           <div>
             <span
               data-testid="rec-kind-album"
-              className="bg-accent/15 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
+              className="bg-accent/5 text-accent text-micro font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded"
             >
               {t('recommendation.albumBadge')}
             </span>
@@ -167,7 +167,7 @@ function StackCard({
                 type="button"
                 onClick={onReject}
                 aria-label={t('recommendation.reject')}
-                className="flex-1 py-2.5 rounded-xl bg-reject/10 text-reject border border-reject/30 font-medium text-sm hover:bg-reject/20 transition-colors"
+                className="flex-1 py-2.5 rounded-xl bg-reject/5 text-reject border border-reject/30 font-medium text-sm hover:bg-reject/20 transition-colors"
               >
                 {t('recommendation.reject')}
               </button>

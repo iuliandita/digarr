@@ -68,7 +68,7 @@ export function FiltersPopover({
         className={cn(
           TRIGGER_CLASS,
           count > 0
-            ? 'border-accent/40 bg-accent/10 text-accent'
+            ? 'border-accent/40 bg-accent/5 text-accent'
             : 'border-border bg-surface text-muted hover:text-text',
         )}
       >

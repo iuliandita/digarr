@@ -220,7 +220,7 @@ function SubscriptionCard({
           <div className="flex items-center gap-2 flex-wrap">
             <span className="font-medium text-text truncate">{sub.name}</span>
             {sourceLabel && (
-              <span className="text-xs px-2 py-0.5 bg-accent/15 text-accent rounded-full min-w-0 max-w-full break-words">
+              <span className="text-xs px-2 py-0.5 bg-accent/5 text-accent rounded-full min-w-0 max-w-full break-words">
                 {sourceLabel}
               </span>
             )}

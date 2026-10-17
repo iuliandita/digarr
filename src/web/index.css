@@ -81,10 +81,10 @@
   --color-bg: #0f1419;
   --color-surface: #1a2231;
   --color-border: #2a3340;
-  --color-accent: #5b88c5;
+  --color-accent: #6a95d0;
   --color-accent-fg: #0f1419;
   --color-approve: #7ab489;
-  --color-reject: #c45e5e;
+  --color-reject: #d87474;
   --color-info: #7aa6c2;
   --color-warning: #d4a86a;
   --color-text: #e3ebf5;
@@ -598,5 +598,49 @@ body {
 @media (display-mode: standalone) {
   body {
     overscroll-behavior-y: contain;
+  }
+}
+
+/* Fades whichever edge of a horizontally scrolling row still has content past it. Browsers
+   without scroll-driven animations get a plain row. */
+@property --scroll-fade-start {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --scroll-fade-end {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@supports (animation-timeline: scroll()) {
+  .scroll-fade-x {
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 var(--scroll-fade-start),
+      #000 calc(100% - var(--scroll-fade-end)),
+      transparent
+    );
+    animation: scroll-fade-x linear both;
+    animation-timeline: scroll(self inline);
+  }
+
+  @keyframes scroll-fade-x {
+    0% {
+      --scroll-fade-start: 0px;
+      --scroll-fade-end: 1.5rem;
+    }
+    10%,
+    90% {
+      --scroll-fade-start: 1.5rem;
+      --scroll-fade-end: 1.5rem;
+    }
+    100% {
+      --scroll-fade-start: 1.5rem;
+      --scroll-fade-end: 0px;
+    }
   }
 }

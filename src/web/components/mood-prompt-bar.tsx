@@ -124,7 +124,7 @@ export function MoodPromptBar({
                       <button
                         type="button"
                         onClick={() => handleAddToQueue(r.artistName)}
-                        className="text-micro px-2 py-1 bg-accent/10 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
+                        className="text-micro px-2 py-1 bg-accent/5 text-accent border border-accent/20 rounded hover:bg-accent/20 transition-colors"
                       >
                         {t('discover.addDiscover')}
                       </button>

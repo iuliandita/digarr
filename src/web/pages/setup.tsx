@@ -393,6 +393,9 @@ function StepAi({
           />
         </div>
       )}
+      {form.provider === 'openai-compatible' && (
+        <p className="text-xs text-muted">{t('setup.openAiCompatibleHint')}</p>
+      )}
       {needsBaseUrl && (
         <Field label={t('setup.baseUrl')} id="ai-baseurl">
           <Input
@@ -407,9 +410,6 @@ function StepAi({
             onChange={(e) => onFormChange({ ...form, baseUrl: e.target.value })}
           />
         </Field>
-      )}
-      {form.provider === 'openai-compatible' && (
-        <p className="text-xs text-muted">{t('setup.openAiCompatibleHint')}</p>
       )}
       <p className="text-xs text-muted">{t('setup.verifyProviderLater')}</p>
       <Button

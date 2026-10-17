@@ -27,7 +27,7 @@ const SOURCE_REASON_KEYS: Record<string, MessageKey> = {
 
 const STATUS_BADGES: Record<string, { key: MessageKey; className: string }> = {
   completed: { key: 'jobHistory.statusCompleted', className: 'bg-approve/15 text-approve' },
-  failed: { key: 'jobHistory.statusFailed', className: 'bg-reject/15 text-reject' },
+  failed: { key: 'jobHistory.statusFailed', className: 'bg-reject/5 text-reject' },
   stuck: { key: 'jobHistory.stuckLabel', className: 'bg-warning/20 text-warning' },
   cancelled: { key: 'jobHistory.cancelledLabel', className: 'bg-muted/20 text-muted' },
   running: { key: 'jobHistory.statusRunning', className: 'bg-info/15 text-info' },
@@ -156,7 +156,7 @@ export function JobRunRow({ job }: { job: JobRun }) {
       {expanded && (
         <div className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
           {job.error && (
-            <div className="rounded bg-reject/10 p-2 text-reject">
+            <div className="rounded bg-reject/5 p-2 text-reject">
               <strong>{t('jobHistory.errorLabel')}</strong> {job.error}
             </div>
           )}
