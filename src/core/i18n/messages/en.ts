@@ -1705,6 +1705,17 @@ export const en = {
   'approveDialog.qualityProfile': 'Quality Profile',
   'approveDialog.metadataProfile': 'Metadata Profile',
   'approveDialog.rootFolder': 'Root Folder',
+  'approveDialog.lidarrOptions': 'Lidarr options',
+  'settings.targetLidarrServerConnection': 'Lidarr (server connection)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Uses the Lidarr URL, API key and default profiles from Settings > Connections.',
+  'settings.targetLidarrUseOtherInstance': 'Use a different Lidarr instance',
+  'settings.targetLidarrInstanceDefaults': 'Defaults for this instance',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Save the target first, then edit it to pick profiles and a root folder from this instance.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'The URL or API key changed. Save, then edit the target again to pick profiles and a root folder from the new instance.',
+  'settings.targetLidarrDefaultsUnset': 'First available',
 
   // Card stack navigation hints
   'cardStack.counter': '{0} of {1}',

@@ -219,12 +219,13 @@ export function createLidarrClient(
   // exist". Mirror the approve dialog: snap unknown ids to the first
   // available profile.
   function snapProfileId(
-    requested: number,
+    requested: number | undefined,
     profiles: { id: number; name: string }[],
     kind: string,
   ): number {
     const first = profiles[0]
     if (!first) throw new Error(`No ${kind} profiles configured in Lidarr`)
+    if (requested === undefined) return first.id
     if (profiles.some((p) => p.id === requested)) return requested
     console.warn(
       `[lidarr] ${kind} profile id ${requested} not found, falling back to "${first.name}" (id ${first.id})`,
@@ -242,8 +243,8 @@ export function createLidarrClient(
   async function addArtist(
     foreignArtistId: string,
     artistName: string,
-    qualityProfileId: number,
-    metadataProfileId: number,
+    qualityProfileId: number | undefined,
+    metadataProfileId: number | undefined,
     rootFolderId?: number | null,
     options?: AddArtistOptions,
   ): Promise<LidarrArtist> {

@@ -1661,6 +1661,17 @@ export const tr = {
   'approveDialog.qualityProfile': 'Kalite Profili',
   'approveDialog.metadataProfile': 'Meta Veri Profili',
   'approveDialog.rootFolder': 'Kök Klasör',
+  'approveDialog.lidarrOptions': 'Lidarr seçenekleri',
+  'settings.targetLidarrServerConnection': 'Lidarr (sunucu bağlantısı)',
+  'settings.targetLidarrServerConnectionHelp':
+    "Ayarlar > Bağlantılar bölümündeki Lidarr URL'sini, API anahtarını ve varsayılan profilleri kullanır.",
+  'settings.targetLidarrUseOtherInstance': 'Farklı bir Lidarr örneği kullan',
+  'settings.targetLidarrInstanceDefaults': 'Bu örnek için varsayılanlar',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Önce hedefi kaydet, ardından bu örnekten profil ve kök klasör seçmek için düzenle.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
+  'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
   'cardStack.counter': '{0} / {1}',
   'cardStack.swipeHint': 'Onaylamak için sağa, reddetmek için sola kaydır',
   'serviceCard.testConnection': 'Bağlantıyı Test Et',

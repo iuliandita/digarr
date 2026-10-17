@@ -412,9 +412,15 @@ describe('target-aware approval', () => {
         expect(target.addAlbum).toHaveBeenCalledExactlyOnceWith(
           { artistMbid: 'mbid-1', artistName: 'Radiohead', releaseGroupMbid: 'rg-1' },
           {
-            qualityProfileId: 2,
-            metadataProfileId: 3,
-            rootFolderId: 4,
+            // Explicit picks are scoped to the only Lidarr target, dropped without one.
+            ...(lidarr !== null
+              ? {
+                  lidarrOptionsTargetId: 'lidarr-1',
+                  qualityProfileId: 2,
+                  metadataProfileId: 3,
+                  rootFolderId: 4,
+                }
+              : {}),
             userId: 1,
             recommendationId: 1,
           },

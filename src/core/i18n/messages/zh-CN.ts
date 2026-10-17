@@ -1545,6 +1545,17 @@ export const zhCN = {
   'approveDialog.qualityProfile': '质量配置文件',
   'approveDialog.metadataProfile': '元数据配置文件',
   'approveDialog.rootFolder': '根目录',
+  'approveDialog.lidarrOptions': 'Lidarr 选项',
+  'settings.targetLidarrServerConnection': 'Lidarr（服务器连接）',
+  'settings.targetLidarrServerConnectionHelp':
+    '使用 设置 > 连接 中的 Lidarr URL、API 密钥和默认配置文件。',
+  'settings.targetLidarrUseOtherInstance': '使用其他 Lidarr 实例',
+  'settings.targetLidarrInstanceDefaults': '此实例的默认值',
+  'settings.targetLidarrDefaultsSaveFirst':
+    '请先保存目标，然后编辑它以从此实例选择配置文件和根目录。',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'URL 或 API 密钥已更改。请先保存，然后再次编辑目标，以从新实例选择配置文件和根目录。',
+  'settings.targetLidarrDefaultsUnset': '第一个可用项',
   'cardStack.counter': '第 {0} / 共 {1}',
   'cardStack.swipeHint': '向右滑动批准，向左滑动拒绝',
   'serviceCard.testConnection': '测试连接',

@@ -1681,6 +1681,17 @@ export const ptBR = {
   'approveDialog.qualityProfile': 'Perfil de qualidade',
   'approveDialog.metadataProfile': 'Perfil de metadados',
   'approveDialog.rootFolder': 'Pasta raiz',
+  'approveDialog.lidarrOptions': 'Opções do Lidarr',
+  'settings.targetLidarrServerConnection': 'Lidarr (conexão do servidor)',
+  'settings.targetLidarrServerConnectionHelp':
+    'Usa a URL, a chave de API e os perfis padrão do Lidarr de Configurações > Conexões.',
+  'settings.targetLidarrUseOtherInstance': 'Usar outra instância do Lidarr',
+  'settings.targetLidarrInstanceDefaults': 'Padrões desta instância',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Salve o destino primeiro e depois edite-o para escolher perfis e uma pasta raiz desta instância.',
+  'settings.targetLidarrDefaultsInstanceChanged':
+    'A URL ou a chave de API mudou. Salve e depois edite o destino de novo para escolher perfis e uma pasta raiz da nova instância.',
+  'settings.targetLidarrDefaultsUnset': 'Primeiro disponível',
   'cardStack.counter': '{0} de {1}',
   'cardStack.swipeHint': 'Deslize para a direita para aprovar, para a esquerda para rejeitar',
   'serviceCard.testConnection': 'Testar conexão',

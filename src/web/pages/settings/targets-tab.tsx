@@ -7,6 +7,7 @@ import {
   createTargetApi,
   deleteTargetApi,
   getCurrentUser,
+  getLidarrApproveOptions,
   listTargets,
   listUsers,
   testTargetApi,
@@ -233,6 +234,96 @@ function buildTargetConfigPatch(
   )
 }
 
+const LIDARR_DEFAULT_KEYS = ['qualityProfileId', 'metadataProfileId', 'rootFolderId'] as const
+
+// A server-connection target stores only the flag; the server drops any stale
+// url/key. A separate instance sends its own fields plus its default IDs, with
+// null clearing an ID back to "first available". After a url/key change the
+// picked IDs belong to the old instance, so none are sent (the server clears them).
+function buildLidarrConfig(
+  targetType: AddTargetType,
+  config: Record<string, string>,
+  useServerConnection: boolean,
+  isEditing: boolean,
+  instanceChanged: boolean,
+): Record<string, unknown> {
+  if (useServerConnection) return { useServerConnection: true }
+  const base = isEditing
+    ? (buildTargetConfigPatch(targetType, config) ?? {})
+    : normalizeTargetConfig(targetType.value, config)
+  const defaults: Record<string, number | null> = {}
+  for (const key of instanceChanged ? [] : LIDARR_DEFAULT_KEYS) {
+    if (config[key]) defaults[key] = Number(config[key])
+    else if (isEditing) defaults[key] = null
+  }
+  return { ...base, ...defaults, useServerConnection: false }
+}
+
+function LidarrInstanceDefaults({
+  targetId,
+  config,
+  onChange,
+}: {
+  targetId: number
+  config: Record<string, string>
+  onChange: (key: (typeof LIDARR_DEFAULT_KEYS)[number], value: string) => void
+}) {
+  const { t } = useI18n()
+  const { data, isError } = useQuery({
+    queryKey: ['lidarrApproveOptions', targetId],
+    queryFn: () => getLidarrApproveOptions(targetId),
+  })
+  if (isError) return <p className="text-xs text-reject">{t('approveDialog.loadFailed')}</p>
+  const fields = [
+    {
+      key: 'qualityProfileId' as const,
+      label: t('settings.qualityProfile'),
+      options: data?.qualityProfiles.map((p) => ({ id: p.id, label: p.name })),
+    },
+    {
+      key: 'metadataProfileId' as const,
+      label: t('settings.metadataProfile'),
+      options: data?.metadataProfiles.map((p) => ({ id: p.id, label: p.name })),
+    },
+    {
+      key: 'rootFolderId' as const,
+      label: t('settings.rootFolder'),
+      options: data?.rootFolders.map((f) => ({ id: f.id, label: f.path })),
+    },
+  ]
+  return (
+    <div className="rounded-md border border-border bg-bg/60 p-3 space-y-2">
+      <p className="text-xs font-medium text-text">{t('settings.targetLidarrInstanceDefaults')}</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        {fields.map((field) => {
+          const fieldId = `lidarr-target-${targetId}-${field.key}`
+          return (
+            <label key={field.key} htmlFor={fieldId} className="block text-xs text-muted">
+              {field.label}
+              <select
+                id={fieldId}
+                value={config[field.key] ?? ''}
+                onChange={(e) => onChange(field.key, e.target.value)}
+                disabled={!field.options}
+                className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+              >
+                <option value="">
+                  {field.options ? t('settings.targetLidarrDefaultsUnset') : t('common.loading')}
+                </option>
+                {field.options?.map((option) => (
+                  <option key={option.id} value={String(option.id)}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 function serializeTargetConfigForForm(config: Record<string, unknown>): Record<string, string> {
   return Object.fromEntries(
     Object.entries(config)
@@ -284,16 +375,27 @@ function AddTargetDialog({
     initialTarget ? serializeTargetConfigForForm(initialTarget.config) : {},
   )
   const [saving, setSaving] = useState(false)
+  const initialUsesServer = initialTarget ? initialTarget.config.useServerConnection === true : true
+  const [useServerConnection, setUseServerConnection] = useState(initialUsesServer)
 
   const selectedType = targetTypes.find((tt) => tt.value === type)
   const isEditing = Boolean(initialTarget)
+  const isLidarr = type === 'lidarr'
+  const hideConnectionFields = isLidarr && useServerConnection
+  // The saved key is masked out of the form, so any typed key is a change.
+  const instanceChanged =
+    isEditing &&
+    ((config.url ?? '').trim() !== String(initialTarget?.config.url ?? '').trim() ||
+      Boolean(config.apiKey))
 
   async function handleSave() {
     if (!type || !selectedType) return
     setSaving(true)
     try {
       if (initialTarget) {
-        const configPatch = buildTargetConfigPatch(selectedType, config)
+        const configPatch = isLidarr
+          ? buildLidarrConfig(selectedType, config, useServerConnection, true, instanceChanged)
+          : buildTargetConfigPatch(selectedType, config)
         await updateTargetApi(initialTarget.id, {
           name: name || selectedType.label,
           enabled,
@@ -306,7 +408,9 @@ function AddTargetDialog({
           type,
           userId,
           name: name || selectedType.label,
-          config: normalizeTargetConfig(type, config),
+          config: isLidarr
+            ? buildLidarrConfig(selectedType, config, useServerConnection, false, false)
+            : normalizeTargetConfig(type, config),
         })
         toast.success(t('settings.targetAdded'))
       }
@@ -395,7 +499,25 @@ function AddTargetDialog({
             </label>
           )}
 
-          {selectedType.fields.map((field) => (
+          {isLidarr && (
+            <div className="space-y-2">
+              {useServerConnection && (
+                <p className="text-xs text-muted">
+                  {t('settings.targetLidarrServerConnectionHelp')}
+                </p>
+              )}
+              <label className="flex items-center gap-2 text-sm text-text">
+                <input
+                  type="checkbox"
+                  checked={!useServerConnection}
+                  onChange={(e) => setUseServerConnection(!e.target.checked)}
+                />
+                {t('settings.targetLidarrUseOtherInstance')}
+              </label>
+            </div>
+          )}
+
+          {(hideConnectionFields ? [] : selectedType.fields).map((field) => (
             <div key={field.key}>
               {(() => {
                 const fieldId = `add-target-${type}-${field.key}`
@@ -430,6 +552,22 @@ function AddTargetDialog({
               })()}
             </div>
           ))}
+
+          {isLidarr &&
+            !useServerConnection &&
+            (initialTarget && !initialUsesServer && instanceChanged ? (
+              <p className="text-xs text-muted">
+                {t('settings.targetLidarrDefaultsInstanceChanged')}
+              </p>
+            ) : initialTarget && !initialUsesServer ? (
+              <LidarrInstanceDefaults
+                targetId={initialTarget.id}
+                config={config}
+                onChange={(key, value) => setConfig((previous) => ({ ...previous, [key]: value }))}
+              />
+            ) : (
+              <p className="text-xs text-muted">{t('settings.targetLidarrDefaultsSaveFirst')}</p>
+            ))}
 
           {selectedType.value === 'slskd' && (
             <div className="rounded-md border border-border bg-bg/60 p-3 space-y-2">
@@ -563,7 +701,13 @@ export function TargetsTab() {
                 <div className="flex items-center gap-2 flex-wrap">
                   <TargetTypeIcon type={target.type} />
                   <span className="text-sm font-medium text-text">{target.name}</span>
-                  <span className="text-xs text-muted capitalize">({target.type})</span>
+                  {target.type === 'lidarr' && target.config.useServerConnection === true ? (
+                    <span className="text-xs text-muted">
+                      ({t('settings.targetLidarrServerConnection')})
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted capitalize">({target.type})</span>
+                  )}
                   <span className="rounded-full bg-bg px-2 py-0.5 text-xs text-muted border border-border">
                     {target.enabled ? t('common.enabled') : t('common.disabled')}
                   </span>
