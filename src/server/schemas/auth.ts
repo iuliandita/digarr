@@ -46,3 +46,14 @@ export const updateEmailSchema = z
 export const updatePreferencesSchema = z
   .object({ netNewAlbumDiscovery: z.boolean().optional() })
   .passthrough()
+
+export const createApiTokenSchema = z
+  .object({
+    name: z.string().trim().min(1).max(100),
+    scope: z.enum(['read', 'write', 'admin']),
+    expiresInDays: z
+      .union([z.literal(30), z.literal(90), z.literal(365)])
+      .nullable()
+      .optional(),
+  })
+  .strict()
