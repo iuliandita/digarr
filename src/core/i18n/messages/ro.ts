@@ -528,6 +528,11 @@ export const ro = {
   'playlists.noScheduleConfigured': 'Nu a fost configurat niciun program',
   'playlists.playlistPlural': 'liste de redare',
   'playlists.playlistSingular': 'lista de redare',
+  'playlists.schedulingLabel': 'Generare programată',
+  'playlists.schedulingOnHint': 'Playlisturile cu program se regenerează singure.',
+  'playlists.schedulingPausedHint':
+    'Pus pe pauză: playlisturile cu program nu se regenerează până nu activezi asta. Generarea manuală funcționează în continuare.',
+  'playlists.schedulingSaveFailed': 'Nu s-a putut schimba programarea playlisturilor',
   'playlists.schedulePaused': 'Programare întreruptă',
   'playlists.scheduled': 'Programat',
   'playlists.updateFailed': 'Nu s-a putut actualiza lista de redare',

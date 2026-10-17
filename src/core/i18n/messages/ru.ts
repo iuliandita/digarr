@@ -530,6 +530,11 @@ export const ru = {
   'playlists.noScheduleConfigured': 'Расписание не настроено',
   'playlists.playlistPlural': 'плейлисты',
   'playlists.playlistSingular': 'список воспроизведения',
+  'playlists.schedulingLabel': 'Создание по расписанию',
+  'playlists.schedulingOnHint': 'Плейлисты с расписанием обновляются сами.',
+  'playlists.schedulingPausedHint':
+    'Приостановлено: плейлисты с расписанием не обновляются, пока ты это не включишь. Ручное создание по-прежнему работает.',
+  'playlists.schedulingSaveFailed': 'Не удалось изменить расписание плейлистов',
   'playlists.schedulePaused': 'Расписание приостановлено',
   'playlists.scheduled': 'Запланировано',
   'playlists.updateFailed': 'Не удалось обновить плейлист.',

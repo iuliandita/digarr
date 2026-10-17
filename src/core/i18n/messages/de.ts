@@ -534,6 +534,11 @@ export const de = {
   'playlists.noScheduleConfigured': 'Kein Zeitplan konfiguriert',
   'playlists.playlistPlural': 'Wiedergabelisten',
   'playlists.playlistSingular': 'Wiedergabeliste',
+  'playlists.schedulingLabel': 'Geplante Erstellung',
+  'playlists.schedulingOnHint': 'Playlists mit Zeitplan werden automatisch neu erstellt.',
+  'playlists.schedulingPausedHint':
+    'Pausiert: Playlists mit Zeitplan werden erst neu erstellt, wenn du das einschaltest. Manuelles Erstellen funktioniert weiterhin.',
+  'playlists.schedulingSaveFailed': 'Playlist-Zeitplanung konnte nicht geändert werden',
   'playlists.schedulePaused': 'Zeitplan pausiert',
   'playlists.scheduled': 'Geplant',
   'playlists.updateFailed': 'Die Wiedergabeliste konnte nicht aktualisiert werden',

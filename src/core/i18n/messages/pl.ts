@@ -528,6 +528,11 @@ export const pl = {
   'playlists.noScheduleConfigured': 'Nie skonfigurowano harmonogramu',
   'playlists.playlistPlural': 'listy odtwarzania',
   'playlists.playlistSingular': 'playlista',
+  'playlists.schedulingLabel': 'Generowanie według harmonogramu',
+  'playlists.schedulingOnHint': 'Playlisty z harmonogramem odświeżają się same.',
+  'playlists.schedulingPausedHint':
+    'Wstrzymane: playlisty z harmonogramem nie są odświeżane, dopóki tego nie włączysz. Ręczne generowanie nadal działa.',
+  'playlists.schedulingSaveFailed': 'Nie udało się zmienić harmonogramu playlist',
   'playlists.schedulePaused': 'Harmonogram wstrzymany',
   'playlists.scheduled': 'Zaplanowane',
   'playlists.updateFailed': 'Nie udało się zaktualizować listy odtwarzania',

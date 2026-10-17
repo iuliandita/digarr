@@ -525,6 +525,11 @@ export const ja = {
   'playlists.noScheduleConfigured': 'スケジュールが設定されていません',
   'playlists.playlistPlural': 'プレイリスト',
   'playlists.playlistSingular': 'プレイリスト',
+  'playlists.schedulingLabel': 'スケジュール生成',
+  'playlists.schedulingOnHint': 'スケジュールのあるプレイリストは自動で再生成されます。',
+  'playlists.schedulingPausedHint':
+    '一時停止中: これをオンにするまで、スケジュールのあるプレイリストは再生成されません。手動での生成は引き続き使えます。',
+  'playlists.schedulingSaveFailed': 'プレイリストのスケジュール設定を変更できませんでした',
   'playlists.schedulePaused': 'スケジュールが一時停止されました',
   'playlists.scheduled': '予定されている',
   'playlists.updateFailed': 'プレイリストの更新に失敗しました',

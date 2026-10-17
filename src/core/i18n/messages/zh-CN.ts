@@ -487,6 +487,11 @@ export const zhCN = {
   'playlists.noScheduleConfigured': '没有配置时间表',
   'playlists.playlistPlural': '播放列表',
   'playlists.playlistSingular': '播放列表',
+  'playlists.schedulingLabel': '定时生成',
+  'playlists.schedulingOnHint': '设有计划的播放列表会自动重新生成。',
+  'playlists.schedulingPausedHint':
+    '已暂停：在您开启此项之前，设有计划的播放列表不会重新生成。手动生成仍然可用。',
+  'playlists.schedulingSaveFailed': '无法更改播放列表定时设置',
   'playlists.schedulePaused': '计划已暂停',
   'playlists.scheduled': '预定',
   'playlists.updateFailed': '更新播放列表失败',

@@ -749,7 +749,7 @@ When `config` is absent or null, generation defaults to size 25 and source prior
 
 Playlist PATCH and DELETE return `204` with no body.
 
-Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. This global switch is API-only; there is no web UI control. An admin can enable it with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must also be enabled and have a schedule. Manual generation does not require the global switch.
+Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. Admins can turn it on with the Scheduled generation switch on the Playlists page, or with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must also be enabled and have a schedule. Manual generation does not require the global switch.
 
 `GET /api/v1/playlists/scheduler` returns `{ nextRun, cron, enabled }`. `enabled` is the global switch, not a per-playlist flag. `nextRun` is the earliest registered next run among the current user's playlists, or null. `cron` is the single distinct nonempty schedule across that user's saved playlists, or null when there are none or several; it can be present even when scheduling is disabled.
 

@@ -527,6 +527,11 @@ export const fr = {
   'playlists.noScheduleConfigured': 'Aucune planification configurée',
   'playlists.playlistPlural': 'listes de lecture',
   'playlists.playlistSingular': 'liste de lecture',
+  'playlists.schedulingLabel': 'Génération planifiée',
+  'playlists.schedulingOnHint': "Les playlists planifiées se régénèrent d'elles-mêmes.",
+  'playlists.schedulingPausedHint':
+    "En pause : les playlists planifiées ne sont pas régénérées tant que tu ne l'actives pas. La génération manuelle fonctionne toujours.",
+  'playlists.schedulingSaveFailed': 'Impossible de modifier la planification des playlists',
   'playlists.schedulePaused': 'Planification en pause',
   'playlists.scheduled': 'Planifié',
   'playlists.updateFailed': 'Échec de la mise à jour de la playlist',

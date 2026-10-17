@@ -531,6 +531,11 @@ export const ptBR = {
   'playlists.noScheduleConfigured': 'Nenhuma programação configurada',
   'playlists.playlistPlural': 'listas de reprodução',
   'playlists.playlistSingular': 'lista de reprodução',
+  'playlists.schedulingLabel': 'Geração agendada',
+  'playlists.schedulingOnHint': 'Playlists com agendamento são geradas de novo sozinhas.',
+  'playlists.schedulingPausedHint':
+    'Pausado: playlists com agendamento não são geradas de novo até você ativar isto. Gerar uma playlist manualmente continua funcionando.',
+  'playlists.schedulingSaveFailed': 'Não foi possível alterar o agendamento das playlists',
   'playlists.schedulePaused': 'Agenda pausada',
   'playlists.scheduled': 'Agendado',
   'playlists.updateFailed': 'Falha ao atualizar a playlist',

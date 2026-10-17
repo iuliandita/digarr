@@ -519,6 +519,12 @@ export const tr = {
   'playlists.noScheduleConfigured': 'Yapılandırılan program yok',
   'playlists.playlistPlural': 'çalma listeleri',
   'playlists.playlistSingular': 'çalma listesi',
+  'playlists.schedulingLabel': 'Zamanlanmış oluşturma',
+  'playlists.schedulingOnHint':
+    'Zamanlaması olan çalma listeleri kendiliğinden yeniden oluşturulur.',
+  'playlists.schedulingPausedHint':
+    'Duraklatıldı: bunu açana kadar zamanlaması olan çalma listeleri yeniden oluşturulmaz. Elle oluşturma çalışmaya devam eder.',
+  'playlists.schedulingSaveFailed': 'Çalma listesi zamanlaması değiştirilemedi',
   'playlists.schedulePaused': 'Program duraklatıldı',
   'playlists.scheduled': 'planlanmış',
   'playlists.updateFailed': 'Çalma listesi güncellenemedi',

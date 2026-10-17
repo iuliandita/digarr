@@ -528,6 +528,11 @@ export const nl = {
   'playlists.noScheduleConfigured': 'Geen schema geconfigureerd',
   'playlists.playlistPlural': 'afspeellijsten',
   'playlists.playlistSingular': 'afspeellijst',
+  'playlists.schedulingLabel': 'Geplande generatie',
+  'playlists.schedulingOnHint': 'Playlists met een schema worden vanzelf opnieuw gemaakt.',
+  'playlists.schedulingPausedHint':
+    'Gepauzeerd: playlists met een schema worden pas opnieuw gemaakt als je dit aanzet. Handmatig genereren werkt nog steeds.',
+  'playlists.schedulingSaveFailed': 'Kon de playlistplanning niet wijzigen',
   'playlists.schedulePaused': 'Schema onderbroken',
   'playlists.scheduled': 'Gepland',
   'playlists.updateFailed': 'Kan de afspeellijst niet updaten',

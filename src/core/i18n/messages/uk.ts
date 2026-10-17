@@ -526,6 +526,11 @@ export const uk = {
   'playlists.noScheduleConfigured': 'Розклад не налаштовано',
   'playlists.playlistPlural': 'списки відтворення',
   'playlists.playlistSingular': 'список відтворення',
+  'playlists.schedulingLabel': 'Створення за розкладом',
+  'playlists.schedulingOnHint': 'Плейлисти з розкладом оновлюються самі.',
+  'playlists.schedulingPausedHint':
+    'Призупинено: плейлисти з розкладом не оновлюються, доки ти це не ввімкнеш. Ручне створення й далі працює.',
+  'playlists.schedulingSaveFailed': 'Не вдалося змінити розклад плейлистів',
   'playlists.schedulePaused': 'Розклад призупинено',
   'playlists.scheduled': 'За розкладом',
   'playlists.updateFailed': 'Не вдалося оновити список відтворення',

@@ -521,6 +521,11 @@ export const ko = {
   'playlists.noScheduleConfigured': '구성된 일정이 없습니다.',
   'playlists.playlistPlural': '재생목록',
   'playlists.playlistSingular': '재생목록',
+  'playlists.schedulingLabel': '예약 생성',
+  'playlists.schedulingOnHint': '일정이 있는 플레이리스트는 자동으로 다시 생성됩니다.',
+  'playlists.schedulingPausedHint':
+    '일시 중지됨: 이 기능을 켜기 전까지 일정이 있는 플레이리스트는 다시 생성되지 않습니다. 수동 생성은 계속 사용할 수 있습니다.',
+  'playlists.schedulingSaveFailed': '플레이리스트 예약 설정을 변경하지 못했습니다',
   'playlists.schedulePaused': '일정이 일시중지되었습니다.',
   'playlists.scheduled': '예정됨',
   'playlists.updateFailed': '재생목록을 업데이트하지 못했습니다.',
