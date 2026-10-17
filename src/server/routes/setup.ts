@@ -67,7 +67,7 @@ export function setupRoutes(deps: AppDependencies) {
 
     const userId = c.get('userId')
     // Public bootstrap stays AI-only; anything else needs the signed-in owner
-    if ((sanitized.lidarrUrl || body.embyUrl || !sanitized.aiProvider) && !userId) {
+    if ((sanitized.lidarrUrl || body.embyUrl || !hasValue(sanitized.aiProvider)) && !userId) {
       return notAuthenticated(c)
     }
 

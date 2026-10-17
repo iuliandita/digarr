@@ -17,7 +17,11 @@ export function PlaylistSchedulingToggle({ enabled }: { enabled: boolean }) {
     setSaving(true)
     try {
       await updateSettings({ preferences: { playlistEnabled: !enabled } })
-      await queryClient.invalidateQueries({ queryKey: ['playlists', 'scheduler'] })
+      // Other Settings forms resend cached preferences; a stale cache would undo this switch.
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['playlists', 'scheduler'] }),
+        queryClient.invalidateQueries({ queryKey: ['settings'] }),
+      ])
     } catch {
       toast.error(t('playlists.schedulingSaveFailed'))
     } finally {

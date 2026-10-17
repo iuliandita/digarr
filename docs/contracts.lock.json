@@ -176,7 +176,7 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "a3b4f1921e3e8977e2be35cd0183746cb436845419170998d908f293cbf35189",
-        "src/db/queries/recommendations.ts": "d7ea4ba3c43d14962ce26a449add1bb0fa1886beced9c9412b1bf97e0c57a4b2",
+        "src/db/queries/recommendations.ts": "3fcb903eaa0f14206fe02c93a003b6dca18f5383f4326daa56c665268ab56b24",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
@@ -188,14 +188,14 @@
         "src/db/schema.ts": "1ae5f35bf75d920dec53cb28306288c5d355f492e52146b57299571c7e2f79f1",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "981253b4902a3ab0867d08b531a3a4c27d754aa0777e088b868e0e18d904b646",
+      "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0056 adds nullable album_blocks.album_title (IF NOT EXISTS); permanent album rejects store the recommendation's release-group title; full backups carry the column through the generic table restore, older backups restore it as null. rejectRecommendation now reports whether it created the block (query-only). Applied 0056 twice against an isolated test database and ran a DB-gated test for title storage and blockCreated. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. Also: Query-only changes, no schema migration: user deletion now also deletes that user's job_runs in the same transaction (documented in AUTHENTICATION.md); recommendation dedup queries release rejections past the cooldown; pending slskd jobs list oldest first. Backup, restore, and backend migration formats are unchanged. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged.",
+        "note": "Migration 0056 adds nullable album_blocks.album_title (IF NOT EXISTS); permanent album rejects store the recommendation's release-group title; full backups carry the column through the generic table restore, older backups restore it as null. rejectRecommendation now reports whether it created the block (query-only). Applied 0056 twice against an isolated test database and ran a DB-gated test for title storage and blockCreated. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. Also: Query-only changes, no schema migration: user deletion now also deletes that user's job_runs in the same transaction (documented in AUTHENTICATION.md); recommendation dedup queries release rejections past the cooldown; pending slskd jobs list oldest first. Backup, restore, and backend migration formats are unchanged. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. A permanent reject of an already blocked artist keeps the existing block untouched.",
         "breaking": "none",
         "migration": "Additive nullable column, safe to re-run. The automatic pre-migration backup covers it. Older images ignore the column, so an image rollback needs no restore; restore the pre-migration backup with the previous image only for an exact pre-upgrade database. Live upgrade from a production database was not tested.",
-        "digest": "981253b4902a3ab0867d08b531a3a4c27d754aa0777e088b868e0e18d904b646"
+        "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f"
       }
     },
     "configuration": {
@@ -241,7 +241,7 @@
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "51de3ebc83b7a7bb17417a644dcd211cd27b982220531ce456e28271d6d13e08",
         "src/server/routes/oidc.ts": "94e28540a2bbfa25f737983726e5b00fc5a617eb7cddba3f8aa293bac308ab91",
-        "src/server/routes/setup.ts": "ff7cefd450dd7e7dbc6784f71909f9291f374036f06c96b04d07597a0c695da0",
+        "src/server/routes/setup.ts": "485b8a7f6ec27c0625aa35ab988872372e8f5cc7ca086bd37aa75323d71aaf01",
         "src/server/routes/users.ts": "98214102160a89d912d47fcfd97959028e6885f5c534c07e0e5995f27c1dad15",
         "src/server/schemas/admin.ts": "e3a05f9cd80edf946e8ebcfc0d553d89b0a2712c0be1a52a7b5e498067c73caf",
         "src/server/schemas/auth.ts": "fc391f02584fed34d766bd3e7b6846b0d491c435a458b1f4778ccf46a6dc46f8",
@@ -249,14 +249,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "72decc2ceda6ddfb6d430c326b2096a15f49fe99e989fed6f1ce3eb47fff0d58",
+      "digest": "a50cbcdaa75603eade0d5922cc8c6a27e7d90aa2a993206e79f6d612cef23eb9",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/API.md"],
-        "note": "Setup completion accepts no AI fields; aiProvider and aiModel must come together. Completing setup without an AI provider requires an authenticated user (401 otherwise), so public bootstrap stays AI-only. Route tests cover anonymous 401, signed-in 204 and half-specified AI 400.",
+        "note": "Setup completion accepts no AI fields; aiProvider and aiModel must come together. Completing setup without an AI provider requires an authenticated user (401 otherwise), so public bootstrap stays AI-only. Route tests cover anonymous 401, signed-in 204 and half-specified AI 400. Whitespace-only AI providers count as no provider for the signed-in requirement.",
         "breaking": "none",
         "migration": "",
-        "digest": "72decc2ceda6ddfb6d430c326b2096a15f49fe99e989fed6f1ce3eb47fff0d58"
+        "digest": "a50cbcdaa75603eade0d5922cc8c6a27e7d90aa2a993206e79f6d612cef23eb9"
       }
     },
     "api": {
@@ -401,7 +401,7 @@
         "src/web/components/pipeline-progress.tsx": "43b74abf15dedf27c2a592d988ff6251771733c2c30b04a16e2e6a1b0663d657",
         "src/web/components/playlist-card.tsx": "a3c2f367045f913a82a0baba7a579d241a4f0e3dc7f4fdec88b4085bb7b0d8fb",
         "src/web/components/playlist-form.tsx": "d7fa644295528b5a66d4f3492da2375ce94dd616ae3ad8285a14875b24035a3b",
-        "src/web/components/playlist-scheduling-toggle.tsx": "daa4f99ec9d3731b7de8f34e9330c7b15fe93e9c043fb7da79f3b83458ba30d8",
+        "src/web/components/playlist-scheduling-toggle.tsx": "2bd402724edb1d6212dec7d577d095c883641a3c7a853cf48c75433f010f233d",
         "src/web/components/preview-player.tsx": "fdf09f36234adefdbbeb17a4ec03375f4646834621c04b621f28dff62afb1549",
         "src/web/components/recently-approved.tsx": "3ff06432a4592f803d010bb4797abc5c6c1f6d4f5a087b5dd6eb093809dfa78b",
         "src/web/components/recommendation-card.tsx": "2f987a5521df62a7b8f35c7d346e923a0f0f7d5e5f3cf1ad5dd97d0fd19118ba",
@@ -491,14 +491,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "c5a2c4f4c3152ba47b47ce011b469bc3a6ddb2e9c2c0e712ac400e63bef76ca1",
+      "digest": "2b2798e6dfdf34d60d830cf2ad98cf3ea9032e5bda0d5b7fa0f00a61f41dc472",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Theme pre-paint script moved to a same-origin file (verified served under script-src 'self' with no console error on a production build), setup AI skip and field hints, blocked album titles, stack paging, undo keeps pre-existing blocks, Library Health lastError and healthy zero-count checks, playlist scheduling switch, touch targets and contrast. All strings in 15 catalogs; i18n:check passes. OPERATIONS.md updated for library health and playlist scheduling; README and API docs updated in the same branch. Screenshots not refreshed. Also: Playlists header reports a paused schedule when the global switch is off and enabled playlists have different schedules; the operations guide no longer describes the old No schedule configured quirk.",
+        "note": "Theme pre-paint script moved to a same-origin file (verified served under script-src 'self' with no console error on a production build), setup AI skip and field hints, blocked album titles, stack paging, undo keeps pre-existing blocks, Library Health lastError and healthy zero-count checks, playlist scheduling switch, touch targets and contrast. All strings in 15 catalogs; i18n:check passes. OPERATIONS.md updated for library health and playlist scheduling; README and API docs updated in the same branch. Screenshots not refreshed. Also: Playlists header reports a paused schedule when the global switch is off and enabled playlists have different schedules; the operations guide no longer describes the old No schedule configured quirk. The playlist scheduling switch also refreshes cached settings so later saves do not undo it.",
         "breaking": "none",
         "migration": "",
-        "digest": "c5a2c4f4c3152ba47b47ce011b469bc3a6ddb2e9c2c0e712ac400e63bef76ca1"
+        "digest": "2b2798e6dfdf34d60d830cf2ad98cf3ea9032e5bda0d5b7fa0f00a61f41dc472"
       }
     },
     "features": {

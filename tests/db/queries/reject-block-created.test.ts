@@ -85,11 +85,18 @@ describe.skipIf(!SHOULD_RUN)('rejectRecommendation blockCreated (DB)', () => {
     const [first = 0, second = 0] = artistIds
     expect(await reject(await insertRec(first))).toEqual({ artistId: first, blockCreated: true })
 
-    await db.insert(schema.artistBlocks).values({ userId, artistId: second, source: 'manual' })
+    await db
+      .insert(schema.artistBlocks)
+      .values({ userId, artistId: second, source: 'manual', reasonText: 'my own block' })
     expect(await reject(await insertRec(second))).toEqual({
       artistId: second,
       blockCreated: false,
     })
+    const [kept] = await db
+      .select({ reasonText: schema.artistBlocks.reasonText })
+      .from(schema.artistBlocks)
+      .where(and(eq(schema.artistBlocks.userId, userId), eq(schema.artistBlocks.artistId, second)))
+    expect(kept?.reasonText).toBe('my own block')
   })
 
   it('reports album blocks the same way and stores the album title', async () => {

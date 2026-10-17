@@ -259,12 +259,14 @@ describe('POST /api/v1/setup/complete', () => {
   it('accepts setup without an AI provider (#887)', async () => {
     const completeSetup = vi.fn(async () => ({ id: 1, setupComplete: true }))
     const app = createApp(makeDeps({ completeSetup }))
-    const anonymous = await app.request('/api/v1/setup/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
-    expect(anonymous.status).toBe(401)
+    for (const body of [{}, { aiProvider: ' ' }]) {
+      const anonymous = await app.request('/api/v1/setup/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      expect(anonymous.status).toBe(401)
+    }
 
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',

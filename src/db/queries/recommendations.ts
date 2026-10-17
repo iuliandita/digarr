@@ -256,17 +256,10 @@ export async function rejectRecommendation(
             reasonText: params.reasonText,
             source: 'rejection',
           })
-          .onConflictDoUpdate({
-            target: [artistBlocks.userId, artistBlocks.artistId],
-            set: {
-              reason: params.reason,
-              reasonText: params.reasonText,
-              blockedAt: new Date(),
-            },
-          })
-          // xmax is 0 only on a freshly inserted row, not on the conflict update
-          .returning({ inserted: sql<boolean>`(xmax = 0)` })
-        blockCreated = row?.inserted === true
+          // An existing block (manual or earlier) keeps its own reason and date.
+          .onConflictDoNothing({ target: [artistBlocks.userId, artistBlocks.artistId] })
+          .returning({ id: artistBlocks.id })
+        blockCreated = row !== undefined
       }
     }
     return { artistId: rec.artistId, blockCreated }
