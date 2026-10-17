@@ -133,6 +133,7 @@ jobs:
           tests/core/library/sync-flow.test.ts
           tests/core/library/reconciler-cache.test.ts
           tests/core/clients/rate-limiter.test.ts
+          tests/db/queries/reject-block-created.test.ts
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/digarr_test
           DIGARR_REQUIRE_TEST_DB: "1"
