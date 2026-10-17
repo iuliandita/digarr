@@ -1,4 +1,12 @@
 export const ja = {
+  'settings.monitorMissing': '未取得のアルバム',
+  'settings.monitorExisting': '取得済みのアルバム',
+  'settings.monitorLatest': '最新のアルバム',
+  'settings.monitorFirst': '最初のアルバム',
+  'lidarr.tags': 'Lidarrのタグ',
+  'lidarr.newTag': '新しいタグ',
+  'lidarr.createTag': 'タグを作成',
+  'lidarr.tagCreateFailed': 'タグを作成できませんでした',
   'app.closeMenu': 'メニューを閉じる',
   'app.openMenu': 'メニューを開く',
   'app.runScan': 'スキャンを開始',

@@ -285,6 +285,8 @@ async function authedRequest(
 }
 
 const mockLidarrClient = {
+  getTags: vi.fn(async () => []),
+  createTag: vi.fn(async (label: string) => ({ id: 1, label })),
   getCommand: vi.fn(async () => ({ id: 0, name: '', status: '' })),
   getManualImport: vi.fn(async () => []),
   updateManualImport: vi.fn(async () => []),

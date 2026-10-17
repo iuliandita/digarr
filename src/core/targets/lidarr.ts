@@ -18,6 +18,7 @@ export type LidarrTargetConfig = {
   skipTlsVerify?: boolean
   qualityProfileId?: number
   metadataProfileId?: number
+  tags?: number[]
   rootFolderId?: number
 }
 
@@ -37,6 +38,7 @@ export function createLidarrTarget(
     const scoped =
       options?.lidarrOptionsTargetId === undefined || options.lidarrOptionsTargetId === id
     return {
+      tags: (options?.lidarrOptionsTargetId === id ? options.tags : undefined) ?? config.tags,
       qualityProfileId: (scoped ? options?.qualityProfileId : undefined) ?? config.qualityProfileId,
       metadataProfileId:
         (scoped ? options?.metadataProfileId : undefined) ?? config.metadataProfileId,
@@ -85,7 +87,7 @@ export function createLidarrTarget(
           ids.qualityProfileId,
           ids.metadataProfileId,
           ids.rootFolderId,
-          { monitorOption: effectiveMonitor },
+          { monitorOption: effectiveMonitor, ...(ids.tags ? { tags: ids.tags } : {}) },
         )
 
         // Monitor (and search) the selected albums after the add. The artist
@@ -151,7 +153,7 @@ export function createLidarrTarget(
             ids.qualityProfileId,
             ids.metadataProfileId,
             ids.rootFolderId,
-            { monitorOption: 'none' },
+            { monitorOption: 'none', ...(ids.tags ? { tags: ids.tags } : {}) },
           )
           artistId = added.id
         }

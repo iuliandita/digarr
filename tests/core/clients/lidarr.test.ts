@@ -223,6 +223,38 @@ describe('createLidarrClient', () => {
   })
 
   describe('addArtist()', () => {
+    it.each([
+      ['all', 'all'],
+      ['new', 'future'],
+      ['missing', 'missing'],
+      ['existing', 'existing'],
+      ['latest', 'latest'],
+      ['first', 'first'],
+      ['none', 'none'],
+    ] as const)('sends %s as %s with tags on the add request', async (monitorOption, monitor) => {
+      mockLidarrGets()
+      mockPost.mockResolvedValue(mockArtists[0])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('mbid', 'Artist', 1, 1, 1, { monitorOption, tags: [2, 7] })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({
+          tags: [2, 7],
+          addOptions: { monitor, searchForMissingAlbums: monitorOption === 'all' },
+        }),
+      )
+    })
+
+    it('loads and creates tags using the instance tag endpoint', async () => {
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      mockGet.mockResolvedValue([{ id: 2, label: 'discovery' }])
+      mockPost.mockResolvedValue({ id: 3, label: 'digarr' })
+      expect(await client.getTags()).toEqual([{ id: 2, label: 'discovery' }])
+      expect(await client.createTag('digarr')).toEqual({ id: 3, label: 'digarr' })
+      expect(mockGet).toHaveBeenCalledWith('/api/v1/tag')
+      expect(mockPost).toHaveBeenCalledWith('/api/v1/tag', { label: 'digarr' })
+    })
+
     it('resolves rootFolderId to path and POSTs to /api/v1/artist', async () => {
       mockLidarrGets()
       mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 10 })

@@ -599,7 +599,7 @@ export class PipelineOrchestrator extends EventEmitter {
       if (prefs.autoApproveEnabled && deps.autoApproveDeps) {
         const autoConfig = {
           threshold: prefs.autoApproveThreshold ?? 0.8,
-          monitorOption: (prefs.autoApproveMonitorOption ?? 'all') as 'all' | 'new' | 'none',
+          monitorOption: prefs.autoApproveMonitorOption ?? 'all',
         }
         this.emit('progress', {
           stage: 'store',

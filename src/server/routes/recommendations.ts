@@ -82,7 +82,16 @@ function deriveStatusFromActions(
 }
 
 type ApprovalMode = 'single_target' | 'combined_lidarr_slskd'
-type MonitorOption = 'all' | 'new' | 'none' | 'selected' | 'popular'
+type MonitorOption =
+  | 'all'
+  | 'new'
+  | 'missing'
+  | 'existing'
+  | 'latest'
+  | 'first'
+  | 'none'
+  | 'selected'
+  | 'popular'
 type TargetActionStatus = 'added' | 'queued' | 'failed'
 
 type ApprovalArtist = {
@@ -485,6 +494,7 @@ async function buildAddOptions(
   artist: ApprovalArtist | undefined,
   overrides: {
     monitorOption?: MonitorOption
+    tags?: number[]
     selectedAlbumIds?: string[]
     qualityProfileId?: number
     metadataProfileId?: number
@@ -516,6 +526,7 @@ async function buildAddOptions(
           qualityProfileId: overrides.qualityProfileId,
           metadataProfileId: overrides.metadataProfileId,
           rootFolderId: overrides.rootFolderId,
+          tags: overrides.tags,
         }
       : {}),
   }
@@ -636,6 +647,7 @@ export function recommendationRoutes(deps: AppDependencies) {
         qualityProfileId: qpOverride,
         metadataProfileId: mpOverride,
         rootFolderId: rfOverride,
+        tags,
       } = body
 
       const approvalMode: ApprovalMode = rawApprovalMode ?? 'single_target'
@@ -722,6 +734,7 @@ export function recommendationRoutes(deps: AppDependencies) {
               qualityProfileId: qpOverride,
               metadataProfileId: mpOverride,
               rootFolderId: rfOverride,
+              tags,
               lidarrOptionsTargetId: resolveLidarrOptionsTargetId(
                 approvalMode === 'combined_lidarr_slskd' && lidarrTarget
                   ? [lidarrTarget]

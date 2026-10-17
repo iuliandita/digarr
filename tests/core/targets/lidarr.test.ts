@@ -6,6 +6,9 @@ vi.mock('@/core/clients/lidarr', () => ({
 }))
 
 const { createLidarrClient } = await import('@/core/clients/lidarr')
+const { resolveLidarrTargetDefaults, normalizeLidarrTargetConfig } = await import(
+  '@/core/targets/lidarr-connection'
+)
 const { createLidarrTarget } = await import('@/core/targets/lidarr')
 
 function mockLidarrClient() {
@@ -22,6 +25,42 @@ function mockLidarrClient() {
 }
 
 describe('createLidarrTarget()', () => {
+  it.each([true, false])(
+    'keeps target tag defaults and scopes overrides (reference=%s)',
+    async (reference) => {
+      const client = mockLidarrClient()
+      const stored = normalizeLidarrTargetConfig({
+        ...(reference ? { useServerConnection: true } : { url: 'http://other', apiKey: 'k' }),
+        tags: [3],
+      })
+      expect(stored.tags).toEqual([3])
+      const target = createLidarrTarget(1, {
+        url: 'http://instance',
+        apiKey: 'k',
+        ...resolveLidarrTargetDefaults(stored, {}),
+      })
+      for (const [options, tags] of [
+        [undefined, [3]],
+        [{ tags: [7], lidarrOptionsTargetId: 'lidarr-1' }, [7]],
+        [{ tags: [], lidarrOptionsTargetId: 'lidarr-1' }, []],
+        [{ tags: [7], lidarrOptionsTargetId: 'lidarr-2' }, [3]],
+      ] as const) {
+        await target.addArtist?.(
+          { mbid: 'mbid', name: 'Artist' },
+          options ? { ...options, tags: [...options.tags] } : undefined,
+        )
+        expect(client.addArtist).toHaveBeenLastCalledWith(
+          'mbid',
+          'Artist',
+          undefined,
+          undefined,
+          undefined,
+          { monitorOption: 'none', tags },
+        )
+      }
+    },
+  )
+
   it('has correct id, type, and capabilities', () => {
     mockLidarrClient()
     const target = createLidarrTarget(1, {

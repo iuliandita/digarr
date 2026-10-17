@@ -93,7 +93,7 @@ describe('withResolvedLidarrConnection', () => {
 describe('linkLidarrTargetsToServerConnection', () => {
   it('links exact copies once and leaves other instances separate', async () => {
     const rows = new Map<number, Record<string, unknown>>([
-      [1, { url: 'http://lidarr:8686/', apiKey: 'server-key', skipTlsVerify: false }],
+      [1, { url: 'http://lidarr:8686/', apiKey: 'server-key', skipTlsVerify: false, tags: [5] }],
       [2, { url: 'http://other:8686', apiKey: 'other-key' }],
       [3, { url: 'http://lidarr:8686', apiKey: 'different-key' }],
       [4, { url: 'HTTP://Lidarr:80/', apiKey: 'server-key' }],
@@ -107,7 +107,7 @@ describe('linkLidarrTargetsToServerConnection', () => {
     }
 
     expect(await linkLidarrTargetsToServerConnection(server, store)).toEqual([1])
-    expect(rows.get(1)).toEqual({ useServerConnection: true })
+    expect(rows.get(1)).toEqual({ useServerConnection: true, tags: [5] })
     expect(rows.get(4)).toMatchObject({ url: 'HTTP://Lidarr:80/' })
     expect(rows.get(2)).toEqual({ url: 'http://other:8686', apiKey: 'other-key' })
     expect(rows.get(3)).toMatchObject({ apiKey: 'different-key' })
@@ -141,7 +141,13 @@ describe('linkLidarrTargetsToServerConnection URL matching', () => {
 })
 
 describe('clearDefaultsOnInstanceChange', () => {
-  const stored = { url: 'http://a:8686', apiKey: 'k', qualityProfileId: 2, rootFolderId: 3 }
+  const stored = {
+    url: 'http://a:8686',
+    apiKey: 'k',
+    qualityProfileId: 2,
+    rootFolderId: 3,
+    tags: [5],
+  }
 
   it('drops default IDs when the url or key changes and keeps them otherwise', () => {
     expect(clearDefaultsOnInstanceChange(stored, { ...stored, url: 'http://b:8686' })).toEqual({
@@ -157,4 +163,13 @@ describe('clearDefaultsOnInstanceChange', () => {
       rootFolderId: 4,
     })
   })
+})
+
+it('clears tags when a target changes connection mode', () => {
+  expect(
+    clearDefaultsOnInstanceChange(
+      { useServerConnection: true, tags: [5] },
+      { useServerConnection: false, tags: [5], url: 'http://other' },
+    ),
+  ).not.toHaveProperty('tags')
 })

@@ -98,8 +98,11 @@ export type LidarrManualImportFile = {
   disableReleaseSwitching: false
 }
 
+export type LidarrTag = { id: number; label: string }
+
 export type AddArtistOptions = {
-  monitorOption?: 'all' | 'new' | 'none'
+  tags?: number[]
+  monitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none'
 }
 
 // digarr's monitor vocabulary is not Lidarr's. MonitorTypes has no `new`
@@ -109,6 +112,10 @@ export type AddArtistOptions = {
 export const LIDARR_MONITOR_TYPES = {
   all: 'all',
   new: 'future',
+  missing: 'missing',
+  existing: 'existing',
+  latest: 'latest',
+  first: 'first',
   none: 'none',
 } as const satisfies Record<NonNullable<AddArtistOptions['monitorOption']>, string>
 
@@ -270,6 +277,7 @@ export function createLidarrClient(
       metadataProfileId: snapProfileId(metadataProfileId, metadataProfiles, 'metadata'),
       rootFolderPath: folder.path,
       monitored: true,
+      tags: options?.tags ?? [],
       addOptions: {
         monitor: LIDARR_MONITOR_TYPES[monitorOption],
         // Derived from digarr's value, not the mapped one, so a future value
@@ -277,6 +285,14 @@ export function createLidarrClient(
         searchForMissingAlbums: monitorOption === 'all',
       },
     })
+  }
+
+  function getTags(): Promise<LidarrTag[]> {
+    return http.get<LidarrTag[]>('/api/v1/tag')
+  }
+
+  function createTag(label: string): Promise<LidarrTag> {
+    return http.post<LidarrTag>('/api/v1/tag', { label })
   }
 
   async function getAlbums(artistId: number): Promise<LidarrAlbum[]> {
@@ -417,6 +433,8 @@ export function createLidarrClient(
   }
 
   return {
+    getTags,
+    createTag,
     getArtists,
     findArtistByMbid,
     lookupArtist,

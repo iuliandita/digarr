@@ -1,4 +1,12 @@
 export const ptBR = {
+  'settings.monitorMissing': 'Álbuns ausentes',
+  'settings.monitorExisting': 'Álbuns existentes',
+  'settings.monitorLatest': 'Álbum mais recente',
+  'settings.monitorFirst': 'Primeiro álbum',
+  'lidarr.tags': 'Etiquetas do Lidarr',
+  'lidarr.newTag': 'Nova etiqueta',
+  'lidarr.createTag': 'Criar etiqueta',
+  'lidarr.tagCreateFailed': 'Não foi possível criar a etiqueta',
   'app.closeMenu': 'Fechar menu',
   'app.openMenu': 'Abrir menu',
   'app.runScan': 'Iniciar varredura',

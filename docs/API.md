@@ -407,10 +407,12 @@ The writable `status` values are `approved`, `rejected`, and `pending`; use `pen
 
 Approval notes:
 - `approvalMode` defaults to `single_target`
-- `monitorOption` accepts `all`, `new`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered.
+- `monitorOption` accepts `all`, `new`, `missing`, `existing`, `latest`, `first`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered.
 
   These are Digarr's names, translated to the target's own vocabulary at the boundary: `all` monitors the whole discography and triggers a search for missing albums, and `new` monitors only future releases (Lidarr's `future`) without searching for anything existing.
 - `popular` tries Spotify popularity first, then Last.fm top albums when Spotify returns no candidates. It maps up to three matching MusicBrainz release groups and sends them to Lidarr as selected albums. If neither source returns candidates, approval fails with `no_source`; if candidates cannot be mapped, it fails with `no_match`.
+- `missing` monitors albums without files, `existing` albums with files, `latest` the latest album, and `first` the first album. `new` maps to Lidarr `future`; only `all` requests an immediate missing-album search.
+- Optional `tags: number[]` overrides the chosen Lidarr target's default tags for that approval (`[]` clears them). IDs are scoped with the chosen `targetId` or `lidarrTargetId`; other Lidarr targets keep their own defaults. Tags apply when an artist is added, including album approvals that add a missing artist. Existing artists are not re-tagged. Auto-approval uses each target's default tags.
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - For artist recommendations, use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
@@ -652,7 +654,7 @@ Create and update accept an optional positive integer `userId` to assign the tar
 
 A linked `slskd` target requires an enabled Lidarr target assigned to the same user. To move a linked pair, clear `lidarrTargetId` first, reassign both targets, then restore the link. Active jobs for the previous owner stop instead of using the reassigned connections.
 
-Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lidarr URL, API key, TLS setting and default profiles from Settings > Connections, resolved when the target is used; nothing else is stored, and any `url`/`apiKey` sent with it is dropped. A separate instance stores its own `url`, `apiKey`, optional `skipTlsVerify`, and optional positive `qualityProfileId`, `metadataProfileId` and `rootFolderId` from that instance (null clears one). Changing its `url` or `apiKey` clears those IDs, since they belong to the old instance. Unset IDs use the instance's first profile or root folder at add time; server-connection defaults are never applied to a separate instance.
+Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lidarr URL, API key, TLS setting and default profiles from Settings > Connections, resolved when the target is used; per-target `tags` (optional positive integer array) are also stored, and any `url`/`apiKey` sent with it is dropped. A separate instance stores its own `url`, `apiKey`, optional `skipTlsVerify`, and optional positive `qualityProfileId`, `metadataProfileId` and `rootFolderId` from that instance (null clears one). Both shapes accept `tags: number[]`, defaulting to no tags. Changing its `url` or `apiKey` clears those IDs and tags, since they belong to the old instance. Unset IDs use the instance's first profile or root folder at add time; server-connection defaults are never applied to a separate instance.
 
 Example create bodies: `{"type":"lidarr","name":"Music","userId":2,"config":{"useServerConnection":true}}` and `{"type":"lidarr","name":"Other Lidarr","userId":2,"config":{"url":"http://lidarr2:8686","apiKey":"<key>","rootFolderId":3}}`.
 
@@ -1172,8 +1174,9 @@ Admins can promote other users. First-user admin creation is serialized in the d
 | GET | `/api/v1/lidarr/profiles` | Admin | Quality profiles |
 | GET | `/api/v1/lidarr/metadataprofiles` | Admin | Metadata profiles |
 | GET | `/api/v1/lidarr/rootfolders` | Admin | Root folders |
-| GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names, root-folder paths (no freeSpace/structure), and the effective `defaults` IDs. Optional `?targetId=N` loads both from the Lidarr instance that target uses; it must be your own Lidarr target (admins: any), otherwise 404 |
-| POST | `/api/v1/lidarr/add` | Admin | Add artist to Lidarr |
+| GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names, root-folder paths (no freeSpace/structure), existing tags as `{id,label}`, and the effective `defaults` IDs and `tags` array. Optional `?targetId=N` loads both from the Lidarr instance that target uses; it must be your own Lidarr target (admins: any), otherwise 404 |
+| POST | `/api/v1/lidarr/tags` | Yes | Create a tag with `{ "label": "digarr" }`; returns 201 `{id,label}`. Optional `?targetId=N` uses the same instance and owner checks as approve-options; without it, uses the server connection |
+| POST | `/api/v1/lidarr/add` | Admin | Add artist to the server Lidarr connection; accepts optional native `monitorOption` (all/new/missing/existing/latest/first/none) and `tags: number[]` alongside artist/profile/folder fields |
 
 ---
 

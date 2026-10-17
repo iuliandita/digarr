@@ -17,6 +17,7 @@ export const httpUrl = z
 export const targetConfigSchema = z
   .object({
     url: httpUrl.optional(),
+    tags: z.array(z.number().int().positive()).max(100).optional(),
   })
   .catchall(z.unknown())
 

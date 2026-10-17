@@ -1,4 +1,12 @@
 export const uk = {
+  'settings.monitorMissing': 'Відсутні альбоми',
+  'settings.monitorExisting': 'Наявні альбоми',
+  'settings.monitorLatest': 'Останній альбом',
+  'settings.monitorFirst': 'Перший альбом',
+  'lidarr.tags': 'Мітки Lidarr',
+  'lidarr.newTag': 'Нова мітка',
+  'lidarr.createTag': 'Створити мітку',
+  'lidarr.tagCreateFailed': 'Не вдалося створити мітку',
   'app.closeMenu': 'Закрити меню',
   'app.openMenu': 'Відкрити меню',
   'app.runScan': 'Запустити сканування',
