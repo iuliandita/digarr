@@ -218,7 +218,7 @@ function TagBuilderField({
         </div>
       ))}
       {rows.length < 10 && (
-        <button type="button" onClick={addRow} className="text-sm text-accent underline">
+        <button type="button" onClick={addRow} className="text-sm text-accent-text underline">
           {tFn('discoveryMode.addTag')}
         </button>
       )}

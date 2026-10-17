@@ -178,8 +178,8 @@ export function TodaysPick({
           role="img"
           aria-label={`${t('todaysPick.matchScore')}: ${scorePercent}%`}
         >
-          <span className="text-accent text-xl font-bold leading-none">{scorePercent}</span>
-          <span className="text-accent/70 text-xs font-semibold">%</span>
+          <span className="text-accent-text text-xl font-bold leading-none">{scorePercent}</span>
+          <span className="text-accent-text/70 text-xs font-semibold">%</span>
           <span className="text-white/50 text-micro ml-1 uppercase tracking-wider">
             {t('todaysPick.match')}
           </span>
@@ -234,7 +234,7 @@ export function TodaysPick({
 
           <Link
             to="/discover"
-            className="inline-flex items-center gap-1.5 text-xs text-accent hover:underline"
+            className="inline-flex items-center gap-1.5 text-xs text-accent-text hover:underline"
           >
             <Sparkles size={12} aria-hidden="true" />
             {t('todaysPick.discoverSimilar')}

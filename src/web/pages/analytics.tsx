@@ -40,7 +40,7 @@ function pct(value: number): string {
 function statusBadge(status: string, t: (key: MessageKey) => string) {
   const colors: Record<string, string> = {
     completed: 'text-approve',
-    running: 'text-accent',
+    running: 'text-accent-text',
     failed: 'text-reject',
   }
   const labels: Record<string, string> = {

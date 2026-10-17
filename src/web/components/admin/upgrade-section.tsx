@@ -32,7 +32,7 @@ export function UpgradeSection() {
             <button
               type="button"
               onClick={() => setExpanded(!expanded)}
-              className="text-accent underline"
+              className="text-accent-text underline"
             >
               {t('admin.pendingCount').replace('{count}', String(data.pendingCount))}
             </button>

@@ -137,7 +137,7 @@ export function BlockedArtistsTab() {
               <button
                 type="button"
                 onClick={() => unblock(row)}
-                className="text-accent hover:underline"
+                className="text-accent-text hover:underline"
               >
                 {t('settings.blocked.unblock')}
               </button>
@@ -147,7 +147,11 @@ export function BlockedArtistsTab() {
       </ul>
 
       {cursor && (
-        <button type="button" onClick={loadMore} className="text-sm text-accent hover:underline">
+        <button
+          type="button"
+          onClick={loadMore}
+          className="text-sm text-accent-text hover:underline"
+        >
           {t('settings.blocked.loadMore')}
         </button>
       )}

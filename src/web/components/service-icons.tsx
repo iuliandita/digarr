@@ -30,7 +30,7 @@ export function LastfmIcon() {
 
 export function AiProviderIcon() {
   return (
-    <span className="flex items-center justify-center w-6 h-6 text-accent">
+    <span className="flex items-center justify-center w-6 h-6 text-accent-text">
       <BrainCircuit size={18} aria-hidden="true" />
     </span>
   )

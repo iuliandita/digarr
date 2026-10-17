@@ -167,7 +167,7 @@ function PlaylistActions({
         type="button"
         onClick={handleGenerate}
         disabled={generating}
-        className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/5 text-accent rounded-md text-sm font-medium hover:bg-accent/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 bg-accent/5 text-accent-text rounded-md text-sm font-medium hover:bg-accent/25 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {generating ? (
           <svg
@@ -375,7 +375,7 @@ export function PlaylistDetailPage() {
   const { playlist, tracks } = data
   const badge = STRATEGY_BADGES[playlist.strategy] ?? {
     label: playlist.strategy,
-    className: 'bg-accent/5 text-accent',
+    className: 'bg-accent/5 text-accent-text',
   }
 
   return (

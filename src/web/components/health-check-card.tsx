@@ -93,7 +93,7 @@ function severityBadgeClass(severity: Tone): string {
     case 'warning':
       return 'bg-warning/15 text-warning'
     case 'info':
-      return 'bg-accent/5 text-accent'
+      return 'bg-accent/5 text-accent-text'
   }
 }
 
@@ -157,7 +157,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
                   href={`${lidarrBaseUrl.replace(/\/$/, '')}/artist/${item.mbid}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="font-medium text-accent underline truncate"
+                  className="font-medium text-accent-text underline truncate"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {item.artistName}
@@ -177,7 +177,7 @@ export function HealthCheckCard({ check, onFix, fixing, lidarrBaseUrl }: Props) 
       {hasMore && (
         <button
           type="button"
-          className="text-xs text-accent underline text-left w-fit"
+          className="text-xs text-accent-text underline text-left w-fit"
           onClick={() => setExpanded((v) => !v)}
         >
           {expanded

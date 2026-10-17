@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getAlbums } from '../lib/api'
 import { useI18n } from '../lib/i18n'
-import { hueFromName } from '../lib/utils'
+import { cn, hueFromName } from '../lib/utils'
 import { Skeleton } from './ui/skeleton'
 
 // RecentlyApproved
@@ -14,6 +14,8 @@ type RecentlyApprovedProps = {
     artist: { name: string; mbid?: string; imageUrl?: string | null; genres?: string[] | null }
   }>
   loading: boolean
+  /** Applied to the empty state so it can stretch to a paired card's height */
+  emptyClassName?: string
 }
 
 const SLOTS = ['s0', 's1', 's2', 's3', 's4', 's5', 's6', 's7', 's8'] as const
@@ -74,7 +76,7 @@ function Tile({ name, mbid, imageUrl }: { name: string; mbid?: string; imageUrl?
   )
 }
 
-export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
+export function RecentlyApproved({ recs, loading, emptyClassName }: RecentlyApprovedProps) {
   const { t } = useI18n()
   if (loading) {
     return (
@@ -88,7 +90,12 @@ export function RecentlyApproved({ recs, loading }: RecentlyApprovedProps) {
 
   if (recs.length === 0) {
     return (
-      <p className="rounded-lg border border-border bg-bg p-4 text-sm text-muted">
+      <p
+        className={cn(
+          'rounded-lg border border-border bg-bg p-4 text-sm text-muted',
+          emptyClassName,
+        )}
+      >
         {t('dashboard.noRecentlyApproved')}
       </p>
     )

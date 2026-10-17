@@ -537,7 +537,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                     href="https://wiki.servarr.com/lidarr/settings#security"
                     target="_blank"
                     rel="noreferrer"
-                    className="text-accent underline"
+                    className="text-accent-text underline"
                   >
                     {t('settings.getApiKey')}
                   </a>
@@ -617,7 +617,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                       href="https://console.anthropic.com/settings/keys"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent underline"
+                      className="text-accent-text underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -627,7 +627,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                       href="https://platform.openai.com/api-keys"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent underline"
+                      className="text-accent-text underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -637,7 +637,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                       href="https://aistudio.google.com/apikey"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent underline"
+                      className="text-accent-text underline"
                     >
                       {t('settings.getApiKey')}
                     </a>
@@ -647,7 +647,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                       href="https://ollama.com/library"
                       target="_blank"
                       rel="noreferrer"
-                      className="text-accent underline"
+                      className="text-accent-text underline"
                     >
                       {t('settings.browseModels')}
                     </a>
@@ -863,12 +863,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 href="https://listenbrainz.org/settings/"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent underline"
+                className="text-accent-text underline"
               >
                 {t('settings.getToken')}
               </a>
               {settings._listenbrainzScope === 'user' && (
-                <span className="text-xs text-accent ml-2">{t('settings.yourAccount')}</span>
+                <span className="text-xs text-accent-text ml-2">{t('settings.yourAccount')}</span>
               )}
             </span>
           }
@@ -934,12 +934,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 href="https://www.last.fm/api/account/create"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent underline"
+                className="text-accent-text underline"
               >
                 {t('settings.getApiKey')}
               </a>
               {settings._lastfmScope === 'user' && (
-                <span className="text-xs text-accent ml-2">{t('settings.yourAccount')}</span>
+                <span className="text-xs text-accent-text ml-2">{t('settings.yourAccount')}</span>
               )}
             </span>
           }
@@ -1003,7 +1003,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 href="https://developer.spotify.com/dashboard"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent underline"
+                className="text-accent-text underline"
               >
                 {t('settings.createSpotifyApp')}
               </a>
@@ -1622,7 +1622,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 href="https://www.discogs.com/settings/developers"
                 target="_blank"
                 rel="noreferrer"
-                className="text-accent underline"
+                className="text-accent-text underline"
               >
                 {t('settings.getPersonalAccessToken')}
               </a>

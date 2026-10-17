@@ -65,7 +65,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium text-text truncate">{artist.name}</p>
-          <span className="shrink-0 text-micro font-semibold px-1.5 py-0.5 rounded bg-accent/5 text-accent">
+          <span className="shrink-0 text-micro font-semibold px-1.5 py-0.5 rounded bg-accent/5 text-accent-text">
             {(artist.score * 100).toFixed(0)}
           </span>
         </div>
@@ -85,7 +85,7 @@ function GenreArtistCard({ artist }: { artist: GenreArtist }) {
                 ? preview.stop()
                 : preview.play(artist.mbid, artist.name, artist.streamingUrls ?? null)
             }
-            className="w-7 h-7 flex items-center justify-center rounded-full border border-border text-muted hover:text-accent hover:border-accent/60 transition-colors"
+            className="w-7 h-7 flex items-center justify-center rounded-full border border-border text-muted hover:text-accent-text hover:border-accent/60 transition-colors"
             aria-label={
               isPlaying ? t('recommendation.stopPreview') : t('recommendation.playPreview')
             }

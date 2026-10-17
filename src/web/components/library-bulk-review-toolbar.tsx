@@ -5,6 +5,7 @@ import { Button } from './ui/button'
 type Props = {
   selectedCount: number
   eligibleCount: number
+  hasRows: boolean
   busy: boolean
   error: string | null
   limitReached: boolean
@@ -16,6 +17,7 @@ type Props = {
 export function LibraryBulkReviewToolbar({
   selectedCount,
   eligibleCount,
+  hasRows,
   busy,
   error,
   limitReached,
@@ -29,9 +31,11 @@ export function LibraryBulkReviewToolbar({
 
   return (
     <div className="flex flex-wrap items-center gap-2 text-sm text-text">
-      <Button type="button" variant="outline" onClick={onSelectVisible} disabled={selectDisabled}>
-        {t('libraryReconciliation.selectVisible')}
-      </Button>
+      {hasRows && (
+        <Button type="button" variant="outline" onClick={onSelectVisible} disabled={selectDisabled}>
+          {t('libraryReconciliation.selectVisible')}
+        </Button>
+      )}
       {selectedCount > 0 && (
         <Button type="button" variant="outline" onClick={onClearVisible} disabled={busy}>
           {t('libraryReconciliation.clearVisible')}
