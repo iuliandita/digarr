@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, or, type SQL, sql } from 'drizzle-orm'
+import { and, count, desc, eq, gte, inArray, isNull, ne, or, type SQL, sql } from 'drizzle-orm'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
@@ -337,6 +337,44 @@ export async function filterOwnedIds(
   return rows.map((r) => r.id)
 }
 
+/** Unacted rejections (null actedOnAt) stay deduped; only rejections past the cooldown are released. */
+function notExpiredRejection(rejectionCooldownDays: number): SQL {
+  const cutoff = new Date(Date.now() - rejectionCooldownDays * 24 * 60 * 60 * 1000)
+  // biome-ignore lint/style/noNonNullAssertion: or() with non-null args always returns SQL, never undefined
+  return or(
+    ne(recommendations.status, 'rejected'),
+    isNull(recommendations.actedOnAt),
+    gte(recommendations.actedOnAt, cutoff),
+  )!
+}
+
+/**
+ * MBIDs of existing recommendations that should block a new one for the user
+ * (plus legacy null-user recs; all users when `userId` is omitted). With
+ * `rejectionCooldownDays`, rejections acted on before the cooldown cutoff no
+ * longer count, so the artist can be recommended again.
+ */
+export async function getExistingRecommendationMbids(
+  db: Database,
+  userId?: number,
+  options: { rejectionCooldownDays?: number } = {},
+): Promise<Set<string>> {
+  const conditions: SQL[] = []
+  if (userId !== undefined) {
+    // biome-ignore lint/style/noNonNullAssertion: or() with two non-null args always returns SQL, never undefined
+    conditions.push(or(eq(recommendations.userId, userId), isNull(recommendations.userId))!)
+  }
+  if (options.rejectionCooldownDays !== undefined) {
+    conditions.push(notExpiredRejection(options.rejectionCooldownDays))
+  }
+  const rows = await db
+    .select({ mbid: artists.mbid })
+    .from(recommendations)
+    .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    .where(conditions.length > 0 ? and(...conditions) : undefined)
+  return new Set(rows.map((r) => r.mbid))
+}
+
 export async function getRejectedArtistMbids(
   db: Database,
   cooldownDays: number,
@@ -503,11 +541,15 @@ export async function insertRecommendation(
 export async function getExistingAlbumReleaseGroupMbids(
   db: Database,
   userId?: number,
+  options: { rejectionCooldownDays?: number } = {},
 ): Promise<Set<string>> {
   const conditions: SQL[] = [eq(recommendations.kind, 'album')]
   if (userId !== undefined) {
     // biome-ignore lint/style/noNonNullAssertion: or() with two non-null args always returns SQL, never undefined
     conditions.push(or(eq(recommendations.userId, userId), isNull(recommendations.userId))!)
+  }
+  if (options.rejectionCooldownDays !== undefined) {
+    conditions.push(notExpiredRejection(options.rejectionCooldownDays))
   }
   const rows = await db
     .select({ rg: recommendations.recommendedReleaseGroupId })

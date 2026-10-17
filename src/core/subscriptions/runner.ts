@@ -251,9 +251,14 @@ export async function runSubscription(
     const weights = resolveWeights(weightPreset, subscription.scoringWeightOverrides)
     const scored = score(resolved, deps.libraryGenres, weights, deps.feedbackHistory)
     const threshold = subscription.scoreThreshold ?? deps.defaultScoreThreshold
+    // Without this, every run re-inserts the same artists as new pending recs.
+    const existingMbids = await deps.db.getExistingRecommendationMbids(
+      subscription.userId ?? undefined,
+      { rejectionCooldownDays: deps.cooldownDays },
+    )
     const filtered = filter(
       scored,
-      deps.libraryMbids,
+      new Set([...deps.libraryMbids, ...existingMbids]),
       deps.rejectedMbids,
       deps.blockedMbids,
       deps.cooldownDays,

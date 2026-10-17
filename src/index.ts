@@ -151,6 +151,7 @@ import {
   bulkUpdateStatus,
   filterOwnedIds,
   getExistingAlbumReleaseGroupMbids,
+  getExistingRecommendationMbids,
   getGenreFeedbackHistory,
   getRecommendation,
   getRejectedArtistMbids,
@@ -217,7 +218,6 @@ import {
   libraryArtists,
   mergePreferences,
   recommendationBatches,
-  recommendations,
 } from './db/schema'
 import { waitForDatabase } from './db/wait'
 import { createApp } from './server'
@@ -315,23 +315,15 @@ async function getDiscoveryConnectionSnapshot(userId: number) {
 }
 
 const storeDb: StoreDb = {
-  getExistingAlbumReleaseGroupMbids: (userId) => getExistingAlbumReleaseGroupMbids(db, userId),
+  getExistingAlbumReleaseGroupMbids: (userId, options) =>
+    getExistingAlbumReleaseGroupMbids(db, userId, options),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
   getArtistGenreCacheByMbids: (mbids) => getArtistGenreCacheByMbids(db, mbids),
   getArtistGenreCacheByAliases: (aliases) => getArtistGenreCacheByAliases(db, aliases),
   upsertArtistGenres: (data) => upsertArtistGenres(db, data),
   upsertArtistGenreAlias: (data) => upsertArtistGenreAlias(db, data),
-  getExistingRecommendationMbids: async (userId) => {
-    const base = db
-      .select({ mbid: artists.mbid })
-      .from(recommendations)
-      .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    const rows =
-      userId !== undefined
-        ? await base.where(or(eq(recommendations.userId, userId), isNull(recommendations.userId)))
-        : await base
-    return new Set(rows.map((r) => r.mbid))
-  },
+  getExistingRecommendationMbids: (userId, options) =>
+    getExistingRecommendationMbids(db, userId, options),
   insertBatch: async (data) => {
     const rows = await db
       .insert(recommendationBatches)
@@ -1196,11 +1188,23 @@ async function restartPlaylistScheduler(): Promise<void> {
 
   const playlists = await getEnabledPlaylists(db)
   for (const playlist of playlists) {
-    if (!playlist.schedule) continue
+    const schedule = playlist.schedule
+    if (!schedule) continue
 
-    playlistScheduler.schedule(`playlist-${playlist.id}`, playlist.schedule, async () => {
-      await executePlaylistGeneration(playlist.id)
-    })
+    scheduleIsolated(`playlist ${playlist.id}`, () =>
+      playlistScheduler.schedule(`playlist-${playlist.id}`, schedule, async () => {
+        await executePlaylistGeneration(playlist.id)
+      }),
+    )
+  }
+}
+
+// One invalid stored cron must not stop the remaining schedulers from starting.
+function scheduleIsolated(label: string, start: () => void): void {
+  try {
+    start()
+  } catch (err: unknown) {
+    console.error(`[scheduler] ${label} not scheduled:`, errMsg(err))
   }
 }
 
@@ -1535,14 +1539,18 @@ const server = serve({ fetch: app.fetch, port })
     const prefs = mergePreferences(settings?.preferences)
     const cron = prefs.scheduleCron
     if (cron) {
-      scheduler.schedule('main-pipeline', cron, runPipeline)
-      console.log(`Scheduler started with cron: ${cron}`)
+      scheduleIsolated('main pipeline', () => {
+        scheduler.schedule('main-pipeline', cron, runPipeline)
+        console.log(`Scheduler started with cron: ${cron}`)
+      })
     }
 
     const subs = await getEnabledSubscriptions(db)
     for (const sub of subs) {
-      scheduler.schedule(`subscription-${sub.id}`, sub.cron, () => executeSubscription(sub.id))
-      console.log(`Subscription '${sub.name}' (id=${sub.id}) scheduled with cron: ${sub.cron}`)
+      scheduleIsolated(`subscription ${sub.id}`, () => {
+        scheduler.schedule(`subscription-${sub.id}`, sub.cron, () => executeSubscription(sub.id))
+        console.log(`Subscription '${sub.name}' (id=${sub.id}) scheduled with cron: ${sub.cron}`)
+      })
     }
 
     await restartPlaylistScheduler()
@@ -1571,7 +1579,11 @@ const server = serve({ fetch: app.fetch, port })
     stuckDetectorCron = startStuckDetector(jobRecorder)
 
     // Start scheduled notification digest (no-op until digestCron is configured)
-    digestNotifierCron = await startDigestNotifier(buildDigestDeps())
+    try {
+      digestNotifierCron = await startDigestNotifier(buildDigestDeps())
+    } catch (err: unknown) {
+      console.error('[scheduler] digest notifier not scheduled:', errMsg(err))
+    }
   } catch (err: unknown) {
     console.error('Failed to initialize:', err)
   }

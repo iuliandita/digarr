@@ -4,6 +4,7 @@ import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 const getUserConnections = vi.fn()
 const resolveProviderToken = vi.fn()
 const getReleaseGroups = vi.fn()
+const searchArtist = vi.fn()
 const lastfmGetTopArtists = vi.fn()
 const listenbrainzGetTopArtists = vi.fn()
 const spotifyGetTopArtists = vi.fn()
@@ -25,6 +26,7 @@ vi.mock('@/core/provider-auth', () => ({
 vi.mock('@/core/clients/musicbrainz', () => ({
   createMusicBrainzClient: vi.fn(() => ({
     getReleaseGroups,
+    searchArtist,
   })),
 }))
 
@@ -132,6 +134,44 @@ describe('createReleaseRadarMode', () => {
         provenanceProvider: 'lastfm',
         fallbackUsed: true,
         freshnessDate: '2026-03-20',
+      }),
+    ])
+  })
+
+  it('resolves name-only Spotify seeds to MBIDs and skips unresolvable ones', async () => {
+    getUserConnections.mockResolvedValue(null)
+    resolveProviderToken.mockResolvedValue('spotify-token')
+    spotifyGetTopArtists.mockResolvedValue([
+      { name: 'Broadcast', playCount: 10, source: 'spotify' },
+      { name: 'Nobody Known', playCount: 5, source: 'spotify' },
+    ])
+    searchArtist.mockImplementation(async (name: string) => ({
+      artists: name === 'Broadcast' ? [{ id: 'artist-1', name: 'Broadcast' }] : [],
+    }))
+    getReleaseGroups.mockResolvedValue([
+      { id: 'rg-1', title: 'Spell Blanket', type: 'Album', firstReleaseDate: '2026-04-02' },
+    ])
+
+    const { createReleaseRadarMode } = await import('@/core/discovery-modes/modes/release-radar')
+    const result = await createReleaseRadarMode().executor({
+      modeId: 'release-radar',
+      triggerType: 'manual',
+      settingsMode: 'advanced',
+      userId: 7,
+      rawUserSettings: { windowDays: 30 },
+      normalizedSettings: { windowDays: 30 },
+      providerContext: { providerPath: ['spotify'] },
+      fallbackPolicy: 'allow-fallback',
+    })
+
+    expect(getReleaseGroups).toHaveBeenCalledTimes(1)
+    expect(getReleaseGroups).toHaveBeenCalledWith('artist-1')
+    expect(result.candidates).toEqual([
+      expect.objectContaining({
+        artistName: 'Broadcast',
+        artistMbid: 'artist-1',
+        releaseGroupMbid: 'rg-1',
+        provenanceProvider: 'spotify',
       }),
     ])
   })

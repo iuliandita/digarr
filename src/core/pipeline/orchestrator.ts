@@ -508,7 +508,9 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'filter',
         message: t('pipeline.message.filtering', String(scored.length)),
       })
-      const existingMbids = await db.getExistingRecommendationMbids(deps.userId)
+      const existingMbids = await db.getExistingRecommendationMbids(deps.userId, {
+        rejectionCooldownDays: prefs.rejectionCooldownDays,
+      })
       for (const mbid of existingMbids) {
         libraryMbids.add(mbid)
       }
@@ -520,7 +522,9 @@ export class PipelineOrchestrator extends EventEmitter {
         blockedArtistMbids: blockedMbids,
         blockedAlbumKeys: (await db.getBlockedAlbumKeys?.(deps.userId)) ?? new Set<string>(),
         existingAlbumRgs:
-          (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId)) ?? new Set<string>(),
+          (await db.getExistingAlbumReleaseGroupMbids?.(deps.userId, {
+            rejectionCooldownDays: prefs.rejectionCooldownDays,
+          })) ?? new Set<string>(),
       }
       const albumAware = scored.filter((c) => {
         // Not an album candidate -> keep; the artist filter path handles it.

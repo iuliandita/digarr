@@ -1,12 +1,17 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import type { Database } from '@/db'
-import { getRejectedArtistMbids } from '@/db/queries/recommendations'
+import {
+  getExistingAlbumReleaseGroupMbids,
+  getExistingRecommendationMbids,
+  getRejectedArtistMbids,
+} from '@/db/queries/recommendations'
 import { artists, recommendationBatches, recommendations, users } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
 
 describe('rejection cooldown ownership on migrated PGlite', () => {
   let fixture: Awaited<ReturnType<typeof makeTestDb>>
   const expected = new Map<number | null, string>()
+  const mbidsByOwner = new Map<number | null, Map<string, string>>()
 
   beforeAll(async () => {
     fixture = await makeTestDb()
@@ -29,6 +34,9 @@ describe('rejection cooldown ownership on migrated PGlite', () => {
           .values({ mbid, name: `Owner ${userId} ${variant}` })
           .returning()
         if (!artist) throw new Error('Missing cooldown artist fixture')
+        const owned = mbidsByOwner.get(userId) ?? new Map<string, string>()
+        owned.set(variant, mbid)
+        mbidsByOwner.set(userId, owned)
         const row = {
           userId,
           artistId: artist.id,
@@ -58,4 +66,62 @@ describe('rejection cooldown ownership on migrated PGlite', () => {
       expect(result).toEqual(new Set([expected.get(userId)]))
     },
   )
+
+  it.each([1, 2])(
+    'dedup set for user %s releases only rejections past the cooldown',
+    async (userId) => {
+      const result = await getExistingRecommendationMbids(
+        fixture.db as unknown as Database,
+        userId,
+        { rejectionCooldownDays: 30 },
+      )
+
+      const kept = [userId, null].flatMap((owner) =>
+        ['recent', 'pending', 'unacted'].map((variant) => mbidsByOwner.get(owner)?.get(variant)),
+      )
+      expect(result).toEqual(new Set(kept))
+    },
+  )
+
+  it('keeps every existing recommendation when no cooldown is given', async () => {
+    const result = await getExistingRecommendationMbids(fixture.db as unknown as Database, 1)
+
+    expect(result.size).toBe(8)
+  })
+
+  it('album dedup set releases album rejections past the cooldown', async () => {
+    const { db } = fixture
+    const [batch] = await db.insert(recommendationBatches).values({}).returning()
+    const [artist] = await db
+      .insert(artists)
+      .values({ mbid: '00000000-0000-0000-0001-000000000001', name: 'Album owner' })
+      .returning()
+    if (!batch || !artist) throw new Error('Missing album cooldown fixture')
+    const day = 24 * 60 * 60 * 1000
+    const rows = [
+      { rg: 'rg-expired', status: 'rejected', actedOnAt: new Date(Date.now() - 31 * day) },
+      { rg: 'rg-recent', status: 'rejected', actedOnAt: new Date(Date.now() - day) },
+      { rg: 'rg-pending', status: 'pending', actedOnAt: null },
+    ]
+    for (const row of rows) {
+      await db.insert(recommendations).values({
+        userId: 1,
+        artistId: artist.id,
+        batchId: batch.id,
+        score: 0.8,
+        kind: 'album',
+        recommendedReleaseGroupId: row.rg,
+        status: row.status,
+        actedOnAt: row.actedOnAt,
+      })
+    }
+
+    const withCooldown = await getExistingAlbumReleaseGroupMbids(db as unknown as Database, 1, {
+      rejectionCooldownDays: 30,
+    })
+    const withoutCooldown = await getExistingAlbumReleaseGroupMbids(db as unknown as Database, 1)
+
+    expect(withCooldown).toEqual(new Set(['rg-recent', 'rg-pending']))
+    expect(withoutCooldown).toEqual(new Set(['rg-expired', 'rg-recent', 'rg-pending']))
+  })
 })
