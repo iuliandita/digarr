@@ -141,7 +141,7 @@ export function StreamingLinks({
           <button
             type="button"
             onClick={onPlay}
-            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border border-approve/40 text-approve bg-surface/50 hover:opacity-80 transition-opacity"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border sm:min-h-0 sm:min-w-0 border-approve/40 text-approve bg-surface/50 hover:opacity-80 transition-opacity"
           >
             {isPlaying ? t('streaming.stopShort') : t('streaming.playShort')}
           </button>
@@ -154,7 +154,7 @@ export function StreamingLinks({
             rel="noopener noreferrer"
             title={label}
             style={{ borderColor: `${color}40`, color }}
-            className="inline-flex items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border bg-surface/50 hover:opacity-80 transition-opacity"
+            className="inline-flex min-h-11 min-w-11 items-center justify-center px-1.5 py-0.5 rounded text-micro font-bold border sm:min-h-0 sm:min-w-0 bg-surface/50 hover:opacity-80 transition-opacity"
           >
             {SERVICE_INITIALS[key] ?? label.slice(0, 2).toUpperCase()}
           </a>

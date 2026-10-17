@@ -138,7 +138,7 @@ export function SearchPage() {
                     !s.available && s.reason ? t(s.reason as Parameters<typeof t>[0]) : undefined
                   }
                   className={cn(
-                    'text-xs px-2.5 py-1 rounded-full border font-medium transition-colors',
+                    'min-h-11 text-xs px-2.5 py-1 rounded-full border font-medium transition-colors sm:min-h-0',
                     isActive
                       ? s.active
                       : s.available
@@ -159,7 +159,7 @@ export function SearchPage() {
               <button
                 type="button"
                 onClick={() => setActiveSources([])}
-                className="text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-text transition-colors"
+                className="min-h-11 text-xs px-2.5 py-1 rounded-full border border-border text-muted hover:text-text transition-colors sm:min-h-0"
               >
                 {t('search.clearFilters')}
               </button>

@@ -16,7 +16,7 @@ export const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s
 const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const TRIGGER_CLASS =
-  'flex h-9 items-center gap-1.5 rounded-control border px-3 text-body font-medium transition-colors focus-ring'
+  'flex h-11 sm:h-9 items-center gap-1.5 rounded-control border px-3 text-body font-medium transition-colors focus-ring'
 
 /** Sort order and decades, in one popover so the toolbar stays a single row. */
 export function FiltersPopover({
@@ -121,7 +121,7 @@ export function FiltersPopover({
                   aria-pressed={decades.has(decade)}
                   onClick={() => onToggleDecade(decade)}
                   className={cn(
-                    'rounded-full px-2 py-1 text-caption font-medium transition-colors focus-ring',
+                    'min-h-11 rounded-full px-3 py-1 text-caption font-medium transition-colors focus-ring sm:min-h-0 sm:px-2',
                     decades.has(decade)
                       ? 'bg-accent text-accent-fg'
                       : 'border border-border bg-bg text-muted hover:text-text',

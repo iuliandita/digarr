@@ -371,7 +371,7 @@ export function CardStack({
           onClick={() => setIndex((i) => Math.max(i - 1, 0))}
           disabled={index === 0}
           aria-label={t('recommendation.previousCardNav')}
-          className="p-1 rounded hover:text-text disabled:opacity-30 transition-colors"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded hover:text-text disabled:opacity-30 transition-colors sm:min-h-8 sm:min-w-8"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -397,7 +397,7 @@ export function CardStack({
           onClick={() => setIndex((i) => Math.min(i + 1, total - 1))}
           disabled={index >= total - 1}
           aria-label={t('recommendation.nextCardNav')}
-          className="p-1 rounded hover:text-text disabled:opacity-30 transition-colors"
+          className="flex min-h-11 min-w-11 items-center justify-center rounded hover:text-text disabled:opacity-30 transition-colors sm:min-h-8 sm:min-w-8"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
