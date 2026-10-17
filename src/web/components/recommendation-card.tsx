@@ -704,7 +704,7 @@ export function RecommendationCard({
               </span>
             )}
             {hasFailure && (
-              <span className="absolute inset-x-0 bottom-0 bg-reject/90 px-3 py-1 text-caption font-medium text-white">
+              <span className="absolute inset-x-0 bottom-0 bg-reject/90 px-3 py-1 text-caption font-medium text-bg">
                 {t('recommendation.addFailed')}
               </span>
             )}

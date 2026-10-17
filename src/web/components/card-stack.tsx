@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { shouldIgnoreShortcut } from '../hooks/use-keyboard-shortcuts'
 import { useI18n } from '../lib/i18n'
-import { cn, prefersReducedMotion } from '../lib/utils'
+import { prefersReducedMotion } from '../lib/utils'
 import { ArtistThumb } from './artist-thumb'
 import type { Recommendation } from './recommendation-card'
 import { RejectionPicker } from './rejection-picker'
@@ -132,16 +132,10 @@ function StackCard({
         {/* Genre/tag pills */}
         {allTags.length > 0 && (
           <div className="flex flex-wrap gap-1">
-            {allTags.map((tag, i) => (
+            {allTags.map((tag) => (
               <span
                 key={tag}
-                className={cn(
-                  'text-micro px-1.5 py-0.5 rounded-full',
-                  i % 4 === 0 && 'bg-accent/10 text-accent',
-                  i % 4 === 1 && 'bg-info/10 text-info',
-                  i % 4 === 2 && 'bg-approve/10 text-approve',
-                  i % 4 === 3 && 'bg-reject/10 text-reject',
-                )}
+                className="text-micro px-1.5 py-0.5 rounded-full bg-surface-2 text-text"
               >
                 {tag}
               </span>
