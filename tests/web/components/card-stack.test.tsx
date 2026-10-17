@@ -40,6 +40,14 @@ function stack(recommendations: Recommendation[], onNearEnd = vi.fn()) {
   )
 }
 
+describe('CardStack keyboard (#985)', () => {
+  it('r opens the reason picker like the left arrow', () => {
+    render(stack(recs(1, 3)))
+    fireEvent.keyDown(window, { key: 'r' })
+    expect(screen.getByRole('dialog', { name: /Why are you rejecting/ })).toBeInTheDocument()
+  })
+})
+
 describe('CardStack paging (#882)', () => {
   it('asks for more near the end and keeps the current card when a page is appended', () => {
     const onNearEnd = vi.fn()

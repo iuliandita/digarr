@@ -29,9 +29,10 @@ export async function seedRecommendations(
 /**
  * Force a specific discover view before navigation (like installAuthCookie).
  * - 'list'/'grid' render RecommendationCard (data-testid="rec-card-button") with
- *   direct approve/reject + an expandable enrichment panel.
- * - 'stack' renders the swipe CardStack, whose reject button opens the
- *   RejectionPicker dialog (reason + permanent block).
+ *   approve/reject buttons + an expandable enrichment panel.
+ * - 'stack' renders the swipe CardStack.
+ * Reject opens the RejectionPicker dialog (reason + permanent block) in every view;
+ * only the stack defers the PATCH behind a ~250ms exit animation.
  */
 async function installDiscoverView(page: Page, mode: 'grid' | 'list' | 'stack'): Promise<void> {
   await page.addInitScript((value) => {

@@ -82,7 +82,8 @@ export const en = {
   'playlists.title': 'Playlists',
   'subscriptions.title': 'Subscriptions',
   'subscriptions.new': 'New',
-  'subscriptions.presets': 'Presets',
+  'subscriptions.fromPreset': 'From a preset',
+  'subscriptions.newOptions': 'More ways to add a subscription',
   'subscriptions.pauseAll': 'Pause All',
   'subscriptions.resumeAll': 'Resume All',
   'dashboard.todaysPick': "Today's Pick",
@@ -1428,6 +1429,7 @@ export const en = {
 
   // Mood discover bar
   'discover.moodPlaceholder': 'rainy day jazz, upbeat 90s pop, dark ambient...',
+  'discover.moodOpen': 'Describe a mood',
   'discover.discoverButton': 'Discover',
   'discover.discovering': 'Discovering...',
   'discover.moodResults': 'Mood results',
@@ -1608,6 +1610,7 @@ export const en = {
   'keyboardShortcuts.rejectFocusedCard': 'Reject focused card',
   'keyboardShortcuts.toggleDetailView': 'Open / close detail view',
   'keyboardShortcuts.toggleShortcuts': 'Show / hide shortcuts',
+  'keyboardShortcuts.focusMoodSearch': 'Open mood search',
   'keyboardShortcuts.rejectCardStack': 'Reject card (stack view)',
   'keyboardShortcuts.approveCardStack': 'Approve card (stack view)',
   'keyboardShortcuts.disabledWhileTyping': 'Shortcuts are disabled when a text field is focused.',
@@ -1625,6 +1628,7 @@ export const en = {
   'rejectionPicker.dontShowAgainDisabled': "Disabled when 'Maybe later' is selected",
   'rejectionPicker.cancel': 'Cancel',
   'rejectionPicker.reject': 'Reject',
+  'rejectionPicker.rejectNoReason': 'Reject without a reason',
   'rejectionPicker.blockForever': 'Block forever',
   'rejectionPicker.otherPlaceholder': 'Tell us why (optional, 200 chars)',
 

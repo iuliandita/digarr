@@ -279,15 +279,15 @@ export function CardStack({
     if (total > 0 && index >= total - NEAR_END_CARDS) onNearEnd?.()
   }, [index, total, onNearEnd])
 
-  // Keyboard: left arrow = reject, right arrow = approve, up/down = navigate
+  // Keyboard: left arrow / r = reject, right arrow / a = approve, up/down / k/j = navigate
   useEffect(() => {
     function onKeyDown(e: KeyboardEvent) {
       if (shouldIgnoreShortcut(e) || exitingRef.current) return
 
-      if (e.key === 'ArrowRight') {
+      if (e.key === 'ArrowRight' || e.key === 'a') {
         e.preventDefault()
         approveRef.current()
-      } else if (e.key === 'ArrowLeft') {
+      } else if (e.key === 'ArrowLeft' || e.key === 'r') {
         e.preventDefault()
         rejectRef.current()
       } else if (e.key === 'ArrowDown' || e.key === 'j') {
