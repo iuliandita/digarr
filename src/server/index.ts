@@ -8,12 +8,13 @@ import { envConfig } from '@/config/env'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
 import { VERSION } from '@/version'
 import { openapiDoc } from './helpers/openapi-doc'
-import { problem } from './helpers/problem'
+import { problem, statusTitle } from './helpers/problem'
 import { maintenanceMiddleware } from './maintenance'
 import { adminGuard } from './middleware/admin-guard'
 import { authGuard } from './middleware/auth'
 import { csrfGuard } from './middleware/csrf'
 import { requestLogger } from './middleware/logger'
+import { problemJsonErrors } from './middleware/problem-json'
 import { proxyAuthMiddleware } from './middleware/proxy-auth'
 import { rateLimiter } from './middleware/rate-limit'
 import { setupGuard } from './middleware/setup-guard'
@@ -74,10 +75,8 @@ const SPOTIFY_BRIDGE_CSP = [
 export function createApp(deps: AppDependencies) {
   const app = new Hono<HonoEnv>()
 
-  // Central error handler: maps HTTPException (including zJson's hook failures
-  // when a handler throws one) and unknown errors to RFC 9457 problem+json.
-  // Zod/validator hooks still return their {error, code, details} shape
-  // directly so existing clients keep working; only unhandled throws flow here.
+  // Central error handler: maps HTTPException and unknown errors to RFC 9457
+  // problem+json. Legacy `{error}` bodies are converted by problemJsonErrors().
   app.onError((err, c) => {
     if (err instanceof HTTPException) {
       const res = err.getResponse()
@@ -85,7 +84,13 @@ export function createApp(deps: AppDependencies) {
       // middleware that built its own body), prefer it over the problem+json
       // envelope to avoid clobbering specialised payloads.
       if (res.headers.get('content-type')?.includes('application/json')) return res
-      return problem(c, `http-${err.status}`, err.message || 'HTTP Error', err.status, undefined)
+      return problem(
+        c,
+        `http-${err.status}`,
+        statusTitle(err.status),
+        err.status,
+        err.message || undefined,
+      )
     }
     const msg = err instanceof Error ? err.message : String(err)
     console.error('[server] unhandled error:', msg, err instanceof Error ? err.stack : '')
@@ -103,6 +108,7 @@ export function createApp(deps: AppDependencies) {
 
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
+  app.use('*', problemJsonErrors())
 
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
     console.warn(

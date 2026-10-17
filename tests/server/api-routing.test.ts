@@ -21,6 +21,23 @@ describe('API routing', () => {
     })
   })
 
+  it('converts legacy error bodies to problem+json and keeps the error member', async () => {
+    const { app } = createTestApp()
+
+    const response = await app.request('/api/v1/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    })
+
+    expect(response.status).toBe(400)
+    expect(response.headers.get('content-type')).toBe('application/problem+json')
+    const body = await response.json()
+    expect(body).toMatchObject({ type: '/problems/http-400', title: 'Bad Request', status: 400 })
+    expect(body.detail).toEqual(expect.any(String))
+    expect(body.error).toBe(body.detail)
+  })
+
   it('keeps versioned routes available', async () => {
     const { app } = createTestApp()
 

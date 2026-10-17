@@ -168,7 +168,10 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'Connect Discogs to use this mode.' })
+    expect(await res.json()).toMatchObject({
+      detail: 'Connect Discogs to use this mode.',
+      error: 'Connect Discogs to use this mode.',
+    })
     expect(createSubscription).not.toHaveBeenCalled()
   })
 
@@ -201,7 +204,10 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'discovery-mode sourceConfig.modeId is required' })
+    expect(await res.json()).toMatchObject({
+      detail: 'discovery-mode sourceConfig.modeId is required',
+      error: 'discovery-mode sourceConfig.modeId is required',
+    })
     expect(createSubscription).not.toHaveBeenCalled()
   })
 
@@ -235,7 +241,8 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({
+    expect(await res.json()).toMatchObject({
+      detail: "Unknown discovery mode 'not-a-real-mode'",
       error: "Unknown discovery mode 'not-a-real-mode'",
     })
     expect(createSubscription).not.toHaveBeenCalled()
@@ -296,7 +303,8 @@ describe('API routes: discovery mode subscriptions', () => {
     })
 
     expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({
+    expect(await res.json()).toMatchObject({
+      detail: 'discovery-mode sourceConfig.settings is required',
       error: 'discovery-mode sourceConfig.settings is required',
     })
     expect(updateSubscription).not.toHaveBeenCalled()

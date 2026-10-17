@@ -122,7 +122,10 @@ export function artistRoutes(deps: AppDependencies) {
         }
         const contentType = res.headers.get('Content-Type') ?? ''
         if (!res.ok || !contentType.startsWith('audio/')) {
-          return c.json({ error: 'Preview not available', status: res.status, contentType }, 502)
+          return c.json(
+            { error: 'Preview not available', upstreamStatus: res.status, contentType },
+            502,
+          )
         }
         const MAX_PREVIEW_BYTES = 2 * 1024 * 1024
         const cl = res.headers.get('Content-Length')

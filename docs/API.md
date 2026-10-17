@@ -26,9 +26,9 @@ and is vulnerable to network interception. See
 
 Locale fallback is route-specific. Pipeline run and Quick Discover use `X-Digarr-Locale`, then the saved user locale, `Accept-Language`, and English. Auth messages, settings probes, and the Spotify Liked Songs import use the request header, then `Accept-Language` and English; these paths do not consult the saved locale. API clients should send `X-Digarr-Locale` explicitly for predictable messages on locale-aware routes.
 
-Admin-only endpoints return 403 for non-admin users, as `application/problem+json` on most routes and as plain `{ "error": "..." }` on a few older ones. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs, code `errors.csrf.originMismatch`, and a `detail` telling you to check that the browsed address matches `ALLOWED_ORIGIN`, before the route handler runs.
+Admin-only endpoints return 403 `application/problem+json` for non-admin users. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs, code `errors.csrf.originMismatch`, and a `detail` telling you to check that the browsed address matches `ALLOWED_ORIGIN`, before the route handler runs.
 
-Error bodies use three shapes. Newer routes return `application/problem+json` (`type`, `title`, `status`, optional `detail`). Request-body validation failures return `{ "error": "...", "code": "validation_failed", "details": [...] }` with `400`. Older routes return plain `{ "error": "..." }`. Clients should read `error` or `detail`/`title` rather than assume one shape. Status codes are not uniform across routes: for example, a missing settings row returns `404` from `GET /api/v1/settings` and `400` from the pipeline routes, an oversized CSV upload returns `413`, and unmet setup state returns `409` from setup routes or `403` with `redirect: "/setup"` from the setup guard.
+Every error response uses RFC 9457 problem details with content type `application/problem+json`: `type` (a relative slug such as `/problems/not-found`), `title`, `status`, and usually `detail`. Optional extension members carry extra context: `code` is an i18n message key or a stable machine code, and route-specific members such as `details`, `issues`, `report`, or `affectedTables` keep their previous names. Errors that used to be plain `{ "error": "..." }` bodies now use type `/problems/http-<status>`, the standard HTTP reason phrase as `title`, the old message as `detail`, and keep the old message in a deprecated `error` member so existing clients keep working. Read `detail` (and `code` when you localize); `error` will be removed in a future major release. Request validation failures return `400` with type `/problems/validation-failed`, `code: "validation_failed"`, and a `details` array of `{ path, code, message }` issues. Status codes are not uniform across routes: for example, a missing settings row returns `404` from `GET /api/v1/settings` and `400` from the pipeline routes, an oversized CSV upload returns `413`, and unmet setup state returns `409` from setup routes or `403` with `redirect: "/setup"` from the setup guard.
 
 ---
 
@@ -339,7 +339,7 @@ Locale notes:
 ```
 
 The parser coerces rather than rejects most fields:
-- `modeId` is required; a missing or unknown mode returns `400` with `{ "error": "..." }`
+- `modeId` is required; a missing or unknown mode returns `400` problem+json with the reason in `detail`
 - `settingsMode` other than `"advanced"` becomes `"easy"`
 - `fallbackPolicy` other than `"strict"` becomes `"allow-fallback"`
 - `rawUserSettings`, `normalizedSettings`, and `providerContext` that are not plain objects become `{}`
@@ -422,7 +422,7 @@ Approval notes:
 
 For PATCH rejections, reasons are `already_own`, `wrong_style`, `not_interested`, `tried_didnt_like`, `not_right_now`, and `other`. A permanent rejection cannot use `not_right_now`. Nonempty `reasonText` requires `reason: "other"`; input is limited to 400 characters, then control characters are stripped, whitespace is trimmed, and the result is limited to 200. Omit unused fields rather than sending null.
 
-Invalid request shapes return JSON `{error, code: "validation_failed", details}`. Target selection and popularity failures return JSON `{error}` with an optional `no_source` or `no_match` code. PATCH rejection refinement failures return `application/problem+json` with an `issues` array.
+Invalid request shapes return the shared `validation_failed` problem with `details`. Target selection and popularity failures return a `/problems/http-400` problem with an optional `no_source` or `no_match` code. PATCH rejection refinement failures return type `/problems/validation-failed` with an `issues` array.
 
 Approve response (status `approved`):
 ```json
@@ -447,7 +447,7 @@ Bulk rejection accepts a shared `reason` (including null or omission) and `perma
 
 Bulk rejection does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
 
-Optional target/profile overrides apply to approval. An unknown `targetId` returns `400` with `{ "error": "Unknown targetId: <id>" }`; a selected target without either artist or album approval support returns `400` with `{ "error": "Target does not support recommendation approval: <id>" }`. These are plain JSON errors, not problem-detail envelopes.
+Optional target/profile overrides apply to approval. An unknown `targetId` returns `400` with `detail` `Unknown targetId: <id>`; a selected target without either artist or album approval support returns `400` with `detail` `Target does not support recommendation approval: <id>`.
 
 Bulk approval dispatches each owned recommendation by kind. Album rows use `addAlbum` targets and their release-group MBID, monitoring and searching only that release in Lidarr. An album without a release-group identity or a compatible target returns `add_failed` without artist acquisition. Artist rows retain artist approval behavior. Mixed batches return each row's outcome independently. Successful Lidarr album additions return `added_to_lidarr`; a successful non-Lidarr target, including a queued slskd acquisition, returns `approved` and keeps its outcome in `targetActions`. A queued download does not establish import completion. This corrects the v1.19.0 limitation in [#756](https://github.com/iuliandita/digarr/issues/756).
 
@@ -664,9 +664,11 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 | GET | `/api/v1/slskd/jobs` | Admin | Inspect active `slskd` orchestration jobs and current sync state. |
 | POST | `/api/v1/slskd/sync` | Admin | Trigger a manual `slskd` orchestration sync. Returns 202 immediately. |
 
+This route group is registered only when the app is built with an slskd orchestrator. The standard server always provides one; an embedding that omits it answers these paths with the generic `404` `/problems/not-found`.
+
 **POST /api/v1/slskd/sync** notes:
 - No request body
-- The route acknowledges immediately and lets the sync continue in the background
+- Returns `202` with an empty body and lets the sync continue in the background; background failures are logged, not returned. A failure to start the sync returns `500` problem+json
 - The sync worker polls linked Lidarr wanted releases, creates deduped `slskd` jobs, advances active jobs through search and transfer states, and verifies Lidarr imports before marking linked jobs complete
 - Linked target config requires `lidarrDownloadPath`, the completed downloads root visible to Lidarr. All queued files must succeed before `ManualImport`; partial, rejected, ambiguous, or unidentified files are refused. Imports use `move` and are verified through track `hasFile` values. Releases are capped at 500 files and 20 GiB, with a 2,048-character path limit; rejected manifests never enqueue downloads.
 - Failed work reuses its work-key job after a one-hour cooldown and increments `attempts`. Historical duplicate failures are retained in terminal `superseded` state.
@@ -700,6 +702,8 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 | GET | `/api/v1/genres/:slug/artists` | Yes | Artists by genre (view: recommended/trending/deep_cuts) |
 | POST | `/api/v1/genres/seed` | Admin | Seed genre database from Lidarr library (202) |
 
+**POST /api/v1/genres/seed** returns `202` with `{ "message": "Genre seed started" }` and seeds in the background; failures are logged only. It returns `400` problem+json when Lidarr is not configured.
+
 **GET /api/v1/genres/search** query params:
 - `q` - required search string, minimum 2 characters
 
@@ -719,6 +723,8 @@ The target test uses the saved provider configuration for `plex-playlist`, `jell
 | GET | `/api/v1/playlists/:id/exports` | Yes | Owned remote export bindings |
 | POST | `/api/v1/playlists/:id/exports/:targetId/reset` | Yes | Explicitly forget one local export binding |
 | GET | `/api/v1/playlists/scheduler` | Yes | Playlist scheduler status |
+
+This route group is registered only when the app is built with playlist dependencies. The standard server always provides them; an embedding that omits them answers these paths with the generic `404` `/problems/not-found`.
 
 **POST /api/v1/playlists** returns the created row with `201`. Example:
 
@@ -816,7 +822,7 @@ Locale notes:
 
 Errors:
 - `400` when no AI provider is configured
-- `502` with `{ "error": "AI provider request failed (<provider>/<model>): <detail>" }` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` - pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
+- `502` with `detail` `AI provider request failed (<provider>/<model>): <detail>` when the provider call fails; `<detail>` includes the upstream status and response body (e.g. an Ollama `model not found` - pull the model or fix the model name in Settings, and use the Settings test button, which verifies the configured model exists)
 
 ---
 
@@ -826,6 +832,8 @@ Errors:
 |--------|------|------|-------------|
 | GET | `/api/v1/search` | Yes | Cross-platform artist search |
 | GET | `/api/v1/search/sources` | Yes | Available search sources |
+
+This route group is registered only when the app is built with search dependencies. The standard server always provides them; an embedding that omits them answers these paths with the generic `404` `/problems/not-found`.
 
 **Sources**: `spotify`, `deezer`, `musicbrainz`, `tidal`, `bandcamp`
 
@@ -1064,7 +1072,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 - `offset` - pagination offset (minimum 0)
 - Invalid `type` or `status` values return `400`
 - Cancelled jobs can appear in unfiltered results, but `status=cancelled` is not accepted as a filter
-- Missing job detail returns `404` with `application/json` body `{ "error": "Job not found" }`
+- Missing job detail returns `404` problem+json with `detail` `Job not found`
 
 Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. Any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
@@ -1190,7 +1198,7 @@ add `Ignored 1 legacy OIDC token record.` or
 
 Default JSON exports are consistent snapshots of persistent application state and required artist dependencies, including album blocks, library snapshots/overrides, health state, recording cache, and slskd jobs. `?includeCaches=true` adds optional artist metadata and a `-with-caches` filename suffix. Automatic snapshots also include that metadata. Ephemeral sessions, pending authorizations, rate limits, and migration history are excluded. Retain the matching encryption key separately; exact schema rollback requires a native consistent database backup. See [backup boundaries](guides/switching-backends.md#backup-boundaries-and-recovery).
 
-Restore replaces included tables in one transaction. Unsafe partial backups return `422` with `{ "code": "partial_backup_conflict", "error": "...", "affectedTables": ["albumBlocks"] }` before any deletes. This covers omitted dependent destination state and unresolved artist references; `force=true` cannot bypass it. Safe legacy partial files remain accepted. Take a complete destination backup first and prefer a fresh database. Required automatic-backup failures stop startup before migrations; the explicit override is documented in the recovery guide.
+Restore replaces included tables in one transaction. Unsafe partial backups return `422` problem+json with `code: "partial_backup_conflict"`, the reason in `detail`, and `affectedTables` (for example `["albumBlocks"]`) before any deletes. This covers omitted dependent destination state and unresolved artist references; `force=true` cannot bypass it. Safe legacy partial files remain accepted. Take a complete destination backup first and prefer a fresh database. Required automatic-backup failures stop startup before migrations; the explicit override is documented in the recovery guide.
 
 ### Upgrade
 
@@ -1206,7 +1214,7 @@ Sessions, rate-limit counters, and pending OAuth transactions are excluded; sign
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`, or `502 { ok: false, code, error }` on failure. |
+| POST | `/api/v1/admin/migrate-backend/test` | Admin | Validate target reachability. Non-destructive (for PGlite it only checks path containment, no file is created). Body: `{ backend: 'pglite', path }` or `{ backend: 'postgres', ... }`. Returns `{ ok, backend, description }`. A body that does not match either target shape returns `400` problem+json with the schema issues in `details`. An unreachable target or an unsafe PGlite path returns `502` problem+json with `ok: false` and a classified `code`. |
 | POST | `/api/v1/admin/migrate-backend` | Admin | Copy data. Body: `{ target, overwrite? }`. Success returns `MigrationReport`; errors use the problem envelope described below. |
 
 A successful copy returns `200` with `MigrationReport`: `{ ok, verified, contentVerified, tablesMigrated, mismatches, targetEnvHint, ... }`. Errors use `application/problem+json` with `{ type, title, status, code, ... }`:

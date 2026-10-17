@@ -231,6 +231,7 @@
         "src/server/middleware/auth.ts": "c7ba4e9b4c4de5c06cb66fc3927f269cc0b0740e52fd4d85e143d344fc924c86",
         "src/server/middleware/csrf.ts": "aeac94c8dae8b439362430551ee9de9c3f6be95e5b543a4b164a226fb9db4821",
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
+        "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "50674c48773809fa60500d11547b64bde475d07f989d1afdaf8ff4c780345b3e",
         "src/server/middleware/rate-limit.ts": "3d93ffbf22e619210b362fb789c1ded08a62effb9a5b89d5704018db326f2d45",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
@@ -249,33 +250,33 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430",
+      "digest": "1e6130b27097aee2d331b13f2b240e6a0524e1be37f5a2c4281065f07ab1e186",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "CSRF origin rejection now carries the errors.csrf.originMismatch code and an ALLOWED_ORIGIN hint; documented in API.md. The check itself is unchanged.",
+        "note": "The new problem-json middleware only rewrites the body and content type of JSON error responses that carry an error member; status codes, WWW-Authenticate, Set-Cookie and other headers are preserved, so authentication, CSRF and session behavior are unchanged. The admin 403 note in docs/API.md now says problem+json everywhere.",
         "breaking": "none",
         "migration": "",
-        "digest": "b7597d70bc4de88507ce8b8a48d644d4780f94f0d627734b43a434fbbd304430"
+        "digest": "1e6130b27097aee2d331b13f2b240e6a0524e1be37f5a2c4281065f07ab1e186"
       }
     },
     "api": {
       "files": {
         "src/server/deps.ts": "fd06cfad9f41fdf12ea969636978c9e9461f45f4378b1137911b72e4651480e1",
-        "src/server/helpers/openapi-doc.ts": "c4b69b5c0bc4920df9927709bafddc45ce30ade084380067fc8adb51b4e16b51",
+        "src/server/helpers/openapi-doc.ts": "6ba0ec651231b50820fcfabdc2ce651e82deb9e38b837f1dde3529417f90e220",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "819d0f0482fde33ea86bce6addf1221442fdffb9523bed5ef1c060f0495f4b8e",
-        "src/server/helpers/problem.ts": "400b8d509b1b31a02b2ca556ff424ac8d7d3fa7913cef7092cbbeae993f9eecc",
+        "src/server/helpers/problem.ts": "4930fc2454bdaa319494c0d1371480424ea9d00408f527af3662fe1c06b170bd",
         "src/server/helpers/require-user.ts": "598e50f60af3e97ad59abfa2d791ddab4a47d5ccaf80a65b07ae96710abdf3a6",
-        "src/server/index.ts": "0adf26086e51f9355b31f630e8013602187b80fc75602008182f851e3fa83396",
+        "src/server/index.ts": "76da31e03232013036b95ff2c2efc155fe3e15289b1640ec4c5f6c3d4cc5a421",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
-        "src/server/routes/artists.ts": "63db65113b83d8a93ef2c2c9a97fca91b28b46875a28bfdb07869dc94ee6b490",
+        "src/server/routes/artists.ts": "1f6258d3654546a5ea5ea7c4a07f04a80223a9c273ba918816a3c0269e155820",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "bdacae8e030bbd51819f7f9692bca173ea5afe20d370772260e7f78110c9bb87",
         "src/server/routes/discovery-modes.ts": "daca7bc1810dc86abb1166b14e37b75fb779ae814f70a8b1faa123a2876db0cf",
@@ -308,18 +309,18 @@
         "src/server/schemas/settings.ts": "1c58b87f8e896b992ffa248a7689bc20921d3fb7c94abe6600a29fbc512163c7",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "a06e9afefe69f7518620a6c7bfe70626e848373899022834f5e2deaae505d25c",
-        "src/server/schemas/validator.ts": "c23a1aeeaa484524ec8be483934fea9ef53bcdb0798fcbbc40c6d984482a7f50",
+        "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "2a420248945a6c56af2f61ecced257399fc8af7ba47b7cc383d103962cc4f508"
       },
-      "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688",
+      "digest": "89c592fa9e9b57ec0ff6778d56445ab92bc5b21dcefcd0447456f5347314dc68",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Preview audio proxy now re-checks the host allowlist on each redirect hop; the endpoint contract and responses for valid previews are unchanged.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "All API error responses now use application/problem+json with type, title, status and detail. Legacy error bodies are converted centrally and keep a deprecated error member; validation failures use type /problems/validation-failed. docs/API.md intro, per-route error notes, 202 bodies for slskd sync and genre seed, conditional route groups and migrate-backend/test 400 vs 502 were updated, and the OpenAPI error responses were audited (bogus 400s removed from auth/status, session/migrate, jobs/health).",
+        "breaking": "Error responses change content type from application/json to application/problem+json; clients that match the exact content type must accept the new one. The error member stays (deprecated), so clients that read error keep working. Preview proxy upstream status moved to upstreamStatus, and a failed single-source library sync no longer carries status failed. No data, backup or rollback impact: rolling back the image restores the old shapes.",
         "migration": "",
-        "digest": "f9aad653cf15be15715af7de87d5544a2b9f5b8e31a23d90ab78e6c49aab4688"
+        "digest": "89c592fa9e9b57ec0ff6778d56445ab92bc5b21dcefcd0447456f5347314dc68"
       }
     },
     "interface": {
@@ -440,7 +441,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "0a3a4357dbab772ccdbf14c9a6742d357899b2b7e7f909dfe5249249cd4fffc7",
-        "src/web/lib/api.ts": "cddd88e1822ef823bf127cb68a7de51edd75d79b7d61c1c95706245179aa647f",
+        "src/web/lib/api.ts": "6cf6b0ce58416882360dd80e7c24f65832cb5f845c37c0b49bf12dc9975c0792",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "8f492100667f8e7a0123691259c404765262df68d83527f1a0b7f064e10b3f58",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -491,14 +492,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "889fc677d5ae074d7d0106324e6bd6dc7c4ba16ccdbbb5a0c042d73ebe32a52e",
+      "digest": "0fc032b70462fd2815581783b11b12a8c08c612689e7ef3f557c53fb5be79e34",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Removed the normalized-name debug line and added translated hygiene result labels and the CSRF error text across all 15 catalogs; changelog entry added.",
+        "note": "The web client error message now prefers a translated code, then detail, then title, then the legacy error member, so converted errors keep showing the specific message instead of the generic HTTP reason phrase. No UI strings or catalogs changed.",
         "breaking": "none",
         "migration": "",
-        "digest": "889fc677d5ae074d7d0106324e6bd6dc7c4ba16ccdbbb5a0c042d73ebe32a52e"
+        "digest": "0fc032b70462fd2815581783b11b12a8c08c612689e7ef3f557c53fb5be79e34"
       }
     },
     "features": {

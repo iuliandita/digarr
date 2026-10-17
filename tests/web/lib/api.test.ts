@@ -362,6 +362,25 @@ describe('authenticated downloads', () => {
   })
 })
 
+describe('ApiError message', () => {
+  it.each([
+    [
+      'a translated code over detail',
+      { title: 'Not Found', detail: 'raw', code: 'errors.auth.notAuthenticated' },
+      'Nicht authentifiziert',
+    ],
+    [
+      'detail over title for an unknown code',
+      { title: 'Bad Request', detail: 'Unknown targetId: x', code: 'validation_failed' },
+      'Unknown targetId: x',
+    ],
+    ['title without detail', { title: 'Request rejected' }, 'Request rejected'],
+    ['the legacy error member', { error: 'Old shape' }, 'Old shape'],
+  ])('prefers %s', (_case, data, expected) => {
+    expect(new ApiError(400, data).message).toBe(expected)
+  })
+})
+
 describe('subscription imports', () => {
   it('posts the three no-body imports with cookie credentials and CSRF', async () => {
     const responses = [

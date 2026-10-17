@@ -65,11 +65,13 @@ export class ApiError extends Error {
 function extractApiErrorMessage(status: number, data: unknown): string {
   if (data && typeof data === 'object') {
     const record = data as Record<string, unknown>
-    // problem+json: translate `code` i18n key, fall back to `title`.
+    // problem+json: translate `code` i18n key, fall back to `detail`, then `title`.
     if (typeof record.code === 'string' && record.code.trim()) {
       const translated = translateErrorCode(record.code)
       if (translated) return translated
-      if (typeof record.title === 'string' && record.title.trim()) return record.title
+    }
+    if (typeof record.detail === 'string' && record.detail.trim()) {
+      return record.detail
     }
     if (typeof record.title === 'string' && record.title.trim()) {
       return record.title
