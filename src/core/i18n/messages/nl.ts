@@ -1,4 +1,12 @@
 export const nl = {
+  'settings.slskdSearchInterval':
+    'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr kan het downloadpad niet vinden of weergeven. Controleer je koppeling en leesrechten.',
+  'settings.slskdPathIncomplete':
+    'Het downloadpad lijkt een map voor onvoltooide downloads. Gebruik je map voor voltooide downloads.',
+  'settings.slskdPathOk':
+    'Verbonden met slskd - Lidarr ziet de downloadmap. Controleer of je voltooide downloads erin staan.',
   'tokens.title': 'API-tokens',
   'tokens.description': 'Geef je scripts hun eigen intrekbare inloggegevens.',
   'tokens.passwordWarning':

@@ -1,4 +1,12 @@
 export const pl = {
+  'settings.slskdSearchInterval':
+    'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr nie może znaleźć ani wyświetlić ścieżki pobierania. Sprawdź montowanie i uprawnienia odczytu.',
+  'settings.slskdPathIncomplete':
+    'Ścieżka wygląda na folder nieukończonych pobrań. Użyj folderu ukończonych pobrań.',
+  'settings.slskdPathOk':
+    'Połączono ze slskd - Lidarr widzi folder pobierania. Sprawdź, czy zawiera twoje ukończone pobrania.',
   'tokens.title': 'Tokeny API',
   'tokens.description': 'Daj swoim skryptom osobne dane dostępu, które możesz unieważnić.',
   'tokens.passwordWarning':
