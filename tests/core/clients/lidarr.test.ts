@@ -514,7 +514,9 @@ describe('createLidarrClient', () => {
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       const result = await client.getWantedMissing()
 
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/wanted/missing')
+      expect(mockGet).toHaveBeenCalledWith(
+        '/api/v1/wanted/missing?page=1&pageSize=250&includeArtist=true',
+      )
       expect(result).toEqual([
         {
           id: 44,
@@ -528,6 +530,25 @@ describe('createLidarrClient', () => {
           },
         },
       ])
+    })
+
+    it('fetches every page until totalRecords is reached', async () => {
+      const row = (id: number) => ({ id, title: `t${id}`, artistId: 1, foreignAlbumId: `a${id}` })
+      mockGet
+        .mockResolvedValueOnce({
+          totalRecords: 252,
+          records: Array.from({ length: 250 }, (_, i) => row(i)),
+        })
+        .mockResolvedValueOnce({ totalRecords: 252, records: [row(250), row(251)] })
+
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      const result = await client.getWantedMissing()
+
+      expect(result).toHaveLength(252)
+      expect(mockGet).toHaveBeenCalledTimes(2)
+      expect(mockGet).toHaveBeenLastCalledWith(
+        '/api/v1/wanted/missing?page=2&pageSize=250&includeArtist=true',
+      )
     })
 
     it('reads paginated wanted responses from the records array', async () => {
