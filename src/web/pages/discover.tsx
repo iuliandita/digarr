@@ -4,7 +4,6 @@ import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
-import { errMsg } from '@/core/validation'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
@@ -1574,44 +1573,6 @@ export function DiscoverPage() {
             {t('common.next')}
           </button>
         </div>
-      )}
-
-      {/* FAB: Run Scan - mobile only, above bottom nav */}
-      {!bulkMode && (
-        <button
-          type="button"
-          onClick={() =>
-            triggerPipeline()
-              .then((res) =>
-                toast.success(
-                  res.status === 'duplicate'
-                    ? t('discover.scanAlreadyRunning')
-                    : res.queued
-                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                      : t('discover.scanStarted'),
-                ),
-              )
-              .catch((err) => {
-                toast.error(errMsg(err))
-              })
-          }
-          aria-label={t('app.runScan')}
-          className="md:hidden fixed bottom-[calc(var(--bottom-stack)+1rem)] right-4 z-40 w-12 h-12 rounded-full bg-accent text-accent-fg shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={2}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="w-5 h-5"
-            aria-hidden="true"
-          >
-            <polygon points="5 3 19 12 5 21 5 3" />
-          </svg>
-        </button>
       )}
 
       {/* Per-artist Lidarr profile picker dialog */}
