@@ -237,7 +237,7 @@
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "39aeba20203d89c0ad174e62b4790d134e1578d4df05af5833d4c756a3308b0d",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
-        "src/server/middleware/rate-limit.ts": "55487a8842af56559d02376e20252632a2f555eb03d0a02f5b11a2f9d67ddd15",
+        "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
@@ -254,14 +254,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "c330d7e932ae4d7c3a9d2e8c48f5aa5a9070c7b1092ea27bf164fb9d21786195"
       },
-      "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba",
+      "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md"],
-        "note": "Document per-client personal-token failure budgets, trusted proxy forwarding, and socket fallback for missing or malformed headers.",
+        "docs": ["docs/AUTHENTICATION.md", "CHANGELOG.md"],
+        "note": "Document trusted-proxy client IP buckets for all in-memory limiters, socket fallback for untrusted peers, and unchanged limits and windows.",
         "breaking": "none",
         "migration": "",
-        "digest": "ee8a55f7fb5698477449cb6f35fb98c3701480aac9571d309db90577ee60cbba"
+        "digest": "efadb3752c5f33d9b5bbecb2aeb5e02432a080c69004859ce0153e3f43c3f3b7"
       }
     },
     "api": {
@@ -301,7 +301,7 @@
         "src/server/routes/settings.ts": "5bb3a20162b3445accdfaf95b8879d12a21773bc945d397ceb3806be0343917c",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
-        "src/server/routes/targets.ts": "345658517bab8faf0691d30cf92d08ea09d35822cef13c8aaa36b63ea88d7800",
+        "src/server/routes/targets.ts": "02e6eab2324feee8b00957d15308867a70a60b78cf64360459d779f3031573c2",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/schemas/jobs.ts": "08c0dabeefc6d547db6bbcd628e13d1b25d72eea6ea9f51370e2951e6aa70b24",
         "src/server/schemas/library.ts": "f56cd09028bc40a0952a4e0041a9a68941a7fc1a61faaca586f6ee47535fd0a9",
@@ -318,14 +318,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9b34a591afd266eb59ec5846f4ef81ec5235d31d641d0640734b886e62c661e8",
+      "digest": "54612970938f9b5ccc0559f54529c37afb14921126fd0b18462e0f9204372f36",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Review combined Lidarr monitor/tag API behavior with the admin-only experimental boolean, upgrade defaults, filtered source and discovery catalogs, unchanged integration execution and read-only notification capability flag.",
         "breaking": "none",
         "migration": "",
-        "digest": "9b34a591afd266eb59ec5846f4ef81ec5235d31d641d0640734b886e62c661e8"
+        "digest": "54612970938f9b5ccc0559f54529c37afb14921126fd0b18462e0f9204372f36"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "cd6788f5c91ff5903fdf7cb099fe68f07fd8dee2b7b57965f213d3ab3d3884da",
-        "src/core/i18n/messages/en.ts": "206e5182ec1c4a1e457a3ef9ed8567c51c298ebea79b4a7640527548e69346e9",
-        "src/core/i18n/messages/es.ts": "f0d741eb9c1515c18e3960fb9683a733f4c24994fbcd8774e12b055859a3e41f",
-        "src/core/i18n/messages/fr.ts": "e27380027d9d769fd5271e15e9956a492e7ffa0f2ad8ac3552666e3489251b9a",
+        "src/core/i18n/messages/de.ts": "89ad533755b9de256fe3905b159836ebc1e321825de332f980dc409c58ef258b",
+        "src/core/i18n/messages/en.ts": "46ceb27b17579123e71b7540c7659988b5bac995d5e351f79c17c177332ab712",
+        "src/core/i18n/messages/es.ts": "f2d57ce46fff2d090cc3409ee652756c5bb225ac26308958b18b48feefdfc2d6",
+        "src/core/i18n/messages/fr.ts": "15b8f13fe2dc562c16b3788261b985febf4ab35217a9476c6c5f8a1524c3bdf2",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "069e15ef0c90b8e74c9ecf4d89c6da5533b8dc39208c7fdd32e1e1db9d7f8d7f",
-        "src/core/i18n/messages/ja.ts": "2f46bc4ba38f69955a36bbb973c9bd6b52983644efd61eb49c5d0bbc5da0cc91",
-        "src/core/i18n/messages/ko.ts": "2e1de1218a0a2ddef9f9a54a2a1558fd62c056961b60e8398996171d96ace818",
-        "src/core/i18n/messages/nl.ts": "65ee4b1b954c952750cec320b70efef95831fd25387147080a3c25f2b074d116",
-        "src/core/i18n/messages/pl.ts": "bd9045aedc87e1f6913a30055e8ac2442e24f1e4103ddd7f05b6ee40529d46af",
-        "src/core/i18n/messages/pt-BR.ts": "0cb11e158749e31712d6485faaa6ea02bde91702bb5ac803425c18ce571e1965",
-        "src/core/i18n/messages/ro.ts": "4cab1115bc659319d191473a67c17d04b762087da6a10701c57d8f74e862801f",
-        "src/core/i18n/messages/ru.ts": "e1442281322748022c97cf692c5803e997d1a37cc9c31360e89b3b391b159a78",
-        "src/core/i18n/messages/source-lock.json": "8a1b8dcc2e092229351663d95305305c392acdf223a97f39fe88db59d8671a4f",
-        "src/core/i18n/messages/tr.ts": "14223deda3001126fc0e426f47bf33a4a551bcf0e175dce8733b6472b926bf1b",
+        "src/core/i18n/messages/it.ts": "a91a2a9351ec18544b05cb5eb295e175b13edcbca31f77a9da129dcd398d4f7b",
+        "src/core/i18n/messages/ja.ts": "7a83c2b1c61f41914beff38989a35f1189720ae3d53c76e85c6b73e064062b49",
+        "src/core/i18n/messages/ko.ts": "6e0d3efa5d8b8db0e5d64c0327147e16119c424e69c82932086d64e19cce40e2",
+        "src/core/i18n/messages/nl.ts": "cab1f54ca1df43efc43c1d733a24b8b45c6c4a8c0a3d2d7c89350d1971fe5f23",
+        "src/core/i18n/messages/pl.ts": "0ae6a3be1c8d78181cea1f41b9fa11760c2bd66b85ba22ac60d3b9f03054cc60",
+        "src/core/i18n/messages/pt-BR.ts": "355bd3ff84e456ed2e75e94701627fdd987193674dbe24cc696c7d31ba77429e",
+        "src/core/i18n/messages/ro.ts": "ed4811c6ad68a91d006328e61880907763c601fb2f33993ecf525d01e5b8ee77",
+        "src/core/i18n/messages/ru.ts": "87cdc64e6262b6d9ba21d883e002b76a756b89ef162d036921702cc4090df327",
+        "src/core/i18n/messages/source-lock.json": "21534e7c9a67e113bb745f4c4a38f10efacb9082437cb4a4619bdaa95f945fe1",
+        "src/core/i18n/messages/tr.ts": "7aad767467bf362d78a0e9689ae1c5264dc04911db05156a77f65d73090590bd",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "6129b47abd8d087d1617faeaf9f82374368fdf8ee4d5a520deba9c8706e44f1c",
-        "src/core/i18n/messages/zh-CN.ts": "9c100732e5e76f5547c15497b2f3e9f9341cc933ad9577b8b91f26debd0caeae",
+        "src/core/i18n/messages/uk.ts": "beea2ebf50c7f1dd6d9cfd49cd0309dc9a092977418e10734a42c0c29ba1ebe7",
+        "src/core/i18n/messages/zh-CN.ts": "0e9a733defa80cd17c86e57b655adfb4480b994b1364c411c50db34a8ef5db3f",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -448,7 +448,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
-        "src/web/lib/api.ts": "20434760c4a885ce04fd9dbe6c3ae74560dea012596ea47ede4e24a9bc3ef688",
+        "src/web/lib/api.ts": "6eafcc32d8a5df4015da2b7c613252297d31130820de5ec5a700f1463ddb740c",
         "src/web/lib/approval.ts": "a4a0c243dffb957201a8c380c6d19769919736307029f05d976b4f6610fef060",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -495,7 +495,7 @@
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
         "src/web/pages/settings/system-tab.tsx": "c4a4982336f7b2bc6ff4602a495feccd462c4b337915d464625521c9bf41f225",
         "src/web/pages/settings/tabs.ts": "6357a22ef5a0417e789f5f0c29bccc64093e5a519c5252e0f238138fe6ea4e28",
-        "src/web/pages/settings/targets-tab.tsx": "a5133ab80a2919021b414bb83f76cfe40b35ccb2b6cfc0fd8e2d6c91aa4257e5",
+        "src/web/pages/settings/targets-tab.tsx": "8702767a39d95377a20532356a7368007cde32d903b5b45999be5e811d9de222",
         "src/web/pages/settings/types.ts": "fd701cb112b64dd6c1de1c3cf5c25fc395772dbb705f202a76326fd5d2757a71",
         "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
         "src/web/pages/subscriptions.tsx": "0c7c7c6d4d5a4754fc0681c00d07cd805a51fa48bacca067d2486803db21fe8d",
@@ -503,14 +503,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "ac709164e30890316fb7222fb95181c896f6c895688fe2f046c3a0eee487f64b",
+      "digest": "d0d7c24a09abe622957b506c3d3974478d62adce8d74c38d52e1e0a80631c6bd",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/OPERATIONS.md", "docs/SCREENSHOTS.md", "CHANGELOG.md"],
         "note": "Review combined Library/System navigation and Lidarr monitor/tag controls with saved-only Connections, searchable picker, keyboard focus, experimental visibility and moved Artist images fields with unchanged save scopes; mark historical screenshots accurately.",
         "breaking": "none",
         "migration": "",
-        "digest": "ac709164e30890316fb7222fb95181c896f6c895688fe2f046c3a0eee487f64b"
+        "digest": "d0d7c24a09abe622957b506c3d3974478d62adce8d74c38d52e1e0a80631c6bd"
       }
     },
     "features": {
@@ -528,7 +528,7 @@
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
-        "src/core/clients/lidarr.ts": "93707c7b08d5220e2435db3027bac4636cad1052408799a496eaaf67b279856c",
+        "src/core/clients/lidarr.ts": "5ccd301db48fcf530f644d01904385808cfe283d6b3b73b8184e70330f971412",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
@@ -670,7 +670,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "3499ee134874f9d5dae8321c99075cfa06799ccc440a7969acddc9da8d3d54fb",
+        "src/core/slskd/orchestrator.ts": "a33e94e8e2a3a89f43db35484841b32dc03d8ceb1e622ed70404f435e12dc565",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -706,7 +706,7 @@
         "src/core/targets/saved-playlist-targets.ts": "811d2ca1198c4f17dff7ed08d9e6b9fd0c5a2d3937dd58b2d436f614af8cb74d",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
-        "src/core/targets/test-connection.ts": "6d5b3dd8c988923db8f4efc322db9c1e0983b3e2d99abef67c65c403e0887ac1",
+        "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
         "src/core/targets/types.ts": "4407cefaec67d956f1be13e400c58985023dae85ea40fc6d0f474b612d1953b2",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
@@ -715,14 +715,14 @@
         "src/index.ts": "3a68f55396b3f6cc872c681311656c624979ecaa438a605078608c89396103cb",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "edd98bb24e998801e4a030cf5b738f06ebbb9934aa9b9ecc724268f983f0428c",
+      "digest": "038c5497bbd5d2e00dd93c03d8b82732f1a74b4bc545482e6ba484cef8fe5486",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Review combined Lidarr monitor/tag behavior with startup compatibility and visibility-only filtering; existing direct search and scheduled integrations continue working and new setup defaults and image save ownership are documented.",
         "breaking": "none",
         "migration": "",
-        "digest": "edd98bb24e998801e4a030cf5b738f06ebbb9934aa9b9ecc724268f983f0428c"
+        "digest": "038c5497bbd5d2e00dd93c03d8b82732f1a74b4bc545482e6ba484cef8fe5486"
       }
     },
     "deployment": {

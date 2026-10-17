@@ -1,4 +1,11 @@
 export const tr = {
+  'settings.slskdSearchInterval': 'Aramalar arasındaki en kısa süre, saniye (1-60, varsayılan 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',
+  'settings.slskdPathIncomplete':
+    'İndirme yolu tamamlanmamış indirmeler klasörüne benziyor. Tamamlanmış indirmeler klasörünü kullan.',
+  'settings.slskdPathOk':
+    'slskd bağlantısı kuruldu - Lidarr indirme klasörünü görüyor. Tamamlanmış indirmelerinin burada olduğunu kontrol et.',
   'tokens.title': 'API belirteçleri',
   'tokens.description': 'Betiklerine iptal edebileceğin ayrı kimlik bilgileri ver.',
   'tokens.passwordWarning':
