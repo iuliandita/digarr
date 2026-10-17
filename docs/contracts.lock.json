@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -194,11 +191,7 @@
       "digest": "605415ffb9bd906bbd016343eab966729e2be3791f640eca251208bc4bfa998f",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
         "note": "Migration 0056 adds nullable album_blocks.album_title (IF NOT EXISTS); permanent album rejects store the recommendation's release-group title; full backups carry the column through the generic table restore, older backups restore it as null. rejectRecommendation now reports whether it created the block (query-only). Applied 0056 twice against an isolated test database and ran a DB-gated test for title storage and blockCreated. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. Also: Query-only changes, no schema migration: user deletion now also deletes that user's job_runs in the same transaction (documented in AUTHENTICATION.md); recommendation dedup queries release rejections past the cooldown; pending slskd jobs list oldest first. Backup, restore, and backend migration formats are unchanged. Also: Type-only change: tolerant pre-migration snapshots are typed with optional table keys; snapshot contents, restore and backend copy behavior are unchanged. A permanent reject of an already blocked artist keeps the existing block untouched.",
         "breaking": "none",
         "migration": "Additive nullable column, safe to re-run. The automatic pre-migration backup covers it. Older images ignore the column, so an image rollback needs no restore; restore the pre-migration backup with the previous image only for an exact pre-upgrade database. Live upgrade from a production database was not tested.",
@@ -501,10 +494,7 @@
       "digest": "2b2798e6dfdf34d60d830cf2ad98cf3ea9032e5bda0d5b7fa0f00a61f41dc472",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
         "note": "Theme pre-paint script moved to a same-origin file (verified served under script-src 'self' with no console error on a production build), setup AI skip and field hints, blocked album titles, stack paging, undo keeps pre-existing blocks, Library Health lastError and healthy zero-count checks, playlist scheduling switch, touch targets and contrast. All strings in 15 catalogs; i18n:check passes. OPERATIONS.md updated for library health and playlist scheduling; README and API docs updated in the same branch. Screenshots not refreshed. Also: Playlists header reports a paused schedule when the global switch is off and enabled playlists have different schedules; the operations guide no longer describes the old No schedule configured quirk. The playlist scheduling switch also refreshes cached settings so later saves do not undo it.",
         "breaking": "none",
         "migration": "",
@@ -792,9 +782,7 @@
       "digest": "9b44657b2aa74321d9e967f215050dadf5d288d088f8cfcbcce2ef96bf7b8d7a",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "ci.yml only adds the new DB-gated tests/db/queries/reject-block-created.test.ts to the existing serial PostgreSQL integration step; no release, tagging, image or approval behavior changes. Also: The advisory macOS Colima compatibility job runs only on the weekly schedule and manual dispatch; the changelog records it and CONTRIBUTING.md and docs/MAINTENANCE.md say when to dispatch it by hand.",
         "breaking": "none",
         "migration": "",
@@ -832,10 +820,7 @@
       "digest": "4eca985808964aaf7161dff0bbaab5938f591aa48375dd7fe0a7b18b0f744974",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CONTRIBUTING.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["CONTRIBUTING.md", "CHANGELOG.md"],
         "note": "The i18n check now also rejects placeholder and long-hyphen characters in src/web string literals and JSX text; CONTRIBUTING and the i18n README describe the rule. Also bumped the postgres:17-alpine digest used by the local dev setup script to match the deploy pins.",
         "breaking": "none",
         "migration": "",
