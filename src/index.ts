@@ -50,7 +50,7 @@ import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './co
 import { withPlaylistLock } from './core/playlists/generation-lock'
 import { generatePlaylist, playlistGenerationFailure } from './core/playlists/generator'
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
-import { PlaylistScheduler } from './core/playlists/scheduler'
+import { PlaylistScheduler, schedulePlaylists } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
 import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
@@ -1154,20 +1154,13 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
 }
 
 async function restartPlaylistScheduler(): Promise<void> {
-  playlistScheduler.stopAll()
-
   const settings = await getSettings(db)
-  const prefs = mergePreferences(settings?.preferences)
-  if (!prefs.playlistEnabled) return
-
-  const playlists = await getEnabledPlaylists(db)
-  for (const playlist of playlists) {
-    if (!playlist.schedule) continue
-
-    playlistScheduler.schedule(`playlist-${playlist.id}`, playlist.schedule, async () => {
-      await executePlaylistGeneration(playlist.id)
-    })
-  }
+  const enabled = mergePreferences(settings?.preferences).playlistEnabled ?? false
+  schedulePlaylists(playlistScheduler, {
+    enabled,
+    playlists: enabled ? await getEnabledPlaylists(db) : [],
+    generate: executePlaylistGeneration,
+  })
 }
 
 let librarySyncCron: Cron | null = null

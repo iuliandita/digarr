@@ -46,6 +46,7 @@ function formatSchedulerSubtitle(info: {
   nextRun: string | null
   cron: string | null
   enabled: boolean
+  hasSchedules: boolean
 }): string {
   if (info.enabled && info.nextRun) {
     return `${info.t('playlists.nextGeneration')} ${formatNextRun(info.locale, info.nextRun)}`
@@ -54,7 +55,8 @@ function formatSchedulerSubtitle(info: {
     const label = getCronLabels(info.t)[info.cron] ?? info.cron
     return `${info.t('playlists.scheduled')}: ${label}`
   }
-  if (!info.enabled && info.cron) {
+  // The scheduler reports one cron only when every playlist shares it.
+  if (!info.enabled && (info.cron || info.hasSchedules)) {
     return info.t('playlists.schedulePaused')
   }
   return info.t('playlists.noScheduleConfigured')
@@ -164,7 +166,12 @@ export function PlaylistsPage() {
           <h1 className="text-lg font-semibold text-text">{t('playlists.title')}</h1>
           <p className="text-xs text-muted mt-0.5">
             {schedulerInfo
-              ? formatSchedulerSubtitle({ ...schedulerInfo, locale, t })
+              ? formatSchedulerSubtitle({
+                  ...schedulerInfo,
+                  hasSchedules: playlists.some((playlist) => playlist.enabled && playlist.schedule),
+                  locale,
+                  t,
+                })
               : t('playlists.automaticDigestGeneration')}
           </p>
         </div>
