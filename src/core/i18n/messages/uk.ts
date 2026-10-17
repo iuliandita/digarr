@@ -1,4 +1,11 @@
 export const uk = {
+  'settings.slskdSearchInterval': 'Мінімальний інтервал між пошуками в секундах (1-60, типово 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr не може знайти або прочитати теку завантажень. Перевір монтування та права на читання.',
+  'settings.slskdPathIncomplete':
+    'Шлях схожий на теку незавершених завантажень. Використовуй теку завершених завантажень.',
+  'settings.slskdPathOk':
+    'Підключено до slskd - Lidarr бачить теку завантажень. Перевір, чи містить вона твої завершені завантаження.',
   'tokens.title': 'Токени API',
   'tokens.description': 'Створи для своїх скриптів окремі облікові дані, які можна відкликати.',
   'tokens.passwordWarning':
@@ -1787,6 +1794,10 @@ export const uk = {
   'settings.channels.description':
     'Надсилай сповіщення про завершення сканування та зведення до одного чи кількох каналів.',
   'settings.channels.add': 'Додати канал',
+  'settings.channels.addConfirm': 'Додати',
+  'settings.channels.summary': 'Каналів: {0}, увімкнено: {1}',
+  'settings.channels.summarySingle': '1 канал, увімкнено: {0}',
+  'settings.channels.disabled': 'Вимкнено',
   'settings.channels.empty': 'Канали ще не налаштовано.',
   'settings.channels.type': 'Тип',
   'settings.channels.enabled': 'Увімкнено',

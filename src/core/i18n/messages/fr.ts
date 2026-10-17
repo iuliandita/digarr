@@ -1,4 +1,12 @@
 export const fr = {
+  'settings.slskdSearchInterval':
+    'Intervalle minimal entre recherches en secondes (1-60, défaut 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr ne peut pas trouver ou lister le chemin de téléchargement. Vérifie ton montage et les droits de lecture.',
+  'settings.slskdPathIncomplete':
+    'Le chemin ressemble à un dossier de téléchargements incomplets. Utilise ton dossier de téléchargements terminés.',
+  'settings.slskdPathOk':
+    'Connecté à slskd - Lidarr voit le dossier de téléchargement. Vérifie que tes téléchargements terminés y sont.',
   'tokens.title': 'Jetons API',
   'tokens.description': 'Donne à tes scripts leurs propres identifiants révocables.',
   'tokens.passwordWarning':
@@ -1807,6 +1815,10 @@ export const fr = {
   'settings.channels.description':
     "Envoie des notifications de fin d'analyse et de résumé vers un ou plusieurs canaux.",
   'settings.channels.add': 'Ajouter un canal',
+  'settings.channels.addConfirm': 'Ajouter',
+  'settings.channels.summary': '{0} canaux, {1} activés',
+  'settings.channels.summarySingle': '1 canal, {0} activé',
+  'settings.channels.disabled': 'Désactivé',
   'settings.channels.empty': "Aucun canal configuré pour l'instant.",
   'settings.channels.type': 'Type de canal',
   'settings.channels.enabled': 'Activé',

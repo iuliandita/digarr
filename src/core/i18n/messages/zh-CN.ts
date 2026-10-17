@@ -1,4 +1,9 @@
 export const zhCN = {
+  'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
+  'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
+  'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
+  'settings.slskdPathOk':
+    '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',
   'tokens.title': 'API 令牌',
   'tokens.description': '为你的脚本创建可随时撤销的专用凭据。',
   'tokens.passwordWarning':
@@ -1653,6 +1658,10 @@ export const zhCN = {
   'settings.channels.title': '通知',
   'settings.channels.description': '将扫描完成和摘要通知发送到一个或多个渠道。',
   'settings.channels.add': '添加渠道',
+  'settings.channels.addConfirm': '添加',
+  'settings.channels.summary': '{0} 个渠道，{1} 个已启用',
+  'settings.channels.summarySingle': '1 个渠道，{0} 个已启用',
+  'settings.channels.disabled': '已禁用',
   'settings.channels.empty': '尚未配置任何渠道。',
   'settings.channels.type': '类型',
   'settings.channels.enabled': '已启用',

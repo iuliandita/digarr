@@ -1,4 +1,11 @@
 export const en = {
+  'settings.slskdSearchInterval': 'Minimum search gap in seconds (1-60, default 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr cannot find or list the download path. Check your mount and read permissions.',
+  'settings.slskdPathIncomplete':
+    'The download path looks like an incomplete folder. Use your completed-downloads folder.',
+  'settings.slskdPathOk':
+    'Connected to slskd - Lidarr can see the download folder. Check that it contains your completed downloads.',
   'tokens.title': 'API tokens',
   'tokens.description': 'Give your scripts their own revocable credential.',
   'tokens.passwordWarning':
@@ -1842,6 +1849,10 @@ export const en = {
   'settings.channels.description':
     'Send scan-complete and digest notifications to one or more channels.',
   'settings.channels.add': 'Add channel',
+  'settings.channels.addConfirm': 'Add',
+  'settings.channels.summary': '{0} channels, {1} enabled',
+  'settings.channels.summarySingle': '1 channel, {0} enabled',
+  'settings.channels.disabled': 'Disabled',
   'settings.channels.empty': 'No channels configured yet.',
   'settings.channels.type': 'Type',
   'settings.channels.enabled': 'Enabled',

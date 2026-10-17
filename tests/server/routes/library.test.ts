@@ -304,6 +304,7 @@ const mockLidarrClient = {
   setArtistsMonitored: vi.fn(async () => []),
   setAlbumsMonitored: vi.fn(async () => []),
   triggerCommand: vi.fn(async () => ({ id: 0, name: '', status: '' })),
+  canListPath: vi.fn(async () => true),
   testConnection: vi.fn(async () => ({ success: true, message: 'ok' })),
 }
 

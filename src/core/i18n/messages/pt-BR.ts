@@ -1,4 +1,11 @@
 export const ptBR = {
+  'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
+  'settings.slskdPathUnavailable':
+    'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
+  'settings.slskdPathIncomplete':
+    'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
+  'settings.slskdPathOk':
+    'Conectado ao slskd - O Lidarr vê a pasta de download. Confira se ela contém seus downloads concluídos.',
   'tokens.title': 'Tokens de API',
   'tokens.description': 'Dê aos seus scripts credenciais próprias que você pode revogar.',
   'tokens.passwordWarning':
@@ -1796,6 +1803,10 @@ export const ptBR = {
   'settings.channels.description':
     'Envie notificações de conclusão de varredura e de resumo para um ou mais canais.',
   'settings.channels.add': 'Adicionar canal',
+  'settings.channels.addConfirm': 'Adicionar',
+  'settings.channels.summary': '{0} canais, {1} ativados',
+  'settings.channels.summarySingle': '1 canal, {0} ativado',
+  'settings.channels.disabled': 'Desativado',
   'settings.channels.empty': 'Nenhum canal configurado ainda.',
   'settings.channels.type': 'Tipo',
   'settings.channels.enabled': 'Ativado',

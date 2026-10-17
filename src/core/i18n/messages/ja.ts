@@ -1,4 +1,11 @@
 export const ja = {
+  'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
+  'settings.slskdPathIncomplete':
+    'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
+  'settings.slskdPathOk':
+    'slskd に接続しました - Lidarr からダウンロードフォルダーが見えます。完了済みのダウンロードが入っているか確認してください。',
   'tokens.title': 'APIトークン',
   'tokens.description': 'スクリプト専用の取り消し可能な認証情報を作成できます。',
   'tokens.passwordWarning':
@@ -1777,6 +1784,10 @@ export const ja = {
   'settings.channels.description':
     'スキャン完了通知とダイジェスト通知を1つ以上のチャンネルに送信します。',
   'settings.channels.add': 'チャンネルを追加',
+  'settings.channels.addConfirm': '追加',
+  'settings.channels.summary': 'チャンネル {0} 件、有効 {1} 件',
+  'settings.channels.summarySingle': 'チャンネル 1 件、有効 {0} 件',
+  'settings.channels.disabled': '無効',
   'settings.channels.empty': 'まだチャンネルが設定されていません。',
   'settings.channels.type': '種類',
   'settings.channels.enabled': '有効',

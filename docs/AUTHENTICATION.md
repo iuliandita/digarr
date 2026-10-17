@@ -191,7 +191,9 @@ callback requires it. The transaction is one-time (consumed on the callback),
 expires after 10 minutes, and is safe across multiple concurrent tabs, since
 each login mints its own state-scoped entry. Pending transactions are
 capacity-capped so an unbounded stream of login redirects cannot exhaust
-memory. `GET /api/v1/auth/oidc/login` is rate limited to 10 requests per minute
+memory. All in-memory rate limiters key on the client IP, with the authenticated user ID appended when available. Behind a reverse proxy, set `PROXY_AUTH_TRUSTED_PROXIES` to the proxy socket IPs or CIDRs so clients get separate budgets. Only a trusted socket peer may supply `X-Forwarded-For`; Digarr uses the right-most untrusted hop. Direct or untrusted peers, missing headers, and invalid forwarded chains use the socket IP. Limits and windows are unchanged.
+
+`GET /api/v1/auth/oidc/login` is rate limited to 10 requests per minute
 per IP; `GET /api/v1/auth/oidc/callback` is not rate limited, because it
 consumes the one-time transaction cookie the login step set.
 

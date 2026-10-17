@@ -829,7 +829,10 @@ export const updateTargetApi = (
 ) => fetchApi(`/targets/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 export const deleteTargetApi = (id: number) => fetchApi(`/targets/${id}`, { method: 'DELETE' })
 export const testTargetApi = (id: number) =>
-  fetchApi<{ success: boolean; message: string }>(`/targets/${id}/test`, { method: 'POST' })
+  fetchApi<{ success: boolean; message: string; details?: { messageKey?: string } }>(
+    `/targets/${id}/test`,
+    { method: 'POST' },
+  )
 
 // Target-aware approve
 export async function approveToTarget(

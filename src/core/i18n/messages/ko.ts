@@ -1,4 +1,11 @@
 export const ko = {
+  'settings.slskdSearchInterval': '검색 사이 최소 간격, 초 (1-60, 기본값 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr가 다운로드 경로를 찾거나 목록을 읽을 수 없습니다. 마운트와 읽기 권한을 확인해 주세요.',
+  'settings.slskdPathIncomplete':
+    '다운로드 경로가 미완료 폴더로 보입니다. 완료된 다운로드 폴더를 사용해 주세요.',
+  'settings.slskdPathOk':
+    'slskd에 연결됨 - Lidarr에서 다운로드 폴더가 보입니다. 완료된 다운로드가 들어 있는지 확인해 주세요.',
   'tokens.title': 'API 토큰',
   'tokens.description': '스크립트마다 취소할 수 있는 별도 인증 정보를 만들어 주세요.',
   'tokens.passwordWarning':
@@ -1751,6 +1758,10 @@ export const ko = {
   'settings.channels.title': '알림',
   'settings.channels.description': '스캔 완료 및 요약 알림을 하나 이상의 채널로 보냅니다.',
   'settings.channels.add': '채널 추가',
+  'settings.channels.addConfirm': '추가',
+  'settings.channels.summary': '채널 {0}개, 활성화 {1}개',
+  'settings.channels.summarySingle': '채널 1개, 활성화 {0}개',
+  'settings.channels.disabled': '비활성화됨',
   'settings.channels.empty': '아직 구성된 채널이 없습니다.',
   'settings.channels.type': '유형',
   'settings.channels.enabled': '활성화됨',

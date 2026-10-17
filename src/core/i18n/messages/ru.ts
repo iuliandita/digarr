@@ -1,4 +1,12 @@
 export const ru = {
+  'settings.slskdSearchInterval':
+    'Минимальный интервал между поисками в секундах (1-60, по умолчанию 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr не может найти или прочитать папку загрузки. Проверь монтирование и права на чтение.',
+  'settings.slskdPathIncomplete':
+    'Путь похож на папку незавершённых загрузок. Используй папку завершённых загрузок.',
+  'settings.slskdPathOk':
+    'Подключено к slskd - Lidarr видит папку загрузки. Проверь, что в ней находятся твои завершённые загрузки.',
   'tokens.title': 'Токены API',
   'tokens.description':
     'Создай для своих скриптов отдельные учётные данные, которые можно отозвать.',
@@ -1796,6 +1804,10 @@ export const ru = {
   'settings.channels.description':
     'Отправляй уведомления о завершении сканирования и сводки в один или несколько каналов.',
   'settings.channels.add': 'Добавить канал',
+  'settings.channels.addConfirm': 'Добавить',
+  'settings.channels.summary': 'Каналов: {0}, включено: {1}',
+  'settings.channels.summarySingle': '1 канал, включено: {0}',
+  'settings.channels.disabled': 'Выключено',
   'settings.channels.empty': 'Каналы ещё не настроены.',
   'settings.channels.type': 'Тип',
   'settings.channels.enabled': 'Включено',

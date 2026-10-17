@@ -1,4 +1,11 @@
 export const ro = {
+  'settings.slskdSearchInterval': 'Interval minim între căutări în secunde (1-60, implicit 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',
+  'settings.slskdPathIncomplete':
+    'Calea pare un dosar cu descărcări incomplete. Folosește dosarul tău cu descărcări finalizate.',
+  'settings.slskdPathOk':
+    'Conectat la slskd - Lidarr vede dosarul de descărcare. Verifică dacă acesta conține descărcările tale finalizate.',
   'tokens.title': 'Tokenuri API',
   'tokens.description': 'Dă-le scripturilor tale propriile credențiale pe care le poți revoca.',
   'tokens.passwordWarning':
@@ -1796,6 +1803,10 @@ export const ro = {
   'settings.channels.description':
     'Trimite notificări de finalizare a scanării și rezumate către unul sau mai multe canale.',
   'settings.channels.add': 'Adaugă canal',
+  'settings.channels.addConfirm': 'Adaugă',
+  'settings.channels.summary': '{0} canale, {1} activate',
+  'settings.channels.summarySingle': '1 canal, {0} activ',
+  'settings.channels.disabled': 'Dezactivat',
   'settings.channels.empty': 'Niciun canal configurat încă.',
   'settings.channels.type': 'Tip',
   'settings.channels.enabled': 'Activat',

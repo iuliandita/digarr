@@ -1,4 +1,12 @@
 export const nl = {
+  'settings.slskdSearchInterval':
+    'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
+  'settings.slskdPathUnavailable':
+    'Lidarr kan het downloadpad niet vinden of weergeven. Controleer je koppeling en leesrechten.',
+  'settings.slskdPathIncomplete':
+    'Het downloadpad lijkt een map voor onvoltooide downloads. Gebruik je map voor voltooide downloads.',
+  'settings.slskdPathOk':
+    'Verbonden met slskd - Lidarr ziet de downloadmap. Controleer of je voltooide downloads erin staan.',
   'tokens.title': 'API-tokens',
   'tokens.description': 'Geef je scripts hun eigen intrekbare inloggegevens.',
   'tokens.passwordWarning':
@@ -1792,6 +1800,10 @@ export const nl = {
   'settings.channels.description':
     'Stuur meldingen bij voltooiing van een scan en samenvattingen naar een of meer kanalen.',
   'settings.channels.add': 'Kanaal toevoegen',
+  'settings.channels.addConfirm': 'Toevoegen',
+  'settings.channels.summary': '{0} kanalen, {1} ingeschakeld',
+  'settings.channels.summarySingle': '1 kanaal, {0} ingeschakeld',
+  'settings.channels.disabled': 'Uitgeschakeld',
   'settings.channels.empty': 'Nog geen kanalen geconfigureerd.',
   'settings.channels.type': 'Soort',
   'settings.channels.enabled': 'Ingeschakeld',
