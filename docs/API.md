@@ -414,6 +414,7 @@ Approval notes:
 - `selectedAlbumIds` contains MusicBrainz release-group MBIDs when `monitorOption` is `selected`; clients may omit it for `popular` because Digarr resolves the top albums server-side.
 - For artist recommendations, use `approvalMode: "combined_lidarr_slskd"` with an `slskd-*` `targetId` to add to Lidarr first and then queue the matched release in `slskd`
 - `lidarrTargetId` is optional; when the selected `slskd` target is linked to a Lidarr target, Digarr uses that linked target as the fallback, and an explicit `lidarrTargetId` only overrides that default
+- `qualityProfileId`, `metadataProfileId` and `rootFolderId` apply only to one Lidarr target: the Lidarr `targetId`, else `lidarrTargetId`, else the only enabled Lidarr target. Without one of those they are ignored. Other Lidarr targets use their own defaults (see [Targets](#targets))
 - approving a `kind: "album"` recommendation with a release-group ID routes to targets with the `addAlbum` capability: it adds the artist **unmonitored** (no whole-discography grab, and reuses the artist if already tracked), then monitors and searches only the approved album. `monitorOption` / `selectedAlbumIds` are ignored for album recs since the album is resolved from `recommendedReleaseGroupId`
 - Legacy album rows without a release-group ID fall back to artist approval. Album dispatch does not perform the combined Lidarr-then-slskd sequence. Use `single_target` for individual albums, because combined-mode prerequisites can reject a request before dispatch.
 - After validation, album approval calls every enabled `addAlbum` target, or the selected `targetId`. Explicit target selection currently requires `addArtist` too; an album-only target cannot be selected this way. With no album-capable target, the result is `add_failed` with empty `targetActions`. The no-target artist path instead returns `approved`.
@@ -651,7 +652,9 @@ Create and update accept an optional positive integer `userId` to assign the tar
 
 A linked `slskd` target requires an enabled Lidarr target assigned to the same user. To move a linked pair, clear `lidarrTargetId` first, reassign both targets, then restore the link. Active jobs for the previous owner stop instead of using the reassigned connections.
 
-Example create body: `{"type":"lidarr","name":"Music","userId":2,"config":{"url":"http://lidarr:8686","apiKey":"<key>"}}`.
+Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lidarr URL, API key, TLS setting and default profiles from Settings > Connections, resolved when the target is used; nothing else is stored, and any `url`/`apiKey` sent with it is dropped. A separate instance stores its own `url`, `apiKey`, optional `skipTlsVerify`, and optional positive `qualityProfileId`, `metadataProfileId` and `rootFolderId` from that instance (null clears one). Unset IDs use the instance's first profile or root folder at add time; server-connection defaults are never applied to a separate instance.
+
+Example create bodies: `{"type":"lidarr","name":"Music","userId":2,"config":{"useServerConnection":true}}` and `{"type":"lidarr","name":"Other Lidarr","userId":2,"config":{"url":"http://lidarr2:8686","apiKey":"<key>","rootFolderId":3}}`.
 
 The target test uses the saved provider configuration for `plex-playlist`, `jellyfin-playlist`, `navidrome-playlist`, and `emby-playlist`. Plex playlist export fails before creation when no local tracks resolve or the server identity is missing.
 
@@ -1169,7 +1172,7 @@ Admins can promote other users. First-user admin creation is serialized in the d
 | GET | `/api/v1/lidarr/profiles` | Admin | Quality profiles |
 | GET | `/api/v1/lidarr/metadataprofiles` | Admin | Metadata profiles |
 | GET | `/api/v1/lidarr/rootfolders` | Admin | Root folders |
-| GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names and root-folder paths only (no freeSpace/structure) |
+| GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names, root-folder paths (no freeSpace/structure), and the effective `defaults` IDs. Optional `?targetId=N` loads both from the Lidarr instance that target uses; it must be your own Lidarr target (admins: any), otherwise 404 |
 | POST | `/api/v1/lidarr/add` | Admin | Add artist to Lidarr |
 
 ---

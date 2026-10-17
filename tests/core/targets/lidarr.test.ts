@@ -87,9 +87,16 @@ describe('createLidarrTarget()', () => {
     )
 
     expect(result?.success).toBe(true)
-    expect(client.addArtist).toHaveBeenCalledWith('mbid-rh', 'Radiohead', 1, 1, undefined, {
-      monitorOption: 'none',
-    })
+    expect(client.addArtist).toHaveBeenCalledWith(
+      'mbid-rh',
+      'Radiohead',
+      undefined,
+      undefined,
+      undefined,
+      {
+        monitorOption: 'none',
+      },
+    )
     expect(client.setAlbumsMonitored).toHaveBeenCalledWith([10], true)
     // The monitored album must also be searched, otherwise it is never grabbed.
     expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
@@ -200,5 +207,56 @@ describe('createLidarrTarget()', () => {
     })
     const result = await target.testConnection()
     expect(result.success).toBe(true)
+  })
+
+  it('ignores profile picks scoped to a different Lidarr target', async () => {
+    const client = mockLidarrClient()
+    const target = createLidarrTarget(1, {
+      url: 'http://lidarr:8686',
+      apiKey: 'abc',
+      qualityProfileId: 2,
+    })
+
+    await target.addArtist?.(
+      { mbid: 'mbid-rh', name: 'Radiohead' },
+      {
+        qualityProfileId: 9,
+        metadataProfileId: 9,
+        rootFolderId: 9,
+        lidarrOptionsTargetId: 'lidarr-5',
+      },
+    )
+    expect(client.addArtist).toHaveBeenLastCalledWith(
+      'mbid-rh',
+      'Radiohead',
+      2,
+      undefined,
+      undefined,
+      {
+        monitorOption: 'none',
+      },
+    )
+
+    await target.addArtist?.(
+      { mbid: 'mbid-rh', name: 'Radiohead' },
+      {
+        qualityProfileId: 9,
+        metadataProfileId: 8,
+        rootFolderId: 7,
+        lidarrOptionsTargetId: 'lidarr-1',
+      },
+    )
+    expect(client.addArtist).toHaveBeenLastCalledWith('mbid-rh', 'Radiohead', 9, 8, 7, {
+      monitorOption: 'none',
+    })
+  })
+
+  it('fails loudly when the server connection it references is not configured', async () => {
+    vi.mocked(createLidarrClient).mockClear()
+    const target = createLidarrTarget(1, {})
+    const result = await target.addArtist?.({ mbid: 'mbid-rh', name: 'Radiohead' })
+    expect(result).toMatchObject({ success: false, error: expect.stringMatching(/not configured/) })
+    expect((await target.testConnection()).success).toBe(false)
+    expect(createLidarrClient).not.toHaveBeenCalled()
   })
 })

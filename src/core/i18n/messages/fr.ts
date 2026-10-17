@@ -1682,6 +1682,15 @@ export const fr = {
   'approveDialog.qualityProfile': 'Profil de qualité',
   'approveDialog.metadataProfile': 'Profil de métadonnées',
   'approveDialog.rootFolder': 'Dossier racine',
+  'approveDialog.lidarrOptions': 'Options Lidarr',
+  'settings.targetLidarrServerConnection': 'Lidarr (connexion du serveur)',
+  'settings.targetLidarrServerConnectionHelp':
+    "Utilise l'URL, la clé API et les profils par défaut de Lidarr définis dans Paramètres > Connexions.",
+  'settings.targetLidarrUseOtherInstance': 'Utiliser une autre instance Lidarr',
+  'settings.targetLidarrInstanceDefaults': 'Valeurs par défaut de cette instance',
+  'settings.targetLidarrDefaultsSaveFirst':
+    "Enregistre d'abord la cible, puis modifie-la pour choisir les profils et un dossier racine de cette instance.",
+  'settings.targetLidarrDefaultsUnset': 'Premier disponible',
   'cardStack.counter': '{0} sur {1}',
   'cardStack.swipeHint': 'Glisse à droite pour approuver, à gauche pour rejeter',
   'serviceCard.testConnection': 'Tester la connexion',

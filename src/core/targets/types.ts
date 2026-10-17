@@ -20,6 +20,8 @@ export type TargetAddOptions = {
   qualityProfileId?: number
   metadataProfileId?: number
   rootFolderId?: number
+  /** Lidarr target the profile/folder IDs above were picked for (e.g. `lidarr-3`). */
+  lidarrOptionsTargetId?: string
   userId?: number
   recommendationId?: number
   lidarrArtistId?: number

@@ -507,12 +507,15 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       {!isAdmin ? (
         <div className="space-y-2">
           {settings.lidarrUrl && (
-            <div className="rounded-lg border border-border bg-surface p-3 flex items-center gap-3">
-              <img src="/icons/lidarr.png" alt="" className="w-5 h-5" />
-              <div>
-                <span className="text-sm font-medium text-text">Lidarr</span>
-                <p className="text-xs text-muted">{settings.lidarrUrl as string}</p>
+            <div className="rounded-lg border border-border bg-surface p-3 space-y-3">
+              <div className="flex items-center gap-3">
+                <img src="/icons/lidarr.png" alt="" className="w-5 h-5" />
+                <div>
+                  <span className="text-sm font-medium text-text">Lidarr</span>
+                  <p className="text-xs text-muted">{settings.lidarrUrl as string}</p>
+                </div>
               </div>
+              <LidarrPreferencesSection />
             </div>
           )}
           {settings.aiModel && (
@@ -602,6 +605,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                       : t('settings.configure')}
                 </Button>
               </div>
+              {settings.lidarrUrl && (
+                // Saved separately; keep its picks from marking the connection form unsaved.
+                <div onChange={(e) => e.stopPropagation()}>
+                  <LidarrPreferencesSection />
+                </div>
+              )}
             </ServiceCard>
           </div>
 
@@ -1676,9 +1685,6 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           </div>
         </ServiceCard>
       </div>
-
-      {/* Lidarr Preferences - per-user, visible to all */}
-      {settings.lidarrUrl && <LidarrPreferencesSection />}
     </div>
   )
 }

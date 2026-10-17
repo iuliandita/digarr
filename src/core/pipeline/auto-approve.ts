@@ -28,9 +28,6 @@ export type AutoApproveDeps = {
 type AutoApproveConfig = {
   threshold: number
   monitorOption: 'all' | 'new' | 'none'
-  qualityProfileId: number
-  metadataProfileId: number
-  rootFolderId?: number
 }
 
 export async function autoApprove(
@@ -58,10 +55,8 @@ export async function autoApprove(
   const hasLidarr = targets.some((t) => t.type === 'lidarr')
 
   const addOptions: TargetAddOptions = {
+    // Profile/folder IDs come from each Lidarr target's own defaults.
     monitorOption: config.monitorOption,
-    qualityProfileId: config.qualityProfileId,
-    metadataProfileId: config.metadataProfileId,
-    rootFolderId: config.rootFolderId,
   }
 
   let approved = 0

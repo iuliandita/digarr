@@ -1680,6 +1680,15 @@ export const it = {
   'approveDialog.qualityProfile': 'Profilo qualità',
   'approveDialog.metadataProfile': 'Profilo metadati',
   'approveDialog.rootFolder': 'Cartella radice',
+  'approveDialog.lidarrOptions': 'Opzioni Lidarr',
+  'settings.targetLidarrServerConnection': 'Lidarr (connessione del server)',
+  'settings.targetLidarrServerConnectionHelp':
+    "Usa l'URL, la chiave API e i profili predefiniti di Lidarr da Impostazioni > Connessioni.",
+  'settings.targetLidarrUseOtherInstance': "Usa un'altra istanza di Lidarr",
+  'settings.targetLidarrInstanceDefaults': 'Valori predefiniti per questa istanza',
+  'settings.targetLidarrDefaultsSaveFirst':
+    'Salva prima la destinazione, poi modificala per scegliere profili e una cartella radice da questa istanza.',
+  'settings.targetLidarrDefaultsUnset': 'Primo disponibile',
   'cardStack.counter': '{0} di {1}',
   'cardStack.swipeHint': 'Scorri a destra per approvare, a sinistra per rifiutare',
   'serviceCard.testConnection': 'Testa connessione',

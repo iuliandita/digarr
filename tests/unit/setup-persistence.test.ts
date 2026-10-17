@@ -70,7 +70,8 @@ describe('atomic setup persistence', () => {
       expect.arrayContaining([
         expect.objectContaining({
           type: 'lidarr',
-          config: { url: config.lidarrUrl, apiKey: config.lidarrApiKey, skipTlsVerify: true },
+          // References the server connection instead of copying it (#994).
+          config: { useServerConnection: true },
         }),
         expect.objectContaining({
           type: 'emby-playlist',
@@ -85,8 +86,11 @@ describe('atomic setup persistence', () => {
     expect(rawOwner?.embyApiKey).toMatch(/^enc:v1:/)
     expect(rawSettings?.lidarrApiKey).toMatch(/^enc:v1:/)
     expect(rawSettings?.aiApiKey).toMatch(/^enc:v1:/)
-    for (const target of rawTargets)
-      expect((target.config as Record<string, unknown>).apiKey).toMatch(/^enc:v1:/)
+    for (const target of rawTargets) {
+      const apiKey = (target.config as Record<string, unknown>).apiKey
+      if (target.type === 'lidarr') expect(apiKey).toBeUndefined()
+      else expect(apiKey).toMatch(/^enc:v1:/)
+    }
   })
 
   it.each(['connection', 'target', 'completion'])(

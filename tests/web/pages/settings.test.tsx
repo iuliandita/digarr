@@ -927,12 +927,13 @@ describe('SettingsPage', () => {
       expect(screen.getByDisplayValue('/music')).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Your Lidarr preferences' }))
-    const saveButtons = screen.getAllByRole('button', { name: 'Save' })
-    const preferencesSaveButton = saveButtons.at(-1)
-    expect(preferencesSaveButton).toBeDefined()
-    if (!preferencesSaveButton) return
-    fireEvent.click(preferencesSaveButton)
+    // The defaults live inside the Lidarr connection card now.
+    fireEvent.click(screen.getByRole('button', { name: /^Lidarr/ }))
+    const preferencesToggle = screen.getByRole('button', { name: 'Your Lidarr preferences' })
+    fireEvent.click(preferencesToggle)
+    const preferences = preferencesToggle.parentElement
+    if (!preferences) throw new Error('preferences disclosure not found')
+    fireEvent.click(within(preferences).getByRole('button', { name: 'Save' }))
 
     await waitFor(() => {
       expect(mockUpdateUserPreferences).toHaveBeenCalledWith({
@@ -1418,7 +1419,13 @@ describe('SettingsPage', () => {
         name: 'Updated Lidarr',
         userId: 1,
         enabled: true,
-        config: { url: 'http://lidarr:8686' },
+        config: {
+          url: 'http://lidarr:8686',
+          qualityProfileId: null,
+          metadataProfileId: null,
+          rootFolderId: null,
+          useServerConnection: false,
+        },
       })
     })
   })
@@ -1432,17 +1439,59 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
     await screen.findByRole('option', { name: 'listener' })
     fireEvent.change(screen.getByLabelText('Assigned user'), { target: { value: '2' } })
-    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://lidarr:8686' } })
-    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'key' } })
+    // New Lidarr targets reference the server connection: no URL or key to fill in.
+    expect(screen.queryByLabelText('URL')).toBeNull()
     fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
     await waitFor(() =>
       expect(mockCreateTargetApi).toHaveBeenCalledWith({
         type: 'lidarr',
         userId: 2,
         name: 'Lidarr',
-        config: { url: 'http://lidarr:8686', apiKey: 'key' },
+        config: { useServerConnection: true },
       }),
     )
+  })
+
+  it('creates a Lidarr target for a different instance with its own URL and key', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    fireEvent.click(await screen.findByText('Add Target'))
+    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
+    fireEvent.click(screen.getByLabelText('Use a different Lidarr instance'))
+    fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://other:8686' } })
+    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'key' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+    await waitFor(() =>
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'lidarr',
+        userId: 1,
+        name: 'Lidarr',
+        config: { url: 'http://other:8686', apiKey: 'key', useServerConnection: false },
+      }),
+    )
+  })
+
+  it('labels a server-connection Lidarr target and hides its connection fields', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 1,
+        type: 'lidarr',
+        name: 'Lidarr',
+        enabled: true,
+        owned: true,
+        config: { useServerConnection: true },
+      },
+    ])
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    expect(await screen.findByText('(Lidarr (server connection))')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
+    expect(await screen.findByLabelText('Use a different Lidarr instance')).not.toBeChecked()
+    expect(screen.queryByLabelText('API Key')).toBeNull()
   })
 
   it('lets an admin edit an assigned target without exposing its saved key', async () => {
@@ -1470,7 +1519,13 @@ describe('SettingsPage', () => {
         name: 'Listener Lidarr',
         userId: 2,
         enabled: true,
-        config: { url: 'http://lidarr:8686' },
+        config: {
+          url: 'http://lidarr:8686',
+          qualityProfileId: null,
+          metadataProfileId: null,
+          rootFolderId: null,
+          useServerConnection: false,
+        },
       }),
     )
   })
