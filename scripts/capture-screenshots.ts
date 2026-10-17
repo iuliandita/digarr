@@ -87,7 +87,15 @@ const specs: PageSpec[] = [
   { path: '/analytics', file: 'analytics.png', theme: 'dark' },
   { path: '/settings', file: 'settings.png', theme: 'dark' },
   { path: '/settings?tab=account', file: 'settings-account.png', theme: 'dark' },
-  { path: '/settings?tab=blocked', file: 'settings-blocked.png', theme: 'dark' },
+  {
+    path: '/settings?tab=blocked',
+    file: 'settings-blocked.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.locator('#blocked').scrollIntoViewIfNeeded()
+      await page.waitForTimeout(300)
+    },
+  },
 ]
 
 await mkdir(OUT_DIR, { recursive: true })

@@ -9,7 +9,13 @@ import type {
 import { buildLidarrManualImport } from '@/core/slskd/importer'
 import { selectBestSlskdCandidate } from '@/core/slskd/match-engine'
 import { buildSlskdWorkKey } from '@/core/slskd/runner'
-import { normalizeInteger } from '@/core/slskd/shared'
+import {
+  isFailedRelease,
+  normalizeInteger,
+  readFailedReleases,
+  SLSKD_MAX_AUTO_RETRIES,
+  type SlskdFailedRelease,
+} from '@/core/slskd/shared'
 
 type SlskdPendingJobBase = { id: number }
 type SlskdActiveJobState = 'pending' | 'searching' | 'queued' | 'downloading' | 'import_pending'
@@ -81,6 +87,7 @@ type SlskdSelectedRelease = {
   username: string
   files: SlskdSearchFile[]
   import?: SlskdImportProgress
+  failedReleases?: SlskdFailedRelease[]
 }
 
 type SlskdJobUpdate = {
@@ -207,18 +214,24 @@ function readSelectedRelease(value: Record<string, unknown> | null): SlskdSelect
     }
   }
 
+  const failedReleases = readFailedReleases(value)
   return {
     username,
     files,
     ...(importProgress ? { import: importProgress } : {}),
+    ...(failedReleases.length > 0 ? { failedReleases } : {}),
   }
 }
 
-function persistSelectedRelease(candidate: SlskdSearchResult): SlskdSelectedRelease {
+function persistSelectedRelease(
+  candidate: SlskdSearchResult,
+  failedReleases: SlskdFailedRelease[],
+): SlskdSelectedRelease {
   const files = candidate.files ?? [{ filename: candidate.filename, size: candidate.size }]
   return {
     username: candidate.username,
     files,
+    ...(failedReleases.length > 0 ? { failedReleases } : {}),
   }
 }
 
@@ -297,8 +310,12 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
   }
 
   async function failJob(job: SlskdPendingJob, error: string) {
-    await deps.updateJobState?.(job.id, 'failed', { lastError: error })
-    await updateRecommendationAction(job.recommendationId, job.targetId, 'failed', error)
+    const detail =
+      job.attempts > 1
+        ? `${error} (attempt ${job.attempts} of ${SLSKD_MAX_AUTO_RETRIES + 1})`
+        : error
+    await deps.updateJobState?.(job.id, 'failed', { lastError: detail })
+    await updateRecommendationAction(job.recommendationId, job.targetId, 'failed', detail)
   }
 
   async function intakeWantedReleases() {
@@ -366,6 +383,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
         attempts: job.attempts + 1,
         lastError: null,
       })
+      job.attempts += 1
       const search = await slskd.createSearch(searchQuery)
       searchId = normalizeString(search.id)
       if (!searchId) throw new Error(`slskd search did not return an id for job ${job.id}`)
@@ -375,15 +393,18 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     const searchAgeMs = Date.now() - new Date(job.updatedAt).getTime()
     const timedOut = job.slskdSearchId != null && searchAgeMs > SEARCH_MAX_AGE_MS
     const complete = slskd.isSearchComplete ? await slskd.isSearchComplete(searchId) : null
-    const results = await slskd.getSearchResults(searchId)
+    const failedReleases = readFailedReleases(job.selectedResult)
+    const found = await slskd.getSearchResults(searchId)
+    const results = found.filter((candidate) => !isFailedRelease(candidate, failedReleases))
     if (results.length === 0) {
       if (complete === true || timedOut) {
-        await failJob(
-          job,
-          complete
-            ? 'slskd search finished with no results'
-            : 'slskd search timed out with no results',
-        )
+        const reason =
+          found.length > 0
+            ? 'slskd search only found releases that already failed'
+            : complete
+              ? 'slskd search finished with no results'
+              : 'slskd search timed out with no results'
+        await failJob(job, reason)
       }
       return
     }
@@ -413,7 +434,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
       confidence: selected.confidence,
       slskdSearchId: searchId,
       slskdQueueId: enqueue.batch.id,
-      selectedResult: persistSelectedRelease(selected.candidate),
+      selectedResult: persistSelectedRelease(selected.candidate, failedReleases),
       lastError: null,
     })
     await updateRecommendationAction(job.recommendationId, job.targetId, 'queued')

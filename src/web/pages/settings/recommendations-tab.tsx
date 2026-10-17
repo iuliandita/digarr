@@ -1,9 +1,11 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
 import { setAudiodbProxyFlag } from '../../components/artist-thumb'
+import { BlockedAlbumsTab } from '../../components/blocked-albums-tab'
+import { BlockedArtistsTab } from '../../components/blocked-artists-tab'
 import { Field } from '../../components/field'
 import { Hint } from '../../components/hint'
 import { Button } from '../../components/ui/button'
@@ -12,6 +14,8 @@ import { Input } from '../../components/ui/input'
 import {
   getSettings,
   getUserPreferences,
+  listAlbumBlocks,
+  listArtistBlocks,
   updateSettings,
   updateUserPreferences,
 } from '../../lib/api'
@@ -19,6 +23,58 @@ import { useI18n } from '../../lib/i18n'
 import { prefersReducedMotion } from '../../lib/utils'
 import { SliderField } from './shared'
 import type { Settings } from './types'
+
+const BLOCKED_COUNT_KEY = ['blocked-count']
+
+function BlockedSection() {
+  const { t } = useI18n()
+  const { hash } = useLocation()
+  const queryClient = useQueryClient()
+  const ref = useRef<HTMLDivElement>(null)
+  const linked = hash === '#blocked'
+  const [open, setOpen] = useState(linked)
+  const { data: count } = useQuery({
+    queryKey: BLOCKED_COUNT_KEY,
+    queryFn: async () => {
+      const [artists, albums] = await Promise.all([
+        listArtistBlocks({ limit: 200 }),
+        listAlbumBlocks(),
+      ])
+      return `${artists.items.length + albums.items.length}${artists.nextCursor ? '+' : ''}`
+    },
+  })
+
+  useEffect(() => {
+    if (!linked) return
+    setOpen(true)
+    ref.current?.scrollIntoView?.({
+      block: 'start',
+      behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+    })
+  }, [linked])
+
+  const refreshCount = () => void queryClient.invalidateQueries({ queryKey: BLOCKED_COUNT_KEY })
+
+  return (
+    <div ref={ref} className="scroll-mt-24">
+      <Disclosure
+        id="blocked"
+        open={open}
+        onOpenChange={setOpen}
+        title={
+          count === undefined
+            ? t('settings.tabs.blocked')
+            : `${t('settings.tabs.blocked')} - ${count}`
+        }
+      >
+        <div className="space-y-8">
+          <BlockedArtistsTab onChange={refreshCount} />
+          <BlockedAlbumsTab onChange={refreshCount} />
+        </div>
+      </Disclosure>
+    </div>
+  )
+}
 
 export function RecommendationsTab({ isAdmin }: { isAdmin: boolean }) {
   const { t } = useI18n()
@@ -475,6 +531,8 @@ function RecommendationsTabInner({
       <Button onClick={handleSave} disabled={saving}>
         {saving ? t('settings.saving') : t('settings.save')}
       </Button>
+
+      <BlockedSection />
     </div>
   )
 }

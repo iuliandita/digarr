@@ -697,6 +697,7 @@ export const ro = {
   'analytics.noDiscoveryBatches':
     'Încă nu există loturi de descoperire. Rulează o scanare pentru a vedea istoricul tău aici.',
   'analytics.batchHistory': 'Istoricul lotului',
+  'analytics.moreCharts': 'Mai multe grafice',
   'analytics.pageRange': '{start}-{end} din {total}',
   'analytics.scoreDistribution': 'Distribuția scorului',
   'analytics.noScoreData': 'Nu există date despre scor încă',
@@ -1275,6 +1276,7 @@ export const ro = {
   'settings.emailSaved': 'E-mail actualizat',
   'settings.emailTaken': 'Acest e-mail este deja folosit',
   'settings.changePassword': 'Schimbă parola',
+  'settings.security': 'Securitate',
   'settings.currentPassword': 'Parola curentă',
   'settings.newPassword': 'Parolă nouă',
   'settings.confirmNewPassword': 'Confirmă parola nouă',

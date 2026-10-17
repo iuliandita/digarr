@@ -697,6 +697,7 @@ export const fr = {
   'analytics.noDiscoveryBatches':
     "Aucun lot de découverte pour le moment. Lance un scan pour voir l'historique ici.",
   'analytics.batchHistory': 'Historique des lots',
+  'analytics.moreCharts': 'Plus de graphiques',
   'analytics.pageRange': '{start}-{end} sur {total}',
   'analytics.scoreDistribution': 'Distribution des scores',
   'analytics.noScoreData': 'Pas encore de données de score',
@@ -1276,6 +1277,7 @@ export const fr = {
   'settings.emailSaved': 'E-mail mis à jour',
   'settings.emailTaken': 'Cet e-mail est déjà utilisé',
   'settings.changePassword': 'Changer le mot de passe',
+  'settings.security': 'Sécurité',
   'settings.currentPassword': 'Mot de passe actuel',
   'settings.newPassword': 'Nouveau mot de passe',
   'settings.confirmNewPassword': 'Confirmer le nouveau mot de passe',

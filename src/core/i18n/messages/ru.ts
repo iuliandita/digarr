@@ -697,6 +697,7 @@ export const ru = {
   'analytics.noDiscoveryBatches':
     'Пакетов открытия пока нет. Запусти сканирование, чтобы увидеть свою историю здесь.',
   'analytics.batchHistory': 'История пакетов',
+  'analytics.moreCharts': 'Другие графики',
   'analytics.pageRange': '{start}-{end} из {total}',
   'analytics.scoreDistribution': 'Распределение очков',
   'analytics.noScoreData': 'Данных о результатах пока нет',
@@ -1277,6 +1278,7 @@ export const ru = {
   'settings.emailSaved': 'Почта обновлена',
   'settings.emailTaken': 'Эта эл. почта уже используется',
   'settings.changePassword': 'Изменить пароль',
+  'settings.security': 'Безопасность',
   'settings.currentPassword': 'Текущий пароль',
   'settings.newPassword': 'Новый пароль',
   'settings.confirmNewPassword': 'Подтверди новый пароль',

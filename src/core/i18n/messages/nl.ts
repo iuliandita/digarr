@@ -697,6 +697,7 @@ export const nl = {
   'analytics.noDiscoveryBatches':
     'Nog geen ontdekkingsbatches. Voer hier een scan uit om je geschiedenis te bekijken.',
   'analytics.batchHistory': 'Batchgeschiedenis',
+  'analytics.moreCharts': 'Meer grafieken',
   'analytics.pageRange': '{start}-{end} van {total}',
   'analytics.scoreDistribution': 'Scoreverdeling',
   'analytics.noScoreData': 'Nog geen scoregegevens',
@@ -1268,6 +1269,7 @@ export const nl = {
   'settings.emailSaved': 'E-mail bijgewerkt',
   'settings.emailTaken': 'Dat e-mailadres is al in gebruik',
   'settings.changePassword': 'Wachtwoord wijzigen',
+  'settings.security': 'Beveiliging',
   'settings.currentPassword': 'Huidig wachtwoord',
   'settings.newPassword': 'Nieuw wachtwoord',
   'settings.confirmNewPassword': 'Nieuw wachtwoord bevestigen',

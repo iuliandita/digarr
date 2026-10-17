@@ -403,6 +403,71 @@ describe('createSlskdOrchestrator', () => {
     )
   })
 
+  it('skips a peer folder that already failed and reports the attempt on failure', async () => {
+    const updateJobState = vi.fn(async () => makeJob())
+    const file = {
+      filename: 'Boards of Canada\\Music Has the Right to Children\\01.flac',
+      size: 10,
+    }
+    const base = {
+      filename: 'Boards of Canada - Music Has the Right to Children',
+      directories: ['Boards of Canada\\Music Has the Right to Children'],
+      files: [file],
+      size: 10,
+    }
+    const failedPeer: SlskdSearchResult = { ...base, id: 'bad', username: 'peer-bad' }
+    const goodPeer: SlskdSearchResult = { ...base, id: 'good', username: 'peer-good' }
+    const selectBestCandidate = vi.fn(() => ({
+      decision: 'auto_queue' as const,
+      candidate: goodPeer,
+      confidence: 1,
+    }))
+    const slskdClient = {
+      createSearch: vi.fn(async () => ({ id: 's' })),
+      isSearchComplete: vi.fn(async () => true),
+      getSearchResults: vi.fn(async () => [failedPeer, goodPeer]),
+      enqueueResult: vi.fn(async () => ({ batch: { id: 'q' }, failures: [] })),
+      getDownloads: vi.fn(async () => []),
+    }
+    const failedReleases = [
+      { username: 'peer-bad', directory: 'Boards of Canada\\Music Has the Right to Children' },
+    ]
+
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({ attempts: 1, selectedResult: { failedReleases } }),
+      ]),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+      selectBestCandidate,
+    } as never)
+    await orchestrator.triggerSync()
+
+    expect(selectBestCandidate).toHaveBeenCalledWith(expect.anything(), [goodPeer])
+    expect(updateJobState).toHaveBeenCalledWith(
+      1,
+      'queued',
+      expect.objectContaining({
+        selectedResult: { username: 'peer-good', files: [file], failedReleases },
+      }),
+    )
+
+    slskdClient.getSearchResults.mockResolvedValue([failedPeer])
+    updateJobState.mockClear()
+    await createSlskdOrchestrator({
+      listPendingJobs: vi.fn(async () => [
+        makeJob({ attempts: 1, selectedResult: { failedReleases } }),
+      ]),
+      createSlskdClient: vi.fn(() => slskdClient),
+      updateJobState,
+      selectBestCandidate,
+    } as never).triggerSync()
+
+    expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
+      lastError: 'slskd search only found releases that already failed (attempt 2 of 4)',
+    })
+  })
+
   it('keeps jobs in searching when slskd search results are not ready yet', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const slskdClient = {
