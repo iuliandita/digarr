@@ -1636,6 +1636,8 @@ export const pl = {
   'streaming.playShort': 'ODTWÓRZ',
   'streaming.stopShort': 'ZATRZYMAJ',
   'streaming.spotifyEmbedTitle': 'Podgląd Spotify',
+  'streaming.spotifyLoad': 'Załaduj odtwarzacz Spotify',
+  'streaming.spotifyLoadHint': 'Nic nie jest pobierane ze Spotify, dopóki nie klikniesz.',
   'discover.moodAddedSuccess': 'Dodano „{0}" i wyszukiwane są podobni artyści',
   'discover.moodAddFailed': 'Nie udało się dodać „{0}"',
   'albumPicker.noReleaseGroups': 'Nie znaleziono grup wydań',

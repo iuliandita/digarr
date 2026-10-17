@@ -1664,6 +1664,8 @@ export const en = {
   'streaming.playShort': 'PLAY',
   'streaming.stopShort': 'STOP',
   'streaming.spotifyEmbedTitle': 'Spotify preview',
+  'streaming.spotifyLoad': 'Load Spotify player',
+  'streaming.spotifyLoadHint': 'Nothing is requested from Spotify until you click.',
 
   // Mood discover toasts
   'discover.moodAddedSuccess': 'Added "{0}" and discovering similar artists',

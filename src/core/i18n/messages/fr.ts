@@ -1653,6 +1653,8 @@ export const fr = {
   'streaming.playShort': 'LIRE',
   'streaming.stopShort': 'ARRÊTER',
   'streaming.spotifyEmbedTitle': 'Aperçu Spotify',
+  'streaming.spotifyLoad': 'Charger le lecteur Spotify',
+  'streaming.spotifyLoadHint': "Rien n'est demandé à Spotify avant que tu cliques.",
   'discover.moodAddedSuccess': "« {0} » ajouté, recherche d'artistes similaires en cours",
   'discover.moodAddFailed': "Impossible d'ajouter « {0} »",
   'albumPicker.noReleaseGroups': 'Aucun groupe de sorties trouvé',

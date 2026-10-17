@@ -1603,6 +1603,8 @@ export const ko = {
   'streaming.playShort': '재생',
   'streaming.stopShort': '중지',
   'streaming.spotifyEmbedTitle': 'Spotify 미리듣기',
+  'streaming.spotifyLoad': 'Spotify 플레이어 불러오기',
+  'streaming.spotifyLoadHint': '클릭하기 전에는 Spotify로 어떤 요청도 보내지 않습니다.',
   'discover.moodAddedSuccess': '"{0}"을(를) 추가했고 비슷한 아티스트를 찾고 있습니다',
   'discover.moodAddFailed': '"{0}" 추가에 실패했습니다',
   'albumPicker.noReleaseGroups': '발매 그룹을 찾을 수 없습니다',

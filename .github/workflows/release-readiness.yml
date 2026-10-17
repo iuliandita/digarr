@@ -46,11 +46,12 @@ jobs:
           # with the develop commits it was built from -- ranging from it
           # re-reports every already-released change. The back-merge also
           # pulls main's lineage into develop, so walk --first-parent to stay
-          # on develop's own line. The release PR's head is exact even when the
-          # bump was made on main (#710); the develop-side bump is the fallback.
+          # on develop's own line. The release PR's head is exact (#710); it is a
+          # release branch cut from develop, or develop itself in the older flow
+          # (#878). The develop-side bump is the fallback.
           tag_sha=$(git rev-list -n1 "$last_tag")
           base=$(gh api "repos/$REPO/commits/$tag_sha/pulls" \
-            --jq '[.[] | select(.base.ref == "main" and .head.ref == "develop")][0].head.sha // ""')
+            --jq '[.[] | select(.base.ref == "main" and .head.ref != "main")][0].head.sha // ""')
           if [ -z "$base" ] || ! git merge-base --is-ancestor "$base" origin/develop; then
             base=$(git log --first-parent origin/develop --grep '^chore(release): v' -1 --format='%H')
           fi

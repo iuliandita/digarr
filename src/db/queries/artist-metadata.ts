@@ -16,8 +16,12 @@ export type ArtistMetadataInsert = {
   deezerFans?: number | null
 }
 
+export function artistMetadataKey(name: string): string {
+  return name.trim().toLowerCase()
+}
+
 export async function lookupByName(db: Database, name: string): Promise<ArtistMetadataRow | null> {
-  const normalized = name.trim().toLowerCase()
+  const normalized = artistMetadataKey(name)
   const [row] = await db
     .select({
       spotifyGenres: artistMetadata.spotifyGenres,

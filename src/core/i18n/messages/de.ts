@@ -1660,6 +1660,8 @@ export const de = {
   'streaming.playShort': 'ABSPIELEN',
   'streaming.stopShort': 'STOPPEN',
   'streaming.spotifyEmbedTitle': 'Spotify-Vorschau',
+  'streaming.spotifyLoad': 'Spotify-Player laden',
+  'streaming.spotifyLoadHint': 'Spotify wird erst nach deinem Klick kontaktiert.',
   'discover.moodAddedSuccess': '„{0}" hinzugefügt, ähnliche Künstler werden entdeckt',
   'discover.moodAddFailed': '„{0}" konnte nicht hinzugefügt werden',
   'albumPicker.noReleaseGroups': 'Keine Veröffentlichungsgruppen gefunden',
