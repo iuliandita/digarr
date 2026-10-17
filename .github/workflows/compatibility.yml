@@ -132,6 +132,8 @@ jobs:
 
   docker-macos:
     name: Docker via Colima (macOS Intel)
+    # Slow and advisory: weekly schedule and manual dispatch only, never pull requests (#878).
+    if: github.event_name != 'pull_request'
     runs-on: macos-15-intel
     timeout-minutes: 45
     # Keep the macOS signal visible without blocking unrelated pull requests
