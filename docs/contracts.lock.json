@@ -519,7 +519,7 @@
         "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
         "src/core/clients/jellyfin.ts": "d630501d8ec9002c89ef14f11d5ad468f9184207ff53a7bd755b7dbc6bd0b6b9",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
-        "src/core/clients/lidarr.ts": "10987e5a0a7c7e75b7997e97b379a1faae912cadb169551ca1b9fe532422b445",
+        "src/core/clients/lidarr.ts": "93707c7b08d5220e2435db3027bac4636cad1052408799a496eaaf67b279856c",
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
@@ -705,14 +705,14 @@
         "src/index.ts": "5b0e1a5764ce06a11e2881dc728a797d0ec8ecf19d9511b39382be91ec1c2031",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "99747a3a72dd3a710216f1b7ee7d99fa01fb34e2e06e1b09d1f86d40e87d77c4",
+      "digest": "ca92d6e81c24e9853b6e7f7fc40dabc67740fdd477f835719a8a16fe271aecdc",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Documented explicit monitor mapping, scoped tags only on new artists, preserved tags when linking a matching server connection, and automatic/album defaults.",
+        "note": "Documented explicit monitor mapping, scoped tags only on new artists, preserved tags when linking a matching server connection, and automatic/album defaults. Monitor options that cover existing albums also search for them on add.",
         "breaking": "none",
         "migration": "",
-        "digest": "99747a3a72dd3a710216f1b7ee7d99fa01fb34e2e06e1b09d1f86d40e87d77c4"
+        "digest": "ca92d6e81c24e9853b6e7f7fc40dabc67740fdd477f835719a8a16fe271aecdc"
       }
     },
     "deployment": {

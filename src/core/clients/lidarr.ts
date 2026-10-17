@@ -109,6 +109,14 @@ export type AddArtistOptions = {
 // member, so forwarding it verbatim fails JSON deserialization with a 400
 // before validation even runs (#611). Keep every digarr value mapped here --
 // the `satisfies` makes a new one a compile error rather than a runtime 400.
+const SEARCHING_MONITOR_OPTIONS: ReadonlySet<string> = new Set([
+  'all',
+  'missing',
+  'existing',
+  'latest',
+  'first',
+])
+
 export const LIDARR_MONITOR_TYPES = {
   all: 'all',
   new: 'future',
@@ -280,9 +288,9 @@ export function createLidarrClient(
       tags: options?.tags ?? [],
       addOptions: {
         monitor: LIDARR_MONITOR_TYPES[monitorOption],
-        // Derived from digarr's value, not the mapped one, so a future value
-        // that maps onto `all` does not silently inherit the search.
-        searchForMissingAlbums: monitorOption === 'all',
+        // Options that monitor existing albums search for them right away;
+        // `new` and `none` only wait for future releases.
+        searchForMissingAlbums: SEARCHING_MONITOR_OPTIONS.has(monitorOption),
       },
     })
   }

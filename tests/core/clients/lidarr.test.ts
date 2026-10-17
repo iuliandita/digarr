@@ -240,7 +240,10 @@ describe('createLidarrClient', () => {
         '/api/v1/artist',
         expect.objectContaining({
           tags: [2, 7],
-          addOptions: { monitor, searchForMissingAlbums: monitorOption === 'all' },
+          addOptions: {
+            monitor,
+            searchForMissingAlbums: monitorOption !== 'new' && monitorOption !== 'none',
+          },
         }),
       )
     })
