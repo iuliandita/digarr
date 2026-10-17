@@ -790,7 +790,7 @@
     },
     "maintenance": {
       "files": {
-        "scripts/capture-screenshots.ts": "3670c24cc6c1ec177284456c9ebbf587ddfa088117ff654d9e446f33a728c090",
+        "scripts/capture-screenshots.ts": "e321c5c0e5985adf76bf46ac089d1dc8cd29fec27bd87f7c8f7570c284c1b721",
         "scripts/check-api-docs.ts": "0ccd8ea8a0df2bf56615712e41bd3a800d76d34dc23083005d37ee23c59a41c2",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
@@ -816,14 +816,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "ef63a04156567506d1ae856c89133e8d232039d38f6635633bce201b2aca3a3b",
+      "digest": "b21a0dd25d9505d99feebddafb04caded9010a453b995a39b1c78f2e3ad39feb",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "i18n check extended to JSX text next to expressions; no workflow change.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Screenshot capture script now scrolls to the Blocked section after the Blocked tab moved into Recommendations; no maintainer procedure or documented command changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "ef63a04156567506d1ae856c89133e8d232039d38f6635633bce201b2aca3a3b"
+        "digest": "b21a0dd25d9505d99feebddafb04caded9010a453b995a39b1c78f2e3ad39feb"
       }
     }
   }
