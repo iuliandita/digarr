@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Personal API tokens in Settings > Account for scripts and automation, with read, write, or admin scope, optional expiry, one-time reveal, last-used metadata, and immediate revocation. Stored and backed up as SHA-256 hashes only. Legacy `DIGARR_AUTH_TOKEN` keeps working with a startup deprecation pointing at personal tokens. Migration 0057 adds a table; take a complete backup before upgrading. Rolling back leaves it unused and tokens stop working on older images; existing sessions remain supported. (#978)
+
 - Helm: `networkPolicy.extraEgress` (empty by default) appends your own egress rules, for an external database, Lidarr, a local AI server, or a media server on a private network. The install notes now warn when `postgresql.enabled=false` runs with the default NetworkPolicy, or when no `ALLOWED_ORIGIN` is set behind an Ingress or Gateway. Documented `image.digest: null` to float a tag (#911).
 - Documented the PostgreSQL 15 or newer requirement for an external database in the README and the Docker, Helm, and Synology guides (#911).
 - Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).

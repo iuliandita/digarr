@@ -5,6 +5,7 @@ import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
+import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
 import { VERSION } from '@/version'
 import { openapiDoc } from './helpers/openapi-doc'
@@ -190,6 +191,7 @@ export function createApp(deps: AppDependencies) {
     authGuard({
       hasUsers: async () => (await deps.getUserCount()) > 0,
       isSetupComplete: deps.isSetupComplete,
+      resolveApiToken: (token) => apiTokenQueries(deps.db).resolve(token),
     }),
   )
   app.use('*', csrfGuard)

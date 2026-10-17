@@ -40,7 +40,9 @@ export function targetRoutes(deps: TargetDeps) {
   const loadTargetForCaller = async (c: Context<HonoEnv>, id: number, userId: number) => {
     const target = await deps.targetQueries.getTarget(id)
     const user = await deps.getUserById(userId)
-    if (!target || (!user?.isAdmin && target.userId !== userId)) {
+    const scope = c.get('apiTokenScope')
+    const isAdmin = !!user?.isAdmin && (!scope || scope === 'admin')
+    if (!target || (!isAdmin && target.userId !== userId)) {
       return {
         ok: false as const,
         response: notFoundProblem(
@@ -73,7 +75,8 @@ export function targetRoutes(deps: TargetDeps) {
     const userId = c.get('userId')
     if (!userId) return notAuthenticated(c)
     const user = await deps.getUserById(userId)
-    const isAdmin = !!user?.isAdmin
+    const scope = c.get('apiTokenScope')
+    const isAdmin = !!user?.isAdmin && (!scope || scope === 'admin')
     const page = readPagination(c)
     const shape = (t: TargetRow) => ({
       ...t,

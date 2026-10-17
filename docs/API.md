@@ -3,8 +3,8 @@
 This reference covers v2.0.1; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
 All endpoints require either a `digarr_session` cookie or an
-`Authorization: Bearer <token>` header unless marked as public. Bearer sessions
-remain the compatibility path for non-browser API clients. Only
+`Authorization: Bearer <token>` header unless marked as public. Personal API tokens are recommended for scripts; bearer sessions
+remain supported for existing API clients. Only
 `/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept
 `?token=<token>` for SSE and `<audio>` clients that cannot send headers.
 
@@ -81,7 +81,7 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-The OpenAPI document is partial: it describes 19 of the 155 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
+The OpenAPI document is partial: it describes 19 of the 158 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
 
 OpenAPI coverage currently includes auth status/login/register/session
 migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
@@ -101,11 +101,20 @@ and bulk ignore, and settings service probes. Some mutation bodies remain generi
 | GET | `/api/v1/auth/meta` | Yes | Deployment metadata: version and enabled auth integrations |
 | GET | `/api/v1/auth/me` | Yes | Current user profile |
 | GET | `/api/v1/auth/validate` | Yes | Lightweight token/session validity check. Returns `204` when valid |
-| PATCH | `/api/v1/auth/me/locale` | Yes | Update the saved user locale. Session auth only. |
-| PATCH | `/api/v1/auth/me/email` | Yes (5/min) | Set or clear the user's email. Session auth only. |
+| PATCH | `/api/v1/auth/me/locale` | Yes | Update the saved user locale. Per-user auth (session or personal token). |
+| PATCH | `/api/v1/auth/me/email` | Yes (5/min) | Set or clear the user's email. Per-user auth (session or personal token). |
 | POST | `/api/v1/auth/change-password` | Yes | Change password. Invalidates all sessions. Rate limited: 5/min |
+| GET | `/api/v1/auth/tokens` | Cookie session | List the caller's personal token metadata. No token values or hashes. |
+| POST | `/api/v1/auth/tokens` | Cookie session | Create a personal token; returns its value once. Admin scope requires a current admin. |
+| DELETE | `/api/v1/auth/tokens/:id` | Cookie session | Revoke an owned token immediately. Returns `204`, or `404` for missing/unowned IDs. |
 | GET | `/api/v1/auth/me/preferences` | Yes | Get merged user preferences |
-| PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (top-level partial merge). Session auth only. |
+| PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (top-level partial merge). Per-user auth (session or personal token). |
+
+Personal token creation accepts `{"name":"nightly script","scope":"read","expiresInDays":30}`. `name` is trimmed and must be 1-100 characters; `scope` is `read`, `write`, or `admin`. Omit `expiresInDays` or pass `null` for no expiry; otherwise use 30, 90, or 365. Unknown fields and invalid values return `400`.
+
+Creation returns `201` with `{ id, name, prefix, scope, createdAt, lastUsedAt, expiresAt, token }`. Listing returns an array of those metadata fields without `token`. Dates are ISO timestamps; `lastUsedAt` and `expiresAt` may be null. Token-management responses use `Cache-Control: no-store`. Supply a session cookie for all three operations and the normal same-origin/CSRF headers for POST and DELETE; a bearer session or personal token receives `403`.
+
+Use the returned `dga_` value as `Authorization: Bearer <token>` for other APIs. Read scope permits GET/HEAD only; write scope permits ordinary actions, while admin scope additionally requires the owner's current admin role. Ordinary per-user account and library writes accept write/admin tokens; OIDC account linking remains cookie-session-only. Expired/revoked tokens return `401` problem details; failed token auth has a 20/min socket-IP limit (`429`, `Retry-After`). No CSRF header is required for personal-token requests. See [personal API tokens](AUTHENTICATION.md#personal-api-tokens) for revocation, proxy behavior, backup risks, and legacy `DIGARR_AUTH_TOKEN` deprecation.
 
 **PATCH /api/v1/auth/me/locale** body:
 ```json
@@ -147,9 +156,9 @@ Notes:
 - A non-empty `email` must be unique across users; a collision returns `409`
   (`code: errors.auth.emailTaken`). Digarr does not auto-link OIDC identities by
   email; see [OIDC account matching](AUTHENTICATION.md#oidc-account-matching)
-- Legacy token auth is rejected with `403`; this route requires a session-authenticated user
-- `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session-authenticated user
-- `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session-authenticated user
+- Legacy token auth is rejected with `403`; this route requires a session or a write/admin personal token
+- `POST /api/v1/auth/change-password` also rejects legacy token auth with `403`; password changes require a session or a write/admin personal token
+- `PATCH /api/v1/auth/me/preferences` also rejects legacy token auth with `403`; preference writes require a session or a write/admin personal token
 - Preference values are checked with the same types and ranges as `preferences` in `PATCH /api/v1/settings`; an invalid value, such as a non-integer `rejectionCooldownDays`, returns `400` without saving anything
 - `GET /api/v1/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 

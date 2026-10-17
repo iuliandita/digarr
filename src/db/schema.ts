@@ -402,6 +402,30 @@ export const slskdJobs = pgTable(
   }),
 )
 
+export type ApiTokenScope = 'read' | 'write' | 'admin'
+
+export const apiTokens = pgTable(
+  'api_tokens',
+  {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    prefix: text('prefix').notNull(),
+    scope: text('scope').$type<ApiTokenScope>().notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+  },
+  (table) => [
+    index('api_tokens_user_id_idx').on(table.userId),
+    check('api_tokens_scope_check', sql`${table.scope} in ('read', 'write', 'admin')`),
+    check('api_tokens_hash_check', sql`${table.tokenHash} ~ '^[a-f0-9]{64}$'`),
+  ],
+)
+
 export const sessions = pgTable(
   'sessions',
   {

@@ -259,6 +259,29 @@ export const updateEmail = (email: string | null) =>
     body: JSON.stringify({ email }),
   })
 
+export type PersonalApiToken = {
+  id: number
+  name: string
+  prefix: string
+  scope: 'read' | 'write' | 'admin'
+  createdAt: string
+  lastUsedAt: string | null
+  expiresAt: string | null
+}
+
+export const listApiTokens = () => fetchApi<PersonalApiToken[]>('/auth/tokens')
+export const createApiToken = (data: {
+  name: string
+  scope: PersonalApiToken['scope']
+  expiresInDays: 30 | 90 | 365 | null
+}) =>
+  fetchApi<PersonalApiToken & { token: string }>('/auth/tokens', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  })
+export const revokeApiToken = (id: number) =>
+  fetchApi<void>(`/auth/tokens/${id}`, { method: 'DELETE' })
+
 export const logoutUser = () => fetchApi<void>('/auth/logout', { method: 'POST' })
 
 // Setup

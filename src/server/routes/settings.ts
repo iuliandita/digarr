@@ -257,6 +257,7 @@ export function settingsRoutes(deps: AppDependencies) {
       deps.getUserById,
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
+      c.get('apiTokenScope'),
     )
     const response = await buildSettingsResponse(deps, userId, isAdmin)
     if (!response) {
@@ -354,6 +355,7 @@ export function settingsRoutes(deps: AppDependencies) {
       deps.getUserById,
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
+      c.get('apiTokenScope'),
     )
     const storedSettings =
       Object.hasOwn(sanitized, 'preferences') || Object.hasOwn(sanitized, 'skipTlsVerify')
@@ -570,6 +572,7 @@ export function settingsRoutes(deps: AppDependencies) {
       deps.getUserById,
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
+      c.get('apiTokenScope'),
     )
     if (!isAdmin && service !== 'plex') {
       return problem(
@@ -836,6 +839,7 @@ export function settingsRoutes(deps: AppDependencies) {
         deps.getUserById,
         c.get('authSkipped'),
         c.get('legacyTokenAuth'),
+        c.get('apiTokenScope'),
       ))
     ) {
       return problem(

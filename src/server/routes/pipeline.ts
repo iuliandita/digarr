@@ -149,6 +149,7 @@ export function pipelineRoutes(deps: AppDependencies) {
       deps.getUserById,
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
+      c.get('apiTokenScope'),
     )
     const result = deps.orchestrator.cancel(userId, { canStopOthers: isAdmin })
     if (result.forbidden) {
@@ -232,6 +233,7 @@ export function pipelineRoutes(deps: AppDependencies) {
       deps.getUserById,
       c.get('authSkipped'),
       c.get('legacyTokenAuth'),
+      c.get('apiTokenScope'),
     )
     const queuePosition = userId ? deps.orchestrator.queuePositionFor(userId) : 0
     // Non-admins see only their own run and queue entry; batches carry no owner.

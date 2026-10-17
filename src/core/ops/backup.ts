@@ -13,6 +13,7 @@ import {
 } from '@/core/crypto'
 import {
   albumBlocks,
+  apiTokens,
   artistBlocks,
   artistGenreAliases,
   artistMetadata,
@@ -51,6 +52,7 @@ import type {
 } from './types'
 
 type BackupTable =
+  | typeof apiTokens
   | typeof albumBlocks
   | typeof artistBlocks
   | typeof artistGenreAliases
@@ -226,6 +228,7 @@ async function readBackup(
       settings: settingsRows,
       users: userRows,
       oauthTokens: oauthRows,
+      apiTokens: await read(apiTokens),
       targets: targetRows,
       subscriptions: subRows,
       jobRuns: jobRunRows,
@@ -456,6 +459,7 @@ const RESTORE_ORDER = [
     recordingArtistCache,
     recordingArtistCache.recordingMbid,
   ),
+  createRestoreSpec('apiTokens', apiTokens, apiTokens.tokenHash),
   createRestoreSpec('oauthTokens', oauthTokens),
   createRestoreSpec('targets', targets),
   createRestoreSpec('subscriptions', subscriptions),

@@ -14,6 +14,7 @@ export const backupDataSchema = z.strictObject({
   settings: tableArray,
   users: tableArray,
   oauthTokens: tableArray,
+  apiTokens: tableArray.optional(),
   oidcTokens: tableArray.optional(),
   targets: tableArray,
   subscriptions: tableArray,

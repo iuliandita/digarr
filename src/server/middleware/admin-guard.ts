@@ -1,4 +1,5 @@
 import { createMiddleware } from 'hono/factory'
+import type { ApiTokenScope } from '@/db/schema'
 import { adminRequired } from '@/server/helpers/auth-problems'
 import type { HonoEnv } from '@/server/types'
 
@@ -14,6 +15,8 @@ export function adminGuard(getUserById: GetUserById) {
   return createMiddleware<HonoEnv>(async (c, next) => {
     if (c.get('authSkipped')) return next()
     if (c.get('legacyTokenAuth')) return adminRequired(c)
+    const scope = c.get('apiTokenScope')
+    if (scope && scope !== 'admin') return adminRequired(c)
     const uid = c.get('userId')
     if (!uid) return adminRequired(c)
     const u = await getUserById(uid)
@@ -32,9 +35,10 @@ export async function resolveAdmin(
   getUserById: GetUserById,
   authSkipped?: boolean,
   legacyTokenAuth?: boolean,
+  apiTokenScope?: ApiTokenScope,
 ): Promise<boolean> {
   if (authSkipped) return true
-  if (legacyTokenAuth) return false
+  if (legacyTokenAuth || (apiTokenScope && apiTokenScope !== 'admin')) return false
   if (!userId) return false
   const user = await getUserById(userId)
   return user?.isAdmin ?? false
