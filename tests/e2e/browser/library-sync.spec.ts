@@ -10,7 +10,10 @@ test.describe('library sync', () => {
     await installAuthCookie(page)
 
     await page.goto('/library/health')
-    await expect(page.getByRole('heading', { name: 'Library Sources' })).toBeVisible()
+    const sourcesToggle = page.getByRole('button', { name: 'Library Sources' })
+    await expect(sourcesToggle).toHaveAttribute('aria-expanded', 'false')
+    await sourcesToggle.click()
+    await expect(sourcesToggle).toHaveAttribute('aria-expanded', 'true')
 
     const syncRequest = page.waitForRequest(
       (req) => req.url().includes('/api/v1/library/sync') && req.method() === 'POST',
