@@ -229,6 +229,17 @@ describe('createTidalClient', () => {
       expect(typeof result.message).toBe('string')
     })
 
+    it('returns success:false when the token works but search fails', async () => {
+      const client = createTidalClient({
+        clientId: 'test-id',
+        clientSecret: 'test-secret',
+        tokenUrl: `${authBaseUrl}/token`,
+        baseUrl: 'http://127.0.0.1:1',
+      })
+      const result = await client.testConnection()
+      expect(result.success).toBe(false)
+    })
+
     it('returns success:false when auth server is unreachable', async () => {
       const client = createTidalClient({
         clientId: 'test-id',

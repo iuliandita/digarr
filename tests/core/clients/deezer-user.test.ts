@@ -268,6 +268,39 @@ describe('createDeezerUserClient', () => {
     })
   })
 
+  describe('pagination', () => {
+    it('follows next with an advancing index and skips artist-less tracks', async () => {
+      mockGet
+        .mockResolvedValueOnce({
+          data: [
+            { id: 1, title: 'a', artist: { id: 1, name: 'A' } },
+            { id: 2, title: 'b', artist: null },
+          ],
+          next: 'https://api.deezer.com/next',
+        })
+        .mockResolvedValueOnce({ data: [{ id: 3, title: 'c', artist: { id: 3, name: 'C' } }] })
+
+      const result = await createDeezerUserClient('t').getPlaylistTracks(1)
+
+      expect(result).toEqual(['A', 'C'])
+      expect(mockGet).toHaveBeenNthCalledWith(1, expect.stringContaining('index=0'))
+      expect(mockGet).toHaveBeenNthCalledWith(2, expect.stringContaining('index=2'))
+    })
+
+    it('pages playlists', async () => {
+      mockGet
+        .mockResolvedValueOnce({
+          data: [{ id: 1, title: 'P1', nb_tracks: 1 }],
+          next: 'x',
+        })
+        .mockResolvedValueOnce({ data: [{ id: 2, title: 'P2', nb_tracks: 2 }] })
+
+      const result = await createDeezerUserClient('t').getPlaylists()
+
+      expect(result.map((p) => p.id)).toEqual([1, 2])
+    })
+  })
+
   describe('getMe()', () => {
     it('returns user profile', async () => {
       mockGet.mockResolvedValueOnce({ id: 1, name: 'TestUser' })

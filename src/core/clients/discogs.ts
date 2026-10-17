@@ -4,6 +4,10 @@ import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 
 const DEFAULT_BASE_URL = 'https://api.discogs.com'
+const MAX_PAGES = 20
+
+// Discogs appends " (N)" to disambiguate same-named artists.
+const stripDisambiguation = (name: string) => name.replace(/\s+\(\d+\)$/, '')
 
 type DiscogsArtistRef = {
   name: string
@@ -95,7 +99,8 @@ export function createDiscogsClient(
   ): void {
     for (const item of items) {
       const releaseGenres = [...new Set([...(item.genres ?? []), ...(item.styles ?? [])])]
-      for (const artist of item.artists) {
+      for (const raw of item.artists) {
+        const artist = { ...raw, name: stripDisambiguation(raw.name) }
         if (artist.name === 'Various' || artist.id === 0) continue
         const key = artist.name.toLowerCase()
         const existing = counts.get(key)
@@ -140,15 +145,18 @@ export function createDiscogsClient(
     const counts = new Map<string, DiscogsArtistAccumulator>()
     const perPage = 100
 
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await get<DiscogsCollectionResponse>(
-        `/users/${username}/collection/folders/0/releases?page=${page}&per_page=${perPage}`,
+        `/users/${encodeURIComponent(username)}/collection/folders/0/releases?page=${page}&per_page=${perPage}`,
       )
       countArtists(
         res.releases.map((r) => r.basic_information),
         counts,
       )
       if (page >= res.pagination.pages) break
+      if (page === MAX_PAGES) {
+        console.warn(`[discogs] stopped at ${MAX_PAGES} of ${res.pagination.pages} pages`)
+      }
     }
 
     return finalizeArtistCounts(counts, limit)
@@ -158,15 +166,18 @@ export function createDiscogsClient(
     const counts = new Map<string, DiscogsArtistAccumulator>()
     const perPage = 100
 
-    for (let page = 1; page <= 3; page++) {
+    for (let page = 1; page <= MAX_PAGES; page++) {
       const res = await get<DiscogsWantlistResponse>(
-        `/users/${username}/wants?page=${page}&per_page=${perPage}`,
+        `/users/${encodeURIComponent(username)}/wants?page=${page}&per_page=${perPage}`,
       )
       countArtists(
         res.wants.map((w) => w.basic_information),
         counts,
       )
       if (page >= res.pagination.pages) break
+      if (page === MAX_PAGES) {
+        console.warn(`[discogs] stopped at ${MAX_PAGES} of ${res.pagination.pages} pages`)
+      }
     }
 
     return finalizeArtistCounts(counts, limit)

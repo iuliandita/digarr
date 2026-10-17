@@ -19,14 +19,17 @@ export type DeezerPlaylistSummary = {
 type DeezerArtistResponse = {
   data: Array<{ id: number; name: string; nb_fan: number; link: string }>
   total?: number
+  next?: string
 }
 
 type DeezerPlaylistsResponse = {
   data: Array<{ id: number; title: string; nb_tracks: number; picture_medium?: string }>
+  next?: string
 }
 
 type DeezerTracksResponse = {
-  data: Array<{ id: number; title: string; artist: { id: number; name: string } }>
+  data: Array<{ id: number; title: string; artist?: { id: number; name: string } | null }>
+  next?: string
 }
 
 type DeezerMeResponse = {
@@ -66,20 +69,36 @@ export function createDeezerUserClient(accessToken: string) {
     return res
   }
 
+  const MAX_PAGES = 20
+
+  // Follows Deezer's `next` marker by advancing `index`; capped so a looping API cannot spin.
+  async function paginate<T>(path: string, limit: number): Promise<T[]> {
+    const items: T[] = []
+    let index = 0
+    for (let page = 0; page < MAX_PAGES; page++) {
+      const res = await request<{ data?: T[]; next?: string }>(
+        `${path}&limit=${limit}&index=${index}`,
+      )
+      const batch = res.data ?? []
+      items.push(...batch)
+      if (!res.next || batch.length === 0) break
+      index += batch.length
+    }
+    return items
+  }
+
   async function getFavoriteArtists(limit = 100): Promise<DeezerUserArtist[]> {
-    const res = await request<DeezerArtistResponse>(
-      `/user/me/artists?${authParam()}&limit=${limit}`,
+    const data = await paginate<DeezerArtistResponse['data'][number]>(
+      `/user/me/artists?${authParam()}`,
+      limit,
     )
-    return (res.data ?? []).map((a) => ({ id: a.id, name: a.name, fans: a.nb_fan }))
+    return data.map((a) => ({ id: a.id, name: a.name, fans: a.nb_fan }))
   }
 
   // Deezer treats favorites and followed as the same concept - both hit /user/me/artists.
   // Kept as a separate method for adapter flexibility (different scores/labels).
   async function getFollowedArtists(limit = 100): Promise<DeezerUserArtist[]> {
-    const res = await request<DeezerArtistResponse>(
-      `/user/me/artists?${authParam()}&limit=${limit}`,
-    )
-    return (res.data ?? []).map((a) => ({ id: a.id, name: a.name, fans: a.nb_fan }))
+    return getFavoriteArtists(limit)
   }
 
   async function getFlowRecommendations(limit = 50): Promise<DeezerUserArtist[]> {
@@ -90,8 +109,11 @@ export function createDeezerUserClient(accessToken: string) {
   }
 
   async function getPlaylists(): Promise<DeezerPlaylistSummary[]> {
-    const res = await request<DeezerPlaylistsResponse>(`/user/me/playlists?${authParam()}`)
-    return (res.data ?? []).map((p) => ({
+    const data = await paginate<DeezerPlaylistsResponse['data'][number]>(
+      `/user/me/playlists?${authParam()}`,
+      100,
+    )
+    return data.map((p) => ({
       id: p.id,
       title: p.title,
       trackCount: p.nb_tracks,
@@ -100,13 +122,15 @@ export function createDeezerUserClient(accessToken: string) {
   }
 
   async function getPlaylistTracks(playlistId: number): Promise<string[]> {
-    const res = await request<DeezerTracksResponse>(
-      `/playlist/${playlistId}/tracks?${authParam()}&limit=500`,
+    const data = await paginate<DeezerTracksResponse['data'][number]>(
+      `/playlist/${playlistId}/tracks?${authParam()}`,
+      500,
     )
     const seen = new Set<string>()
     const names: string[] = []
-    for (const track of res.data ?? []) {
-      const name = track.artist.name
+    for (const track of data) {
+      const name = track.artist?.name
+      if (!name) continue
       const key = name.toLowerCase()
       if (seen.has(key)) continue
       seen.add(key)

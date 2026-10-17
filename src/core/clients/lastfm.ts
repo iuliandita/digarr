@@ -100,15 +100,25 @@ export function createLastFmClient(username: string, apiKey: string) {
     return `?${searchParams.toString()}`
   }
 
+  // Last.fm reports errors as `{error, message}`, sometimes with HTTP 200.
   function get<T>(params: Record<string, string>): Promise<T> {
-    return queue.add(() => http.get<T>(buildUrl(params))) as Promise<T>
+    return queue.add(async () => {
+      const res = await http.get<T>(buildUrl(params))
+      if (res && typeof res === 'object' && 'error' in res) {
+        const msg = (res as { message?: unknown }).message
+        throw new Error(
+          `Last.fm error ${String(res.error)}: ${typeof msg === 'string' ? msg : 'request failed'}`,
+        )
+      }
+      return res
+    }) as Promise<T>
   }
 
   async function getSimilarArtists(artist: string, mbid?: string): Promise<DiscoveredArtist[]> {
     const params: Record<string, string> = { method: 'artist.getSimilar', artist }
     if (mbid) params.mbid = mbid
     const res = await get<LfmSimilarArtistsResponse>(params)
-    return res.similarartists.artist.map((a) => ({
+    return (res.similarartists?.artist ?? []).map((a) => ({
       name: a.name,
       mbid: a.mbid || undefined,
       similarityScore: parseFloat(a.match),
@@ -122,7 +132,7 @@ export function createLastFmClient(username: string, apiKey: string) {
       user: username,
       period,
     })
-    return res.topartists.artist.map((a) => ({
+    return (res.topartists?.artist ?? []).map((a) => ({
       name: a.name,
       mbid: a.mbid || undefined,
       playCount: parseInt(a.playcount, 10),
@@ -142,15 +152,16 @@ export function createLastFmClient(username: string, apiKey: string) {
     if (options.page != null) params.page = String(options.page)
     if (options.limit != null) params.limit = String(options.limit)
     const res = await get<LfmTopArtistsResponse>(params)
-    const totalCount = parseInt(res.topartists['@attr']?.total ?? '0', 10)
+    const pageArtists = res.topartists?.artist ?? []
+    const totalCount = parseInt(res.topartists?.['@attr']?.total ?? '0', 10)
     return {
-      artists: res.topartists.artist.map((a) => ({
+      artists: pageArtists.map((a) => ({
         name: a.name,
         mbid: a.mbid || undefined,
         playCount: parseInt(a.playcount, 10),
         source: 'lastfm' as const,
       })),
-      totalCount: Number.isFinite(totalCount) ? totalCount : res.topartists.artist.length,
+      totalCount: Number.isFinite(totalCount) ? totalCount : pageArtists.length,
     }
   }
 
@@ -160,7 +171,7 @@ export function createLastFmClient(username: string, apiKey: string) {
       user: username,
       limit: String(limit),
     })
-    return res.recenttracks.track
+    return res.recenttracks?.track ?? []
   }
 
   async function getTopArtistsByTag(

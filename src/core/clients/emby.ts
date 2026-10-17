@@ -80,7 +80,11 @@ export function createEmbyClient(
         TotalRecordCount?: unknown
       }>(pathForPage(startIndex))
       const items = res.Items ?? []
-      total = getTotalRecordCount(res.TotalRecordCount, items.length)
+      // Without a count, a full page means there may be more; only a short page ends paging.
+      total = getTotalRecordCount(
+        res.TotalRecordCount,
+        startIndex + items.length + (items.length >= LIBRARY_PAGE_SIZE ? 1 : 0),
+      )
       all.push(...items.map(mapItem))
       if (items.length === 0) break
       startIndex += items.length
