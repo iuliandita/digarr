@@ -24,6 +24,8 @@ export type RetriableFetchOptions = {
   onAbort?: () => void
 }
 
+const MAX_RETRY_AFTER_MS = 30_000
+
 const DEFAULTS: Required<Pick<RetriableFetchOptions, 'retries' | 'factor' | 'minTimeout'>> = {
   retries: 3,
   factor: 2,
@@ -71,7 +73,10 @@ export async function fetchWithRetry(
         if (retryAfter && retryAfter > 0) {
           // Consume any pending body to avoid leaked connections.
           await res.arrayBuffer().catch(() => undefined)
-          await delay(Math.min(retryAfter * 1000, maxTimeout ?? retryAfter * 1000), signal)
+          await delay(
+            Math.min(retryAfter * 1000, maxTimeout ?? MAX_RETRY_AFTER_MS, MAX_RETRY_AFTER_MS),
+            signal,
+          )
         }
         throw new Error(`rate limited (${res.status})`)
       }

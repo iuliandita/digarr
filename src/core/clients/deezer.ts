@@ -68,20 +68,18 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
   }
 
   async function getArtistTopTracks(artistId: number, limit = 5): Promise<TopTrack[]> {
-    try {
-      const params = new URLSearchParams({ limit: String(limit) })
-      const res = await http.get<DeezerTopTracksResponse>(
-        `/artist/${artistId}/top?${params.toString()}`,
-      )
-      if (res.error || !res.data) return []
-      return res.data.map((track) => ({
-        name: track.title,
-        previewUrl: track.preview || undefined,
-        durationMs: track.duration * 1000,
-      }))
-    } catch {
-      return []
+    const params = new URLSearchParams({ limit: String(limit) })
+    const res = await http.get<DeezerTopTracksResponse>(
+      `/artist/${artistId}/top?${params.toString()}`,
+    )
+    if (res.error) {
+      throw new Error(`Deezer API error: ${res.error.message}`)
     }
+    return (res.data ?? []).map((track) => ({
+      name: track.title,
+      previewUrl: track.preview || undefined,
+      durationMs: track.duration * 1000,
+    }))
   }
 
   async function searchTracks(

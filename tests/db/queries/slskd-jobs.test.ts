@@ -3,15 +3,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import { SLSKD_ACTIVE_JOB_STATES } from '@/db/schema'
 
-const { mockedEq, mockedInArray, mockedAnd, mockedDesc } = vi.hoisted(() => ({
+const { mockedEq, mockedInArray, mockedAnd, mockedAsc, mockedDesc } = vi.hoisted(() => ({
   mockedEq: vi.fn((left: unknown, right: unknown) => ({ op: 'eq', left, right })),
   mockedInArray: vi.fn((left: unknown, right: unknown) => ({ op: 'inArray', left, right })),
   mockedAnd: vi.fn((...clauses: unknown[]) => ({ op: 'and', clauses })),
+  mockedAsc: vi.fn((value: unknown) => ({ op: 'asc', value })),
   mockedDesc: vi.fn((value: unknown) => ({ op: 'desc', value })),
 }))
 
 vi.mock('drizzle-orm', () => ({
   and: mockedAnd,
+  asc: mockedAsc,
   desc: mockedDesc,
   eq: mockedEq,
   inArray: mockedInArray,
@@ -79,6 +81,7 @@ beforeEach(() => {
   mockedEq.mockClear()
   mockedInArray.mockClear()
   mockedAnd.mockClear()
+  mockedAsc.mockClear()
   mockedDesc.mockClear()
 })
 
@@ -270,7 +273,7 @@ describe('slskd job queries', () => {
     expect(db._mocks.selectLimit).toHaveBeenCalledWith(1)
   })
 
-  it('listPendingSlskdJobs filters to active states and orders newest first', async () => {
+  it('listPendingSlskdJobs filters to active states and orders oldest first', async () => {
     const rows = [
       { id: 11, state: 'downloading' },
       { id: 10, state: 'pending' },
@@ -281,8 +284,8 @@ describe('slskd job queries', () => {
 
     expect(result).toEqual(rows)
     expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
-    expect(mockedDesc).toHaveBeenNthCalledWith(1, expect.anything())
-    expect(mockedDesc).toHaveBeenNthCalledWith(2, expect.anything())
+    expect(mockedAsc).toHaveBeenCalledTimes(2)
+    expect(mockedDesc).not.toHaveBeenCalled()
     expect(db._mocks.selectWhere).toHaveBeenCalledOnce()
     expect(db._mocks.selectLimit).toHaveBeenCalledWith(25)
   })

@@ -44,14 +44,19 @@ export async function resolveTagRadioRecordings(
 
   // 4. Write newly resolved to cache
   const newEntries = resolved.filter((r): r is RecordingArtistCredit => r != null)
-  await insertCachedRecordingArtists(
-    db,
-    newEntries.map((e) => ({
-      recordingMbid: e.recordingMbid,
-      artistMbid: e.artistMbid,
-      artistName: e.artistName,
-    })),
-  )
+  try {
+    await insertCachedRecordingArtists(
+      db,
+      newEntries.map((e) => ({
+        recordingMbid: e.recordingMbid,
+        artistMbid: e.artistMbid,
+        artistName: e.artistName,
+      })),
+    )
+  } catch (err) {
+    // A failed cache write must not discard artists already resolved this run.
+    console.error('[tag-radio] recording cache insert failed:', err)
+  }
 
   // 5. Build unified recording -> artist map
   const recordingToArtist = new Map<string, { artistMbid: string; artistName: string }>()

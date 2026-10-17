@@ -119,6 +119,18 @@ describe('createDeezerUserClient', () => {
       expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=25'))
     })
 
+    it('stops paging once the limit is reached', async () => {
+      const page = (start: number) =>
+        Array.from({ length: 3 }, (_, i) => ({ id: start + i, name: `A${start + i}`, nb_fan: 1 }))
+      mockGet.mockResolvedValueOnce({ data: page(0), next: 'more' })
+
+      const client = createDeezerUserClient('test-token')
+      const result = await client.getFavoriteArtists(3)
+
+      expect(result.map((a) => a.id)).toEqual([0, 1, 2])
+      expect(mockGet).toHaveBeenCalledTimes(1)
+    })
+
     it('returns empty array when data is absent', async () => {
       mockGet.mockResolvedValueOnce({})
 
@@ -265,6 +277,39 @@ describe('createDeezerUserClient', () => {
       const result = await client.getPlaylistTracks(1)
 
       expect(result).toEqual([])
+    })
+  })
+
+  describe('pagination', () => {
+    it('follows next with an advancing index and skips artist-less tracks', async () => {
+      mockGet
+        .mockResolvedValueOnce({
+          data: [
+            { id: 1, title: 'a', artist: { id: 1, name: 'A' } },
+            { id: 2, title: 'b', artist: null },
+          ],
+          next: 'https://api.deezer.com/next',
+        })
+        .mockResolvedValueOnce({ data: [{ id: 3, title: 'c', artist: { id: 3, name: 'C' } }] })
+
+      const result = await createDeezerUserClient('t').getPlaylistTracks(1)
+
+      expect(result).toEqual(['A', 'C'])
+      expect(mockGet).toHaveBeenNthCalledWith(1, expect.stringContaining('index=0'))
+      expect(mockGet).toHaveBeenNthCalledWith(2, expect.stringContaining('index=2'))
+    })
+
+    it('pages playlists', async () => {
+      mockGet
+        .mockResolvedValueOnce({
+          data: [{ id: 1, title: 'P1', nb_tracks: 1 }],
+          next: 'x',
+        })
+        .mockResolvedValueOnce({ data: [{ id: 2, title: 'P2', nb_tracks: 2 }] })
+
+      const result = await createDeezerUserClient('t').getPlaylists()
+
+      expect(result.map((p) => p.id)).toEqual([1, 2])
     })
   })
 

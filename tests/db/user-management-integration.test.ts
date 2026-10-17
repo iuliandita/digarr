@@ -9,7 +9,14 @@ import {
   LastAdminError,
   updateUser,
 } from '@/db/queries/users'
-import { artists, recommendationBatches, recommendations, subscriptions, users } from '@/db/schema'
+import {
+  artists,
+  jobRuns,
+  recommendationBatches,
+  recommendations,
+  subscriptions,
+  users,
+} from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
 
 vi.setConfig({ testTimeout: 30000, hookTimeout: 30000 })
@@ -48,6 +55,20 @@ describe('user management on migrated PGlite', () => {
       expect((await db.select().from(users)).filter((user) => user.isAdmin)).toHaveLength(1)
     },
   )
+
+  it('deletes the user job runs with the user and keeps other users runs', async () => {
+    const db = await database()
+    await createUser(db, { ...credentials('first'), isAdmin: true })
+    const doomed = await createUser(db, credentials('doomed'))
+    const other = await createUser(db, credentials('other'))
+    await db.insert(jobRuns).values([
+      { type: 'pipeline', status: 'failed', userId: doomed.id, error: 'secret detail' },
+      { type: 'pipeline', status: 'completed', userId: other.id },
+    ])
+    await deleteUser(db, doomed.id)
+    const remaining = await db.select().from(jobRuns)
+    expect(remaining.map((r) => r.userId)).toEqual([other.id])
+  })
 
   it('allows intentional admin creation and promotion after bootstrap', async () => {
     const db = await database()

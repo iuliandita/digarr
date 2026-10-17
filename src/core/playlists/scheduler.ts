@@ -19,8 +19,16 @@ export function schedulePlaylists(
   if (!options.enabled) return
   for (const playlist of options.playlists) {
     if (!playlist.schedule) continue
-    scheduler.schedule(`playlist-${playlist.id}`, playlist.schedule, () =>
-      options.generate(playlist.id),
-    )
+    // One invalid stored cron must not stop the remaining playlists from scheduling.
+    try {
+      scheduler.schedule(`playlist-${playlist.id}`, playlist.schedule, () =>
+        options.generate(playlist.id),
+      )
+    } catch (err: unknown) {
+      console.error(
+        `[playlist-scheduler] playlist ${playlist.id} not scheduled:`,
+        err instanceof Error ? err.message : String(err),
+      )
+    }
   }
 }

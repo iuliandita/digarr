@@ -1,7 +1,7 @@
 // @vitest-environment node
 import * as http from 'node:http'
-import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
-import { createHttpClient, HttpError } from '@/core/clients/http'
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
+import { createHttpClient, HttpError, HttpTimeoutError } from '@/core/clients/http'
 
 let server: http.Server
 let baseUrl: string
@@ -236,6 +236,31 @@ describe('createHttpClient', () => {
       expect(after - before).toBe(3)
     }, 20_000)
 
+    it('does not retry a POST by default', async () => {
+      const path = '/flaky/post-default'
+      const before = serverHits.get(path) ?? 0
+      const client = createHttpClient({ baseUrl, retries: 3 })
+      await client.post(`${path}?fails=99`, { name: 'once' }).catch(() => null)
+      expect((serverHits.get(path) ?? 0) - before).toBe(1)
+    }, 20_000)
+
+    it('retries a POST when the caller passes retries explicitly', async () => {
+      vi.useFakeTimers()
+      try {
+        const fetchSpy = vi
+          .spyOn(globalThis, 'fetch')
+          .mockResolvedValueOnce(new Response('x', { status: 503 }))
+          .mockResolvedValueOnce(new Response('{"ok":true}', { status: 200 }))
+        const promise = createHttpClient({ baseUrl }).post('/p', {}, { retries: 1 })
+        await vi.advanceTimersByTimeAsync(500)
+        await expect(promise).resolves.toEqual({ ok: true })
+        expect(fetchSpy).toHaveBeenCalledTimes(2)
+      } finally {
+        vi.restoreAllMocks()
+        vi.useRealTimers()
+      }
+    })
+
     it('allows a POST to disable retries without changing the client default', async () => {
       const path = '/flaky/post-no-retry'
       const before = serverHits.get(path) ?? 0
@@ -305,5 +330,79 @@ describe('createHttpClient', () => {
       await client.get('/flaky/test-onreq?fails=2')
       expect(onRequest).toHaveBeenCalledTimes(1)
     }, 20_000)
+  })
+})
+
+describe('send timing (mocked fetch, fake timers)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+    vi.useRealTimers()
+  })
+
+  it('backs off before retrying a 5xx', async () => {
+    vi.useFakeTimers()
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('boom', { status: 500 }))
+      .mockResolvedValueOnce(new Response('{"ok":true}', { status: 200 }))
+    const promise = createHttpClient({ baseUrl: 'http://x.test' }).get('/a')
+    await vi.advanceTimersByTimeAsync(499)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(1)
+    await expect(promise).resolves.toEqual({ ok: true })
+    expect(fetchSpy).toHaveBeenCalledTimes(2)
+  })
+
+  it.each([
+    ['seconds', () => '3', 2999, 3000],
+    ['seconds above the cap', () => '3600', 29_999, 30_000],
+    ['an HTTP-date', () => new Date(Date.now() + 5000).toUTCString(), 3999, 5000],
+    ['garbage (falls back to backoff)', () => 'soon', 499, 500],
+  ])('retries 429 honoring Retry-After as %s', async (_label, header, notBeforeMs, byMs) => {
+    vi.useFakeTimers()
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        new Response('slow', { status: 429, headers: { 'retry-after': header() } }),
+      )
+      .mockResolvedValueOnce(new Response('{"ok":true}', { status: 200 }))
+    const promise = createHttpClient({ baseUrl: 'http://x.test' }).get('/a')
+    await vi.advanceTimersByTimeAsync(notBeforeMs)
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+    await vi.advanceTimersByTimeAsync(byMs - notBeforeMs)
+    await expect(promise).resolves.toEqual({ ok: true })
+  })
+
+  it('does not retry 429 for a POST by default', async () => {
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValue(new Response('slow', { status: 429 }))
+    await expect(createHttpClient({ baseUrl: 'http://x.test' }).post('/a', {})).rejects.toThrow(
+      /429/,
+    )
+    expect(fetchSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('aborts a stalled body at the timeout', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (_url, init) => {
+      const signal = (init as RequestInit).signal as AbortSignal
+      const body = new ReadableStream({
+        start(controller) {
+          signal.addEventListener('abort', () =>
+            controller.error(new DOMException('x', 'AbortError')),
+          )
+        },
+      })
+      return new Response(body, { status: 200 })
+    })
+    const promise = createHttpClient({
+      baseUrl: 'http://x.test',
+      timeout: 1000,
+      retries: 0,
+    }).get('/a')
+    const assertion = expect(promise).rejects.toBeInstanceOf(HttpTimeoutError)
+    await vi.advanceTimersByTimeAsync(1000)
+    await assertion
   })
 })

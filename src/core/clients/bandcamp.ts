@@ -8,10 +8,41 @@
 // response handling. The auth-free, text/html nature of this scraper makes it a
 // poor fit for the JSON-oriented http abstraction.
 
+import dns from 'node:dns/promises'
 import PQueue from 'p-queue'
 import type { ServiceTestResult } from '@/core/types'
+import { getLookupHostname, isPrivateIp, isPrivateUrl } from '@/core/validation'
 
 const DEFAULT_BASE_URL = 'https://bandcamp.com'
+const MAX_BODY_BYTES = 2 * 1024 * 1024
+const MAX_REDIRECTS = 3
+
+async function assertPublicUrl(url: string): Promise<void> {
+  if (isPrivateUrl(url)) throw new Error('URL points to a private/internal address')
+  const addresses = await dns.lookup(getLookupHostname(url), { all: true })
+  if (addresses.some(({ address }) => isPrivateIp(address))) {
+    throw new Error('URL resolves to a private/internal IP')
+  }
+}
+
+async function readCapped(res: Response): Promise<string> {
+  if (!res.body) return ''
+  const reader = res.body.getReader()
+  const decoder = new TextDecoder()
+  let received = 0
+  let out = ''
+  for (;;) {
+    const { done, value } = await reader.read()
+    if (done) break
+    received += value.byteLength
+    if (received > MAX_BODY_BYTES) {
+      await reader.cancel()
+      throw new Error('Bandcamp response too large')
+    }
+    out += decoder.decode(value, { stream: true })
+  }
+  return out + decoder.decode()
+}
 
 export type BandcampSearchResult = {
   name: string
@@ -176,22 +207,38 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
   // 1 request per 2 seconds - Bandcamp will throttle/block higher rates
   const queue = new PQueue({ concurrency: 1, interval: 2000, intervalCap: 1 })
 
-  async function fetchHtml(url: string): Promise<string> {
+  // The SSRF guard only applies to the real host; a custom baseUrl is a test/dev override.
+  const guard = baseUrl === DEFAULT_BASE_URL
+
+  async function fetchHtml(startUrl: string): Promise<string> {
     const controller = new AbortController()
     const timer = setTimeout(() => controller.abort(), 10_000)
     try {
-      const res = await fetch(url, {
-        headers: {
-          'User-Agent':
-            'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
-          Accept: 'text/html,application/xhtml+xml',
-        },
-        signal: controller.signal,
-      })
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} from ${url}`)
+      let url = startUrl
+      for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+        if (guard) await assertPublicUrl(url)
+        const res = await fetch(url, {
+          headers: {
+            'User-Agent':
+              'Mozilla/5.0 (compatible; Digarr/1.0; +https://github.com/iuliandita/digarr)',
+            Accept: 'text/html,application/xhtml+xml',
+          },
+          redirect: guard ? 'manual' : 'follow',
+          signal: controller.signal,
+        })
+        const location = res.headers.get('location')
+        if (guard && res.status >= 300 && res.status < 400 && location) {
+          url = new URL(location, url).toString()
+          await res.body?.cancel()
+          continue
+        }
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} from ${url}`)
+        }
+        // Read inside the timer so a stalled body is aborted too.
+        return await readCapped(res)
       }
-      return res.text()
+      throw new Error('Too many redirects from Bandcamp')
     } finally {
       clearTimeout(timer)
     }

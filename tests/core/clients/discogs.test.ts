@@ -51,6 +51,46 @@ describe('discogs client genre mapping', () => {
     ])
   })
 
+  it('strips the numeric disambiguation suffix and encodes the username', async () => {
+    mockGet.mockResolvedValueOnce({
+      releases: [
+        {
+          basic_information: { artists: [{ name: 'Nirvana (2)', id: 7 }], genres: [], styles: [] },
+        },
+      ],
+      pagination: { pages: 1, page: 1, items: 1 },
+    })
+
+    const client = createDiscogsClient('token', 'a b/c')
+    const result = await client.getCollectionArtists()
+
+    expect(result[0]?.name).toBe('Nirvana')
+    expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('/users/a%20b%2Fc/'))
+  })
+
+  it('pages past three pages up to pagination.pages', async () => {
+    for (let page = 1; page <= 5; page++) {
+      mockGet.mockResolvedValueOnce({
+        releases: [
+          {
+            basic_information: {
+              artists: [{ name: `A${page}`, id: page }],
+              genres: [],
+              styles: [],
+            },
+          },
+        ],
+        pagination: { pages: 5, page, items: 5 },
+      })
+    }
+
+    const client = createDiscogsClient('token', 'user')
+    const result = await client.getCollectionArtists()
+
+    expect(result).toHaveLength(5)
+    expect(mockGet).toHaveBeenCalledTimes(5)
+  })
+
   it('leaves wantlist artists without inferred genres', async () => {
     mockGet.mockResolvedValueOnce({
       wants: [{ basic_information: { artists: [{ name: 'Portishead', id: 2 }] } }],

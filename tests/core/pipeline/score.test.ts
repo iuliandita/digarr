@@ -252,7 +252,7 @@ describe('score()', () => {
     expect(withPop[0]?.sourceScores.popularity).toBeCloseTo(0.9)
   })
 
-  it('artist not in popularity map gets popularity 0', () => {
+  it('artist not in popularity map gets neutral popularity', () => {
     const popWeights: Preferences['scoringWeights'] = {
       ...defaultWeights,
       popularity: 0.2,
@@ -260,7 +260,31 @@ describe('score()', () => {
     const artist = makeArtist({ name: 'Unknown Artist' })
     const popMap = new Map([['other artist', 0.8]])
     const result = score([artist], ['rock'], popWeights, new Map(), popMap)
-    expect(result[0]?.sourceScores.popularity).toBe(0)
+    expect(result[0]?.sourceScores.popularity).toBe(0.5)
+  })
+
+  it('does not let an old release date sink a gap-fill album with full genre overlap', () => {
+    const oldAlbum = (source: string) =>
+      makeArtist({
+        mbid: `mbid-${source}`,
+        genres: ['rock'],
+        discoveries: [{ name: 'Test Artist', similarityScore: 0.7, source }],
+        kind: 'album' as const,
+        releaseGroupMbid: `rg-${source}`,
+        releaseDate: '1997',
+      })
+    const scored = score(
+      [oldAlbum('gap-fill'), oldAlbum('release-radar')],
+      ['rock'],
+      defaultWeights,
+      new Map(),
+      new Map(),
+    )
+    const gapFill = scored.find((a) => a.mbid === 'mbid-gap-fill')
+    const radar = scored.find((a) => a.mbid === 'mbid-release-radar')
+    expect(gapFill?.score).toBeGreaterThan(0.5)
+    expect(gapFill?.sourceScores.recency).toBe(0.5)
+    expect(radar?.score).toBeLessThan(gapFill?.score ?? 0)
   })
 
   it('applies the album modifier and records recency for album-kind', () => {

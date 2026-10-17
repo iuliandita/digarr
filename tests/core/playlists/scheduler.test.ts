@@ -46,4 +46,15 @@ describe('schedulePlaylists', () => {
 
     expect(generate).not.toHaveBeenCalled()
   })
+
+  it('keeps scheduling the rest when one stored cron is invalid', () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    schedulePlaylists(scheduler, {
+      enabled: true,
+      playlists: [{ id: 9, schedule: 'not a cron' }, ...playlists],
+      generate: vi.fn().mockResolvedValue(undefined),
+    })
+
+    expect(scheduler.listJobs().map((job) => job.name)).toEqual(['playlist-1', 'playlist-2'])
+  })
 })

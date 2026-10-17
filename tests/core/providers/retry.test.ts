@@ -139,6 +139,24 @@ describe('fetchWithRetry', () => {
     expect(fetchSpy).toHaveBeenCalledTimes(1)
   })
 
+  test('caps an oversized Retry-After at 30s', async () => {
+    vi.useFakeTimers()
+    try {
+      fetchSpy
+        .mockResolvedValueOnce(
+          new Response('slow down', { status: 429, headers: { 'Retry-After': '3600' } }),
+        )
+        .mockResolvedValueOnce(new Response('ok', { status: 200 }))
+      const promise = fetchWithRetry('https://example.com', {}, { minTimeout: 1 })
+      await vi.advanceTimersByTimeAsync(29_000)
+      expect(fetchSpy).toHaveBeenCalledTimes(1)
+      await vi.advanceTimersByTimeAsync(2_000)
+      expect((await promise).status).toBe(200)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   test('collapses whitespace and truncates long error bodies', async () => {
     const longBody = `line one\nline two   spaced\n${'x'.repeat(500)}`
     fetchSpy.mockResolvedValueOnce(new Response(longBody, { status: 400 }))

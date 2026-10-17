@@ -43,6 +43,8 @@ function setSparql(bindings: unknown[]) {
   nextResponse = { status: 200, body: JSON.stringify({ results: { bindings } }) }
 }
 
+const MBID = '11111111-2222-3333-4444-555555555555'
+
 describe('Wikidata client', () => {
   it('parses description, Wikipedia URL, official site, Discogs', async () => {
     setSparql([
@@ -55,7 +57,7 @@ describe('Wikidata client', () => {
       },
     ])
     const client = createWikidataClient(baseUrl)
-    const result = await client.getArtistEnrichment('mbid-1', 'en')
+    const result = await client.getArtistEnrichment(MBID, 'en')
     expect(result.wikidataId).toBe('Q11649')
     expect(result.description).toBe('British rock band')
     expect(result.externalLinks).toEqual({
@@ -68,22 +70,34 @@ describe('Wikidata client', () => {
   it('returns empty on no matching entity', async () => {
     setSparql([])
     const client = createWikidataClient(baseUrl)
-    const result = await client.getArtistEnrichment('mbid-none', 'en')
+    const result = await client.getArtistEnrichment(MBID, 'en')
     expect(result.wikidataId).toBeNull()
     expect(result.description).toBeNull()
   })
 
-  it('returns empty on SPARQL error', async () => {
-    nextResponse = { status: 500, body: 'boom' }
+  it('falls back to the English Wikipedia link for other locales', async () => {
+    setSparql([
+      {
+        artist: { value: 'http://www.wikidata.org/entity/Q1' },
+        wikipediaEn: { value: 'https://en.wikipedia.org/wiki/X' },
+      },
+    ])
     const client = createWikidataClient(baseUrl)
-    const result = await client.getArtistEnrichment('mbid-err', 'en')
-    expect(result.wikidataId).toBeNull()
+    const result = await client.getArtistEnrichment(MBID, 'de')
+    expect(result.externalLinks.wikipedia).toBe('https://en.wikipedia.org/wiki/X')
   })
 
-  it('returns empty on malformed response', async () => {
-    nextResponse = { status: 200, body: '<html>' }
+  it.each([
+    ['SPARQL 500', { status: 500, body: 'boom' }],
+    ['malformed response', { status: 200, body: '<html>' }],
+  ])('throws on %s so callers do not negative-cache', async (_name, response) => {
+    nextResponse = response
     const client = createWikidataClient(baseUrl)
-    const result = await client.getArtistEnrichment('mbid-bad', 'en')
-    expect(result.wikidataId).toBeNull()
+    await expect(client.getArtistEnrichment(MBID, 'en')).rejects.toThrow()
+  })
+
+  it('rejects a non-UUID MBID before building the query', async () => {
+    const client = createWikidataClient(baseUrl)
+    await expect(client.getArtistEnrichment('not-a-uuid', 'en')).rejects.toThrow(/Invalid/)
   })
 })

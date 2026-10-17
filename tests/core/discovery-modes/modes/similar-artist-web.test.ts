@@ -103,4 +103,47 @@ describe('createSimilarArtistWebMode', () => {
       }),
     ])
   })
+
+  it.each([
+    [
+      'rejects',
+      () => Promise.reject(new Error('lastfm down')),
+      /All similar-artist lookups failed/,
+    ],
+    ['returns empty', () => Promise.resolve([]), null],
+  ])('lookup that %s', async (_label, lookup, expectedError) => {
+    getUserConnections.mockResolvedValue({ lastfmUsername: 'u', lastfmApiKey: 'k' })
+    const { createLastFmSource } = await import('@/core/plugins/lastfm')
+    vi.mocked(createLastFmSource).mockReturnValue({
+      id: 'lastfm',
+      capabilities: ['similarArtists'],
+      getSimilarArtists: vi.fn(lookup),
+    } as never)
+    const { createSimilarAdapter } = await import('@/core/subscriptions/adapters/similar')
+    vi.mocked(createSimilarAdapter).mockImplementation(
+      (sources) =>
+        ({
+          fetch: async () => {
+            await sources[0]?.getSimilarArtists('Stereolab').catch(() => undefined)
+            return { artists: [] }
+          },
+        }) as never,
+    )
+    const { createSimilarArtistWebMode } = await import(
+      '@/core/discovery-modes/modes/similar-artist-web'
+    )
+    const request: DiscoveryModeRequest = {
+      modeId: 'similar-artist-web',
+      triggerType: 'manual',
+      settingsMode: 'advanced',
+      userId: 7,
+      rawUserSettings: { seedArtists: ['Stereolab'] },
+      normalizedSettings: { seedArtists: ['Stereolab'] },
+      providerContext: { providerPath: ['lastfm'] },
+      fallbackPolicy: 'strict',
+    }
+    const run = createSimilarArtistWebMode().executor(request)
+    if (expectedError) await expect(run).rejects.toThrow(expectedError)
+    else await expect(run).resolves.toEqual({ candidates: [] })
+  })
 })

@@ -52,6 +52,7 @@ type SlskdTargetRow = {
 
 type SlskdClient = {
   createSearch: (queryText: string) => Promise<Record<string, unknown>>
+  isSearchComplete?: (searchId: string) => Promise<boolean>
   getSearchResults: (searchId: string) => Promise<SlskdSearchResult[]>
   enqueueResult: (searchId: string, result: SlskdSearchResult) => Promise<SlskdEnqueueResponse>
   getDownloads: () => Promise<SlskdDownloadUser[]>
@@ -132,6 +133,7 @@ export type SlskdOrchestrator<_TJob extends SlskdPendingJobBase = SlskdPendingJo
 }
 
 const MAX_IMPORT_CHECKS = 12
+const SEARCH_MAX_AGE_MS = 10 * 60 * 1000
 
 function normalizeBoolean(value: unknown): boolean {
   return value === true
@@ -372,8 +374,22 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
       await deps.updateJobState(job.id, 'searching', { slskdSearchId: searchId, lastError: null })
     }
 
+    const searchAgeMs = Date.now() - new Date(job.updatedAt).getTime()
+    const timedOut = job.slskdSearchId != null && searchAgeMs > SEARCH_MAX_AGE_MS
+    const complete = slskd.isSearchComplete ? await slskd.isSearchComplete(searchId) : null
     const results = await slskd.getSearchResults(searchId)
-    if (results.length === 0) return
+    if (results.length === 0) {
+      if (complete === true || timedOut) {
+        await failJob(
+          job,
+          complete
+            ? 'slskd search finished with no results'
+            : 'slskd search timed out with no results',
+        )
+      }
+      return
+    }
+    if (complete === false && !timedOut) return
     const selected = chooseCandidate(
       { artistName: job.artistName, releaseTitle: job.releaseTitle },
       results,

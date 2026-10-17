@@ -167,6 +167,28 @@ describe('createEmbyClient', () => {
     expect(urls[1]).toContain('StartIndex=200')
   })
 
+  it('keeps paging past a full first page when TotalRecordCount is missing', async () => {
+    const artists = Array.from({ length: 201 }, (_, index) => ({
+      Id: `artist-${index + 1}`,
+      Name: `Artist ${index + 1}`,
+      Genres: [],
+    }))
+    vi.stubGlobal(
+      'fetch',
+      vi.fn((url: string) => {
+        const startIndex = Number(new URL(url).searchParams.get('StartIndex'))
+        return Promise.resolve({
+          ok: true,
+          status: 200,
+          text: async () => JSON.stringify({ Items: artists.slice(startIndex, startIndex + 200) }),
+        })
+      }),
+    )
+
+    const client = createEmbyClient('http://emby:8096', 'key', 'user-1')
+    await expect(client.getAllArtists()).resolves.toHaveLength(201)
+  })
+
   it('rejects totals larger than the pagination limit', async () => {
     vi.stubGlobal(
       'fetch',

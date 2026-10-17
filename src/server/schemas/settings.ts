@@ -1,5 +1,6 @@
 import * as z from 'zod'
 import type { NotificationChannel } from '@/core/notifications/types'
+import { cronSchema } from './subscriptions'
 
 export const preferredGenreListSchema = z
   .array(z.string().trim().min(1).max(64))
@@ -58,13 +59,16 @@ export const notificationChannel = z.discriminatedUnion('type', [
   }),
 ]) satisfies z.ZodType<NotificationChannel>
 
+// Empty string clears the schedule; anything else must parse, or the boot scheduler throws on it.
+const optionalCronSchema = z.union([z.literal(''), cronSchema]).optional()
+
 export const preferencesSchema = z
   .object({
     qualityProfileId: z.number().int().optional(),
     metadataProfileId: z.number().int().optional(),
     rootFolderId: z.number().int().optional(),
-    scheduleCron: z.string().optional(),
-    digestCron: z.string().optional(),
+    scheduleCron: optionalCronSchema,
+    digestCron: optionalCronSchema,
     scoreThreshold: z.number().min(0).max(1).optional(),
     scoringWeights: scoringWeightsSchema.optional(),
     rejectionCooldownDays: z.number().int().min(0).optional(),
@@ -79,7 +83,7 @@ export const preferencesSchema = z
     autoApproveThreshold: z.number().min(0).max(1).optional(),
     autoApproveMonitorOption: z.enum(['all', 'new', 'none']).optional(),
     playlistSize: z.number().int().min(1).optional(),
-    playlistSchedule: z.string().optional(),
+    playlistSchedule: optionalCronSchema,
     playlistEnabled: z.boolean().optional(),
     dismissedHints: z.array(z.string()).optional(),
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),

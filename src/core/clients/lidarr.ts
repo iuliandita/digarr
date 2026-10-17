@@ -121,6 +121,9 @@ export type LidarrClientOptions = {
   listTimeoutMs?: number
 }
 
+const WANTED_PAGE_SIZE = 250
+const WANTED_MAX_PAGES = 100
+
 export function createLidarrClient(
   url: string,
   apiKey: string,
@@ -298,12 +301,24 @@ export function createLidarrClient(
   }
 
   async function getWantedMissing(): Promise<LidarrWantedMissing[]> {
-    const raw = await http.get<unknown>('/api/v1/wanted/missing')
-    const items = Array.isArray(raw)
-      ? raw
-      : raw && typeof raw === 'object' && Array.isArray((raw as { records?: unknown }).records)
-        ? ((raw as { records: unknown[] }).records as Record<string, unknown>[])
-        : []
+    const items: Record<string, unknown>[] = []
+    for (let page = 1; page <= WANTED_MAX_PAGES; page += 1) {
+      const params = new URLSearchParams({
+        page: String(page),
+        pageSize: String(WANTED_PAGE_SIZE),
+        includeArtist: 'true',
+      })
+      const raw = await http.get<unknown>(`/api/v1/wanted/missing?${params}`)
+      if (Array.isArray(raw)) {
+        items.push(...(raw as Record<string, unknown>[]))
+        break
+      }
+      const body = raw && typeof raw === 'object' ? (raw as Record<string, unknown>) : {}
+      const records = Array.isArray(body.records) ? (body.records as Record<string, unknown>[]) : []
+      items.push(...records)
+      const total = typeof body.totalRecords === 'number' ? body.totalRecords : null
+      if (records.length < WANTED_PAGE_SIZE || (total !== null && items.length >= total)) break
+    }
 
     return items.map((album) => ({
       id: album.id as number,

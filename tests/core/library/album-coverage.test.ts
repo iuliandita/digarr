@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { MBReleaseGroup } from '@/core/clients/musicbrainz'
+import { MusicBrainzHttpError } from '@/core/clients/musicbrainz'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
 
 const ARTIST_MBID = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
@@ -140,5 +141,31 @@ describe('createAlbumCoverageService', () => {
     expect(result.totalCount).toBe(0)
     expect(result.owned).toEqual([])
     expect(result.missing).toEqual([])
+  })
+
+  it.each([
+    { status: 404, empty: true },
+    { status: 503, empty: false },
+  ])('MusicBrainz $status: empty coverage=$empty', async ({ status, empty }) => {
+    const service = createAlbumCoverageService({
+      store: { listOwnedAlbumsForArtist: async () => [] },
+      mbClient: {
+        getReleaseGroups: async () => {
+          throw new MusicBrainzHttpError(status, '/release-group')
+        },
+      },
+    })
+    const result = service.getCoverageForArtist(1, ARTIST_MBID)
+    if (empty) {
+      await expect(result).resolves.toEqual({
+        artistMbid: ARTIST_MBID,
+        ownedCount: 0,
+        totalCount: 0,
+        owned: [],
+        missing: [],
+      })
+    } else {
+      await expect(result).rejects.toThrow(/503/)
+    }
   })
 })

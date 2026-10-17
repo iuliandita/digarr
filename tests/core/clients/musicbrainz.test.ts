@@ -898,3 +898,18 @@ describe('createMusicBrainzClient', () => {
     })
   })
 })
+
+describe('lookupRecording not-found detection', () => {
+  const MBID_WITH_404 = '404aaaaa-0000-4000-8000-000000000404'
+
+  it.each([
+    { status: 404, result: null },
+    { status: 400, result: 'throws' },
+  ])('HTTP $status for an MBID containing 404', async ({ status, result }) => {
+    mockFetch.mockResolvedValueOnce(new Response('', { status }))
+    const client = createMusicBrainzClient()
+    const call = client.lookupRecording(MBID_WITH_404)
+    if (result === null) await expect(call).resolves.toBeNull()
+    else await expect(call).rejects.toThrow(/HTTP 400/)
+  })
+})

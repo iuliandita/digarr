@@ -6,6 +6,16 @@ import { VERSION } from '@/version'
 const BASE_URL = envConfig.musicbrainzUrl
 const USER_AGENT = `Digarr/${VERSION} (https://github.com/iuliandita/digarr)`
 
+export class MusicBrainzHttpError extends Error {
+  constructor(
+    public status: number,
+    path: string,
+  ) {
+    super(`MusicBrainz HTTP ${status} for ${path}`)
+    this.name = 'MusicBrainzHttpError'
+  }
+}
+
 export type MBArtist = {
   id: string
   name: string
@@ -158,13 +168,13 @@ export function createMusicBrainzClient() {
 
         // Non-retryable HTTP status: surface immediately.
         if (!TRANSIENT_STATUSES.has(res.status)) {
-          throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+          throw new MusicBrainzHttpError(res.status, path)
         }
 
         // Transient HTTP status: prefer server-provided Retry-After, else
         // exponential backoff with jitter. Final failed attempt throws out.
         if (attempt === MAX_RETRIES) {
-          throw new Error(`MusicBrainz HTTP ${res.status} for ${path}`)
+          throw new MusicBrainzHttpError(res.status, path)
         }
         const retryAfter = parseRetryAfterMs(res.headers.get('retry-after'))
         const backoff = retryAfter ?? BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250
@@ -336,7 +346,7 @@ export function createMusicBrainzClient() {
     try {
       data = await request<MBRecordingLookup>(`/recording/${mbid}?${params}`)
     } catch (err) {
-      if (err instanceof Error && err.message.includes('404')) return null
+      if (err instanceof MusicBrainzHttpError && err.status === 404) return null
       throw err
     }
     const credit = data['artist-credit']?.[0]

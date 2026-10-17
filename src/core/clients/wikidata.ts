@@ -8,10 +8,13 @@ export interface WikidataEnrichment {
 
 const SPARQL_ENDPOINT = 'https://query.wikidata.org/sparql'
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
 function buildQuery(mbid: string, locale: string): string {
+  if (!UUID_RE.test(mbid)) throw new Error('Invalid MusicBrainz ID')
   const safeLocale = locale.replace(/[^a-zA-Z-]/g, '').slice(0, 10) || 'en'
   return `
-    SELECT ?artist ?description ?wikipedia ?officialSite ?discogs WHERE {
+    SELECT ?artist ?description ?wikipedia ?wikipediaEn ?officialSite ?discogs WHERE {
       ?artist wdt:P434 "${mbid}" .
       OPTIONAL {
         ?artist schema:description ?description .
@@ -55,26 +58,22 @@ export function createWikidataClient(baseUrl: string = SPARQL_ENDPOINT) {
         description: null,
         externalLinks: {},
       }
-      try {
-        const query = buildQuery(mbid, locale)
-        const res = await http.get<SparqlResponse>(
-          `?query=${encodeURIComponent(query)}&format=json`,
-        )
-        const binding = res.results?.bindings?.[0]
-        if (!binding) return empty
-        const qidUrl = binding.artist?.value
-        const wikidataId = qidUrl ? (qidUrl.split('/').pop() ?? null) : null
-        const description = binding.description?.value ?? null
-        const links: Record<string, string> = {}
-        if (binding.wikipedia?.value) links.wikipedia = binding.wikipedia.value
-        if (binding.officialSite?.value) links.officialSite = binding.officialSite.value
-        if (binding.discogs?.value) {
-          links.discogs = `https://www.discogs.com/artist/${binding.discogs.value}`
-        }
-        return { wikidataId, description, externalLinks: links }
-      } catch {
-        return empty
+      // Transport/parse errors propagate so callers do not negative-cache an outage.
+      const query = buildQuery(mbid, locale)
+      const res = await http.get<SparqlResponse>(`?query=${encodeURIComponent(query)}&format=json`)
+      const binding = res.results?.bindings?.[0]
+      if (!binding) return empty
+      const qidUrl = binding.artist?.value
+      const wikidataId = qidUrl ? (qidUrl.split('/').pop() ?? null) : null
+      const description = binding.description?.value ?? null
+      const links: Record<string, string> = {}
+      const wikipedia = binding.wikipedia?.value ?? binding.wikipediaEn?.value
+      if (wikipedia) links.wikipedia = wikipedia
+      if (binding.officialSite?.value) links.officialSite = binding.officialSite.value
+      if (binding.discogs?.value) {
+        links.discogs = `https://www.discogs.com/artist/${binding.discogs.value}`
       }
+      return { wikidataId, description, externalLinks: links }
     },
   }
 }

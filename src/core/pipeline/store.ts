@@ -4,8 +4,15 @@ import type { GenreFeedback } from './score'
 
 // Minimal database interface - only what store() needs
 export interface StoreDb {
-  getExistingRecommendationMbids: (userId?: number) => Promise<Set<string>>
-  getExistingAlbumReleaseGroupMbids?: (userId?: number) => Promise<Set<string>>
+  // With rejectionCooldownDays, rejections older than the cooldown are excluded.
+  getExistingRecommendationMbids: (
+    userId?: number,
+    options?: { rejectionCooldownDays?: number },
+  ) => Promise<Set<string>>
+  getExistingAlbumReleaseGroupMbids?: (
+    userId?: number,
+    options?: { rejectionCooldownDays?: number },
+  ) => Promise<Set<string>>
   getBlockedAlbumKeys?: (userId: number) => Promise<Set<string>>
   getArtistGenreCacheByMbids?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByMbids']
   getArtistGenreCacheByAliases?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByAliases']

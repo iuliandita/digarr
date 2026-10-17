@@ -60,7 +60,8 @@ export function createArtistRelationshipsMode(): DiscoveryModeDefinition {
         let mbid = seed.mbid
         if (!mbid) {
           const search = await mb.searchArtist(seed.name)
-          mbid = search.artists[0]?.id
+          const wanted = normalizeDiscoveryName(seed.name)
+          mbid = search.artists.find((a) => normalizeDiscoveryName(a.name) === wanted)?.id
         }
         if (!mbid) continue
 

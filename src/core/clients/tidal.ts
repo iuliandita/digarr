@@ -4,7 +4,7 @@
 
 import { createHttpClient } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
-import { errMsg } from '@/core/validation'
+import { errMsg, redactSecrets } from '@/core/validation'
 
 const DEFAULT_TOKEN_URL = 'https://auth.tidal.com/v1/oauth2/token'
 const DEFAULT_SEARCH_BASE_URL = 'https://openapi.tidal.com/v2'
@@ -79,7 +79,8 @@ export function createTidalClient(config: {
 
       if (!res.ok) {
         const text = await res.text().catch(() => '(unreadable)')
-        throw new Error(`TIDAL auth failed (${res.status}): ${text}`)
+        const safe = redactSecrets(text, [config.clientId, config.clientSecret]).slice(0, 300)
+        throw new Error(`TIDAL auth failed (${res.status}): ${safe}`)
       }
 
       const data = (await res.json()) as TidalTokenResponse
@@ -107,8 +108,8 @@ export function createTidalClient(config: {
     return `https://tidal.com/artist/${id}`
   }
 
-  async function searchArtists(query: string, limit = 25): Promise<TidalSearchResult[]> {
-    try {
+  async function searchArtistsOrThrow(query: string, limit: number): Promise<TidalSearchResult[]> {
+    {
       const token = await getAccessToken()
       // Create a fresh http client per search so the Authorization header reflects
       // the current (possibly just-refreshed) token. The token fetch above uses raw
@@ -143,6 +144,12 @@ export function createTidalClient(config: {
           },
         ]
       })
+    }
+  }
+
+  async function searchArtists(query: string, limit = 25): Promise<TidalSearchResult[]> {
+    try {
+      return await searchArtistsOrThrow(query, limit)
     } catch {
       // TIDAL API is fragile - swallow all errors and return empty
       return []
@@ -152,7 +159,7 @@ export function createTidalClient(config: {
   async function testConnection(): Promise<ServiceTestResult> {
     try {
       await getAccessToken()
-      const results = await searchArtists('test', 1)
+      const results = await searchArtistsOrThrow('test', 1)
       return {
         success: true,
         message: `Connected to TIDAL - API responding`,

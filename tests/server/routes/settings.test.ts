@@ -489,7 +489,7 @@ describe('settings preference secrets', () => {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        preferences: path === 'normal' ? { scoreThreshold: 0.8 } : { [path]: 'not a cron' },
+        preferences: path === 'normal' ? { scoreThreshold: 0.8 } : { [path]: '0 3 * * *' },
       }),
     })
     expect(res.status).toBe(200)
@@ -813,20 +813,23 @@ describe('PATCH /api/v1/settings', () => {
     expect(restartScheduler).toHaveBeenCalledWith(null)
   })
 
-  it('returns warning when cron expression is invalid', async () => {
-    const restartScheduler = vi.fn(() => {
-      throw new TypeError('Invalid cron expression')
-    })
-    const app = createApp(makeDeps({ restartScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { scheduleCron: 'not a cron' } }),
-    })
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.warning).toBe('Settings saved but cron expression is invalid')
-  })
+  it.each(['scheduleCron', 'digestCron', 'playlistSchedule'])(
+    'rejects an invalid %s with 400 without saving',
+    async (field) => {
+      const restartScheduler = vi.fn()
+      const updateSettings = vi.fn(async () => {})
+      const app = createApp(makeDeps({ restartScheduler, updateSettings }))
+      const res = await authedRequest(app, '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: { [field]: 'not a cron' } }),
+      })
+      expect(res.status).toBe(400)
+      expect((await res.json()).code).toBe('validation_failed')
+      expect(updateSettings).not.toHaveBeenCalled()
+      expect(restartScheduler).not.toHaveBeenCalled()
+    },
+  )
 
   it('does not restart scheduler when preferences lack scheduleCron', async () => {
     const restartScheduler = vi.fn()
@@ -992,21 +995,6 @@ describe('PATCH /api/v1/settings', () => {
     })
     expect(res.status).toBe(200)
     expect(restartDigestNotifier).toHaveBeenCalledOnce()
-  })
-
-  it('returns warning when the digest cron expression is invalid', async () => {
-    const restartDigestNotifier = vi.fn(async () => {
-      throw new TypeError('Invalid cron expression')
-    })
-    const app = createApp(makeDeps({ restartDigestNotifier }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { digestCron: 'not a cron' } }),
-    })
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.warning).toBe('Settings saved but cron expression is invalid')
   })
 
   it('does not restart the digest notifier when preferences lack digestCron', async () => {

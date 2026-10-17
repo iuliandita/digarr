@@ -1,4 +1,4 @@
-import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { type createMusicBrainzClient, MusicBrainzHttpError } from '@/core/clients/musicbrainz'
 
 type MBClient = Pick<ReturnType<typeof createMusicBrainzClient>, 'getReleaseGroups'>
 
@@ -35,7 +35,10 @@ export function createAlbumCoverageService(deps: {
     async getCoverageForArtist(userId: number, artistMbid: string): Promise<AlbumCoverage> {
       const [ownedAlbums, releaseGroups] = await Promise.all([
         deps.store.listOwnedAlbumsForArtist(userId, artistMbid),
-        deps.mbClient.getReleaseGroups(artistMbid, ['album']),
+        deps.mbClient.getReleaseGroups(artistMbid, ['album']).catch((err: unknown) => {
+          if (err instanceof MusicBrainzHttpError && err.status === 404) return []
+          throw err
+        }),
       ])
 
       const ownedByMbid = new Map(ownedAlbums.map((album) => [album.albumMbid, album]))

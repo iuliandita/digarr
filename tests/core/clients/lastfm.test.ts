@@ -37,6 +37,19 @@ describe('createLastFmClient', () => {
     })
   })
 
+  describe('error bodies', () => {
+    it('throws the Last.fm message when the response carries an error', async () => {
+      mockGet.mockResolvedValueOnce({
+        error: 6,
+        message: 'The artist you supplied could not be found',
+      })
+      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
+      await expect(client.getSimilarArtists('Nobody')).rejects.toThrow(
+        'The artist you supplied could not be found',
+      )
+    })
+  })
+
   describe('getSimilarArtists(artist)', () => {
     it('GETs artist.getSimilar with api_key in query params', async () => {
       mockGet.mockResolvedValueOnce({

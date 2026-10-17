@@ -1,3 +1,4 @@
+import { cellSafe } from '@/core/csv/cell-safe'
 import type { DestinationTarget, PlaylistItem, PlaylistResult } from '@/core/targets/types'
 import { errMsg } from '@/core/validation'
 import type { Database } from '@/db'
@@ -23,13 +24,6 @@ function escapeXml(value: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;')
-}
-
-function escapeCsv(value: string): string {
-  if (!/[",\n]/.test(value)) {
-    return value
-  }
-  return `"${value.replaceAll('"', '""')}"`
 }
 
 function spotifyTrackUrl(uri: string): string {
@@ -81,13 +75,13 @@ export function exportPlaylistToCsv(tracks: ExportablePlaylistTrack[]): string {
     ...tracks.map((track) =>
       [
         track.position,
-        escapeCsv(track.artistName),
-        escapeCsv(track.trackName ?? ''),
-        escapeCsv(getPlaylistTrackLocation(track)),
-        escapeCsv(track.mbid ?? ''),
-        escapeCsv(track.spotifyUri ?? ''),
-        escapeCsv(track.deezerId ?? ''),
-        escapeCsv(track.localPath ?? ''),
+        cellSafe(track.artistName),
+        cellSafe(track.trackName ?? ''),
+        cellSafe(getPlaylistTrackLocation(track)),
+        cellSafe(track.mbid ?? ''),
+        cellSafe(track.spotifyUri ?? ''),
+        cellSafe(track.deezerId ?? ''),
+        cellSafe(track.localPath ?? ''),
       ].join(','),
     ),
   ]

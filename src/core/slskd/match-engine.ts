@@ -17,7 +17,8 @@ function normalizeText(raw: string): string {
 }
 
 function splitCandidateFilename(filename: string): { artist: string; title: string } {
-  const stem = filename.replace(/\.[^.]+$/, '')
+  const extension = getSupportedAudioExtension(filename)
+  const stem = extension ? filename.slice(0, -(extension.length + 1)) : filename
   const separators = [' - ', ' – ', ' — ']
 
   for (const separator of separators) {

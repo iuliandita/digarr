@@ -248,10 +248,9 @@ describe('createDeezerClient', () => {
       expect(tracks[2]?.previewUrl).toBeUndefined()
     })
 
-    it('returns empty array on API error', async () => {
+    it('throws on API error so callers can fall back', async () => {
       const client = createDeezerClient({ baseUrl })
-      const tracks = await client.getArtistTopTracks(999)
-      expect(tracks).toEqual([])
+      await expect(client.getArtistTopTracks(999)).rejects.toThrow(/Deezer API error/)
     })
 
     it('returns empty array when data is empty', async () => {
@@ -260,10 +259,9 @@ describe('createDeezerClient', () => {
       expect(tracks).toEqual([])
     })
 
-    it('returns empty array when server is unreachable', async () => {
+    it('throws when server is unreachable', async () => {
       const client = createDeezerClient({ baseUrl: 'http://127.0.0.1:1' })
-      const tracks = await client.getArtistTopTracks(1234)
-      expect(tracks).toEqual([])
+      await expect(client.getArtistTopTracks(1234)).rejects.toThrow()
     })
   })
 

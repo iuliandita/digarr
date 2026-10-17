@@ -23,6 +23,8 @@ export type GenreFeedback = {
  */
 const STRONG_NEGATIVE_PENALTY = 0.5
 
+const UNKNOWN_POPULARITY = 0.5
+
 /** Compute a weighted composite score, clamped to [0, 1]. */
 export function computeWeightedScore(
   weights: ScoringWeights,
@@ -142,8 +144,9 @@ export function score(
     const feedbackBoost =
       genreRates.length > 0 ? genreRates.reduce((a, b) => a + b, 0) / genreRates.length : 0.5
 
-    // Popularity: normalized 0-1 from artist_metadata, 0 if not found
-    const popularity = popularityMap?.get(artist.name.trim().toLowerCase()) ?? 0
+    // Popularity: normalized 0-1 from artist_metadata; unknown is neutral so a
+    // missing metadata row does not count as "least popular".
+    const popularity = popularityMap?.get(artist.name.trim().toLowerCase()) ?? UNKNOWN_POPULARITY
 
     // Weighted composite score (clamped to [0, 1])
     const baseScore = computeWeightedScore(weights, {
@@ -169,7 +172,11 @@ export function score(
     // untouched.
     let finalScore = baseScore
     if (artist.kind === 'album') {
-      const recency = artist.releaseDate ? computeRecency(artist.releaseDate, now) : undefined
+      const rawRecency = artist.releaseDate ? computeRecency(artist.releaseDate, now) : undefined
+      // Gap-fill targets missing back catalogue, which is old by nature: recency
+      // may lift a new missing album but never sink an old one.
+      const isGapFill = artist.discoveries.some((d) => d.source === 'gap-fill')
+      const recency = rawRecency !== undefined && isGapFill ? Math.max(rawRecency, 0.5) : rawRecency
       finalScore = applyAlbumModifier(baseScore, { recency, popularity })
       if (recency !== undefined) sourceScores.recency = recency
     }

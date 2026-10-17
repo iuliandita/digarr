@@ -72,6 +72,12 @@ async function executeSimilarUsers(userId: number, limit: number) {
   return { candidates }
 }
 
+function readPopularity(raw: unknown, fallback: number): number {
+  if (raw === undefined || raw === null || raw === '') return fallback
+  const n = Number(raw)
+  return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) : fallback
+}
+
 export function createListenBrainzMode(): DiscoveryModeDefinition {
   return {
     id: 'listenbrainz',
@@ -409,8 +415,8 @@ export function createListenBrainzTagRadioMode(): DiscoveryModeDefinition {
       }
 
       const count = Number(request.normalizedSettings.count) || 25
-      const popBegin = Number(request.normalizedSettings.popBegin) || 0
-      const popEnd = Number(request.normalizedSettings.popEnd) || 100
+      const popBegin = readPopularity(request.normalizedSettings.popBegin, 0)
+      const popEnd = readPopularity(request.normalizedSettings.popEnd, 100)
 
       const recordings = await client.getTagRadio(tags, { count, popBegin, popEnd })
       const resolved = await resolveTagRadioRecordings(recordings, mbClient, db)

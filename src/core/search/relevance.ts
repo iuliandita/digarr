@@ -4,7 +4,7 @@ function normalizeSearchText(value: string): string {
     .replace(/\p{Diacritic}/gu, '')
     .toLowerCase()
     .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/[^\p{L}\p{N}]+/gu, ' ')
     .trim()
 }
 
