@@ -17,6 +17,16 @@ type FormState = {
 
 type SetupMode = 'lidarr' | 'emby' | 'discover'
 
+function MissingFields({ labels }: { labels: string[] }) {
+  const { t } = useI18n()
+  if (labels.length === 0) return null
+  return (
+    <p className="text-xs text-muted" aria-live="polite">
+      {t('setup.continueRequires').replace('{0}', labels.join(', '))}
+    </p>
+  )
+}
+
 function StepIndicator({ current, total }: { current: number; total: number }) {
   const { t } = useI18n()
   return (
@@ -29,6 +39,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
         return (
           <div key={step} className="flex items-center">
             <div
+              aria-current={active ? 'step' : undefined}
               className={[
                 'flex h-8 w-8 items-center justify-center rounded-full text-sm font-semibold border',
                 active
@@ -38,6 +49,9 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
                     : 'bg-surface text-muted border-border',
               ].join(' ')}
             >
+              <span className="sr-only">
+                {t('setup.stepOf').replace('{0}', String(step)).replace('{1}', String(total))}
+              </span>
               {done ? (
                 <svg
                   className="h-4 w-4"
@@ -51,7 +65,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
                   <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                 </svg>
               ) : (
-                step
+                <span aria-hidden="true">{step}</span>
               )}
             </div>
             {i < total - 1 && (
@@ -189,6 +203,12 @@ function StepLidarr({
       <Button onClick={onContinue} disabled={!form.url || !form.apiKey} className="w-full">
         {t('common.continue')}
       </Button>
+      <MissingFields
+        labels={[
+          ...(form.url ? [] : [t('setup.lidarrUrl')]),
+          ...(form.apiKey ? [] : [t('setup.apiKey')]),
+        ]}
+      />
     </div>
   )
 }
@@ -244,6 +264,13 @@ function StepEmby({
       >
         {t('common.continue')}
       </Button>
+      <MissingFields
+        labels={[
+          ...(form.url ? [] : [t('setup.embyUrl')]),
+          ...(form.apiKey ? [] : [t('setup.apiKey')]),
+          ...(form.userId ? [] : [t('setup.userId')]),
+        ]}
+      />
     </div>
   )
 }
@@ -320,7 +347,11 @@ function StepAi({
         <Input
           id="ai-model"
           list="ai-model-suggestions"
-          placeholder={suggestions[0]?.value ?? t('setup.modelPlaceholder')}
+          placeholder={
+            suggestions[0]
+              ? t('setup.modelExample').replace('{0}', suggestions[0].value)
+              : t('setup.modelPlaceholder')
+          }
           value={form.model}
           onChange={(e) => onFormChange({ ...form, model: e.target.value })}
         />
@@ -388,12 +419,32 @@ function StepAi({
       >
         {t('common.continue')}
       </Button>
+      <MissingFields
+        labels={[
+          ...(form.model ? [] : [t('setup.model')]),
+          ...(needsApiKey && !form.apiKey ? [t('setup.apiKey')] : []),
+          ...(needsBaseUrl && !form.baseUrl ? [t('setup.baseUrl')] : []),
+        ]}
+      />
       <Button variant="ghost" onClick={onSkip} className="w-full">
         {t('setup.skipAi')}
       </Button>
       <p className="text-xs text-muted">{t('setup.aiSkipHint')}</p>
     </div>
   )
+}
+
+const PROVIDER_LABEL_KEYS = {
+  anthropic: 'setup.providerAnthropic',
+  openai: 'setup.providerOpenAi',
+  gemini: 'setup.providerGemini',
+  ollama: 'setup.providerOllama',
+  'openai-compatible': 'setup.providerOpenAiCompatible',
+} as const
+
+function providerLabel(provider: string, t: ReturnType<typeof useI18n>['t']): string {
+  const key = PROVIDER_LABEL_KEYS[provider as keyof typeof PROVIDER_LABEL_KEYS]
+  return key ? t(key) : provider
 }
 
 function StepDone({
@@ -422,7 +473,7 @@ function StepDone({
     label: t('setup.aiProvider'),
     value: aiSkipped
       ? t('setup.aiNotConfigured')
-      : `${form.ai.provider}${form.ai.model ? ` / ${form.ai.model}` : ''}`,
+      : `${providerLabel(form.ai.provider, t)}${form.ai.model ? ` / ${form.ai.model}` : ''}`,
   })
 
   return (
@@ -565,7 +616,7 @@ export function SetupWizard({ onComplete }: { onComplete: () => void }) {
           )}
         </div>
 
-        {step > 1 && step < doneStep && (
+        {step > 1 && !starting && (
           <button
             type="button"
             onClick={() => setStep((s) => s - 1)}

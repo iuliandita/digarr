@@ -175,6 +175,25 @@ describe('SetupWizard', () => {
     expect(mockToastError).toHaveBeenCalledWith('Missing required fields: aiModel')
   })
 
+  it('says why Continue is disabled and shows the provider name in the summary', async () => {
+    renderSetupWizard()
+    fireEvent.click(screen.getByRole('button', { name: /Just discover/i }))
+    await screen.findByText('AI Provider')
+
+    expect(screen.getByLabelText('Model')).toHaveAttribute(
+      'placeholder',
+      'e.g. claude-haiku-4-5-20251001',
+    )
+    expect(screen.getByText('To continue, fill in: Model, API Key')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('Model'), { target: { value: 'test-model' } })
+    fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'secret-key' } })
+    expect(screen.queryByText(/To continue, fill in/)).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: /continue/i }))
+
+    expect(await screen.findByText('Anthropic / test-model')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Back/ })).toBeInTheDocument()
+  })
+
   it('lets discovery-only setup skip the AI provider (#887)', async () => {
     mockCompleteSetup.mockResolvedValueOnce(undefined as never)
     renderSetupWizard()
