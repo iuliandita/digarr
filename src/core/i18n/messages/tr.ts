@@ -1,4 +1,12 @@
 export const tr = {
+  'settings.monitorMissing': 'Eksik albümler',
+  'settings.monitorExisting': 'Mevcut albümler',
+  'settings.monitorLatest': 'En son albüm',
+  'settings.monitorFirst': 'İlk albüm',
+  'lidarr.tags': 'Lidarr etiketleri',
+  'lidarr.newTag': 'Yeni etiket',
+  'lidarr.createTag': 'Etiket oluştur',
+  'lidarr.tagCreateFailed': 'Etiket oluşturulamadı',
   'app.closeMenu': 'Menüyü kapat',
   'app.openMenu': 'Menüyü aç',
   'app.runScan': 'Taramayı başlat',

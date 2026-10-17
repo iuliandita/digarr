@@ -1,4 +1,12 @@
 export const ru = {
+  'settings.monitorMissing': 'Недостающие альбомы',
+  'settings.monitorExisting': 'Имеющиеся альбомы',
+  'settings.monitorLatest': 'Последний альбом',
+  'settings.monitorFirst': 'Первый альбом',
+  'lidarr.tags': 'Метки Lidarr',
+  'lidarr.newTag': 'Новая метка',
+  'lidarr.createTag': 'Создать метку',
+  'lidarr.tagCreateFailed': 'Не удалось создать метку',
   'app.closeMenu': 'Закрыть меню',
   'app.openMenu': 'Открыть меню',
   'app.runScan': 'Запустить сканирование',

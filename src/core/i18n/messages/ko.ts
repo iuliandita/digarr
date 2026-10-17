@@ -1,4 +1,12 @@
 export const ko = {
+  'settings.monitorMissing': '누락된 앨범',
+  'settings.monitorExisting': '기존 앨범',
+  'settings.monitorLatest': '최신 앨범',
+  'settings.monitorFirst': '첫 앨범',
+  'lidarr.tags': 'Lidarr 태그',
+  'lidarr.newTag': '새 태그',
+  'lidarr.createTag': '태그 만들기',
+  'lidarr.tagCreateFailed': '태그를 만들 수 없습니다',
   'app.closeMenu': '메뉴 닫기',
   'app.openMenu': '메뉴 열기',
   'app.runScan': '스캔 시작',

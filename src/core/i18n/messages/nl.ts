@@ -1,4 +1,12 @@
 export const nl = {
+  'settings.monitorMissing': 'Ontbrekende albums',
+  'settings.monitorExisting': 'Bestaande albums',
+  'settings.monitorLatest': 'Nieuwste album',
+  'settings.monitorFirst': 'Eerste album',
+  'lidarr.tags': 'Lidarr-tags',
+  'lidarr.newTag': 'Nieuwe tag',
+  'lidarr.createTag': 'Tag maken',
+  'lidarr.tagCreateFailed': 'Kan de tag niet maken',
   'app.closeMenu': 'Menu sluiten',
   'app.openMenu': 'Menu openen',
   'app.runScan': 'Scan starten',

@@ -1,4 +1,12 @@
 export const en = {
+  'settings.monitorMissing': 'Missing albums',
+  'settings.monitorExisting': 'Existing albums',
+  'settings.monitorLatest': 'Latest album',
+  'settings.monitorFirst': 'First album',
+  'lidarr.tags': 'Lidarr tags',
+  'lidarr.newTag': 'New tag',
+  'lidarr.createTag': 'Create tag',
+  'lidarr.tagCreateFailed': 'Could not create the tag',
   'app.closeMenu': 'Close menu',
   'app.openMenu': 'Open menu',
   'app.runScan': 'Run Scan',

@@ -27,7 +27,7 @@ export type AutoApproveDeps = {
 
 type AutoApproveConfig = {
   threshold: number
-  monitorOption: 'all' | 'new' | 'none'
+  monitorOption: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none'
 }
 
 export async function autoApprove(

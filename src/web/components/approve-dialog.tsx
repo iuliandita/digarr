@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react'
 import { useDialogFocus } from '../hooks/use-dialog-focus'
 import { getLidarrApproveOptions } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { LidarrTags } from './lidarr-tags'
 import type { MonitorOption } from './monitoring-options'
 import { Button } from './ui/button'
 import { Disclosure } from './ui/disclosure'
@@ -15,6 +16,7 @@ type Props = {
   lidarrTargetId?: number
   monitorOption: MonitorOption
   onConfirm: (overrides: {
+    tags: number[]
     monitorOption: MonitorOption
     qualityProfileId: number
     metadataProfileId: number
@@ -37,17 +39,27 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
   const [metadataProfiles, setMetadataProfiles] = useState<Profile[]>([])
   const [rootFolders, setRootFolders] = useState<RootFolder[]>([])
   const [monitor, setMonitor] = useState<MonitorOption>(monitorOption)
+  const [tags, setTags] = useState<number[]>([])
+  const [availableTags, setAvailableTags] = useState<Array<{ id: number; label: string }>>([])
   const [qp, setQp] = useState('')
   const [mp, setMp] = useState('')
   const [rf, setRf] = useState('')
+  const [loadedTarget, setLoadedTarget] = useState<{ id?: number } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
   const titleId = useId()
   const dialogRef = useDialogFocus(true, onCancel)
 
   useEffect(() => {
+    let cancelled = false
+    setLoading(true)
+    setError(false)
     getLidarrApproveOptions(lidarrTargetId)
       .then((opts) => {
+        if (cancelled) return
+        setLoadedTarget({ id: lidarrTargetId })
+        setAvailableTags(opts.tags ?? [])
+        setTags((opts.defaults?.tags ?? []).filter((id) => opts.tags?.some((tag) => tag.id === id)))
         setProfiles(opts.qualityProfiles)
         setMetadataProfiles(opts.metadataProfiles)
         setRootFolders(opts.rootFolders)
@@ -55,8 +67,15 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
         setMp(pick(opts.metadataProfiles, opts.defaults?.metadataProfileId))
         setRf(pick(opts.rootFolders, opts.defaults?.rootFolderId))
       })
-      .catch(() => setError(true))
-      .finally(() => setLoading(false))
+      .catch(() => {
+        if (!cancelled) setError(true)
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [lidarrTargetId])
 
   return (
@@ -96,23 +115,43 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
                   <option value="none">{t('common.none')}</option>
                   <option value="new">{t('settings.monitorNew')}</option>
                   <option value="all">{t('settings.monitorAll')}</option>
+                  <option value="missing">{t('settings.monitorMissing')}</option>
+                  <option value="existing">{t('settings.monitorExisting')}</option>
+                  <option value="latest">{t('settings.monitorLatest')}</option>
+                  <option value="first">{t('settings.monitorFirst')}</option>
+
                   {/* The approve menu only offers Popular when a source supports it. */}
                   {monitorOption === 'popular' && (
                     <option value="popular">{t('discover.monitorPopular')}</option>
                   )}
                 </select>
                 <span className="block text-[11px] text-muted mt-1">
-                  {monitor === 'all'
-                    ? t('discover.monitorAllDescription')
-                    : monitor === 'new'
-                      ? t('discover.monitorNewDescription')
-                      : monitor === 'popular'
-                        ? t('discover.monitorPopularDescription')
-                        : t('discover.monitorNoneDescription')}
+                  {monitor === 'missing'
+                    ? t('settings.monitorMissing')
+                    : monitor === 'existing'
+                      ? t('settings.monitorExisting')
+                      : monitor === 'latest'
+                        ? t('settings.monitorLatest')
+                        : monitor === 'first'
+                          ? t('settings.monitorFirst')
+                          : monitor === 'all'
+                            ? t('discover.monitorAllDescription')
+                            : monitor === 'new'
+                              ? t('discover.monitorNewDescription')
+                              : monitor === 'popular'
+                                ? t('discover.monitorPopularDescription')
+                                : t('discover.monitorNoneDescription')}
                 </span>
               </label>
               <Disclosure title={t('approveDialog.lidarrOptions')} className="bg-bg">
                 <div className="space-y-3">
+                  <LidarrTags
+                    key={lidarrTargetId ?? 'server'}
+                    targetId={lidarrTargetId}
+                    available={availableTags}
+                    value={tags}
+                    onChange={setTags}
+                  />
                   <label className="block">
                     <span className="text-xs text-muted">{t('approveDialog.qualityProfile')}</span>
                     <select
@@ -169,6 +208,8 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
               className="bg-approve text-bg hover:bg-approve/90"
               disabled={
                 loading ||
+                !loadedTarget ||
+                loadedTarget.id !== lidarrTargetId ||
                 error ||
                 profiles.length === 0 ||
                 metadataProfiles.length === 0 ||
@@ -176,6 +217,7 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
               }
               onClick={() =>
                 onConfirm({
+                  tags,
                   monitorOption: monitor,
                   qualityProfileId: parseInt(qp, 10),
                   metadataProfileId: parseInt(mp, 10),

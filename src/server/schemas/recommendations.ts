@@ -11,7 +11,17 @@ export const recommendationIdParamSchema = idParamSchema
 
 export const recommendationStatusSchema = z.enum(['approved', 'rejected', 'pending'])
 export const approvalModeSchema = z.enum(['single_target', 'combined_lidarr_slskd'])
-export const monitorOptionSchema = z.enum(['all', 'new', 'none', 'selected', 'popular'])
+export const monitorOptionSchema = z.enum([
+  'all',
+  'new',
+  'missing',
+  'existing',
+  'latest',
+  'first',
+  'none',
+  'selected',
+  'popular',
+])
 export const sortSchema = z.enum([
   'score_desc',
   'score_asc',
@@ -25,6 +35,7 @@ export const updateRecommendationSchema = z.object({
   approvalMode: approvalModeSchema.optional(),
   lidarrTargetId: z.string().optional(),
   monitorOption: monitorOptionSchema.optional(),
+  tags: z.array(z.number().int().positive()).max(100).optional(),
   selectedAlbumIds: z.array(z.string()).max(200).optional(),
   targetId: z.string().optional(),
   qualityProfileId: z.number().int().optional(),

@@ -81,7 +81,9 @@ export const preferencesSchema = z
     lidarrPublicUrl: z.string().optional(),
     autoApproveEnabled: z.boolean().optional(),
     autoApproveThreshold: z.number().min(0).max(1).optional(),
-    autoApproveMonitorOption: z.enum(['all', 'new', 'none']).optional(),
+    autoApproveMonitorOption: z
+      .enum(['all', 'new', 'missing', 'existing', 'latest', 'first', 'none'])
+      .optional(),
     playlistSize: z.number().int().min(1).optional(),
     playlistSchedule: optionalCronSchema,
     playlistEnabled: z.boolean().optional(),

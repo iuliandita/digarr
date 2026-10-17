@@ -1,4 +1,12 @@
 export const ro = {
+  'settings.monitorMissing': 'Albume lipsă',
+  'settings.monitorExisting': 'Albume existente',
+  'settings.monitorLatest': 'Cel mai recent album',
+  'settings.monitorFirst': 'Primul album',
+  'lidarr.tags': 'Etichete Lidarr',
+  'lidarr.newTag': 'Etichetă nouă',
+  'lidarr.createTag': 'Creează eticheta',
+  'lidarr.tagCreateFailed': 'Eticheta nu a putut fi creată',
   'app.closeMenu': 'Închide meniul',
   'app.openMenu': 'Deschide meniul',
   'app.runScan': 'Pornește scanarea',

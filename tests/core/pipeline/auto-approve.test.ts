@@ -53,6 +53,19 @@ function makeDeps(overrides: Partial<AutoApproveDeps> = {}): AutoApproveDeps {
 }
 
 describe('autoApprove()', () => {
+  it.each(['missing', 'existing', 'latest', 'first'] as const)(
+    'passes %s to the target',
+    async (monitorOption) => {
+      const deps = makeDeps()
+      await autoApprove(1, { threshold: 0.7, monitorOption }, deps)
+      const [target] = await deps.getEnabledTargets()
+      expect(target?.addArtist).toHaveBeenCalledWith(
+        { mbid: 'mbid-1', name: 'Artist A' },
+        expect.objectContaining({ monitorOption }),
+      )
+    },
+  )
+
   it('approves recommendations above threshold via targets', async () => {
     const deps = makeDeps()
     const result = await autoApprove(
