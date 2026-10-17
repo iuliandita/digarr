@@ -6,18 +6,30 @@ import { cn } from '../../lib/utils'
 export function Disclosure({
   title,
   defaultOpen = false,
+  open: openProp,
+  onOpenChange,
   children,
   className,
+  id,
 }: {
   title: ReactNode
   defaultOpen?: boolean
+  /** Controlled state; omit for the uncontrolled default. */
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   children: ReactNode
   className?: string
+  id?: string
 }) {
-  const [open, setOpen] = useState(defaultOpen)
+  const [openState, setOpenState] = useState(defaultOpen)
+  const open = openProp ?? openState
+  const setOpen = (next: boolean) => {
+    setOpenState(next)
+    onOpenChange?.(next)
+  }
   const panelId = useId()
   return (
-    <div className={cn('rounded-surface border border-border', className)}>
+    <div id={id} className={cn('rounded-surface border border-border', className)}>
       <button
         type="button"
         onClick={() => setOpen(!open)}

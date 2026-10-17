@@ -8,7 +8,7 @@ import {
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 
-export function BlockedArtistsTab() {
+export function BlockedArtistsTab({ onChange }: { onChange?: () => void } = {}) {
   const { locale, t } = useI18n()
   const [items, setItems] = useState<BlockedArtistApi[]>([])
   const [cursor, setCursor] = useState<string | null>(null)
@@ -69,6 +69,7 @@ export function BlockedArtistsTab() {
     setItems((prev) => prev.filter((x) => x.artistId !== row.artistId))
     try {
       await deleteArtistBlock(row.artistId)
+      onChange?.()
       toast.success(t('settings.blocked.unblock_success'), {
         action: {
           label: t('settings.blocked.unblock_undo'),
@@ -80,6 +81,7 @@ export function BlockedArtistsTab() {
                 reasonText: row.reasonText,
               })
               setReload((n) => n + 1)
+              onChange?.()
             } catch {
               toast.error(t('settings.blocked.error'))
             }

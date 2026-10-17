@@ -419,8 +419,27 @@ function TimeToActCards({ data }: { data: TimeToAct[] }) {
   )
 }
 
+const MORE_CHARTS_KEY = 'digarr-analytics-more-charts'
+
+function readMoreChartsOpen(): boolean {
+  try {
+    return localStorage.getItem(MORE_CHARTS_KEY) === '1'
+  } catch {
+    return false
+  }
+}
+
 export function AnalyticsPage() {
   const { locale, t } = useI18n()
+  const [moreChartsOpen, setMoreChartsOpen] = useState(readMoreChartsOpen)
+  function rememberMoreCharts(open: boolean) {
+    setMoreChartsOpen(open)
+    try {
+      localStorage.setItem(MORE_CHARTS_KEY, open ? '1' : '0')
+    } catch {
+      // Storage blocked: the section still toggles, it just isn't remembered
+    }
+  }
   const {
     data: overview,
     isLoading: overviewLoading,
@@ -535,27 +554,36 @@ export function AnalyticsPage() {
             </div>
           )}
         </section>
-        <section className="flex flex-col gap-3">
-          <h2 className={SECTION_HEADING}>{t('analytics.scoreDistribution')}</h2>
-          {scoreDist && scoreDist.length > 0 ? (
-            <div className="flex-1">
-              <ScoreDistribution buckets={scoreDist} />
-            </div>
-          ) : (
-            <div className="flex-1 bg-surface border border-border rounded-lg p-6 text-center flex items-center justify-center">
-              <p className="text-sm text-muted">{t('analytics.noScoreData')}</p>
-            </div>
-          )}
-        </section>
-        <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
-          <h2 className={SECTION_HEADING}>{t('analytics.topGenresByApprovalRate')}</h2>
-          <GenreBreakdown genres={genres ?? null} loading={genresLoading} />
-        </section>
-        <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
-          <h2 className={SECTION_HEADING}>{t('analytics.sourceEffectiveness')}</h2>
-          <SourceScores sources={sources ?? null} loading={sourcesLoading} />
-        </section>
       </div>
+
+      <Disclosure
+        title={t('analytics.moreCharts')}
+        open={moreChartsOpen}
+        onOpenChange={rememberMoreCharts}
+      >
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2 lg:items-stretch">
+          <section className="flex flex-col gap-3">
+            <h2 className={SECTION_HEADING}>{t('analytics.scoreDistribution')}</h2>
+            {scoreDist && scoreDist.length > 0 ? (
+              <div className="flex-1">
+                <ScoreDistribution buckets={scoreDist} />
+              </div>
+            ) : (
+              <div className="flex-1 bg-surface border border-border rounded-lg p-6 text-center flex items-center justify-center">
+                <p className="text-sm text-muted">{t('analytics.noScoreData')}</p>
+              </div>
+            )}
+          </section>
+          <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
+            <h2 className={SECTION_HEADING}>{t('analytics.topGenresByApprovalRate')}</h2>
+            <GenreBreakdown genres={genres ?? null} loading={genresLoading} />
+          </section>
+          <section className="flex flex-col gap-3 [&>:last-child]:flex-1">
+            <h2 className={SECTION_HEADING}>{t('analytics.sourceEffectiveness')}</h2>
+            <SourceScores sources={sources ?? null} loading={sourcesLoading} />
+          </section>
+        </div>
+      </Disclosure>
 
       <Disclosure title={t('analytics.batchHistory')}>
         <BatchHistoryTable batches={batches ?? null} loading={batchesLoading} locale={locale} />

@@ -696,6 +696,7 @@ export const pl = {
   'analytics.noDiscoveryBatches':
     'Nie ma jeszcze partii odkrywczych. Uruchom skanowanie, aby zobaczyć tutaj swoją historię.',
   'analytics.batchHistory': 'Historia partii',
+  'analytics.moreCharts': 'Więcej wykresów',
   'analytics.pageRange': '{start}-{end} z {total}',
   'analytics.scoreDistribution': 'Dystrybucja punktacji',
   'analytics.noScoreData': 'Nie ma jeszcze danych o wynikach',
@@ -1265,6 +1266,7 @@ export const pl = {
   'settings.emailSaved': 'Zaktualizowano e-mail',
   'settings.emailTaken': 'Ten e-mail jest już używany',
   'settings.changePassword': 'Zmień hasło',
+  'settings.security': 'Bezpieczeństwo',
   'settings.currentPassword': 'Aktualne hasło',
   'settings.newPassword': 'Nowe hasło',
   'settings.confirmNewPassword': 'Potwierdź nowe hasło',

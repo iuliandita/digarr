@@ -104,6 +104,27 @@ export function scoreSlskdCandidate(
   }
 }
 
+function peerRank(candidate: SlskdSearchResult): [number, number, number] {
+  const slot =
+    candidate.hasFreeUploadSlot === true ? 0 : candidate.hasFreeUploadSlot === false ? 1 : 2
+  return [
+    slot,
+    candidate.queueLength ?? Number.POSITIVE_INFINITY,
+    -(candidate.uploadSpeed ?? Number.NEGATIVE_INFINITY),
+  ]
+}
+
+function comparePeers(a: SlskdSearchResult, b: SlskdSearchResult): number {
+  const left = peerRank(a)
+  const right = peerRank(b)
+  for (let i = 0; i < left.length; i++) {
+    const l = left[i] as number
+    const r = right[i] as number
+    if (l !== r) return l < r ? -1 : 1
+  }
+  return 0
+}
+
 export function selectBestSlskdCandidate(
   release: { artistName: string; releaseTitle: string },
   candidates: SlskdSearchResult[],
@@ -114,16 +135,21 @@ export function selectBestSlskdCandidate(
 
   const scored = candidates
     .map((candidate) => ({ candidate, score: scoreSlskdCandidate(release, candidate) }))
-    .sort((a, b) => b.score.confidence - a.score.confidence)
+    .sort(
+      (a, b) => b.score.confidence - a.score.confidence || comparePeers(a.candidate, b.candidate),
+    )
 
   const best = scored[0]
-  const second = scored[1]
 
   if (!best) {
     return { decision: 'needs_review', confidence: 0 }
   }
 
-  const gap = best.score.confidence - (second?.score.confidence ?? 0)
+  const releaseKey = (entry: (typeof scored)[number]) =>
+    `${entry.score.normalizedCandidateArtist}\0${entry.score.normalizedCandidateTitle}`
+  // Peers sharing the same release are not competitors; only a different release is ambiguous.
+  const rival = scored.find((entry) => releaseKey(entry) !== releaseKey(best))
+  const gap = best.score.confidence - (rival?.score.confidence ?? 0)
   const confidentEnough = best.score.confidence > 0.9
   const clearWinner = gap >= 0.1
 

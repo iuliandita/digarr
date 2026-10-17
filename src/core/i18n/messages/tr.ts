@@ -686,6 +686,7 @@ export const tr = {
   'analytics.noDiscoveryBatches':
     'Henüz keşif grubu yok. Geçmişini burada görmek için bir tarama yap.',
   'analytics.batchHistory': 'Grup Geçmişi',
+  'analytics.moreCharts': 'Daha fazla grafik',
   'analytics.pageRange': '{total} içinden {start}-{end}',
   'analytics.scoreDistribution': 'Puan Dağılımı',
   'analytics.noScoreData': 'Henüz puan verisi yok',
@@ -1255,6 +1256,7 @@ export const tr = {
   'settings.emailSaved': 'E-posta güncellendi',
   'settings.emailTaken': 'Bu e-posta zaten kullanımda',
   'settings.changePassword': 'Şifreyi Değiştir',
+  'settings.security': 'Güvenlik',
   'settings.currentPassword': 'Mevcut şifre',
   'settings.newPassword': 'Yeni şifre',
   'settings.confirmNewPassword': 'Yeni şifreyi onayla',

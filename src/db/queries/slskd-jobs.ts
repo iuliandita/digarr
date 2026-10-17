@@ -1,4 +1,9 @@
 import { and, asc, desc, eq, inArray } from 'drizzle-orm'
+import {
+  collectFailedReleases,
+  SLSKD_MAX_AUTO_RETRIES,
+  SLSKD_RETRY_BACKOFF_MS,
+} from '@/core/slskd/shared'
 import type { Database } from '@/db'
 import { SLSKD_ACTIVE_JOB_STATES, slskdJobs } from '@/db/schema'
 
@@ -57,7 +62,8 @@ export type SlskdJobUpdate = Partial<
 
 export type SlskdJobRow = typeof slskdJobs.$inferSelect
 
-const FAILED_RETRY_COOLDOWN_MS = 60 * 60 * 1000
+const MANUAL_RETRY_COOLDOWN_MS = SLSKD_RETRY_BACKOFF_MS[0] as number
+const AUTOMATIC_SOURCE_TYPE = 'lidarr_wanted'
 
 function activeSlskdJobWhere(workKey: string) {
   return and(eq(slskdJobs.workKey, workKey), inArray(slskdJobs.state, SLSKD_ACTIVE_JOB_STATES))
@@ -81,7 +87,17 @@ async function retryFailedSlskdJob(
   data: CreateSlskdJobInput,
 ): Promise<SlskdJobRow> {
   const updatedAt = row.updatedAt instanceof Date ? row.updatedAt : new Date(row.updatedAt)
-  if (Date.now() - updatedAt.getTime() < FAILED_RETRY_COOLDOWN_MS) return row
+  // Wanted-list intake retries on its own up to a cap; an approval is a manual retry.
+  const automatic = data.sourceType === AUTOMATIC_SOURCE_TYPE
+  const retries = Math.max(0, row.attempts - 1)
+  if (automatic && retries >= SLSKD_MAX_AUTO_RETRIES) return row
+  const cooldown = automatic
+    ? (SLSKD_RETRY_BACKOFF_MS[retries] ?? SLSKD_RETRY_BACKOFF_MS.at(-1) ?? 0)
+    : MANUAL_RETRY_COOLDOWN_MS
+  if (Date.now() - updatedAt.getTime() < cooldown) return row
+
+  // A manual retry starts clean: the failure may have been a setup problem, not a bad release.
+  const failedReleases = automatic ? collectFailedReleases(row.selectedResult) : []
 
   const [retried] = await db
     .update(slskdJobs)
@@ -101,8 +117,9 @@ async function retryFailedSlskdJob(
       slskdSearchId: null,
       slskdQueueId: null,
       slskdDownloadId: null,
-      selectedResult: null,
+      selectedResult: failedReleases.length > 0 ? { failedReleases } : null,
       lastError: null,
+      ...(automatic ? {} : { attempts: 0 }),
       completedAt: null,
       updatedAt: new Date(),
     })

@@ -162,87 +162,90 @@ export function AccountTab() {
         </div>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-lead font-semibold text-text">{t('settings.email')}</h2>
-        <p className="text-xs text-muted">{t('settings.emailHelp')}</p>
-        <form onSubmit={handleSaveEmail} className="space-y-3">
-          <Field label={t('settings.emailAddress')} id="account-email">
-            <Input
-              id="account-email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              autoComplete="email"
-              placeholder={t('settings.emailPlaceholder')}
-            />
-          </Field>
-          <Button type="submit" disabled={savingEmail || email.trim() === (user?.email ?? '')}>
-            {savingEmail ? t('settings.saving') : t('settings.saveEmail')}
-          </Button>
-        </form>
-      </section>
-
-      {(user?.oidcSubject || (authMeta?.oidcEnabled && user?.authProvider === 'local')) && (
+      <section className="space-y-6">
+        <h2 className="text-lead font-semibold text-text">{t('settings.security')}</h2>
         <section className="space-y-3">
-          <h2 className="text-lead font-semibold text-text">{t('settings.oidcSso')}</h2>
-          {user?.oidcSubject ? (
-            <p className="text-sm text-muted">{t('settings.oidcLinked')}</p>
-          ) : user?.authProvider === 'local' ? (
-            <form onSubmit={handleLinkOidc} className="space-y-3">
-              <p className="text-xs text-muted">{t('settings.oidcLinkHelp')}</p>
-              <Field label={t('settings.currentPassword')} id="oidc-link-password">
-                <Input
-                  id="oidc-link-password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={linkPassword}
-                  onChange={(e) => setLinkPassword(e.target.value)}
-                />
-              </Field>
-              <Button type="submit" disabled={linking || !linkPassword}>
-                {linking ? t('settings.oidcLinking') : t('settings.oidcLinkAction')}
-              </Button>
-            </form>
-          ) : null}
+          <h3 className="text-body font-semibold text-text">{t('settings.email')}</h3>
+          <p className="text-xs text-muted">{t('settings.emailHelp')}</p>
+          <form onSubmit={handleSaveEmail} className="space-y-3">
+            <Field label={t('settings.emailAddress')} id="account-email">
+              <Input
+                id="account-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                placeholder={t('settings.emailPlaceholder')}
+              />
+            </Field>
+            <Button type="submit" disabled={savingEmail || email.trim() === (user?.email ?? '')}>
+              {savingEmail ? t('settings.saving') : t('settings.saveEmail')}
+            </Button>
+          </form>
         </section>
-      )}
 
-      <section className="space-y-3">
-        <h2 className="text-lead font-semibold text-text">{t('settings.changePassword')}</h2>
-        <form onSubmit={handleChangePassword} className="space-y-3">
-          <Field label={t('settings.currentPassword')} id="current-pw">
-            <Input
-              id="current-pw"
-              type="password"
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              autoComplete="current-password"
-            />
-          </Field>
-          <Field label={t('settings.newPassword')} id="new-pw">
-            <Input
-              id="new-pw"
-              type="password"
-              value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
-              autoComplete="new-password"
-              placeholder={t('settings.minCharsPassword')}
-            />
-          </Field>
-          <Field label={t('settings.confirmNewPassword')} id="confirm-pw">
-            <Input
-              id="confirm-pw"
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-            />
-          </Field>
-          <Button type="submit" disabled={saving}>
-            {saving ? t('settings.changing') : t('settings.changePassword')}
-          </Button>
-        </form>
+        {authMeta?.oidcEnabled && (user?.oidcSubject || user?.authProvider === 'local') && (
+          <section className="space-y-3">
+            <h3 className="text-body font-semibold text-text">{t('settings.oidcSso')}</h3>
+            {user?.oidcSubject ? (
+              <p className="text-sm text-muted">{t('settings.oidcLinked')}</p>
+            ) : user?.authProvider === 'local' ? (
+              <form onSubmit={handleLinkOidc} className="space-y-3">
+                <p className="text-xs text-muted">{t('settings.oidcLinkHelp')}</p>
+                <Field label={t('settings.currentPassword')} id="oidc-link-password">
+                  <Input
+                    id="oidc-link-password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={linkPassword}
+                    onChange={(e) => setLinkPassword(e.target.value)}
+                  />
+                </Field>
+                <Button type="submit" disabled={linking || !linkPassword}>
+                  {linking ? t('settings.oidcLinking') : t('settings.oidcLinkAction')}
+                </Button>
+              </form>
+            ) : null}
+          </section>
+        )}
+
+        <section className="space-y-3">
+          <h3 className="text-body font-semibold text-text">{t('settings.changePassword')}</h3>
+          <form onSubmit={handleChangePassword} className="space-y-3">
+            <Field label={t('settings.currentPassword')} id="current-pw">
+              <Input
+                id="current-pw"
+                type="password"
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                autoComplete="current-password"
+              />
+            </Field>
+            <Field label={t('settings.newPassword')} id="new-pw">
+              <Input
+                id="new-pw"
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                autoComplete="new-password"
+                placeholder={t('settings.minCharsPassword')}
+              />
+            </Field>
+            <Field label={t('settings.confirmNewPassword')} id="confirm-pw">
+              <Input
+                id="confirm-pw"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+              />
+            </Field>
+            <Button type="submit" disabled={saving}>
+              {saving ? t('settings.changing') : t('settings.changePassword')}
+            </Button>
+          </form>
+        </section>
       </section>
 
       <section className="space-y-3">

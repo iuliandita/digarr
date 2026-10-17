@@ -21,6 +21,9 @@ export type SlskdSearchResult = {
   size: number
   bitrate?: number
   extension?: string
+  hasFreeUploadSlot?: boolean
+  queueLength?: number
+  uploadSpeed?: number
 }
 
 export type SlskdTransferFile = {
@@ -54,6 +57,9 @@ export type SlskdEnqueueResponse = {
 type SlskdSearchResponse = {
   username?: unknown
   files?: unknown
+  hasFreeUploadSlot?: unknown
+  queueLength?: unknown
+  uploadSpeed?: unknown
 }
 
 export const SLSKD_MAX_RELEASE_FILES = 500
@@ -104,6 +110,20 @@ function releaseLabel(directory: string): string {
   if (/\s[-–—]\s/.test(title)) return title
   const artist = parts.at(-2)
   return artist ? `${artist} - ${title}` : title
+}
+
+function asPeerStats(
+  response: SlskdSearchResponse,
+): Pick<SlskdSearchResult, 'hasFreeUploadSlot' | 'queueLength' | 'uploadSpeed'> {
+  const finite = (value: unknown): value is number =>
+    typeof value === 'number' && Number.isFinite(value) && value >= 0
+  return {
+    ...(typeof response.hasFreeUploadSlot === 'boolean'
+      ? { hasFreeUploadSlot: response.hasFreeUploadSlot }
+      : {}),
+    ...(finite(response.queueLength) ? { queueLength: response.queueLength } : {}),
+    ...(finite(response.uploadSpeed) ? { uploadSpeed: response.uploadSpeed } : {}),
+  }
 }
 
 function mapSearchResponses(raw: unknown): SlskdSearchResult[] {
@@ -164,6 +184,7 @@ function mapSearchResponses(raw: unknown): SlskdSearchResult[] {
         directories: sourceDirectory ? [sourceDirectory] : [],
         files: [file],
         size: file.size,
+        ...asPeerStats(response),
       })
     }
   }

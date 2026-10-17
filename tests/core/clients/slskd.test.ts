@@ -93,6 +93,31 @@ describe('createSlskdClient', () => {
     expect(result[0]?.files).toHaveLength(2)
   })
 
+  it('carries peer upload stats onto a release and ignores malformed ones', async () => {
+    mockGet.mockResolvedValueOnce([
+      {
+        username: 'fast',
+        hasFreeUploadSlot: true,
+        queueLength: 0,
+        uploadSpeed: 5000,
+        files: [{ filename: 'A\\B\\01.flac', size: 1 }],
+      },
+      {
+        username: 'odd',
+        hasFreeUploadSlot: 'yes',
+        queueLength: -3,
+        files: [{ filename: 'A\\B\\01.flac', size: 1 }],
+      },
+    ])
+
+    const result = await createSlskdClient('http://slskd.local:5030', 'key').getSearchResults('s')
+
+    expect(result[0]).toMatchObject({ hasFreeUploadSlot: true, queueLength: 0, uploadSpeed: 5000 })
+    expect(result[1]).not.toHaveProperty('hasFreeUploadSlot')
+    expect(result[1]).not.toHaveProperty('queueLength')
+    expect(result[1]).not.toHaveProperty('uploadSpeed')
+  })
+
   it('groups multi-disc folders into one release manifest', async () => {
     mockGet.mockResolvedValueOnce([
       {

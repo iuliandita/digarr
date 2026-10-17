@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -87,6 +87,24 @@ describe('AnalyticsPage', () => {
     const column = await screen.findByTitle(/10 recs \(4 approved\)/)
     expect(column).toHaveClass('h-full')
     expect(column.querySelectorAll('[style*="height"]')).toHaveLength(2)
+  })
+
+  it('keeps the diagnostic charts in a collapsed More charts section and remembers it opened', async () => {
+    const first = renderWithQuery(<AnalyticsPage />)
+    const toggle = await screen.findByRole('button', { name: 'More charts' })
+    expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.getByText('Discovery Over Time')).toBeVisible()
+    expect(screen.getByText('Score Distribution')).not.toBeVisible()
+
+    fireEvent.click(toggle)
+    expect(screen.getByText('Score Distribution')).toBeVisible()
+    first.unmount()
+
+    renderWithQuery(<AnalyticsPage />)
+    expect(await screen.findByRole('button', { name: 'More charts' })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
   })
 })
 

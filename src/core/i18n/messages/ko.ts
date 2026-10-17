@@ -684,6 +684,7 @@ export const ko = {
   'analytics.noDiscoveryBatches':
     '아직 검색 배치가 없습니다. 여기에서 기록을 보려면 스캔을 실행하세요.',
   'analytics.batchHistory': '배치 기록',
+  'analytics.moreCharts': '차트 더 보기',
   'analytics.pageRange': '{total}개 중 {start}-{end}',
   'analytics.scoreDistribution': '점수 분포',
   'analytics.noScoreData': '아직 점수 데이터가 없습니다.',
@@ -1238,6 +1239,7 @@ export const ko = {
   'settings.emailSaved': '이메일이 업데이트됨',
   'settings.emailTaken': '이미 사용 중인 이메일입니다',
   'settings.changePassword': '비밀번호 변경',
+  'settings.security': '보안',
   'settings.currentPassword': '현재 비밀번호',
   'settings.newPassword': '새 비밀번호',
   'settings.confirmNewPassword': '새 비밀번호 확인',

@@ -690,6 +690,7 @@ export const ja = {
   'analytics.noDiscoveryBatches':
     '検出バッチはまだありません。スキャンを実行すると、ここで履歴が表示されます。',
   'analytics.batchHistory': 'バッチ履歴',
+  'analytics.moreCharts': 'その他のグラフ',
   'analytics.pageRange': '{total} 件中 {start}-{end}',
   'analytics.scoreDistribution': 'スコア分布',
   'analytics.noScoreData': 'まだスコアデータがありません',
@@ -1255,6 +1256,7 @@ export const ja = {
   'settings.emailSaved': 'メールを更新しました',
   'settings.emailTaken': 'そのメールアドレスは既に使用されています',
   'settings.changePassword': 'パスワードの変更',
+  'settings.security': 'セキュリティ',
   'settings.currentPassword': '現在のパスワード',
   'settings.newPassword': '新しいパスワード',
   'settings.confirmNewPassword': '新しいパスワードの確認',

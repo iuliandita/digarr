@@ -27,7 +27,7 @@ test.describe('rejection picker + blocklist', () => {
     await expect(dialog).toBeVisible({ timeout: 10_000 })
 
     // Picker title is "<prompt> - <artistName>"; capture the name to verify it
-    // later shows up (and disappears) in the Blocked settings tab.
+    // later shows up (and disappears) in the Blocked settings section.
     const title = (await dialog.locator('h2').first().textContent()) ?? ''
     const artistName = title.includes(' - ') ? title.split(' - ').slice(1).join(' - ').trim() : ''
     expect(artistName, 'expected to capture artist name from picker title').toBeTruthy()
@@ -46,9 +46,12 @@ test.describe('rejection picker + blocklist', () => {
     await expect(dialog).toBeHidden()
     await rejectPatch
 
-    // Navigate to Settings -> Blocked tab and verify the artist is listed
-    await page.goto('/settings')
-    await page.getByRole('button', { name: /^blocked$/i }).click()
+    // Navigate to the Blocked section of Settings > Recommendations and verify the artist is listed
+    await page.goto('/settings?tab=blocked')
+    await expect(page.getByRole('button', { name: /^blocked - \d+/i })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    )
     await expect(page.getByText(artistName)).toBeVisible({ timeout: 5_000 })
 
     // Unblock removes it

@@ -700,6 +700,7 @@ export const it = {
   'analytics.noDiscoveryBatches':
     'Nessun batch di rilevamento ancora. Esegui una scansione per vedere la tua cronologia qui.',
   'analytics.batchHistory': 'Cronologia dei lotti',
+  'analytics.moreCharts': 'Altri grafici',
   'analytics.pageRange': '{start}-{end} di {total}',
   'analytics.scoreDistribution': 'Distribuzione del punteggio',
   'analytics.noScoreData': 'Nessun dato sul punteggio ancora',
@@ -1276,6 +1277,7 @@ export const it = {
   'settings.emailSaved': 'Email aggiornata',
   'settings.emailTaken': 'Questa email è già in uso',
   'settings.changePassword': 'Cambia password',
+  'settings.security': 'Sicurezza',
   'settings.currentPassword': 'Password attuale',
   'settings.newPassword': 'Nuova password',
   'settings.confirmNewPassword': 'Conferma nuova password',

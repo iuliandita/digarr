@@ -46,6 +46,8 @@ vi.mock('@/web/lib/api', () => ({
   getPlexSections: vi.fn().mockResolvedValue({ sections: [] }),
   getAuthMeta: vi.fn().mockResolvedValue({ oidcEnabled: false, proxyAuthEnabled: false }),
   linkOidcAccount: vi.fn().mockResolvedValue({ url: '#oidc-link-test' }),
+  listArtistBlocks: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
+  listAlbumBlocks: vi.fn().mockResolvedValue({ items: [] }),
   updateSettings: vi.fn(),
   testNotificationChannel: vi.fn(),
   getPopularAlbumsAvailability: vi
@@ -191,6 +193,8 @@ import {
   getUserPreferences,
   importSpotifyLikedSongs,
   linkOidcAccount,
+  listAlbumBlocks,
+  listArtistBlocks,
   listJobs,
   listTargets,
   listUsers,
@@ -1171,6 +1175,43 @@ describe('SettingsPage', () => {
     expect(await screen.findByRole('button', { name: 'Link SSO account' })).toBeInTheDocument()
   })
 
+  it('keeps email and password under one Security section and hides SSO when it is off', async () => {
+    setupMocks()
+    mockGetCurrentUser.mockResolvedValue({
+      id: 1,
+      username: 'admin',
+      isAdmin: true,
+      authProvider: 'local',
+      oidcSubject: null,
+    })
+    renderWithQuery(<SettingsPage />, ['/settings?tab=account'])
+
+    expect(await screen.findByRole('heading', { name: 'Security' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Email address')).toBeInTheDocument()
+    expect(screen.getByLabelText('New password')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: /SSO/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Link SSO account' })).not.toBeInTheDocument()
+  })
+
+  it.each([['/settings?tab=blocked'], ['/settings?tab=recommendations']])(
+    'shows Blocked as a count section of Recommendations (%s)',
+    async (url) => {
+      setupMocks()
+      vi.mocked(listArtistBlocks).mockResolvedValue({
+        items: [],
+        nextCursor: null,
+      })
+      vi.mocked(listAlbumBlocks).mockResolvedValue({ items: [] })
+      renderWithQuery(<SettingsPage />, [url])
+
+      expect(await screen.findByText('Score threshold')).toBeInTheDocument()
+      const toggle = await screen.findByRole('button', { name: 'Blocked - 0' })
+      await waitFor(() =>
+        expect(toggle).toHaveAttribute('aria-expanded', String(url.includes('blocked'))),
+      )
+    },
+  )
+
   it('shows linked status without offering another link', async () => {
     setupMocks()
     mockGetCurrentUser.mockResolvedValue({
@@ -1179,6 +1220,11 @@ describe('SettingsPage', () => {
       isAdmin: true,
       authProvider: 'local',
       oidcSubject: 'subject-1',
+    })
+    vi.mocked(getAuthMeta).mockResolvedValue({
+      version: '1.16.0',
+      oidcEnabled: true,
+      proxyAuthEnabled: false,
     })
     renderWithQuery(<SettingsPage />, ['/settings?tab=account'])
 
