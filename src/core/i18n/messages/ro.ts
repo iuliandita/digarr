@@ -24,6 +24,12 @@ export const ro = {
     'Revoci "{name}"? Scripturile care îl folosesc vor pierde imediat accesul.',
   'tokens.readOnlyError': 'Acest token permite doar cereri GET și HEAD.',
   'tokens.notFoundError': 'Acest token nu a fost găsit.',
+  'notification.approvalFailed':
+    'Aprobarea pentru {0} în Lidarr nu s-a putut finaliza în 24 de ore: {1}',
+  'recommendation.waitingForLidarr': 'În așteptare pentru Lidarr',
+  'recommendation.nextRetry': 'Următoarea încercare: {0}',
+  'settings.channels.eventApprovalFailed': 'Aprobarea a eșuat',
+
   'settings.monitorMissing': 'Albume lipsă',
   'settings.monitorExisting': 'Albume existente',
   'settings.monitorLatest': 'Cel mai recent album',

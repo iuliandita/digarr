@@ -557,3 +557,12 @@ export async function getExistingAlbumReleaseGroupMbids(
     .where(and(...conditions))
   return new Set(rows.map((r) => r.rg).filter((rg): rg is string => Boolean(rg)))
 }
+
+export async function listWaitingApprovals(db: Database): Promise<RecommendationWithArtist[]> {
+  const rows = await db
+    .select({ recommendation: recommendations, artist: artists })
+    .from(recommendations)
+    .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    .where(eq(recommendations.status, 'waiting'))
+  return rows.map((row) => ({ ...row.recommendation, artist: row.artist }))
+}

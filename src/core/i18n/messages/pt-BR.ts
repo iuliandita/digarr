@@ -24,6 +24,12 @@ export const ptBR = {
     'Revogar "{name}"? Os scripts que usam esse token perderão o acesso imediatamente.',
   'tokens.readOnlyError': 'Este token só permite requisições GET e HEAD.',
   'tokens.notFoundError': 'Este token não foi encontrado.',
+  'notification.approvalFailed':
+    'Não foi possível concluir a aprovação de {0} no Lidarr em 24 horas: {1}',
+  'recommendation.waitingForLidarr': 'Aguardando o Lidarr',
+  'recommendation.nextRetry': 'Próxima tentativa: {0}',
+  'settings.channels.eventApprovalFailed': 'Falha na aprovação',
+
   'settings.monitorMissing': 'Álbuns ausentes',
   'settings.monitorExisting': 'Álbuns existentes',
   'settings.monitorLatest': 'Álbum mais recente',

@@ -23,6 +23,11 @@ export const uk = {
   'tokens.revokeConfirm': 'Відкликати «{name}»? Скрипти з цим токеном одразу втратять доступ.',
   'tokens.readOnlyError': 'Цей токен дозволяє лише запити GET і HEAD.',
   'tokens.notFoundError': 'Цей токен не знайдено.',
+  'notification.approvalFailed': 'Не вдалося завершити схвалення {0} у Lidarr за 24 години: {1}',
+  'recommendation.waitingForLidarr': 'Очікування Lidarr',
+  'recommendation.nextRetry': 'Наступна спроба: {0}',
+  'settings.channels.eventApprovalFailed': 'Помилка схвалення',
+
   'settings.monitorMissing': 'Відсутні альбоми',
   'settings.monitorExisting': 'Наявні альбоми',
   'settings.monitorLatest': 'Останній альбом',

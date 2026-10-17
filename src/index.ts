@@ -18,6 +18,7 @@ import { decryptChannelSecrets, initEncryption, isEncryptionEnabled } from './co
 import { createDefaultDiscoveryModeRegistry } from './core/discovery-modes/registry'
 import { runDiscoveryMode } from './core/discovery-modes/run'
 import { GenreService } from './core/genre/service'
+import { resolveSupportedLocale } from './core/i18n/locales'
 import { startDigestNotifier } from './core/jobs/digest-notifier'
 import { recordFailureSafely } from './core/jobs/record-failure-safely'
 import { createJobRecorder } from './core/jobs/recorder'
@@ -94,6 +95,7 @@ import {
   resolveLidarrTargetDefaults,
   withResolvedLidarrConnection,
 } from './core/targets/lidarr-connection'
+import { retryWaitingApprovals } from './core/targets/lidarr-retry-worker'
 import { createSavedPlaylistExportTarget } from './core/targets/saved-playlist-targets'
 import { createSlskdTarget } from './core/targets/slskd'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
@@ -161,6 +163,7 @@ import {
   getRejectedArtistMbids,
   insertRecommendation,
   listRecommendations,
+  listWaitingApprovals,
   rejectRecommendation,
   updateRecommendationStatus,
 } from './db/queries/recommendations'
@@ -1190,6 +1193,7 @@ function scheduleIsolated(label: string, start: () => void): void {
 
 let librarySyncCron: Cron | null = null
 let libraryHealthCron: Cron | null = null
+let approvalRetryCron: Cron | null = null
 let slskdCron: Cron | null = null
 let stuckDetectorCron: Cron | null = null
 let digestNotifierCron: Cron | null = null
@@ -1562,6 +1566,25 @@ const server = serve({ fetch: app.fetch, port })
       }
     })
 
+    approvalRetryCron = new Cron('*/5 * * * *', { protect: true }, async () => {
+      if (isMaintenance()) return
+      try {
+        await retryWaitingApprovals({
+          listWaiting: () => listWaitingApprovals(db),
+          getRecommendation: (id) => getRecommendation(db, id),
+          getTargets: getEnabledTargetsForResolvedUser,
+          update: (id, status, extra) => updateRecommendationStatus(db, id, status, extra),
+          recorder: jobRecorder,
+          getLocale: async (userId) =>
+            resolveSupportedLocale((await getUserById(db, userId))?.preferredLocale),
+          notify: async (payload) =>
+            dispatch(await buildDigestDeps().getChannels(), 'approval_failed', payload),
+        })
+      } catch (error) {
+        console.error('[lidarr-retry] tick failed:', errMsg(error))
+      }
+    })
+
     // Start stuck job detector
     stuckDetectorCron = startStuckDetector(jobRecorder)
 
@@ -1626,6 +1649,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     await new Promise((resolve) => setTimeout(resolve, 12_000))
     scheduler.stopAll()
     playlistScheduler.stopAll()
+    approvalRetryCron?.stop()
     slskdCron?.stop()
     stuckDetectorCron?.stop()
     digestNotifierCron?.stop()

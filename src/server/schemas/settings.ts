@@ -26,7 +26,7 @@ const scoringWeightsSchema = z
 // Notification channels. Secret string fields (telegram botToken, ntfy token,
 // apprise urls) stay plain z.string() so the masked '***' placeholder round-trips
 // on save; only real URLs that are never masked get .url() validation.
-const notificationEvent = z.enum(['batch_complete', 'digest'])
+const notificationEvent = z.enum(['batch_complete', 'digest', 'approval_failed'])
 const channelBase = {
   id: z.string().min(1),
   enabled: z.boolean(),

@@ -23,6 +23,11 @@ export const en = {
   'tokens.revokeConfirm': 'Revoke "{name}"? Scripts using it will lose access immediately.',
   'tokens.readOnlyError': 'This token only allows GET and HEAD requests.',
   'tokens.notFoundError': 'This token was not found.',
+  'notification.approvalFailed': 'Lidarr approval for {0} could not complete within 24 hours: {1}',
+  'recommendation.waitingForLidarr': 'Waiting for Lidarr',
+  'recommendation.nextRetry': 'Next retry: {0}',
+  'settings.channels.eventApprovalFailed': 'Approval failed',
+
   'settings.monitorMissing': 'Missing albums',
   'settings.monitorExisting': 'Existing albums',
   'settings.monitorLatest': 'Latest album',

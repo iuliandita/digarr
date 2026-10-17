@@ -5,6 +5,13 @@ import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveProviderToken } from '@/core/provider-auth'
+import {
+  hasRetryState,
+  hasWaitingAction,
+  isWaitingAction,
+  targetAction,
+} from '@/core/targets/lidarr-retry'
+import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -56,7 +63,7 @@ function summarizeTargetActions(
     if (isTargetSuccess(action)) {
       succeeded++
       if (action?.warning) warnings.push(action.warning)
-    } else {
+    } else if (action?.status !== 'waiting') {
       failures.push({ id, name: targetsById.get(id)?.name ?? id, error: action?.error })
     }
   }
@@ -77,6 +84,7 @@ function deriveStatusFromActions(
     ([id, a]) => id.startsWith('lidarr-') && a?.status === 'added',
   )
   const anySuccess = entries.some(([, a]) => isTargetSuccess(a))
+  if (hasWaitingAction(mergedActions)) return 'waiting'
   if (anyLidarrAdded || lidarrArtistId) return 'added_to_lidarr'
   return anySuccess ? 'approved' : 'add_failed'
 }
@@ -92,7 +100,7 @@ type MonitorOption =
   | 'none'
   | 'selected'
   | 'popular'
-type TargetActionStatus = 'added' | 'queued' | 'failed'
+type TargetActionStatus = 'added' | 'queued' | 'failed' | 'waiting'
 
 type ApprovalArtist = {
   mbid: string
@@ -199,6 +207,7 @@ async function resolvePopularAlbumIds(
 
 type TargetExecutionResult = {
   action?: {
+    retry?: import('@/core/targets/lidarr-retry').WaitingAction['retry']
     status: TargetActionStatus
     externalId?: number | string
     error?: string
@@ -216,6 +225,9 @@ async function addArtistToTarget(
   jobRecorder?: import('@/core/jobs/types').JobRecorder,
   userId?: number,
 ): Promise<TargetExecutionResult> {
+  const prior = (addOptions.priorActions as Record<string, unknown> | undefined)?.[target.id]
+  if (hasRetryState(prior)) addOptions = { ...prior.retry.options, retryExisting: true }
+  else if (prior && target.type === 'lidarr') addOptions = { ...addOptions, retryExisting: true }
   const targetJobId = jobRecorder
     ? await jobRecorder.start({
         type: 'target',
@@ -233,7 +245,14 @@ async function addArtistToTarget(
       })
     : null
 
-  const result = await target.addArtist?.(artist, addOptions)
+  const result = await target
+    .addArtist?.(artist, addOptions)
+    .catch((error: unknown): import('@/core/targets/types').TargetResult => ({
+      success: false,
+      targetType: target.type,
+      targetId: 0,
+      error: error instanceof Error ? error.message : String(error),
+    }))
 
   if (!result) {
     if (targetJobId != null && jobRecorder) {
@@ -259,12 +278,12 @@ async function addArtistToTarget(
   }
 
   return {
-    action: {
-      status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
-      externalId: result.externalId,
-      error: result.error,
-      ...(result.warning ? { warning: result.warning } : {}),
-    },
+    action: targetAction(
+      target,
+      result,
+      Object.fromEntries(Object.entries(addOptions).filter(([key]) => key !== 'priorActions')),
+      isWaitingAction(prior) ? prior : undefined,
+    ),
     success: result.success,
     lidarrArtistId: target.type === 'lidarr' && result.success ? result.externalId : undefined,
     lidarrError: target.type === 'lidarr' ? result.error : undefined,
@@ -291,7 +310,37 @@ async function approveToTargets(
   let lidarrArtistId: number | string | undefined
   let lidarrError: string | undefined
 
+  const priorActions = (addOptions.priorActions ?? {}) as Record<string, unknown>
+  const continuations = new Set(
+    Object.values(priorActions)
+      .filter(hasRetryState)
+      .map((a) => a.retry.options.followUpTargetId)
+      .filter(Boolean),
+  )
   for (const target of actionableTargets) {
+    if (continuations.has(target.id)) continue
+    const prior = priorActions[target.id]
+    const followUp = hasRetryState(prior)
+      ? actionableTargets.find((t) => t.id === prior.retry.options.followUpTargetId)
+      : undefined
+    if (followUp && recommendationId != null) {
+      const combined = await approveWithCombinedLidarrSlskd(
+        artist,
+        target,
+        followUp,
+        addOptions,
+        recommendationId,
+        jobRecorder,
+        userId,
+      )
+      Object.assign(targetActions, combined.targetActions)
+      if (combined.lidarrArtistId) {
+        lidarrArtistId = combined.lidarrArtistId
+        anySuccess = true
+      }
+      if (combined.lidarrError) lidarrError = combined.lidarrError
+      continue
+    }
     const execution = await addArtistToTarget(
       artist,
       target,
@@ -314,7 +363,13 @@ async function approveToTargets(
     if (execution.lidarrError) lidarrError = execution.lidarrError
   }
 
-  const status = lidarrArtistId ? 'added_to_lidarr' : anySuccess ? 'approved' : 'add_failed'
+  const status = hasWaitingAction(targetActions)
+    ? 'waiting'
+    : lidarrArtistId
+      ? 'added_to_lidarr'
+      : anySuccess
+        ? 'approved'
+        : 'add_failed'
   return { status, targetActions, lidarrArtistId, lidarrError }
 }
 
@@ -353,14 +408,25 @@ async function approveAlbumToTargets(
         })
       : null
 
-    const result = await target.addAlbum?.(
-      {
-        artistMbid: album.artistMbid,
-        artistName: album.artistName,
-        releaseGroupMbid: album.releaseGroupMbid,
-      },
-      { ...addOptions, userId, recommendationId },
-    )
+    const prior = (addOptions.priorActions as Record<string, unknown> | undefined)?.[target.id]
+    const options = hasRetryState(prior)
+      ? { ...prior.retry.options, retryExisting: true }
+      : Object.fromEntries(Object.entries(addOptions).filter(([key]) => key !== 'priorActions'))
+    const result = await target
+      .addAlbum?.(
+        {
+          artistMbid: album.artistMbid,
+          artistName: album.artistName,
+          releaseGroupMbid: album.releaseGroupMbid,
+        },
+        { ...options, userId, recommendationId },
+      )
+      .catch((error: unknown): import('@/core/targets/types').TargetResult => ({
+        success: false,
+        targetType: target.type,
+        targetId: 0,
+        error: error instanceof Error ? error.message : String(error),
+      }))
 
     if (!result) {
       if (targetJobId != null && jobRecorder) {
@@ -389,11 +455,12 @@ async function approveAlbumToTargets(
       }
     }
 
-    targetActions[target.id] = {
-      status: result.success ? (target.type === 'slskd' ? 'queued' : 'added') : 'failed',
-      externalId: result.externalId,
-      error: result.error,
-    }
+    targetActions[target.id] = targetAction(
+      target,
+      result,
+      { ...options, userId, recommendationId },
+      isWaitingAction(prior) ? prior : undefined,
+    )
     if (result.success) {
       anySuccess = true
       if (target.type === 'lidarr') anyLidarrSuccess = true
@@ -402,7 +469,13 @@ async function approveAlbumToTargets(
     }
   }
 
-  const status = anyLidarrSuccess ? 'added_to_lidarr' : anySuccess ? 'approved' : 'add_failed'
+  const status = hasWaitingAction(targetActions)
+    ? 'waiting'
+    : anyLidarrSuccess
+      ? 'added_to_lidarr'
+      : anySuccess
+        ? 'approved'
+        : 'add_failed'
   // lidarrArtistId stays undefined: the album path returns the Lidarr ALBUM id,
   // wrong semantics for lidarr_artist_id (it's kept in targetActions instead).
   return { status, targetActions, lidarrArtistId: undefined, lidarrError }
@@ -426,6 +499,7 @@ async function approveWithCombinedLidarrSlskd(
     lidarrTarget,
     {
       ...addOptions,
+      followUpTargetId: slskdTarget.id,
       userId,
       recommendationId,
     },
@@ -458,7 +532,11 @@ async function approveWithCombinedLidarrSlskd(
     }
   }
 
-  const status = lidarrArtistId ? 'added_to_lidarr' : 'add_failed'
+  const status = hasWaitingAction(targetActions)
+    ? 'waiting'
+    : lidarrArtistId
+      ? 'added_to_lidarr'
+      : 'add_failed'
   return { status, targetActions, lidarrArtistId, lidarrError }
 }
 
@@ -634,6 +712,9 @@ export function recommendationRoutes(deps: AppDependencies) {
     '/api/v1/recommendations/:id',
     zParam(recommendationIdParamSchema),
     zJson(updateRecommendationSchema),
+    async (c, next) => {
+      await withApprovalLock(Number(c.req.param('id')), next)
+    },
     async (c) => {
       const { id } = c.req.valid('param')
       const body = c.req.valid('json')
@@ -658,7 +739,14 @@ export function recommendationRoutes(deps: AppDependencies) {
         const { rec, userId } = loaded
 
         const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
-        const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
+        const priorActions = rec.targetActions ?? {}
+        const effectiveTargets = targets.filter((t) =>
+          targetId
+            ? t.id === targetId
+            : !['added', 'queued'].includes(
+                (priorActions[t.id] as TargetActionRecord)?.status ?? '',
+              ),
+        )
         const lidarrTargets = targets.filter(
           (target) => target.type === 'lidarr' && target.capabilities?.includes('addArtist'),
         )
@@ -754,6 +842,8 @@ export function recommendationRoutes(deps: AppDependencies) {
           )
         }
 
+        addOptions.priorActions = priorActions
+
         const result =
           rec.kind === 'album' && rec.recommendedReleaseGroupId
             ? await approveAlbumToTargets(
@@ -789,7 +879,6 @@ export function recommendationRoutes(deps: AppDependencies) {
 
         // Merge this attempt over any prior target actions so a single-target
         // retry preserves the outcomes of targets that already succeeded.
-        const priorActions = (rec.targetActions as Record<string, unknown> | null) ?? {}
         const mergedActions = { ...priorActions, ...result.targetActions }
         const lidarrArtistId = result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined
         // Only re-derive across the merged map when retrying a rec that already
@@ -863,26 +952,28 @@ export function recommendationRoutes(deps: AppDependencies) {
 
     if (action === 'reject') {
       const ownedIds = await deps.filterOwnedIds(ids, userId)
-      // Fast path: no shared reason/permanent => a single bulk status update,
-      // preserving the prior reason-less behaviour.
-      if (!reason && !permanent) {
-        if (ownedIds.length > 0) {
-          await deps.bulkUpdateStatus(ownedIds, 'rejected')
+      return withApprovalLocks(ownedIds, async () => {
+        // Fast path: no shared reason/permanent => a single bulk status update,
+        // preserving the prior reason-less behaviour.
+        if (!reason && !permanent) {
+          if (ownedIds.length > 0) {
+            await deps.bulkUpdateStatus(ownedIds, 'rejected')
+          }
+          return c.json({ updated: ownedIds.length })
+        }
+        // Shared-reason path: route each id through rejectRecommendation so the
+        // reason is recorded and the optional permanent block is created per artist.
+        for (const id of ownedIds) {
+          await deps.rejectRecommendation({
+            recommendationId: id,
+            userId,
+            reason: reason ?? null,
+            reasonText: null,
+            permanent,
+          })
         }
         return c.json({ updated: ownedIds.length })
-      }
-      // Shared-reason path: route each id through rejectRecommendation so the
-      // reason is recorded and the optional permanent block is created per artist.
-      for (const id of ownedIds) {
-        await deps.rejectRecommendation({
-          recommendationId: id,
-          userId,
-          reason: reason ?? null,
-          reasonText: null,
-          permanent,
-        })
-      }
-      return c.json({ updated: ownedIds.length })
+      })
     }
 
     // Approve: route through targets
@@ -910,46 +1001,64 @@ export function recommendationRoutes(deps: AppDependencies) {
     const results: Array<{ id: number; status: string; error?: string }> = []
 
     for (const id of ids) {
-      const rec = await deps.getRecommendation(id)
-      if (!rec) {
-        results.push({ id, status: 'not_found' })
-        continue
-      }
-      if (!isOwned(rec, userId)) {
-        results.push({ id, status: 'not_found' })
-        continue
-      }
+      await withApprovalLock(id, async () => {
+        const rec = await deps.getRecommendation(id)
+        if (!rec) {
+          results.push({ id, status: 'not_found' })
+          return
+        }
+        if (!isOwned(rec, userId)) {
+          results.push({ id, status: 'not_found' })
+          return
+        }
 
-      const result: ApproveResult =
-        rec.kind === 'album'
-          ? rec.recommendedReleaseGroupId
-            ? await approveAlbumToTargets(
-                {
-                  artistMbid: rec.artist.mbid,
-                  artistName: rec.artist.name,
-                  releaseGroupMbid: rec.recommendedReleaseGroupId,
-                },
-                effectiveTargets,
-                addOptions,
+        const result: ApproveResult =
+          rec.kind === 'album'
+            ? rec.recommendedReleaseGroupId
+              ? await approveAlbumToTargets(
+                  {
+                    artistMbid: rec.artist.mbid,
+                    artistName: rec.artist.name,
+                    releaseGroupMbid: rec.recommendedReleaseGroupId,
+                  },
+                  effectiveTargets.filter(
+                    (t) =>
+                      !['added', 'queued'].includes(
+                        (rec.targetActions?.[t.id] as TargetActionRecord)?.status ?? '',
+                      ),
+                  ),
+                  { ...addOptions, priorActions: rec.targetActions },
+                  deps.jobRecorder,
+                  userId,
+                  id,
+                )
+              : { status: 'add_failed', targetActions: {} }
+            : await approveToTargets(
+                { mbid: rec.artist.mbid, name: rec.artist.name },
+                effectiveTargets.filter(
+                  (t) =>
+                    !['added', 'queued'].includes(
+                      (rec.targetActions?.[t.id] as TargetActionRecord)?.status ?? '',
+                    ),
+                ),
+                { ...addOptions, priorActions: rec.targetActions },
                 deps.jobRecorder,
                 userId,
                 id,
               )
-            : { status: 'add_failed', targetActions: {} }
-          : await approveToTargets(
-              { mbid: rec.artist.mbid, name: rec.artist.name },
-              effectiveTargets,
-              addOptions,
-              deps.jobRecorder,
-              userId,
-              id,
-            )
 
-      const extra: Record<string, unknown> = { targetActions: result.targetActions }
-      if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
-      if (result.lidarrError) extra.lidarrError = result.lidarrError
-      await deps.updateRecommendationStatus(id, result.status, extra)
-      results.push({ id, status: result.status })
+        const mergedActions = { ...rec.targetActions, ...result.targetActions }
+        if (Object.keys(rec.targetActions ?? {}).length > 0)
+          result.status = deriveStatusFromActions(
+            mergedActions,
+            result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined,
+          )
+        const extra: Record<string, unknown> = { targetActions: mergedActions }
+        if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
+        if (result.lidarrError) extra.lidarrError = result.lidarrError
+        await deps.updateRecommendationStatus(id, result.status, extra)
+        results.push({ id, status: result.status })
+      })
     }
 
     return c.json({ results })

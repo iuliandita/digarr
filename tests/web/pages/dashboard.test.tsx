@@ -500,7 +500,7 @@ describe('Dashboard', () => {
       if (p?.status === 'pending') {
         return Promise.resolve({ items: [pendingRec], total: 1 })
       }
-      if (p?.status === 'added_to_lidarr,add_failed,approved') {
+      if (p?.status === 'added_to_lidarr,add_failed,approved,waiting') {
         return Promise.resolve({ items: [addFailedRec], total: 1 })
       }
       return Promise.resolve({ items: [], total: 0 })
