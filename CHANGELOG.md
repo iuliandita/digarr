@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - Maintainer docs: `docs/NORMALIZATION.md` lists every stored normalized artist and album key and the migration, collision, and backup-restore plan for changing a normalizer. A contract test pins the current outputs so a rule can't change by accident (#920).
 
 ### Changed
+- Combine Library Health and Reconciliation into one Library page with tabs, and Jobs and System Health into one System settings tab. Old links still open the matching tab or section; Tools keeps one Job History shortcut. (#984)
 
 - Notification channels start collapsed. The card summarizes them ("2 channels, 1 enabled"), each channel is a collapsed row showing its type, target and enabled state, and Add channel opens the type picker. The digest schedule moved from the notifications card to Settings > Schedule, next to the other schedules. (#990)
 - Make Discover consistent across views. Reject opens the same reason picker in stack, grid and list (and from the `r` key), and the picker's button reads "Reject without a reason" until you choose one, so skipping stays one click. In stack view `a` and `r` now work next to the arrow keys. The mood search collapses to a button until you click it or press `/`, and stays open while it has text or focus. On Subscriptions, Pause all and Resume all only show from two subscriptions up, and Presets moved into the New button's menu as From a preset (#985) (#993).

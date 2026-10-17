@@ -13,8 +13,7 @@ const TAB_LABELS: Record<Tab, MessageKey> = {
   auth: 'settings.tabs.authentication',
   users: 'settings.tabs.users',
   administration: 'settings.tabs.administration',
-  jobs: 'settings.tabs.jobHistory',
-  'system-health': 'settings.tabs.systemHealth',
+  system: 'settings.tabs.system',
 }
 
 const GROUP_LABELS: Record<(typeof TAB_GROUPS)[number]['id'], MessageKey> = {
