@@ -8,7 +8,7 @@ const mockDeps = {
   db: {} as never,
   getRecommendation: vi.fn(),
   updateRecommendationStatus: vi.fn().mockResolvedValue(undefined),
-  rejectRecommendation: vi.fn().mockResolvedValue(1),
+  rejectRecommendation: vi.fn().mockResolvedValue({ artistId: 1, blockCreated: false }),
   listArtistBlocks: vi.fn().mockResolvedValue({ items: [], nextCursor: null }),
   removeArtistBlock: vi.fn().mockResolvedValue(true),
   addArtistBlock: vi.fn().mockResolvedValue(undefined),

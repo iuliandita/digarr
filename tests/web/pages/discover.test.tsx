@@ -806,9 +806,9 @@ describe('DiscoverPage', () => {
   })
 
   it.each([
-    ['artist', makeRec(), 'Test Artist', 'artist'],
+    ['removes the artist block it created', makeRec(), 'Test Artist', 'artist', true],
     [
-      'album',
+      'removes the album block it created',
       makeRec({
         kind: 'album',
         recommendedReleaseGroupId: 'rg-1',
@@ -816,13 +816,15 @@ describe('DiscoverPage', () => {
       }),
       'Souvlaki by Test Artist',
       'album',
+      true,
     ],
+    ['keeps an artist block that already existed', makeRec(), 'Test Artist', 'artist', false],
   ])(
-    'removes the %s block it created and names it in the toast',
-    async (_kind, rec, name, blockKind) => {
+    'undo %s and names it in the toast',
+    async (_label, rec, name, blockKind, blockCreated) => {
       localStorage.setItem('digarr:discover-view', 'stack')
       setupMockApi([rec])
-      mockUpdateRecommendation.mockResolvedValue({ status: 'rejected' })
+      mockUpdateRecommendation.mockResolvedValue({ status: 'rejected', blockCreated })
       ;(deleteArtistBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
       ;(deleteAlbumBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
 
@@ -840,9 +842,16 @@ describe('DiscoverPage', () => {
 
       await waitFor(() => {
         expect(mockUpdateRecommendation).toHaveBeenLastCalledWith(1, { status: 'pending' })
-        if (blockKind === 'album') expect(deleteAlbumBlock).toHaveBeenCalledWith('rg-1')
-        else expect(deleteArtistBlock).toHaveBeenCalledWith(10)
       })
+      if (!blockCreated) {
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        expect(deleteArtistBlock).not.toHaveBeenCalled()
+        expect(deleteAlbumBlock).not.toHaveBeenCalled()
+      } else if (blockKind === 'album') {
+        await waitFor(() => expect(deleteAlbumBlock).toHaveBeenCalledWith('rg-1'))
+      } else {
+        await waitFor(() => expect(deleteArtistBlock).toHaveBeenCalledWith(10))
+      }
     },
     15_000,
   )

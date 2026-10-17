@@ -642,11 +642,12 @@ export function DiscoverPage() {
   itemsRef.current = items
 
   const showUndo = useCallback(
-    (id: number, prevStatus: string, action: UndoAction) => {
+    (id: number, prevStatus: string, action: UndoAction, blockCreated = false) => {
       const rec = itemsRef.current.find((item) => item.id === id)
       // Mirrors the server: album recs with a release group get an album block, else an artist block.
+      // A block that existed before this reject is left in place on undo.
       const block =
-        action !== 'blocked' || !rec
+        action !== 'blocked' || !blockCreated || !rec
           ? undefined
           : rec.kind === 'album' && rec.recommendedReleaseGroupId
             ? { releaseGroupMbid: rec.recommendedReleaseGroupId }
@@ -790,8 +791,13 @@ export function DiscoverPage() {
         if (payload?.reason) body.reason = payload.reason
         if (payload?.reasonText) body.reasonText = payload.reasonText
         if (payload?.permanent) body.permanent = true
-        await updateRecommendation(id, body)
-        showUndo(id, prevStatus, payload?.permanent ? 'blocked' : 'rejected')
+        const res = await updateRecommendation(id, body)
+        showUndo(
+          id,
+          prevStatus,
+          payload?.permanent ? 'blocked' : 'rejected',
+          res?.blockCreated === true,
+        )
         refetch()
       } catch {
         toast.error(t('discover.rejectFailed'))

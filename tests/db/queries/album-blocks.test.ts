@@ -46,7 +46,7 @@ function makeInsertDb(): {
   values: ReturnType<typeof vi.fn>
   onConflictDoNothing: ReturnType<typeof vi.fn>
 } {
-  const onConflictDoNothing = vi.fn().mockResolvedValue(undefined)
+  const onConflictDoNothing = vi.fn().mockReturnValue({ returning: vi.fn().mockResolvedValue([]) })
   const values = vi.fn().mockReturnValue({ onConflictDoNothing })
   const insert = vi.fn().mockReturnValue({ values })
   return {

@@ -13,8 +13,8 @@ export async function createAlbumBlock(
     reasonText?: string
     source?: string
   },
-): Promise<void> {
-  await db
+): Promise<boolean> {
+  const rows = await db
     .insert(albumBlocks)
     .values({
       userId: params.userId,
@@ -26,6 +26,8 @@ export async function createAlbumBlock(
       source: params.source ?? 'rejection',
     })
     .onConflictDoNothing({ target: [albumBlocks.userId, albumBlocks.releaseGroupMbid] })
+    .returning({ id: albumBlocks.id })
+  return rows.length > 0
 }
 
 export async function removeAlbumBlock(

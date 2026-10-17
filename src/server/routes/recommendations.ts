@@ -793,14 +793,14 @@ export function recommendationRoutes(deps: AppDependencies) {
             'errors.validation.failed',
           )
         }
-        await deps.rejectRecommendation({
+        const rejected = await deps.rejectRecommendation({
           recommendationId: id,
           userId,
           reason: validated.data.reason ?? null,
           reasonText: validated.data.reasonText ?? null,
           permanent: validated.data.permanent,
         })
-        return c.json({ status: 'rejected' })
+        return c.json({ status: 'rejected', blockCreated: rejected?.blockCreated ?? false })
       }
 
       await deps.updateRecommendationStatus(id, status)

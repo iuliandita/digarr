@@ -235,6 +235,10 @@ export const openapiDoc = {
             },
           },
           lidarrError: { type: 'string' },
+          blockCreated: {
+            type: 'boolean',
+            description: 'Rejections only: true when this request created the permanent block.',
+          },
         },
         additionalProperties: true,
       },

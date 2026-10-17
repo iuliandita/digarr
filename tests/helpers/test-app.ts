@@ -53,7 +53,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
     listRecommendations: vi.fn(async () => ({ items: [], total: 0 })),
     getRecommendation: vi.fn(async () => null),
     updateRecommendationStatus: vi.fn(),
-    rejectRecommendation: vi.fn(async () => 1),
+    rejectRecommendation: vi.fn(async () => ({ artistId: 1, blockCreated: false })),
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),

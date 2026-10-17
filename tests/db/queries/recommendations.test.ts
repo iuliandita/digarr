@@ -306,8 +306,12 @@ describe('rejectRecommendation', () => {
     const update = vi.fn().mockReturnValue({ set })
 
     const insertCalls: Array<{ table: string | undefined; values: Record<string, unknown> }> = []
-    const onConflictDoUpdate = vi.fn().mockResolvedValue(undefined)
-    const onConflictDoNothing = vi.fn().mockResolvedValue(undefined)
+    const onConflictDoUpdate = vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ inserted: true }]),
+    })
+    const onConflictDoNothing = vi.fn().mockReturnValue({
+      returning: vi.fn().mockResolvedValue([{ id: 1 }]),
+    })
     const insert = vi.fn((table: unknown) => ({
       values: vi.fn((vals: Record<string, unknown>) => {
         insertCalls.push({ table: tableName(table), values: vals })
@@ -339,7 +343,7 @@ describe('rejectRecommendation', () => {
       permanent: true,
     })
 
-    expect(artistId).toBe(10)
+    expect(artistId).toEqual({ artistId: 10, blockCreated: true })
     expect(insertCalls).toHaveLength(1)
     expect(insertCalls[0]?.table).toBe('album_blocks')
     expect(insertCalls[0]?.values).toMatchObject({
@@ -369,7 +373,7 @@ describe('rejectRecommendation', () => {
       permanent: true,
     })
 
-    expect(artistId).toBe(20)
+    expect(artistId).toEqual({ artistId: 20, blockCreated: true })
     expect(insertCalls).toHaveLength(1)
     expect(insertCalls[0]?.table).toBe('artist_blocks')
     expect(insertCalls[0]?.values).toMatchObject({ userId: 5, artistId: 20 })
@@ -391,7 +395,7 @@ describe('rejectRecommendation', () => {
       permanent: true,
     })
 
-    expect(artistId).toBe(30)
+    expect(artistId).toEqual({ artistId: 30, blockCreated: true })
     expect(insertCalls).toHaveLength(1)
     expect(insertCalls[0]?.table).toBe('artist_blocks')
     expect(insertCalls.some((c) => c.table === 'album_blocks')).toBe(false)
@@ -412,7 +416,7 @@ describe('rejectRecommendation', () => {
       permanent: false,
     })
 
-    expect(artistId).toBe(40)
+    expect(artistId).toEqual({ artistId: 40, blockCreated: false })
     expect(insertCalls).toHaveLength(0)
   })
 })

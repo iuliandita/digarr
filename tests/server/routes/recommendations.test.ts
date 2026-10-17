@@ -130,7 +130,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     listRecommendations: vi.fn(async () => ({ items: [mockRecommendation], total: 1 })),
     getRecommendation: vi.fn(async (id: number) => (id === 1 ? mockRecommendation : null)),
     updateRecommendationStatus: vi.fn(async () => {}),
-    rejectRecommendation: vi.fn(async () => 1),
+    rejectRecommendation: vi.fn(async () => ({ artistId: 1, blockCreated: false })),
     listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
     removeArtistBlock: vi.fn(async () => true),
     addArtistBlock: vi.fn(async () => {}),
@@ -359,7 +359,7 @@ describe('GET /api/v1/recommendations/:id', () => {
 
 describe('PATCH /api/v1/recommendations/:id', () => {
   it('updates to rejected status without calling Lidarr', async () => {
-    const rejectRecommendation = vi.fn(async () => 1)
+    const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))
     const res = await authedRequest(app, '/api/v1/recommendations/1', {
       method: 'PATCH',
@@ -368,7 +368,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     })
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.status).toBe('rejected')
+    expect(body).toEqual({ status: 'rejected', blockCreated: false })
     expect(rejectRecommendation).toHaveBeenCalledWith({
       recommendationId: 1,
       userId: expect.any(Number),
@@ -379,7 +379,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
   })
 
   it('persists structured reason + permanent block when supplied', async () => {
-    const rejectRecommendation = vi.fn(async () => 1)
+    const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))
     const res = await authedRequest(app, '/api/v1/recommendations/1', {
       method: 'PATCH',
@@ -1070,7 +1070,7 @@ describe('POST /api/v1/recommendations/bulk', () => {
 
   it('bulk rejects with a shared reason via rejectRecommendation per id', async () => {
     const bulkUpdateStatus = vi.fn(async () => {})
-    const rejectRecommendation = vi.fn(async () => 1)
+    const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
     const app = createApp(makeDeps({ bulkUpdateStatus, rejectRecommendation, filterOwnedIds }))
     const res = await authedRequest(app, '/api/v1/recommendations/bulk', {

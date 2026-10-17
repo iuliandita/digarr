@@ -202,12 +202,13 @@ export type RejectRecommendationParams = {
  * kind forever: album_blocks for an album-kind rec with a release group,
  * artist_blocks otherwise.
  *
- * Returns the artistId of the rejected recommendation, or null if no row matched.
+ * Returns the artistId of the rejected recommendation and whether this reject
+ * created the block (false when it already existed), or null if no row matched.
  */
 export async function rejectRecommendation(
   db: Database,
   params: RejectRecommendationParams,
-): Promise<number | null> {
+): Promise<{ artistId: number; blockCreated: boolean } | null> {
   return db.transaction(async (tx) => {
     const conditions = [eq(recommendations.id, params.recommendationId)]
     if (params.userId !== undefined) {
@@ -230,12 +231,13 @@ export async function rejectRecommendation(
       })
     if (!rec) return null
 
+    let blockCreated = false
     if (params.permanent && params.userId !== undefined) {
       // Album recs without a release group (e.g. legacy rows) can't be
       // album-blocked, so fall back to the artist block rather than silently
       // dropping the permanent-reject intent.
       if (rec.kind === 'album' && rec.releaseGroupMbid) {
-        await createAlbumBlock(tx, {
+        blockCreated = await createAlbumBlock(tx, {
           userId: params.userId,
           artistId: rec.artistId,
           releaseGroupMbid: rec.releaseGroupMbid,
@@ -245,7 +247,7 @@ export async function rejectRecommendation(
           source: 'rejection',
         })
       } else {
-        await tx
+        const [row] = await tx
           .insert(artistBlocks)
           .values({
             userId: params.userId,
@@ -262,9 +264,12 @@ export async function rejectRecommendation(
               blockedAt: new Date(),
             },
           })
+          // xmax is 0 only on a freshly inserted row, not on the conflict update
+          .returning({ inserted: sql<boolean>`(xmax = 0)` })
+        blockCreated = row?.inserted === true
       }
     }
-    return rec.artistId
+    return { artistId: rec.artistId, blockCreated }
   })
 }
 

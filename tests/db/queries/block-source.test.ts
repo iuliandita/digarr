@@ -5,7 +5,11 @@ import { addBlock } from '@/db/queries/artist-blocks'
 
 // Album and artist blocks record why a block exists with the same `source` contract.
 function makeInsertDb() {
-  const resolved = vi.fn().mockResolvedValue(undefined)
+  const resolved = vi
+    .fn()
+    .mockReturnValue(
+      Object.assign(Promise.resolve(undefined), { returning: vi.fn().mockResolvedValue([]) }),
+    )
   const values = vi
     .fn()
     .mockReturnValue({ onConflictDoNothing: resolved, onConflictDoUpdate: resolved })

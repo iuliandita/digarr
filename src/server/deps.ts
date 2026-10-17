@@ -132,7 +132,7 @@ export interface RecommendationDeps {
   ) => Promise<void>
   rejectRecommendation: (
     params: import('@/db/queries/recommendations').RejectRecommendationParams,
-  ) => Promise<number | null>
+  ) => Promise<{ artistId: number; blockCreated: boolean } | null>
   bulkUpdateStatus: (ids: number[], status: string) => Promise<void>
   filterOwnedIds: (ids: number[], userId: number | undefined) => Promise<number[]>
   listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>
