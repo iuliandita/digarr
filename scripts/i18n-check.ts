@@ -95,7 +95,6 @@ const LOCALE_KEY_SAME_AS_SOURCE_ALLOWLIST = new Set([
   'it:playlists.playlistSingular',
   'it:jobHistory.playlistType',
   'it:integration.playlist',
-  'it:cronPicker.preset',
   'pl:setup.model',
   'tr:setup.model',
   'es:discoveryMode.option.global',

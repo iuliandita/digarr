@@ -199,7 +199,9 @@ function SubscriptionCard({
     if (sub.sourceType === 'spotify-playlist') return (cfg.playlistName as string) ?? null
     if (sub.sourceType === 'discovery-mode') {
       const modeId = cfg.modeId as string | undefined
-      return modeId ? translateDiscoveryModeLabel(t, { id: modeId, label: modeId }) : null
+      if (!modeId) return null
+      const label = translateDiscoveryModeLabel(t, { id: modeId, label: modeId })
+      return label === modeId ? null : label
     }
     return null
   })()
@@ -235,20 +237,22 @@ function SubscriptionCard({
             <span className="text-xs text-muted">
               {sub.enabled ? t('discoveryModes.scheduled') : t('discoveryModes.paused')}
             </span>
-            {sourceLabel && (
+            {sourceLabel && sourceLabel !== sub.name && (
               <span className="text-xs px-2 py-0.5 bg-accent/5 text-accent-text rounded-full min-w-0 max-w-full break-words">
                 {sourceLabel}
               </span>
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted flex-wrap">
-            <span>
-              {Array.isArray((sub.sourceConfig as Record<string, unknown>)?.providers)
-                ? ((sub.sourceConfig as Record<string, unknown>).providers as string[])
-                    .map((id) => PROVIDER_NAMES[id] ?? id)
-                    .join(', ')
-                : (PROVIDER_NAMES[sub.sourceProvider] ?? sub.sourceProvider)}
-            </span>
+            {sub.sourceType !== 'discovery-mode' && (
+              <span>
+                {Array.isArray((sub.sourceConfig as Record<string, unknown>)?.providers)
+                  ? ((sub.sourceConfig as Record<string, unknown>).providers as string[])
+                      .map((id) => PROVIDER_NAMES[id] ?? id)
+                      .join(', ')
+                  : (PROVIDER_NAMES[sub.sourceProvider] ?? sub.sourceProvider)}
+              </span>
+            )}
             <span>{actionLabel}</span>
             <span title={sub.cron}>{describeCron(t, sub.cron)}</span>
           </div>
@@ -303,6 +307,7 @@ function SubscriptionCard({
             type="button"
             onClick={onRunNow}
             className="p-1.5 text-muted hover:text-accent-text transition-colors"
+            aria-label={t('subscriptions.runNow')}
             title={t('subscriptions.runNow')}
           >
             <Play size={14} />
@@ -312,6 +317,7 @@ function SubscriptionCard({
             onClick={() => setHistoryOpen(!historyOpen)}
             aria-expanded={historyOpen}
             className="p-1.5 text-muted hover:text-text transition-colors"
+            aria-label={t('discoveryModes.runHistory')}
             title={t('discoveryModes.runHistory')}
           >
             <History size={14} />
@@ -320,6 +326,7 @@ function SubscriptionCard({
             type="button"
             onClick={onDelete}
             className="p-1.5 text-muted hover:text-reject transition-colors"
+            aria-label={t('common.delete')}
             title={t('common.delete')}
           >
             <Trash2 size={14} />
@@ -514,9 +521,7 @@ export default function SubscriptionsPage({
 
   const handleEdit = async (subId: number, data: SubscriptionFormData) => {
     const update = buildSubscriptionUpdate(data)
-    if (showForm?.mode === 'edit' && data.enabled === showForm.sub.enabled) {
-      delete update.enabled
-    }
+    delete update.enabled
     await updateSubscriptionApi(subId, update)
     invalidate()
     setShowForm(null)

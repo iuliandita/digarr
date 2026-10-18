@@ -37,7 +37,7 @@ Since the UI refresh (captures above predate it), the Discover toolbar is one ro
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
-The capture above predates the unified Discovery Modes page at `/discovery-modes`, reached from the Discovery Modes tab on Discover. Your modes now shows compact scheduled and recently run rows. Run a mode opens a searchable picker, where connection requirements and experimental modes appear. Picking a mode opens its Easy/Advanced form with Run now and Schedule actions. Presets and CSV/M3U/XSPF imports live in the add flow. Old `/discover/modes` and `/subscriptions` links redirect; `?mode=<id>` still opens and focuses the requested form.
+The capture above predates the unified Discovery Modes page at `/discovery-modes`, reached from the Discovery Modes tab on Discover. Your modes now shows compact scheduled and recently run rows. Run a mode opens a searchable picker, where connection requirements and experimental modes appear. Picking a mode opens its Easy/Advanced form with Run now and Schedule actions. Schedule stays in that card, with a preset select and Custom cron input; More options holds the name, artist cap, and scoring preset. Saved rows expand to the same compact editor. Presets and CSV/M3U/XSPF imports live in the add flow. Old `/discover/modes` and `/subscriptions` links redirect; `?mode=<id>` still opens and focuses the requested form.
 
 The picker uses the same Show experimental integrations preference as Connections. TIDAL Favorite Artists remains experimental; live-account validation is deferred. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 

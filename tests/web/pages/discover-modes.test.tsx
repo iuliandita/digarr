@@ -209,7 +209,9 @@ describe('DiscoveryModesPage', () => {
     )
     expect(screen.queryByRole('heading', { name: 'Release Radar' })).toBeNull()
     expect(
-      await screen.findByText('Run a mode once or schedule it to keep discovering artists.'),
+      await screen.findByText(
+        'Nothing here yet - pick a mode to run it once or put it on a schedule.',
+      ),
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Run a mode' }))
     const search = screen.getByRole('searchbox', { name: 'Search modes' })

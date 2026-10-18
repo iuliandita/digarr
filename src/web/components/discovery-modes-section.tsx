@@ -3,6 +3,7 @@ import { ChevronDown, ChevronRight, History, LayoutGrid, Play, Plus, X } from 'l
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
+  createSubscriptionApi,
   type DiscoveryModeResponse,
   getCurrentUser,
   getDiscoveryModes,
@@ -25,7 +26,7 @@ import { prefersReducedMotion } from '../lib/utils'
 import { type ConnectionChoice, ConnectionPicker } from '../pages/settings/connection-picker'
 import SubscriptionsPage from '../pages/subscriptions'
 import { DiscoveryModeForm } from './discovery-mode-form'
-import type { SubscriptionFormData } from './subscription-form'
+import { SubscriptionForm, type SubscriptionFormData } from './subscription-form'
 import { Button } from './ui/button'
 
 function jobModeId(job: JobRun): string | null {
@@ -186,9 +187,16 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
         sourceConfig: config,
       },
     })
-    setSelectedModeId(null)
   }
   const requestHandled = useCallback(() => setCreateRequest(null), [])
+  const createSchedule = async (data: SubscriptionFormData) => {
+    await createSubscriptionApi(data)
+    toast.success(t('subscriptions.created'))
+    void queryClient.invalidateQueries({ queryKey: ['subscriptions'] })
+    void queryClient.invalidateQueries({ queryKey: ['scheduler-info'] })
+    setCreateRequest(null)
+    setSelectedModeId(null)
+  }
   const recentByMode = new Map<string, JobRun>()
   const ownLocalJobs = localHistory?.userId === currentUser?.id ? (localHistory?.items ?? []) : []
   const ownJobs = (currentUser ? (jobs?.items ?? []) : []).filter(
@@ -249,14 +257,29 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
           <X size={16} />
         </Button>
       </div>
-      <DiscoveryModeForm
-        key={mode.id}
-        mode={mode}
-        onRun={handleRun}
-        onSchedule={(config) => scheduleMode(mode, config)}
-        initialSettingsMode={runConfigs[mode.id]?.settingsMode === 'advanced' ? 'advanced' : 'easy'}
-        initialSettings={runConfigs[mode.id]?.settings as Record<string, unknown> | undefined}
-      />
+      {createRequest?.initial.sourceProvider === mode.id ? (
+        <SubscriptionForm
+          key={createRequest.id}
+          inline
+          mode="create"
+          initial={createRequest.initial}
+          discoveryModes={discoveryModes?.modes}
+          configuredSources={[]}
+          onSubmit={createSchedule}
+          onCancel={requestHandled}
+        />
+      ) : (
+        <DiscoveryModeForm
+          key={mode.id}
+          mode={mode}
+          onRun={handleRun}
+          onSchedule={(config) => scheduleMode(mode, config)}
+          initialSettingsMode={
+            runConfigs[mode.id]?.settingsMode === 'advanced' ? 'advanced' : 'easy'
+          }
+          initialSettings={runConfigs[mode.id]?.settings as Record<string, unknown> | undefined}
+        />
+      )}
     </article>
   )
   const selectedMode = discoveryModes?.modes.find((mode) => mode.id === selectedModeId)
@@ -311,6 +334,7 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
                 <Button
                   variant="ghost"
                   size="icon"
+                  title={t('subscriptions.runNow')}
                   aria-label={`${t('subscriptions.runNow')} ${label}`}
                   onClick={() => setSelectedModeId(id)}
                 >
@@ -319,6 +343,7 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
                 <Button
                   variant="ghost"
                   size="icon"
+                  title={t('discoveryModes.runHistory')}
                   aria-label={`${t('discoveryModes.runHistory')} ${label}`}
                   aria-expanded={historyModeId === id}
                   onClick={() => setHistoryModeId(historyModeId === id ? null : id)}
@@ -356,8 +381,6 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
     <div className="space-y-4">
       <SubscriptionsPage
         embedded
-        createRequest={createRequest}
-        onCreateRequestHandled={requestHandled}
         showAddFlow={showAddFlow}
         recentModes={recentRows}
         addAction={

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse, SubscriptionUpdate } from '../lib/api'
 import { translateDiscoveryModeLabel } from '../lib/discovery-i18n'
@@ -255,6 +255,7 @@ export function SubscriptionForm({
   inline = false,
 }: SubscriptionFormProps) {
   const { t } = useI18n()
+  const formId = useId()
   const [name, setName] = useState(initial?.name ?? '')
   const [sourceType, setSourceType] = useState(initial?.sourceType ?? 'genre')
   const initialProviders = initial?.sourceConfig?.providers as string[] | undefined
@@ -280,7 +281,7 @@ export function SubscriptionForm({
   const [discoveryModeConfig, setDiscoveryModeConfig] =
     useState<DiscoveryModeSubscriptionConfig | null>(initialDiscoveryModeConfig)
   const [cron, setCron] = useState(initial?.cron ?? '0 8 * * 0')
-  const [enabled, setEnabled] = useState(initial?.enabled ?? true)
+  const enabled = initial?.enabled ?? true
   const [maxArtists, setMaxArtists] = useState(initial?.maxArtistsPerRun ?? 20)
   const [weightPreset, setWeightPreset] = useState(
     initial?.scoringWeightPreset ??
@@ -436,7 +437,7 @@ export function SubscriptionForm({
         }
         onClick={(e) => e.stopPropagation()}
       >
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className={inline ? 'p-4 space-y-4' : 'p-6 space-y-4'}>
           <h2 className="text-lg font-semibold text-text">
             {mode === 'create'
               ? t('subscriptionForm.titleCreate')
@@ -449,55 +450,45 @@ export function SubscriptionForm({
             </div>
           )}
 
-          {/* Name */}
-          <div>
-            <label htmlFor="sub-name" className="block text-sm font-medium text-text mb-1">
-              {t('subscriptionForm.name')}
-            </label>
-            <input
-              id="sub-name"
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder={t('subscriptionForm.namePlaceholder')}
-              className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
-            />
-          </div>
-
           {sourceEditable ? (
             <>
               {/* Source type */}
-              <div>
-                <label
-                  htmlFor="sub-source-type"
-                  className="block text-sm font-medium text-text mb-1"
-                >
-                  {t('subscriptionForm.sourceType')}
-                </label>
-                <select
-                  id="sub-source-type"
-                  value={sourceType}
-                  disabled={mode === 'edit'}
-                  onChange={(e) => handleSourceTypeChange(e.target.value)}
-                  className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-                >
-                  {SOURCE_TYPES.map((sourceTypeOption) => (
-                    <option key={sourceTypeOption.value} value={sourceTypeOption.value}>
-                      {t(sourceTypeOption.labelKey)} - {t(sourceTypeOption.descriptionKey)}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {initial?.sourceType !== 'discovery-mode' && (
+                <div>
+                  <label
+                    htmlFor={`${formId}-source-type`}
+                    className="block text-sm font-medium text-text mb-1"
+                  >
+                    {t('subscriptionForm.sourceType')}
+                  </label>
+                  <select
+                    id={`${formId}-source-type`}
+                    value={sourceType}
+                    disabled={mode === 'edit'}
+                    onChange={(e) => handleSourceTypeChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
+                  >
+                    {SOURCE_TYPES.map((sourceTypeOption) => (
+                      <option key={sourceTypeOption.value} value={sourceTypeOption.value}>
+                        {t(sourceTypeOption.labelKey)} - {t(sourceTypeOption.descriptionKey)}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               {/* Config: depends on source type */}
               {sourceType === 'genre' ? (
                 <>
                   <div>
-                    <label htmlFor="sub-genre" className="block text-sm font-medium text-text mb-1">
+                    <label
+                      htmlFor={`${formId}-genre`}
+                      className="block text-sm font-medium text-text mb-1"
+                    >
                       {t('subscriptionForm.genre')}
                     </label>
                     <input
-                      id="sub-genre"
+                      id={`${formId}-genre`}
                       type="text"
                       value={genre}
                       onChange={(e) => setGenre(e.target.value)}
@@ -515,11 +506,14 @@ export function SubscriptionForm({
               ) : sourceType === 'similar' ? (
                 <>
                   <div>
-                    <label htmlFor="sub-seeds" className="block text-sm font-medium text-text mb-1">
+                    <label
+                      htmlFor={`${formId}-seeds`}
+                      className="block text-sm font-medium text-text mb-1"
+                    >
                       {t('subscriptionForm.seedArtists')}
                     </label>
                     <input
-                      id="sub-seeds"
+                      id={`${formId}-seeds`}
                       type="text"
                       value={seedArtistInput}
                       onChange={(e) => setSeedArtistInput(e.target.value)}
@@ -539,29 +533,31 @@ export function SubscriptionForm({
                 </>
               ) : sourceType === 'discovery-mode' ? (
                 <div className="space-y-4">
-                  <div>
-                    <label
-                      htmlFor="sub-discovery-mode"
-                      className="block text-sm font-medium text-text mb-1"
-                    >
-                      {t('subscriptionForm.discoveryMode')}
-                    </label>
-                    <select
-                      id="sub-discovery-mode"
-                      value={discoveryModeId}
-                      onChange={(e) => {
-                        setDiscoveryModeId(e.target.value)
-                        setDiscoveryModeConfig(null)
-                      }}
-                      className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-                    >
-                      {discoveryModes.map((discoveryMode) => (
-                        <option key={discoveryMode.id} value={discoveryMode.id}>
-                          {translateDiscoveryModeLabel(t, discoveryMode)}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  {initial?.sourceType !== 'discovery-mode' && (
+                    <div>
+                      <label
+                        htmlFor={`${formId}-discovery-mode`}
+                        className="block text-sm font-medium text-text mb-1"
+                      >
+                        {t('subscriptionForm.discoveryMode')}
+                      </label>
+                      <select
+                        id={`${formId}-discovery-mode`}
+                        value={discoveryModeId}
+                        onChange={(e) => {
+                          setDiscoveryModeId(e.target.value)
+                          setDiscoveryModeConfig(null)
+                        }}
+                        className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
+                      >
+                        {discoveryModes.map((discoveryMode) => (
+                          <option key={discoveryMode.id} value={discoveryMode.id}>
+                            {translateDiscoveryModeLabel(t, discoveryMode)}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
                   {discoveryModes.find((discoveryMode) => discoveryMode.id === discoveryModeId) ? (
                     <DiscoveryModeFormWrapper
                       key={discoveryModeId}
@@ -604,56 +600,68 @@ export function SubscriptionForm({
             <CronPicker value={cron} onChange={setCron} />
           </div>
 
-          {/* Max artists per run */}
-          <div>
-            <label htmlFor="sub-max" className="block text-sm font-medium text-text mb-1">
-              {t('subscriptionForm.maxArtistsPerRun')}
-            </label>
-            <input
-              id="sub-max"
-              type="number"
-              min={1}
-              max={100}
-              value={maxArtists}
-              onChange={(e) => setMaxArtists(Number(e.target.value))}
-              className="w-24 px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-            />
-          </div>
+          <details className="space-y-3">
+            <summary className="cursor-pointer text-sm text-muted hover:text-text">
+              {t('subscriptionForm.moreOptions')}
+            </summary>
+            {/* Name */}
+            <div>
+              <label
+                htmlFor={`${formId}-name`}
+                className="block text-sm font-medium text-text mb-1"
+              >
+                {t('subscriptionForm.name')}
+              </label>
+              <input
+                id={`${formId}-name`}
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder={t('subscriptionForm.namePlaceholder')}
+                className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
+              />
+            </div>
 
-          {/* Weight preset */}
-          <div>
-            <label htmlFor="sub-preset" className="block text-sm font-medium text-text mb-1">
-              {t('subscriptionForm.scoringPreset')}
-            </label>
-            <select
-              id="sub-preset"
-              value={weightPreset}
-              onChange={(e) => setWeightPreset(e.target.value)}
-              className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
-            >
-              {WEIGHT_PRESETS.map((p) => (
-                <option key={p.value} value={p.value}>
-                  {p.value === 'default'
-                    ? t('subscriptionForm.scoringPresetDefault')
-                    : t('subscriptionForm.scoringPresetGenre')}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Max artists per run */}
+            <div>
+              <label htmlFor={`${formId}-max`} className="block text-sm font-medium text-text mb-1">
+                {t('subscriptionForm.maxArtistsPerRun')}
+              </label>
+              <input
+                id={`${formId}-max`}
+                type="number"
+                min={1}
+                max={100}
+                value={maxArtists}
+                onChange={(e) => setMaxArtists(Number(e.target.value))}
+                className="w-24 px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
+              />
+            </div>
 
-          {/* Enabled toggle */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-              className="rounded border-border"
-              id="sub-enabled"
-            />
-            <label htmlFor="sub-enabled" className="text-sm text-text">
-              {t('common.enabled')}
-            </label>
-          </div>
+            {/* Weight preset */}
+            <div>
+              <label
+                htmlFor={`${formId}-preset`}
+                className="block text-sm font-medium text-text mb-1"
+              >
+                {t('subscriptionForm.scoringPreset')}
+              </label>
+              <select
+                id={`${formId}-preset`}
+                value={weightPreset}
+                onChange={(e) => setWeightPreset(e.target.value)}
+                className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text focus:border-accent focus:outline-none"
+              >
+                {WEIGHT_PRESETS.map((p) => (
+                  <option key={p.value} value={p.value}>
+                    {p.value === 'default'
+                      ? t('subscriptionForm.scoringPresetDefault')
+                      : t('subscriptionForm.scoringPresetGenre')}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </details>
 
           {/* Buttons */}
           <div className="flex justify-end gap-2 pt-2">
@@ -672,7 +680,7 @@ export function SubscriptionForm({
               {submitting
                 ? t('settings.saving')
                 : mode === 'create'
-                  ? t('common.create')
+                  ? t('common.schedule')
                   : t('common.save')}
             </button>
           </div>

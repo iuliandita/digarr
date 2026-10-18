@@ -229,7 +229,7 @@ describe('DiscoveryModesPage header controls (#993)', () => {
       mode: 'edit',
       initial: { name: 'Weekly radar' },
     })
-    fireEvent.click(screen.getByRole('button', { name: 'Disable subscription' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Disable schedule' }))
     await waitFor(() => expect(updateSubscriptionApi).toHaveBeenCalledWith(1, { enabled: false }))
     await act(async () => {
       await discoveryModeProps.at(-1)?.onSubmit?.({
@@ -291,6 +291,14 @@ describe('DiscoveryModesPage discovery mode support', () => {
         discoveryModes: [expect.objectContaining({ id: 'release-radar' })],
       }),
     )
+    expect(screen.getByTestId('subscription-form').closest('article')).toHaveAttribute(
+      'aria-label',
+      'Release Radar',
+    )
+    expect(screen.queryByText(/subscription/i)).toBeNull()
+    for (const element of document.querySelectorAll('[aria-label]')) {
+      expect(element.getAttribute('aria-label')).not.toMatch(/subscription/i)
+    }
     expect(mockGetDiscoveryModes).toHaveBeenCalled()
     expect(mockCreateSubscriptionApi).not.toHaveBeenCalled()
   })

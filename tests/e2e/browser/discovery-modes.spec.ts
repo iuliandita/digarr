@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test'
 import { getMessages } from '@/core/i18n/messages'
 import { ensureAdminToken, installAuthCookie } from './auth'
 
-test('runs a discovery mode manually and saves one as a subscription', async ({ page }) => {
+test('runs a discovery mode manually and creates and edits its schedule', async ({ page }) => {
   const locale = 'ru'
   const messages = getMessages(locale)
   const token = await ensureAdminToken(page.request, {
@@ -118,6 +118,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   }
   let runRequestBody: Record<string, unknown> | null = null
   let createdSubscription: Record<string, unknown> | null = null
+  let updatedSchedule: Record<string, unknown> | null = null
 
   await page.route('**/api/v1/discovery-modes', async (route) => {
     await route.fulfill({
@@ -161,6 +162,16 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(createdSubscription ? [createdSubscription] : []),
+    })
+  })
+
+  await page.route('**/api/v1/subscriptions/99', async (route) => {
+    updatedSchedule = route.request().postDataJSON() as Record<string, unknown>
+    createdSubscription = { ...createdSubscription, ...updatedSchedule }
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify(createdSubscription),
     })
   })
 
@@ -226,8 +237,23 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await releaseRadarCard
     .getByRole('button', { name: messages['common.schedule'], exact: true })
     .click()
-  await page.getByLabel(messages['subscriptionForm.name']).fill('Radar Weekly')
-  await page.getByRole('button', { name: messages['common.create'], exact: true }).click()
+  await expect(releaseRadarCard.getByLabel(messages['subscriptionForm.sourceType'])).toHaveCount(0)
+  await expect(releaseRadarCard.getByLabel(messages['subscriptionForm.discoveryMode'])).toHaveCount(
+    0,
+  )
+  await releaseRadarCard
+    .getByRole('combobox', { name: messages['common.schedule'], exact: true })
+    .selectOption('custom')
+  await releaseRadarCard
+    .getByRole('textbox', { name: messages['common.custom'], exact: true })
+    .fill('15 6 * * 2,5')
+  await releaseRadarCard
+    .getByText(messages['subscriptionForm.moreOptions'], { exact: true })
+    .click()
+  await releaseRadarCard.getByLabel(messages['subscriptionForm.name']).fill('Radar Weekly')
+  await releaseRadarCard
+    .getByRole('button', { name: messages['common.schedule'], exact: true })
+    .click()
 
   const subscriptionCard = page.getByTestId('subscription-card').filter({
     has: page.getByText('Radar Weekly'),
@@ -235,14 +261,33 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await expect(subscriptionCard.getByText('Radar Weekly')).toBeVisible()
   expect(createdSubscription).toMatchObject({
     sourceType: 'discovery-mode',
+    cron: '15 6 * * 2,5',
     sourceConfig: { modeId: 'release-radar', settings: { windowDays: 14 } },
   })
   const expand = subscriptionCard.getByRole('button', { name: 'Radar Weekly', exact: true })
   await expand.click()
   await expect(expand).toHaveAttribute('aria-expanded', 'true')
+  await expect(
+    subscriptionCard.getByRole('textbox', { name: messages['common.custom'], exact: true }),
+  ).toHaveValue('15 6 * * 2,5')
+  await subscriptionCard
+    .getByText(messages['subscriptionForm.moreOptions'], { exact: true })
+    .click()
   await expect(subscriptionCard.getByLabel(messages['subscriptionForm.name'])).toHaveValue(
     'Radar Weekly',
   )
+
+  await subscriptionCard
+    .getByRole('combobox', { name: messages['common.schedule'], exact: true })
+    .selectOption('0 8 * * 1')
+  await subscriptionCard.getByRole('button', { name: messages['common.save'], exact: true }).click()
+  await expect
+    .poll(() => updatedSchedule)
+    .toMatchObject({
+      name: 'Radar Weekly',
+      cron: '0 8 * * 1',
+      sourceConfig: { modeId: 'release-radar', settings: { windowDays: 14 } },
+    })
 
   await page.goto('/subscriptions')
   await expect(page).toHaveURL('/discovery-modes')
@@ -253,6 +298,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   ).toBeVisible()
   await page.getByRole('link', { name: `${messages['common.edit']}: Radar Weekly` }).click()
   await expect(page).toHaveURL(/\/discovery-modes(?:\?subscription=99)?$/)
+  await page.getByText(messages['subscriptionForm.moreOptions'], { exact: true }).click()
   await expect(page.getByLabel(messages['subscriptionForm.name'])).toHaveValue('Radar Weekly')
 
   await page.setViewportSize({ width: 390, height: 844 })
