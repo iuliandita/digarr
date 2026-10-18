@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -185,7 +188,7 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "53e3afe9bbcb09c962fba06e773cadf6c629dfc0f97b78098393ab4e5f19394a",
-        "src/db/queries/recommendations.ts": "2b1d553be9097c75ed144acf7d2054460175c3ce042d2f325535b61c262d6bfe",
+        "src/db/queries/recommendations.ts": "c88549618ef9b8df90f57a42383cf519355964bcd3b0652e7200467c64782b28",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
@@ -197,14 +200,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd",
+      "digest": "018103513da41e85d5b2d3519ca58a6453d9a73e50b64a69b2dccd4e8ae16091",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "Bulk reject runs as one transaction with the same ownership, reason and ON CONFLICT DO NOTHING block semantics; no schema or backup change.",
         "breaking": "none",
-        "migration": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
-        "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd"
+        "migration": "Bulk reject runs as one transaction with the same ownership, reason and ON CONFLICT DO NOTHING block semantics; no schema or backup change.",
+        "digest": "018103513da41e85d5b2d3519ca58a6453d9a73e50b64a69b2dccd4e8ae16091"
       }
     },
     "configuration": {
@@ -272,7 +275,7 @@
     },
     "api": {
       "files": {
-        "src/server/deps.ts": "b0757dea7c1168ec33d036590967a6b31791df7a24183ad47be131caf16244d1",
+        "src/server/deps.ts": "4c1d190afdb922d6af349b48acfea57094dfb733fe73be048e5923f00c459acb",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
         "src/server/helpers/openapi-doc.ts": "10866df5ca12fa942ec685472bbc1a90157d0dcc29001fc6f48bcd75704a1fe6",
         "src/server/helpers/openapi-routes.ts": "92cda8cc478444325509fec3f4ce6fd0554df4acf328f8cabfdc6bbf852a1183",
@@ -293,19 +296,19 @@
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "ed7401ae574d24d0a68ee80e46ace07f625ed379f25bd27e6a3a745714f8f8d8",
         "src/server/routes/discovery-modes.ts": "f84e434fd2bdf8b9a3c92ba5d983d3acd76abe8bec15c440bd67b5b8e491c7d4",
-        "src/server/routes/exports.ts": "6e93cc52cb4ed3909081b9b27ca25c93c3f61d14e546d1466f7c79f87f46a92c",
+        "src/server/routes/exports.ts": "74c47dbedf5c5dcc7ad95c306f60e2a2d95cb1bf0f5a9b67bb64524304b050a2",
         "src/server/routes/genres.ts": "fbaf9454ecec0f6dfcf49b95c41807b14c4aa3dba2233e0aa3e18da4e5ff3723",
         "src/server/routes/health.ts": "35dc74f5a76a2c6d2ed738a977ad6af2857b5e029808a71f86978bcdcc52934f",
         "src/server/routes/jobs.ts": "b0a0b4abf7f0e0c284245cd3cbcb41f1ad0d15f7d827a1b2bb17a298fd6fd02c",
         "src/server/routes/library.ts": "ea1a73179de3543ef1e599d05cc2ca0d5b392d24b0f806b452fe6dd904bfc667",
         "src/server/routes/lidarr.ts": "d2f726dcae32a8146e887724b8fc484bc8c7bff3b495f3e08f679fda59c732a0",
         "src/server/routes/listening.ts": "bc8c37bc858b73398791982861a2c39e792edcc25ef7c41c7df80152ad6ef251",
-        "src/server/routes/mcp.ts": "75fdba073140ce4e5e20e26cb8bafe86dc08fb525a792ebf4f499047c2ed2b26",
+        "src/server/routes/mcp.ts": "b55788e04b4afbcbe727e3226a3c5891354b8fabdf1ee2f848c4e962edce024b",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "69087cc7593cd18d52993f5c562e0f9bfef829647e30b5b5b4652efae62443ce",
+        "src/server/routes/recommendations.ts": "baecfff1cf4a79df8656d5b4c92dde37a42f366864067787546c6638fb711961",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
         "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -330,14 +333,17 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3",
+      "digest": "fee25b35cd86692bd6f862ea42c11babd9afccdeebe0d9e22113923914416d76",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "outcome": "docs-updated",
+        "docs": [
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
+        "note": "Recommendation list artist drops cache fields (topTracks, description, externalLinks, wikidata, cache timestamps); documented with replacement endpoints; bulk reject and exports keep the same results.",
         "breaking": "none",
         "migration": "",
-        "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3"
+        "digest": "fee25b35cd86692bd6f862ea42c11babd9afccdeebe0d9e22113923914416d76"
       }
     },
     "interface": {
@@ -527,7 +533,9 @@
       "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
         "breaking": "none",
         "migration": "",
@@ -744,17 +752,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "c4ae00f83b83c4e877bbec02592399ed114172f4382ca5f1405b103a0bad8a94",
+        "src/index.ts": "7f9349194d4e24415702102caf5c5fedb45a72493b9536417bf3bde07eaeaa62",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c",
+      "digest": "6cae8459774c67dda6e81b4bc20354b8e3b197889d13bda01986907b410716ef",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Dead-code removal and helper dedupe (sleep, escapeXml, errMsg, cron pattern, adapter metadata the API never read); behaviour unchanged",
+        "note": "Startup wiring only passes the new export and bulk reject queries; behavior is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c"
+        "digest": "6cae8459774c67dda6e81b4bc20354b8e3b197889d13bda01986907b410716ef"
       }
     },
     "deployment": {
@@ -797,7 +805,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",

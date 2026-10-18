@@ -423,7 +423,7 @@ The parser coerces rather than rejects most fields:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable) |
+| GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable). Each `artist` omits the cache fields `topTracks`, `description`, `externalLinks`, `wikidataId`, `wikidataFetchedAt`, `wikidataFailedAt`, `cachedAt` and `genresCachedAt`; use `/api/v1/artists/:id/top-tracks`, `/api/v1/artists/:id/enrichment` or `GET /api/v1/recommendations/:id` for them |
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block; optional `Idempotency-Key`) |

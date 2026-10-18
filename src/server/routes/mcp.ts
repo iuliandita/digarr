@@ -7,7 +7,7 @@ import { envConfig } from '@/config/env'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus } from '@/core/recommendations/statuses'
 import { getPlaylistsByUser } from '@/db/queries/playlists'
-import type { RecommendationWithArtist } from '@/db/queries/recommendations'
+import type { ListedRecommendation, RecommendationWithArtist } from '@/db/queries/recommendations'
 import type { AppDependencies } from '@/server'
 import { decodeCursor, encodeCursor } from '@/server/helpers/pagination-cursor'
 import { rateLimiter } from '@/server/middleware/rate-limit'
@@ -48,7 +48,9 @@ function result(value: Record<string, unknown>, isError = false): CallToolResult
   }
 }
 
-function projectRecommendation(rec: RecommendationWithArtist): Record<string, unknown> {
+function projectRecommendation(
+  rec: ListedRecommendation | RecommendationWithArtist,
+): Record<string, unknown> {
   return {
     id: rec.id,
     status: rec.status,

@@ -1202,17 +1202,13 @@ function createRecommendationRoutes(
             }
             return c.json({ updated: ownedIds.length })
           }
-          // Shared-reason path: route each id through rejectRecommendation so the
-          // reason is recorded and the optional permanent block is created per artist.
-          for (const id of ownedIds) {
-            await deps.rejectRecommendation({
-              recommendationId: id,
-              userId,
-              reason: reason ?? null,
-              reasonText: null,
-              permanent,
-            })
-          }
+          await deps.bulkRejectRecommendations({
+            ids: ownedIds,
+            userId,
+            reason: reason ?? null,
+            reasonText: null,
+            permanent,
+          })
           return c.json({ updated: ownedIds.length })
         })
       }

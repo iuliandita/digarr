@@ -161,6 +161,7 @@ import {
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
 import {
+  bulkRejectRecommendations,
   bulkUpdateStatus,
   filterOwnedIds,
   getExistingAlbumReleaseGroupMbids,
@@ -170,6 +171,7 @@ import {
   getRejectedArtistMbids,
   insertRecommendation,
   listRecommendations,
+  listRecommendationsForExport,
   listWaitingApprovals,
   rejectRecommendation,
   updateRecommendationStatus,
@@ -1300,6 +1302,7 @@ const app = createApp({
     return batches[0] ?? null
   },
   listRecommendations: (filters) => listRecommendations(db, filters),
+  listRecommendationsForExport: (filters) => listRecommendationsForExport(db, filters),
   getRecommendation: (id) => getRecommendation(db, id),
   updateRecommendationStatus: (id, status, extra) =>
     updateRecommendationStatus(db, id, status, extra),
@@ -1317,6 +1320,7 @@ const app = createApp({
   listAlbumBlocks: (userId) => listAlbumBlocksQuery(db, userId),
   removeAlbumBlock: (params) => removeAlbumBlockQuery(db, params),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
+  bulkRejectRecommendations: (params) => bulkRejectRecommendations(db, params),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),
   getBatch: (id) => getBatch(db, id),
