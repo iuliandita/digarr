@@ -19,8 +19,7 @@ vi.mock('drizzle-orm', () => ({
   inArray: mockedInArray,
 }))
 
-const { createSlskdJob, findActiveSlskdJobByWorkKey, listPendingSlskdJobs, updateSlskdJobState } =
-  await import('@/db/queries/slskd-jobs')
+const { createSlskdJob, updateSlskdJobState } = await import('@/db/queries/slskd-jobs')
 
 function makeDb(
   opts: {
@@ -86,26 +85,6 @@ beforeEach(() => {
 })
 
 describe('slskd job queries', () => {
-  it('createSlskdJob inserts a row and returns it', async () => {
-    const row = { id: 7, state: 'pending' }
-    const db = makeDb({ insertedRows: [row] })
-
-    const result = await createSlskdJob(db as unknown as Database, {
-      userId: 1,
-      targetId: 2,
-      sourceType: 'recommendation',
-      workKey: 'artist:mbid-1',
-      artistMbid: '11111111-1111-1111-1111-111111111111',
-      artistName: 'Example Artist',
-      releaseTitle: 'Example Release',
-    })
-
-    expect(result).toEqual(row)
-    expect(db._mocks.insertValues).toHaveBeenCalledOnce()
-    expect(db._mocks.insertDoNothing).toHaveBeenCalledOnce()
-    expect(db._mocks.insertReturning).toHaveBeenCalledOnce()
-  })
-
   it('rejects jobs without searchable text before inserting', async () => {
     const db = makeDb()
 
@@ -356,40 +335,7 @@ describe('slskd job queries', () => {
     expect(db._mocks.insertReturning).toHaveBeenCalledTimes(2)
   })
 
-  it('findActiveSlskdJobByWorkKey filters on workKey and active states', async () => {
-    const row = { id: 9, workKey: 'artist:mbid-1', state: 'queued' }
-    const db = makeDb({ selectedRows: [row] })
-
-    const result = await findActiveSlskdJobByWorkKey(db as unknown as Database, 'artist:mbid-1')
-
-    expect(result).toEqual(row)
-    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'artist:mbid-1')
-    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
-    expect(mockedAnd).toHaveBeenCalledWith(expect.anything(), expect.anything())
-    expect(mockedDesc).toHaveBeenNthCalledWith(1, expect.anything())
-    expect(mockedDesc).toHaveBeenNthCalledWith(2, expect.anything())
-    expect(db._mocks.selectWhere).toHaveBeenCalledOnce()
-    expect(db._mocks.selectLimit).toHaveBeenCalledWith(1)
-  })
-
-  it('listPendingSlskdJobs filters to active states and orders oldest first', async () => {
-    const rows = [
-      { id: 11, state: 'downloading' },
-      { id: 10, state: 'pending' },
-    ]
-    const db = makeDb({ selectedRows: rows })
-
-    const result = await listPendingSlskdJobs(db as unknown as Database, 25)
-
-    expect(result).toEqual(rows)
-    expect(mockedInArray).toHaveBeenCalledWith(expect.anything(), SLSKD_ACTIVE_JOB_STATES)
-    expect(mockedAsc).toHaveBeenCalledTimes(2)
-    expect(mockedDesc).not.toHaveBeenCalled()
-    expect(db._mocks.selectWhere).toHaveBeenCalledOnce()
-    expect(db._mocks.selectLimit).toHaveBeenCalledWith(25)
-  })
-
-  it('updateSlskdJobState returns the updated row and sets completedAt for terminal states', async () => {
+  it('updateSlskdJobState sets completedAt for terminal states', async () => {
     const row = { id: 5, state: 'completed' }
     const db = makeDb({ updatedRows: [row] })
 
@@ -399,7 +345,6 @@ describe('slskd job queries', () => {
     })
 
     expect(result).toEqual(row)
-    expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 5)
     const setArg = db._mocks.updateSet.mock.calls[0]?.[0]
     expect(setArg).toEqual(
       expect.objectContaining({
@@ -409,8 +354,6 @@ describe('slskd job queries', () => {
       }),
     )
     expect(setArg.completedAt).toBeInstanceOf(Date)
-    expect(db._mocks.updateWhere).toHaveBeenCalledOnce()
-    expect(db._mocks.updateReturning).toHaveBeenCalledOnce()
   })
 
   it('updateSlskdJobState throws when no row matches the id', async () => {

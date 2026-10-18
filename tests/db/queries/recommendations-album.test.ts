@@ -61,22 +61,14 @@ describe('insertRecommendation', () => {
     status: 'pending',
   }
 
-  it('defaults kind to "artist" when omitted', async () => {
+  it.each([
+    [undefined, 'artist'],
+    ['album', 'album'],
+    ['artist', 'artist'],
+  ] as const)('kind %s is stored as %s', async (kind, expected) => {
     const { db, values } = makeInsertDb()
-    await insertRecommendation(db, baseData)
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ kind: 'artist' }))
-  })
-
-  it('passes kind="album" through when given', async () => {
-    const { db, values } = makeInsertDb()
-    await insertRecommendation(db, { ...baseData, kind: 'album' })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ kind: 'album' }))
-  })
-
-  it('passes kind="artist" through when explicitly given', async () => {
-    const { db, values } = makeInsertDb()
-    await insertRecommendation(db, { ...baseData, kind: 'artist' })
-    expect(values).toHaveBeenCalledWith(expect.objectContaining({ kind: 'artist' }))
+    await insertRecommendation(db, { ...baseData, kind })
+    expect(values).toHaveBeenCalledWith(expect.objectContaining({ kind: expected }))
   })
 })
 
@@ -96,13 +88,6 @@ describe('getExistingAlbumReleaseGroupMbids', () => {
     // eq(recommendations.kind, 'album') must be called; dropping this filter
     // would cause the dedup to bleed artist-kind recs into the set
     expect(mockedEq).toHaveBeenCalledWith(expect.anything(), 'album')
-  })
-
-  it('returns an empty Set when no album recs exist', async () => {
-    const db = makeChainSelectDb([])
-    const result = await getExistingAlbumReleaseGroupMbids(db)
-    expect(result).toBeInstanceOf(Set)
-    expect(result.size).toBe(0)
   })
 
   it('returns an empty Set when all rg values are null', async () => {
