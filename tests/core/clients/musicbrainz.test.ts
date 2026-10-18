@@ -796,6 +796,18 @@ describe('createMusicBrainzClient', () => {
       expect(result).toEqual({ artists: [] })
     })
 
+    it('retries a network error and succeeds when the connection recovers', async () => {
+      mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'))
+      mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
+
+      const client = createMusicBrainzClient()
+      const promise = client.searchArtist('flaky-network')
+      await vi.runAllTimersAsync()
+
+      expect(await promise).toEqual({ artists: [] })
+      expect(mockFetch).toHaveBeenCalledTimes(2)
+    })
+
     it('gives up after max retries and throws the final error', async () => {
       mockFetch.mockResolvedValue(new Response('', { status: 503 }))
 
