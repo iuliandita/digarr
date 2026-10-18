@@ -1,6 +1,6 @@
 # Roadmap
 
-> Updated: 2026-10-16 | Current: v2.0.1
+> Updated: 2026-10-18 | Current: v2.0.1
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
@@ -12,7 +12,6 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 
 ## Shipped highlights
 
-- Unreleased: the built-in [MCP endpoint](MCP.md) exposes owner-scoped recommendations, approvals, scans, discovery modes, and playlists using personal API tokens. Client configuration is available after token creation.
 - Album coverage paginates complete catalogs and excludes secondary release types; Gap-Fill failures retain the selected slice for retry.
 - Quick Discover seeds follow owner-scoped filters; individual, bulk, and automatic album approval retain the recommended release.
 - Saved playlists refresh their bound remote destinations, search connected local libraries, and report unmatched exports without substituting tracks.
@@ -37,11 +36,19 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 ## Unreleased
 
+On `develop` and the `:nightly` image, not yet in a release. Some changes alter behavior on upgrade (strict boolean environment values, recommendation ownership migration, problem+json errors, playlist schedules); read the [CHANGELOG](../CHANGELOG.md#unreleased) before running nightly.
+
+- Multi-user scoping and secret-handling fixes: account and user listings no longer return connection secrets, and secrets saved before `DIGARR_ENCRYPTION_KEY` was set are encrypted at startup once a key is configured.
+- Personal API tokens with read, write, or admin scope, and a built-in [MCP endpoint](MCP.md) for recommendations, approvals, scans, discovery modes, and playlists.
 - Optional [AudioMuse-AI audio similarity](OPERATIONS.md#audiomuse-ai-audio-similarity), experimental and checked against v3.6.4 source/fixtures without a live instance. Existing metadata discovery stays independent.
 - Shared instances can use admin-managed approval requests, trusted score thresholds, request limits, decision notes, and opt-in outcome notifications (#980). Direct approval remains the default.
 - Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
 - Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
 - Customizable dashboard (#995): account-saved card visibility, order, size, source-page switches, merged decision and listening views, and reset.
+- Import artists from M3U, M3U8 and XSPF playlist files alongside CSV.
+- Lidarr approvals wait and retry through temporary Lidarr outages, offer more monitoring options, and can apply default tags per target.
+- slskd searches are spaced and back off when slskd is busy; a missing Lidarr download path is reported before any download starts.
+- Refreshed interface and navigation: Discovery Modes on one page with run and schedule together, a Connections picker, and a combined Library page.
 
 ## Next priorities
 
@@ -70,7 +77,9 @@ Good ideas with no timeline yet.
 - Odesli / song.link resolution, when it improves listening or matching
 - Apple Music / iTunes metadata enrichment
 - Taste DNA / shareable profile
-- Interactive API docs (Swagger/Scalar UI)
+- Browsable API reference on top of the OpenAPI document, which covers part of the API today
+- Artist detail page with richer biographies
+- Local artwork and metadata cache for missing images and slow upstream sources
 
 ## Experiments
 
