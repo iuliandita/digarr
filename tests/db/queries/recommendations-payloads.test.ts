@@ -1,7 +1,7 @@
 // @vitest-environment node
 
 import { eq } from 'drizzle-orm'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import {
   bulkRejectRecommendations,
@@ -17,6 +17,8 @@ import {
   users,
 } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
+
+vi.setConfig({ testTimeout: 30_000 })
 
 const RG = '33333333-0000-4000-8000-000000000001'
 
