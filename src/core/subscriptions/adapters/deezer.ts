@@ -1,45 +1,14 @@
 import { createDeezerUserClient } from '@/core/clients/deezer-user'
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 import { deduplicateByName } from '../dedup'
 
 const MAX_PLAYLIST_ARTISTS = 500
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'feedType',
-    label: 'Feed Type',
-    type: 'select',
-    required: true,
-    options: [
-      { value: 'favorites', label: 'Favorite Artists' },
-      { value: 'followed', label: 'Followed Artists' },
-      { value: 'flow', label: 'Flow Recommendations' },
-      { value: 'playlists', label: 'Playlists' },
-    ],
-    helpText: 'Which Deezer data source to pull artists from.',
-  },
-  {
-    key: 'playlistIds',
-    label: 'Playlist IDs',
-    type: 'text',
-    required: false,
-    placeholder: 'e.g. 123456789,987654321',
-    helpText: 'Comma-separated Deezer playlist IDs. Only used when Feed Type is "Playlists".',
-  },
-]
 
 export function createDeezerAdapter(deps: {
   getToken: () => Promise<string>
 }): SubscriptionAdapter {
   return {
     type: 'deezer',
-    label: 'Deezer',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

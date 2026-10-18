@@ -71,7 +71,6 @@ vi.mock('@/web/lib/api', () => ({
   getSchedulerInfo: vi.fn(),
   getDashboardTaste: vi.fn(),
   getDashboardGenreCoverage: vi.fn(),
-  getDashboardActivity: vi.fn(),
   triggerPipeline: vi.fn(),
   rescanArtists: vi.fn().mockResolvedValue({ updated: 0, total: 0 }),
   moodDiscover: vi.fn(),
@@ -104,7 +103,6 @@ import {
   approveRecommendation,
   approveToTarget,
   getAuthStatus,
-  getDashboardActivity,
   getDashboardGenreCoverage,
   getDashboardTaste,
   getPipelineStatus,
@@ -129,7 +127,6 @@ const mockGetSubscriptions = vi.mocked(getSubscriptions)
 const mockGetSchedulerInfo = vi.mocked(getSchedulerInfo)
 const mockGetDashboardTaste = vi.mocked(getDashboardTaste)
 const mockGetDashboardGenreCoverage = vi.mocked(getDashboardGenreCoverage)
-const mockGetDashboardActivity = vi.mocked(getDashboardActivity)
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
 const mockListTargets = vi.mocked(listTargets)
 
@@ -234,14 +231,6 @@ function setupMocks() {
     pendingArtists: 4,
     totalArtists: 25,
   })
-
-  mockGetDashboardActivity.mockResolvedValue([
-    {
-      type: 'approved',
-      timestamp: new Date().toISOString(),
-      data: { artistName: 'Mogwai' },
-    },
-  ])
 
   mockGetPipelineStatus.mockResolvedValue({ running: false })
   mockListTargets.mockResolvedValue([])
@@ -376,7 +365,6 @@ describe('Dashboard', () => {
     fireEvent.click(within(card).getByRole('button', { name: 'All' }))
     expect(await screen.findByText('Approved Mogwai')).toBeInTheDocument()
     expect(screen.getByText('Rejected Rejected artist')).toBeInTheDocument()
-    expect(mockGetDashboardActivity).not.toHaveBeenCalled()
   })
 
   it('renders subscription pulse', async () => {

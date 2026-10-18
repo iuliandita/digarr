@@ -1,6 +1,6 @@
 import type { DiscoverySource, ListeningActivityEntry, TopArtistEntry } from '@/core/plugins/types'
 import type { GenreCoverage, GenreSource, TasteProfile } from '@/core/types'
-import { isValidMbid } from '@/core/validation'
+import { errMsg, isValidMbid } from '@/core/validation'
 
 type AnalyzeArtist = TopArtistEntry & { tasteWeight?: number }
 
@@ -144,7 +144,7 @@ export async function analyze(
     if (r?.status !== 'fulfilled') {
       const sourceId = sources[i]?.id ?? 'unknown'
       const reason = r && r.status === 'rejected' ? r.reason : 'unknown'
-      const msg = reason instanceof Error ? reason.message : String(reason)
+      const msg = errMsg(reason)
       console.warn(`[analyze] source ${sourceId} failed: ${msg}`)
       continue
     }

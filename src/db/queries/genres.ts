@@ -1,4 +1,4 @@
-import { desc, eq, ilike, isNull } from 'drizzle-orm'
+import { desc, eq, ilike } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { genres } from '@/db/schema'
 
@@ -52,8 +52,4 @@ export async function searchGenres(db: Database, query: string, limit = 20): Pro
 
 export async function getAllGenres(db: Database): Promise<GenreRow[]> {
   return db.select().from(genres).orderBy(desc(genres.artistCount))
-}
-
-export async function getRootGenres(db: Database): Promise<GenreRow[]> {
-  return db.select().from(genres).where(isNull(genres.parentGenreId))
 }

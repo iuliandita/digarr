@@ -1206,27 +1206,10 @@ export type GenreCoverage = {
   totalArtists: number
 }
 
-export type ActivityEntry = {
-  type: 'approved' | 'rejected' | 'subscription_run' | 'scan_completed'
-  timestamp: string
-  data: {
-    artistName?: string
-    subscriptionName?: string
-    artistsFound?: number
-    artistsNew?: number
-    discovered?: number
-    added?: number
-    username?: string
-  }
-}
-
 export const getDashboardTaste = () => fetchApi<TasteGenre[]>('/dashboard/taste')
 
 export const getDashboardGenreCoverage = () =>
   fetchApi<GenreCoverage | null>('/dashboard/genre-coverage')
-
-export const getDashboardActivity = (limit = 5) =>
-  fetchApi<ActivityEntry[]>(`/dashboard/activity?limit=${limit}`)
 
 // Playlists
 export type PlaylistConfig = {

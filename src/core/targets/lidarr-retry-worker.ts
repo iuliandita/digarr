@@ -146,7 +146,7 @@ export async function retryWaitingApprovals(deps: LidarrRetryDeps): Promise<void
                 success: false,
                 targetType: 'lidarr',
                 targetId: 0,
-                error: error instanceof Error ? error.message : String(error),
+                error: errMsg(error),
               }
             }
             if (result.error) result = { ...result, error: safeError(result.error) }
@@ -185,7 +185,7 @@ export async function retryWaitingApprovals(deps: LidarrRetryDeps): Promise<void
                     success: false,
                     targetType: 'slskd',
                     targetId: 0,
-                    error: error instanceof Error ? error.message : String(error),
+                    error: errMsg(error),
                   }
                 }
                 if (followUpResult.error)

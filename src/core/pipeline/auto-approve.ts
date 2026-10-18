@@ -5,6 +5,7 @@ import {
   targetAction,
 } from '@/core/targets/lidarr-retry'
 import type { DestinationTarget, TargetAddOptions } from '@/core/targets/types'
+import { errMsg } from '@/core/validation'
 import type { StatusUpdateExtra } from '@/db/queries/recommendations'
 import { checkPipelineCancelled } from './cancel'
 
@@ -178,13 +179,13 @@ export async function autoApprove(
           }
         }
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error)
+        const message = errMsg(error)
         const temporary =
           !targetActions[target.id] && target.type === 'lidarr' && isTemporaryLidarrFailure(message)
         if (!temporary) targetError = error
         targetActions[target.id] ??= {
           status: 'failed',
-          error: error instanceof Error ? error.message : String(error),
+          error: errMsg(error),
         }
         if (temporary)
           targetActions[target.id] = targetAction(
@@ -193,11 +194,7 @@ export async function autoApprove(
             options,
           )
         if (targetJobId != null && deps.jobRecorder) {
-          await recordFailureSafely(
-            deps.jobRecorder,
-            targetJobId,
-            error instanceof Error ? error.message : String(error),
-          )
+          await recordFailureSafely(deps.jobRecorder, targetJobId, errMsg(error))
         }
         if (!temporary) break
       }

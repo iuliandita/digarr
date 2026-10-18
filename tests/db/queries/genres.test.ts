@@ -5,7 +5,6 @@ import {
   getAllGenres,
   getChildGenres,
   getGenreBySlug,
-  getRootGenres,
   searchGenres,
   upsertGenre,
 } from '@/db/queries/genres'
@@ -220,22 +219,5 @@ describe('getAllGenres', () => {
 
     expect(result).toHaveLength(2)
     expect(chain.orderBy).toHaveBeenCalledOnce()
-  })
-})
-
-describe('getRootGenres', () => {
-  it('returns genres with no parent', async () => {
-    const rows: GenreRow[] = [
-      makeGenreRow({ name: 'Rock', slug: 'rock', source: 'musicbrainz' }, 1),
-    ]
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(rows),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await getRootGenres(db)
-    expect(result).toHaveLength(1)
-    expect(chain.where).toHaveBeenCalledOnce()
   })
 })

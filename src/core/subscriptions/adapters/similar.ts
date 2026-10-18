@@ -1,10 +1,6 @@
 import type { DiscoverySource } from '@/core/plugins/types'
 import { deduplicateByName } from '@/core/subscriptions/dedup'
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 
 type SeedArtist = { name: string; mbid?: string }
 type SimilarAdapterDeps = {
@@ -12,25 +8,6 @@ type SimilarAdapterDeps = {
     query: string,
   ) => Promise<{ artists: Array<{ id: string; name: string; score: number }> }>
 }
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'seedArtists',
-    label: 'Seed Artists',
-    type: 'text',
-    required: true,
-    placeholder: 'e.g. Radiohead, Portishead',
-    helpText: 'Artists to find similar artists for.',
-  },
-  {
-    key: 'providers',
-    label: 'Providers',
-    type: 'text',
-    required: false,
-    placeholder: 'e.g. lastfm,listenbrainz (leave blank for all)',
-    helpText: 'Comma-separated source IDs to use. Leave blank to use all capable sources.',
-  },
-]
 
 function parseSeeds(raw: unknown): SeedArtist[] {
   if (!raw) return []
@@ -91,9 +68,6 @@ export function createSimilarAdapter(
 ): SubscriptionAdapter {
   return {
     type: 'similar',
-    label: 'Similar Artists',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

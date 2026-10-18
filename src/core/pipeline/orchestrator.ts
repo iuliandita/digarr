@@ -700,10 +700,7 @@ export class PipelineOrchestrator extends EventEmitter {
             ? { lastfm: { getArtistGenres: lastfm.getArtistGenres.bind(lastfm) } }
             : {}),
         }).catch((error: unknown) =>
-          console.error(
-            '[genre-backfill] background warm failed:',
-            error instanceof Error ? error.message : String(error),
-          ),
+          console.error('[genre-backfill] background warm failed:', errMsg(error)),
         )
       }
 

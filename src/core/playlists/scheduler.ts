@@ -1,4 +1,5 @@
 import { CronScheduler } from '@/core/ops/cron-scheduler'
+import { errMsg } from '@/core/validation'
 
 export class PlaylistScheduler extends CronScheduler {
   constructor() {
@@ -25,10 +26,7 @@ export function schedulePlaylists(
         options.generate(playlist.id),
       )
     } catch (err: unknown) {
-      console.error(
-        `[playlist-scheduler] playlist ${playlist.id} not scheduled:`,
-        err instanceof Error ? err.message : String(err),
-      )
+      console.error(`[playlist-scheduler] playlist ${playlist.id} not scheduled:`, errMsg(err))
     }
   }
 }

@@ -15,7 +15,7 @@ import {
   targetAction,
 } from '@/core/targets/lidarr-retry'
 import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
-import { conciseErrMsg } from '@/core/validation'
+import { conciseErrMsg, errMsg } from '@/core/validation'
 import {
   ApprovalRequestCooldownError,
   ApprovalRequestLimitError,
@@ -245,7 +245,7 @@ async function addArtistToTarget(
       success: false,
       targetType: target.type,
       targetId: 0,
-      error: error instanceof Error ? error.message : String(error),
+      error: errMsg(error),
     }))
 
   if (!result) {

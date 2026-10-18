@@ -53,29 +53,6 @@ describe('createSpotifyChartsAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
-    expect(adapter.type).toBe('spotify-charts')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has region and chartType configFields', () => {
-    const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
-    const keys = adapter.configFields.map((f) => f.key)
-    expect(keys).toContain('region')
-    expect(keys).toContain('chartType')
-  })
-
-  it('configField for region is a select with options', () => {
-    const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
-    const regionField = adapter.configFields.find((f) => f.key === 'region')
-    if (!regionField) {
-      throw new Error('Expected region config field')
-    }
-    expect(regionField.type).toBe('select')
-    expect(regionField.options?.length).toBeGreaterThan(0)
-  })
-
   it('fetches artists and deduplicates by lowercase name', async () => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
     const result = await adapter.fetch({ region: 'global', chartType: 'top50' })

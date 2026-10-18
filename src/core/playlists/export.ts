@@ -1,5 +1,6 @@
 import { cellSafe } from '@/core/csv/cell-safe'
 import type { PlaylistExportOutcome } from '@/core/playlists/types'
+import { escapeXml } from '@/core/targets/export-xspf'
 import type {
   DestinationTarget,
   PlaylistExportSession,
@@ -22,15 +23,6 @@ export type ExportablePlaylistTrack = Pick<
   PlaylistTrackRow,
   'artistName' | 'trackName' | 'mbid' | 'spotifyUri' | 'deezerId' | 'localPath' | 'position'
 >
-
-function escapeXml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&apos;')
-}
 
 function spotifyTrackUrl(uri: string): string {
   const match = /^spotify:track:(.+)$/.exec(uri)

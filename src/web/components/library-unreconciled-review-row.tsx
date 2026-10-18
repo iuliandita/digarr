@@ -1,5 +1,5 @@
 import { type ReactNode, useId, useState } from 'react'
-import { isValidMbid } from '@/core/validation'
+import { errMsg, isValidMbid } from '@/core/validation'
 import type { LibraryUnreconciledReason } from '../lib/api'
 import { rerunLibraryReconciler } from '../lib/api'
 import { useI18n } from '../lib/i18n'
@@ -49,7 +49,7 @@ export function LibraryUnreconciledReviewRow({
       if (mbid !== null) setMbidInput('')
       await onResolved()
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
+      setError(errMsg(err))
     } finally {
       setBusy(false)
     }

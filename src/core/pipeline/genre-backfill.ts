@@ -4,7 +4,7 @@ import { isMaintenance } from '@/core/ops/maintenance'
 import type { TopArtistEntry } from '@/core/plugins/types'
 import { redactSecrets } from '@/core/providers/retry'
 import type { GenreCoverage } from '@/core/types'
-import { isValidMbid } from '@/core/validation'
+import { errMsg, isValidMbid } from '@/core/validation'
 
 export const GENRE_CACHE_TTL_MS = 180 * 24 * 60 * 60 * 1000
 export const GENRE_WARM_LIMIT = 10
@@ -265,9 +265,7 @@ export async function warmArtistGenres(
         result.updated++
       } catch (error) {
         result.failed++
-        console.warn(
-          `[genre-backfill] ${artist.name}: ${redactSecrets(error instanceof Error ? error.message : String(error))}`,
-        )
+        console.warn(`[genre-backfill] ${artist.name}: ${redactSecrets(errMsg(error))}`)
       }
     }
 

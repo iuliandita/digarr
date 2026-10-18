@@ -52,6 +52,10 @@ import { NotificationChannelsCard } from './notification-channels'
 import { isLocalAiProvider } from './shared'
 import type { ServiceTestState, Settings } from './types'
 
+function unmaskSecret(value: string | null | undefined): string {
+  return value === '***' ? '' : (value ?? '')
+}
+
 export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
@@ -102,31 +106,21 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   )
   const [lidarrUrl, setLidarrUrl] = useState(settings.lidarrUrl ?? '')
   const [lidarrPublicUrl, setLidarrPublicUrl] = useState(prefs.lidarrPublicUrl ?? '')
-  const [lidarrApiKey, setLidarrApiKey] = useState(
-    settings.lidarrApiKey === '***' ? '' : (settings.lidarrApiKey ?? ''),
-  )
+  const [lidarrApiKey, setLidarrApiKey] = useState(unmaskSecret(settings.lidarrApiKey))
   const [lbUsername, setLbUsername] = useState(settings.listenbrainzUsername ?? '')
-  const [lbToken, setLbToken] = useState(
-    settings.listenbrainzToken === '***' ? '' : (settings.listenbrainzToken ?? ''),
-  )
+  const [lbToken, setLbToken] = useState(unmaskSecret(settings.listenbrainzToken))
   const [lfUsername, setLfUsername] = useState(settings.lastfmUsername ?? '')
-  const [lfApiKey, setLfApiKey] = useState(
-    settings.lastfmApiKey === '***' ? '' : (settings.lastfmApiKey ?? ''),
-  )
+  const [lfApiKey, setLfApiKey] = useState(unmaskSecret(settings.lastfmApiKey))
   const [aiProvider, setAiProvider] = useState<string>(settings.aiProvider ?? 'anthropic')
   const [aiModel, setAiModel] = useState(settings.aiModel ?? '')
-  const [aiApiKey, setAiApiKey] = useState(
-    settings.aiApiKey === '***' ? '' : (settings.aiApiKey ?? ''),
-  )
+  const [aiApiKey, setAiApiKey] = useState(unmaskSecret(settings.aiApiKey))
   const [aiBaseUrl, setAiBaseUrl] = useState(settings.aiBaseUrl ?? '')
   const [tidalClientId, setTidalClientId] = useState(settings.tidalClientId ?? '')
   const [tidalClientSecret, setTidalClientSecret] = useState(
-    settings.tidalClientSecret === '***' ? '' : (settings.tidalClientSecret ?? ''),
+    unmaskSecret(settings.tidalClientSecret),
   )
   const [plexUrl, setPlexUrl] = useState(settings.plexUrl ?? '')
-  const [plexToken, setPlexToken] = useState(
-    settings.plexToken === '***' ? '' : (settings.plexToken ?? ''),
-  )
+  const [plexToken, setPlexToken] = useState(unmaskSecret(settings.plexToken))
   const [plexSectionId, setPlexSectionId] = useState(settings.plexSectionId ?? '')
   const [plexTestSections, setPlexTestSections] = useState<{
     url: string
@@ -136,30 +130,22 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   const [plexAccountId, setPlexAccountId] = useState(String(settings.plexAccountId ?? ''))
   const [plexAccounts, setPlexAccounts] = useState<Array<{ id: number; name: string }>>([])
   const [jellyfinUrl, setJellyfinUrl] = useState(settings.jellyfinUrl ?? '')
-  const [jellyfinApiKey, setJellyfinApiKey] = useState(
-    settings.jellyfinApiKey === '***' ? '' : (settings.jellyfinApiKey ?? ''),
-  )
+  const [jellyfinApiKey, setJellyfinApiKey] = useState(unmaskSecret(settings.jellyfinApiKey))
   const [jellyfinUserId, setJellyfinUserId] = useState(settings.jellyfinUserId ?? '')
   const [jellyfinLibraryId, setJellyfinLibraryId] = useState(settings.jellyfinLibraryId ?? '')
   const [jellyfinLibraries, setJellyfinLibraries] = useState<Array<{ id: string; name: string }>>(
     [],
   )
   const [embyUrl, setEmbyUrl] = useState(settings.embyUrl ?? '')
-  const [embyApiKey, setEmbyApiKey] = useState(
-    settings.embyApiKey === '***' ? '' : (settings.embyApiKey ?? ''),
-  )
+  const [embyApiKey, setEmbyApiKey] = useState(unmaskSecret(settings.embyApiKey))
   const [embyUserId, setEmbyUserId] = useState(settings.embyUserId ?? '')
   const [embyLibraryId, setEmbyLibraryId] = useState(settings.embyLibraryId ?? '')
   const [embyLibraries, setEmbyLibraries] = useState<Array<{ id: string; name: string }>>([])
   const [discogsUsername, setDiscogsUsername] = useState(settings.discogsUsername ?? '')
-  const [discogsToken, setDiscogsToken] = useState(
-    settings.discogsToken === '***' ? '' : (settings.discogsToken ?? ''),
-  )
+  const [discogsToken, setDiscogsToken] = useState(unmaskSecret(settings.discogsToken))
   const [subsonicUrl, setSubsonicUrl] = useState(settings.subsonicUrl ?? '')
   const [subsonicUsername, setSubsonicUsername] = useState(settings.subsonicUsername ?? '')
-  const [subsonicPassword, setSubsonicPassword] = useState(
-    settings.subsonicPassword === '***' ? '' : (settings.subsonicPassword ?? ''),
-  )
+  const [subsonicPassword, setSubsonicPassword] = useState(unmaskSecret(settings.subsonicPassword))
   const [spotifyClientId, setSpotifyClientId] = useState('')
   const [spotifyClientSecret, setSpotifyClientSecret] = useState('')
   const [redirectUriCopied, setRedirectUriCopied] = useState(false)
@@ -175,7 +161,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   const [dirty, setDirty] = useState<Record<string, boolean>>({})
 
   const queryClient = useQueryClient()
-  const savedPlexToken = settings.plexToken === '***' ? '' : (settings.plexToken ?? '')
+  const savedPlexToken = unmaskSecret(settings.plexToken)
   const { data: savedPlexSections } = useQuery({
     queryKey: [
       'plex-sections',

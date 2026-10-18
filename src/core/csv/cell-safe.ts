@@ -55,7 +55,3 @@ export function parseCsvRows(text: string): string[][] {
   if (current !== '' || fields.length > 0) endRow()
   return rows
 }
-
-export function parseCsvRow(row: string): string[] {
-  return parseCsvRows(row)[0] ?? ['']
-}

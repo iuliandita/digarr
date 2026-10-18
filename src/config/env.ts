@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
 import { assertCidr } from '@/core/auth/cidr'
+import { errMsg } from '@/core/validation'
 
 function env(key: string): string | undefined {
   const val = process.env[key]
@@ -184,7 +185,7 @@ function validateTrustedProxies(): void {
     try {
       assertCidr(cidr)
     } catch (err) {
-      const reason = err instanceof Error ? err.message : String(err)
+      const reason = errMsg(err)
       throw new Error(`PROXY_AUTH_TRUSTED_PROXIES entry invalid: ${reason}`)
     }
   }

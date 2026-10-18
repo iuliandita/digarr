@@ -1,4 +1,5 @@
 import PQueue from 'p-queue'
+import { errMsg } from '@/core/validation'
 import { computeNameRelevance } from './relevance'
 
 export type SearchSource = {
@@ -99,10 +100,7 @@ export async function multiSourceSearch(
           const results = await withTimeout(source.search(query, limit), SOURCE_TIMEOUT_MS)
           allResults.push(...results)
         } catch (err: unknown) {
-          console.warn(
-            `[search] source "${source.id}" failed:`,
-            err instanceof Error ? err.message : String(err),
-          )
+          console.warn(`[search] source "${source.id}" failed:`, errMsg(err))
         }
       }),
     ),

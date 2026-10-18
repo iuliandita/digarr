@@ -1,20 +1,5 @@
 import { deduplicateByName, normalizeListenerScore } from '@/core/subscriptions/dedup'
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'tag',
-    label: 'Tag',
-    type: 'text',
-    required: true,
-    placeholder: 'e.g. metal',
-    helpText: 'Last.fm tag to fetch top artists for.',
-  },
-]
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 
 type LastfmArtistEntry = {
   name: string
@@ -31,9 +16,6 @@ type LastfmTagResponse = {
 export function createLastfmTagAdapter(deps: { apiKey: string }): SubscriptionAdapter {
   return {
     type: 'lastfm-tag',
-    label: 'Last.fm Tag',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

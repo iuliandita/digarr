@@ -1,36 +1,10 @@
 import type { DiscoverySource } from '@/core/plugins/types'
 import { normalizeListenerScore } from '@/core/subscriptions/dedup'
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'genre',
-    label: 'Genre / Tag',
-    type: 'text',
-    required: true,
-    placeholder: 'e.g. post-rock',
-    helpText: 'Genre or tag name to fetch artists for.',
-  },
-  {
-    key: 'providers',
-    label: 'Providers',
-    type: 'text',
-    required: false,
-    placeholder: 'e.g. lastfm,musicbrainz (leave blank for all)',
-    helpText: 'Comma-separated source IDs to use. Leave blank to use all capable sources.',
-  },
-]
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 
 export function createGenreAdapter(sources: DiscoverySource[]): SubscriptionAdapter {
   return {
     type: 'genre',
-    label: 'Genre / Tag',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

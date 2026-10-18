@@ -15,7 +15,7 @@ export type LibrarySchedulerDeps = {
  * - 1-23h → "at minute 0 of every N hours" (`0 * / N * * *`)
  * - >= 24h → capped to 23h (croner rejects step values >= 24 in the hours field)
  */
-function buildCronPattern(intervalHours: number): string {
+export function buildCronPattern(intervalHours: number): string {
   if (intervalHours < 1) return '*/5 * * * *'
   const hours = Math.min(23, Math.round(intervalHours))
   return `0 */${hours} * * *`

@@ -8,6 +8,7 @@ import { drizzle as drizzlePglite } from 'drizzle-orm/pglite'
 import { migrate as migratePglite } from 'drizzle-orm/pglite/migrator'
 import pg from 'pg'
 import { envConfig } from '@/config/env'
+import { errMsg } from '@/core/validation'
 import { getPgliteDataDir } from '@/db/backend'
 import * as schema from '@/db/schema'
 import { postgresConnectionOptions } from './postgres-options'
@@ -60,7 +61,7 @@ export type TargetConnectionErrorCode =
 export function classifyTargetError(err: unknown): TargetConnectionErrorCode {
   const code =
     typeof (err as { code?: unknown })?.code === 'string' ? (err as { code: string }).code : ''
-  const message = err instanceof Error ? err.message : String(err)
+  const message = errMsg(err)
   // assertSafePglitePath rejects before any connection is attempted.
   if (/PGlite path/i.test(message)) return 'invalid_path'
   switch (code) {

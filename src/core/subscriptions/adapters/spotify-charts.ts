@@ -1,8 +1,4 @@
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 import { extractArtistsFromPlaylist } from './spotify-shared'
 
 // Viral 50 playlists only have a reliable global ID - regional viral playlists
@@ -56,36 +52,6 @@ export function validateSpotifyChartsConfig(
   return { ok: true, region, chartType }
 }
 
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'region',
-    label: 'Region',
-    type: 'select',
-    required: true,
-    options: [
-      { value: 'global', label: 'Global' },
-      { value: 'us', label: 'United States' },
-      { value: 'gb', label: 'United Kingdom' },
-      { value: 'de', label: 'Germany' },
-      { value: 'fr', label: 'France' },
-      { value: 'au', label: 'Australia' },
-      { value: 'br', label: 'Brazil' },
-    ],
-  },
-  {
-    key: 'chartType',
-    label: 'Chart Type',
-    type: 'select',
-    required: true,
-    options: [
-      { value: 'top50', label: 'Top 50' },
-      { value: 'viral50', label: 'Viral 50 (Global only)' },
-    ],
-    helpText:
-      'Viral 50 is only available for the Global region. Spotify no longer serves these playlists to newer or development-mode apps, so charts may fail.',
-  },
-]
-
 export function createSpotifyChartsAdapter(deps: {
   getToken: () => Promise<string>
   baseUrl?: string
@@ -94,9 +60,6 @@ export function createSpotifyChartsAdapter(deps: {
 
   return {
     type: 'spotify-charts',
-    label: 'Spotify Charts',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       _options?: { limit?: number },
