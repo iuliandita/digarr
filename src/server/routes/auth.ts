@@ -3,15 +3,22 @@ import { type Context, Hono, type MiddlewareHandler } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword, verifyPassword } from '@/core/auth'
-import { encryptField, SENSITIVE_PREFERENCES } from '@/core/crypto'
+import { encryptField, isEncryptionEnabled, SENSITIVE_PREFERENCES } from '@/core/crypto'
 import { isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
 import { deleteSession, getSession, SessionRotationConflictError } from '@/core/sessions'
 import { getLookupHostname, isHttpUrl, isPrivateIp, isPrivateUrl } from '@/core/validation'
 import { apiTokenQueries } from '@/db/queries/api-tokens'
+import { getLastWriteBackError } from '@/db/queries/jobs'
+import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import { PasswordCredentialConflictError, sessionQueries } from '@/db/queries/sessions'
-import { FirstUserRequiredError, toUserResponse, updateUserPreferences } from '@/db/queries/users'
+import {
+  FirstUserRequiredError,
+  getUserConnections,
+  toUserResponse,
+  updateUserPreferences,
+} from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { adminRequired, sessionAuthRequired } from '@/server/helpers/auth-problems'
@@ -69,6 +76,9 @@ const ALLOWED_PREF_KEYS = new Set([
   'fanartApiKey',
   'metadataFallbackUrl',
   'netNewAlbumDiscovery',
+  'listenbrainzLoveEnabled',
+  'listenbrainzPlaylistEnabled',
+  'lastfmLoveEnabled',
 ])
 
 export function authRoutes(deps: AppDependencies) {
@@ -491,6 +501,37 @@ export function authRoutes(deps: AppDependencies) {
     }
   })
 
+  router.get('/api/v1/auth/me/write-back', async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const [connections, token, listenbrainzError, lastfmError] = await Promise.all([
+      getUserConnections(deps.db, auth.userId),
+      getOAuthToken(deps.db, auth.userId, 'lastfm'),
+      getLastWriteBackError(deps.db, auth.userId, 'listenbrainz'),
+      getLastWriteBackError(deps.db, auth.userId, 'lastfm'),
+    ])
+    const configured = Boolean(
+      connections?.lastfmApiKey && envConfig.lastfmSharedSecret && isEncryptionEnabled(),
+    )
+    return c.json({
+      listenbrainz: {
+        configured: Boolean(connections?.listenbrainzToken),
+        lastError: listenbrainzError,
+      },
+      lastfm: {
+        configured,
+        connected: Boolean(
+          configured &&
+            token?.accessToken &&
+            token.clientId === connections?.lastfmApiKey &&
+            token.clientSecret === envConfig.lastfmSharedSecret &&
+            !token.accessToken.startsWith('enc:'),
+        ),
+        lastError: lastfmError,
+      },
+    })
+  })
+
   // Get the authenticated user's merged preferences
   router.get('/api/v1/auth/me/preferences', async (c) => {
     const userId = c.get('userId')
@@ -554,6 +595,23 @@ export function authRoutes(deps: AppDependencies) {
       return problem(c, 'invalid-preferences', 'Invalid preference values', 400)
     }
     Object.assign(filtered, validated.data)
+
+    if (filtered.lastfmLoveEnabled === true) {
+      const [connections, token] = await Promise.all([
+        getUserConnections(deps.db, auth.userId),
+        getOAuthToken(deps.db, auth.userId, 'lastfm'),
+      ])
+      if (
+        !isEncryptionEnabled() ||
+        !envConfig.lastfmSharedSecret ||
+        !token?.accessToken ||
+        token.accessToken.startsWith('enc:') ||
+        token.clientId !== connections?.lastfmApiKey ||
+        token.clientSecret !== envConfig.lastfmSharedSecret
+      ) {
+        return c.json({ error: 'Connect Last.fm in Account settings before enabling loves' }, 400)
+      }
+    }
 
     // SSRF protection: validate metadataFallbackUrl against private IP ranges
     const fallbackUrl = filtered.metadataFallbackUrl
