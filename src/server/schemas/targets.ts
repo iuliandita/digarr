@@ -13,7 +13,7 @@ export const httpUrl = z
 
 // Config is deliberately loose: each target type has its own shape managed by
 // the adapter. Pinning per-type config here would duplicate adapter-side
-// validation. We only insist on url being http(s) when present.
+// validation. Save schemas also require an import path for linked slskd targets.
 export const targetConfigSchema = z
   .object({
     url: httpUrl.optional(),
@@ -21,10 +21,26 @@ export const targetConfigSchema = z
   })
   .catchall(z.unknown())
 
-export const createTargetSchema = z.object({
-  type: z.enum(TARGET_TYPES),
-  name: z.string().trim().min(1).max(200),
+export const targetSaveConfigSchema = z
+  .object({ type: z.enum(TARGET_TYPES), config: z.record(z.string(), z.unknown()) })
+  .superRefine(({ type, config }, ctx) => {
+    if (
+      type === 'slskd' &&
+      config.lidarrTargetId != null &&
+      (typeof config.lidarrDownloadPath !== 'string' || !config.lidarrDownloadPath.trim())
+    ) {
+      ctx.addIssue({
+        code: 'custom',
+        path: ['config', 'lidarrDownloadPath'],
+        message:
+          'Set the Lidarr download path in the slskd target settings when a Lidarr target is linked',
+      })
+    }
+  })
+
+export const createTargetSchema = targetSaveConfigSchema.safeExtend({
   config: targetConfigSchema,
+  name: z.string().trim().min(1).max(200),
   userId: z.number().int().positive().optional(),
 })
 
