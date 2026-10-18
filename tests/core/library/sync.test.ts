@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { createReleaseGroupCache } from '@/core/clients/release-group-cache'
 import type { LibraryAlbum, LibrarySource } from '@/core/library/sources/types'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { createSyncOrchestrator } from '@/core/library/sync'
@@ -557,4 +559,47 @@ describe('createSyncOrchestrator', () => {
       lastSyncError: 'album boom',
     })
   })
+})
+
+it('uses the catalog cache for scheduled sync and bypasses it for force sync', async () => {
+  const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+  const upstream = vi.spyOn(globalThis, 'fetch').mockImplementation(
+    async () =>
+      new Response(
+        JSON.stringify({
+          'release-groups': [
+            {
+              id: '11111111-1111-1111-1111-111111111111',
+              title: 'OK Computer',
+              'primary-type': 'Album',
+              'secondary-types': [],
+            },
+          ],
+          'release-group-count': 1,
+        }),
+      ),
+  )
+  try {
+    const a = sourceWithAlbums('lidarr', [{ sourceArtistId: '1', name: 'Radiohead', mbid }], {
+      '1': [{ sourceAlbumId: 'album-1', sourceArtistId: '1', title: 'OK Computer' }],
+    })
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient: createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() }),
+      buildPerUserSources: async () => [a],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+    for (const force of [false, false, true]) {
+      expect((await sync.syncForUser(1, { force })).results[0]?.status).toBe('completed')
+      expect(upstream).toHaveBeenCalledTimes(force ? 2 : 1)
+    }
+    expect(store.replaceLibrarySnapshot).toHaveBeenCalledTimes(3)
+    const snapshots = vi.mocked(store.replaceLibrarySnapshot).mock.calls
+    expect(snapshots[1]).toEqual(snapshots[0])
+    expect(snapshots[2]).toEqual(snapshots[0])
+  } finally {
+    upstream.mockRestore()
+  }
 })
