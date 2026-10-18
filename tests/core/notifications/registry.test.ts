@@ -83,3 +83,23 @@ describe('dispatch', () => {
     expect(await dispatch(undefined, 'batch_complete', makePayload())).toEqual([])
   })
 })
+
+it('keeps approval expiry alerts opt-in for existing channels', async () => {
+  const webhook = vi.fn(async () => ({ ok: true }))
+  await dispatch(
+    [channel('old'), channel('opted-in', { events: ['approval_failed'] })],
+    'approval_failed',
+    {
+      event: 'approval_failed',
+      recommendationId: 1,
+      message: 'Expired',
+      timestamp: '2026-10-18T12:00:00Z',
+    },
+    { senders: { webhook } },
+  )
+  expect(webhook).toHaveBeenCalledTimes(1)
+  expect(webhook).toHaveBeenCalledWith(
+    expect.objectContaining({ id: 'opted-in' }),
+    expect.objectContaining({ event: 'approval_failed' }),
+  )
+})

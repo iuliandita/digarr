@@ -25,6 +25,10 @@ export function reportApprovalOutcome(res: ApprovalResponse, t: Translate): bool
     }
     return false
   }
+  if (res.status === 'waiting') {
+    toast.info(t('recommendation.waitingForLidarr'))
+    return false
+  }
   // No target summary (discovery-only / no actionable targets) but the server
   // still reports a failed add.
   if (res.status === 'add_failed') {

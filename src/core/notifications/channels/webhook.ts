@@ -37,6 +37,16 @@ function isDiscordWebhook(url: string): boolean {
 }
 
 export function formatDiscordPayload(payload: WebhookPayload): Record<string, unknown> {
+  if (payload.event === 'approval_failed')
+    return {
+      embeds: [
+        {
+          title: 'Lidarr',
+          description: payload.message,
+          timestamp: payload.timestamp,
+        },
+      ],
+    }
   const accent = 0x7c3aed // accent purple
   if (payload.event === 'digest') {
     const { stats, message } = payload

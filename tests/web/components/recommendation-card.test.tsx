@@ -523,3 +523,44 @@ describe('RecommendationCard expand control', () => {
     expect(names[0]).not.toBe(names[1])
   })
 })
+
+it('shows waiting with its next retry time and keeps immediate Retry available', () => {
+  const onRetry = vi.fn()
+  const date = new Date('2026-10-18T12:05:00Z')
+  withPreview(
+    <RecommendationCard
+      recommendation={makeRec({
+        status: 'waiting',
+        targetActions: {
+          'lidarr-1': { status: 'waiting', retry: { nextAttemptAt: date.toISOString() } },
+        },
+      })}
+      onApprove={vi.fn()}
+      onReject={vi.fn()}
+      onRetry={onRetry}
+    />,
+  )
+  expect(screen.getByText('Waiting for Lidarr')).toBeTruthy()
+  expect(screen.getByText(`Next retry: ${date.toLocaleString()}`)).toBeTruthy()
+  fireEvent.click(screen.getByText('Retry'))
+  expect(onRetry).toHaveBeenCalledWith(1)
+  expect(screen.queryByText('Add failed')).toBeNull()
+})
+
+it('does not show a historical waiting action after rejection', () => {
+  withPreview(
+    <RecommendationCard
+      recommendation={makeRec({
+        status: 'rejected',
+        targetActions: {
+          'lidarr-1': { status: 'waiting', retry: { nextAttemptAt: '2026-10-18T12:05:00Z' } },
+        },
+      })}
+      onApprove={vi.fn()}
+      onReject={vi.fn()}
+      onRetry={vi.fn()}
+    />,
+  )
+  expect(screen.queryByText('Waiting for Lidarr')).toBeNull()
+  expect(screen.getByText('Rejected')).toBeTruthy()
+})

@@ -146,6 +146,23 @@ describe('POST /api/v1/recommendations/missing-albums', () => {
     expect(failing.addAlbum).toHaveBeenCalledTimes(2)
   })
 
+  it('reports a temporary Lidarr failure as failed, since nothing retries batch adds', async () => {
+    const albumTarget = target(
+      'lidarr-1',
+      vi.fn().mockResolvedValue({ success: false, error: 'HTTP 503: unavailable' }),
+    )
+    const { app } = makeApp({ getEnabledTargetsForUser: vi.fn(async () => [albumTarget]) })
+    const body = await (await post(app, { artistId: 10, albumMbids: [first] })).json()
+    expect(body).toMatchObject({
+      succeeded: 0,
+      failed: 1,
+      results: [
+        { targetActions: { 'lidarr-1': { status: 'failed', error: 'HTTP 503: unavailable' } } },
+      ],
+    })
+    expect(body.results[0].targetActions['lidarr-1'].retry).toBeUndefined()
+  })
+
   it('counts successful and failed albums independently', async () => {
     const albumTarget = target(
       'lidarr-1',

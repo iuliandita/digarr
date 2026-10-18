@@ -195,7 +195,7 @@ describe('autoApprove()', () => {
             success: false,
             targetType: 'lidarr',
             targetId: 1,
-            error: 'connection refused',
+            error: 'HTTP 400: invalid profile',
           }),
           testConnection: vi.fn(),
         },
@@ -224,7 +224,7 @@ describe('autoApprove()', () => {
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
       1,
       'add_failed',
-      expect.objectContaining({ lidarrError: 'connection refused' }),
+      expect.objectContaining({ lidarrError: 'HTTP 400: invalid profile' }),
     )
   })
 
@@ -676,3 +676,46 @@ describe('autoApprove()', () => {
     })
   })
 })
+
+it.each(['artist', 'album'])(
+  'keeps temporary auto-approval failures waiting for %s',
+  async (kind) => {
+    const deps = makeDeps({
+      getRecommendationsByBatch: vi.fn().mockResolvedValue([
+        {
+          id: 1,
+          score: 0.9,
+          status: 'pending',
+          kind,
+          recommendedReleaseGroupId: 'rg-1',
+          artist: { mbid: 'mbid-1', name: 'Artist A' },
+        },
+      ]),
+    })
+    const [target] = await deps.getEnabledTargets()
+    if (!target) throw new Error('missing target')
+    const fail = vi.fn().mockResolvedValue({
+      success: false,
+      targetType: 'lidarr',
+      targetId: 1,
+      error: 'HTTP 503: metadata server unavailable',
+    })
+    target.capabilities = ['addArtist', 'addAlbum']
+    target.addArtist = fail
+    target.addAlbum = fail
+    const result = await autoApprove(1, { threshold: 0.7, monitorOption: 'all' }, deps)
+    expect(result).toEqual({ approved: 1, failed: 0 })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'waiting',
+      expect.objectContaining({
+        targetActions: {
+          'lidarr-1': expect.objectContaining({
+            status: 'waiting',
+            retry: expect.objectContaining({ attempts: 1 }),
+          }),
+        },
+      }),
+    )
+  },
+)

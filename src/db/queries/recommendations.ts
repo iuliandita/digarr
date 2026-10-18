@@ -1,4 +1,4 @@
-import { and, count, desc, eq, gte, inArray, isNull, ne, or, type SQL, sql } from 'drizzle-orm'
+import { and, asc, count, desc, eq, gte, inArray, isNull, ne, or, type SQL, sql } from 'drizzle-orm'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
@@ -171,6 +171,7 @@ export async function getRecommendation(
 }
 
 export type StatusUpdateExtra = {
+  preserveActedOnAt?: boolean
   lidarrArtistId?: number
   lidarrError?: string
   targetActions?: Record<string, unknown>
@@ -182,9 +183,10 @@ export async function updateRecommendationStatus(
   status: string,
   extra: StatusUpdateExtra = {},
 ): Promise<void> {
+  const { preserveActedOnAt = false, ...values } = extra
   await db
     .update(recommendations)
-    .set({ status, actedOnAt: new Date(), ...extra })
+    .set({ status, ...(preserveActedOnAt ? {} : { actedOnAt: new Date() }), ...values })
     .where(eq(recommendations.id, id))
 }
 
@@ -556,4 +558,25 @@ export async function getExistingAlbumReleaseGroupMbids(
     .from(recommendations)
     .where(and(...conditions))
   return new Set(rows.map((r) => r.rg).filter((rg): rg is string => Boolean(rg)))
+}
+
+export async function listWaitingApprovals(db: Database): Promise<RecommendationWithArtist[]> {
+  const rows = await db
+    .select({ recommendation: recommendations, artist: artists })
+    .from(recommendations)
+    .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    .where(
+      or(
+        eq(recommendations.status, 'waiting'),
+        and(
+          inArray(recommendations.status, ['approved', 'added_to_lidarr', 'add_failed']),
+          sql`exists (
+            select 1 from jsonb_each(coalesce(${recommendations.targetActions}, '{}'::jsonb)) action
+            where action.value->>'status' = 'waiting'
+          )`,
+        ),
+      ),
+    )
+    .orderBy(asc(recommendations.actedOnAt), asc(recommendations.id))
+  return rows.map((row) => ({ ...row.recommendation, artist: row.artist }))
 }
