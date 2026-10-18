@@ -1428,6 +1428,7 @@ export const ko = {
   'settings.plexAccountHint':
     '연결을 테스트한 다음 Plex 청취자를 선택하고 저장하세요. 청취 기록은 Digarr 사용자별로 분리됩니다.',
   'settings.slskdLidarrDownloadPath': 'Lidarr에서 보이는 다운로드 폴더',
+  'settings.slskdLidarrDownloadPathRequired': 'Lidarr 연결 시 필수',
   'settings.slskdLidarrDownloadPathHint':
     '연결된 가져오기에는 Lidarr가 읽을 수 있는 완료된 다운로드의 루트 폴더를 사용하세요.',
   'settings.plexToken': 'Plex 토큰',

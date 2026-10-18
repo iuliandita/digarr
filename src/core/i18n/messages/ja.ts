@@ -1449,6 +1449,7 @@ export const ja = {
   'settings.plexAccountHint':
     '接続をテストし、Plexのリスナーを選んで保存してください。再生履歴はDigarrユーザーごとに分離されます。',
   'settings.slskdLidarrDownloadPath': 'Lidarrから見えるダウンロード先',
+  'settings.slskdLidarrDownloadPathRequired': 'Lidarrと連携する場合は必須',
   'settings.slskdLidarrDownloadPathHint':
     '連携インポートには、Lidarrが読み取れる完了済みダウンロードのルートフォルダーを指定します。',
   'settings.plexToken': 'Plex トークン',

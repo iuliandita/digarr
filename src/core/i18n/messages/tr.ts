@@ -1450,6 +1450,7 @@ export const tr = {
   'settings.plexAccountHint':
     'Bağlantıyı test et, Plex dinleyicini seç ve kaydet. Her Digarr kullanıcısının dinleme geçmişi ayrı tutulur.',
   'settings.slskdLidarrDownloadPath': 'Lidarr tarafından görülen indirme klasörü',
+  'settings.slskdLidarrDownloadPathRequired': 'Lidarr bağlantısı varsa gerekli',
   'settings.slskdLidarrDownloadPathHint':
     'Bağlı içe aktarmalar için Lidarr tarafından okunabilen tamamlanmış indirmeler klasörünü kullan.',
   'settings.plexToken': 'Plex belirteci',

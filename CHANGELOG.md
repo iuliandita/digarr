@@ -53,6 +53,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - CI: a release is now one PR, from a branch cut off `develop` straight to `main`, and the release-readiness report finds its boundary from that PR. The deploy digest-sync PR gets its required checks from a dispatched `ci.yml` run, since PRs opened with the workflow token start no checks. The `-debian` image is built (not pushed) on pull requests that touch `deploy/docker/`. The `verify-digest-sync` release job is removed because `bun run check:versions` already compares the same digests (#878, #938).
 
 ### Fixed
+- Linked slskd targets now require the Lidarr download path when saving, and existing targets missing it fail jobs before searching or downloading. Job failures log one redacted line instead of a bundled-source stack trace (#1019).
 - The logo keeps each theme's brand color where it reaches 3:1 contrast, with minimal lightness adjustments where needed. Sign-in and registration logos are now large bold text too (#1020).
 - MCP requests now accept single messages only and enforce a 1 MiB body limit. Scan-start rate limits apply only to MCP tools, preserving REST scan behavior. Client configuration includes the HTTP transport type. (#979)
 - Rate limits behind a trusted reverse proxy now use the real client IP, so one client cannot exhaust every client's login budget. Configure `PROXY_AUTH_TRUSTED_PROXIES`; untrusted peers still use their socket IP. Limits and windows are unchanged (#1008).
