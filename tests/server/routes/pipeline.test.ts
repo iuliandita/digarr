@@ -282,6 +282,16 @@ describe('POST /api/v1/pipeline/run', () => {
     },
   )
 
+  it('passes the job recorder into the auto-approve deps', async () => {
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const deps = makeDeps({ orchestrator })
+    const app = createApp(deps)
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+    expect(res.status).toBe(202)
+    const run = vi.mocked(orchestrator.enqueue).mock.calls[0]?.[0]
+    expect(run?.autoApproveDeps?.jobRecorder).toBe(deps.jobRecorder)
+  })
+
   it('queues the run (202) when a pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))

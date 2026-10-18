@@ -31,7 +31,7 @@ type ChannelBase = {
   allowPrivateTarget?: boolean
 }
 
-export type WebhookChannel = ChannelBase & { type: 'webhook'; url: string }
+export type WebhookChannel = ChannelBase & { type: 'webhook'; url: string; signingSecret?: string }
 export type NtfyChannel = ChannelBase & {
   type: 'ntfy'
   server: string

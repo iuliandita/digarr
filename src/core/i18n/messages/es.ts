@@ -418,6 +418,10 @@ export const es = {
   'discover.undoRejected': '{name} rechazado',
   'discover.undoBlocked': '{name} rechazado y bloqueado',
   'discover.approveAllAbove': 'Aprobar todo lo anterior',
+  'discover.approveAboveTitle': '¿Aprobar todo por encima de {1} %?',
+  'discover.approveAboveMessage':
+    '¿Aprobar {0} recomendaciones pendientes con {1} % o más? Destinos como Lidarr pueden recibir altas.',
+  'discover.approveAboveConfirm': 'Aprobar {0}',
   'discover.approvedCount': 'Aprobado',
   'discover.approvePartial': 'Añadido a {0} de {1} destinos. Fallaron: {2}',
   'discover.approveAllFailed': 'No se pudo añadir a ningún destino. Fallaron: {0}',
@@ -746,6 +750,8 @@ export const es = {
   'subscriptionPresets.getStarted': 'Empieza con un preajuste',
   'subscriptionPresets.intro':
     'Elige un preajuste para crear programaciones automáticamente o monta una configuración personalizada.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify ya no ofrece sus playlists de listas de éxitos a las apps nuevas, así que los presets de Spotify Charts pueden fallar.',
   'subscriptionPresets.casualTitle': 'Tranquilo',
   'subscriptionPresets.casualDescription': 'Recomendaciones semanales con poco ruido',
   'subscriptionPresets.deepDiverTitle': 'Explorador profundo',
@@ -952,6 +958,9 @@ export const es = {
   'systemHealth.lastRun': 'última:',
   'systemHealth.nextRun': 'siguiente:',
   'systemHealth.healthy': 'correcto',
+  'systemHealth.statusOk': 'Correcto',
+  'systemHealth.statusDegraded': 'Degradado',
+  'systemHealth.statusError': 'Fallo',
   'systemHealth.overdue': 'atrasado',
   'systemHealth.inMinutes': 'en {0}m',
   'systemHealth.inHours': 'en {0}h',
@@ -1919,6 +1928,7 @@ export const es = {
   'settings.channels.allowPrivateWarning':
     'Permite la entrega a direcciones privadas/LAN. Los metadatos de la nube y los rangos link-local permanecen bloqueados.',
   'settings.channels.webhookUrl': 'URL del webhook',
+  'settings.channels.webhookSigningSecret': 'Secreto de firma (opcional)',
   'settings.channels.ntfyServer': 'Servidor',
   'settings.channels.ntfyTopic': 'Tema',
   'settings.channels.ntfyPriority': 'Prioridad',

@@ -417,6 +417,10 @@ export const nl = {
   'discover.undoRejected': '{name} afgewezen',
   'discover.undoBlocked': '{name} afgewezen en geblokkeerd',
   'discover.approveAllAbove': 'Keur alles hierboven goed',
+  'discover.approveAboveTitle': 'Alles boven {1}% goedkeuren?',
+  'discover.approveAboveMessage':
+    '{0} openstaande aanbevelingen van {1}% of hoger goedkeuren? Doelen zoals Lidarr kunnen toevoegingen ontvangen.',
+  'discover.approveAboveConfirm': '{0} goedkeuren',
   'discover.approvedCount': 'Goedgekeurd',
   'discover.approvePartial': 'Toegevoegd aan {0} van {1} bestemmingen. Mislukt: {2}',
   'discover.approveAllFailed': 'Kon aan geen enkele bestemming toevoegen. Mislukt: {0}',
@@ -742,6 +746,8 @@ export const nl = {
   'subscriptionPresets.getStarted': 'Begin met een voorinstelling',
   'subscriptionPresets.intro':
     "Kies een voorinstelling om automatisch schema's aan te maken of stel zelf een configuratie samen.",
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify levert zijn hitlijst-playlists niet meer aan nieuwere apps, dus de Spotify Charts-presets kunnen mislukken.',
   'subscriptionPresets.casualTitle': 'Ontspannen',
   'subscriptionPresets.casualDescription': 'Wekelijkse aanbevelingen met weinig ruis',
   'subscriptionPresets.deepDiverTitle': 'Diepgraver',
@@ -946,6 +952,9 @@ export const nl = {
   'systemHealth.lastRun': 'laatste:',
   'systemHealth.nextRun': 'volgende:',
   'systemHealth.healthy': 'gezond',
+  'systemHealth.statusOk': 'Gezond',
+  'systemHealth.statusDegraded': 'Verminderd',
+  'systemHealth.statusError': 'Fout',
   'systemHealth.overdue': 'achterstallig',
   'systemHealth.inMinutes': 'over {0}m',
   'systemHealth.inHours': 'over {0}u',
@@ -1906,6 +1915,7 @@ export const nl = {
   'settings.channels.allowPrivateWarning':
     'Staat bezorging toe naar privé/LAN-adressen. Cloud-metadata en link-local-bereiken blijven geblokkeerd.',
   'settings.channels.webhookUrl': 'Webhook-URL',
+  'settings.channels.webhookSigningSecret': 'Ondertekeningsgeheim (optioneel)',
   'settings.channels.ntfyServer': 'Serveradres',
   'settings.channels.ntfyTopic': 'Onderwerp',
   'settings.channels.ntfyPriority': 'Prioriteit',

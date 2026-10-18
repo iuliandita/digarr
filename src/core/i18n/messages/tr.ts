@@ -410,6 +410,10 @@ export const tr = {
   'discover.undoRejected': '{name} reddedildi',
   'discover.undoBlocked': '{name} reddedildi ve engellendi',
   'discover.approveAllAbove': 'Yukarıdakilerin Tümünü Onayla',
+  'discover.approveAboveTitle': '%{1} üzerindekilerin hepsini onaylayalım mı?',
+  'discover.approveAboveMessage':
+    '%{1} ve üzerindeki {0} bekleyen öneriyi onaylayalım mı? Lidarr gibi hedeflere ekleme yapılabilir.',
+  'discover.approveAboveConfirm': '{0} öneriyi onayla',
   'discover.approvedCount': 'Onaylandı',
   'discover.approvePartial': '{1} hedeften {0} tanesine eklendi. Başarısız: {2}',
   'discover.approveAllFailed': 'Hiçbir hedefe eklenemedi. Başarısız: {0}',
@@ -729,6 +733,8 @@ export const tr = {
   'subscriptionPresets.getStarted': 'Bir ön ayarla başla',
   'subscriptionPresets.intro':
     'Zamanlamaları otomatik oluşturmak için bir ön ayar seç ya da kendi yapılandırmanı kur.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify artık liste çalma listelerini yeni uygulamalara sunmuyor, bu yüzden Spotify Charts ön ayarları başarısız olabilir.',
   'subscriptionPresets.casualTitle': 'Rahat',
   'subscriptionPresets.casualDescription': 'Az gürültülü haftalık öneriler',
   'subscriptionPresets.deepDiverTitle': 'Derin keşif',
@@ -933,6 +939,9 @@ export const tr = {
   'systemHealth.lastRun': 'son:',
   'systemHealth.nextRun': 'sonraki:',
   'systemHealth.healthy': 'sağlıklı',
+  'systemHealth.statusOk': 'Tamam',
+  'systemHealth.statusDegraded': 'Düşük performans',
+  'systemHealth.statusError': 'Hata',
   'systemHealth.overdue': 'gecikmiş',
   'systemHealth.inMinutes': '{0} dk içinde',
   'systemHealth.inHours': '{0} sa içinde',
@@ -1885,6 +1894,7 @@ export const tr = {
   'settings.channels.allowPrivateWarning':
     'Özel/LAN adreslerine teslimata izin verir. Bulut meta verileri ve link-local aralıkları engelli kalır.',
   'settings.channels.webhookUrl': "Webhook URL'si",
+  'settings.channels.webhookSigningSecret': 'İmza sırrı (isteğe bağlı)',
   'settings.channels.ntfyServer': 'Sunucu',
   'settings.channels.ntfyTopic': 'Konu',
   'settings.channels.ntfyPriority': 'Öncelik',

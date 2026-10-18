@@ -403,6 +403,10 @@ export const ko = {
   'discover.undoRejected': '{name} 거부됨',
   'discover.undoBlocked': '{name} 거부 및 차단됨',
   'discover.approveAllAbove': '위 모두 승인',
+  'discover.approveAboveTitle': '{1}% 이상을 모두 승인하시겠습니까?',
+  'discover.approveAboveMessage':
+    '대기 중인 추천 {0}개({1}% 이상)를 승인하시겠습니까? Lidarr 같은 대상에 추가될 수 있습니다.',
+  'discover.approveAboveConfirm': '{0}개 승인',
   'discover.approvedCount': '승인됨',
   'discover.approvePartial': '대상 {1}개 중 {0}개에 추가했습니다. 실패: {2}',
   'discover.approveAllFailed': '어떤 대상에도 추가하지 못했습니다. 실패: {0}',
@@ -723,6 +727,8 @@ export const ko = {
   'subscriptions.spotifyNotConnected': 'Spotify가 연결되지 않았습니다',
   'subscriptionPresets.getStarted': '프리셋으로 시작하기',
   'subscriptionPresets.intro': '프리셋을 선택해 일정을 자동으로 만들거나 직접 구성하세요.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify는 더 이상 새로운 앱에 차트 플레이리스트를 제공하지 않으므로 Spotify Charts 프리셋이 실패할 수 있습니다.',
   'subscriptionPresets.casualTitle': '가볍게',
   'subscriptionPresets.casualDescription': '잡음이 적은 주간 추천',
   'subscriptionPresets.deepDiverTitle': '딥 다이버',
@@ -925,6 +931,9 @@ export const ko = {
   'systemHealth.lastRun': '마지막:',
   'systemHealth.nextRun': '다음:',
   'systemHealth.healthy': '정상',
+  'systemHealth.statusOk': '정상',
+  'systemHealth.statusDegraded': '저하',
+  'systemHealth.statusError': '오류',
   'systemHealth.overdue': '기한 초과',
   'systemHealth.inMinutes': '{0}분 후',
   'systemHealth.inHours': '{0}시간 후',
@@ -1854,6 +1863,7 @@ export const ko = {
   'settings.channels.allowPrivateWarning':
     '사설/LAN 주소로의 전송을 허용합니다. 클라우드 메타데이터 및 링크 로컬 범위는 계속 차단됩니다.',
   'settings.channels.webhookUrl': '웹훅 URL',
+  'settings.channels.webhookSigningSecret': '서명 시크릿(선택)',
   'settings.channels.ntfyServer': '서버',
   'settings.channels.ntfyTopic': '주제',
   'settings.channels.ntfyPriority': '우선순위',

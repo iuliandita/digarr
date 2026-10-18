@@ -415,6 +415,10 @@ export const pl = {
   'discover.undoRejected': 'Odrzucono: {name}',
   'discover.undoBlocked': 'Odrzucono i zablokowano: {name}',
   'discover.approveAllAbove': 'Zatwierdź wszystko powyżej',
+  'discover.approveAboveTitle': 'Zatwierdzić wszystko powyżej {1}%?',
+  'discover.approveAboveMessage':
+    'Zatwierdzić {0} oczekujących rekomendacji z wynikiem {1}% lub wyższym? Cele takie jak Lidarr mogą otrzymać dodania.',
+  'discover.approveAboveConfirm': 'Zatwierdź {0}',
   'discover.approvedCount': 'Zatwierdzone',
   'discover.approvePartial': 'Dodano do {0} z {1} celów. Nieudane: {2}',
   'discover.approveAllFailed': 'Nie udało się dodać do żadnego celu. Nieudane: {0}',
@@ -739,6 +743,8 @@ export const pl = {
   'subscriptionPresets.getStarted': 'Zacznij od gotowego zestawu',
   'subscriptionPresets.intro':
     'Wybierz zestaw, aby automatycznie utworzyć harmonogramy, albo zbuduj własną konfigurację.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify nie udostępnia już swoich playlist z listami przebojów nowszym aplikacjom, więc presety Spotify Charts mogą nie działać.',
   'subscriptionPresets.casualTitle': 'Na luzie',
   'subscriptionPresets.casualDescription': 'Cotygodniowe rekomendacje z niewielką ilością szumu',
   'subscriptionPresets.deepDiverTitle': 'Głęboki nurek',
@@ -947,6 +953,9 @@ export const pl = {
   'systemHealth.lastRun': 'ostatnie:',
   'systemHealth.nextRun': 'następne:',
   'systemHealth.healthy': 'sprawny',
+  'systemHealth.statusOk': 'Sprawny',
+  'systemHealth.statusDegraded': 'Pogorszony',
+  'systemHealth.statusError': 'Błąd',
   'systemHealth.overdue': 'przeterminowany',
   'systemHealth.inMinutes': 'za {0}m',
   'systemHealth.inHours': 'za {0}h',
@@ -1897,6 +1906,7 @@ export const pl = {
   'settings.channels.allowPrivateWarning':
     'Zezwala na dostarczanie do adresów prywatnych/LAN. Metadane chmury i zakresy link-local pozostają zablokowane.',
   'settings.channels.webhookUrl': 'URL webhooka',
+  'settings.channels.webhookSigningSecret': 'Sekret podpisu (opcjonalny)',
   'settings.channels.ntfyServer': 'Serwer',
   'settings.channels.ntfyTopic': 'Temat',
   'settings.channels.ntfyPriority': 'Priorytet',

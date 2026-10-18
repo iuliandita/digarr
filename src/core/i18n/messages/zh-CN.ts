@@ -378,6 +378,10 @@ export const zhCN = {
   'discover.undoRejected': '已拒绝 {name}',
   'discover.undoBlocked': '已拒绝并屏蔽 {name}',
   'discover.approveAllAbove': '批准以上所有内容',
+  'discover.approveAboveTitle': '批准所有高于 {1}% 的推荐?',
+  'discover.approveAboveMessage':
+    '批准 {0} 条评分不低于 {1}% 的待处理推荐?Lidarr 等目标可能会收到添加请求。',
+  'discover.approveAboveConfirm': '批准 {0} 条',
   'discover.approvedCount': '已批准',
   'discover.approvePartial': '已添加到 {1} 个目标中的 {0} 个。失败：{2}',
   'discover.approveAllFailed': '无法添加到任何目标。失败：{0}',
@@ -682,6 +686,8 @@ export const zhCN = {
   'subscriptions.spotifyNotConnected': 'Spotify 尚未连接',
   'subscriptionPresets.getStarted': '从预设开始',
   'subscriptionPresets.intro': '选择一个预设来自动创建计划，或自行搭建自定义配置。',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify 不再向较新的应用提供其榜单播放列表，因此 Spotify Charts 预设可能会失败。',
   'subscriptionPresets.casualTitle': '轻松模式',
   'subscriptionPresets.casualDescription': '低噪音的每周推荐',
   'subscriptionPresets.deepDiverTitle': '深度探索',
@@ -874,6 +880,9 @@ export const zhCN = {
   'systemHealth.lastRun': '上次:',
   'systemHealth.nextRun': '下次:',
   'systemHealth.healthy': '正常',
+  'systemHealth.statusOk': '正常',
+  'systemHealth.statusDegraded': '降级',
+  'systemHealth.statusError': '错误',
   'systemHealth.overdue': '逾期',
   'systemHealth.inMinutes': '{0}分钟后',
   'systemHealth.inHours': '{0}小时后',
@@ -1753,6 +1762,7 @@ export const zhCN = {
   'settings.channels.allowPrivateWarning':
     '允许投递到私有/局域网地址。云元数据和链路本地范围仍被阻止。',
   'settings.channels.webhookUrl': 'Webhook 的 URL',
+  'settings.channels.webhookSigningSecret': '签名密钥（可选）',
   'settings.channels.ntfyServer': '服务器',
   'settings.channels.ntfyTopic': '主题',
   'settings.channels.ntfyPriority': '优先级',

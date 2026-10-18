@@ -20,6 +20,7 @@ function sampleChannels(): NotificationChannel[] {
       enabled: true,
       events: ['batch_complete'],
       url: 'https://x.test/hook',
+      signingSecret: 'sign-secret-789',
     },
     {
       id: 't',
@@ -66,6 +67,7 @@ describe('channel secret walkers', () => {
     const apprEnc = enc[3] as Extract<NotificationChannel, { type: 'apprise' }>
     expect(telEnc.botToken).not.toBe('bot-secret-123')
     expect(telEnc.botToken.startsWith('enc:v1:')).toBe(true)
+    expect((enc[0] as { signingSecret: string }).signingSecret.startsWith('enc:v1:')).toBe(true)
     expect(ntfyEnc.token?.startsWith('enc:v1:')).toBe(true)
     expect(apprEnc.urls.startsWith('enc:v1:')).toBe(true)
 
@@ -106,6 +108,7 @@ describe('channel secret walkers', () => {
 
   it('mask replaces every full secret with *** and partial-masks the webhook url', () => {
     const masked = maskChannelSecrets(sampleChannels())
+    expect((masked[0] as { signingSecret: string }).signingSecret).toBe('***')
     expect((masked[1] as { botToken: string }).botToken).toBe('***')
     expect((masked[2] as { token?: string }).token).toBe('***')
     expect((masked[3] as { urls: string }).urls).toBe('***')

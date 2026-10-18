@@ -413,6 +413,10 @@ export const ru = {
   'discover.undoRejected': 'Отклонено: {name}',
   'discover.undoBlocked': 'Отклонено и заблокировано: {name}',
   'discover.approveAllAbove': 'Одобрить все вышеперечисленное',
+  'discover.approveAboveTitle': 'Одобрить всё выше {1}%?',
+  'discover.approveAboveMessage':
+    'Одобрить {0} ожидающих рекомендаций с оценкой {1}% и выше? В такие цели, как Lidarr, могут быть добавлены записи.',
+  'discover.approveAboveConfirm': 'Одобрить: {0}',
   'discover.approvedCount': 'Утверждено',
   'discover.approvePartial': 'Добавлено в {0} из {1} целей. Неудачные: {2}',
   'discover.approveAllFailed': 'Не удалось добавить ни в одну цель. Неудачные: {0}',
@@ -740,6 +744,8 @@ export const ru = {
   'subscriptionPresets.getStarted': 'Начни с пресета',
   'subscriptionPresets.intro':
     'Выбери пресет, чтобы автоматически создать расписания, или собери собственную конфигурацию.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify больше не отдаёт свои чарт-плейлисты новым приложениям, поэтому пресеты Spotify Charts могут не работать.',
   'subscriptionPresets.casualTitle': 'Легкий',
   'subscriptionPresets.casualDescription': 'Еженедельные рекомендации с минимумом шума',
   'subscriptionPresets.deepDiverTitle': 'Глубокое погружение',
@@ -947,6 +953,9 @@ export const ru = {
   'systemHealth.lastRun': 'последний:',
   'systemHealth.nextRun': 'следующий:',
   'systemHealth.healthy': 'норма',
+  'systemHealth.statusOk': 'Норма',
+  'systemHealth.statusDegraded': 'Деградация',
+  'systemHealth.statusError': 'Ошибка',
   'systemHealth.overdue': 'просрочено',
   'systemHealth.inMinutes': 'через {0}мин',
   'systemHealth.inHours': 'через {0}ч',
@@ -1909,6 +1918,7 @@ export const ru = {
   'settings.channels.allowPrivateWarning':
     'Разрешает доставку на частные/LAN-адреса. Облачные метаданные и link-local диапазоны остаются заблокированными.',
   'settings.channels.webhookUrl': 'URL вебхука',
+  'settings.channels.webhookSigningSecret': 'Секрет подписи (необязательно)',
   'settings.channels.ntfyServer': 'Сервер',
   'settings.channels.ntfyTopic': 'Тема',
   'settings.channels.ntfyPriority': 'Приоритет',

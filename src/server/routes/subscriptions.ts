@@ -7,6 +7,7 @@ import {
 } from '@/core/discovery-modes/availability'
 import type { DiscoveryModeRegistry } from '@/core/discovery-modes/registry'
 import { isConnectedToken, resolveProviderToken } from '@/core/provider-auth'
+import { validateSpotifyChartsConfig } from '@/core/subscriptions/adapters/spotify-charts'
 import { DISCOVERY_MODE_SUBSCRIPTION_TYPE } from '@/core/subscriptions/registry'
 import { errMsg } from '@/core/validation'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
@@ -225,6 +226,8 @@ export function subscriptionRoutes(deps: AppDependencies) {
                 { value: 'top50', label: 'Top 50' },
                 { value: 'viral50', label: 'Viral 50 (Global only)' },
               ],
+              helpText:
+                'Viral 50 is only available for the Global region. Spotify no longer serves these playlists to newer or development-mode apps, so charts may fail.',
             },
           ],
           requiredService: 'spotify',
@@ -304,6 +307,10 @@ export function subscriptionRoutes(deps: AppDependencies) {
 
     const body = c.req.valid('json')
     let normalizedSourceConfig = body.sourceConfig
+    if (body.sourceType === 'spotify-charts') {
+      const valid = validateSpotifyChartsConfig(asRecord(body.sourceConfig) ?? {})
+      if (!valid.ok) return c.json({ error: valid.error }, 400)
+    }
     if (body.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE) {
       const { error, normalizedConfig } = await resolveDiscoveryModeSourceConfig(
         body.sourceConfig,
@@ -734,6 +741,11 @@ export function subscriptionRoutes(deps: AppDependencies) {
 
       const body = c.req.valid('json')
       const update: Record<string, unknown> = { ...body, action: 'add_to_recommendations' }
+
+      if (existing.sourceType === 'spotify-charts' && update.sourceConfig !== undefined) {
+        const valid = validateSpotifyChartsConfig(asRecord(update.sourceConfig) ?? {})
+        if (!valid.ok) return c.json({ error: valid.error }, 400)
+      }
 
       if (
         existing.sourceType === DISCOVERY_MODE_SUBSCRIPTION_TYPE &&

@@ -415,6 +415,10 @@ export const de = {
   'discover.undoRejected': '{name} abgelehnt',
   'discover.undoBlocked': '{name} abgelehnt und blockiert',
   'discover.approveAllAbove': 'Genehmige alles oben',
+  'discover.approveAboveTitle': 'Alle über {1} % genehmigen?',
+  'discover.approveAboveMessage':
+    '{0} ausstehende Empfehlungen ab {1} % genehmigen? Ziele wie Lidarr erhalten möglicherweise Hinzufügungen.',
+  'discover.approveAboveConfirm': '{0} genehmigen',
   'discover.approvedCount': 'Genehmigt',
   'discover.approvePartial': 'Zu {0} von {1} Zielen hinzugefügt. Fehlgeschlagen: {2}',
   'discover.approveAllFailed': 'Konnte zu keinem Ziel hinzugefügt werden. Fehlgeschlagen: {0}',
@@ -747,6 +751,8 @@ export const de = {
   'subscriptionPresets.getStarted': 'Mit einem Preset starten',
   'subscriptionPresets.intro':
     'Wähle ein Preset, um Zeitpläne automatisch anzulegen, oder baue deine eigene Konfiguration.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify liefert seine Chart-Playlists nicht mehr an neuere Apps, daher können die Spotify-Charts-Presets fehlschlagen.',
   'subscriptionPresets.casualTitle': 'Locker',
   'subscriptionPresets.casualDescription': 'Wöchentliche Empfehlungen mit wenig Rauschen',
   'subscriptionPresets.deepDiverTitle': 'Tiefgang',
@@ -956,6 +962,9 @@ export const de = {
   'systemHealth.lastRun': 'zuletzt:',
   'systemHealth.nextRun': 'nächste:',
   'systemHealth.healthy': 'in Ordnung',
+  'systemHealth.statusOk': 'In Ordnung',
+  'systemHealth.statusDegraded': 'Eingeschränkt',
+  'systemHealth.statusError': 'Fehler',
   'systemHealth.overdue': 'überfällig',
   'systemHealth.inMinutes': 'in {0} Min.',
   'systemHealth.inHours': 'in {0} Std.',
@@ -1923,6 +1932,7 @@ export const de = {
   'settings.channels.allowPrivateWarning':
     'Erlaubt die Zustellung an private/LAN-Adressen. Cloud-Metadaten und Link-Local-Bereiche bleiben blockiert.',
   'settings.channels.webhookUrl': 'Webhook-URL',
+  'settings.channels.webhookSigningSecret': 'Signaturgeheimnis (optional)',
   'settings.channels.ntfyServer': 'Serveradresse',
   'settings.channels.ntfyTopic': 'Thema',
   'settings.channels.ntfyPriority': 'Priorität',
