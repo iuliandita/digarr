@@ -29,7 +29,7 @@ Your decisions switches between Approved and All; Listening switches between Top
 
 ![Discover](screenshots/discover.png)
 
-The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. In v2.0.0, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. In v2.0.0, non-admin saves omit global writes and shared AudioDB/Wikidata controls are shown only to admins; personal image settings stay visible. Admins receive an explicit partial-save notice if only their later global save fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The existing admin layout is unchanged.
+The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Radar for album recommendations. The empty state also links to the default-off net-new album discovery setting. In v2.0.0, that toggle persists; v1.19.0 cannot save it ([#791](https://github.com/iuliandita/digarr/issues/791)). The links reveal the requested discovery mode or setting. Recommendation saves omit global writes. Image-source controls now live in Connections > Artist images; admins can edit them and members see a read-only row. An image save reports partial success if its later server write fails. v1.19.0 retains the false save failure described in [#792](https://github.com/iuliandita/digarr/issues/792); read back user preferences there to verify the saved value. The older capture predates the Connections picker and Artist images row.
 
 Since v1.19.0, Discover can order and browse genre-priority groups without changing scores. The Audition queue retains a dismissible summary of unavailable-preview reasons after skipping items or finishing.
 
@@ -43,13 +43,13 @@ Since the UI refresh (captures above predate it), the Discover toolbar is one ro
 
 Discovery Modes lives on its own page at `/discover/modes`, reached from the Discovery Modes tab on Discover. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
 
-TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for how to report a test safely.
+When Show experimental integrations is enabled, TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for how to report a test safely.
 
 ## Search
 
 ![Search](screenshots/search.png)
 
-Since the UI refresh, the provider toggles sit under a collapsed Sources section, because every available source is searched by default; its title counts the sources narrowing a search.
+Since the UI refresh, the provider toggles sit under a collapsed Sources section, because every available source is searched by default; its title counts the sources narrowing a search. TIDAL and Bandcamp choices now appear only when the admin enables Show experimental integrations in the Connections picker. The search capture predates this switch.
 
 ## Genres
 
@@ -101,7 +101,7 @@ The Discovery over time chart shows per-batch recommendation totals, with the ap
 
 ![Settings](screenshots/settings.png)
 
-Since the UI refresh, Settings sections sit in a grouped side menu (Personal, Library & services, Admin) on desktop and a grouped select on small screens; the capture above predates it. Each service is a collapsed row with its status (Not configured, Saved, Test passed, Test passed - not saved yet, Error, or Connected for OAuth links), and rarely used fields sit in collapsed Advanced blocks.
+Since the UI refresh, Settings sections sit in a grouped side menu (Personal, Library & services, Admin) on desktop and a grouped select on small screens; the capture above predates it. Connections now lists saved services only, plus the Artist images row for built-in image providers. Add connection opens a grouped searchable picker with the admin experimental switch at the bottom; the screenshots predate this layout. Each listed service is a collapsed row with its status (Not configured, Saved, Test passed, Test passed - not saved yet, Error, or Connected for OAuth links), and rarely used fields sit in collapsed Advanced blocks.
 
 In v1.18.0, the Settings > Targets flow includes `slskd` target creation with an optional linked Lidarr target and a download root visible to Lidarr. The Plex connection card also has a per-user listener selector populated by Test Connection; these controls are newer than the capture above.
 
@@ -119,7 +119,9 @@ The Account page offers password-confirmed SSO linking when OIDC is enabled and 
 
 ![Your Connections](screenshots/settings-your-connections.png)
 
-This older capture shows ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL, plus the top of the Plex card. The current Your Connections UI also includes Jellyfin, Emby, Subsonic, and Discogs. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
+This older capture shows ListenBrainz, Last.fm, Spotify, Deezer, and TIDAL, plus the top of the Plex card. Jellyfin, Emby, Subsonic/Navidrome, and Discogs are also supported. The current list shows only saved services, including incomplete credentials; unconfigured services are in Add connection. The capture above shows the old all-services list. Input values and the instance host are redacted in the capture. The TIDAL card carries the Experimental badge while live-account connect, refresh, and populated favorite-artist results remain unverified; connecting TIDAL requires an admin to configure the app credentials first. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reporting.
+
+The capture script can produce `settings-connections-picker.png` from the open Add connection panel. It uses the Add connection and Search connections accessible names; that artifact is not checked in yet.
 
 ## Settings > Recommendations > Blocked
 

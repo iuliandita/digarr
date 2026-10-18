@@ -20,16 +20,25 @@ export function discoveryModeRoutes(deps: AppDependencies) {
       return notAuthenticated(c)
     }
 
-    const snapshot = await getDiscoveryConnectionSnapshot(userId)
-    const modes = discoveryModeRegistry.list().map((mode) => ({
-      id: mode.id,
-      label: mode.label,
-      description: mode.description,
-      availability: evaluateDiscoveryModeAvailability(mode.id, snapshot),
-      stability: mode.stability ?? 'stable',
-      easyFields: mode.easyFields,
-      advancedFields: mode.advancedFields,
-    }))
+    const [snapshot, settings] = await Promise.all([
+      getDiscoveryConnectionSnapshot(userId),
+      deps.getSettings(),
+    ])
+    const modes = discoveryModeRegistry
+      .list()
+      .filter(
+        (mode) =>
+          settings?.preferences?.showExperimentalIntegrations || mode.stability !== 'experimental',
+      )
+      .map((mode) => ({
+        id: mode.id,
+        label: mode.label,
+        description: mode.description,
+        availability: evaluateDiscoveryModeAvailability(mode.id, snapshot),
+        stability: mode.stability ?? 'stable',
+        easyFields: mode.easyFields,
+        advancedFields: mode.advancedFields,
+      }))
 
     return c.json({ modes })
   })

@@ -183,23 +183,23 @@
         "src/db/queries/recommendations.ts": "3fcb903eaa0f14206fe02c93a003b6dca18f5383f4326daa56c665268ab56b24",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
-        "src/db/queries/settings.ts": "c38383e1849332caa2ef1874c703cebda23b777bb23d2cee01c7b379b4871d52",
+        "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
         "src/db/queries/setup.ts": "25ad4caa8da652ae83f6dcdd845630a8ec801261cd753816e6908abaf6345401",
         "src/db/queries/slskd-jobs.ts": "fab637cf124846376531e53c6f399eb234f4f6bc71fa0f46861a9ab2a81f4f84",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "781455cd84f6f583dd96f572a9c449d72ed3169473302688b69f2cf0fd88263f",
-        "src/db/schema.ts": "b157c52bbb609894bdaccccac357b64345285791997cdd7dbc8bae0c886e82d5",
+        "src/db/schema.ts": "c59e5682c6f4b53b673fe8cfbd0b684abe397e5cc25579095f7b8a31419ea7c9",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "c59915c32bc7a48978ad595311264540bcea65086e24bddac091acff82f3b6ea",
+      "digest": "8c334e49681a2cddba2a62a14112b9316261ab1f3798beef90b34e2d09aaf95f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Dashboard layout is optional JSON in users.preferences, merged with defaults and preserving other preferences. Inherited personal API tokens remain excluded from JSON recovery and backend copies; token recovery instructions are unchanged.",
         "breaking": "none",
         "migration": "Upgrade adds no dashboard SQL migration; the base personal-token migration 0057 remains required. Backup format for preferences is unchanged and complete backups retain layout JSON; personal tokens remain excluded from JSON backups. Rollback ignores the dashboard key; token rollback still requires the prior image and matching native backup for exact recovery.",
-        "digest": "c59915c32bc7a48978ad595311264540bcea65086e24bddac091acff82f3b6ea"
+        "digest": "8c334e49681a2cddba2a62a14112b9316261ab1f3798beef90b34e2d09aaf95f"
       }
     },
     "configuration": {
@@ -284,7 +284,7 @@
         "src/server/routes/artists.ts": "1f6258d3654546a5ea5ea7c4a07f04a80223a9c273ba918816a3c0269e155820",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "ed7401ae574d24d0a68ee80e46ace07f625ed379f25bd27e6a3a745714f8f8d8",
-        "src/server/routes/discovery-modes.ts": "daca7bc1810dc86abb1166b14e37b75fb779ae814f70a8b1faa123a2876db0cf",
+        "src/server/routes/discovery-modes.ts": "f84e434fd2bdf8b9a3c92ba5d983d3acd76abe8bec15c440bd67b5b8e491c7d4",
         "src/server/routes/exports.ts": "6e93cc52cb4ed3909081b9b27ca25c93c3f61d14e546d1466f7c79f87f46a92c",
         "src/server/routes/genres.ts": "fbaf9454ecec0f6dfcf49b95c41807b14c4aa3dba2233e0aa3e18da4e5ff3723",
         "src/server/routes/health.ts": "35dc74f5a76a2c6d2ed738a977ad6af2857b5e029808a71f86978bcdcc52934f",
@@ -298,7 +298,7 @@
         "src/server/routes/playlists.ts": "992e211b170675acf3baa7aa59cc03d69470c1f416dabb1f496ee34233cf64e5",
         "src/server/routes/recommendations.ts": "cb4f0d9e4d38e8cf739496e6923df42b436bd3cac773072e339e86e3cac2f9c7",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
-        "src/server/routes/settings.ts": "47d5f201c141246a43847ca1752838405d06c9812251314a4e414237e964813d",
+        "src/server/routes/settings.ts": "5bb3a20162b3445accdfaf95b8879d12a21773bc945d397ceb3806be0343917c",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
         "src/server/routes/targets.ts": "02e6eab2324feee8b00957d15308867a70a60b78cf64360459d779f3031573c2",
@@ -311,21 +311,21 @@
         "src/server/schemas/pipeline.ts": "12b32f38d093560568f21ddc9626fe4282d74b12ab29af4ecab8ddd405e10341",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
         "src/server/schemas/recommendations.ts": "4e524794c0f8f3111a93c45e3f5e9bcb98a8711c049edfd703fc2ad56363fe1c",
-        "src/server/schemas/settings.ts": "4b42d3314ac5ebd3e59b040855ba452270ab4f3a9157917c34f843cd8a61be46",
+        "src/server/schemas/settings.ts": "cea77add5a9ff26481b8cc0ec3d8bd201fb0788dfac4f850a626b29476788b44",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "cd5f20958229afa935ffd569505645baff0e07c7bffd8f32c4975dcb849eb3bd",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "bbcb64d34e9af8650eeeb7c23d4a57076a60f8ca92b800c6df101aad2f8ecd4d",
+      "digest": "2f73cc422ffaf387d64cb2e636ba5b7538327e61a5dffd16359a9a24408d19b0",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Document version 1 dashboard layout validation, missing-card defaults, and layout replacement inside partial account preference saves. Rebased personal-token endpoints and playlist-file imports retain their existing API documentation, scope limits, and response formats.",
         "breaking": "none",
         "migration": "",
-        "digest": "bbcb64d34e9af8650eeeb7c23d4a57076a60f8ca92b800c6df101aad2f8ecd4d"
+        "digest": "2f73cc422ffaf387d64cb2e636ba5b7538327e61a5dffd16359a9a24408d19b0"
       }
     },
     "interface": {
@@ -336,24 +336,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "afa38f2fc0698737d5a715da608dc94b43a01ef26f56bbb6941c60c072d1b461",
-        "src/core/i18n/messages/en.ts": "d9e09c3524e3e35a8279dc0df55d34d62f8d2d7fccb76ffab3df9e32a454d583",
-        "src/core/i18n/messages/es.ts": "86caeb9bd7a991aa17bfe6325fcadb58ca29a20ae75b10149d16bcdaf7de9bb2",
-        "src/core/i18n/messages/fr.ts": "231c5515078f1aee498405c90dc10878aebc04817ec80d50844e3937d91565b8",
+        "src/core/i18n/messages/de.ts": "0234cd8049316a6af6ec1b5ac0b4a9c24cb0cd813b2d17bf149964bd7ec8ffa6",
+        "src/core/i18n/messages/en.ts": "19f1a341394666379bf47ec9058745e627b6716e0d20595f43e05d85899393cd",
+        "src/core/i18n/messages/es.ts": "d14544cdfbb1d192d9d5b3797ecf25d162b0e54f54350fa9eb04a16f0cf8fb30",
+        "src/core/i18n/messages/fr.ts": "e6a0f04c95bde478308f8c31c49f45eb52c587918169396cceaeb0787a96ca15",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "4913aff35123bc6c690360e29d0f19de216c139ec25b05c8ddb336489a55f22e",
-        "src/core/i18n/messages/ja.ts": "29e6b7048a8c70c782c969f1e8e5b6077d0811a46a39c1fa3c5df296d1c1f660",
-        "src/core/i18n/messages/ko.ts": "4e0f110ec3ce9fb10698882c95d364cd394ba2b8458e1168cedce51b1fdada5c",
-        "src/core/i18n/messages/nl.ts": "4692e0ca5433462b9dfabaf064637afe6c07b8c3ffeeb4dbd35d59f2a2baf153",
-        "src/core/i18n/messages/pl.ts": "2b2f89dc8f812e34ba5994b16d001937aadd1ea26cbd58dcebbe7202550e4c7e",
-        "src/core/i18n/messages/pt-BR.ts": "d21d5fc42294585ea2b5ff8f1b807368c9af377f4cd3f2229d2d28fc9c373981",
-        "src/core/i18n/messages/ro.ts": "aa69758df44f9ea0db1d444ef6450544c951d28bb3242af07ba386d51917b52b",
-        "src/core/i18n/messages/ru.ts": "ebe79679230f7d6f00898033326fb0af7e442e439fe71871ea2f4ae537195b8b",
-        "src/core/i18n/messages/source-lock.json": "111e9e30bc7ede7ef3adfc581e548949c275790bfa46c6658c58971ca0747bf3",
-        "src/core/i18n/messages/tr.ts": "db459f808b9c7d00b94a925eba4e4028082ae81df21ee531acfe8525d97e3c6e",
+        "src/core/i18n/messages/it.ts": "6e30134307ecbd62e66a24516bf18d7ddcb146bc0f6847510cdbcc37d699a385",
+        "src/core/i18n/messages/ja.ts": "6ae812b787f2bd7bfc9dfdde7cab1d401bc218c00b743a1e7554a900c938d7f1",
+        "src/core/i18n/messages/ko.ts": "6552bd25b1581019d2fcfd8b08e91dbf627e800a4ddf2f3c3c99d4d66929ec53",
+        "src/core/i18n/messages/nl.ts": "55c21efedac10bd897aba8fa0cdc2db40a9382d2d7c1e4248b6dd42c21243873",
+        "src/core/i18n/messages/pl.ts": "dfca1f0ef47577bebedcce9ab1adf53f6105986890735350f32a88ef16dfd76e",
+        "src/core/i18n/messages/pt-BR.ts": "39e6f224174512cf8a415fc79271a1c180b32885f90760c4e580d4d618023911",
+        "src/core/i18n/messages/ro.ts": "008517e60a0b08324095a7f9df9bbb68ef4592eb930669f5f463207a879fc126",
+        "src/core/i18n/messages/ru.ts": "7206fa91c166fdffd0e603ef1d224b0ab5531a9273104c89737153e7316f5189",
+        "src/core/i18n/messages/source-lock.json": "6c6cfe9ab401f8f178348850ecb34225fa350b625d17fc9a97af4fe1db24fa6b",
+        "src/core/i18n/messages/tr.ts": "ad8f42928a55527b4fe51eeaf069b875ac851b3822b5a2ce64be8d4bc8f3a6b2",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "eaec82168856acebb451416032dc9882fe61578a8e96edc30fc401963cbbb869",
-        "src/core/i18n/messages/zh-CN.ts": "3f611461ba29dd765cea183e499a3694e23081598a4c53ad9311974a565a7aeb",
+        "src/core/i18n/messages/uk.ts": "ff8be792f259266ec84bcc3253e5a944dca0781ba1d0da352f9c378910f70992",
+        "src/core/i18n/messages/zh-CN.ts": "e28f6b9a1d24c73021070a8148afca8fc2df5565e89446490e8cea83bbfdaf18",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -418,7 +418,7 @@
         "src/web/components/recommendation-card.tsx": "e4ed7766b65b1bdb20ac5e4189d1de551206f0542b50a3b1e9d126424d04bad6",
         "src/web/components/rejection-picker.tsx": "26a40ef12a55193ac37d1eeaa62a1085e28b5296f23ccfb8fffb38c332cd5e51",
         "src/web/components/search-result-card.tsx": "9b38e67b029765437cd8765abb7149a626f256b69bbcac2d28148ab65a3093ea",
-        "src/web/components/service-card.tsx": "4f672dfbad64797629c8a925ee28e815693028d0dd6aa38e3c5c2dac3b15f29f",
+        "src/web/components/service-card.tsx": "3794ef7b29c4acc4521de23bd960af497d10aef280181182176e619c921156ad",
         "src/web/components/service-icons.tsx": "992cb94a89d6f75f346d346861f68330be2a69e2e26bc68a1e470273ba346aa4",
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
         "src/web/components/streaming-links.tsx": "30d58c3c644b9cadd64cfbe1321af237c696076851e96263a6fd012a15261807",
@@ -484,35 +484,37 @@
         "src/web/pages/library.tsx": "562ae854c00762927b11cb79018dc9708001af940eabe49b9799955158fc6e71",
         "src/web/pages/playlist-detail.tsx": "6379b94b2f621e821fffc5c9b0b94a7209737b1f045fc9dc8a7a7d38a0bccbac",
         "src/web/pages/playlists.tsx": "2c9ba9b6d98b543c5fcfc7a0e8b958e79a74ee96265523336f4b1053239add62",
-        "src/web/pages/search.tsx": "28221d1b5c8387231685ae9d1d9e5cc18c59d1f041cc3ad783a873d2de7b6f75",
+        "src/web/pages/search.tsx": "acc6f09b8c4d79d8167ace54404a4e46db01c06c95123ef9e902ef0d16f8f2e7",
         "src/web/pages/settings/account-tab.tsx": "c08ec1017930bf95dda388e30c682b4873b191863380398bf6cc91b99569f6fa",
+        "src/web/pages/settings/artist-images-card.tsx": "b7ecf89daa643e133a1630b236efa5d43ff60b365d8307f7bab8f46e86d6ff61",
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
-        "src/web/pages/settings/connections-tab.tsx": "73c829b40dbd6dcec61e5adc73371f12b926d4f9da356e2378694e9b340429b1",
-        "src/web/pages/settings/index.tsx": "2f39c57cd49b3156350c9a8f409431595dc4901a89d8b78fde34d762c0c60ee9",
+        "src/web/pages/settings/connection-picker.tsx": "575b9f0e0ae50cf36f3b8b0ccad1f44e75284216713579212e9921648cd30368",
+        "src/web/pages/settings/connections-tab.tsx": "e8264ed86b4a50d5d9b8909e7510cca861c7cb67667d1b25f3527ab585712d2f",
+        "src/web/pages/settings/index.tsx": "8ddbade23fbff0acf96450a7690021227e486b7f82d0ed79390be5bf041e18fa",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
         "src/web/pages/settings/notification-channels.tsx": "6fe7e5e5eebdf811db6b090325b841860ac8aef0be17dadb5e6ac08515a89a31",
-        "src/web/pages/settings/recommendations-tab.tsx": "60a3a121afaabfdeda51504a33df8d99b54976c873c28a0acfa6fac65eea49a8",
+        "src/web/pages/settings/recommendations-tab.tsx": "a05f52b26f1429997ab501cdf8cffa0a10dc181c04bd7e376b8478cbec2fac5b",
         "src/web/pages/settings/schedule-tab.tsx": "ffe38030c16f9990971daed393e3844a85dad3f166f50b3d021b4c444cccde27",
         "src/web/pages/settings/settings-nav.tsx": "0c74f6177c004092f0e819001b99072b58718cc30e404e06e03be064bb0bddee",
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
         "src/web/pages/settings/system-tab.tsx": "c4a4982336f7b2bc6ff4602a495feccd462c4b337915d464625521c9bf41f225",
         "src/web/pages/settings/tabs.ts": "6357a22ef5a0417e789f5f0c29bccc64093e5a519c5252e0f238138fe6ea4e28",
         "src/web/pages/settings/targets-tab.tsx": "8702767a39d95377a20532356a7368007cde32d903b5b45999be5e811d9de222",
-        "src/web/pages/settings/types.ts": "7dd33fae36cb72be04c95385d47d5ea66af8fdbc3f6c86d343e3ee0815729c98",
+        "src/web/pages/settings/types.ts": "fd701cb112b64dd6c1de1c3cf5c25fc395772dbb705f202a76326fd5d2757a71",
         "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
         "src/web/pages/subscriptions.tsx": "55754c8dda1c4f3cf331f73057ec40e6adb6940247664081ca6cfe5e21b115f4",
         "src/web/pages/user-management.tsx": "6eee86e37564eb34d86d55b85af08928474caacc998c2c8ca99da0f5c9d42fc1",
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "f84cfc8c3affec6b820c5ce278adf6268f8c3d89b725d3625693b2f7c0133de7",
+      "digest": "e2f28a9aeaef06c20e2cafc662a3d91e95735c91b8572e555ac267b631b5796a",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/SCREENSHOTS.md", "CHANGELOG.md"],
         "note": "Document account-saved card visibility, pointer and keyboard order with announcements, responsive sizes, reset, empty controls, merged views, source switches, and optimistic rollback. Historical screenshots are labeled and capture selectors unchanged. Retain rebased playlist and Account token controls, and collapsed notification channels with the digest cron in Schedule; these use separate settings fields from account dashboard layout.",
         "breaking": "none",
         "migration": "",
-        "digest": "f84cfc8c3affec6b820c5ce278adf6268f8c3d89b725d3625693b2f7c0133de7"
+        "digest": "e2f28a9aeaef06c20e2cafc662a3d91e95735c91b8572e555ac267b631b5796a"
       }
     },
     "features": {
@@ -660,7 +662,7 @@
         "src/core/providers/types.ts": "69f1fdaff1779753354c24d463b9b95dd4d662722a8d289f9c9a5c5bb4c56ecc",
         "src/core/recommendations/rejection-reasons.ts": "5a0b2c5d55de9d4714c3df7d5429a48678e7b52aa73c19eb7c34ebf962f7bcf4",
         "src/core/recommendations/statuses.ts": "48cbcfd6da3f6bcf385d6223e7272a29dedc2a6a8f28773ed8db30d7cfa75d10",
-        "src/core/search/catalog.ts": "ee498df214395f2ab06dde163501b63a68b61495ff470a4315706a2d7281eafd",
+        "src/core/search/catalog.ts": "25f07b63544c954435e9ce1d2b908137f4aac834613893a9f33f6ba86780eca4",
         "src/core/search/enrich.ts": "f9338f83f54adffc5557e715b10b977e1b203f1a222ba788611789a27eee37ab",
         "src/core/search/multi-source.ts": "177cf49dba0be2c7a43118d03e97299186ac36df6d29d93dad683dc8a5d0fb6c",
         "src/core/search/relevance.ts": "1cb5314282187c74d205e7db0fce7d7b85e01053cba8b35d56f5b7cbab1b2e3f",
@@ -715,17 +717,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "cd4ce3a34e4d230875e420f21965eeff03f42e4ebdd8ac71ac41310de801e676",
+        "src/index.ts": "3a68f55396b3f6cc872c681311656c624979ecaa438a605078608c89396103cb",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "22a82af43699a50ecac3fae0f7b116d8c2a8ac3f4219978f52f86dbfdaacc448",
+      "digest": "74001e5f5ab10c04def610e0323a35cb92b4e017e786446cc14c2efbfe188cec",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Document dashboard validation and default merge behavior for removed, duplicate, missing, and invalid cards. Rebased playlist parsing and personal-token startup guidance remain separate from dashboard preferences; their existing behavior and documentation are preserved.",
         "breaking": "none",
         "migration": "",
-        "digest": "22a82af43699a50ecac3fae0f7b116d8c2a8ac3f4219978f52f86dbfdaacc448"
+        "digest": "74001e5f5ab10c04def610e0323a35cb92b4e017e786446cc14c2efbfe188cec"
       }
     },
     "deployment": {
@@ -805,7 +807,7 @@
     },
     "maintenance": {
       "files": {
-        "scripts/capture-screenshots.ts": "52d859c9d22c05f11a2571981b9676a008cbc3fc94469affc65e6d2f3042c068",
+        "scripts/capture-screenshots.ts": "606d12d74d4b2dbd9efa78e7c9339c68c398d05ead1e1e9de7d42bd67d5db5fd",
         "scripts/check-api-docs.ts": "0ccd8ea8a0df2bf56615712e41bd3a800d76d34dc23083005d37ee23c59a41c2",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
@@ -831,14 +833,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "2c5803f17219a15678941ddd199be75c9af114e1fa00a7511118582b381aa42d",
+      "digest": "6e648e8b799b854e51abc976ad90ed8ba20258a4a823780ca0912a3ac2c5b58e",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Screenshot capture targets follow the canonical Library URLs; the i18n checker accepts the native German and Polish System label. Contributor commands and maintenance procedures are unchanged.",
+        "note": "Screenshot capture follows canonical Library URLs and adds the Connections picker using accessible names. Existing capture commands, dependencies, and maintenance workflow remain valid; screenshot availability is documented in docs/SCREENSHOTS.md.",
         "breaking": "none",
         "migration": "",
-        "digest": "2c5803f17219a15678941ddd199be75c9af114e1fa00a7511118582b381aa42d"
+        "digest": "6e648e8b799b854e51abc976ad90ed8ba20258a4a823780ca0912a3ac2c5b58e"
       }
     }
   }

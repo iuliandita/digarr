@@ -1087,8 +1087,33 @@ export const uk = {
   'settings.groups.personal': 'Особисте',
   'settings.groups.library': 'Бібліотека та сервіси',
   'settings.groups.admin': 'Адміністрування',
-  'settings.globalSettings': 'Глобальні налаштування',
+  'settings.globalSettings': 'Сервер (адміністратор)',
   'settings.adminOnly': 'Лише адміністратори можуть змінювати глобальні налаштування.',
+  'settings.addConnection': 'Додати підключення',
+  'settings.searchConnections': 'Пошук підключень',
+  'settings.connectionResults': 'Знайдено підключень: {0}',
+  'settings.noConnectionsFound': 'Відповідних підключень немає.',
+  'settings.showExperimentalIntegrations': 'Показувати експериментальні інтеграції',
+  'settings.experimentalIntegrationsHelp':
+    'Показуй TIDAL і Bandcamp у виборі підключень, пошуку й відкриттів. Наявні підключення працюють і після приховування.',
+  'settings.picker.listening': 'Історія прослуховувань',
+  'settings.picker.streaming': 'Стримінгові облікові записи',
+  'settings.picker.servers': 'Медіасервери',
+  'settings.picker.collections': 'Колекції',
+  'settings.picker.listenbrainz':
+    'Популярні виконавці, нещодавні прослуховування та відкриття через радіо.',
+  'settings.picker.lastfm':
+    'Популярні виконавці та нещодавні прослуховування. Вмикає Release Radar.',
+  'settings.picker.spotify':
+    'Відстежувані виконавці, збережені альбоми, імпорт та експорт плейлистів.',
+  'settings.picker.deezer': 'Flow, обране, відстежувані виконавці та плейлисти.',
+  'settings.picker.tidal': 'Улюблені виконавці як основа твого смаку.',
+  'settings.picker.jellyfin': 'Синхронізація бібліотеки та експорт плейлистів.',
+  'settings.picker.media': 'Історія відтворення, синхронізація бібліотеки та експорт плейлистів.',
+  'settings.picker.subsonic': 'Обране, синхронізація бібліотеки та експорт плейлистів.',
+  'settings.picker.discogs': 'Твоя колекція та список бажань як основа смаку.',
+  'settings.artistImagesPartiallySaved':
+    'Налаштування зображень збережено, але не вдалося зберегти налаштування зображень сервера.',
   'settings.yourConnections': 'Твої підключення',
   'settings.yourConnectionsDescription':
     "Особисті джерела прослуховування, пов'язані з твоїм акаунтом.",
@@ -1235,7 +1260,7 @@ export const uk = {
   'settings.libraryDiscoveryHelp':
     'Яка частина відкриттів ґрунтується на твоїй бібліотеці Lidarr, а яка - на історії прослуховування. Вищі значення знаходять виконавців, схожих на тих, що вже є в тебе. Нижчі значення більше покладаються на дані ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Частка початкових даних з бібліотеки',
-  'settings.imageSources': 'Джерела зображень',
+  'settings.imageSources': 'Зображення виконавців',
   'settings.imageSourcesHelp':
     'Зображення виконавців спочатку беруться з TheAudioDB; Lidarr/SkyHook, fanart.tv і musicinfo.pro працюють як резерв.',
   'settings.audiodb.apiKey': 'Преміум API-ключ TheAudioDB (необов’язковий)',
@@ -1244,7 +1269,6 @@ export const uk = {
   'settings.audiodb.proxyImages': 'Пропускати зображення через Digarr',
   'settings.audiodb.proxyHint':
     'Приховує твою IP-адресу від CDN TheAudioDB, направляючи запити зображень через цей сервер.',
-  'settings.wikidata.title': 'Збагачення з Wikidata',
   'settings.wikidata.enabled':
     'Показувати біографію виконавця та зовнішні посилання на картках рекомендацій',
   'artist.noDescription': 'Опис недоступний.',
@@ -1275,8 +1299,6 @@ export const uk = {
     'Використовується, коли сервер метаданих Lidarr недоступний. За замовчуванням api.musicinfo.pro. Вкажи URL свого екземпляра hearring-aid, якщо ти самостійно його розгортаєш.',
   'settings.recommendationsSaved': 'Налаштування рекомендацій збережено',
   'settings.recommendationsFailed': 'Не вдалося зберегти налаштування',
-  'settings.recommendationsPartiallySaved':
-    'Особисті налаштування збережено, але не вдалося зберегти глобальні налаштування метаданих.',
   'settings.scheduleTip':
     'Вибери шаблон або введи вираз cron, щоб пошук запускався автоматично. Для більшості бібліотек підходить щодня або щотижня.',
   'settings.librarySyncInterval': 'Синхронізація бібліотеки',
