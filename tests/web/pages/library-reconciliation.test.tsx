@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -8,9 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return {
     client,
     ...render(
@@ -42,6 +40,8 @@ import {
   saveLibraryOverride,
 } from '@/web/lib/api'
 import { LibraryReconciliationPage } from '@/web/pages/library-reconciliation'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 const mockGetLibraryUnreconciled = vi.mocked(getLibraryUnreconciled)
 const mockGetLibraryUnreconciledAlbums = vi.mocked(getLibraryUnreconciledAlbums)
@@ -121,22 +121,7 @@ function deferred<T>() {
 describe('LibraryReconciliationPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
+    installMemoryLocalStorage()
     mockGetLibraryUnreconciledAlbums.mockResolvedValue({ items: [] })
     mockRerunLibraryReconciler.mockResolvedValue(undefined)
     mockBulkIgnoreLibraryArtists.mockResolvedValue(undefined)
@@ -296,40 +281,6 @@ describe('LibraryReconciliationPage', () => {
         screen.getByText('No unreconciled artists. Your library is fully matched.'),
       ).toBeInTheDocument()
     })
-  })
-
-  it('uses translated empty-state pagination copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    mockGetLibraryUnreconciled.mockResolvedValue({ items: [] })
-
-    renderWithQuery(<LibraryReconciliationPage />)
-
-    expect(
-      await screen.findByText(
-        'Aucun artiste non rapproché. Ta bibliothèque est entièrement associée.',
-      ),
-    ).toBeInTheDocument()
-  })
-
-  it('uses French reason and bulk confirmation copy', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    mockGetLibraryUnreconciled.mockResolvedValue({
-      items: [makeRow({ unreconciledReason: 'ambiguous' })],
-    })
-
-    renderWithQuery(<LibraryReconciliationPage />)
-
-    expect(await screen.findByText('Correspondance ambiguë')).toBeInTheDocument()
-    fireEvent.click(screen.getByRole('checkbox', { name: 'Sélectionner l’artiste Bush' }))
-    expect(screen.getByText('Sélection : 1')).toBeInTheDocument()
-
-    const artists = screen.getByRole('region', { name: 'Artistes non rapprochés' })
-    fireEvent.click(within(artists).getByRole('button', { name: 'Ignorer la sélection' }))
-    expect(
-      screen.getByRole('dialog', { name: 'Ignorer les artistes sélectionnés ?' }),
-    ).toHaveTextContent(
-      'Sélection : 1. Cette sélection restera ignorée jusqu’à la suppression de ses corrections enregistrées.',
-    )
   })
 
   it('uses count-neutral English confirmation copy for one selected artist', async () => {

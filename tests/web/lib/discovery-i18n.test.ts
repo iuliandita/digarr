@@ -18,29 +18,28 @@ import {
 describe('discovery field and option translations', () => {
   const t = (key: string) => `T:${key}`
 
-  it('maps the ListenBrainz feed field to its catalog key', () => {
-    expect(
-      translateDiscoveryFieldLabel(t, {
-        key: 'feedType',
-        label: 'Feed',
-        type: 'select',
-      }),
-    ).toBe('T:discoveryMode.field.feed')
-  })
-
-  it('uses an explicit catalog-key option label when provided', () => {
-    expect(
-      translateDiscoveryOption(t, {
-        value: 'United States',
-        label: 'discoveryMode.option.unitedStates',
-      }),
-    ).toBe('T:discoveryMode.option.unitedStates')
-  })
-
-  it('maps MusicBrainz relationship values to catalog keys', () => {
-    expect(translateDiscoveryOption(t, { value: 'member of band', label: 'member of band' })).toBe(
+  it.each([
+    [
+      'the ListenBrainz feed field',
+      () => translateDiscoveryFieldLabel(t, { key: 'feedType', label: 'Feed', type: 'select' }),
+      'T:discoveryMode.field.feed',
+    ],
+    [
+      'an explicit catalog-key option label',
+      () =>
+        translateDiscoveryOption(t, {
+          value: 'United States',
+          label: 'discoveryMode.option.unitedStates',
+        }),
+      'T:discoveryMode.option.unitedStates',
+    ],
+    [
+      'MusicBrainz relationship values',
+      () => translateDiscoveryOption(t, { value: 'member of band', label: 'member of band' }),
       'T:discoveryMode.option.memberOfBand',
-    )
+    ],
+  ])('maps %s to its catalog key', (_name, translate, expected) => {
+    expect(translate()).toBe(expected)
   })
 
   it('every registry-driven field and option key exists and is live', () => {
@@ -81,20 +80,16 @@ describe('translateDiscoveryReason', () => {
     expect(translateDiscoveryReason(t, reason)).toBe(reason)
   })
 
-  it('maps the connect reasons of the four newest modes to i18n keys', () => {
-    const t = (key: string) => `T:${key}`
+  it.each([
+    ['Last.fm', 'connectLastfm'],
+    ['Deezer', 'connectDeezer'],
+    ['Spotify', 'connectSpotify'],
+    ['Subsonic', 'connectSubsonic'],
+  ])('maps the %s connect reason to an i18n key', (service, key) => {
+    const t = (k: string) => `T:${k}`
 
-    expect(translateDiscoveryReason(t, 'Connect Last.fm to use this mode.')).toBe(
-      'T:discoveryMode.reason.connectLastfm',
-    )
-    expect(translateDiscoveryReason(t, 'Connect Deezer to use this mode.')).toBe(
-      'T:discoveryMode.reason.connectDeezer',
-    )
-    expect(translateDiscoveryReason(t, 'Connect Spotify to use this mode.')).toBe(
-      'T:discoveryMode.reason.connectSpotify',
-    )
-    expect(translateDiscoveryReason(t, 'Connect Subsonic to use this mode.')).toBe(
-      'T:discoveryMode.reason.connectSubsonic',
+    expect(translateDiscoveryReason(t, `Connect ${service} to use this mode.`)).toBe(
+      `T:discoveryMode.reason.${key}`,
     )
   })
 

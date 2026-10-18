@@ -1,15 +1,13 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>{ui}</QueryClientProvider>
@@ -35,37 +33,13 @@ vi.mock('@/web/lib/api', () => ({
 
 import { getAnalyticsBatches, getAnalyticsOverview } from '@/web/lib/api'
 import { AnalyticsPage } from '@/web/pages/analytics'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 describe('AnalyticsPage', () => {
   beforeEach(() => {
     vi.mocked(getAnalyticsBatches).mockResolvedValue([])
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
-  })
-
-  it('renders translated analytics intro copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    renderWithQuery(<AnalyticsPage />)
-
-    expect(
-      await screen.findByText(
-        'Suis les performances de ton pipeline de découverte au fil du temps. Des taux d’approbation plus élevés signifient que Digarr apprend bien tes goûts.',
-      ),
-    ).toBeInTheDocument()
+    installMemoryLocalStorage()
   })
 
   it('gives each discovery chart column the full chart height', async () => {

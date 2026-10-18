@@ -1,17 +1,16 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { LibraryFirstSyncBanner } from '@/web/components/library-first-sync-banner'
 import { getLibrarySources } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { createTestQueryClient } from '../helpers/query'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 vi.mock('@/web/lib/api', () => ({ getLibrarySources: vi.fn() }))
 
 type Sources = Awaited<ReturnType<typeof getLibrarySources>>
@@ -25,7 +24,7 @@ const source = (status: string, cacheHits: number) =>
   }) as unknown as Sources['sources'][number]
 
 function renderBanner() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>

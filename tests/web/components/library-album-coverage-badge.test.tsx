@@ -1,16 +1,14 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 vi.mock('@/web/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/web/lib/api')>()
@@ -22,14 +20,13 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
 
 import { LibraryAlbumCoverageBadge } from '@/web/components/library-album-coverage-badge'
 import { getLibraryAlbumCoverage } from '@/web/lib/api'
+import { createTestQueryClient } from '../helpers/query'
 
 const mockGetLibraryAlbumCoverage = vi.mocked(getLibraryAlbumCoverage)
 const originalIntersectionObserver = globalThis.IntersectionObserver
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
 
   return render(
     <I18nProvider>

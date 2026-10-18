@@ -7,11 +7,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { SystemHealthCard } from '@/web/components/system-health-card'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 vi.mock('@/web/lib/api', () => ({
   getJobHealth: vi.fn(async () => ({

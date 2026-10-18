@@ -1,21 +1,17 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 function createQueryWrapper() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return ({ children }: { children: ReactNode }) => (
     <I18nProvider>
       <QueryClientProvider client={client}>{children}</QueryClientProvider>
@@ -44,6 +40,7 @@ vi.mock('@/web/lib/hooks', async (importOriginal) => {
 import { PipelineProgress } from '@/web/components/pipeline-progress'
 import { cancelPipeline, getPipelineStatus } from '@/web/lib/api'
 import { useSSE } from '@/web/lib/hooks'
+import { createTestQueryClient } from '../helpers/query'
 
 const mockGetPipelineStatus = vi.mocked(getPipelineStatus)
 const mockUseSSE = vi.mocked(useSSE)

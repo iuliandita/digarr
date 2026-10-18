@@ -15,11 +15,9 @@ vi.mock('@/web/hooks/use-spotify-embed', () => ({
   useSpotifyEmbed: mockUseSpotifyEmbed,
 }))
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 function withI18n(node: ReactNode) {
   return <I18nProvider>{node}</I18nProvider>

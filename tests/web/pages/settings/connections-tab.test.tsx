@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { useState } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,6 +8,7 @@ import * as api from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 import { ConnectionsTab } from '@/web/pages/settings/connections-tab'
 import type { Settings } from '@/web/pages/settings/types'
+import { createTestQueryClient } from '../../helpers/query'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn() } }))
 vi.mock('@/web/lib/api', async (importOriginal) => ({
@@ -41,7 +42,7 @@ function mount(initial: Settings = {}) {
     const [settings, setSettings] = useState(initial)
     return <ConnectionsTab settings={settings} onSaved={() => setSettings(stored)} />
   }
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>

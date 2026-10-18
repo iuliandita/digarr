@@ -9,12 +9,9 @@ import { I18nProvider } from '@/web/lib/i18n'
 import { queryClient } from '@/web/lib/query-client'
 import { SESSION_CHANGED_STORAGE_KEY } from '@/web/lib/session-broadcast'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getRequestLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 const apiMocks = vi.hoisted(() => ({
   clearStoredToken: vi.fn(),

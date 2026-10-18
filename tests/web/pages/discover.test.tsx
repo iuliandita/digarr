@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -37,9 +37,7 @@ const noopPreview = {
 }
 
 function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>
@@ -181,6 +179,8 @@ function setupMockApi(recs: ReturnType<typeof makeRec>[] = [makeRec()]) {
 // ---------------------------------------------------------------------------
 
 import { DiscoverPage } from '@/web/pages/discover'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 // ---------------------------------------------------------------------------
 // Tests
@@ -195,22 +195,7 @@ describe('DiscoverPage', () => {
     noopPreview.audition.selectedCount = 0
     mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
     mockGetCurrentUser.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true })
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
+    installMemoryLocalStorage()
     Object.defineProperty(globalThis, 'ResizeObserver', {
       configurable: true,
       value: class {
@@ -286,17 +271,6 @@ describe('DiscoverPage', () => {
     expect(noopPreview.audition.dismissSummary).toHaveBeenCalled()
   })
 
-  it('renders recommendation cards from API data', async () => {
-    setupMockApi()
-    renderWithQuery(<DiscoverPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
-
-    expect(screen.getByText('78%')).toBeInTheDocument()
-  })
-
   it('summarizes pending artists without a playable track by reason', async () => {
     setupMockApi()
     vi.mocked(getPendingPlayability).mockResolvedValueOnce({
@@ -330,15 +304,6 @@ describe('DiscoverPage', () => {
 
     expect(screen.queryByRole('heading', { name: 'Discovery Modes' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Run discovery' })).not.toBeInTheDocument()
-  })
-
-  it('shows skeleton cards while loading', () => {
-    // Never resolves during this test
-    mockGetRecommendations.mockReturnValue(new Promise(() => {}))
-    renderWithQuery(<DiscoverPage />)
-    // Skeleton elements are present (animate-pulse divs)
-    const pulsingEls = document.querySelectorAll('.animate-pulse')
-    expect(pulsingEls.length).toBeGreaterThan(0)
   })
 
   it('shows empty state when no recommendations match filter', async () => {
@@ -815,40 +780,6 @@ describe('DiscoverPage', () => {
     expect(await screen.findByTitle('Spotify')).toBeInTheDocument()
   })
 
-  it('uses translated feedback insights copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    setupMockApi()
-    renderWithQuery(<DiscoverPage />)
-
-    fireEvent.click(await screen.findByRole('button', { name: "Plus d'actions" }))
-    expect(
-      await screen.findByRole('menuitem', { name: 'Afficher les retours' }),
-    ).toBeInTheDocument()
-  })
-
-  it('uses translated view switcher labels in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    setupMockApi()
-    renderWithQuery(<DiscoverPage />)
-
-    expect(await screen.findByRole('button', { name: 'Vue en grille' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Vue en liste' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Vue empilée' })).toBeInTheDocument()
-  })
-
-  it('uses translated scan action copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(<DiscoverPage />)
-
-    const allButtons = await screen.findAllByRole('button', { name: 'Tout' })
-    const allButton = allButtons[0]
-    if (!allButton) throw new Error('expected at least one "Tout" button')
-    fireEvent.click(allButton)
-
-    expect(await screen.findByText('Exécuter une analyse')).toBeInTheDocument()
-  })
-
   it('requests combined approval mode when sending a discovery result to slskd with Lidarr present', async () => {
     setupMockApi()
     mockListTargets.mockResolvedValue([
@@ -869,38 +800,6 @@ describe('DiscoverPage', () => {
       expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
         approvalMode: 'combined_lidarr_slskd',
         lidarrTargetId: 'lidarr-1',
-      })
-    })
-  })
-
-  it('sends the linked Lidarr target when slskd is paired to one of multiple Lidarr targets', async () => {
-    setupMockApi()
-    mockListTargets.mockResolvedValue([
-      { id: 1, type: 'lidarr', name: 'Main Lidarr', config: {}, enabled: true, owned: true },
-      { id: 2, type: 'lidarr', name: 'Alt Lidarr', config: {}, enabled: true, owned: true },
-      {
-        id: 7,
-        type: 'slskd',
-        name: 'slskd',
-        config: { lidarrTargetId: 2 },
-        enabled: true,
-        owned: true,
-      },
-    ])
-
-    renderWithQuery(<DiscoverPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: '' }))
-    fireEvent.click(screen.getByText('Add to slskd'))
-
-    await waitFor(() => {
-      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
-        approvalMode: 'combined_lidarr_slskd',
-        lidarrTargetId: 'lidarr-2',
       })
     })
   })

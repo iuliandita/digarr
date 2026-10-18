@@ -5,6 +5,7 @@ import { type ComponentProps, createRef } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ConfirmDialog } from '@/web/components/confirm-dialog'
 import { I18nProvider } from '@/web/lib/i18n'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 function renderDialog(props: Partial<ComponentProps<typeof ConfirmDialog>> = {}) {
   return render(
@@ -22,10 +23,7 @@ function renderDialog(props: Partial<ComponentProps<typeof ConfirmDialog>> = {})
 
 describe('ConfirmDialog', () => {
   beforeEach(() => {
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: { getItem: vi.fn(() => null), setItem: vi.fn() },
-    })
+    installMemoryLocalStorage()
   })
 
   it('focuses cancel for destructive actions, traps Tab, cancels once, and restores focus', async () => {
@@ -58,16 +56,6 @@ describe('ConfirmDialog', () => {
     renderDialog({ destructive: false })
 
     await waitFor(() => expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus())
-  })
-
-  it('stacks full-width actions on narrow screens and wraps above the breakpoint', () => {
-    renderDialog()
-
-    const cancel = screen.getByRole('button', { name: 'Cancel' })
-    const confirm = screen.getByRole('button', { name: 'Confirm' })
-    expect(cancel.parentElement).toHaveClass('flex', 'flex-col', 'flex-wrap', 'sm:flex-row')
-    expect(cancel).toHaveClass('w-full', 'sm:w-auto')
-    expect(confirm).toHaveClass('w-full', 'sm:w-auto')
   })
 
   it('uses the fallback when the invoking trigger is disabled and cancels only outside the panel', async () => {

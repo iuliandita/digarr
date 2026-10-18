@@ -2,9 +2,10 @@
 
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { OAuthCallbackNotice, resolveOAuthNotice } from '@/web/components/oauth-callback-notice'
 import { I18nProvider } from '@/web/lib/i18n'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 function SearchProbe() {
   return <span data-testid="search">{useLocation().search}</span>
@@ -98,10 +99,7 @@ describe('resolveOAuthNotice', () => {
 
 describe('OAuthCallbackNotice', () => {
   beforeEach(() => {
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: { getItem: vi.fn(() => null), setItem: vi.fn() },
-    })
+    installMemoryLocalStorage()
   })
 
   it('renders nothing without callback params', () => {

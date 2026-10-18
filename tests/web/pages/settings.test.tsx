@@ -1,20 +1,16 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { App } from '@/web/App'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getRequestLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 async function expandService(name: string) {
   await screen.findByRole('button', { name: 'Add connection' })
@@ -29,9 +25,7 @@ async function expandService(name: string) {
 }
 
 function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return {
     client,
     ...render(
@@ -143,15 +137,7 @@ vi.mock('@/web/lib/api', () => ({
   updateUserPreferences: vi.fn().mockResolvedValue({ success: true }),
 }))
 
-vi.mock('sonner', () => ({
-  Toaster: () => null,
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    promise: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/components/bottom-nav', () => ({
   BottomNav: () => null,
@@ -229,6 +215,8 @@ import {
 } from '@/web/lib/api'
 import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SettingsPage } from '@/web/pages/settings'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 const mockGetSettings = getSettings as ReturnType<typeof vi.fn>
 const mockGetPipelineStatus = getPipelineStatus as ReturnType<typeof vi.fn>
@@ -315,22 +303,7 @@ describe('SettingsPage', () => {
         disconnect = vi.fn()
       },
     })
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
+    installMemoryLocalStorage()
     Object.defineProperty(window, 'matchMedia', {
       configurable: true,
       value: vi.fn().mockReturnValue({
@@ -419,45 +392,6 @@ describe('SettingsPage', () => {
         screen.getByRole('region', { name: hash === '#jobs' ? 'Job History' : 'System Health' }),
       ).toHaveFocus(),
     )
-  })
-
-  it('uses translated navigation labels', async () => {
-    mockGetStoredLocale.mockReturnValue('fr')
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      preferredLocale: 'fr',
-    })
-
-    render(
-      <I18nProvider>
-        <App />
-      </I18nProvider>,
-    )
-
-    expect(await screen.findByRole('link', { name: 'Tableau de bord' })).toBeInTheDocument()
-  })
-
-  it('uses translated theme menu labels', async () => {
-    mockGetStoredLocale.mockReturnValue('fr')
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      preferredLocale: 'fr',
-    })
-
-    render(
-      <I18nProvider>
-        <App />
-      </I18nProvider>,
-    )
-
-    fireEvent.click(await screen.findByLabelText('Paramètres du thème'))
-
-    expect(screen.getByText('Éditeur')).toBeInTheDocument()
-    expect(screen.getByText('Clair')).toBeInTheDocument()
   })
 
   it('shows loading skeleton while fetching settings', () => {

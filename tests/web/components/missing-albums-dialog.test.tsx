@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { useState } from 'react'
 import { expect, it, vi } from 'vitest'
@@ -13,11 +13,9 @@ import {
 } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 vi.mock('@/web/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/web/lib/api')>()),
@@ -28,6 +26,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => ({
 vi.mock('sonner', () => ({ toast: { success: vi.fn() } }))
 
 import { toast } from 'sonner'
+import { createTestQueryClient } from '../helpers/query'
 
 it('loads preselected albums, excludes unchecked albums, and retries only mixed-result failures', async () => {
   let resolveCoverage!: (coverage: LibraryAlbumCoverage) => void
@@ -50,7 +49,7 @@ it('loads preselected albums, excludes unchecked albums, and retries only mixed-
       succeeded: 1,
       failed: 0,
     })
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   const invalidate = vi.spyOn(client, 'invalidateQueries')
   const swipe = vi.fn()
   function Harness() {
@@ -138,7 +137,7 @@ it('treats requested albums as awaiting approval and closes without an approved 
     failed: 0,
     requested: 1,
   })
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   const invalidate = vi.spyOn(client, 'invalidateQueries')
   const close = vi.fn()
   render(
