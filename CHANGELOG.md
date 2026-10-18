@@ -6,6 +6,14 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).
+- System Health rows show a text status (OK, Degraded, Error) and a distinct icon per state instead of a color-only dot, in all 15 languages (#1041).
+- Auto-approved deliveries to Lidarr, slskd and playlist targets now record Job History rows like manual approvals, so a failed auto-approved push shows up there (#1039).
+- The legacy listening-source migration logs only when it actually copies connections or clears the global settings, instead of on every boot (#1035).
+- The production boot warning for a missing `ALLOWED_ORIGIN` now names the cookie, CSRF and OIDC/TIDAL redirect consequences, not just CORS (#1043).
+
 ### Changed
 
 - Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, presets that show their run time in server time, Custom cron validation, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).

@@ -157,7 +157,7 @@
         "src/core/ops/encryption-sites.ts": "7ac3926596fd13bc8d5e82d4900235b420166936bb98f2091efe056c96b04c19",
         "src/core/ops/hygiene.ts": "dbfd1fbbb9db88ceb9c044d0fc37b678025a81855b1bfd618bc5bc95cb90e1f2",
         "src/core/ops/initial-admin.ts": "7f8b81e3e103c8e7f103afae6ba61ae5116c06cb26d4ede30c19b21d439018f7",
-        "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
+        "src/core/ops/legacy-listening-connections.ts": "0556c226322ec7e5fe543f2760a7452cbeca263ee5b5ac4d1cf7a2f0a1dd6b01",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
         "src/core/ops/types.ts": "0743c3fa4f69fd4f17d85f75cdb12c7fe7f9556d401fa7b95387afcf6dc458fd",
@@ -197,19 +197,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96",
+      "digest": "71796f1fe080e3ed703626d3046c1b7f171712eec57f936a01f80bbb439fba5a",
       "review": {
-        "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/runbooks/encryption-key-rotation.md"
-        ],
-        "note": "Document migration 0059, indexed nullable recommendation references, retained album identity and cooldown, synthetic-row cleanup and analytics exclusions, and policy/request backup recovery. PGlite migration replay and backup round-trips are covered by integration tests; live recovery is not tested.",
-        "breaking": "Older images ignore approval policies and restore unrestricted direct approval for affected accounts.",
-        "migration": "Stop writers and verify a consistent native backup with the matching image and encryption key before upgrading. JSON backups and backend copies retain request history including null references. For exact rollback restore the pre-upgrade native backup separately and restrict member access; remote additions and delivered notifications cannot be reversed.",
-        "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96"
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Log-only change: the legacy listening migration copies and clears the same data as before; only the redundant boot log line is skipped.",
+        "breaking": "none",
+        "migration": "No schema or data change. Upgrade needs no extra backup, and rollback to the previous image behaves the same; the migration still runs once.",
+        "digest": "71796f1fe080e3ed703626d3046c1b7f171712eec57f936a01f80bbb439fba5a"
       }
     },
     "configuration": {
@@ -244,7 +239,6 @@
         "src/server/middleware/admin-guard.ts": "eb66a95d878c1ddf8757391452d578fb5cd3ecaa4c163ab35807b5569fc46264",
         "src/server/middleware/auth.ts": "458f5c99af6918d5336fc7660c39b754595b9ddd0455058d7fde29510bd336bb",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
-        "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "b1b07dc5522735858efe4a8157d064d29c1440b0a4cca881139a4d0bab919085",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
@@ -265,14 +259,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "e82ecba3dec64114a95793a1c951624b6309a2ec247bea3e1d63f2d7ef97a8fa",
+      "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
-        "note": "Idempotency keys are scoped per authenticated user and stored in memory; no auth or session behavior changes.",
+        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
+        "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
         "breaking": "none",
         "migration": "",
-        "digest": "e82ecba3dec64114a95793a1c951624b6309a2ec247bea3e1d63f2d7ef97a8fa"
+        "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7"
       }
     },
     "api": {
@@ -307,9 +301,9 @@
         "src/server/routes/mcp.ts": "75fdba073140ce4e5e20e26cb8bafe86dc08fb525a792ebf4f499047c2ed2b26",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
-        "src/server/routes/pipeline.ts": "4dca038a97afadacacce0f36569ef7af3edd76ef6ca649d58febd191b5a684db",
+        "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "1c21ce21c1413cd7bfc653a6a39a23a2776c144ee93b784c3f7655ec7c1bb9a4",
+        "src/server/routes/recommendations.ts": "756789a635008f05da16be9a1d090c2b9b563f6b443f0746fc76022d0180f4bd",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "920f41b0b78a36ba517e33fd367891d6a195e6cbb56d2f6bc5fd751c9a8c2fbd",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -334,14 +328,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "2427754a3b2f1ff6de16cfbfa75ce1bb68857de621e888dded5af11ba97d57ce",
+      "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Document the optional Idempotency-Key header on bulk recommendation actions, its replay, 422 and 409 outcomes, and in-memory storage.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Auto-approve deps now receive the existing job recorder; no route, request, or response change.",
         "breaking": "none",
         "migration": "",
-        "digest": "2427754a3b2f1ff6de16cfbfa75ce1bb68857de621e888dded5af11ba97d57ce"
+        "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc"
       }
     },
     "interface": {
@@ -352,24 +346,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "9d43a97a911604d0cf7634db7d0d3402aa9bc32714a015aca9fe43fffdd7e05a",
-        "src/core/i18n/messages/en.ts": "ed71c2df4fb0d1e07ddf16fa9f3ed967cf0d6edbbb6075e78f6e32a47a29c582",
-        "src/core/i18n/messages/es.ts": "17dede53a4c946b83300df777d19736378d6a1ca11c15a12da08480d3f376f3c",
-        "src/core/i18n/messages/fr.ts": "d72dbee5ded58d7ee106e87edbed96a55e18ccd2cc401cf5ce471a623d4ee848",
+        "src/core/i18n/messages/de.ts": "59f38911fd40da6f1f0126d4e6611c5d44d706e5a7e01189811e9574165fffd5",
+        "src/core/i18n/messages/en.ts": "725a2af30243de9b4c18eb3bdab6c3b660bcc20cc76d7948f608f71af1f32d3b",
+        "src/core/i18n/messages/es.ts": "0e8215aa3a4959991959aca82a73c01dc5dd9824bf94fa1a09c1a0d306c017b6",
+        "src/core/i18n/messages/fr.ts": "6f36be4f020143db12c0fa765f29c5be85c673922bfea7d504d38e24019929a3",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "92782db4f268f39b963a1fe7f365cb2f55891a089067a15686223151a05d3cda",
-        "src/core/i18n/messages/ja.ts": "27b56243e17cb403842f10bb4dde59644e4b4107fb20f7e974d81717d9c6da47",
-        "src/core/i18n/messages/ko.ts": "b2803837cda5c6ee2877e036bcef81b9efe32e4863039bcc60113e756e2ba22c",
-        "src/core/i18n/messages/nl.ts": "6f71a76d3db87c0ca99bff833e4744d7be1070623d6975c9ff4058f9f9a9a403",
-        "src/core/i18n/messages/pl.ts": "6508ed0cf8476987c2c75cc4515f267e9c66751e43255ea429a47e9360d9c1dd",
-        "src/core/i18n/messages/pt-BR.ts": "efec206698e707cca0f16a90a7a07c692740d3bbab20e542161510ddd94ffc01",
-        "src/core/i18n/messages/ro.ts": "57a0fafbb5e2ea8236e392b124ec3188ac41aa936a9738f06915742577d21243",
-        "src/core/i18n/messages/ru.ts": "935448e896d989a1dcf8bded983d2514f829b125e9f4cc72b3928cc653949600",
-        "src/core/i18n/messages/source-lock.json": "e9523f30bf14da79c005b7101cab1778e58ff044c65f03f80016926f43270a80",
-        "src/core/i18n/messages/tr.ts": "58e001c28b5836739f0d272c5fefbcae6240e3c4147903a2cb847b8580980de0",
+        "src/core/i18n/messages/it.ts": "bf523557a73c5aec62b96978810d0907ac358b1841c8348d6a209abb939aa651",
+        "src/core/i18n/messages/ja.ts": "ee64269b8bebddc512cf1f0e6d15819947217f4a80d62d7c89cb9c98f4166db4",
+        "src/core/i18n/messages/ko.ts": "c342e09f53ede63d3171c828f1b64faff59cbb027677b32ff6503ce516f32f3f",
+        "src/core/i18n/messages/nl.ts": "a04f589f4b97b368646be57e65302f7049a3284a8b21b25104c110c041301157",
+        "src/core/i18n/messages/pl.ts": "c97e57c7b96917305b6b28e8de089cdb3decb17a2aa4ee36712eaff895581444",
+        "src/core/i18n/messages/pt-BR.ts": "60e82bf31fa7802ebe6eb32ddee20d3b933065218f66393919b8f1c27be3c28f",
+        "src/core/i18n/messages/ro.ts": "fd14a153a45614b9a2035bc287e59ea3e4349460cae9120ec032e49d7930f7a8",
+        "src/core/i18n/messages/ru.ts": "7f5766420efdecfdb3db68986047c63901ac8420c3861672b3cf9db37ef43fc4",
+        "src/core/i18n/messages/source-lock.json": "046f839ee2341e462b37509531efdc2238ccec98f5f7b71147c8b644a454226e",
+        "src/core/i18n/messages/tr.ts": "b3fbe2564333245e95ffdb485873349b72332319ae2d4b7d822acb4516838f6e",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "fd380d6804cf692aa548a030dafe18827bbe7a799aa2e1f415ebbe35bd56341d",
-        "src/core/i18n/messages/zh-CN.ts": "a66d7ccb50ce03385d743a97673ad4eb543aa119c64a4eaf652b79feb220f61f",
+        "src/core/i18n/messages/uk.ts": "821eaaf502d0834ceaead14964b0f7dc117d10b1ba12902e3fdacbb837ed35fe",
+        "src/core/i18n/messages/zh-CN.ts": "189326d9ef487c181dd32ace20829d4e25128994ea477b4fb7646fa607eb349e",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -444,7 +438,7 @@
         "src/web/components/subscription-form.tsx": "62165ec6e944a02ab6f43d775f774c6bd55a958424ab2257199580564bef01d9",
         "src/web/components/subscription-presets.tsx": "eb9616ea1cc8d300a1e07b2dd2b2350a3149e5735d4dd47deb75cd526cfda5b8",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
-        "src/web/components/system-health-card.tsx": "4b7134b12859e41c000bc4a184818fd4195c6eabedf3fcfa4399ac22a3ec7c01",
+        "src/web/components/system-health-card.tsx": "63571202edee5054acd8611f32c0774bf8e1b554f32aa3581a92d5409aecd5c1",
         "src/web/components/target-utils.tsx": "39f5850e648b8a584c117f75d969611ab33b07acddb3ae5f010c36667c348a6a",
         "src/web/components/todays-pick.tsx": "2e37c49fe3ab6da571ef7ce014b034526c0dcd083af6faf6521817f934416935",
         "src/web/components/ui/badge.tsx": "f0f5d51c2e6423b40b4545562afa0b8ade27caab3af28cd15e9618532823b79a",
@@ -494,7 +488,7 @@
         "src/web/main.tsx": "ccd448a84acb20e8bc42daeefb02b726d58400149c0cc34b8b1517f5a3283337",
         "src/web/pages/analytics.tsx": "3e530e18a0c5ccf4d64f1df017095f8d3f2caad335197903aea2f4308f600f63",
         "src/web/pages/dashboard.tsx": "8431a1077d92777e9853b2c9c48383b09a03f1682706ee7a155c4f4cb78edc3a",
-        "src/web/pages/discover.tsx": "96affbc3dbe1363830ce02568fac250ae8115b58ff68b49ce9a5e99f7ac4d981",
+        "src/web/pages/discover.tsx": "44ac9fdaf5ee510e3ad6ec128d4b797079ae072f41608345b5369251bbe8e6ec",
         "src/web/pages/discovery-modes.tsx": "03001fe47cf4402bb1a22a250c8a43d97c5a024d00ddbe70c4511b5e4dbfe24b",
         "src/web/pages/genre-detail.tsx": "49d5bcb372c5bb727be376f9231731b1783092a7eeb35b73153726467ae2234c",
         "src/web/pages/genres.tsx": "993a08b560ee596026a9c5f0895ff33f180a28e35ab3541f1de204c410337d36",
@@ -527,14 +521,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
+      "digest": "ac7e920f9b377a717e2583a676a01f23504dd4071a0e7afbb9a52d503b6b0d4c",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
+        "note": "Approve All Above now confirms with a count and target warning, and System Health rows add text and icon status; all 15 locales updated, changelog entry added.",
         "breaking": "none",
         "migration": "",
-        "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d"
+        "digest": "ac7e920f9b377a717e2583a676a01f23504dd4071a0e7afbb9a52d503b6b0d4c"
       }
     },
     "features": {
@@ -748,17 +742,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
+        "src/index.ts": "53524337a72040e766d1a3786af2995eaaffc0f2b277d3bad3c4cdbfcfa6aa88",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8",
+      "digest": "2abfcdb2bd7de6cf8cb0fb1cab56df64f412602373a74cc2ddf2e933397e869d",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "AudioMuse name matching now uses the existing reconciler normalizer and skips names that normalize to empty; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
+        "note": "Auto-approved target pushes record Job History rows and a boot warning text is longer; no new setting or contract.",
         "breaking": "none",
         "migration": "",
-        "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8"
+        "digest": "2abfcdb2bd7de6cf8cb0fb1cab56df64f412602373a74cc2ddf2e933397e869d"
       }
     },
     "deployment": {
