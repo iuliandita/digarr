@@ -240,12 +240,12 @@
         "src/server/middleware/auth.ts": "458f5c99af6918d5336fc7660c39b754595b9ddd0455058d7fde29510bd336bb",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
         "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
-        "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
+        "src/server/middleware/logger.ts": "370c52c638ba0e5ca89baa7fa8058eccc6024349b835a36bb2b64499334ab9e0",
         "src/server/middleware/problem-json.ts": "b1b07dc5522735858efe4a8157d064d29c1440b0a4cca881139a4d0bab919085",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
         "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
-        "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
+        "src/server/middleware/setup-guard.ts": "01f0bada266b354aecbac172986940affee6d92d8769de03db20eec02bd9b4ba",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
         "src/server/routes/auth.ts": "855369731419d7658ceb7ac9d2f9ee186749397168869fe5576c565a1b1bcef7",
         "src/server/routes/oauth-callbacks.ts": "9afe6d6d34017118f84c679dfa82e2ce2ad529bd04a17833ab01aa0ba83ba4e9",
@@ -260,14 +260,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "1ddda3ec46666a123e43358e07b152f25c8814fdd904daf7331108ab7152bb18",
+      "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Re-recorded after merging develop into #1060; its webhook signing docs and CHANGELOG entry are already in this branch.",
+        "note": "The setup guard remembers a true setup-complete result in memory and the logger skips static file paths; which requests are allowed or rejected is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "1ddda3ec46666a123e43358e07b152f25c8814fdd904daf7331108ab7152bb18"
+        "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423"
       }
     },
     "api": {
@@ -282,7 +282,7 @@
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "3e278c15ba0772f11d1a9dd8337098a2bbfb31ccef863580abcac581d8f1e8d1",
+        "src/server/index.ts": "a643bb8ba7b9a38e36997c89ff1e282da30b8757af61263efd5f56459d3e2c66",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -328,16 +328,17 @@
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
+        "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3",
+      "digest": "704fb083eb447c164f1e87d5b7d06a1b23716c5d25b454eebee414d17ba3e997",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "Compress API JSON when the client sends Accept-Encoding and serve static cache headers; routes, payloads and status codes are unchanged, and event streams and audio are not compressed.",
         "breaking": "none",
         "migration": "",
-        "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3"
+        "digest": "704fb083eb447c164f1e87d5b7d06a1b23716c5d25b454eebee414d17ba3e997"
       }
     },
     "interface": {
@@ -744,23 +745,23 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "c4ae00f83b83c4e877bbec02592399ed114172f4382ca5f1405b103a0bad8a94",
+        "src/index.ts": "3c404383a7367ac563b592456d38d93008dd1ee8282c82fb68c5e4d0bc0c1cb5",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c",
+      "digest": "d1c9da5058064383547459a69348e19f07b993de41fbdfa570cabb3483c1ff56",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Dead-code removal and helper dedupe (sleep, escapeXml, errMsg, cron pattern, adapter metadata the API never read); behaviour unchanged",
+        "note": "Delay the boot library sync, health scan and slskd warmup by 60 seconds and cache the setup-complete flag in memory; the work performed and its results are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c"
+        "digest": "d1c9da5058064383547459a69348e19f07b993de41fbdfa570cabb3483c1ff56"
       }
     },
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "6505d50f20bfe47d4865d5a8f16d5b9fe7ed1af3614f40f1f5fc1e725da93153",
-        "deploy/docker/Dockerfile": "ea53912a3ba45cfca3d245cbe005e57a7782327eb0cd891fbb6d8820ba7c9ad1",
+        "deploy/docker/Dockerfile": "005db0aac52e09144abfb06e10595c4ae6e9284bcff8bd458b3ea6b854979e7f",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -794,14 +795,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
+      "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "The image copies only the PGlite runtime package the bundle leaves external and the server bundle is whitespace and syntax minified; ports, volumes, env vars, user and entrypoint are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469"
+        "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81"
       }
     },
     "release": {
@@ -820,17 +821,17 @@
         ".github/workflows/release.yml": "8b31d8c84cd4c23450e234f78ac595ccef8bd93086be8acfd9dab0709d7db231",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
+        "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476",
+      "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Package name now comes from GITHUB_REPOSITORY; scheduled runs lack the repository event payload. No operator-facing change.",
+        "note": "Only the server build script gains whitespace and syntax minification; version, scripts and pins are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476"
+        "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755"
       }
     },
     "maintenance": {

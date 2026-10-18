@@ -1562,11 +1562,14 @@ const server = serve({ fetch: app.fetch, port })
     // Library maintenance schedulers - background, idempotent. Boot fire is non-blocking.
     restartLibraryMaintenanceScheduler(librarySyncIntervalHours)
     // Fire one sync + health scan at boot so fresh installs don't wait for the first cron tick.
-    void librarySyncOrchestrator
-      .syncGlobal()
-      .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
-    libraryHealth.startScan()
-    void slskdOrchestrator.warmup()
+    // Delayed so the first page loads after a restart do not compete with these.
+    setTimeout(() => {
+      void librarySyncOrchestrator
+        .syncGlobal()
+        .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
+      libraryHealth.startScan()
+      void slskdOrchestrator.warmup()
+    }, 60_000).unref()
     slskdCron = new Cron('*/10 * * * *', async () => {
       if (isMaintenance()) {
         console.log('[slskd-scheduler] tick skipped: maintenance in progress')
