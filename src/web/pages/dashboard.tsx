@@ -23,6 +23,7 @@ import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   type ActivityEntry,
+  ApiError,
   approveRecommendation,
   approveToTarget,
   type GenreCoverage,
@@ -628,11 +629,12 @@ export function Dashboard() {
         )
       }
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
       if (status === 'approved') {
         queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
       }
-    } catch {
-      toast.error(t('dashboard.actionFailed'))
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t('dashboard.actionFailed'))
       setActedIds((prev) => {
         const next = new Set(prev)
         next.delete(id)
@@ -652,9 +654,10 @@ export function Dashboard() {
       const res = await approveRecommendation(recId, { monitorOption })
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-    } catch {
-      toast.error(t('dashboard.actionFailed'))
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t('dashboard.actionFailed'))
       setActedIds((prev) => {
         const next = new Set(prev)
         next.delete(recId)
@@ -689,9 +692,10 @@ export function Dashboard() {
       })
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.sentToTarget'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-    } catch {
-      toast.error(t('dashboard.approveFailed'))
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t('dashboard.approveFailed'))
     } finally {
       setActedIds((prev) => {
         const next = new Set(prev)
@@ -712,6 +716,7 @@ export function Dashboard() {
       <PipelineProgress
         onComplete={() => {
           queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+          queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
           queryClient.invalidateQueries({ queryKey: ['dashboard-genre-coverage'] })
@@ -840,9 +845,12 @@ export function Dashboard() {
               }
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+              queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
               queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-            } catch {
-              toast.error(t('dashboard.addToLidarrFailed'))
+            } catch (error) {
+              toast.error(
+                error instanceof ApiError ? error.message : t('dashboard.addToLidarrFailed'),
+              )
             } finally {
               setActedIds((prev) => {
                 const next = new Set(prev)
@@ -875,9 +883,12 @@ export function Dashboard() {
                   })
                   if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
                   queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+                  queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
                   queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-                } catch {
-                  toast.error(t('dashboard.actionFailed'))
+                } catch (error) {
+                  toast.error(
+                    error instanceof ApiError ? error.message : t('dashboard.actionFailed'),
+                  )
                 } finally {
                   setActedIds((prev) => {
                     const next = new Set(prev)

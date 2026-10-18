@@ -4,8 +4,9 @@ import type { Preferences } from '@/db/schema'
 
 /**
  * Resolve per-user preferences with fallback to global.
- * Returns the user's preferences if they exist and are non-empty,
- * otherwise returns the global preferences unchanged.
+ * Personal notification channels do not replace discovery settings.
+ * Discovery preferences keep their existing per-user fallback behavior,
+ * while scan notifications use the shared channels.
  *
  * Accepts either a Database instance (calls getUserById internally)
  * or a pre-bound lookup function (for routes using AppDependencies).
@@ -20,8 +21,14 @@ export async function resolveUserPreferences(
     typeof dbOrLookup === 'function'
       ? await dbOrLookup(userId)
       : await getUserById(dbOrLookup, userId)
-  if (user?.preferences && Object.keys(user.preferences).length > 0) {
-    return user.preferences
+  if (user?.preferences) {
+    const { channels: _personalChannels, ...preferences } = user.preferences
+    if (Object.keys(preferences).length > 0) {
+      return {
+        ...preferences,
+        ...(globalPrefs?.channels !== undefined ? { channels: globalPrefs.channels } : {}),
+      }
+    }
   }
   return globalPrefs
 }

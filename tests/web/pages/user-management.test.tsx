@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -36,8 +36,12 @@ vi.mock('@/web/lib/api', () => ({
   getUserPreferences: vi.fn().mockResolvedValue({ dismissedHints: [] }),
   listUsers: vi.fn().mockResolvedValue([]),
   updateUserAdmin: vi.fn(),
+  updateUserApprovalSettings: vi.fn().mockResolvedValue({}),
+  listApprovalRequests: vi.fn().mockResolvedValue([]),
+  resolveApprovalRequest: vi.fn(),
 }))
 
+import { listUsers, updateUserApprovalSettings } from '@/web/lib/api'
 import { UserManagementPage } from '@/web/pages/user-management'
 
 describe('UserManagementPage', () => {
@@ -58,6 +62,39 @@ describe('UserManagementPage', () => {
         }),
       },
     })
+  })
+
+  it('saves a request-only policy with an unlimited request quota', async () => {
+    vi.mocked(listUsers).mockResolvedValueOnce([
+      {
+        id: 2,
+        username: 'listener',
+        isAdmin: false,
+        email: null,
+        oidcSubject: null,
+        authProvider: 'local',
+        createdAt: '',
+        approvalPolicy: 'direct',
+        maxOpenRequests: 3,
+        approvalThreshold: null,
+      },
+    ])
+    renderWithQuery(<UserManagementPage />)
+    const form = await screen.findByRole('form', { name: 'Approval policy - listener' })
+    fireEvent.change(within(form).getByLabelText('Approval policy'), {
+      target: { value: 'request_only' },
+    })
+    fireEvent.change(within(form).getByLabelText('Maximum open requests'), {
+      target: { value: '' },
+    })
+    fireEvent.click(within(form).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(updateUserApprovalSettings).toHaveBeenCalledWith(2, {
+        approvalPolicy: 'request_only',
+        maxOpenRequests: null,
+        approvalThreshold: null,
+      }),
+    )
   })
 
   it('renders translated user management copy in French', async () => {

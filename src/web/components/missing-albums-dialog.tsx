@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom'
 import { toast } from 'sonner'
 import { useDialogFocus } from '../hooks/use-dialog-focus'
 import {
+  ApiError,
   approveMissingAlbums,
   getLibraryAlbumCoverage,
   type LibraryAlbumCoverage,
@@ -34,10 +35,10 @@ function MissingAlbumsContent({ onClose, artistId, artistMbid, artistName }: Omi
   const closeRef = useRef<HTMLButtonElement>(null)
   const [albums, setAlbums] = useState<LibraryAlbumCoverage['missing'] | null>(null)
   const [selected, setSelected] = useState<string[]>([])
-  const [outcomes, setOutcomes] = useState<Record<string, boolean>>({})
+  const [outcomes, setOutcomes] = useState<Record<string, 'approved' | 'requested' | 'failed'>>({})
   const [result, setResult] = useState<MissingAlbumsApprovalResponse | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [approveError, setApproveError] = useState(false)
+  const [approveError, setApproveError] = useState<string | null>(null)
   const pendingRef = useRef(false)
   const close = () => {
     if (!pendingRef.current) onClose()
@@ -56,45 +57,55 @@ function MissingAlbumsContent({ onClose, artistId, artistMbid, artistName }: Omi
     setSelected(data.missing.map((album) => album.albumMbid))
   }, [data, albums])
 
-  const selectedIds = selected.filter((id) => !result || outcomes[id] === false)
+  const selectedIds = selected.filter((id) => !result || outcomes[id] === 'failed')
   const resultLabel = result
-    ? t('missingAlbums.result')
-        .replace('{succeeded}', String(result.succeeded))
-        .replace('{failed}', String(result.failed))
+    ? result.requested
+      ? `${t('approvalRequests.created')} (${result.requested})`
+      : t('missingAlbums.result')
+          .replace('{succeeded}', String(result.succeeded))
+          .replace('{failed}', String(result.failed))
     : ''
 
   async function submit() {
     if (pendingRef.current || selectedIds.length === 0) return
     pendingRef.current = true
     setSubmitting(true)
-    setApproveError(false)
+    setApproveError(null)
     try {
       const response = await approveMissingAlbums(artistId, selectedIds)
       const nextOutcomes = { ...outcomes }
       for (const id of selectedIds) {
-        nextOutcomes[id] = response.results.find((item) => item.albumMbid === id)?.success === true
+        const outcome = response.results.find((item) => item.albumMbid === id)
+        nextOutcomes[id] =
+          outcome?.status === 'requested' ? 'requested' : outcome?.success ? 'approved' : 'failed'
       }
-      const failed = selectedIds.filter((id) => !nextOutcomes[id])
+      const failed = selectedIds.filter((id) => nextOutcomes[id] === 'failed')
       const summary = {
         ...response,
-        succeeded: Object.values(nextOutcomes).filter(Boolean).length,
-        failed: Object.values(nextOutcomes).filter((success) => !success).length,
+        succeeded: Object.values(nextOutcomes).filter((status) => status === 'approved').length,
+        failed: Object.values(nextOutcomes).filter((status) => status === 'failed').length,
+        requested: Object.values(nextOutcomes).filter((status) => status === 'requested').length,
       }
       setOutcomes(nextOutcomes)
       setResult(summary)
       setSelected(failed)
       void queryClient.invalidateQueries({ queryKey: ['library-album-coverage', artistMbid] })
       void queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+      void queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
+      if (response.results.some((item) => item.status === 'request_limit_reached'))
+        toast.error(t('errors.approval.requestLimit'))
       if (summary.failed === 0) {
         toast.success(
-          t('missingAlbums.result')
-            .replace('{succeeded}', String(summary.succeeded))
-            .replace('{failed}', '0'),
+          summary.requested
+            ? `${t('approvalRequests.created')} (${summary.requested})`
+            : t('missingAlbums.result')
+                .replace('{succeeded}', String(summary.succeeded))
+                .replace('{failed}', '0'),
         )
         onClose()
       }
-    } catch {
-      setApproveError(true)
+    } catch (error) {
+      setApproveError(error instanceof ApiError ? error.message : t('missingAlbums.approveError'))
     } finally {
       pendingRef.current = false
       setSubmitting(false)
@@ -150,7 +161,7 @@ function MissingAlbumsContent({ onClose, artistId, artistMbid, artistName }: Omi
                       type="checkbox"
                       checked={selectedIds.includes(album.albumMbid)}
                       disabled={
-                        submitting || (result !== null && outcomes[album.albumMbid] !== false)
+                        submitting || (result !== null && outcomes[album.albumMbid] !== 'failed')
                       }
                       onChange={(event) => {
                         setSelected((current) =>
@@ -166,12 +177,14 @@ function MissingAlbumsContent({ onClose, artistId, artistMbid, artistName }: Omi
                       {album.releaseYear !== null ? ` (${album.releaseYear})` : ''}
                       {outcomes[album.albumMbid] !== undefined && (
                         <span
-                          className={`block text-xs ${outcomes[album.albumMbid] ? 'text-approve' : 'text-reject'}`}
+                          className={`block text-xs ${outcomes[album.albumMbid] === 'failed' ? 'text-reject' : 'text-approve'}`}
                         >
                           {t(
-                            outcomes[album.albumMbid]
-                              ? 'missingAlbums.success'
-                              : 'missingAlbums.failed',
+                            outcomes[album.albumMbid] === 'requested'
+                              ? 'approvalRequests.pending'
+                              : outcomes[album.albumMbid] === 'approved'
+                                ? 'missingAlbums.success'
+                                : 'missingAlbums.failed',
                           )}
                         </span>
                       )}
@@ -189,7 +202,7 @@ function MissingAlbumsContent({ onClose, artistId, artistMbid, artistName }: Omi
         )}
         {approveError && (
           <p role="alert" className="mt-3 text-sm text-reject">
-            {t('missingAlbums.approveError')}
+            {approveError}
           </p>
         )}
         <div className="mt-4 flex justify-end gap-2">

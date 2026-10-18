@@ -49,6 +49,8 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 // ---------------------------------------------------------------------------
 
 vi.mock('@/web/lib/api', () => ({
+  getPersonalNotificationChannels: vi.fn().mockResolvedValue({ channels: [] }),
+  updatePersonalNotificationChannels: vi.fn(),
   getSettings: vi.fn(),
   getScrobblerWriteBackStatus: vi.fn().mockResolvedValue({
     listenbrainz: { configured: false, lastError: null },
@@ -84,6 +86,9 @@ vi.mock('@/web/lib/api', () => ({
   triggerPipeline: vi.fn(),
   getSetupStatus: vi.fn().mockResolvedValue({ setupComplete: true }),
   listTargets: vi.fn().mockResolvedValue([]),
+  listApprovalRequests: vi.fn().mockResolvedValue([]),
+  resolveApprovalRequest: vi.fn(),
+  updateUserApprovalSettings: vi.fn(),
   listUsers: vi.fn().mockResolvedValue([
     { id: 1, username: 'admin', isAdmin: true },
     { id: 2, username: 'listener', isAdmin: false },

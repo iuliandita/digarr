@@ -57,6 +57,9 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 
 vi.mock('@/web/lib/api', () => ({
   getRecommendations: vi.fn(),
+  listOwnApprovalRequests: vi.fn().mockResolvedValue([]),
+  resolveApprovalRequest: vi.fn(),
+  listApprovalRequests: vi.fn().mockResolvedValue([]),
   updateRecommendation: vi.fn(),
   approveRecommendation: vi.fn(),
   approveToTarget: vi.fn(),

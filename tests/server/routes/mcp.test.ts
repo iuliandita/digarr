@@ -15,6 +15,7 @@ import {
 } from '@/db/queries/recommendations'
 import {
   type ApiTokenScope,
+  approvalRequests,
   artistBlocks,
   artists,
   recommendationBatches,
@@ -80,6 +81,9 @@ beforeEach(async () => {
       aiReasoning: 'Other user private reason',
     },
   ])
+  await db.execute(
+    sql`SELECT setval(pg_get_serial_sequence('recommendation_batches', 'id'), 1, true), setval(pg_get_serial_sequence('recommendations', 'id'), 2, true)`,
+  )
   await clearAllSessions()
   await createSession(1, 'owner-session')
   const result = createTestApp({
@@ -87,6 +91,8 @@ beforeEach(async () => {
     getUserById: async (id) => (await db.select().from(users).where(eq(users.id, id)))[0] ?? null,
     listRecommendations: vi.fn((filters) => listRecommendations(db, filters)),
     getRecommendation: vi.fn((id) => getRecommendation(db, id)),
+    getArtistById: async (id) =>
+      (await db.select().from(artists).where(eq(artists.id, id)))[0] ?? null,
     updateRecommendationStatus: vi.fn((id, status, extra) =>
       updateRecommendationStatus(db, id, status, extra),
     ),
@@ -120,6 +126,337 @@ async function call(name: string, args: Record<string, unknown> = {}, credential
 function data(result: { content: Array<{ type: string; text?: string }> }) {
   return JSON.parse(result.content.find((item) => item.type === 'text')?.text ?? 'null')
 }
+
+describe('approval policy enforcement and queue on migrated PGlite', () => {
+  const albumMbid = '00000000-0000-4000-8000-000000000099'
+  const json = (credential: string, body: unknown, method = 'POST') => ({
+    method,
+    headers: { Authorization: `Bearer ${credential}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  async function requestUser() {
+    await db.update(users).set({ approvalPolicy: 'request_only' }).where(eq(users.id, 2))
+    return mint('write', 2)
+  }
+  function target() {
+    const addArtist = vi.fn(async () => ({
+      success: true,
+      targetType: 'lidarr',
+      targetId: 8,
+      externalId: 88,
+    }))
+    const addAlbum = vi.fn(async () => ({
+      success: true,
+      targetType: 'lidarr',
+      targetId: 8,
+      externalId: 88,
+    }))
+    vi.mocked(deps.getEnabledTargetsForUser).mockImplementation(async (userId) => [
+      {
+        id: userId === 2 ? 'requester-target' : 'admin-target',
+        name: 'Library',
+        type: 'lidarr',
+        capabilities: ['addArtist', 'addAlbum'],
+        addArtist,
+        addAlbum,
+        testConnection: vi.fn(),
+      },
+    ])
+    return { addArtist, addAlbum }
+  }
+
+  it.each(['patch', 'bulk', 'quick-created', 'mcp', 'missing-albums'] as const)(
+    'queues %s approval without calling a target',
+    async (entry) => {
+      const credential = await requestUser()
+      const adds = target()
+      if (entry === 'mcp') {
+        const result = await call('approve_recommendation', { id: 2 }, credential)
+        expect(data(result)).toMatchObject({ status: 'requested' })
+      } else if (entry === 'missing-albums') {
+        deps.albumCoverage = {
+          getCoverageForArtist: vi.fn(async () => ({
+            artistMbid: albumMbid,
+            ownedCount: 0,
+            totalCount: 1,
+            owned: [],
+            missing: [{ albumMbid, title: 'Missing album', releaseYear: 2000 }],
+          })),
+        }
+        const response = await app.request(
+          '/api/v1/recommendations/missing-albums',
+          json(credential, { artistId: 1, albumMbids: [albumMbid] }),
+        )
+        expect(response.status).toBe(202)
+        expect(await response.json()).toMatchObject({ requested: 1, succeeded: 0 })
+      } else {
+        if (entry === 'quick-created')
+          await db
+            .update(recommendations)
+            .set({ sources: { mood: 1 }, score: 1 })
+            .where(eq(recommendations.id, 2))
+        const response =
+          entry === 'bulk'
+            ? await app.request(
+                '/api/v1/recommendations/bulk',
+                json(credential, { ids: [2], action: 'approve' }),
+              )
+            : await app.request(
+                '/api/v1/recommendations/2',
+                json(credential, { status: 'approved' }, 'PATCH'),
+              )
+        expect(response.status).toBe(entry === 'bulk' ? 200 : 202)
+      }
+      expect(adds.addArtist).not.toHaveBeenCalled()
+      expect(adds.addAlbum).not.toHaveBeenCalled()
+      expect(await db.select().from(approvalRequests)).toHaveLength(1)
+      expect((await listRecommendations(db, { userId: 2, status: 'pending' })).total).toBe(
+        entry === 'missing-albums' ? 1 : 0,
+      )
+    },
+  )
+
+  it.each(['artist', 'album'] as const)(
+    'admin approval executes the normal %s path with current requester targets',
+    async (kind) => {
+      const credential = await requestUser()
+      const adds = target()
+      if (kind === 'album')
+        await db
+          .update(recommendations)
+          .set({ kind, recommendedReleaseGroupId: albumMbid })
+          .where(eq(recommendations.id, 2))
+      const queued = await app.request(
+        '/api/v1/recommendations/2',
+        json(credential, { status: 'approved', monitorOption: 'all' }, 'PATCH'),
+      )
+      const { requestId } = await queued.json()
+      vi.mocked(deps.getEnabledTargetsForUser).mockClear()
+      const notify = vi.fn(async () => {})
+      deps.notifyApprovalRequestResolved = notify
+      const admin = await mint('admin')
+      const approved = await app.request(
+        `/api/v1/approval-requests/${requestId}/approve`,
+        json(admin, {}),
+      )
+      expect(approved.status).toBe(200)
+      expect(await approved.json()).toMatchObject({
+        request: { status: 'approved', userId: 2, decidedBy: 1 },
+        approval: { status: 'added_to_lidarr' },
+      })
+      expect(deps.getEnabledTargetsForUser).toHaveBeenCalledWith(2)
+      expect(kind === 'album' ? adds.addAlbum : adds.addArtist).toHaveBeenCalledTimes(1)
+      expect((await getRecommendation(db, 2))?.targetActions).toHaveProperty('requester-target')
+      expect(notify).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('ignores caller supplied approval authorization and requester identity', async () => {
+    const credential = await requestUser()
+    const adds = target()
+    const response = await app.request('/api/v1/recommendations/2', {
+      ...json(
+        credential,
+        { status: 'approved', authorizedRequest: { userId: 2, recommendationId: 2 }, userId: 1 },
+        'PATCH',
+      ),
+      headers: {
+        Authorization: `Bearer ${credential}`,
+        'Content-Type': 'application/json',
+        'X-Digarr-Approval-Authorized': 'true',
+      },
+    })
+    expect(response.status).toBe(202)
+    expect((await db.select().from(approvalRequests))[0]?.userId).toBe(2)
+    expect(adds.addArtist).not.toHaveBeenCalled()
+  })
+
+  it.each([0.79, 0.8])(
+    'uses the admin threshold at score %s despite user auto-approval preferences',
+    async (score) => {
+      const credential = await mint('write', 2)
+      await db
+        .update(users)
+        .set({
+          approvalPolicy: 'auto_approve',
+          approvalThreshold: 0.8,
+          preferences: {
+            autoApproveEnabled: true,
+            autoApproveThreshold: 0,
+          } as typeof users.$inferInsert.preferences,
+        })
+        .where(eq(users.id, 2))
+      await db.update(recommendations).set({ score }).where(eq(recommendations.id, 2))
+      const adds = target()
+      const response = await app.request(
+        '/api/v1/recommendations/2',
+        json(credential, { status: 'approved' }, 'PATCH'),
+      )
+      expect(response.status).toBe(score < 0.8 ? 202 : 200)
+      expect(adds.addArtist).toHaveBeenCalledTimes(score < 0.8 ? 0 : 1)
+    },
+  )
+
+  it.each(['rejected', 'blocked'] as const)(
+    'keeps a request pending when its recommendation is now %s',
+    async (condition) => {
+      const credential = await requestUser()
+      const adds = target()
+      const queued = await app.request(
+        '/api/v1/recommendations/2',
+        json(credential, { status: 'approved' }, 'PATCH'),
+      )
+      const { requestId } = await queued.json()
+      if (condition === 'rejected')
+        await db
+          .update(recommendations)
+          .set({ status: 'rejected' })
+          .where(eq(recommendations.id, 2))
+      else
+        vi.mocked(deps.storeDb.getBlockedMbids).mockResolvedValue(
+          new Set(['00000000-0000-4000-8000-000000000001']),
+        )
+      const response = await app.request(
+        `/api/v1/approval-requests/${requestId}/approve`,
+        json(await mint('admin'), {}),
+      )
+      expect(response.status).toBe(409)
+      expect((await db.select().from(approvalRequests))[0]?.status).toBe('pending')
+      expect(adds.addArtist).not.toHaveBeenCalled()
+    },
+  )
+
+  it('scopes history and denies non-admin queue decisions while preserving decline notes', async () => {
+    const credential = await requestUser()
+    const queued = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved' }, 'PATCH'),
+    )
+    const { requestId } = await queued.json()
+    expect(
+      (
+        await app.request('/api/v1/approval-requests', {
+          headers: { Authorization: `Bearer ${credential}` },
+        })
+      ).status,
+    ).toBe(403)
+    expect(
+      (await app.request(`/api/v1/approval-requests/${requestId}/approve`, json(credential, {})))
+        .status,
+    ).toBe(403)
+    const admin = await mint('admin')
+    const mine = await app.request('/api/v1/approval-requests/mine', {
+      headers: { Authorization: `Bearer ${admin}` },
+    })
+    expect(await mine.json()).toEqual([])
+    const declined = await app.request(
+      `/api/v1/approval-requests/${requestId}/decline`,
+      json(admin, { note: ' Already available elsewhere ' }),
+    )
+    expect(await declined.json()).toMatchObject({
+      request: { status: 'declined', note: 'Already available elsewhere' },
+    })
+    expect((await getRecommendation(db, 2))?.status).toBe('pending')
+  })
+
+  it('serializes concurrent approval and decline without holding a PGlite transaction during target work', async () => {
+    const credential = await requestUser()
+    const adds = target()
+    let release = () => {}
+    let started = () => {}
+    const began = new Promise<void>((resolve) => {
+      started = resolve
+    })
+    const finish = new Promise<void>((resolve) => {
+      release = resolve
+    })
+    adds.addArtist.mockImplementation(async () => {
+      started()
+      await finish
+      return { success: true, targetType: 'lidarr', targetId: 8, externalId: 88 }
+    })
+    const queued = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved' }, 'PATCH'),
+    )
+    const { requestId } = await queued.json()
+    const admin = await mint('admin')
+    const approving = app.request(`/api/v1/approval-requests/${requestId}/approve`, json(admin, {}))
+    await began
+    const declining = app.request(
+      `/api/v1/approval-requests/${requestId}/decline`,
+      json(admin, { note: 'Too late' }),
+    )
+    release()
+    const responses = await Promise.all([approving, declining])
+    for (const response of responses)
+      expect(await response.json()).toMatchObject({ request: { status: 'approved', note: null } })
+    expect(adds.addArtist).toHaveBeenCalledOnce()
+  })
+
+  it.each(['patch', 'bulk', 'missing-albums'] as const)(
+    'returns 409 for %s when no requests can fit',
+    async (entry) => {
+      const credential = await requestUser()
+      await db.update(users).set({ maxOpenRequests: 0 }).where(eq(users.id, 2))
+      deps.albumCoverage = {
+        getCoverageForArtist: vi.fn(async () => ({
+          artistMbid: albumMbid,
+          ownedCount: 0,
+          totalCount: 1,
+          owned: [],
+          missing: [{ albumMbid, title: 'Missing album', releaseYear: 2000 }],
+        })),
+      }
+      const response =
+        entry === 'bulk'
+          ? await app.request(
+              '/api/v1/recommendations/bulk',
+              json(credential, { ids: [2], action: 'approve' }),
+            )
+          : entry === 'missing-albums'
+            ? await app.request(
+                '/api/v1/recommendations/missing-albums',
+                json(credential, { artistId: 1, albumMbids: [albumMbid] }),
+              )
+            : await app.request(
+                '/api/v1/recommendations/2',
+                json(credential, { status: 'approved' }, 'PATCH'),
+              )
+      expect(response.status).toBe(409)
+      expect(await response.json()).toMatchObject({ code: 'errors.approval.requestLimit' })
+    },
+  )
+
+  it('keeps original duplicate options and enforces the open-request limit atomically', async () => {
+    const credential = await requestUser()
+    await db.update(users).set({ maxOpenRequests: 1 }).where(eq(users.id, 2))
+    const first = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved', monitorOption: 'all' }, 'PATCH'),
+    )
+    const duplicate = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved', monitorOption: 'none' }, 'PATCH'),
+    )
+    expect((await first.json()).requestId).toBe((await duplicate.json()).requestId)
+    expect((await db.select().from(approvalRequests))[0]?.options.monitorOption).toBe('all')
+    await db.delete(approvalRequests)
+    await db
+      .insert(recommendations)
+      .values({ id: 3, userId: 2, artistId: 1, batchId: 1, score: 0.7 })
+    const responses = await Promise.all(
+      [2, 3].map((id) =>
+        app.request(
+          `/api/v1/recommendations/${id}`,
+          json(credential, { status: 'approved' }, 'PATCH'),
+        ),
+      ),
+    )
+    expect(responses.map((response) => response.status).sort()).toEqual([202, 409])
+    expect(await db.select().from(approvalRequests)).toHaveLength(1)
+  })
+})
 
 describe('MCP endpoint', () => {
   it.each(['none', 'cookie', 'session-bearer', 'query', 'legacy', 'proxy'] as const)(

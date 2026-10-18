@@ -10,6 +10,10 @@ type Translate = (key: MessageKey) => string
  * success path); returns false after showing a partial/total-failure toast.
  */
 export function reportApprovalOutcome(res: ApprovalResponse, t: Translate): boolean {
+  if (res.status === 'requested') {
+    toast.success(t('approvalRequests.created'))
+    return false
+  }
   const summary = res.targetSummary
   if (summary && summary.total > 0 && summary.failed > 0) {
     const names = summary.failures.map((f) => f.name).join(', ')

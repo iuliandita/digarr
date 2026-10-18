@@ -4,16 +4,19 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
+import { ApprovalRequests } from '../components/approval-requests'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { Hint } from '../components/hint'
 import { Button } from '../components/ui/button'
 import { Input } from '../components/ui/input'
 import { PageHeader } from '../components/ui/page-header'
+import { UserApprovalPolicy, UserApprovalPolicyFields } from '../components/user-approval-policy'
 import {
   createUserApi,
   deleteUserApi,
   getCurrentUser,
   listUsers,
+  type UserApprovalSettings,
   updateUserAdmin,
 } from '../lib/api'
 import { useI18n } from '../lib/i18n'
@@ -35,6 +38,11 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
   const [newUsername, setNewUsername] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [newIsAdmin, setNewIsAdmin] = useState(false)
+  const [newPolicy, setNewPolicy] = useState<UserApprovalSettings>({
+    approvalPolicy: 'direct',
+    maxOpenRequests: null,
+    approvalThreshold: null,
+  })
 
   const { data: currentUser } = useQuery({ queryKey: ['currentUser'], queryFn: getCurrentUser })
   const usersQuery = useQuery({ queryKey: ['users'], queryFn: listUsers })
@@ -55,13 +63,19 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
 
   const createUser = useMutation({
     mutationFn: () =>
-      createUserApi({ username: newUsername, password: newPassword, isAdmin: newIsAdmin }),
+      createUserApi({
+        username: newUsername,
+        password: newPassword,
+        isAdmin: newIsAdmin,
+        ...newPolicy,
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['users'] })
       toast.success(`${t('userManagement.userCreated')} "${newUsername}"`)
       setNewUsername('')
       setNewPassword('')
       setNewIsAdmin(false)
+      setNewPolicy({ approvalPolicy: 'direct', maxOpenRequests: null, approvalThreshold: null })
       setShowForm(false)
     },
     onError: (err) => {
@@ -134,6 +148,7 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
             />
             {t('userManagement.adminPrivileges')}
           </label>
+          <UserApprovalPolicyFields value={newPolicy} onChange={setNewPolicy} id="new-user" />
           <div className="flex gap-2 justify-end">
             <Button type="button" size="sm" variant="outline" onClick={() => setShowForm(false)}>
               {t('common.cancel')}
@@ -216,10 +231,12 @@ export function UserManagementPage({ embedded = false }: { embedded?: boolean })
                   {t('common.delete')}
                 </Button>
               </div>
+              <UserApprovalPolicy user={user} />
             </div>
           )
         })}
       </div>
+      <ApprovalRequests admin />
       {confirmDeleteUser && (
         <ConfirmDialog
           title={t('userManagement.deleteUser')}

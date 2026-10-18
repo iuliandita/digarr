@@ -511,6 +511,34 @@ Use `GET /api/v1/library/album-coverage/:artistMbid` to list the current user's 
 
 The batch calls the existing single-album approval path for each selection, using only the caller's enabled `addAlbum` targets and their defaults. Lidarr monitors and searches each chosen album; it never changes to whole-discography monitoring. It returns `200` with `{ results: [{ albumMbid, success, targetActions }], succeeded, failed }`. An album counts as successful only when all its attempted targets succeed. A target may report a queued acquisition; this does not establish download or import completion. Per-album failures remain visible, and later albums are still attempted. Successful remote work is retained when another album or target fails. Retrying an album retries its enabled album targets, including any that already succeeded. No compatible target is an error, not a successful empty batch.
 
+## Personal notification channels
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/auth/me/notification-channels` | Yes | Read the caller's channels with stored secrets masked |
+| PATCH | `/api/v1/auth/me/notification-channels` | Yes | Replace the caller's personal request-outcome channels |
+
+GET returns `{ channels: [...] }`; PATCH accepts `{ channels: [...] }` and returns `204`. Each account may store up to 20 channels with unique IDs.
+
+Personal channels support the existing webhook, ntfy, Telegram, and Apprise transports and only the opt-in `request_resolved` event. They do not receive global batch/digest events. Stored secrets use the existing field-encryption mechanism, are masked on read, and masked values preserve existing secrets when saving. Private-address overrides are refused. Save requires a session or a personal API token with write permission and never edits another account's channels. Request-outcome payloads identify the recommendation and approved/declined outcome, with a localized message; decision notes remain in the authenticated request history.
+
+## Approval requests
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | `/api/v1/approval-requests` | Admin | Review requests with requester and recommendation details |
+| GET | `/api/v1/approval-requests/mine` | Yes | List only the caller's requests and decision notes |
+| POST | `/api/v1/approval-requests/:id/approve` | Admin | Approve on behalf of the requester using the saved approval choices |
+| POST | `/api/v1/approval-requests/:id/decline` | Admin | Decline a pending request and record an optional note |
+
+The admin GET route returns pending requests; the own-history route returns only the caller's requests. Both return arrays, including the request identity, state, creation/decision timestamps, requester, recommendation details, and note. Decision routes return `200 { "request": ..., "approval": ... }` for approval (the normal target outcome) and `200 { "request": ... }` for decline; unknown requests return `404`, and non-admin queue access or decisions return `403`.
+
+Decision bodies accept `{ "note": "Optional explanation" }`. An admin approval executes the normal recommendation approval path with the requester's currently assigned targets, artist/album kind, saved options, and approval locks. Temporary Lidarr failures use the same deferred retry as a direct approval. A decision records who acted and when. Requesters cannot read another user's history or decide their own requests without admin authorization.
+
+Per-user policies apply to recommendation PATCH, bulk approval, missing-album batches, approvals of Quick Discover results, MCP approval tools, and personal API token requests. Direct approval is the default. Request-only accounts queue approvals; trusted accounts queue scores below the admin-set threshold. Pending requests do not contact targets. Recommendation PATCH returns `202` with `{ status: "requested", approvalRequest, requestId }` when queued. Bulk results mark queued items `status: "requested"` with a `requestId`. Missing-album batches return `202` when requests are queued, with a `requested` count and per-album `status`/`requestId`; queued items are not counted as target successes. Automatic pipeline approval skips recommendations that the policy does not permit, rather than filling the request queue without a manual action. A request-outcome notification is sent only to channels subscribed to `request_resolved`; templates leave this event off.
+
+An optional per-user open-request limit counts pending requests. A repeated submission of the same pending recommendation reuses the request. Exceeding the limit returns `409 application/problem+json` with type `/problems/approval-request-limit` and a translated error code. Partial bulk outcomes report limits per item. See [approval policies](AUTHENTICATION.md#approval-policies) for the operator workflow and [migration 0059](OPERATIONS.md#approval-request-migration) for upgrade and rollback.
+
 ## Artist blocks
 
 | Method | Path | Auth | Description |
@@ -1228,8 +1256,10 @@ Notification channel `events` also accepts `approval_failed` (opt-in). Its paylo
 |--------|------|------|-------------|
 | GET | `/api/v1/users` | Admin | List all users |
 | POST | `/api/v1/users` | Admin | Create user |
-| PATCH | `/api/v1/users/:id` | Admin | Update user (admin status) |
+| PATCH | `/api/v1/users/:id` | Admin | Update admin status, approval policy, score threshold, and open-request limit |
 | DELETE | `/api/v1/users/:id` | Admin | Delete user |
+
+User create and update bodies accept `approvalPolicy` (`direct`, `request_only`, or `auto_approve`), `approvalThreshold` (0-1, default 0.8), and `maxOpenRequests` (a nonnegative integer, or `null` for unlimited; zero prevents new requests). These fields are admin-managed and appear in user responses. Personal preference updates cannot change them.
 
 Admins can promote other users. First-user admin creation is serialized in the database. Deleting a user removes their recommendations, subscriptions, and other owned records; shared artists and batch history remain. Admins cannot delete themselves or remove the last admin.
 

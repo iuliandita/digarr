@@ -40,7 +40,8 @@ export function userRoutes(deps: AppDependencies) {
     const auth = await requireAdmin(c)
     if (!auth.ok) return auth.response
 
-    const { username, password, isAdmin } = c.req.valid('json')
+    const { username, password, isAdmin, approvalPolicy, maxOpenRequests, approvalThreshold } =
+      c.req.valid('json')
 
     const existing = await deps.getUserByUsername(username)
     if (existing) {
@@ -48,12 +49,18 @@ export function userRoutes(deps: AppDependencies) {
     }
 
     const passwordHash = hashPassword(password)
-    const user = await deps.createUser({ username, passwordHash, isAdmin })
+    const user = await deps.createUser({
+      username,
+      passwordHash,
+      isAdmin,
+      approvalPolicy,
+      maxOpenRequests,
+      approvalThreshold,
+    })
     return c.json(toUserResponse(user), 201)
   })
 
   // PATCH /api/v1/users/:id - update user (admin only)
-  // Body: { isAdmin?: boolean }
   // Guards: can't remove own admin role, can't remove last admin
   router.patch(
     '/api/v1/users/:id',
@@ -77,10 +84,7 @@ export function userRoutes(deps: AppDependencies) {
       if (!target) return c.json({ error: 'User not found' }, 404)
 
       try {
-        await deps.updateUser(
-          targetId,
-          typeof body.isAdmin === 'boolean' ? { isAdmin: body.isAdmin } : {},
-        )
+        await deps.updateUser(targetId, body)
       } catch (error) {
         if (error instanceof LastAdminError) {
           return c.json({ error: 'Cannot remove admin from the last admin user' }, 400)

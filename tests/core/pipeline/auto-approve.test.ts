@@ -53,6 +53,17 @@ function makeDeps(overrides: Partial<AutoApproveDeps> = {}): AutoApproveDeps {
 }
 
 describe('autoApprove()', () => {
+  it('leaves recommendations pending when the user approval policy denies autonomous acquisition', async () => {
+    const deps = makeDeps({ canApprove: vi.fn(async () => false) })
+    expect(await autoApprove(1, { threshold: 0.7, monitorOption: 'all' }, deps)).toEqual({
+      approved: 0,
+      failed: 0,
+    })
+    expect(deps.canApprove).toHaveBeenCalledWith(0.9)
+    expect(deps.updateRecommendationStatus).not.toHaveBeenCalled()
+    const targets = await deps.getEnabledTargets()
+    expect(targets[0]?.addArtist).not.toHaveBeenCalled()
+  })
   it.each(['missing', 'existing', 'latest', 'first'] as const)(
     'passes %s to the target',
     async (monitorOption) => {

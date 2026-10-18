@@ -16,6 +16,22 @@ In Settings > Targets, admins choose **Assigned user** when adding or editing a 
 
 Deleting a user removes all their owned data, including recommendations, subscriptions, targets, sessions, personal API tokens, provider credentials, playlists, blocks, and library records. Job history entries for the user (including their errors, metadata, and source results) are deleted with them. Shared artists and batch history remain.
 
+## Approval policies
+
+Approval remains direct by default. Existing accounts and single-user installations keep their current behavior. In **Settings > Users**, an admin can choose a policy for each account:
+
+- **Approve directly** sends approvals to that user's assigned targets immediately.
+- **Request only** records a request for review without contacting acquisition targets.
+- **Auto-approve above a score** permits direct approval at or above the admin-set threshold and requests review below it. The threshold uses the existing 0-1 recommendation score, with 0.8 as the default.
+
+An optional maximum limits pending requests per account. Leave it empty for unlimited requests. A duplicate pending request does not consume another slot. At the limit, the server returns a translated problem response; resolving a request frees its slot.
+
+Admins review the **Requests** section in user management. It shows the requester, recommendation score and reasons, and an optional decision note. Approval runs the normal artist or album approval with the saved choices, using the requester's currently assigned targets. Temporary Lidarr failures retain the existing deferred-retry behavior. Declining records the note without adding anything.
+
+Members see their pending and declined requests, including decision notes, on their own **Discover > Approved** tab. To receive outcomes through webhooks, ntfy, Telegram, or Apprise, add a personal channel in **Settings > Account** and opt it into the request-outcome event. It is off by default in templates. These channels receive only your own request decisions, in your language; global admin channels are not used as a fallback. Notifications omit private decision notes. Personal destinations cannot opt out of the private-address protection.
+
+Policies apply to individual and bulk approvals, missing-album batches, Quick Discover results, MCP tools, and personal API tokens. Changing authentication method does not bypass a policy. Only admins can read the shared queue, decide requests, or change policies, thresholds, and limits. A policy does not grant additional targets or access to another user's recommendations.
+
 ## Session auth (default)
 
 The password is hashed at rest with scrypt (`node:crypto`). The web UI

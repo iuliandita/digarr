@@ -22,6 +22,8 @@ const legacyAuthMocks = vi.hoisted(() => ({
 }))
 
 vi.mock('@/web/lib/api', () => ({
+  getPersonalNotificationChannels: vi.fn().mockResolvedValue({ channels: [] }),
+  updatePersonalNotificationChannels: vi.fn(),
   AUTH_EXPIRED_EVENT: 'digarr:auth-expired',
   clearStoredToken: vi.fn(),
   changePassword: vi.fn().mockResolvedValue({ ok: true }),

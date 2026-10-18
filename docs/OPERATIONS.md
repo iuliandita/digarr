@@ -139,6 +139,18 @@ After 24 hours, the action becomes failed with its last error. Successful target
 
 No schema migration is needed. Take the normal database backup before upgrading; it includes queued approvals. Before rolling back to an older version, finish or manually resolve waiting approvals, since older versions do not schedule this state. Restore the pre-upgrade backup with the earlier image if you need to restore its previous approval state. The retry scheduler, like the other in-process schedulers, assumes one running Digarr process per database.
 
+## Shared-instance approval requests
+
+Admins configure approval policies, score thresholds, and optional open-request limits in user management. The default remains direct approval. Request-only users submit for review; trusted users submit below their threshold. Admins review Requests with the requester's score and reasons, then approve or decline with an optional note. Decisions use the requester's targets and saved artist/album choices, including Lidarr deferred retry. Pending and declined requests appear on the requester's Approved tab. Request-outcome notifications require a personal channel in Settings > Account with an explicit request-outcome event subscription. They use the requester's language and channels, never global admin channels as a fallback; private notes stay in the request history. Personal channels cannot disable private-address protection.
+
+### Approval-request migration
+
+Migration 0059 adds `approval_requests` and admin-managed policy fields to `users`. Existing users default to direct approval; no external acquisition is triggered by migration. Both PostgreSQL and PGlite apply it at startup. Before upgrading, stop app writers, take and verify a consistent native database backup, and retain the matching encryption key and previous image. Automatic pre-migration snapshots tolerate the absent table and columns; keep automatic backups enabled.
+
+After upgrading, verify a request-only test account cannot add directly, then approve its request as an admin and check the requester's assigned target. Full JSON exports and backend copies include policy settings and request history; request identity uses its stable token and related records are remapped during restore. Older exports without requests cannot clear populated omitted request state through parent replacement; use a complete export or a fresh compatible destination.
+
+Older images do not enforce these policies. Rolling back only the image makes affected users able to approve directly again and leaves request history unused. Restrict member access during rollback. For exact recovery, restore the verified pre-upgrade native backup into a separate database with the matching previous image and key, verify it, then replace the original. Remote additions and notifications already sent cannot be undone by restoring a database. Do not drop the live request table as a rollback procedure. See [backend recovery](guides/switching-backends.md#approval-request-migration).
+
 ## Large Lidarr libraries
 
 Lidarr's artist API returns the entire library in a single response with no pagination, so a very large library can take well over a minute to serialize. Digarr allows 120 seconds for that fetch; the time needed depends on Lidarr and library size. If library sync still reports a timeout, raise `DIGARR_LIDARR_TIMEOUT_SECONDS` and restart Digarr. The timeout applies only to the full-library fetch; every other Lidarr call keeps a short timeout so an unreachable Lidarr still fails fast.

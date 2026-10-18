@@ -32,12 +32,12 @@ function encryptKeys(obj: JsonObject, keys: readonly string[]): JsonObject | nul
   return next
 }
 
-function encryptPreferences(prefs: JsonObject, withChannels: boolean): JsonObject | null {
+function encryptPreferences(prefs: JsonObject): JsonObject | null {
   let next = encryptKeys(
     prefs,
     NESTED_SITES.map((site) => site.path[0] as string),
   )
-  if (withChannels && Array.isArray(prefs.channels)) {
+  if (Array.isArray(prefs.channels)) {
     let changed = false
     const channels = prefs.channels.map((channel: unknown) => {
       if (!isObject(channel) || typeof channel.type !== 'string') return channel
@@ -83,7 +83,7 @@ export async function encryptLegacyPlaintext(db: OpsDb): Promise<number> {
     ).rows as Array<{ id: number; preferences: unknown }>
     for (const row of rows) {
       if (!isObject(row.preferences)) continue
-      const next = encryptPreferences(row.preferences, table === 'settings')
+      const next = encryptPreferences(row.preferences)
       if (!next) continue
       const result = await db.execute(
         sql`UPDATE ${t} SET preferences = ${JSON.stringify(next)}::jsonb

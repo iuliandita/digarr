@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Optional per-user approval policies for shared instances: direct approval remains the default; request-only accounts and below-threshold trusted approvals enter an admin queue. Admin decisions retain the requester's targets and approval choices, with notes, opt-in outcome notifications, and pending/declined history on Approved. Admins can cap open requests. All approval interfaces enforce the same policy. Migration 0059 adds the request table and user policy fields on PostgreSQL and PGlite. Back up the database and encryption key before upgrading; JSON exports and backend copies include requests. Older images ignore approval policies, so restoring the previous image also restores unrestricted direct approval. For exact rollback, restore the matching pre-upgrade native backup into a separate database. (#980)
+
 - Built-in Streamable HTTP MCP endpoint at `/api/v1/mcp` for recommendations, approvals, rejections, blocks, scans, discovery modes, job status, artist search, and playlists. Personal API tokens are required; read scope permits read tools only. Account settings shows a copyable client configuration after token creation in all 15 languages. No extra service or MCP session store is needed. (#979)
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
 - The slskd connection test checks the linked Lidarr download directory, reports missing or unlistable paths and likely incomplete folders, and shows the result in your language (#972).

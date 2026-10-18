@@ -151,6 +151,13 @@ export const openapiDoc = {
           username: { type: 'string' },
           isAdmin: { type: 'boolean' },
           preferredLocale: { type: ['string', 'null'] },
+          approvalPolicy: {
+            type: 'string',
+            enum: ['direct', 'request_only', 'auto_approve'],
+            default: 'direct',
+          },
+          approvalThreshold: { type: ['number', 'null'], minimum: 0, maximum: 1 },
+          maxOpenRequests: { type: ['integer', 'null'], minimum: 0 },
         },
         additionalProperties: true,
       },
@@ -749,6 +756,28 @@ export const openapiDoc = {
           '200': {
             description: 'Updated recommendation status.',
             ...jsonSchema('#/components/schemas/RecommendationUpdateResult'),
+          },
+          '202': {
+            description: 'Approval queued for admin review without contacting targets.',
+            content: {
+              [json]: {
+                schema: {
+                  type: 'object',
+                  required: ['status', 'requestId', 'approvalRequest'],
+                  properties: {
+                    status: { type: 'string', const: 'requested' },
+                    requestId: { type: 'integer' },
+                    approvalRequest: { type: 'object' },
+                  },
+                },
+              },
+            },
+          },
+          '409': {
+            description: 'The user has reached their admin-set open-request limit.',
+            content: {
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
           },
           '400': {
             description:

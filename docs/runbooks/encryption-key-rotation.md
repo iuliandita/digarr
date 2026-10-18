@@ -18,7 +18,7 @@ Rotation touches these columns:
 
 - `settings.lidarr_api_key`, `settings.ai_api_key`, `settings.audiodb_api_key`, `settings.oidc_client_secret`, `settings.tidal_client_secret`
 - `settings.preferences.fanartApiKey` and `users.preferences.fanartApiKey` (nested in jsonb)
-- Encrypted fields in `settings.preferences.channels`, including webhook URLs, Telegram bot tokens, ntfy tokens, and Apprise URLs
+- Encrypted fields in `settings.preferences.channels` and personal `users.preferences.channels`, including webhook URLs, Telegram bot tokens, ntfy tokens, and Apprise URLs
 - `users.listenbrainz_token`, `users.lastfm_api_key`, `users.plex_token`, `users.jellyfin_api_key`, `users.emby_api_key`, `users.discogs_token`, `users.subsonic_password`
 - `oauth_tokens.access_token`, `oauth_tokens.refresh_token`, `oauth_tokens.client_secret`
 - `targets.config` (any `enc:v1:`-prefixed string values)

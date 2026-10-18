@@ -28,6 +28,7 @@ export interface BackupData {
   jobRuns: Record<string, unknown>[]
   recommendationBatches: Record<string, unknown>[]
   recommendations: Record<string, unknown>[]
+  approvalRequests?: Record<string, unknown>[]
   playlists: Record<string, unknown>[]
   playlistTracks: Record<string, unknown>[]
   playlistExports?: Record<string, unknown>[]

@@ -193,6 +193,8 @@ export function encryptedChannelFieldsFor(type: string): readonly string[] {
 export function maskWebhookUrl(url: string): string {
   try {
     const u = new URL(url)
+    u.username = ''
+    u.password = ''
     const segments = u.pathname.split('/')
     for (let i = segments.length - 1; i >= 0; i--) {
       if (segments[i]) {

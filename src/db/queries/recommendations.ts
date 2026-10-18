@@ -4,6 +4,7 @@ import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
 import {
+  approvalRequests,
   artistBlocks,
   artistMetadata,
   artists,
@@ -73,6 +74,12 @@ export async function listRecommendations(
 
   const conditions = []
   if (status !== undefined) {
+    if (status === 'pending')
+      conditions.push(sql`NOT EXISTS (
+      SELECT 1 FROM ${approvalRequests}
+      WHERE ${approvalRequests.recommendationId} = ${recommendations.id}
+        AND ${approvalRequests.status} = 'pending'
+    )`)
     if (status.includes(',')) {
       const filtered = parseStatusFilter(status)
       if (filtered.length > 0) {

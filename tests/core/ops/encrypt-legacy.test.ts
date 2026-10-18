@@ -55,7 +55,19 @@ async function seed() {
     .values({
       username: 'legacy',
       passwordHash: 'x',
-      preferences: { fanartApiKey: 'plain-uf' } as never,
+      preferences: {
+        fanartApiKey: 'plain-uf',
+        channels: [
+          {
+            id: 'personal',
+            type: 'telegram',
+            enabled: true,
+            events: ['request_resolved'],
+            botToken: 'plain-personal-bot',
+            chatId: '1',
+          },
+        ],
+      } as never,
     })
     .returning()
   if (!user) throw new Error('fixture missing')
@@ -92,7 +104,7 @@ async function readAll() {
     preferences: Record<string, unknown> & { channels: Record<string, unknown>[] }
   }[]
   const [u] = (await db.execute('SELECT preferences FROM users LIMIT 1' as never)).rows as {
-    preferences: Record<string, unknown>
+    preferences: Record<string, unknown> & { channels: Record<string, unknown>[] }
   }[]
   const [t] = (await db.execute('SELECT config FROM targets LIMIT 1' as never)).rows as {
     config: Record<string, unknown>
@@ -101,6 +113,7 @@ async function readAll() {
   out['settings.webhook'] = s?.preferences.channels[0]?.url
   out['settings.bot'] = s?.preferences.channels[1]?.botToken
   out['users.fanart'] = u?.preferences.fanartApiKey
+  out['users.bot'] = u?.preferences.channels[0]?.botToken
   out['targets.apiKey'] = t?.config.apiKey
   return { out, scoreThreshold: s?.preferences.scoreThreshold, targetUrl: t?.config.url }
 }

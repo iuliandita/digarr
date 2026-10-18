@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
+import { requiresApprovalRequest } from '@/core/approvals/policy'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
@@ -95,6 +96,8 @@ export function pipelineRoutes(deps: AppDependencies) {
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       userId,
+      canApprove: async (score) =>
+        !requiresApprovalRequest(userId ? await deps.getUserById(userId) : null, score),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
       warmArtist: deps.skyhookWarmer

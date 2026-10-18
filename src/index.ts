@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { canAutoSetup, envConfig } from './config/env'
+import { requiresApprovalRequest } from './core/approvals/policy'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
@@ -675,6 +676,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     },
     getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
     userId,
+    canApprove: async (score) => !requiresApprovalRequest(await getUserById(db, userId), score),
     updateRecommendationStatus: (
       id: number,
       status: string,

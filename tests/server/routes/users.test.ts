@@ -498,3 +498,46 @@ describe('DELETE /api/v1/users/:id', () => {
     expect(res.status).toBe(404)
   })
 })
+
+describe('approval policy administration', () => {
+  it.each([true, false])(
+    'restricts policy updates to administrators (admin=%s)',
+    async (isAdmin) => {
+      const token = isAdmin ? await adminToken() : await regularToken()
+      const updateUser = vi.fn(async () => {})
+      const app = createApp(
+        makeDeps({
+          updateUser,
+          getUserById: vi.fn(async (id: number) => (id === 1 ? adminUser : regularUser)),
+        }),
+      )
+      const policy = { approvalPolicy: 'request_only', maxOpenRequests: 0, approvalThreshold: 0.85 }
+      const res = await app.request('/api/v1/users/2', {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify(policy),
+      })
+      expect(res.status).toBe(isAdmin ? 204 : 403)
+      if (isAdmin) expect(updateUser).toHaveBeenCalledWith(2, policy)
+      else expect(updateUser).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    { approvalPolicy: 'unknown' },
+    { maxOpenRequests: -1 },
+    { maxOpenRequests: 0.5 },
+    { approvalThreshold: 1.1 },
+  ])('rejects invalid admin policy %j', async (body) => {
+    const token = await adminToken()
+    const updateUser = vi.fn(async () => {})
+    const app = createApp(makeDeps({ updateUser }))
+    const res = await app.request('/api/v1/users/2', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    expect(res.status).toBe(400)
+    expect(updateUser).not.toHaveBeenCalled()
+  })
+})

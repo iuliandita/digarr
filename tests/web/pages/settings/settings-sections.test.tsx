@@ -25,6 +25,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
     listUsers: vi.fn(),
     updateTargetApi: vi.fn(),
     updateSettings: vi.fn(),
+    updatePersonalNotificationChannels: vi.fn().mockResolvedValue(undefined),
   }
 })
 
@@ -162,6 +163,36 @@ describe('NotificationChannelsCard', () => {
     expect(mocked.updateSettings.mock.calls[0]?.[0]?.preferences).toMatchObject({
       channels: [expect.objectContaining({ id: 'a', events: ['approval_failed'] })],
     })
+  })
+
+  it('lets a non-admin opt in to personal request outcomes without global controls', async () => {
+    renderWithQuery(
+      <NotificationChannelsCard
+        personal
+        isAdmin={false}
+        settings={{ preferences: { channels: [channels[0]] } } as never}
+        onSaved={() => {}}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    const event = screen.getByRole('checkbox', { name: 'Request resolved' })
+    expect(event).not.toBeChecked()
+    expect(screen.queryByRole('checkbox', { name: 'Approval failed' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Test' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Advanced' })).not.toBeInTheDocument()
+    fireEvent.click(event)
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mocked.updatePersonalNotificationChannels).toHaveBeenCalledWith([
+        expect.objectContaining({
+          id: 'a',
+          events: ['request_resolved'],
+          allowPrivateTarget: false,
+        }),
+      ]),
+    )
+    expect(mocked.updateSettings).not.toHaveBeenCalled()
   })
 
   it('reveals the type picker only after Add channel', () => {
