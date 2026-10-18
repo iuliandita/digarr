@@ -38,8 +38,6 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 ## Unreleased
 
 - Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
-## Unreleased
-
 - Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
 - Customizable dashboard (#995): account-saved card visibility, order, size, source-page switches, merged decision and listening views, and reset.
 
