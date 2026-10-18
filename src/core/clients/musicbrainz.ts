@@ -349,6 +349,8 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
           !group.id ||
           typeof group.title !== 'string' ||
           typeof group['primary-type'] !== 'string' ||
+          (group['first-release-date'] !== undefined &&
+            typeof group['first-release-date'] !== 'string') ||
           !Array.isArray(group['secondary-types']) ||
           !group['secondary-types'].every((type) => typeof type === 'string')
         )

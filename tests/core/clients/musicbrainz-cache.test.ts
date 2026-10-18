@@ -82,7 +82,7 @@ describe('shared release-group catalog cache', () => {
     expect(upstream).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['404', '503', 'timeout', 'partial', 'malformed'])(
+  it.each(['404', '503', 'timeout', 'partial', 'malformed', 'malformed date'])(
     'does not cache %s results',
     async (failure) => {
       const client = createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() })
@@ -103,7 +103,17 @@ describe('shared release-group catalog cache', () => {
         )
       }
       if (failure === 'malformed') upstream.mockResolvedValueOnce(new Response('{}'))
+      if (failure === 'malformed date')
+        upstream.mockResolvedValueOnce(
+          new Response(
+            JSON.stringify({
+              'release-groups': catalog.map((group) => ({ ...group, 'first-release-date': 42 })),
+            }),
+          ),
+        )
       if (failure === 'malformed') expect(await client.getReleaseGroups('artist')).toEqual([])
+      else if (failure === 'malformed date')
+        expect(await client.getReleaseGroups('artist')).toHaveLength(3)
       else {
         const assertion = expect(client.getReleaseGroups('artist')).rejects.toThrow()
         if (failure === '503' || failure === 'timeout') await vi.runAllTimersAsync()
