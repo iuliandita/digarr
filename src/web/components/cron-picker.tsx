@@ -1,7 +1,9 @@
 import { Cron } from 'croner'
 import { useState } from 'react'
+import type { SupportedLocale } from '@/core/i18n/locales'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { useI18n } from '../lib/i18n'
+import { formatDate } from '../lib/intl'
 
 type CronPickerProps = {
   value: string
@@ -22,12 +24,21 @@ export function describeCron(t: (key: MessageKey) => string, cron: string): stri
   return preset ? t(preset.labelKey) : cron
 }
 
+function presetTime(locale: SupportedLocale, cron: string): string {
+  const [minute, hour] = cron.split(' ').map(Number)
+  return formatDate(locale, new Date(2000, 0, 1, hour, minute), {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
 export function CronPicker({ value, onChange }: CronPickerProps) {
-  const { t } = useI18n()
+  const { t, locale } = useI18n()
   const [mode, setMode] = useState<'preset' | 'custom'>(
     PRESETS.some((p) => p.cron === value) ? 'preset' : 'custom',
   )
 
+  const preset = mode === 'preset' ? PRESETS.find((p) => p.cron === value) : undefined
   let valid = false
   try {
     new Cron(value, { maxRuns: 0 })
@@ -79,10 +90,11 @@ export function CronPicker({ value, onChange }: CronPickerProps) {
         </div>
       )}
 
-      <div className="text-xs text-muted">
-        {t('common.current')}:{' '}
-        <code className="bg-surface px-1 py-0.5 rounded">{value || t('common.none')}</code>
-      </div>
+      {preset && (
+        <p className="text-xs text-muted">
+          {t('cronPicker.runsAt').replace('{time}', presetTime(locale, preset.cron))}
+        </p>
+      )}
     </div>
   )
 }

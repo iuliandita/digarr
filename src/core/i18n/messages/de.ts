@@ -363,7 +363,6 @@ export const de = {
   'common.releaseToRefresh': 'Zum Aktualisieren loslassen',
   'common.schedule': 'Zeitplan',
   'common.searching': 'Suche...',
-  'common.current': 'Aktuell',
   'common.custom': 'Benutzerdefiniert',
   'common.all': 'Alle',
   'common.enabled': 'Aktiviert',
@@ -774,6 +773,7 @@ export const de = {
   'cronPicker.everyTwoWeeks': 'Alle 2 Wochen (1. + 15.)',
   'cronPicker.monthlyFirst': 'Monatlich (Tag 1)',
   'cronPicker.standardHint': 'Standard-Cron: Minute Stunde Tag-des-Monats Monat Wochentag',
+  'cronPicker.runsAt': 'Läuft um {time} Serverzeit',
   'analytics.statusCompleted': 'Abgeschlossen',
   'analytics.noBatchesYet':
     'Noch keine Chargen. Führe einen Scan durch, um Empfehlungen zu generieren.',

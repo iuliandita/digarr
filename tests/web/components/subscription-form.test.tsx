@@ -158,7 +158,9 @@ describe('SubscriptionForm discovery mode support', () => {
     } else {
       expect(screen.queryByRole('textbox', { name: 'Custom' })).toBeNull()
     }
-    expect(screen.getByText(cron, { selector: 'code' })).toBeInTheDocument()
+    expect(screen.queryByText(cron, { selector: 'code' })).toBeNull()
+    if (kind === 'custom') expect(screen.queryByText(/server time/)).toBeNull()
+    else expect(screen.getByText(/^Runs at 08:00( AM)? server time$/)).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Schedule' }))
 
     await waitFor(() =>

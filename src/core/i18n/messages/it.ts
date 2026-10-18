@@ -362,7 +362,6 @@ export const it = {
   'common.releaseToRefresh': 'Rilascia per aggiornare',
   'common.schedule': 'Programmazione',
   'common.searching': 'Ricerca in corso...',
-  'common.current': 'Attuale',
   'common.custom': 'Personalizzato',
   'common.all': 'Tutti',
   'common.enabled': 'Attivato',
@@ -770,6 +769,7 @@ export const it = {
   'cronPicker.monthlyFirst': 'Mensile (giorno 1)',
   'cronPicker.standardHint':
     'Cron standard: minuto ora giorno-del-mese mese giorno-della-settimana',
+  'cronPicker.runsAt': 'Viene eseguito alle {time}, ora del server',
   'analytics.statusCompleted': 'Completato',
   'analytics.noBatchesYet': 'Ancora nessun lotto. Esegui una scansione per generare consigli.',
   'analytics.recommendationsShort': 'rec',

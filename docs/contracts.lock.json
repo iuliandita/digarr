@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -220,7 +223,11 @@
       "digest": "4920756c18b171d00b751902b2d2d0070a8cc600859a9f448ccf8542dd26ebaf",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md"],
+        "docs": [
+          ".env.example",
+          "docs/AUTHENTICATION.md",
+          "docs/OPERATIONS.md"
+        ],
         "note": "Document optional LASTFM_SHARED_SECRET and its file variant, matching per-user API keys, encryption and public-origin prerequisites, restart and per-user consent.",
         "breaking": "none",
         "migration": "",
@@ -267,7 +274,11 @@
       "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/AUTHENTICATION.md",
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
         "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
         "breaking": "none",
         "migration": "",
@@ -336,7 +347,11 @@
       "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "src/server/helpers/openapi-doc.ts",
+          "CHANGELOG.md"
+        ],
         "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
         "breaking": "none",
         "migration": "",
@@ -351,24 +366,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "7f9bc8c5fdc8cac6ba6208ed3891eca73601086f2f2107718d180b852d0c14d5",
-        "src/core/i18n/messages/en.ts": "23cd82d5d05c7d1695426533d68917514e7b7e910982b2e22a5db40fdd7b1fe7",
-        "src/core/i18n/messages/es.ts": "3d59132875f595e9021330861d41b88261241076f2a8aefff358133a320feb35",
-        "src/core/i18n/messages/fr.ts": "a2fb6bf9aa856c36ee58de0265fa6f2053d412a6e72bc12e8edf6561e5d8533a",
+        "src/core/i18n/messages/de.ts": "9d43a97a911604d0cf7634db7d0d3402aa9bc32714a015aca9fe43fffdd7e05a",
+        "src/core/i18n/messages/en.ts": "ed71c2df4fb0d1e07ddf16fa9f3ed967cf0d6edbbb6075e78f6e32a47a29c582",
+        "src/core/i18n/messages/es.ts": "17dede53a4c946b83300df777d19736378d6a1ca11c15a12da08480d3f376f3c",
+        "src/core/i18n/messages/fr.ts": "d72dbee5ded58d7ee106e87edbed96a55e18ccd2cc401cf5ce471a623d4ee848",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "4b67b705da16832e2d4947c30d64a91b425fac13efa076259f6dee0296b8832d",
-        "src/core/i18n/messages/ja.ts": "f49f5dbb79f131a0e14e656cfe424a327817916a7d05a8c2b07bae958467f404",
-        "src/core/i18n/messages/ko.ts": "b35b26dc46fbb4fe686deff1c61c4ca2b2345eed3558e32fd6f81865f6ba4731",
-        "src/core/i18n/messages/nl.ts": "d5cdf3e1595da1f6947a636e4e709c2e25ffc2e798aad11751fc0249f5c92a04",
-        "src/core/i18n/messages/pl.ts": "18dc93d9f83bd52c83e2aed488fa5b99f36099b06393e7a0f98d7a8f561a01bd",
-        "src/core/i18n/messages/pt-BR.ts": "5bd431e762fe8fe0bdb75f8e44830a28d14652c8a3189a0623a38fce25bd7b9e",
-        "src/core/i18n/messages/ro.ts": "30dc4b2e5ddb5dce549cdcf8334d36c976d84d531a3abf52b8bd43649e14eaf2",
-        "src/core/i18n/messages/ru.ts": "acca59e5dd4a58ac8bb0bb616ca048a4a9a2f07196a037e907d205cab45e25e4",
-        "src/core/i18n/messages/source-lock.json": "eb68202d0af10bce3da629bedfb5487fe9df534e6a2a90109bacefe259baab39",
-        "src/core/i18n/messages/tr.ts": "e3407008ee480955d8e47ffc912649adb6a92b007414edc7dade68a3e3a3b5d0",
+        "src/core/i18n/messages/it.ts": "92782db4f268f39b963a1fe7f365cb2f55891a089067a15686223151a05d3cda",
+        "src/core/i18n/messages/ja.ts": "27b56243e17cb403842f10bb4dde59644e4b4107fb20f7e974d81717d9c6da47",
+        "src/core/i18n/messages/ko.ts": "b2803837cda5c6ee2877e036bcef81b9efe32e4863039bcc60113e756e2ba22c",
+        "src/core/i18n/messages/nl.ts": "6f71a76d3db87c0ca99bff833e4744d7be1070623d6975c9ff4058f9f9a9a403",
+        "src/core/i18n/messages/pl.ts": "6508ed0cf8476987c2c75cc4515f267e9c66751e43255ea429a47e9360d9c1dd",
+        "src/core/i18n/messages/pt-BR.ts": "efec206698e707cca0f16a90a7a07c692740d3bbab20e542161510ddd94ffc01",
+        "src/core/i18n/messages/ro.ts": "57a0fafbb5e2ea8236e392b124ec3188ac41aa936a9738f06915742577d21243",
+        "src/core/i18n/messages/ru.ts": "935448e896d989a1dcf8bded983d2514f829b125e9f4cc72b3928cc653949600",
+        "src/core/i18n/messages/source-lock.json": "e9523f30bf14da79c005b7101cab1778e58ff044c65f03f80016926f43270a80",
+        "src/core/i18n/messages/tr.ts": "58e001c28b5836739f0d272c5fefbcae6240e3c4147903a2cb847b8580980de0",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "875120648a56f382f159e10a43243eabc110545cd89094fe7b82a9b9fdc1275f",
-        "src/core/i18n/messages/zh-CN.ts": "26db86e506131c1d8d0ef953440d1e20a4a509a15b963653a088bf48661efa44",
+        "src/core/i18n/messages/uk.ts": "fd380d6804cf692aa548a030dafe18827bbe7a799aa2e1f415ebbe35bd56341d",
+        "src/core/i18n/messages/zh-CN.ts": "a66d7ccb50ce03385d743a97673ad4eb543aa119c64a4eaf652b79feb220f61f",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -390,7 +405,7 @@
         "src/web/components/bottom-nav.tsx": "66ef43a9dde69c425a1c1745e55869e57738984b620657f53c1dad80f6c8941b",
         "src/web/components/card-stack.tsx": "7354e27d1f9f2cc85977d5603f42d15679bc20faabebeeb2c06d09f60743704e",
         "src/web/components/confirm-dialog.tsx": "2b4b5ffb3316c6f78977953384a793d0b1f72d10a85a598480cb9d149de54e61",
-        "src/web/components/cron-picker.tsx": "da94e650b8d0a12e0361237a6a93336ff30e6620a3a10621951f9a80f6927455",
+        "src/web/components/cron-picker.tsx": "e270427b67aaa6e721dd8c290cd04e3f2c250b02f805ef03b3849b84378b6c04",
         "src/web/components/dashboard-card-toggle.tsx": "942a1102a39680daa17ffa421b0e72e0d56570348543aec283ec0e767070c56a",
         "src/web/components/dashboard-customize.tsx": "be4330c0078b5ad339a568bf0a72a26492e82109af863adfb060bad273cfa267",
         "src/web/components/discover-tabs.tsx": "87e40802ee861172e82c747002f33b660de28a2eead2ff9ff0fa4e76fea24c19",
@@ -526,14 +541,16 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "db0c454ccd38ae02bc4905dbb953262245faf8e61690ec846d1b9c86294d0078",
+      "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Describe policy controls, admin queue errors with retry or decline, requester history, personal notification subscriptions and fifteen-locale waiting and cooldown messages. Existing screenshots predate these controls.",
+        "docs": [
+          "CHANGELOG.md"
+        ],
+        "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
         "breaking": "none",
         "migration": "",
-        "digest": "db0c454ccd38ae02bc4905dbb953262245faf8e61690ec846d1b9c86294d0078"
+        "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d"
       }
     },
     "features": {
@@ -753,7 +770,11 @@
       "digest": "f15b7f0d0dab507ba5af535818779ea83b0169f49f01585499dcd4de17dd4426",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "README.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Describe shared approval enforcement with unchanged direct defaults, cached policy per approval request or pipeline run, personal localized outcomes, synthetic album cleanup and the 24-hour decline cooldown.",
         "breaking": "none",
         "migration": "",
@@ -800,7 +821,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",
@@ -828,7 +852,9 @@
       "digest": "5cfb4d0c95a172a832974bbca65d1638836424e2d8f0db0834cfca4b10b45bcb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Single-PR release flow, dispatched CI for the digest-sync PR, Debian build check, verify-digest-sync removed; procedure documented in docs/MAINTENANCE.md and the changelog.",
         "breaking": "none",
         "migration": "",

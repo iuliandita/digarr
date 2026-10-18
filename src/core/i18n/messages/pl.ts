@@ -363,7 +363,6 @@ export const pl = {
   'common.releaseToRefresh': 'Puść, aby odświeżyć',
   'common.schedule': 'Harmonogram',
   'common.searching': 'Wyszukiwanie...',
-  'common.current': 'Bieżący',
   'common.custom': 'Niestandardowy',
   'common.all': 'Wszystko',
   'common.enabled': 'Włączone',
@@ -766,6 +765,7 @@ export const pl = {
   'cronPicker.monthlyFirst': 'Co miesiąc (1. dzień)',
   'cronPicker.standardHint':
     'Standardowy cron: minuta godzina dzień-miesiąca miesiąc dzień-tygodnia',
+  'cronPicker.runsAt': 'Uruchamia się o {time} czasu serwera',
   'analytics.statusCompleted': 'Ukończono',
   'analytics.noBatchesYet':
     'Nie ma jeszcze partii. Uruchom skanowanie, aby wygenerować rekomendacje.',

@@ -365,7 +365,6 @@ export const fr = {
   'common.releaseToRefresh': 'Relâche pour actualiser',
   'common.schedule': 'Planification',
   'common.searching': 'Recherche...',
-  'common.current': 'Actuel',
   'common.custom': 'Personnalise',
   'common.all': 'Tout',
   'common.enabled': 'Active',
@@ -768,6 +767,7 @@ export const fr = {
   'cronPicker.everyTwoWeeks': 'Toutes les 2 semaines (1 et 15)',
   'cronPicker.monthlyFirst': 'Chaque mois (jour 1)',
   'cronPicker.standardHint': 'Cron standard : minute heure jour-du-mois mois jour-de-la-semaine',
+  'cronPicker.runsAt': 'Lancement à {time} (heure du serveur)',
   'analytics.statusCompleted': 'Terminé',
   'analytics.noBatchesYet':
     "Aucun lot pour l'instant. Exécute une analyse pour générer des recommandations.",
