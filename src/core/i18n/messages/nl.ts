@@ -459,6 +459,12 @@ export const nl = {
   'discover.rejectAllBelow': 'Alles hieronder afwijzen',
   'discover.auditionAll': 'Beluisteren',
   'discover.nothingToAudition': 'Geen openstaande aanbevelingen',
+  'discover.playability.summary':
+    '{count} van {total} openstaande artiesten hadden geen afspeelbaar nummer in je laatste Voorbeluisteren-playlists',
+  'discover.playability.missingSource': 'Geen nummerbron ingesteld: {count}',
+  'discover.playability.noMatch': 'Geen overeenkomend nummer: {count}',
+  'discover.playability.upstreamFailure': 'Opzoeken mislukt: {count}',
+  'discover.playability.unknown': 'Nog niet gecontroleerd: {count}',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':
     'Alle openstaande aanbevelingen afwijzen? Dit kan niet ongedaan worden gemaakt.',

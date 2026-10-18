@@ -461,6 +461,12 @@ export const es = {
   'discover.rejectAllBelow': 'Rechazar todo por debajo',
   'discover.auditionAll': 'Preescuchar',
   'discover.nothingToAudition': 'No hay recomendaciones pendientes',
+  'discover.playability.summary':
+    '{count} de {total} artistas pendientes no tuvieron una pista reproducible en tus últimas listas de Escucha previa',
+  'discover.playability.missingSource': 'Sin fuente de pistas configurada: {count}',
+  'discover.playability.noMatch': 'Sin pista coincidente: {count}',
+  'discover.playability.upstreamFailure': 'Falló la búsqueda: {count}',
+  'discover.playability.unknown': 'Aún sin comprobar: {count}',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
     '¿Rechazar todas las recomendaciones pendientes? Esto no se puede deshacer.',

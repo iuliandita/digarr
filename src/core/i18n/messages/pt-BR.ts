@@ -458,6 +458,12 @@ export const ptBR = {
   'discover.rejectAllBelow': 'Rejeitar tudo abaixo',
   'discover.auditionAll': 'Ouvir prévias',
   'discover.nothingToAudition': 'Nenhuma recomendação pendente',
+  'discover.playability.summary':
+    '{count} de {total} artistas pendentes não tiveram faixa reproduzível nas suas últimas playlists de Prévia musical',
+  'discover.playability.missingSource': 'Nenhuma fonte de faixas configurada: {count}',
+  'discover.playability.noMatch': 'Nenhuma faixa correspondente: {count}',
+  'discover.playability.upstreamFailure': 'Falha na busca: {count}',
+  'discover.playability.unknown': 'Ainda não verificado: {count}',
   'discover.rejectAllPending': 'Rejeitar todas as pendências',
   'discover.rejectAllPendingMessage':
     'Rejeitar todas as recomendações pendentes? Isto não pode ser desfeito.',

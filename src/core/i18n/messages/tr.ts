@@ -452,6 +452,12 @@ export const tr = {
   'discover.rejectAllBelow': 'Aşağıdakilerin Tümünü Reddet',
   'discover.auditionAll': 'Dinle',
   'discover.nothingToAudition': 'Bekleyen öneri yok',
+  'discover.playability.summary':
+    'Bekleyen {total} sanatçıdan {count} tanesinin son Ön Dinleme çalma listelerinde çalınabilir parçası yoktu',
+  'discover.playability.missingSource': 'Parça kaynağı ayarlanmadı: {count}',
+  'discover.playability.noMatch': 'Eşleşen parça yok: {count}',
+  'discover.playability.upstreamFailure': 'Arama başarısız: {count}',
+  'discover.playability.unknown': 'Henüz kontrol edilmedi: {count}',
   'discover.rejectAllPending': 'Bekleyenlerin tümünü reddet',
   'discover.rejectAllPendingMessage': 'Bekleyen tüm öneriler reddedilsin mi? Bu geri alınamaz.',
   'discover.rejectFailed': 'Reddedilemedi',

@@ -449,6 +449,12 @@ export const en = {
   'discover.rejectAllBelow': 'Reject All Below',
   'discover.auditionAll': 'Audition',
   'discover.nothingToAudition': 'No pending recommendations',
+  'discover.playability.summary':
+    '{count} of {total} pending artists had no playable track in your latest Audition playlist runs',
+  'discover.playability.missingSource': 'No track source set up: {count}',
+  'discover.playability.noMatch': 'No matching track: {count}',
+  'discover.playability.upstreamFailure': 'Lookup failed: {count}',
+  'discover.playability.unknown': 'Not checked yet: {count}',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',

@@ -21,12 +21,12 @@ import {
   ApprovalRequestLimitError,
   approvalRequestQueries,
 } from '@/db/queries/approval-requests'
-import { getOwnedAuditionTrack } from '@/db/queries/playlists'
+import { getOwnedAuditionTrack, getPendingPlayability } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
-import { requireSessionUser } from '@/server/helpers/require-user'
+import { requireSessionUser, requireUser } from '@/server/helpers/require-user'
 import {
   bulkRecommendationSchema,
   listRecommendationsQuerySchema,
@@ -819,6 +819,12 @@ function createRecommendationRoutes(
       .slice(0, 20)
 
     return c.json({ summary })
+  })
+
+  router.get('/api/v1/recommendations/playability', async (c) => {
+    const auth = requireUser(c)
+    if (!auth.ok) return auth.response
+    return c.json(await getPendingPlayability(deps.db, auth.userId))
   })
 
   // Backs the approve menu's "Popular albums" gating: true when at least one

@@ -1050,6 +1050,19 @@ export async function getPopularAlbumsAvailability(): Promise<{
   return fetchApi('/recommendations/popular-albums/availability')
 }
 
+export type PendingPlayability = {
+  pendingArtists: number
+  withTrack: number
+  withoutTrack: number
+  reasons: { missingSource: number; noMatch: number; upstreamFailure: number }
+  unknown: number
+  checkedAt: string | null
+}
+
+export async function getPendingPlayability(): Promise<PendingPlayability> {
+  return fetchApi('/recommendations/playability')
+}
+
 // Subscriptions
 export type Subscription = {
   id: number

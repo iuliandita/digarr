@@ -456,6 +456,12 @@ export const ru = {
   'discover.rejectAllBelow': 'Отклонить все ниже',
   'discover.auditionAll': 'Прослушать',
   'discover.nothingToAudition': 'Нет ожидающих рекомендаций',
+  'discover.playability.summary':
+    'У {count} из {total} ожидающих артистов не нашлось воспроизводимого трека в твоих последних плейлистах Прослушивание',
+  'discover.playability.missingSource': 'Источник треков не настроен: {count}',
+  'discover.playability.noMatch': 'Подходящий трек не найден: {count}',
+  'discover.playability.upstreamFailure': 'Ошибка поиска: {count}',
+  'discover.playability.unknown': 'Ещё не проверено: {count}',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
     'Отклонить все ожидающие рекомендации? Это невозможно отменить.',

@@ -1,7 +1,8 @@
 import { and, asc, desc, eq, isNotNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
+import { playlistResolution } from '@/db/queries/jobs'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
-import { artists, playlists, playlistTracks } from '@/db/schema'
+import { artists, jobRuns, playlists, playlistTracks, recommendations } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 export type PlaylistInsert = {
@@ -70,6 +71,87 @@ export async function getOwnedAuditionTrack(
     )
     .limit(1)
   return track ?? null
+}
+
+export type PendingPlayability = {
+  pendingArtists: number
+  withTrack: number
+  withoutTrack: number
+  reasons: { missingSource: number; noMatch: number; upstreamFailure: number }
+  unknown: number
+  checkedAt: string | null
+}
+
+const PLAYABILITY_RUN_LIMIT = 20
+
+/**
+ * Classifies pending artists from outcomes already persisted by Audition playlist
+ * runs; artists no run has resolved yet are counted as unknown, never as missing.
+ */
+export async function getPendingPlayability(
+  db: Database,
+  userId: number,
+): Promise<PendingPlayability> {
+  const [pending, runs] = await Promise.all([
+    db
+      .selectDistinct({ mbid: artists.mbid })
+      .from(recommendations)
+      .innerJoin(artists, eq(artists.id, recommendations.artistId))
+      .where(and(eq(recommendations.status, 'pending'), eq(recommendations.userId, userId))),
+    db
+      .select({
+        startedAt: jobRuns.startedAt,
+        resolution: sql<unknown>`${jobRuns.metadata}->'playlistResolution'`,
+      })
+      .from(jobRuns)
+      .innerJoin(playlists, sql`${jobRuns.metadata}->>'playlistId' = ${playlists.id}::text`)
+      .where(
+        and(
+          eq(jobRuns.type, 'playlist'),
+          eq(jobRuns.userId, userId),
+          eq(playlists.userId, userId),
+          eq(playlists.strategy, 'audition'),
+        ),
+      )
+      .orderBy(desc(jobRuns.startedAt), desc(jobRuns.id))
+      .limit(PLAYABILITY_RUN_LIMIT),
+  ])
+
+  const latest = new Map<string, { status: string; startedAt: Date }>()
+  for (const run of runs) {
+    for (const outcome of playlistResolution(run.resolution)?.outcomes ?? []) {
+      if (outcome.artistMbid && !latest.has(outcome.artistMbid)) {
+        latest.set(outcome.artistMbid, { status: outcome.status, startedAt: run.startedAt })
+      }
+    }
+  }
+
+  const summary: PendingPlayability = {
+    pendingArtists: pending.length,
+    withTrack: 0,
+    withoutTrack: 0,
+    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+    unknown: 0,
+    checkedAt: null,
+  }
+  let checkedAt: Date | null = null
+  for (const { mbid } of pending) {
+    const outcome = latest.get(mbid)
+    if (!outcome) {
+      summary.unknown++
+      continue
+    }
+    if (!checkedAt || outcome.startedAt > checkedAt) checkedAt = outcome.startedAt
+    if (outcome.status === 'resolved' || outcome.status === 'limited') summary.withTrack++
+    else {
+      summary.withoutTrack++
+      if (outcome.status === 'unavailable') summary.reasons.missingSource++
+      else if (outcome.status === 'unmatched') summary.reasons.noMatch++
+      else summary.reasons.upstreamFailure++
+    }
+  }
+  summary.checkedAt = checkedAt?.toISOString() ?? null
+  return summary
 }
 
 export async function createPlaylist(db: Database, data: PlaylistInsert): Promise<{ id: number }> {

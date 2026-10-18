@@ -418,6 +418,12 @@ export const zhCN = {
   'discover.rejectAllBelow': '拒绝以下所有内容',
   'discover.auditionAll': '试听',
   'discover.nothingToAudition': '没有待处理的推荐',
+  'discover.playability.summary':
+    '在最近的试听播放列表中，{total} 位待处理艺人中有 {count} 位没有可播放的曲目',
+  'discover.playability.missingSource': '未设置曲目来源：{count}',
+  'discover.playability.noMatch': '没有匹配的曲目：{count}',
+  'discover.playability.upstreamFailure': '查找失败：{count}',
+  'discover.playability.unknown': '尚未检查：{count}',
   'discover.rejectAllPending': '拒绝所有待处理的',
   'discover.rejectAllPendingMessage': '拒绝所有待处理的建议？此操作无法撤消。',
   'discover.rejectFailed': '拒绝失败',

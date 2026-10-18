@@ -454,6 +454,12 @@ export const uk = {
   'discover.rejectAllBelow': 'Відхилити всі нижче',
   'discover.auditionAll': 'Прослухати',
   'discover.nothingToAudition': 'Немає рекомендацій в очікуванні',
+  'discover.playability.summary':
+    'У {count} з {total} артистів в очікуванні не знайшлося треку для відтворення у твоїх останніх плейлистах Прослуховування',
+  'discover.playability.missingSource': 'Джерело треків не налаштовано: {count}',
+  'discover.playability.noMatch': 'Відповідного треку немає: {count}',
+  'discover.playability.upstreamFailure': 'Помилка пошуку: {count}',
+  'discover.playability.unknown': 'Ще не перевірено: {count}',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':
     'Відхилити всі очікувані рекомендації? Це неможливо скасувати.',

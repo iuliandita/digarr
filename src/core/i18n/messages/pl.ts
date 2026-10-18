@@ -458,6 +458,12 @@ export const pl = {
   'discover.rejectAllBelow': 'Odrzuć wszystko poniżej',
   'discover.auditionAll': 'Odsłuchaj',
   'discover.nothingToAudition': 'Brak oczekujących rekomendacji',
+  'discover.playability.summary':
+    '{count} z {total} oczekujących wykonawców nie miało odtwarzalnego utworu w twoich ostatnich playlistach Odsłuch',
+  'discover.playability.missingSource': 'Brak skonfigurowanego źródła utworów: {count}',
+  'discover.playability.noMatch': 'Brak pasującego utworu: {count}',
+  'discover.playability.upstreamFailure': 'Wyszukiwanie nie powiodło się: {count}',
+  'discover.playability.unknown': 'Jeszcze niesprawdzone: {count}',
   'discover.rejectAllPending': 'Odrzuć wszystkie oczekujące',
   'discover.rejectAllPendingMessage':
     'Odrzucić wszystkie oczekujące rekomendacje? Tego nie można cofnąć.',

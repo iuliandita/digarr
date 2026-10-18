@@ -458,6 +458,12 @@ export const it = {
   'discover.rejectAllBelow': 'Rifiuta tutto sotto',
   'discover.auditionAll': 'Preascolto',
   'discover.nothingToAudition': 'Nessuna raccomandazione in sospeso',
+  'discover.playability.summary':
+    '{count} di {total} artisti in sospeso non avevano un brano riproducibile nelle tue ultime playlist di Ascolto di prova',
+  'discover.playability.missingSource': 'Nessuna fonte di brani configurata: {count}',
+  'discover.playability.noMatch': 'Nessun brano corrispondente: {count}',
+  'discover.playability.upstreamFailure': 'Ricerca non riuscita: {count}',
+  'discover.playability.unknown': 'Non ancora controllato: {count}',
   'discover.rejectAllPending': 'Rifiuta tutto in sospeso',
   'discover.rejectAllPendingMessage':
     'Rifiutare tutti i consigli in sospeso? Questa operazione non può essere annullata.',

@@ -446,6 +446,12 @@ export const ko = {
   'discover.rejectAllBelow': '아래 모두 거부',
   'discover.auditionAll': '연속 미리듣기',
   'discover.nothingToAudition': '대기 중인 추천이 없습니다',
+  'discover.playability.summary':
+    '최근 미리 듣기 재생목록에서 대기 중인 아티스트 {total}명 중 {count}명은 재생할 수 있는 곡이 없었습니다',
+  'discover.playability.missingSource': '곡 소스가 설정되지 않음: {count}',
+  'discover.playability.noMatch': '일치하는 곡 없음: {count}',
+  'discover.playability.upstreamFailure': '검색 실패: {count}',
+  'discover.playability.unknown': '아직 확인되지 않음: {count}',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
     '대기 중인 추천을 모두 거부하시겠습니까? 이 작업은 취소할 수 없습니다.',

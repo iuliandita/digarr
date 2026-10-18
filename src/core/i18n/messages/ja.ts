@@ -452,6 +452,12 @@ export const ja = {
   'discover.rejectAllBelow': '下記をすべて拒否',
   'discover.auditionAll': '試聴',
   'discover.nothingToAudition': '保留中のおすすめはありません',
+  'discover.playability.summary':
+    '最近の試聴プレイリストで、保留中のアーティスト {total} 件中 {count} 件に再生できる曲がありませんでした',
+  'discover.playability.missingSource': '曲のソースが未設定: {count}',
+  'discover.playability.noMatch': '一致する曲なし: {count}',
+  'discover.playability.upstreamFailure': '検索に失敗: {count}',
+  'discover.playability.unknown': '未確認: {count}',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':
     '保留中の推奨事項をすべて拒否しますか?これを元に戻すことはできません。',

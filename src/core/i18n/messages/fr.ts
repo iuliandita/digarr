@@ -461,6 +461,12 @@ export const fr = {
   'discover.rejectAllBelow': 'Tout rejeter en dessous',
   'discover.auditionAll': 'Pré-écouter',
   'discover.nothingToAudition': 'Aucune recommandation en attente',
+  'discover.playability.summary':
+    '{count} artistes en attente sur {total} sont restés sans titre lisible dans tes dernières playlists Préécoute',
+  'discover.playability.missingSource': 'Aucune source de titres configurée : {count}',
+  'discover.playability.noMatch': 'Aucun titre correspondant : {count}',
+  'discover.playability.upstreamFailure': 'Échec de la recherche : {count}',
+  'discover.playability.unknown': 'Pas encore vérifié : {count}',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':
     'Rejeter toutes les recommandations en attente ? Cela ne peut pas être annulé.',

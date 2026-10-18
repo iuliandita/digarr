@@ -458,6 +458,12 @@ export const de = {
   'discover.rejectAllBelow': 'Alle darunter ablehnen',
   'discover.auditionAll': 'Probehören',
   'discover.nothingToAudition': 'Keine ausstehenden Empfehlungen',
+  'discover.playability.summary':
+    '{count} von {total} ausstehenden Künstlern hatten in deinen letzten Probehören-Playlist-Läufen keinen abspielbaren Titel',
+  'discover.playability.missingSource': 'Keine Titelquelle eingerichtet: {count}',
+  'discover.playability.noMatch': 'Kein passender Titel: {count}',
+  'discover.playability.upstreamFailure': 'Suche fehlgeschlagen: {count}',
+  'discover.playability.unknown': 'Noch nicht geprüft: {count}',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',

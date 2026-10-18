@@ -457,6 +457,12 @@ export const ro = {
   'discover.rejectAllBelow': 'Respinge tot ce este mai jos',
   'discover.auditionAll': 'Audiție',
   'discover.nothingToAudition': 'Nu există recomandări în așteptare',
+  'discover.playability.summary':
+    '{count} din {total} artiști în așteptare nu au avut nicio piesă redabilă în ultimele tale playlisturi Audiție',
+  'discover.playability.missingSource': 'Nicio sursă de piese configurată: {count}',
+  'discover.playability.noMatch': 'Nicio piesă potrivită: {count}',
+  'discover.playability.upstreamFailure': 'Căutarea a eșuat: {count}',
+  'discover.playability.unknown': 'Neverificat încă: {count}',
   'discover.rejectAllPending': 'Respinge toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':
     'Respinge toate recomandările în așteptare? Acest lucru nu poate fi anulat.',

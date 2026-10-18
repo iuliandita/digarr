@@ -88,7 +88,7 @@ export type PlaylistGeneration = {
   resolution: PlaylistGenerationSummary | null
 }
 
-function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
+export function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
   if (!value || typeof value !== 'object') return null
   const summary = value as Record<string, unknown>
   const validCount = (count: unknown): count is number =>

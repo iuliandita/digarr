@@ -68,6 +68,14 @@ vi.mock('@/web/lib/api', () => ({
   deleteArtistBlock: vi.fn(),
   getWarmStatuses: vi.fn(),
   getPopularAlbums: vi.fn(),
+  getPendingPlayability: vi.fn().mockResolvedValue({
+    pendingArtists: 0,
+    withTrack: 0,
+    withoutTrack: 0,
+    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+    unknown: 0,
+    checkedAt: null,
+  }),
   getPopularAlbumsAvailability: vi
     .fn()
     .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
@@ -96,6 +104,7 @@ import {
   deleteArtistBlock,
   getAuthStatus,
   getCurrentUser,
+  getPendingPlayability,
   getRecommendations,
   getUserPreferences,
   getWarmStatuses,
@@ -286,6 +295,29 @@ describe('DiscoverPage', () => {
     })
 
     expect(screen.getByText('78%')).toBeInTheDocument()
+  })
+
+  it('summarizes pending artists without a playable track by reason', async () => {
+    setupMockApi()
+    vi.mocked(getPendingPlayability).mockResolvedValueOnce({
+      pendingArtists: 5,
+      withTrack: 1,
+      withoutTrack: 3,
+      reasons: { missingSource: 1, noMatch: 2, upstreamFailure: 0 },
+      unknown: 1,
+      checkedAt: '2026-10-02T00:00:00.000Z',
+    })
+    renderWithQuery(<DiscoverPage />)
+
+    expect(
+      await screen.findByText(
+        '3 of 5 pending artists had no playable track in your latest Audition playlist runs',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No track source set up: 1')).toBeInTheDocument()
+    expect(screen.getByText('No matching track: 2')).toBeInTheDocument()
+    expect(screen.getByText('Not checked yet: 1')).toBeInTheDocument()
+    expect(screen.queryByText(/Lookup failed/)).not.toBeInTheDocument()
   })
 
   it('keeps the recommendation workspace free of discovery mode cards', async () => {

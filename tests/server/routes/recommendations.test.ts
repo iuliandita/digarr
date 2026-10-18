@@ -23,7 +23,10 @@ vi.mock('@/core/clients/lastfm', () => ({
   createLastFmClient: vi.fn(),
 }))
 
-vi.mock('@/db/queries/playlists', () => ({ getOwnedAuditionTrack: vi.fn(async () => null) }))
+vi.mock('@/db/queries/playlists', () => ({
+  getOwnedAuditionTrack: vi.fn(async () => null),
+  getPendingPlayability: vi.fn(),
+}))
 
 vi.mock('@/db/queries/users', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/db/queries/users')>()),
@@ -53,7 +56,7 @@ vi.mock('@/core/sessions', () => ({
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createSpotifyClient } from '@/core/clients/spotify'
-import { getOwnedAuditionTrack } from '@/db/queries/playlists'
+import { getOwnedAuditionTrack, getPendingPlayability } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 
 function makeMockOrchestrator() {
@@ -1350,6 +1353,25 @@ describe('GET /api/v1/recommendations/feedback-summary', () => {
     const app = createApp(makeDeps({ getFeedbackHistory }))
     await authedRequest(app, '/api/v1/recommendations/feedback-summary')
     expect(getFeedbackHistory).toHaveBeenCalledWith(1)
+  })
+})
+
+describe('GET /api/v1/recommendations/playability', () => {
+  it('returns the persisted playability summary for the current user', async () => {
+    const summary = {
+      pendingArtists: 3,
+      withTrack: 1,
+      withoutTrack: 1,
+      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0 },
+      unknown: 1,
+      checkedAt: '2026-10-02T00:00:00.000Z',
+    }
+    vi.mocked(getPendingPlayability).mockResolvedValueOnce(summary)
+    const deps = makeDeps()
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/playability')
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual(summary)
+    expect(getPendingPlayability).toHaveBeenCalledWith(deps.db, 1)
   })
 })
 
