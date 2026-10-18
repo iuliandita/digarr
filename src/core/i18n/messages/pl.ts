@@ -1,4 +1,10 @@
 export const pl = {
+  'tokens.mcpTitle': 'Konfiguracja klienta MCP',
+  'tokens.mcpDescription':
+    'Wklej ten JSON do klienta MCP obsługującego zdalne serwery i nagłówki autoryzacji. Przechowuj go bezpiecznie - zawiera twój token.',
+  'tokens.mcpCopy': 'Kopiuj konfigurację',
+  'tokens.mcpCopied': 'Konfiguracja skopiowana',
+  'tokens.mcpCopyFailed': 'Nie udało się skopiować. Zaznacz konfigurację i skopiuj ją ręcznie.',
   'settings.slskdSearchInterval':
     'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
   'settings.slskdPathUnavailable':

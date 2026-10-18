@@ -1,4 +1,10 @@
 export const zhCN = {
+  'tokens.mcpTitle': 'MCP 客户端配置',
+  'tokens.mcpDescription':
+    '请将此 JSON 粘贴到支持远程服务器和授权请求头的 MCP 客户端中。其中包含你的令牌，请妥善保管。',
+  'tokens.mcpCopy': '复制配置',
+  'tokens.mcpCopied': '配置已复制',
+  'tokens.mcpCopyFailed': '无法复制。请选择配置并手动复制。',
   'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
   'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
   'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
