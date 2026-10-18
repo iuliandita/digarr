@@ -13,6 +13,7 @@ import { cn, hueFromName } from '../lib/utils'
 import { ArtistEnrichmentPanel } from './artist-enrichment-panel'
 import { ArtistThumb } from './artist-thumb'
 import { LibraryAlbumCoverageBadge } from './library-album-coverage-badge'
+import { MissingAlbumsDialog } from './missing-albums-dialog'
 import { StreamingLinks } from './streaming-links'
 import { Button } from './ui/button'
 
@@ -640,6 +641,7 @@ export function RecommendationCard({
 }: RecommendationCardProps) {
   const { t } = useI18n()
   const preview = usePreviewContext()
+  const [missingAlbumsOpen, setMissingAlbumsOpen] = useState(false)
   const pct = `${Math.round(rec.score * 100)}%`
   const isPending = rec.status === 'pending' || rec.status === 'approved'
   const isActed = rec.status !== 'pending'
@@ -803,7 +805,24 @@ export function RecommendationCard({
             <GenrePills genres={rec.artist.genres} max={expanded ? 8 : 2} compact={!expanded} />
           </div>
 
-          {rec.artist.mbid && <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />}
+          {rec.artist.mbid && (
+            <div className="flex flex-wrap items-center gap-2">
+              <LibraryAlbumCoverageBadge artistMbid={rec.artist.mbid} />
+              {!bulkMode && (expanded || rec.kind === 'album' || isApproved) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={(event) => {
+                    event.stopPropagation()
+                    event.currentTarget.focus()
+                    setMissingAlbumsOpen(true)
+                  }}
+                >
+                  {t('missingAlbums.action')}
+                </Button>
+              )}
+            </div>
+          )}
 
           {isActed && !expanded && (
             <StatusBadge
@@ -1023,6 +1042,13 @@ export function RecommendationCard({
           </div>
         )}
       </div>
+      <MissingAlbumsDialog
+        open={missingAlbumsOpen}
+        onClose={() => setMissingAlbumsOpen(false)}
+        artistId={rec.artist.id}
+        artistMbid={rec.artist.mbid}
+        artistName={rec.artist.name}
+      />
     </div>
   )
 }
