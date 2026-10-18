@@ -428,20 +428,31 @@ export function DiscoverPage() {
     queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
   }, [queryClient])
 
+  // Grid/list pages refill from the server so a row sliding into the gap is
+  // never skipped by the next page; the stack adjusts its offsets instead.
+  const activePageKeyRef = useRef<readonly unknown[] | null>(null)
+  const settle = useCallback(
+    (approval = false) => {
+      settleAfterAction(queryClient, { approval })
+      if (activePageKeyRef.current)
+        void queryClient.refetchQueries({ queryKey: activePageKeyRef.current, exact: true })
+    },
+    [queryClient],
+  )
   const applyOutcome = useCallback(
     (id: number, status: string, approval = false) => {
       const change = applyStatusChange(queryClient, id, status)
-      settleAfterAction(queryClient, { approval })
+      settle(approval)
       return change
     },
-    [queryClient],
+    [queryClient, settle],
   )
   const applyOutcomes = useCallback(
     (entries: Array<{ id: number; status: string }>, approval = false) => {
       for (const { id, status } of entries) applyStatusChange(queryClient, id, status)
-      settleAfterAction(queryClient, { approval })
+      settle(approval)
     },
-    [queryClient],
+    [queryClient, settle],
   )
 
   const {
@@ -504,8 +515,10 @@ export function DiscoverPage() {
   }
   const isStack = viewMode === 'stack'
 
+  const pagedKey = ['recommendations', { ...filterKey, page }] as const
+  activePageKeyRef.current = isStack ? null : pagedKey
   const pagedQuery = useQuery({
-    queryKey: ['recommendations', { ...filterKey, page }],
+    queryKey: pagedKey,
     queryFn: () =>
       getRecommendations({
         ...filterParams,
@@ -636,7 +649,8 @@ export function DiscoverPage() {
       }
       return res
     },
-    enabled: !!mbids && !allKnownWarm,
+    // The endpoint is admin-only; non-admins would only collect 403s.
+    enabled: isAdmin && !!mbids && !allKnownWarm,
     refetchInterval: (query) => {
       const statuses = query.state.data?.statuses
       return statuses &&
@@ -790,9 +804,9 @@ export function DiscoverPage() {
     } catch {
       toast.error(t('discover.undoFailed'))
     } finally {
-      settleAfterAction(queryClient)
+      settle()
     }
-  }, [undoEntry, queryClient, t])
+  }, [undoEntry, queryClient, settle, t])
 
   const { data: countsData } = useQuery({
     queryKey: RECOMMENDATION_COUNTS_KEY,

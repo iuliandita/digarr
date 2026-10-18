@@ -200,6 +200,31 @@ function cachedLists(client: QueryClient) {
     })
 }
 
+/** Serves the list like the API (status filter, offset, limit) and applies mutations to it. */
+function mockServer(recs: ReturnType<typeof named>[]) {
+  const rows = recs.map((r) => ({ ...r }))
+  const setStatus = (id: number, status: string) => {
+    const row = rows.find((r) => r.id === id)
+    if (row) row.status = status
+  }
+  mockGetRecommendations.mockImplementation((params?: Record<string, string>) => {
+    const statuses = params?.status?.split(',')
+    const matching = rows.filter((r) => !statuses || statuses.includes(r.status))
+    const offset = Number(params?.offset ?? 0)
+    return Promise.resolve({
+      items: matching.slice(offset, offset + Number(params?.limit ?? 50)),
+      total: matching.length,
+    })
+  })
+  ;(getWarmStatuses as ReturnType<typeof vi.fn>).mockResolvedValue({ statuses: {} })
+  mockListTargets.mockResolvedValue([])
+  mockUpdateRecommendation.mockImplementation(async (id: number, body: { status: string }) => {
+    setStatus(id, body.status)
+    return { status: body.status }
+  })
+  return setStatus
+}
+
 async function settledCallCounts() {
   await waitFor(() => expect(mockGetCounts).toHaveBeenCalled())
   await new Promise((resolve) => setTimeout(resolve, 20))
@@ -209,11 +234,16 @@ async function settledCallCounts() {
   }
 }
 
-async function expectOnlyCountsRefetched(before: { lists: number; counts: number }) {
+/** One counts GET, plus the active page GET in grid/list (never in the stack). */
+async function expectRefetches(before: { lists: number; counts: number }, pageRefetch: boolean) {
   await waitFor(() => expect(mockGetCounts).toHaveBeenCalledTimes(before.counts + 1))
   await new Promise((resolve) => setTimeout(resolve, 20))
-  expect(mockGetRecommendations).toHaveBeenCalledTimes(before.lists)
   expect(mockGetCounts).toHaveBeenCalledTimes(before.counts + 1)
+  expect(mockGetRecommendations).toHaveBeenCalledTimes(before.lists + (pageRefetch ? 1 : 0))
+  if (pageRefetch)
+    expect(mockGetRecommendations).toHaveBeenLastCalledWith(
+      expect.objectContaining({ limit: '50', offset: '0' }),
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -895,16 +925,21 @@ describe('DiscoverPage', () => {
         },
       ],
     ])(
-      '%s %s drops the row from Pending and refetches only the counts',
+      '%s %s drops the row from Pending and refetches only counts and the active page',
       async (view, _action, act) => {
         localStorage.setItem('digarr:discover-view', view)
-        setupMockApi([
+        const setStatus = mockServer([
           { ...named(1, 'First Artist'), score: 0.9 },
           { ...named(2, 'Second Artist'), score: 0.5 },
         ])
-        mockUpdateRecommendation.mockResolvedValue({ status: 'rejected' })
-        mockApproveRecommendation.mockResolvedValue({ status: 'approved' })
-        mockBulkAction.mockResolvedValue({ results: [{ id: 1, status: 'approved' }] })
+        mockApproveRecommendation.mockImplementation(async (id: number) => {
+          setStatus(id, 'approved')
+          return { status: 'approved' }
+        })
+        mockBulkAction.mockImplementation(async () => {
+          setStatus(1, 'approved')
+          return { results: [{ id: 1, status: 'approved' }] }
+        })
         const { client } = renderPage(<DiscoverPage />)
         await screen.findAllByText('First Artist')
         const before = await settledCallCounts()
@@ -913,14 +948,31 @@ describe('DiscoverPage', () => {
 
         await waitFor(() => expect(cachedLists(client)[0]?.ids).toEqual([2]))
         expect(cachedLists(client)[0]?.total).toBe(1)
-        await expectOnlyCountsRefetched(before)
+        await expectRefetches(before, view !== 'stack')
       },
       15_000,
     )
 
+    it('refills the grid page so the next row is not skipped after a reject', async () => {
+      mockServer(Array.from({ length: 51 }, (_, i) => named(i + 1, `Artist ${i + 1}`)))
+      const { client } = renderPage(<DiscoverPage />)
+      await screen.findByText('Artist 1')
+      expect(cachedLists(client)[0]?.ids).not.toContain(51)
+
+      await rejectFirst()
+
+      await waitFor(() => expect(cachedLists(client)[0]?.ids).toContain(51))
+      expect(cachedLists(client)[0]).toMatchObject({ total: 50 })
+      expect(cachedLists(client)[0]?.ids).toHaveLength(50)
+      expect(cachedLists(client)[0]?.ids).not.toContain(1)
+    }, 15_000)
+
     it('keeps an acted row in the All view with its new status', async () => {
-      setupMockApi([named(1, 'First Artist'), named(2, 'Second Artist')])
-      mockApproveRecommendation.mockResolvedValue({ status: 'added_to_lidarr' })
+      const setStatus = mockServer([named(1, 'First Artist'), named(2, 'Second Artist')])
+      mockApproveRecommendation.mockImplementation(async (id: number) => {
+        setStatus(id, 'added_to_lidarr')
+        return { status: 'added_to_lidarr' }
+      })
       const { client } = renderPage(<DiscoverPage />, ['/discover?status=all'])
       await screen.findByText('First Artist')
       const before = await settledCallCounts()
@@ -931,33 +983,31 @@ describe('DiscoverPage', () => {
         expect(cachedLists(client)[0]?.statuses).toEqual(['added_to_lidarr', 'pending']),
       )
       expect(cachedLists(client)[0]).toMatchObject({ ids: [1, 2], total: 2 })
-      await expectOnlyCountsRefetched(before)
+      await expectRefetches(before, true)
     })
 
-    it('undo puts the row back where it was without refetching the list', async () => {
-      setupMockApi([named(1, 'First Artist'), named(2, 'Second Artist')])
-      mockUpdateRecommendation.mockResolvedValue({ status: 'rejected' })
+    it('undo puts the row back where it was', async () => {
+      mockServer([named(1, 'First Artist'), named(2, 'Second Artist')])
       const { client } = renderPage(<DiscoverPage />)
       await screen.findByText('First Artist')
       await rejectFirst()
       await waitFor(() => expect(cachedLists(client)[0]?.ids).toEqual([2]))
       const before = await settledCallCounts()
 
-      mockUpdateRecommendation.mockResolvedValue({ status: 'pending' })
       fireEvent.click(await screen.findByRole('button', { name: 'Undo' }))
 
       await waitFor(() => expect(cachedLists(client)[0]).toMatchObject({ ids: [1, 2], total: 2 }))
       expect(mockUpdateRecommendation).toHaveBeenLastCalledWith(1, { status: 'pending' })
-      await expectOnlyCountsRefetched(before)
+      await expectRefetches(before, true)
     })
 
     it('rolls the restored row back out when undo fails', async () => {
-      setupMockApi([named(1, 'First Artist'), named(2, 'Second Artist')])
-      mockUpdateRecommendation.mockResolvedValue({ status: 'rejected' })
+      mockServer([named(1, 'First Artist'), named(2, 'Second Artist')])
       const { client } = renderPage(<DiscoverPage />)
       await screen.findByText('First Artist')
       await rejectFirst()
       await waitFor(() => expect(cachedLists(client)[0]?.ids).toEqual([2]))
+      const before = await settledCallCounts()
       const toastError = vi.spyOn(toast, 'error')
 
       mockUpdateRecommendation.mockRejectedValue(new Error('offline'))
@@ -965,6 +1015,20 @@ describe('DiscoverPage', () => {
 
       await waitFor(() => expect(toastError).toHaveBeenCalledWith('Undo failed'))
       expect(cachedLists(client)[0]).toMatchObject({ ids: [2], total: 1 })
+      expect(mockGetRecommendations).toHaveBeenCalledTimes(before.lists)
+    })
+
+    it.each([
+      [true, 1],
+      [false, 0],
+    ])('requests warm status only for admins (admin: %s)', async (isAdmin, calls) => {
+      setupMockApi()
+      mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin })
+      renderPage(<DiscoverPage />)
+      await screen.findByText('Test Artist')
+      await waitFor(() => expect(mockGetAuthStatus).toHaveBeenCalled())
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      expect(getWarmStatuses).toHaveBeenCalledTimes(calls)
     })
 
     it('keeps stack paging offsets aligned after a reject', async () => {

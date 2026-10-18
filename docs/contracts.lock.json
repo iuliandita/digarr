@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -336,9 +333,7 @@
       "digest": "ecdf12672feab1477e730d6cde1bafc9c56d4c2657dc2c7d0bae3b04ea3041e5",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md"
-        ],
+        "docs": ["docs/API.md"],
         "note": "Document the new GET /api/v1/recommendations/counts endpoint; existing endpoints are unchanged.",
         "breaking": "none",
         "migration": "",
@@ -497,7 +492,7 @@
         "src/web/main.tsx": "ccd448a84acb20e8bc42daeefb02b726d58400149c0cc34b8b1517f5a3283337",
         "src/web/pages/analytics.tsx": "3e530e18a0c5ccf4d64f1df017095f8d3f2caad335197903aea2f4308f600f63",
         "src/web/pages/dashboard.tsx": "6dc7cd6372a4bb041b1ddea60b02d5d08119c638438b095126f4ca9d4b28fb71",
-        "src/web/pages/discover.tsx": "762933ac565aa97bf2af6f7f3d8e09f99dec48def0199821f4a8787cfaf3ec3e",
+        "src/web/pages/discover.tsx": "89d761c8b8948e58e2ec21bf7e8cf74d865263878daeeab753ba9417ba89863c",
         "src/web/pages/discovery-modes.tsx": "03001fe47cf4402bb1a22a250c8a43d97c5a024d00ddbe70c4511b5e4dbfe24b",
         "src/web/pages/genre-detail.tsx": "49d5bcb372c5bb727be376f9231731b1783092a7eeb35b73153726467ae2234c",
         "src/web/pages/genres.tsx": "993a08b560ee596026a9c5f0895ff33f180a28e35ab3541f1de204c410337d36",
@@ -530,16 +525,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "ac132a72c992d62f0123bf20c6baaa5113012935798f21da5c27003885a94df3",
+      "digest": "4ca48108c67e9e5d83905d3aa2352c7bab6187fe4060206e8c6e166954b7ebdc",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
-        "note": "Discover and Dashboard update their caches in place after actions and load tab counts from one endpoint; what each view shows is unchanged.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Discover updates its caches in place after actions, refetches only the counts and the active grid/list page, gates warm status to admins, and loads tab counts from one endpoint; Dashboard refetches only changed cards. What each view shows is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "ac132a72c992d62f0123bf20c6baaa5113012935798f21da5c27003885a94df3"
+        "digest": "4ca48108c67e9e5d83905d3aa2352c7bab6187fe4060206e8c6e166954b7ebdc"
       }
     },
     "features": {
@@ -805,10 +798,7 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",
