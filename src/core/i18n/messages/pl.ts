@@ -38,6 +38,12 @@ export const pl = {
     'Unieważnić "{name}"? Skrypty korzystające z niego natychmiast stracą dostęp.',
   'tokens.readOnlyError': 'Ten token zezwala tylko na żądania GET i HEAD.',
   'tokens.notFoundError': 'Nie znaleziono tego tokena.',
+  'notification.approvalFailed':
+    'Nie udało się ukończyć zatwierdzenia {0} w Lidarr w ciągu 24 godzin: {1}',
+  'recommendation.waitingForLidarr': 'Oczekiwanie na Lidarr',
+  'recommendation.nextRetry': 'Następna próba: {0}',
+  'settings.channels.eventApprovalFailed': 'Zatwierdzenie nie powiodło się',
+
   'settings.monitorMissing': 'Brakujące albumy',
   'settings.monitorExisting': 'Istniejące albumy',
   'settings.monitorLatest': 'Najnowszy album',

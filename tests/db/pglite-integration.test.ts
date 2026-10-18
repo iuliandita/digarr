@@ -1,12 +1,18 @@
 import { readFileSync } from 'node:fs'
 import { PGlite } from '@electric-sql/pglite'
-import { sql } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import { drizzle } from 'drizzle-orm/pglite'
 import { migrate } from 'drizzle-orm/pglite/migrator'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import { getPendingMigrations } from '@/core/ops/upgrade'
+import { targetAction } from '@/core/targets/lidarr-retry'
 import { applyPgliteStatementTimeout } from '@/db/backend'
+import {
+  getRecommendation,
+  listWaitingApprovals,
+  updateRecommendationStatus,
+} from '@/db/queries/recommendations'
 import * as schema from '@/db/schema'
 
 type DB = ReturnType<typeof drizzle<typeof schema>>
@@ -125,4 +131,37 @@ describe('pglite backend contract', () => {
     expect(row).toBeDefined()
     expect(row?.createdAt).toBeInstanceOf(Date)
   })
+})
+
+it('persists waiting approval options and discovers them without a schema migration', async () => {
+  const [artist] = await db
+    .insert(schema.artists)
+    .values({ mbid: '12345678-1234-1234-1234-123456789abc', name: 'Retry artist' })
+    .returning()
+  const [batch] = await db.insert(schema.recommendationBatches).values({}).returning()
+  if (!artist || !batch) throw new Error('missing fixture')
+  const [rec] = await db
+    .insert(schema.recommendations)
+    .values({ artistId: artist.id, batchId: batch.id, score: 0.9 })
+    .returning()
+  if (!rec) throw new Error('missing recommendation')
+  const action = targetAction(
+    { type: 'lidarr' },
+    { success: false, targetType: 'lidarr', targetId: 1, error: 'HTTP 503' },
+    { selectedAlbumIds: ['rg-1'], monitorOption: 'selected' },
+  )
+  await updateRecommendationStatus(db as never, rec.id, 'waiting', {
+    targetActions: { 'lidarr-1': action },
+  })
+  expect((await getRecommendation(db as never, rec.id))?.targetActions).toEqual({
+    'lidarr-1': action,
+  })
+  expect((await listWaitingApprovals(db as never)).map((r) => r.id)).toContain(rec.id)
+  await updateRecommendationStatus(db as never, rec.id, 'added_to_lidarr', {
+    targetActions: { 'lidarr-1': { status: 'added', externalId: 42 } },
+  })
+  expect((await listWaitingApprovals(db as never)).map((r) => r.id)).not.toContain(rec.id)
+  await db.delete(schema.recommendations).where(eq(schema.recommendations.id, rec.id))
+  await db.delete(schema.recommendationBatches).where(eq(schema.recommendationBatches.id, batch.id))
+  await db.delete(schema.artists).where(eq(schema.artists.id, artist.id))
 })

@@ -396,7 +396,7 @@ The parser coerces rather than rejects most fields:
 v1.19.0 has no `other` field and labels every non-approved acted-on row as `rejected` ([#789](https://github.com/iuliandita/digarr/issues/789)). API consumers upgrading to v2.0.0 must use `other` when reconciling totals instead of assuming `approved + rejected = total`. There is no schema migration or stored-row rewrite; rollback restores the old response calculation.
 
 **GET /api/v1/recommendations** query params:
-- `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `duplicate`, `queued` (comma-separated)
+- `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `waiting`, `duplicate`, `queued` (comma-separated)
 - `kind` - `artist` or `album`; omitted or unrecognized values return both. Backs the Discover kind filter (Albums is `?kind=album`)
 - `batchId` - filter by batch
 - `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`, `taste`
@@ -465,10 +465,13 @@ Approve response (status `approved`):
 }
 ```
 - Adds are **best-effort per target, not transactional**: a target that fails does not roll back targets that already succeeded (Digarr never deletes an artist from a target that took it).
+- Temporary Lidarr failures (including HTTP 408, 429 and 5xx) return target action status `waiting`; the recommendation is `waiting` when no other target has succeeded or queued work. A waiting action contains `error` and `retry: { startedAt, nextAttemptAt, attempts, options }` with ISO timestamps, a persisted attempt count and the original approval options. It stays in the Approved tab, including after restart. Other target outcomes are retained. Scheduled retries check for existing artists/albums before adding and use the target owner's currently resolved connection and instance defaults.
+- Retry delays are 5 minutes, 15 minutes, 1 hour and then 3 hours, checked every five minutes, within a 24-hour window from the first failure. Re-PATCH with `status: "approved"` (optionally a waiting `targetId`) to retry immediately; saved waiting options are reused, successful destinations are skipped, and the deadline is preserved. Retrying an expired failure starts a new window with its saved options. Expiry marks the action `failed`, preserving a redacted last error. Recommendation status is derived from all actions: a successful Lidarr add wins, then another successful or queued target, then waiting work, then `add_failed`. Remaining waiting actions are still scheduled after another target succeeds. Waiting retry writes preserve the original approval time. It dispatches one `approval_failed` event per recommendation; channel subscriptions default off. Failed alert deliveries are not automatically resent.
+- Artist approvals reuse existing Lidarr artists from the first attempt. An absent album is temporary only when the same attempt just added its artist; otherwise it fails immediately. Before each scheduled attempt, user artist and album blocks fail matching actions without an alert. A throwing recommendation does not stop later candidates.
 - `targetActions` is the full merged map persisted on the rec; `targetSummary` describes only the targets attempted by *this* request, so clients can report partial outcomes at submit time. Its `warnings` array contains non-fatal target warnings.
 - To retry just the failed targets, re-`PATCH` once per failed `targetId` (this preserves the successful targets' actions and will not regress the rec to `add_failed` if others already succeeded).
 
-**POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
+**POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `waiting`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
 
 Bulk rejection accepts a shared `reason` (including null or omission) and `permanent`, which defaults to false. In v2.0.0, `action: "reject"` with `permanent: true` and `reason: "not_right_now"` returns `400` before any updates, matching PATCH's compatibility rule. The bulk error is the shared `validation_failed` problem with a `permanent` field issue in `details`. v1.19.0 accepts that incompatible combination ([#786](https://github.com/iuliandita/digarr/issues/786)). A null or omitted reason remains valid with either permanent value; `not_right_now` remains valid with `permanent: false`. Reject-only compatibility rules do not apply to bulk approval.
 
@@ -1191,6 +1194,8 @@ Notification channels:
   test a stored channel; with no id it tests the first configured channel. Delivery failure returns
   `application/problem+json` `502` with the upstream message in `detail` (secret-redacted, capped
   at 300 chars); `400` when no channel is configured.
+
+Notification channel `events` also accepts `approval_failed` (opt-in). Its payload is `{ event: "approval_failed", recommendationId, message, timestamp }`; it uses the same channel transports as scan-complete and digest notifications.
 
 ---
 

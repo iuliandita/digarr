@@ -38,6 +38,12 @@ export const es = {
     '¿Revocar "{name}"? Los scripts que lo usen perderán el acceso de inmediato.',
   'tokens.readOnlyError': 'Este token solo permite solicitudes GET y HEAD.',
   'tokens.notFoundError': 'No se encontró este token.',
+  'notification.approvalFailed':
+    'No se pudo completar la aprobación de {0} en Lidarr en 24 horas: {1}',
+  'recommendation.waitingForLidarr': 'Esperando a Lidarr',
+  'recommendation.nextRetry': 'Próximo intento: {0}',
+  'settings.channels.eventApprovalFailed': 'Error al aprobar',
+
   'settings.monitorMissing': 'Álbumes que faltan',
   'settings.monitorExisting': 'Álbumes existentes',
   'settings.monitorLatest': 'Último álbum',

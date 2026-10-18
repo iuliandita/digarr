@@ -36,6 +36,12 @@ export const it = {
   'tokens.revokeConfirm': 'Revocare "{name}"? Gli script che lo usano perderanno subito l’accesso.',
   'tokens.readOnlyError': 'Questo token consente solo richieste GET e HEAD.',
   'tokens.notFoundError': 'Questo token non è stato trovato.',
+  'notification.approvalFailed':
+    'L’approvazione di {0} in Lidarr non è stata completata entro 24 ore: {1}',
+  'recommendation.waitingForLidarr': 'In attesa di Lidarr',
+  'recommendation.nextRetry': 'Prossimo tentativo: {0}',
+  'settings.channels.eventApprovalFailed': 'Approvazione non riuscita',
+
   'settings.monitorMissing': 'Album mancanti',
   'settings.monitorExisting': 'Album esistenti',
   'settings.monitorLatest': 'Ultimo album',

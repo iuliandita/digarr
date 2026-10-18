@@ -39,6 +39,12 @@ export const fr = {
     'Révoquer « {name} » ? Les scripts qui l’utilisent perdront immédiatement l’accès.',
   'tokens.readOnlyError': 'Ce jeton autorise uniquement les requêtes GET et HEAD.',
   'tokens.notFoundError': 'Ce jeton est introuvable.',
+  'notification.approvalFailed':
+    'L’approbation de {0} dans Lidarr n’a pas pu aboutir en 24 heures : {1}',
+  'recommendation.waitingForLidarr': 'En attente de Lidarr',
+  'recommendation.nextRetry': 'Prochaine tentative : {0}',
+  'settings.channels.eventApprovalFailed': 'Échec de l’approbation',
+
   'settings.monitorMissing': 'Albums manquants',
   'settings.monitorExisting': 'Albums existants',
   'settings.monitorLatest': 'Dernier album',

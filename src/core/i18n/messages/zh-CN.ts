@@ -33,6 +33,11 @@ export const zhCN = {
   'tokens.revokeConfirm': '撤销“{name}”？使用此令牌的脚本将立即失去访问权限。',
   'tokens.readOnlyError': '此令牌仅允许 GET 和 HEAD 请求。',
   'tokens.notFoundError': '找不到此令牌。',
+  'notification.approvalFailed': '{0} 的 Lidarr 批准未能在 24 小时内完成：{1}',
+  'recommendation.waitingForLidarr': '正在等待 Lidarr',
+  'recommendation.nextRetry': '下次重试：{0}',
+  'settings.channels.eventApprovalFailed': '批准失败',
+
   'settings.monitorMissing': '缺失的专辑',
   'settings.monitorExisting': '已有的专辑',
   'settings.monitorLatest': '最新专辑',
