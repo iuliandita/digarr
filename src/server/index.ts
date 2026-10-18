@@ -245,10 +245,8 @@ export function createApp(deps: AppDependencies) {
   })
 
   // OpenAPI 3.1 spec. Intentionally public so integrators can read the
-  // contract without credentials. The spec is a skeleton today - see
-  // src/server/helpers/openapi-doc.ts. `/api/v1/docs` returns a tiny
-  // no-external-JS landing page pointing at the spec; rendering with
-  // Scalar/Swagger is deferred to keep the CSP strict.
+  // contract without credentials. `/api/v1/docs` returns a tiny
+  // no-external-JS landing page pointing at the spec.
   app.get('/api/v1/docs/openapi.json', (c) =>
     c.json(openapiDoc, 200, { 'cache-control': 'public, max-age=60' }),
   )

@@ -405,7 +405,25 @@ describe('OpenAPI skeleton', () => {
       '/api/v1/library/unreconciled-albums',
       '/api/v1/settings/plex/sections',
     ])
+    const handwrittenPaths = new Set([
+      ...publicPaths,
+      ...bearerOnlyPaths,
+      '/api/v1/recommendations',
+      '/api/v1/recommendations/{id}',
+      '/api/v1/artist-blocks',
+      '/api/v1/artist-blocks/{artistId}',
+      '/api/v1/jobs',
+      '/api/v1/jobs/{id}',
+      '/api/v1/jobs/health',
+      '/api/v1/library/unreconciled',
+      '/api/v1/library/unreconciled-albums',
+      '/api/v1/library/overrides/bulk-ignore',
+      '/api/v1/library/album-overrides/bulk-ignore',
+      '/api/v1/settings/plex/sections',
+      '/api/v1/settings/test/{service}',
+    ])
     for (const [path, item] of Object.entries(openapiDoc.paths)) {
+      if (!handwrittenPaths.has(path)) continue
       for (const [method, operation] of Object.entries(item)) {
         const responseStatuses = Object.keys(operation.responses)
         expect(
@@ -458,5 +476,63 @@ describe('OpenAPI skeleton', () => {
     expect(updateRecommendation.responses['200'].content?.['application/json']?.schema).toEqual({
       $ref: '#/components/schemas/RecommendationUpdateResult',
     })
+  })
+
+  type Operation = {
+    operationId: string
+    description?: string
+    security: unknown[]
+    requestBody?: { content: Record<string, { schema: { required?: string[] } }> }
+    responses: Record<string, unknown>
+  }
+  const catalogOp = (path: string, method: string) =>
+    (openapiDoc.paths as unknown as Record<string, Record<string, Operation>>)[path]?.[
+      method
+    ] as Operation
+  const operations = Object.entries(
+    openapiDoc.paths as unknown as Record<string, Record<string, Operation>>,
+  ).flatMap(([path, item]) =>
+    Object.entries(item).map(([method, operation]) => ({ path, method, operation })),
+  )
+
+  it('gives every operation a unique operationId', () => {
+    const ids = operations.map(({ operation }) => operation.operationId)
+    expect(new Set(ids).size).toBe(ids.length)
+  })
+
+  it('requires authentication and admin markers consistently on catalog operations', () => {
+    for (const { path, method, operation } of operations) {
+      const label = `${method.toUpperCase()} ${path}`
+      const statuses = Object.keys(operation.responses)
+      expect(
+        statuses.some((status) => /^(2\d\d|302|405)$/.test(status)),
+        label,
+      ).toBe(true)
+      if (operation.security.length > 0) expect(operation.responses, label).toHaveProperty('401')
+      if (operation.description?.startsWith('Admin only')) {
+        expect(operation.responses, label).toHaveProperty('403')
+      }
+    }
+    const createUser = catalogOp('/api/v1/users', 'post')
+    expect(createUser.description).toMatch(/^Admin only\./)
+    expect(createUser.security).toEqual([
+      { sessionCookie: [], csrfHeader: [] },
+      { bearerToken: [] },
+    ])
+    expect(createUser.responses['400']).toEqual({ $ref: '#/components/responses/ValidationFailed' })
+  })
+
+  it('derives request bodies from the route validators', () => {
+    const createUser = catalogOp('/api/v1/users', 'post')
+    const schema = createUser.requestBody?.content['application/json']?.schema
+    expect(schema?.required).toEqual(expect.arrayContaining(['username', 'password']))
+    expect(schema).not.toHaveProperty('$schema')
+  })
+
+  it('limits token management to cookie sessions and MCP to personal API tokens', () => {
+    const tokens = catalogOp('/api/v1/auth/tokens', 'post')
+    expect(tokens.security).toEqual([{ sessionCookie: [], csrfHeader: [] }])
+    const mcp = catalogOp('/api/v1/mcp', 'post')
+    expect(mcp.security).toEqual([{ bearerToken: [] }])
   })
 })

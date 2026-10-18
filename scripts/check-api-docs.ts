@@ -9,6 +9,7 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { openapiDoc } from '@/server/helpers/openapi-doc'
 
 type HttpMethod = 'DELETE' | 'GET' | 'PATCH' | 'POST' | 'PUT'
 
@@ -171,6 +172,74 @@ export function compareRouteDocs(
   }
 }
 
+type OpenapiPaths = Record<string, Record<string, { description?: string }>>
+
+export function extractOpenapiRoutes(paths: OpenapiPaths): Map<string, string> {
+  const operations = new Map<string, string>()
+  for (const [path, item] of Object.entries(paths)) {
+    for (const [method, operation] of Object.entries(item)) {
+      operations.set(
+        routeKey({ method: method.toUpperCase() as HttpMethod, path: normalizePath(path) }),
+        operation.description ?? '',
+      )
+    }
+  }
+  return operations
+}
+
+/**
+ * Every declared route must have an OpenAPI operation, admin-guarded routes must
+ * say "Admin" in their description, and "Admin only." must match a real guard.
+ */
+export function compareOpenapi(
+  actualRoutes: RouteDeclaration[],
+  adminRoutes: Set<string>,
+  operations: Map<string, string>,
+  ignoredRoutes: Set<string> = IGNORED_ROUTES,
+): { missing: string[]; stale: string[]; missingAdmin: string[]; unguardedAdmin: string[] } {
+  const actual = uniqueRoutes(actualRoutes)
+    .map(routeKey)
+    .filter((key) => !ignoredRoutes.has(key))
+  const actualKeys = new Set(actual)
+  const missing = actual.filter((key) => !operations.has(key))
+  const stale = [...operations.keys()].filter((key) => !actualKeys.has(key))
+  const missingAdmin: string[] = []
+  const unguardedAdmin: string[] = []
+  for (const [key, description] of operations) {
+    if (adminRoutes.has(key) && !/^Admin\b/.test(description)) missingAdmin.push(key)
+    if (!adminRoutes.has(key) && description.startsWith('Admin only.')) unguardedAdmin.push(key)
+  }
+  return { missing, stale, missingAdmin, unguardedAdmin }
+}
+
+function reportOpenapi(actualRoutes: RouteDeclaration[], adminRoutes: Set<string>): boolean {
+  const result = compareOpenapi(
+    actualRoutes,
+    adminRoutes,
+    extractOpenapiRoutes(openapiDoc.paths as unknown as OpenapiPaths),
+  )
+  const sections: Array<[string, string[]]> = [
+    ['Routes missing from the OpenAPI document:', result.missing],
+    ['OpenAPI operations not found in server declarations:', result.stale],
+    [
+      'Admin-guarded OpenAPI operations whose description does not start with Admin:',
+      result.missingAdmin,
+    ],
+    [
+      'OpenAPI operations marked "Admin only." with no detectable admin guard:',
+      result.unguardedAdmin,
+    ],
+  ]
+  let failed = false
+  for (const [title, entries] of sections) {
+    if (entries.length === 0) continue
+    failed = true
+    console.error(title)
+    console.error(entries.map((entry) => `  - ${entry}`).join('\n'))
+  }
+  return failed
+}
+
 function readServerRouteSources(): string[] {
   const routeFiles = readdirSync(ROUTE_DIR)
     .filter((name) => name.endsWith('.ts'))
@@ -204,11 +273,14 @@ export function main(): void {
     console.error('Routes documented as Admin with no detectable admin guard:')
     console.error(unguardedAdmin.map((entry) => `  - ${entry}`).join('\n'))
   }
-  const authFailed = missingAdmin.length > 0 || unguardedAdmin.length > 0
+  const openapiFailed = reportOpenapi(actualRoutes, adminRoutes)
+  const authFailed = missingAdmin.length > 0 || unguardedAdmin.length > 0 || openapiFailed
 
   if (undocumented.length === 0 && stale.length === 0) {
     if (authFailed) process.exit(1)
-    console.log(`API docs cover ${uniqueRoutes(actualRoutes).length} route declarations.`)
+    console.log(
+      `API docs and OpenAPI cover ${uniqueRoutes(actualRoutes).length} route declarations.`,
+    )
     return
   }
 

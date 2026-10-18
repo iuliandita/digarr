@@ -278,14 +278,15 @@
       "files": {
         "src/server/deps.ts": "b0757dea7c1168ec33d036590967a6b31791df7a24183ad47be131caf16244d1",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
-        "src/server/helpers/openapi-doc.ts": "349b5c7e9fe5ad05ae8ae6e1057d0b9e12154199bb80eff9364c758641dea083",
+        "src/server/helpers/openapi-doc.ts": "66601d0c6ee636d604fccf9cac61fb3ef8ffeb7ff6375cf23a5193821fc63795",
+        "src/server/helpers/openapi-routes.ts": "47e13e560a4e4c5790830636eac9191c779c511f22cc384c24c4f44663b9e272",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "e4f7bf958d8a13793878138083e705525898f1f100ad3db05746a74e50bd94a0",
+        "src/server/index.ts": "d986dbac558181d1d358388d4bded57c7a39df030b4aef03085750111f5ba049",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -333,14 +334,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
+      "digest": "9b7835de78689a79c3a1215e26287f62867e07cfb716753ab537b68e737fe82a",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
+        "docs": ["CHANGELOG.md", "docs/API.md"],
+        "note": "OpenAPI now lists all 170 operations with auth, params, validator-derived bodies and problem+json errors; API.md coverage paragraph and changelog updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2"
+        "digest": "9b7835de78689a79c3a1215e26287f62867e07cfb716753ab537b68e737fe82a"
       }
     },
     "interface": {
@@ -838,7 +839,7 @@
     "maintenance": {
       "files": {
         "scripts/capture-screenshots.ts": "606d12d74d4b2dbd9efa78e7c9339c68c398d05ead1e1e9de7d42bd67d5db5fd",
-        "scripts/check-api-docs.ts": "0ccd8ea8a0df2bf56615712e41bd3a800d76d34dc23083005d37ee23c59a41c2",
+        "scripts/check-api-docs.ts": "3fef3a7b58d3281882cd7993a637146784476cb343fcef3ecc68608409f563d6",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
         "scripts/check-docs-impact.ts": "630e9a5f475e4b1d8a301f3b8a9db61ced4d32b83f79e7415fe1227776e74c36",
@@ -863,14 +864,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "e5ff0ed8a22523d0a439a20b252efc2d50db8ef9af2137f2ca93ffe68ef1f84b",
+      "digest": "6ea85eca64731d7711ad4557d818df0e2cb2f6b45d52f29331700d60fd51cc82",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Remove the obsolete Italian cronPicker.preset identical-translation exception because the compact schedule select removes that catalog key. Validation rules and maintenance commands remain unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "check:api-docs also fails when a route is missing from the OpenAPI document or its admin marker disagrees with the guard; recorded in the changelog entry. CONTRIBUTING and MAINTENANCE do not describe check:api-docs internals.",
         "breaking": "none",
         "migration": "",
-        "digest": "e5ff0ed8a22523d0a439a20b252efc2d50db8ef9af2137f2ca93ffe68ef1f84b"
+        "digest": "6ea85eca64731d7711ad4557d818df0e2cb2f6b45d52f29331700d60fd51cc82"
       }
     }
   }

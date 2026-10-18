@@ -79,13 +79,9 @@ Offset-paginated routes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
-| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
+| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document covering every route operation |
 
-The OpenAPI document is partial: it describes 19 of the 163 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
-
-OpenAPI coverage currently includes auth status/login/register/session
-migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
-and bulk ignore, and settings service probes. Some mutation bodies remain generic objects; bulk recommendations, feedback summaries, playlist projections, and preference writes are not machine-described. The Markdown reference is the complete route inventory and the detailed contract for those operations.
+The OpenAPI document lists all 170 route operations in this reference, with path and query parameters, authentication (`sessionCookie` + `csrfHeader` for cookie mutations, `bearerToken`, cookie-only token management, personal-token-only MCP), problem+json error responses, and "Admin only." on admin operations. Request bodies come from the same Zod validators the routes use. Response schemas are detailed for auth, recommendations, artist blocks, jobs, library reconciliation, and settings probes; most other responses are loose objects, so this Markdown reference stays the detailed contract for response shapes. `bun run check:api-docs` verifies both this reference and the OpenAPI document against the server's route declarations, and checks admin markers against detectable admin guards.
 
 
 ## MCP
