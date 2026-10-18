@@ -418,6 +418,10 @@ export const fr = {
   'discover.undoRejected': '{name} rejeté',
   'discover.undoBlocked': '{name} rejeté et bloqué',
   'discover.approveAllAbove': 'Approuver tout ci-dessus',
+  'discover.approveAboveTitle': 'Approuver tout au-dessus de {1} % ?',
+  'discover.approveAboveMessage':
+    'Approuver {0} recommandations en attente à {1} % ou plus ? Des cibles comme Lidarr peuvent recevoir des ajouts.',
+  'discover.approveAboveConfirm': 'Approuver {0}',
   'discover.approvedCount': 'Approuvé',
   'discover.approvePartial': 'Ajouté à {0} sur {1} cibles. Échecs : {2}',
   'discover.approveAllFailed': "Impossible d'ajouter à une cible. Échecs : {0}",
@@ -950,6 +954,9 @@ export const fr = {
   'systemHealth.lastRun': 'dernière :',
   'systemHealth.nextRun': 'suivante :',
   'systemHealth.healthy': 'opérationnel',
+  'systemHealth.statusOk': 'Opérationnel',
+  'systemHealth.statusDegraded': 'Dégradé',
+  'systemHealth.statusError': 'Erreur',
   'systemHealth.overdue': 'en retard',
   'systemHealth.inMinutes': 'dans {0}m',
   'systemHealth.inHours': 'dans {0}h',
@@ -1909,6 +1916,7 @@ export const fr = {
   'settings.channels.allowPrivateWarning':
     'Autorise la livraison vers des adresses privées/LAN. Les métadonnées cloud et les plages link-local restent bloquées.',
   'settings.channels.webhookUrl': 'URL du webhook',
+  'settings.channels.webhookSigningSecret': 'Secret de signature (facultatif)',
   'settings.channels.ntfyServer': 'Serveur',
   'settings.channels.ntfyTopic': 'Sujet',
   'settings.channels.ntfyPriority': 'Priorité',

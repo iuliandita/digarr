@@ -134,6 +134,12 @@ Audition playlists choose one track per pending artist without approving recomme
 
 Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Connections > Notifications, with scan-complete and scheduled-digest subscriptions per channel. The digest schedule (cron) is in Settings > Schedule, next to the other schedules. Private-network destinations are blocked by default; the per-channel LAN option permits private IPv4 destinations for self-hosted services. It does not override your container or Kubernetes network policy.
 
+#### Webhook signing
+
+A webhook channel can have an optional signing secret (off by default; stored encrypted and masked like other channel secrets). When set, every request carries `X-Digarr-Timestamp` (unix seconds) and `X-Digarr-Signature: sha256=<hex>`, where the hex value is the HMAC-SHA256 of `<timestamp>.<raw request body>` keyed with the secret. Verify against the raw bytes before parsing, and reject old timestamps to limit replay.
+
+Test vector: secret `whsec_test`, timestamp `1700000000`, body `{"event":"digest","message":"hello"}` gives `sha256=69063f9268083f6b8a9f648b71756b35fb62251050afe40fec18f25dd4b5a737`.
+
 Each digest channel has its own saved delivery position. Only its confirmed successful send or an empty activity window advances it. Failed channels retry from their saved start on the next scheduled run, with totals covering the longer interval; successful channels keep their own shorter interval. The first window start is saved before sending, so a failed first attempt survives a restart.
 
 Disabling a channel or removing its digest subscription pauses its position. Removing a channel retains its position; reusing that ID resumes it, while a new ID starts from the current cron cadence. Editing an endpoint or type under the same ID keeps its position. Duplicate IDs are rejected on save; existing ambiguous IDs are skipped. The old shared position seeds existing channels once on upgrade, including when scheduling is disabled; previously lost windows cannot be reconstructed.

@@ -692,6 +692,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     },
     getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId, userPreferences),
     userId,
+    jobRecorder,
     ...(user && user.approvalPolicy !== 'direct'
       ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
       : {}),
@@ -1639,7 +1640,7 @@ setInterval(
 console.log(`Digarr running on http://localhost:${port}`)
 if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
   console.warn(
-    'ALLOWED_ORIGIN not set - CORS rejects all cross-origin requests. Set ALLOWED_ORIGIN to your domain.',
+    'ALLOWED_ORIGIN not set - CORS rejects all cross-origin requests, the Secure cookie and same-origin/CSRF checks fall back to the request URL (login or mutations can fail behind a proxy), and OIDC and TIDAL redirect URIs cannot be built. Set ALLOWED_ORIGIN to your public origin.',
   )
 }
 if (envConfig.authToken && envConfig.authToken.length < 16) {

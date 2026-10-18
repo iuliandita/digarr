@@ -415,6 +415,10 @@ export const it = {
   'discover.undoRejected': '{name} rifiutato',
   'discover.undoBlocked': '{name} rifiutato e bloccato',
   'discover.approveAllAbove': 'Approva tutto sopra',
+  'discover.approveAboveTitle': 'Approvare tutto sopra il {1}%?',
+  'discover.approveAboveMessage':
+    'Approvare {0} raccomandazioni in sospeso al {1}% o più? Destinazioni come Lidarr potrebbero ricevere aggiunte.',
+  'discover.approveAboveConfirm': 'Approva {0}',
   'discover.approvedCount': 'Approvato',
   'discover.approvePartial': 'Aggiunto a {0} di {1} destinazioni. Falliti: {2}',
   'discover.approveAllFailed': 'Impossibile aggiungere a qualsiasi destinazione. Falliti: {0}',
@@ -952,6 +956,9 @@ export const it = {
   'systemHealth.lastRun': 'ultima:',
   'systemHealth.nextRun': 'prossima:',
   'systemHealth.healthy': 'operativo',
+  'systemHealth.statusOk': 'Operativo',
+  'systemHealth.statusDegraded': 'Degradato',
+  'systemHealth.statusError': 'Errore',
   'systemHealth.overdue': 'in ritardo',
   'systemHealth.inMinutes': 'tra {0}m',
   'systemHealth.inHours': 'tra {0}h',
@@ -1902,6 +1909,7 @@ export const it = {
   'settings.channels.allowPrivateWarning':
     'Consente la consegna a indirizzi privati/LAN. I metadati del cloud e gli intervalli link-local restano bloccati.',
   'settings.channels.webhookUrl': 'URL del webhook',
+  'settings.channels.webhookSigningSecret': 'Segreto di firma (facoltativo)',
   'settings.channels.ntfyServer': 'Indirizzo server',
   'settings.channels.ntfyTopic': 'Argomento',
   'settings.channels.ntfyPriority': 'Priorità',

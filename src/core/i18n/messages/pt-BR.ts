@@ -415,6 +415,10 @@ export const ptBR = {
   'discover.undoRejected': '{name} rejeitado',
   'discover.undoBlocked': '{name} rejeitado e bloqueado',
   'discover.approveAllAbove': 'Aprovar tudo acima',
+  'discover.approveAboveTitle': 'Aprovar tudo acima de {1}%?',
+  'discover.approveAboveMessage':
+    'Aprovar {0} recomendações pendentes com {1}% ou mais? Destinos como o Lidarr podem receber adições.',
+  'discover.approveAboveConfirm': 'Aprovar {0}',
   'discover.approvedCount': 'Aprovado',
   'discover.approvePartial': 'Adicionado a {0} de {1} destinos. Falhas: {2}',
   'discover.approveAllFailed': 'Não foi possível adicionar a nenhum destino. Falhas: {0}',
@@ -951,6 +955,9 @@ export const ptBR = {
   'systemHealth.lastRun': 'última:',
   'systemHealth.nextRun': 'próxima:',
   'systemHealth.healthy': 'saudável',
+  'systemHealth.statusOk': 'Saudável',
+  'systemHealth.statusDegraded': 'Degradado',
+  'systemHealth.statusError': 'Erro',
   'systemHealth.overdue': 'atrasado',
   'systemHealth.inMinutes': 'em {0}m',
   'systemHealth.inHours': 'em {0}h',
@@ -1897,6 +1904,7 @@ export const ptBR = {
   'settings.channels.allowPrivateWarning':
     'Permite a entrega para endereços privados/LAN. Metadados de nuvem e faixas link-local permanecem bloqueados.',
   'settings.channels.webhookUrl': 'URL do webhook',
+  'settings.channels.webhookSigningSecret': 'Segredo de assinatura (opcional)',
   'settings.channels.ntfyServer': 'Servidor',
   'settings.channels.ntfyTopic': 'Tópico',
   'settings.channels.ntfyPriority': 'Prioridade',

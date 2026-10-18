@@ -515,10 +515,34 @@ describe('DiscoverPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
 
+    expect(mockBulkAction).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Approve all above 70%?' })
+    expect(dialog).toHaveTextContent('Approve 1 pending recommendations at 70% or higher?')
+    expect(dialog).toHaveTextContent('Lidarr')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Approve 1' }))
+
     await waitFor(() => {
       // Only rec id=1 qualifies (85% >= 70%)
       expect(mockBulkAction).toHaveBeenCalledWith([1], 'approve')
     })
+  })
+
+  it('cancelling the approve-above confirmation does nothing', async () => {
+    setupMockApi([makeRec({ id: 1, score: 0.85 })])
+    renderWithQuery(<DiscoverPage />)
+    await waitFor(() => {
+      expect(screen.getAllByText('Test Artist')).toHaveLength(1)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Approve all above 70%?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Approve all above 70%?' })).toBeNull()
+    })
+    expect(mockBulkAction).not.toHaveBeenCalled()
   })
 
   it('bulk reject below threshold opens the picker and rejects only pending below-threshold items', async () => {

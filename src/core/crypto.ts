@@ -172,6 +172,7 @@ const CHANNEL_SECRET_FIELDS: Record<string, readonly string[]> = {
   telegram: ['botToken'],
   ntfy: ['token'],
   apprise: ['urls'],
+  webhook: ['signingSecret'],
 }
 
 const CHANNEL_URL_FIELDS: Record<string, readonly string[]> = {

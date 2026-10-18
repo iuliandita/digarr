@@ -430,7 +430,7 @@ The parser coerces rather than rejects most fields:
 | GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable) |
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
-| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
+| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block; optional `Idempotency-Key`) |
 | POST | `/api/v1/recommendations/missing-albums` | Yes | Approve selected missing studio albums for an artist using the caller's album-capable targets |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 acted-on recommendations per genre), scoped to the calling user's own feedback |
 | GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Credential availability for the popular-album approve option: Spotify token resolution succeeds and/or a Last.fm API key is stored. Does not probe album lookups; a subsequent lookup can still fail. Returns `{ available, spotify, lastfm }` (booleans). |
@@ -519,6 +519,8 @@ Approve response (status `approved`):
 **POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `waiting`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
 
 Bulk rejection accepts a shared `reason` (including null or omission) and `permanent`, which defaults to false. In v2.0.0, `action: "reject"` with `permanent: true` and `reason: "not_right_now"` returns `400` before any updates, matching PATCH's compatibility rule. The bulk error is the shared `validation_failed` problem with a `permanent` field issue in `details`. v1.19.0 accepts that incompatible combination ([#786](https://github.com/iuliandita/digarr/issues/786)). A null or omitted reason remains valid with either permanent value; `not_right_now` remains valid with `permanent: false`. Reject-only compatibility rules do not apply to bulk approval.
+
+Bulk requests accept an optional `Idempotency-Key` header (1-255 printable ASCII characters, no spaces; otherwise `400`). Keys are scoped per user. The server keeps the response status and body, with a hash of the request body, for 24 hours. A repeat with the same key and body returns the stored response with `Idempotent-Replayed: true` and does not run again. The same key with a different body returns `422` problem details (`/problems/idempotency-key-reuse`). A repeat while the first request is still running returns `409` (`/problems/idempotency-request-in-flight`). Responses with status 500 or higher are not stored, so those can be retried. Storage is in memory, per process, and capped at 5,000 keys, like the rate limiters; a restart forgets keys. Without the header nothing changes.
 
 Bulk rejection does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
 
@@ -1256,11 +1258,11 @@ Notification channels:
   same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
   string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
   "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
-  - `webhook` - `{ ..., url }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON)
+  - `webhook` - `{ ..., url, signingSecret? }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON; see [webhook signing](OPERATIONS.md#webhook-signing))
   - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
-- Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
+- Channel secrets (`telegram.botToken`, `ntfy.token`, `webhook.signingSecret`, `apprise.urls`) are returned masked as `***`;
   sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it

@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { formatDiscordPayload, sendWebhookChannel } from '@/core/notifications/channels/webhook'
+import {
+  formatDiscordPayload,
+  sendWebhookChannel,
+  signatureHeaders,
+} from '@/core/notifications/channels/webhook'
 import type { WebhookChannel, WebhookPayload } from '@/core/notifications/types'
 
 const RESOLVABLE = new Set(['discord.com', 'generic.example', 'notdiscord.com'])
@@ -64,6 +68,45 @@ describe('sendWebhookChannel', () => {
     expect(r.ok).toBe(true)
     const [, init] = okFetch.mock.calls[0] as [string, RequestInit]
     expect(JSON.parse(init.body as string)).toEqual(makePayload())
+  })
+})
+
+describe('webhook signing', () => {
+  beforeEach(() => {
+    vi.stubGlobal('fetch', okFetch)
+    okFetch.mockClear()
+  })
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('matches the documented test vector', () => {
+    expect(
+      signatureHeaders('whsec_test', '{"event":"digest","message":"hello"}', 1700000000),
+    ).toEqual({
+      'X-Digarr-Timestamp': '1700000000',
+      'X-Digarr-Signature':
+        'sha256=69063f9268083f6b8a9f648b71756b35fb62251050afe40fec18f25dd4b5a737',
+    })
+  })
+
+  it('signs the exact body that is sent when a secret is set', async () => {
+    const channel = { ...makeChannel('https://generic.example/hook'), signingSecret: 'whsec_test' }
+    await sendWebhookChannel(channel, makePayload())
+    const [, init] = okFetch.mock.calls[0] as [string, RequestInit]
+    const headers = new Headers(init.headers)
+    const expected = signatureHeaders(
+      'whsec_test',
+      init.body as string,
+      Number(headers.get('x-digarr-timestamp')),
+    )
+    expect(headers.get('x-digarr-signature')).toBe(expected['X-Digarr-Signature'])
+  })
+
+  it('sends no signing headers without a secret', async () => {
+    await sendWebhookChannel(makeChannel('https://generic.example/hook'), makePayload())
+    const [, init] = okFetch.mock.calls[0] as [string, RequestInit]
+    const headers = new Headers(init.headers)
+    expect(headers.get('x-digarr-signature')).toBeNull()
+    expect(headers.get('x-digarr-timestamp')).toBeNull()
   })
 })
 
