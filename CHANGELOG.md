@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Genre counts, library reconciliation pages, and Job History use less database work and transfer less data; migration 0060 adds a backward-compatible job ordering index (#1096).
+
 - The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
 - A weekly workflow prunes `:nightly-<sha>` images older than 30 days, keeping the newest 20; `:nightly`, `:latest`, `:stable*` and release tags are never touched. Manual runs default to a dry run (#1053).
 - Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).

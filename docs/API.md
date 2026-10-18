@@ -69,6 +69,7 @@ For these routes, non-integer `limit` values return `400`. `meta.nextCursor` is 
 
 Offset-paginated routes:
 - `GET /api/v1/recommendations` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
+- `GET /api/v1/library/unreconciled` and `GET /api/v1/library/unreconciled-albums` return `{ "items": [], "total": 0 }` and accept `limit` plus `offset`
 - `GET /api/v1/jobs` returns `{ "items": [], "total": 0 }` and accepts `limit` plus `offset`
 - `GET /api/v1/listening/top-artists` returns `{ "tracks": [], "total": 0, "offset": 0, "limit": 5, "source": null, "status": "not_configured" }`; Last.fm honors arbitrary offsets in v2.0.0 as described under [Listening](#listening).
 
@@ -1051,6 +1052,8 @@ Notes:
 ```
 
 **GET /api/v1/library/unreconciled** response notes:
+- Returns `{ "items": [...], "total": N }`. `limit` defaults to 20 (1-500), and `offset` defaults to 0 (a nonnegative safe integer). Invalid pagination returns `400`. Rows are ordered by ascending `id`; totals use the same user/global visibility and override exclusions as the page. Concurrent corrections or syncs can move offset boundaries.
+- Items contain only `id`, `source`, `sourceArtistId`, `name`, and `unreconciledReason`. Clients that previously read the whole list must page until the total is reached; removed internal match/cache columns are no longer returned.
 - Returns unreconciled rows from both the current user's sources and any global sources visible to that user
 - Each row's `unreconciledReason` is `no_candidate` when MusicBrainz returned no safe match, `ambiguous` when multiple plausible matches remain, or `lookup_failed` when the lookup failed after retries. `null` remains possible for legacy or otherwise unclassified rows.
 
@@ -1075,7 +1078,7 @@ Notes:
 Bulk-ignore notes:
 - `items` must contain 1-200 identities, and every `(source, sourceArtistId)` or `(source, sourceAlbumId)` pair must be unique. Empty, oversized, duplicate, incomplete, or extra-field payloads return `400` without writing overrides.
 - A successful request stores every ignore override in one database transaction and returns `204 No Content`. If any write fails, the transaction rolls back instead of leaving a partially ignored selection.
-- The operation does not trigger reconciliation. The web review removes the completed selection by refreshing the unreconciled lists and source summary after the `204` response.
+- The operation does not trigger reconciliation. The web review refreshes the current page of the affected list and the source summary after `204`. Album selections remain page-local. Artist selections can span pages; All selects up to 200 eligible artists through bounded page requests, and Clear All clears that selection.
 
 **POST /api/v1/library/overrides** body:
 ```json
@@ -1118,6 +1121,8 @@ Album override notes:
 - Powers the coverage badge and missing-album checklist shown on recommendation cards. The response includes `missing: [{ albumMbid, title, releaseYear }]`; an empty list means no missing studio albums. Sessions and personal API tokens are accepted, including for non-admin users; legacy-token authentication is rejected.
 
 **GET /api/v1/library/unreconciled-albums** response notes:
+- Returns `{ "items": [...], "total": N }`. `limit` defaults to 20 (1-500), and `offset` defaults to 0 (a nonnegative safe integer). Invalid pagination returns `400`. Rows are ordered by ascending `id`; totals use the same user/global visibility and override exclusions as the page. Concurrent corrections or syncs can move offset boundaries.
+- Items contain only `id`, `source`, `sourceAlbumId`, `title`, `primaryType`, `releaseYear`, and `unreconciledReason`. Clients that previously read the whole list must page until the total is reached; removed internal match/cache columns are no longer returned.
 - Returns unreconciled album rows from both the current user's sources and any global sources visible to that user
 - `unreconciledReason` uses the same `no_candidate`, `ambiguous`, and `lookup_failed` values as the artist route; `null` remains possible for legacy or otherwise unclassified rows.
 
@@ -1192,6 +1197,8 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 | GET | `/api/v1/jobs/:id` | Admin | Single job detail |
 | GET | `/api/v1/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources, integrations) |
 
+Job list items retain scalar job fields, but `metadata` contains only the description/counter fields used by history: `trigger`, `seedArtist`, `adapterType`, `writeBackService`, `artistName`, `action`, `playlistName`, `source`, `artistsDiscovered`, `artistsStored`, `artistsFound`, `artistsNew`, `trackCount`, and `discoveryMode`. Each `sourceResults` entry contains only `status`. Missing metadata keys stay absent. Clients requiring complete metadata or source diagnostics must fetch `GET /api/v1/jobs/:id`; expanding a history row does this on demand. The list is ordered by `startedAt DESC, id DESC`, including when filtered.
+
 **GET /api/v1/jobs** query params:
 - `type` - `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`
 - `status` - `running`, `completed`, `failed`, `stuck`; see [stuck-job time limits](OPERATIONS.md#job-history-and-stuck-jobs)
@@ -1201,7 +1208,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 - Cancelled jobs can appear in unfiltered results, but `status=cancelled` is not accepted as a filter
 - Missing job detail returns `404` problem+json with `detail` `Job not found`
 
-Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. For AudioMuse-AI, an unconfigured connection has no entry. Queried scans include `seedsQueried`, `seedsWithResults` (valid nonempty API responses before ownership filtering), and `skipReasons` counts for actual seed requests. A source with results reports `ok`, even when some seeds fail or all candidates are owned/blocked. With no results, failures use `skipped`, with a reason such as `audiomuse_unreachable`, `audiomuse_not_indexed`, or `audiomuse_artist_unknown`. Authentication and contract errors use `audiomuse_authentication_required`, `audiomuse_invalid_response`, or `audiomuse_request_failed`. Registration failures use `audiomuse_invalid_url` or `audiomuse_token_unreadable`; re-enter an unreadable saved token. Other sources retain their existing failure behavior: any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
+Job detail `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. For AudioMuse-AI, an unconfigured connection has no entry. Queried scans include `seedsQueried`, `seedsWithResults` (valid nonempty API responses before ownership filtering), and `skipReasons` counts for actual seed requests. A source with results reports `ok`, even when some seeds fail or all candidates are owned/blocked. With no results, failures use `skipped`, with a reason such as `audiomuse_unreachable`, `audiomuse_not_indexed`, or `audiomuse_artist_unknown`. Authentication and contract errors use `audiomuse_authentication_required`, `audiomuse_invalid_response`, or `audiomuse_request_failed`. Registration failures use `audiomuse_invalid_url` or `audiomuse_token_unreadable`; re-enter an unreadable saved token. Other sources retain their existing failure behavior: any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
 Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. Within that sample, `/api/v1/jobs/health` counts only `ok` and `error` attempts for each source; successful zero-artist lookups count as `ok`. Skips do not count as successes or errors, and sources with no attempts are omitted from `sources`. Zero errors yields `ok`, an error rate below 50% yields `degraded`, and 50% or more yields `failing`. Skipped runs still occupy the sample; the query does not pull in older attempts to replace them. Individual job records retain their skip reasons. v1.19.0 counts skips as failures; this is corrected in v2.0.0 ([#769](https://github.com/iuliandita/digarr/issues/769)).
 

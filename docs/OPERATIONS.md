@@ -2,6 +2,23 @@
 
 These notes describe v2.0.1. Start with the [README](../README.md) for installation. Most connection, playlist, notification, and maintenance settings live in the web UI; public origin and the environment settings below require a restart.
 
+## Query scaling upgrade
+
+Migration 0060 adds `job_runs_started_at_id_idx` on `(started_at DESC, id DESC)`
+with `IF NOT EXISTS` on both PostgreSQL and PGlite. It is additive and backward
+compatible: no rows or columns change, and the previous application can use the
+same database. Allow disk space and startup time for building the history index.
+Take a complete database backup before upgrading, then let startup migrations
+finish before serving requests. Backend copies continue to migrate the destination
+before restoring rows, so the index is created there too.
+
+Rollback can use the previous image while leaving the index in place. If a full
+restore is needed, stop the application and restore the complete pre-upgrade
+backup with the previous image using the recovery procedure in this guide.
+No live restore is claimed for this change. API clients must account for the
+paginated reconciliation lists and summary job metadata described in
+[API.md](API.md).
+
 <a id="known-limitations-in-v1190"></a>
 
 ## Known limitations

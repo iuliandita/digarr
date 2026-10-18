@@ -317,7 +317,7 @@ describe('OpenAPI skeleton', () => {
     ]) {
       expect(listSchema).toMatchObject({
         type: 'object',
-        required: ['items'],
+        required: ['items', 'total'],
         additionalProperties: false,
       })
     }
@@ -325,40 +325,18 @@ describe('OpenAPI skeleton', () => {
     for (const [rowSchema, required] of [
       [
         schemas.LibraryUnreconciledArtistRow,
-        [
-          'id',
-          'userId',
-          'source',
-          'sourceArtistId',
-          'name',
-          'nameNormalized',
-          'mbid',
-          'matchMethod',
-          'matchConfidence',
-          'unreconciledReason',
-          'genres',
-          'syncedAt',
-          'lastGapCheckAt',
-        ],
+        ['id', 'source', 'sourceArtistId', 'name', 'unreconciledReason'],
       ],
       [
         schemas.LibraryUnreconciledAlbumRow,
         [
           'id',
-          'userId',
           'source',
-          'sourceArtistId',
           'sourceAlbumId',
           'title',
-          'titleNormalized',
-          'albumMbid',
-          'artistMbid',
           'primaryType',
           'releaseYear',
-          'matchMethod',
-          'matchConfidence',
           'unreconciledReason',
-          'syncedAt',
         ],
       ],
     ]) {
@@ -378,15 +356,10 @@ describe('OpenAPI skeleton', () => {
     }
 
     expect(schemas.LibraryUnreconciledArtistRow).toMatchObject({
-      properties: {
-        lastGapCheckAt: { type: ['string', 'null'], format: 'date-time' },
-      },
+      properties: { name: { type: 'string' } },
     })
     expect(schemas.LibraryUnreconciledAlbumRow).toMatchObject({
-      properties: {
-        matchMethod: { type: ['string', 'null'] },
-        matchConfidence: { type: ['number', 'null'] },
-      },
+      properties: { title: { type: 'string' }, releaseYear: { type: ['integer', 'null'] } },
     })
   })
 
@@ -401,8 +374,6 @@ describe('OpenAPI skeleton', () => {
       '/api/v1/auth/status',
       '/api/v1/auth/session/migrate',
       '/api/v1/jobs/health',
-      '/api/v1/library/unreconciled',
-      '/api/v1/library/unreconciled-albums',
       '/api/v1/settings/plex/sections',
     ])
     const handwrittenPaths = new Set([

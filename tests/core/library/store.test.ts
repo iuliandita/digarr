@@ -402,7 +402,7 @@ describe('LibrarySyncStore', () => {
       }),
     ])
 
-    expect(await store.listUnreconciledForUser(userId)).toHaveLength(1)
+    expect((await store.listUnreconciledForUser(userId)).items).toHaveLength(1)
 
     await store.upsertOverride(
       userId,
@@ -412,7 +412,7 @@ describe('LibrarySyncStore', () => {
       'manual fix',
     )
 
-    expect(await store.listUnreconciledForUser(userId)).toHaveLength(0)
+    expect((await store.listUnreconciledForUser(userId)).items).toHaveLength(0)
   })
 
   it('bulk ignores artists and hides them from unreconciled rows', async () => {
@@ -433,7 +433,7 @@ describe('LibrarySyncStore', () => {
     expect(await store.getOverride(userId, PLEX_SOURCE, 'bulk-artist-2')).toEqual({
       correctMbid: null,
     })
-    expect(await store.listUnreconciledForUser(userId)).toEqual([])
+    expect((await store.listUnreconciledForUser(userId)).items).toEqual([])
   })
 
   it('bulk ignores duplicate artist identities with one null-correction override', async () => {
@@ -519,11 +519,11 @@ describe('LibrarySyncStore', () => {
       ],
     )
 
-    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(1)
+    expect((await store.listUnreconciledAlbumsForUser(userId)).items).toHaveLength(1)
 
     await store.upsertAlbumOverride(userId, 'plex', 'album-1', null, 'ignore')
 
-    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(0)
+    expect((await store.listUnreconciledAlbumsForUser(userId)).items).toHaveLength(0)
   })
 
   it('listUnreconciledAlbumsForUser keeps unmatched rows that carry a source MBID', async () => {
@@ -544,7 +544,7 @@ describe('LibrarySyncStore', () => {
       ],
     )
 
-    expect(await store.listUnreconciledAlbumsForUser(userId)).toHaveLength(1)
+    expect((await store.listUnreconciledAlbumsForUser(userId)).items).toHaveLength(1)
   })
 
   it('bulk ignores albums and hides them from unreconciled rows', async () => {
@@ -579,7 +579,7 @@ describe('LibrarySyncStore', () => {
       { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-1', correctAlbumMbid: null },
       { source: PLEX_SOURCE, sourceAlbumId: 'bulk-album-2', correctAlbumMbid: null },
     ])
-    expect(await store.listUnreconciledAlbumsForUser(userId)).toEqual([])
+    expect((await store.listUnreconciledAlbumsForUser(userId)).items).toEqual([])
   })
 
   it('bulk ignores duplicate album identities with one null-correction override', async () => {
