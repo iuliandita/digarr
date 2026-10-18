@@ -30,17 +30,66 @@ const LISTENING_OPTIONS = {
   machineIdentifier: 'machine-1',
 }
 
+const historyRow = (accountID: number, title: string) => ({
+  type: 'track',
+  accountID,
+  librarySectionID: 1,
+  grandparentRatingKey: `artist-${accountID}`,
+  grandparentTitle: `Artist ${accountID}`,
+  ratingKey: `track-${accountID}`,
+  title,
+  viewedAt: 1710000000,
+})
+
+const row = {
+  type: 'track',
+  accountID: 7,
+  librarySectionID: 1,
+  grandparentKey: '/library/metadata/101',
+  grandparentTitle: 'Portishead',
+  key: '/library/metadata/102',
+  title: 'Roads',
+  viewedAt: 1710000000,
+}
+
+const TWO_SECTIONS = {
+  MediaContainer: {
+    Directory: [
+      { key: '3', type: 'artist', title: 'Audiobooks' },
+      { key: '5', type: 'artist', title: 'Music' },
+      { key: '7', type: 'movie', title: 'Movies' },
+    ],
+  },
+}
+
+const sections = {
+  MediaContainer: {
+    Directory: [
+      { key: '7', type: 'movie', title: 'Movies' },
+      { key: '3', type: 'artist', title: 'Music' },
+      { key: '5', type: 'artist', title: 'Other music' },
+    ],
+  },
+}
+const track = {
+  type: 'track',
+  title: 'Roads',
+  grandparentTitle: 'Portishead',
+  duration: 302500,
+  Media: [{ Part: [{ file: '/music/Portishead/Roads.flac' }] }],
+}
+
+function historyResponse(metadata: unknown[], totalSize = metadata.length) {
+  return { MediaContainer: { Metadata: metadata, totalSize } }
+}
+
+function albumRow(ratingKey: string, title: string, year: number) {
+  return { ratingKey, parentRatingKey: 'artist-1', title, year }
+}
+
+const IDENTITY_RESPONSE = { MediaContainer: { machineIdentifier: 'machine-1' } }
+
 describe('plex history metadata paths', () => {
-  const row = {
-    type: 'track',
-    accountID: 7,
-    librarySectionID: 1,
-    grandparentKey: '/library/metadata/101',
-    grandparentTitle: 'Portishead',
-    key: '/library/metadata/102',
-    title: 'Roads',
-    viewedAt: 1710000000,
-  }
   const mockWarn = vi.fn()
 
   beforeEach(() => {
@@ -51,14 +100,12 @@ describe('plex history metadata paths', () => {
   it.each(['recent', 'top'] as const)(
     'uses metadata paths for %s listening history',
     async (method) => {
-      mockGet
-        .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
-        .mockResolvedValueOnce({
-          MediaContainer: {
-            totalSize: 2,
-            Metadata: [row, { ...row, key: '/library/metadata/103', title: 'Wandering Star' }],
-          },
-        })
+      mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValueOnce({
+        MediaContainer: {
+          totalSize: 2,
+          Metadata: [row, { ...row, key: '/library/metadata/103', title: 'Wandering Star' }],
+        },
+      })
       const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
 
       if (method === 'recent') {
@@ -166,61 +213,34 @@ describe('plex history metadata paths', () => {
 
 describe('plex client.getTopArtists()', () => {
   it('aggregates the selected account history instead of library-wide view counts', async () => {
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: { machineIdentifier: 'machine-1' },
-    })
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        totalSize: 3,
-        Metadata: [
-          {
-            type: 'track',
-            accountID: 7,
-            librarySectionID: 1,
-            grandparentRatingKey: '101',
-            grandparentTitle: 'Portishead',
-            ratingKey: '101',
-            title: 'Roads',
-            viewedAt: 1710000000,
-          },
-          {
-            type: 'track',
-            accountID: 7,
-            librarySectionID: 1,
-            grandparentRatingKey: '101',
-            grandparentTitle: 'Portishead',
-            ratingKey: '102',
-            title: 'Wandering Star',
-            viewedAt: 1709990000,
-          },
-          {
-            type: 'track',
-            accountID: 7,
-            librarySectionID: 1,
-            grandparentRatingKey: '201',
-            grandparentTitle: 'Massive Attack',
-            ratingKey: '202',
-            title: 'Teardrop',
-            viewedAt: 1709980000,
-          },
-        ],
-      },
-    })
-
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValueOnce(
+      historyResponse([
+        {
+          ...historyRow(7, 'Roads'),
+          grandparentRatingKey: '101',
+          grandparentTitle: 'Portishead',
+          ratingKey: '101',
+        },
+        {
+          ...historyRow(7, 'Wandering Star'),
+          grandparentRatingKey: '101',
+          grandparentTitle: 'Portishead',
+          ratingKey: '102',
+          viewedAt: 1709990000,
+        },
+        {
+          ...historyRow(7, 'Teardrop'),
+          grandparentRatingKey: '201',
+          grandparentTitle: 'Massive Attack',
+          ratingKey: '202',
+          viewedAt: 1709980000,
+        },
+      ]),
+    )
     const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
     await expect(client.getTopArtists(10)).resolves.toEqual([
-      {
-        ratingKey: '101',
-        name: 'Portishead',
-        viewCount: 2,
-        genres: [],
-      },
-      {
-        ratingKey: '201',
-        name: 'Massive Attack',
-        viewCount: 1,
-        genres: [],
-      },
+      { ratingKey: '101', name: 'Portishead', viewCount: 2, genres: [] },
+      { ratingKey: '201', name: 'Massive Attack', viewCount: 1, genres: [] },
     ])
     expect(mockGet.mock.calls[1]?.[0]).toContain('accountID=7')
     expect(mockGet.mock.calls[1]?.[0]).toContain('librarySectionID=1')
@@ -228,25 +248,10 @@ describe('plex client.getTopArtists()', () => {
 })
 
 describe('plex client history isolation', () => {
-  const historyRow = (accountID: number, title: string) => ({
-    type: 'track',
-    accountID,
-    librarySectionID: 1,
-    grandparentRatingKey: `artist-${accountID}`,
-    grandparentTitle: `Artist ${accountID}`,
-    ratingKey: `track-${accountID}`,
-    title,
-    viewedAt: 1710000000,
-  })
-
   it('keeps two listeners on the same server in disjoint account-filtered requests', async () => {
     mockGet
-      .mockResolvedValueOnce({
-        MediaContainer: { totalSize: 1, Metadata: [historyRow(7, 'Seven')] },
-      })
-      .mockResolvedValueOnce({
-        MediaContainer: { totalSize: 1, Metadata: [historyRow(8, 'Eight')] },
-      })
+      .mockResolvedValueOnce(historyResponse([historyRow(7, 'Seven')], 1))
+      .mockResolvedValueOnce(historyResponse([historyRow(8, 'Eight')], 1))
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
 
     const first = await client.getHistory({ accountId: 7, librarySectionId: '1' })
@@ -258,28 +263,22 @@ describe('plex client history isolation', () => {
     expect(mockGet.mock.calls[1]?.[0]).toContain('accountID=8')
   })
 
-  it('fails closed when Plex returns a row for a different account', async () => {
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: { totalSize: 1, Metadata: [historyRow(8, 'Wrong listener')] },
-    })
+  it.each([
+    {
+      name: 'account',
+      row: historyRow(8, 'Wrong listener'),
+      message: 'account 8 while account 7 was requested',
+    },
+    {
+      name: 'section',
+      row: { ...historyRow(7, 'Wrong library'), librarySectionID: 2 },
+      message: 'library section 2 while section 1 was requested',
+    },
+  ])('fails closed for a different $name in a history response', async ({ row, message }) => {
+    mockGet.mockResolvedValueOnce(historyResponse([row]))
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
     await expect(client.getHistory({ accountId: 7, librarySectionId: '1' })).rejects.toThrow(
-      'account 8 while account 7 was requested',
-    )
-  })
-
-  it('fails closed when Plex returns a row from a different library section', async () => {
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        totalSize: 1,
-        Metadata: [{ ...historyRow(7, 'Wrong library'), librarySectionID: 2 }],
-      },
-    })
-    const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
-    await expect(client.getHistory({ accountId: 7, librarySectionId: '1' })).rejects.toThrow(
-      'library section 2 while section 1 was requested',
+      message,
     )
   })
 
@@ -307,12 +306,8 @@ describe('plex client history isolation', () => {
 
   it('honors the explicit page bound even when Plex reports more history', async () => {
     mockGet
-      .mockResolvedValueOnce({
-        MediaContainer: { totalSize: 50, Metadata: [historyRow(7, 'One')] },
-      })
-      .mockResolvedValueOnce({
-        MediaContainer: { totalSize: 50, Metadata: [historyRow(7, 'Two')] },
-      })
+      .mockResolvedValueOnce(historyResponse([historyRow(7, 'One')], 50))
+      .mockResolvedValueOnce(historyResponse([historyRow(7, 'Two')], 50))
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
 
     const history = await client.getHistory({
@@ -327,24 +322,40 @@ describe('plex client history isolation', () => {
     expect(mockGet.mock.calls[1]?.[0]).toContain('X-Plex-Container-Start=1')
   })
 
-  it('fails explicitly when a complete history read reaches its item cap before exhaustion', async () => {
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        totalSize: 3,
-        Metadata: [historyRow(7, 'One'), historyRow(7, 'Two')],
-      },
-    })
-    const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
-    await expect(
-      client.getHistory({
-        accountId: 7,
-        librarySectionId: '1',
-        maxItems: 2,
-        requireComplete: true,
-      }),
-    ).rejects.toThrow('bounded retrieval limit (2 items or 25 pages)')
-  })
+  it.each([
+    {
+      name: 'item',
+      totalSize: 3,
+      rows: [historyRow(7, 'One'), historyRow(7, 'Two')],
+      pageSize: undefined,
+      maxPages: undefined,
+      message: 'bounded retrieval limit (2 items or 25 pages)',
+    },
+    {
+      name: 'page',
+      totalSize: 2,
+      rows: [historyRow(7, 'One')],
+      pageSize: 1,
+      maxPages: 1,
+      message: 'bounded retrieval limit (2 items or 1 pages)',
+    },
+  ])(
+    'rejects incomplete history at its $name cap',
+    async ({ totalSize, rows, pageSize, maxPages, message }) => {
+      mockGet.mockResolvedValueOnce(historyResponse(rows, totalSize))
+      const client = createPlexClient(TEST_URL, TEST_TOKEN)
+      await expect(
+        client.getHistory({
+          accountId: 7,
+          librarySectionId: '1',
+          pageSize,
+          maxItems: 2,
+          maxPages,
+          requireComplete: true,
+        }),
+      ).rejects.toThrow(message)
+    },
+  )
 
   it('accepts an exact-cap complete history when Plex reports the total', async () => {
     mockGet.mockResolvedValueOnce({
@@ -364,30 +375,12 @@ describe('plex client history isolation', () => {
 
     expect(history.map((item) => item.trackName)).toEqual(['One', 'Two'])
   })
-
-  it('fails explicitly when a complete history read reaches its page cap', async () => {
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: { totalSize: 2, Metadata: [historyRow(7, 'One')] },
-    })
-    const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
-    await expect(
-      client.getHistory({
-        accountId: 7,
-        librarySectionId: '1',
-        pageSize: 1,
-        maxItems: 2,
-        maxPages: 1,
-        requireComplete: true,
-      }),
-    ).rejects.toThrow('bounded retrieval limit (2 items or 1 pages)')
-  })
 })
 
 describe('plex client similar artists', () => {
   it('returns an empty list when artist metadata has no Similar entries', async () => {
     mockGet
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+      .mockResolvedValueOnce(IDENTITY_RESPONSE)
       .mockResolvedValueOnce({ MediaContainer: { Metadata: [{}] } })
     const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
 
@@ -396,7 +389,7 @@ describe('plex client similar artists', () => {
 
   it('surfaces metadata request failures to the pipeline fail-soft boundary', async () => {
     mockGet
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+      .mockResolvedValueOnce(IDENTITY_RESPONSE)
       .mockRejectedValueOnce(new Error('metadata unavailable'))
     const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
 
@@ -406,13 +399,11 @@ describe('plex client similar artists', () => {
 
 describe('plex client.getAllArtists()', () => {
   it('paginates through the music library', async () => {
-    // sections lookup
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         Directory: [{ key: '1', type: 'artist', title: 'Music' }],
       },
     })
-    // page 1: 2 of 3 artists
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         totalSize: 3,
@@ -422,7 +413,6 @@ describe('plex client.getAllArtists()', () => {
         ],
       },
     })
-    // page 2: remaining 1 artist
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         totalSize: 3,
@@ -441,13 +431,11 @@ describe('plex client.getAllArtists()', () => {
   })
 
   it('returns empty array when library is empty', async () => {
-    // sections lookup
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         Directory: [{ key: '1', type: 'artist', title: 'Music' }],
       },
     })
-    // empty page
     mockGet.mockResolvedValueOnce({
       MediaContainer: {
         totalSize: 0,
@@ -463,16 +451,6 @@ describe('plex client.getAllArtists()', () => {
 })
 
 describe('plex library section selection', () => {
-  const TWO_SECTIONS = {
-    MediaContainer: {
-      Directory: [
-        { key: '3', type: 'artist', title: 'Audiobooks' },
-        { key: '5', type: 'artist', title: 'Music' },
-        { key: '7', type: 'movie', title: 'Movies' },
-      ],
-    },
-  }
-
   it('getMusicSections returns only artist-type sections', async () => {
     mockGet.mockResolvedValueOnce(TWO_SECTIONS)
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
@@ -505,7 +483,7 @@ describe('plex library section selection', () => {
 
   it('testConnection reports the selected library and all music sections', async () => {
     mockGet
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+      .mockResolvedValueOnce(IDENTITY_RESPONSE)
       .mockResolvedValueOnce(TWO_SECTIONS)
       .mockResolvedValueOnce({
         MediaContainer: { Account: [{ id: 7, name: 'Listener' }] },
@@ -526,9 +504,7 @@ describe('plex library section selection', () => {
   })
 
   it('testConnection fails when the configured section no longer exists', async () => {
-    mockGet
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
-      .mockResolvedValueOnce(TWO_SECTIONS)
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValueOnce(TWO_SECTIONS)
     const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '99' })
     const result = await client.testConnection()
     expect(result.success).toBe(false)
@@ -537,11 +513,9 @@ describe('plex library section selection', () => {
   })
 
   it('testConnection fails when no music sections exist', async () => {
-    mockGet
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
-      .mockResolvedValueOnce({
-        MediaContainer: { Directory: [{ key: '7', type: 'movie', title: 'Movies' }] },
-      })
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValueOnce({
+      MediaContainer: { Directory: [{ key: '7', type: 'movie', title: 'Movies' }] },
+    })
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
     const result = await client.testConnection()
     expect(result.success).toBe(false)
@@ -550,136 +524,81 @@ describe('plex library section selection', () => {
 })
 
 describe('plex client.getAlbumsForArtist()', () => {
-  it('includes a final partial page even when totalSize is missing', async () => {
+  it.each([
+    {
+      name: 'partial first page without totalSize',
+      pages: [{ Metadata: [albumRow('alb-final', 'A Moon Shaped Pool', 2016)] }],
+      expected: [
+        {
+          ratingKey: 'alb-final',
+          artistRatingKey: 'artist-1',
+          title: 'A Moon Shaped Pool',
+          releaseYear: 2016,
+          primaryType: 'Album',
+        },
+      ],
+    },
+    {
+      name: 'multiple pages retaining the first totalSize',
+      pages: [
+        {
+          totalSize: 5,
+          Metadata: [albumRow('alb-1', 'Kid A', 2000), albumRow('alb-2', 'Amnesiac', 2001)],
+        },
+        {
+          Metadata: [
+            albumRow('alb-3', 'Hail to the Thief', 2003),
+            albumRow('alb-4', 'In Rainbows', 2007),
+          ],
+        },
+        { Metadata: [albumRow('alb-5', 'The King of Limbs', 2011)] },
+      ],
+      expected: [
+        {
+          ratingKey: 'alb-1',
+          artistRatingKey: 'artist-1',
+          title: 'Kid A',
+          releaseYear: 2000,
+          primaryType: 'Album',
+        },
+        {
+          ratingKey: 'alb-2',
+          artistRatingKey: 'artist-1',
+          title: 'Amnesiac',
+          releaseYear: 2001,
+          primaryType: 'Album',
+        },
+        {
+          ratingKey: 'alb-3',
+          artistRatingKey: 'artist-1',
+          title: 'Hail to the Thief',
+          releaseYear: 2003,
+          primaryType: 'Album',
+        },
+        {
+          ratingKey: 'alb-4',
+          artistRatingKey: 'artist-1',
+          title: 'In Rainbows',
+          releaseYear: 2007,
+          primaryType: 'Album',
+        },
+        {
+          ratingKey: 'alb-5',
+          artistRatingKey: 'artist-1',
+          title: 'The King of Limbs',
+          releaseYear: 2011,
+          primaryType: 'Album',
+        },
+      ],
+    },
+  ])('collects albums from $name', async ({ pages, expected }) => {
+    for (const page of pages) mockGet.mockResolvedValueOnce({ MediaContainer: page })
     const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        Metadata: [
-          {
-            ratingKey: 'alb-final',
-            parentRatingKey: 'artist-1',
-            title: 'A Moon Shaped Pool',
-            year: 2016,
-          },
-        ],
-      },
-    })
-
-    const albums = await client.getAlbumsForArtist('artist-1')
-
-    expect(albums).toEqual([
-      {
-        ratingKey: 'alb-final',
-        artistRatingKey: 'artist-1',
-        title: 'A Moon Shaped Pool',
-        releaseYear: 2016,
-        primaryType: 'Album',
-      },
-    ])
-  })
-
-  it('paginates through the album library', async () => {
-    const client = createPlexClient(TEST_URL, TEST_TOKEN)
-
-    // first page of 5 albums
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        totalSize: 5,
-        Metadata: [
-          { ratingKey: 'alb-1', parentRatingKey: 'artist-1', title: 'Kid A', year: 2000 },
-          { ratingKey: 'alb-2', parentRatingKey: 'artist-1', title: 'Amnesiac', year: 2001 },
-        ],
-      },
-    })
-    // second page omits totalSize, but more albums remain
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        Metadata: [
-          {
-            ratingKey: 'alb-3',
-            parentRatingKey: 'artist-1',
-            title: 'Hail to the Thief',
-            year: 2003,
-          },
-          { ratingKey: 'alb-4', parentRatingKey: 'artist-1', title: 'In Rainbows', year: 2007 },
-        ],
-      },
-    })
-    // third page: final album
-    mockGet.mockResolvedValueOnce({
-      MediaContainer: {
-        Metadata: [
-          {
-            ratingKey: 'alb-5',
-            parentRatingKey: 'artist-1',
-            title: 'The King of Limbs',
-            year: 2011,
-          },
-        ],
-      },
-    })
-
-    const albums = await client.getAlbumsForArtist('artist-1')
-
-    expect(albums).toEqual([
-      {
-        ratingKey: 'alb-1',
-        artistRatingKey: 'artist-1',
-        title: 'Kid A',
-        releaseYear: 2000,
-        primaryType: 'Album',
-      },
-      {
-        ratingKey: 'alb-2',
-        artistRatingKey: 'artist-1',
-        title: 'Amnesiac',
-        releaseYear: 2001,
-        primaryType: 'Album',
-      },
-      {
-        ratingKey: 'alb-3',
-        artistRatingKey: 'artist-1',
-        title: 'Hail to the Thief',
-        releaseYear: 2003,
-        primaryType: 'Album',
-      },
-      {
-        ratingKey: 'alb-4',
-        artistRatingKey: 'artist-1',
-        title: 'In Rainbows',
-        releaseYear: 2007,
-        primaryType: 'Album',
-      },
-      {
-        ratingKey: 'alb-5',
-        artistRatingKey: 'artist-1',
-        title: 'The King of Limbs',
-        releaseYear: 2011,
-        primaryType: 'Album',
-      },
-    ])
+    await expect(client.getAlbumsForArtist('artist-1')).resolves.toEqual(expected)
   })
 })
 
 describe('plex client.searchTracks()', () => {
-  const sections = {
-    MediaContainer: {
-      Directory: [
-        { key: '7', type: 'movie', title: 'Movies' },
-        { key: '3', type: 'artist', title: 'Music' },
-        { key: '5', type: 'artist', title: 'Other music' },
-      ],
-    },
-  }
-  const track = {
-    type: 'track',
-    title: 'Roads',
-    grandparentTitle: 'Portishead',
-    duration: 302500,
-    Media: [{ Part: [{ file: '/music/Portishead/Roads.flac' }] }],
-  }
-
   it.each([
     { sectionId: '5', expectedSection: '5', token: 'selected-user-token', limit: 2 },
     { sectionId: undefined, expectedSection: '3', token: 'fallback-user-token', limit: 200 },
@@ -790,7 +709,7 @@ describe('plex edge cases (#926)', () => {
   it('retries the identity check after a failed lookup', async () => {
     mockGet
       .mockRejectedValueOnce(new Error('plex down'))
-      .mockResolvedValueOnce({ MediaContainer: { machineIdentifier: 'machine-1' } })
+      .mockResolvedValueOnce(IDENTITY_RESPONSE)
       .mockResolvedValueOnce({ MediaContainer: { totalSize: 0, Metadata: [] } })
     const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
     await expect(client.getRecentlyPlayed()).rejects.toThrow('plex down')

@@ -1,7 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
-  AddArtistOptions,
   LidarrAlbum,
   LidarrArtist,
   MetadataProfile,
@@ -88,6 +87,52 @@ function mockLidarrGets(overrides?: {
   })
 }
 
+const mockAlbum: LidarrAlbum = {
+  id: 101,
+  title: 'OK Computer',
+  artistId: 1,
+  foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000001',
+  monitored: true,
+  albumType: 'Album',
+}
+
+const alternateFolders: RootFolder[] = [
+  { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
+  { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
+]
+
+const wantedAlbum = {
+  id: 44,
+  title: 'Geogaddi',
+  artistId: 7,
+  foreignAlbumId: 'album-mbid-44',
+  artist: {
+    id: 7,
+    artistName: 'Boards of Canada',
+    foreignArtistId: '11111111-1111-1111-1111-111111111111',
+  },
+}
+
+const mockAlbums: LidarrAlbum[] = [
+  {
+    id: 101,
+    title: 'OK Computer',
+    artistId: 1,
+    foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000001',
+    monitored: true,
+    albumType: 'Album',
+    statistics: { trackCount: 12, trackFileCount: 12, percentOfTracks: 100 },
+  },
+  {
+    id: 102,
+    title: 'Kid A',
+    artistId: 1,
+    foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000002',
+    monitored: true,
+    albumType: 'Album',
+  },
+]
+
 beforeEach(() => {
   vi.clearAllMocks()
 })
@@ -104,125 +149,91 @@ describe('createLidarrClient', () => {
   })
 
   describe('getArtists()', () => {
-    it('GETs /api/v1/artist and returns artist array', async () => {
-      mockGet.mockResolvedValueOnce(mockArtists)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.getArtists()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', expect.any(Object))
-      expect(result).toEqual(mockArtists)
-    })
+    // Retrying a timeout makes Lidarr serialize the entire library again (#589).
+    it.each([undefined, 300_000])(
+      'uses a long, non-retrying library read with timeout %s (#589)',
+      async (listTimeoutMs) => {
+        mockGet.mockResolvedValueOnce(mockArtists)
+        const client = createLidarrClient(TEST_URL, TEST_KEY, false, { listTimeoutMs })
+        expect(await client.getArtists()).toEqual(mockArtists)
+        expect(mockGet).toHaveBeenCalledExactlyOnceWith('/api/v1/artist', {
+          timeout: listTimeoutMs ?? 120_000,
+          retries: 0,
+        })
+      },
+    )
 
-    it('uses a long timeout and does not retry (issue #589)', async () => {
-      // Lidarr serializes the whole library into one response; retrying a
-      // timeout just costs the upstream another full serialization.
-      mockGet.mockResolvedValueOnce(mockArtists)
+    it.each([
+      {
+        error: new HttpTimeoutError(120_000, 'GET', `${TEST_URL}/api/v1/artist`),
+        message: /DIGARR_LIDARR_TIMEOUT_SECONDS/,
+      },
+      { error: new Error('connection refused'), message: /connection refused/ },
+    ])('reports library read failures: $message', async ({ error, message }) => {
+      mockGet.mockRejectedValueOnce(error)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.getArtists()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', {
-        timeout: 120_000,
-        retries: 0,
-      })
-    })
-
-    it('honours an explicit listTimeoutMs override', async () => {
-      mockGet.mockResolvedValueOnce(mockArtists)
-      const client = createLidarrClient(TEST_URL, TEST_KEY, false, { listTimeoutMs: 300_000 })
-      await client.getArtists()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist', {
-        timeout: 300_000,
-        retries: 0,
-      })
-    })
-
-    it('names the tunable env var when the fetch times out', async () => {
-      mockGet.mockRejectedValueOnce(
-        new HttpTimeoutError(120_000, 'GET', `${TEST_URL}/api/v1/artist`),
-      )
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await expect(client.getArtists()).rejects.toThrow(/DIGARR_LIDARR_TIMEOUT_SECONDS/)
-    })
-
-    it('leaves non-timeout failures untouched', async () => {
-      mockGet.mockRejectedValueOnce(new Error('connection refused'))
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await expect(client.getArtists()).rejects.toThrow(/connection refused/)
+      await expect(client.getArtists()).rejects.toThrow(message)
     })
   })
 
   describe('findArtistByMbid()', () => {
+    // Older servers ignore mbId and return the full library.
     const radioheadMbid = mockArtists[0]?.foreignArtistId as string
 
-    it('GETs /api/v1/artist with the mbId filter instead of the full library', async () => {
-      mockGet.mockResolvedValueOnce([mockArtists[0]])
+    it.each([
+      {
+        name: 'filtered response',
+        response: [mockArtists[0]],
+        mbid: radioheadMbid,
+        expected: mockArtists[0],
+      },
+      { name: 'empty response', response: [], mbid: radioheadMbid, expected: null },
+      {
+        name: 'ignored mbId with no match',
+        response: mockArtists,
+        mbid: '00000000-0000-0000-0000-000000000000',
+        expected: null,
+      },
+      {
+        name: 'ignored mbId with a match',
+        response: mockArtists,
+        mbid: radioheadMbid,
+        expected: mockArtists[0],
+      },
+    ])('selects only the requested MBID from $name', async ({ response, mbid, expected }) => {
+      mockGet.mockResolvedValueOnce(response)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.findArtistByMbid(radioheadMbid)
-      expect(mockGet).toHaveBeenCalledWith(`/api/v1/artist?mbId=${radioheadMbid}`)
-      expect(result?.id).toBe(1)
-    })
-
-    it('returns null when Lidarr has no such artist', async () => {
-      mockGet.mockResolvedValueOnce([])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await expect(client.findArtistByMbid(radioheadMbid)).resolves.toBeNull()
-    })
-
-    it('returns null rather than a wrong artist when the server ignores mbId', async () => {
-      // Lidarr ignores unknown query params instead of rejecting them, so a
-      // version predating mbId support answers with the entire library.
-      // Taking raw[0] there would bind the wrong artist to the album.
-      mockGet.mockResolvedValueOnce(mockArtists)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.findArtistByMbid('00000000-0000-0000-0000-000000000000')
-      expect(result).toBeNull()
-    })
-
-    it('picks the matching artist when the server ignores mbId', async () => {
-      mockGet.mockResolvedValueOnce(mockArtists)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.findArtistByMbid(radioheadMbid)
-      expect(result?.artistName).toBe('Radiohead')
+      await expect(client.findArtistByMbid(mbid)).resolves.toEqual(expected)
+      expect(mockGet).toHaveBeenCalledWith(`/api/v1/artist?mbId=${mbid}`)
     })
   })
 
   describe('lookupArtist()', () => {
-    it('GETs /api/v1/artist/lookup with encoded term', async () => {
-      const searchResults = [mockArtists[0]]
-      mockGet.mockResolvedValueOnce(searchResults)
+    it.each([
+      { term: 'Radiohead', encoded: 'Radiohead', response: [mockArtists[0]] },
+      { term: 'At the Drive-In', encoded: 'At+the+Drive-In', response: [] },
+    ])('encodes lookup term $term', async ({ term, encoded, response }) => {
+      mockGet.mockResolvedValueOnce(response)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.lookupArtist('Radiohead')
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist/lookup?term=Radiohead')
-      expect(result).toEqual(searchResults)
-    })
-
-    it('URL-encodes terms with special characters', async () => {
-      mockGet.mockResolvedValueOnce([])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.lookupArtist('At the Drive-In')
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/artist/lookup?term=At+the+Drive-In')
+      await expect(client.lookupArtist(term)).resolves.toEqual(response)
+      expect(mockGet).toHaveBeenCalledWith(`/api/v1/artist/lookup?term=${encoded}`)
     })
   })
 
-  describe('getQualityProfiles()', () => {
-    it('GETs /api/v1/qualityprofile and returns profiles', async () => {
-      mockGet.mockResolvedValueOnce(mockProfiles)
+  describe('profile and folder endpoints', () => {
+    it.each([
+      { method: 'getQualityProfiles', path: '/api/v1/qualityprofile', response: mockProfiles },
+      { method: 'getRootFolders', path: '/api/v1/rootfolder', response: mockFolders },
+    ] as const)('reads $method from $path', async ({ method, path, response }) => {
+      mockGet.mockResolvedValueOnce(response)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.getQualityProfiles()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/qualityprofile')
-      expect(result).toEqual(mockProfiles)
-    })
-  })
-
-  describe('getRootFolders()', () => {
-    it('GETs /api/v1/rootfolder and returns folders', async () => {
-      mockGet.mockResolvedValueOnce(mockFolders)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.getRootFolders()
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/rootfolder')
-      expect(result).toEqual(mockFolders)
+      await expect(client[method]()).resolves.toEqual(response)
+      expect(mockGet).toHaveBeenCalledWith(path)
     })
   })
 
   describe('addArtist()', () => {
+    // Lidarr rejects `new`; its equivalent monitor type is `future` (#611).
     it.each([
       ['all', 'all'],
       ['new', 'future'],
@@ -231,22 +242,25 @@ describe('createLidarrClient', () => {
       ['latest', 'latest'],
       ['first', 'first'],
       ['none', 'none'],
-    ] as const)('sends %s as %s with tags on the add request', async (monitorOption, monitor) => {
-      mockLidarrGets()
-      mockPost.mockResolvedValue(mockArtists[0])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('mbid', 'Artist', 1, 1, 1, { monitorOption, tags: [2, 7] })
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({
-          tags: [2, 7],
-          addOptions: {
-            monitor,
-            searchForMissingAlbums: monitorOption !== 'new' && monitorOption !== 'none',
-          },
-        }),
-      )
-    })
+    ] as const)(
+      'sends %s as %s with tags on the add request (#611)',
+      async (monitorOption, monitor) => {
+        mockLidarrGets()
+        mockPost.mockResolvedValue(mockArtists[0])
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await client.addArtist('mbid', 'Artist', 1, 1, 1, { monitorOption, tags: [2, 7] })
+        expect(mockPost).toHaveBeenCalledWith(
+          '/api/v1/artist',
+          expect.objectContaining({
+            tags: [2, 7],
+            addOptions: {
+              monitor,
+              searchForMissingAlbums: monitorOption !== 'new' && monitorOption !== 'none',
+            },
+          }),
+        )
+      },
+    )
 
     it('loads and creates tags using the instance tag endpoint', async () => {
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -276,6 +290,8 @@ describe('createLidarrClient', () => {
         '/api/v1/artist',
         expect.objectContaining({
           foreignArtistId: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          artistName: 'Radiohead',
+          metadataProfileId: 1,
           qualityProfileId: 1,
           rootFolderPath: '/music',
           monitored: true,
@@ -302,107 +318,24 @@ describe('createLidarrClient', () => {
       }
     })
 
-    it('defaults to monitor:"none" and searchForMissingAlbums:false when no options provided', async () => {
-      mockLidarrGets()
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 12 })
-
+    it.each([
+      { rootFolderId: undefined, path: '/music5', folders: alternateFolders },
+      { rootFolderId: null, path: '/music5', folders: alternateFolders },
+      { rootFolderId: 2, path: '/music2', folders: mockFolders },
+    ])('resolves folder $rootFolderId to $path', async ({ rootFolderId, path, folders }) => {
+      mockLidarrGets({ folders })
+      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({
-          addOptions: { monitor: 'none', searchForMissingAlbums: false },
-        }),
+      await client.addArtist(
+        'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+        'Radiohead',
+        1,
+        1,
+        rootFolderId,
       )
-    })
-
-    // Lidarr's MonitorTypes enum has no `new`; the equivalent is `future`.
-    // Sending `new` fails deserialization with a 400 (#611).
-    it('maps monitorOption:"new" to Lidarr "future" and sets searchForMissingAlbums:false', async () => {
-      mockLidarrGets()
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 13 })
-
-      const options: AddArtistOptions = { monitorOption: 'new' }
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1, options)
-
       expect(mockPost).toHaveBeenCalledWith(
         '/api/v1/artist',
-        expect.objectContaining({
-          addOptions: { monitor: 'future', searchForMissingAlbums: false },
-        }),
-      )
-    })
-
-    it('uses monitorOption:"none" and sets searchForMissingAlbums:false', async () => {
-      mockLidarrGets()
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 14 })
-
-      const options: AddArtistOptions = { monitorOption: 'none' }
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1, options)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({
-          addOptions: { monitor: 'none', searchForMissingAlbums: false },
-        }),
-      )
-    })
-
-    it('uses monitorOption:"all" explicitly and sets searchForMissingAlbums:true', async () => {
-      mockLidarrGets()
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 15 })
-
-      const options: AddArtistOptions = { monitorOption: 'all' }
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1, options)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({
-          addOptions: { monitor: 'all', searchForMissingAlbums: true },
-        }),
-      )
-    })
-
-    it.each([[undefined], [null]])(
-      'uses first available folder when rootFolderId is %s',
-      async (rootFolderId) => {
-        const altFolders: RootFolder[] = [
-          { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
-          { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
-        ]
-        mockLidarrGets({ folders: altFolders })
-        mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
-
-        const client = createLidarrClient(TEST_URL, TEST_KEY)
-        await client.addArtist(
-          'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-          'Radiohead',
-          1,
-          1,
-          rootFolderId,
-        )
-
-        expect(mockPost).toHaveBeenCalledWith(
-          '/api/v1/artist',
-          expect.objectContaining({ rootFolderPath: '/music5' }),
-        )
-      },
-    )
-
-    it('uses the explicit folder path when a valid rootFolderId is provided', async () => {
-      mockLidarrGets()
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 22 })
-
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 2)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({ rootFolderPath: '/music2' }),
+        expect.objectContaining({ rootFolderPath: path }),
       )
     })
 
@@ -422,31 +355,27 @@ describe('createLidarrClient', () => {
       ).rejects.toThrow('No root folders configured in Lidarr')
     })
 
-    it('snaps a stale qualityProfileId to the first available profile', async () => {
-      mockLidarrGets({ qualityProfiles: [{ id: 3, name: 'Stefan' }] })
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 23 })
-
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({ qualityProfileId: 3 }),
-      )
-    })
-
-    it('snaps a stale metadataProfileId to the first available profile', async () => {
-      mockLidarrGets({ metadataProfiles: [{ id: 5, name: 'Custom' }] })
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 24 })
-
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({ metadataProfileId: 5 }),
-      )
-    })
+    it.each([
+      {
+        name: 'quality',
+        overrides: { qualityProfiles: [{ id: 3, name: 'Stefan' }] },
+        expected: { qualityProfileId: 3 },
+      },
+      {
+        name: 'metadata',
+        overrides: { metadataProfiles: [{ id: 5, name: 'Custom' }] },
+        expected: { metadataProfileId: 5 },
+      },
+    ])(
+      'snaps a stale $name profile ID to the first available profile',
+      async ({ overrides, expected }) => {
+        mockLidarrGets(overrides)
+        mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 23 })
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, 1)
+        expect(mockPost).toHaveBeenCalledWith('/api/v1/artist', expect.objectContaining(expected))
+      },
+    )
 
     it('keeps valid profile ids untouched', async () => {
       mockLidarrGets()
@@ -471,26 +400,6 @@ describe('createLidarrClient', () => {
   })
 
   describe('getAlbums()', () => {
-    const mockAlbums: LidarrAlbum[] = [
-      {
-        id: 101,
-        title: 'OK Computer',
-        artistId: 1,
-        foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000001',
-        monitored: true,
-        albumType: 'Album',
-        statistics: { trackCount: 12, trackFileCount: 12, percentOfTracks: 100 },
-      },
-      {
-        id: 102,
-        title: 'Kid A',
-        artistId: 1,
-        foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000002',
-        monitored: true,
-        albumType: 'Album',
-      },
-    ]
-
     it('GETs /api/v1/album with artistId query param', async () => {
       mockGet.mockResolvedValueOnce(mockAlbums)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
@@ -508,40 +417,19 @@ describe('createLidarrClient', () => {
   })
 
   describe('getWantedMissing()', () => {
-    it('GETs /api/v1/wanted/missing and returns the trimmed wanted payload', async () => {
-      mockGet.mockResolvedValueOnce([
-        {
-          id: 44,
-          title: 'Geogaddi',
-          artistId: 7,
-          foreignAlbumId: 'album-mbid-44',
-          artist: {
-            id: 7,
-            artistName: 'Boards of Canada',
-            foreignArtistId: '11111111-1111-1111-1111-111111111111',
-          },
-        },
-      ])
-
+    it.each([
+      { name: 'array', response: [wantedAlbum] },
+      {
+        name: 'paginated records',
+        response: { page: 1, pageSize: 10, totalRecords: 1, records: [wantedAlbum] },
+      },
+    ])('reads wanted albums from $name responses', async ({ response }) => {
+      mockGet.mockResolvedValueOnce(response)
       const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.getWantedMissing()
-
+      await expect(client.getWantedMissing()).resolves.toEqual([wantedAlbum])
       expect(mockGet).toHaveBeenCalledWith(
         '/api/v1/wanted/missing?page=1&pageSize=250&includeArtist=true',
       )
-      expect(result).toEqual([
-        {
-          id: 44,
-          title: 'Geogaddi',
-          artistId: 7,
-          foreignAlbumId: 'album-mbid-44',
-          artist: {
-            id: 7,
-            artistName: 'Boards of Canada',
-            foreignArtistId: '11111111-1111-1111-1111-111111111111',
-          },
-        },
-      ])
     })
 
     it('fetches every page until totalRecords is reached', async () => {
@@ -562,147 +450,77 @@ describe('createLidarrClient', () => {
         '/api/v1/wanted/missing?page=2&pageSize=250&includeArtist=true',
       )
     })
-
-    it('reads paginated wanted responses from the records array', async () => {
-      mockGet.mockResolvedValueOnce({
-        page: 1,
-        pageSize: 10,
-        totalRecords: 1,
-        records: [
-          {
-            id: 44,
-            title: 'Geogaddi',
-            artistId: 7,
-            foreignAlbumId: 'album-mbid-44',
-            artist: {
-              id: 7,
-              artistName: 'Boards of Canada',
-              foreignArtistId: '11111111-1111-1111-1111-111111111111',
-            },
-          },
-        ],
-      })
-
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.getWantedMissing()
-
-      expect(result).toEqual([
-        {
-          id: 44,
-          title: 'Geogaddi',
-          artistId: 7,
-          foreignAlbumId: 'album-mbid-44',
-          artist: {
-            id: 7,
-            artistName: 'Boards of Canada',
-            foreignArtistId: '11111111-1111-1111-1111-111111111111',
-          },
-        },
-      ])
-    })
   })
 
   describe('setArtistsMonitored()', () => {
     // Regression #393 class: monitor flips must use the bulk editor endpoint
     // (see the rationale comment in src/core/clients/lidarr.ts).
-    it('PUTs artistIds and monitored to /api/v1/artist/editor', async () => {
-      const updated = [{ ...mockArtists[0], monitored: false }]
-      mockPut.mockResolvedValueOnce(updated)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.setArtistsMonitored([1], false)
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/editor', {
-        artistIds: [1],
-        monitored: false,
-      })
-      expect(result).toEqual(updated)
-    })
-
-    it('sends multiple artist ids in one call', async () => {
-      mockPut.mockResolvedValueOnce(mockArtists)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.setArtistsMonitored([1, 2], true)
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/artist/editor', {
-        artistIds: [1, 2],
-        monitored: true,
-      })
-    })
+    it.each([
+      { ids: [1], monitored: false },
+      { ids: [1, 2], monitored: true },
+    ])(
+      'uses the bulk artist editor for $ids with monitored $monitored (#393)',
+      async ({ ids, monitored }) => {
+        const updated = ids.map((id) => ({ ...mockArtists[id - 1], monitored }))
+        mockPut.mockResolvedValueOnce(updated)
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await expect(client.setArtistsMonitored(ids, monitored)).resolves.toEqual(updated)
+        expect(mockPut).toHaveBeenCalledExactlyOnceWith('/api/v1/artist/editor', {
+          artistIds: ids,
+          monitored,
+        })
+      },
+    )
   })
 
   describe('setAlbumsMonitored()', () => {
-    const mockAlbum: LidarrAlbum = {
-      id: 101,
-      title: 'OK Computer',
-      artistId: 1,
-      foreignAlbumId: 'a0a0a0a0-0000-0000-0000-000000000001',
-      monitored: true,
-      albumType: 'Album',
-    }
-
     // Regression #393: monitor flips must use the bulk monitor endpoint
     // (see the rationale comment in src/core/clients/lidarr.ts).
-    it('PUTs albumIds and monitored:true to /api/v1/album/monitor', async () => {
-      mockPut.mockResolvedValueOnce([{ ...mockAlbum, monitored: true }])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.setAlbumsMonitored([101], true)
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
-        albumIds: [101],
-        monitored: true,
-      })
-      expect(result[0]?.monitored).toBe(true)
-    })
-
-    it('PUTs monitored:false', async () => {
-      mockPut.mockResolvedValueOnce([{ ...mockAlbum, monitored: false }])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.setAlbumsMonitored([101], false)
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
-        albumIds: [101],
-        monitored: false,
-      })
-      expect(result[0]?.monitored).toBe(false)
-    })
-
-    it('sends multiple album ids in one call', async () => {
-      mockPut.mockResolvedValueOnce([mockAlbum, { ...mockAlbum, id: 202 }])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.setAlbumsMonitored([101, 202], true)
-      expect(mockPut).toHaveBeenCalledWith('/api/v1/album/monitor', {
-        albumIds: [101, 202],
-        monitored: true,
-      })
-    })
+    it.each([
+      { ids: [101], monitored: true },
+      { ids: [101], monitored: false },
+      { ids: [101, 202], monitored: true },
+    ])(
+      'uses the bulk album monitor for $ids with monitored $monitored (#393)',
+      async ({ ids, monitored }) => {
+        const updated = ids.map((id) => ({ ...mockAlbum, id, monitored }))
+        mockPut.mockResolvedValueOnce(updated)
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await expect(client.setAlbumsMonitored(ids, monitored)).resolves.toEqual(updated)
+        expect(mockPut).toHaveBeenCalledExactlyOnceWith('/api/v1/album/monitor', {
+          albumIds: ids,
+          monitored,
+        })
+      },
+    )
   })
 
   describe('triggerCommand()', () => {
-    it('POSTs to /api/v1/command with name only when no extra body', async () => {
-      const mockCmd = { id: 55, name: 'RescanArtist', status: 'queued' }
-      mockPost.mockResolvedValueOnce(mockCmd)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.triggerCommand('RescanArtist')
-      expect(mockPost).toHaveBeenCalledWith('/api/v1/command', { name: 'RescanArtist' })
-      expect(result).toEqual(mockCmd)
-    })
-
-    it('merges extra body fields into the command payload', async () => {
-      const mockCmd = { id: 56, name: 'ArtistSearch', status: 'queued' }
-      mockPost.mockResolvedValueOnce(mockCmd)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.triggerCommand('ArtistSearch', { artistId: 1 })
-      expect(mockPost).toHaveBeenCalledWith('/api/v1/command', {
+    it.each([
+      {
+        name: 'RescanArtist',
+        body: undefined,
+        command: { id: 55, name: 'RescanArtist', status: 'queued' },
+      },
+      {
         name: 'ArtistSearch',
-        artistId: 1,
-      })
-    })
-
-    it('returns the command object with id, name, status', async () => {
-      const mockCmd = { id: 57, name: 'RefreshArtist', status: 'started' }
-      mockPost.mockResolvedValueOnce(mockCmd)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.triggerCommand('RefreshArtist', { artistId: 2 })
-      expect(result).toHaveProperty('id')
-      expect(result).toHaveProperty('name', 'RefreshArtist')
-      expect(result).toHaveProperty('status')
-    })
+        body: { artistId: 1 },
+        command: { id: 56, name: 'ArtistSearch', status: 'queued' },
+      },
+      {
+        name: 'RefreshArtist',
+        body: { artistId: 2 },
+        command: { id: 57, name: 'RefreshArtist', status: 'started' },
+      },
+    ])(
+      'submits $name with optional fields and returns command state',
+      async ({ name, body, command }) => {
+        mockPost.mockResolvedValueOnce(command)
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await expect(client.triggerCommand(name, body)).resolves.toEqual(command)
+        expect(mockPost).toHaveBeenCalledWith('/api/v1/command', { name, ...body })
+      },
+    )
   })
 
   describe('manual import', () => {

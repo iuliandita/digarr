@@ -11,15 +11,9 @@ import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fi
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
 import { VERSION } from '@/version'
 
-// ---------------------------------------------------------------------------
-// Mock fetch globally so nothing ever hits a real server.
-// ---------------------------------------------------------------------------
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
-// Mock p-queue so the rate-limiter queue is transparent in most tests.
-// The queue factory is replaced with an implementation that just calls the
-// function immediately (no queuing/delay).
 vi.mock('p-queue', () => {
   const mockAdd = vi.fn((fn: () => unknown) => fn())
   const MockPQueue = vi.fn().mockImplementation(function (this: { add: typeof mockAdd }) {
@@ -30,10 +24,7 @@ vi.mock('p-queue', () => {
 })
 
 const { default: PQueue } = await import('p-queue')
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
 
 function makeJsonResponse(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
@@ -88,9 +79,35 @@ const MOCK_SEARCH_RESPONSE: MBSearchResult = {
   ],
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+const MOCK_RG_RESPONSE = {
+  'release-groups': [
+    {
+      id: 'rg-1',
+      title: 'OK Computer',
+      'primary-type': 'Album',
+      'first-release-date': '1997-05-21',
+    },
+    { id: 'rg-2', title: 'Kid A', 'primary-type': 'Album', 'first-release-date': '2000-10-02' },
+    { id: 'rg-3', title: 'Creep', 'primary-type': 'Single', 'first-release-date': '1992-09-21' },
+    {
+      id: 'rg-4',
+      title: 'My Iron Lung EP',
+      'primary-type': 'EP',
+      'first-release-date': '1994-10-03',
+    },
+    { id: 'rg-5', title: 'No Primary Type Release', 'first-release-date': '2020-01-01' },
+    { id: 'rg-6', title: 'No Date Single', 'primary-type': 'Single' },
+  ],
+}
+
+function groups(start: number, length: number) {
+  return Array.from({ length }, (_, index) => ({
+    id: `rg-${start + index}`,
+    title: `Album ${start + index}`,
+    'primary-type': 'Album',
+    'first-release-date': '2001-02-03',
+  }))
+}
 
 beforeEach(() => {
   vi.clearAllMocks()
@@ -156,122 +173,55 @@ describe('createMusicBrainzClient', () => {
     })
   })
 
-  describe('User-Agent header', () => {
-    it('contains the current package.json version', () => {
-      expect(USER_AGENT).toMatch(/^Digarr\/\d+\.\d+\.\d+/)
-      expect(USER_AGENT).toContain(VERSION)
-    })
-
-    it('sends the correct User-Agent on lookupArtist', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
+  describe('artist request contracts', () => {
+    it.each([
+      {
+        name: 'lookup with tags, aliases and relations',
+        lookup: true,
+        input: MOCK_ARTIST_MBID,
+        path: `/artist/${MOCK_ARTIST_MBID}?inc=tags%2Burl-rels%2Baliases&fmt=json`,
+        response: MOCK_ARTIST_RESPONSE,
+      },
+      {
+        name: 'lookup without optional metadata',
+        lookup: true,
+        input: 'some-id',
+        path: '/artist/some-id?inc=tags%2Burl-rels%2Baliases&fmt=json',
+        response: { id: 'some-id', name: 'Minimal Band' },
+      },
+      {
+        name: 'search candidates with scores',
+        lookup: false,
+        input: 'Radiohead',
+        path: '/artist/?query=Radiohead&fmt=json',
+        response: MOCK_SEARCH_RESPONSE,
+      },
+      {
+        name: 'search with encoded special characters',
+        lookup: false,
+        input: 'AC/DC',
+        path: '/artist/?query=AC%2FDC&fmt=json',
+        response: { artists: [] },
+      },
+      {
+        name: 'search without matches',
+        lookup: false,
+        input: 'xyzzy-no-match',
+        path: '/artist/?query=xyzzy-no-match&fmt=json',
+        response: { artists: [] },
+      },
+    ])('queues a $name request with the User-Agent', async ({ lookup, input, path, response }) => {
+      mockFetch.mockResolvedValueOnce(makeJsonResponse(response))
       const client = createMusicBrainzClient()
-      await client.lookupArtist(MOCK_ARTIST_MBID)
+      const result = await (lookup ? client.lookupArtist(input) : client.searchArtist(input))
 
-      expect(mockFetch).toHaveBeenCalledOnce()
-      const [, options] = mockFetch.mock.calls[0] as [string, RequestInit]
-      expect((options.headers as Record<string, string>)['User-Agent']).toBe(USER_AGENT)
-    })
-
-    it('sends the correct User-Agent on searchArtist', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_SEARCH_RESPONSE))
-      const client = createMusicBrainzClient()
-      await client.searchArtist('Radiohead')
-
-      expect(mockFetch).toHaveBeenCalledOnce()
-      const [, options] = mockFetch.mock.calls[0] as [string, RequestInit]
-      expect((options.headers as Record<string, string>)['User-Agent']).toBe(USER_AGENT)
-    })
-  })
-
-  describe('lookupArtist(mbid)', () => {
-    it('GETs /artist/{mbid}?inc=tags+url-rels+aliases&fmt=json', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
-      const client = createMusicBrainzClient()
-      await client.lookupArtist(MOCK_ARTIST_MBID)
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      expect(url).toBe(
-        `${MB_BASE}/artist/${MOCK_ARTIST_MBID}?inc=tags%2Burl-rels%2Baliases&fmt=json`,
-      )
-    })
-
-    it('returns artist with name, disambiguation, tags, and relations', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.lookupArtist(MOCK_ARTIST_MBID)
-
-      expect(result.id).toBe(MOCK_ARTIST_MBID)
-      expect(result.name).toBe('Radiohead')
-      expect(result.aliases).toEqual([{ name: 'Radiohead alias' }])
-      expect(result.disambiguation).toBe('UK rock band')
-      expect(result.tags).toHaveLength(2)
-      expect(result.tags?.[0]).toEqual({ name: 'alternative rock', count: 10 })
-      expect(result.relations).toHaveLength(6)
-      expect(result.relations?.[0]).toMatchObject({
-        type: 'streaming music',
-        url: { resource: expect.stringContaining('spotify.com') },
+      expect(result).toEqual(response)
+      expect(mockFetch).toHaveBeenCalledExactlyOnceWith(`${MB_BASE}${path}`, {
+        headers: { 'User-Agent': USER_AGENT },
+        signal: expect.any(AbortSignal),
+        redirect: 'error',
       })
-    })
-
-    it('handles artist with no tags or relations', async () => {
-      const minimal: MBArtist = { id: 'some-id', name: 'Minimal Band' }
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(minimal))
-      const client = createMusicBrainzClient()
-      const result = await client.lookupArtist('some-id')
-
-      expect(result.name).toBe('Minimal Band')
-      expect(result.tags).toBeUndefined()
-      expect(result.relations).toBeUndefined()
-    })
-  })
-
-  describe('searchArtist(query)', () => {
-    it('GETs /artist/?query={encoded}&fmt=json', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_SEARCH_RESPONSE))
-      const client = createMusicBrainzClient()
-      await client.searchArtist('Radiohead')
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      expect(url).toContain(`${MB_BASE}/artist/`)
-      expect(url).toContain('query=Radiohead')
-      expect(url).toContain('fmt=json')
-    })
-
-    it('returns candidates with MBIDs, names, scores', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_SEARCH_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.searchArtist('Radiohead')
-
-      expect(result.artists).toHaveLength(2)
-      expect(result.artists[0]).toMatchObject({
-        id: MOCK_ARTIST_MBID,
-        name: 'Radiohead',
-        score: 100,
-      })
-      expect(result.artists[1]).toMatchObject({
-        id: 'other-mbid',
-        name: 'Radio Head',
-        score: 72,
-      })
-    })
-
-    it('URL-encodes special characters in query', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
-      const client = createMusicBrainzClient()
-      await client.searchArtist('AC/DC')
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      // The slash should be encoded
-      expect(url).not.toContain('query=AC/DC')
-      expect(url).toContain('query=AC')
-    })
-
-    it('returns empty artists array when no results', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
-      const client = createMusicBrainzClient()
-      const result = await client.searchArtist('xyzzy-no-match')
-
-      expect(result.artists).toEqual([])
+      expect(sharedAdd).toHaveBeenCalledOnce()
     })
   })
 
@@ -318,108 +268,30 @@ describe('createMusicBrainzClient', () => {
     })
   })
 
-  describe('rate limiter - queue integration', () => {
-    const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
-
-    it('routes lookupArtist through the shared queue', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
-      const client = createMusicBrainzClient()
-      await client.lookupArtist(MOCK_ARTIST_MBID)
-      expect(sharedAdd).toHaveBeenCalledOnce()
-    })
-
-    it('routes searchArtist through the shared queue', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_SEARCH_RESPONSE))
-      const client = createMusicBrainzClient()
-      await client.searchArtist('Radiohead')
-      expect(sharedAdd).toHaveBeenCalledOnce()
-    })
-
-    it('routes getReleaseGroups through the shared queue', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      await client.getReleaseGroups(MOCK_ARTIST_MBID)
-      expect(sharedAdd).toHaveBeenCalledOnce()
-    })
-  })
-
   describe('getReleaseGroups(artistMbid)', () => {
-    const MOCK_RG_RESPONSE = {
-      'release-groups': [
-        {
-          id: 'rg-1',
-          title: 'OK Computer',
-          'primary-type': 'Album',
-          'first-release-date': '1997-05-21',
-        },
-        {
-          id: 'rg-2',
-          title: 'Kid A',
-          'primary-type': 'Album',
-          'first-release-date': '2000-10-02',
-        },
-        {
-          id: 'rg-3',
-          title: 'Creep',
-          'primary-type': 'Single',
-          'first-release-date': '1992-09-21',
-        },
-        {
-          id: 'rg-4',
-          title: 'My Iron Lung EP',
-          'primary-type': 'EP',
-          'first-release-date': '1994-10-03',
-        },
-        {
-          id: 'rg-5',
-          title: 'No Primary Type Release',
-          'first-release-date': '2020-01-01',
-        },
-        {
-          id: 'rg-6',
-          title: 'No Date Single',
-          'primary-type': 'Single',
-        },
-      ],
-    }
-
-    it('GETs /release-group with artist, type, fmt, and limit params', async () => {
+    it.each([
+      { types: undefined, expected: 'album|ep|single' },
+      { types: ['album'], expected: 'album' },
+    ])('queues release-group requests with type $expected', async ({ types, expected }) => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      await client.getReleaseGroups(MOCK_ARTIST_MBID)
+      await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID, types)
 
       const [url] = mockFetch.mock.calls[0] as [string]
-      expect(url).toContain(`${MB_BASE}/release-group`)
-      expect(url).toContain(`artist=${MOCK_ARTIST_MBID}`)
-      expect(url).toContain('fmt=json')
-      expect(url).toContain('limit=100')
+      expect(url).toContain(`${MB_BASE}/release-group?`)
+      expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
+        artist: MOCK_ARTIST_MBID,
+        type: expected,
+        inc: 'aliases',
+        fmt: 'json',
+        limit: '100',
+        offset: '0',
+      })
+      expect(sharedAdd).toHaveBeenCalledOnce()
     })
 
-    it('defaults the type filter to album|ep|single', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      await client.getReleaseGroups(MOCK_ARTIST_MBID)
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      expect(decodeURIComponent(new URL(url).searchParams.get('type') ?? '')).toBe(
-        'album|ep|single',
-      )
-    })
-
-    it('narrows the type filter to album when requested', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      await client.getReleaseGroups(MOCK_ARTIST_MBID, ['album'])
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      expect(new URL(url).searchParams.get('type')).toBe('album')
-    })
-
-    it('returns correctly shaped MBReleaseGroup array', async () => {
+    it('maps release-group fields and defaults absent type and date', async () => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_RG_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.getReleaseGroups(MOCK_ARTIST_MBID)
-
+      const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)
       expect(result).toHaveLength(6)
       expect(result[0]).toMatchObject({
         id: 'rg-1',
@@ -427,6 +299,8 @@ describe('createMusicBrainzClient', () => {
         type: 'Album',
         firstReleaseDate: '1997-05-21',
       })
+      expect(result.find((rg) => rg.id === 'rg-5')?.type).toBe('Other')
+      expect(result.find((rg) => rg.id === 'rg-6')?.firstReleaseDate).toBeUndefined()
     })
 
     it('requests release-group aliases and keeps only usable alias names', async () => {
@@ -456,36 +330,11 @@ describe('createMusicBrainzClient', () => {
       expect(result[1]).not.toHaveProperty('aliases')
     })
 
-    it('maps missing primary-type to "Other"', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_RG_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.getReleaseGroups(MOCK_ARTIST_MBID)
-
-      const noType = result.find((rg) => rg.id === 'rg-5')
-      expect(noType?.type).toBe('Other')
-    })
-
-    it('maps missing first-release-date to undefined', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_RG_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.getReleaseGroups(MOCK_ARTIST_MBID)
-
-      const noDate = result.find((rg) => rg.id === 'rg-6')
-      expect(noDate?.firstReleaseDate).toBeUndefined()
-    })
-
-    it('returns empty array when release-groups is missing from response', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({}))
-      const client = createMusicBrainzClient()
-      const result = await client.getReleaseGroups(MOCK_ARTIST_MBID)
-      expect(result).toEqual([])
-    })
-
-    it('returns empty array when release-groups is empty', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      const result = await client.getReleaseGroups(MOCK_ARTIST_MBID)
-      expect(result).toEqual([])
+    it.each([{}, { 'release-groups': [] }])('returns no groups for %j', async (response) => {
+      mockFetch.mockResolvedValueOnce(makeJsonResponse(response))
+      await expect(createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID)).resolves.toEqual(
+        [],
+      )
     })
 
     it('throws on non-ok HTTP response', async () => {
@@ -518,15 +367,6 @@ describe('createMusicBrainzClient', () => {
   })
 
   describe('release-group pagination', () => {
-    function groups(start: number, length: number) {
-      return Array.from({ length }, (_, index) => ({
-        id: `rg-${start + index}`,
-        title: `Album ${start + index}`,
-        'primary-type': 'Album',
-        'first-release-date': '2001-02-03',
-      }))
-    }
-
     it('preserves secondary types across pages without narrowing the shared catalog', async () => {
       const firstPage = groups(0, 100).map((group) => ({ ...group, 'secondary-types': [] }))
       const laterPage = [
@@ -582,7 +422,6 @@ describe('createMusicBrainzClient', () => {
         const result = await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID, ['album'])
         expect(result.map((group) => group.id)).toEqual(groups(0, count).map((group) => group.id))
         expect(mockFetch).toHaveBeenCalledTimes(pages)
-        const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
         expect(sharedAdd).toHaveBeenCalledTimes(pages)
         for (const [index, [url, options]] of mockFetch.mock.calls.entries()) {
           expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
@@ -717,7 +556,6 @@ describe('createMusicBrainzClient', () => {
         expect(
           mockFetch.mock.calls.map(([url]) => new URL(url).searchParams.get('offset')),
         ).toEqual(['0', '100', '100'])
-        const sharedAdd = (PQueue as unknown as { mockAdd: ReturnType<typeof vi.fn> }).mockAdd
         expect(sharedAdd).toHaveBeenCalledTimes(3)
       } finally {
         vi.useRealTimers()
@@ -782,30 +620,26 @@ describe('createMusicBrainzClient', () => {
       vi.useRealTimers()
     })
 
-    it('retries on 503 and succeeds when upstream recovers', async () => {
-      mockFetch.mockResolvedValueOnce(new Response('', { status: 503 }))
-      mockFetch.mockResolvedValueOnce(new Response('', { status: 503 }))
+    it.each([
+      { name: '503 twice', failures: [503, 503] },
+      { name: 'network error', failures: [new TypeError('fetch failed')] },
+      { name: '429 with Retry-After', failures: [429] },
+    ])('retries $name and returns the recovered response', async ({ failures }) => {
+      for (const failure of failures) {
+        if (failure instanceof Error) mockFetch.mockRejectedValueOnce(failure)
+        else
+          mockFetch.mockResolvedValueOnce(
+            new Response('', {
+              status: failure,
+              headers: failure === 429 ? { 'retry-after': '0' } : {},
+            }),
+          )
+      }
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
-
-      const client = createMusicBrainzClient()
-      const promise = client.searchArtist('flaky-artist')
+      const pending = createMusicBrainzClient().searchArtist('flaky-artist')
       await vi.runAllTimersAsync()
-      const result = await promise
-
-      expect(mockFetch).toHaveBeenCalledTimes(3)
-      expect(result).toEqual({ artists: [] })
-    })
-
-    it('retries a network error and succeeds when the connection recovers', async () => {
-      mockFetch.mockRejectedValueOnce(new TypeError('fetch failed'))
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
-
-      const client = createMusicBrainzClient()
-      const promise = client.searchArtist('flaky-network')
-      await vi.runAllTimersAsync()
-
-      expect(await promise).toEqual({ artists: [] })
-      expect(mockFetch).toHaveBeenCalledTimes(2)
+      expect(await pending).toEqual({ artists: [] })
+      expect(mockFetch).toHaveBeenCalledTimes(failures.length + 1)
     })
 
     it('gives up after max retries and throws the final error', async () => {
@@ -819,7 +653,6 @@ describe('createMusicBrainzClient', () => {
       )
       await vi.runAllTimersAsync()
       await assertion
-      // 1 initial + 3 retries = 4 total
       expect(mockFetch).toHaveBeenCalledTimes(4)
     })
 
@@ -829,21 +662,6 @@ describe('createMusicBrainzClient', () => {
       const client = createMusicBrainzClient()
       await expect(client.searchArtist('bad-query')).rejects.toThrow(/MusicBrainz HTTP 400/)
       expect(mockFetch).toHaveBeenCalledTimes(1)
-    })
-
-    it('honors Retry-After header within the cap', async () => {
-      mockFetch.mockResolvedValueOnce(
-        new Response('', { status: 429, headers: { 'retry-after': '0' } }),
-      )
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ artists: [] }))
-
-      const client = createMusicBrainzClient()
-      const promise = client.searchArtist('rate-limited')
-      await vi.runAllTimersAsync()
-      const result = await promise
-
-      expect(mockFetch).toHaveBeenCalledTimes(2)
-      expect(result).toEqual({ artists: [] })
     })
   })
 })
