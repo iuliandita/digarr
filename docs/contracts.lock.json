@@ -395,7 +395,7 @@
         "src/web/components/discovery-mode-form.tsx": "a940d0173f0b658972d29e70c25ae1a43fee14248c62d7faa2eb2c372342883b",
         "src/web/components/discovery-modes-redirect.tsx": "dfc760ce1423ed980ddad2d5d257dbf22143c2d7256c778b2dd5912ef38305f8",
         "src/web/components/discovery-modes-section.tsx": "3b8d9716d9e51b17906bacb01d97946a9914fc3a29ce3c49570b7b731c430c8b",
-        "src/web/components/error-boundary.tsx": "4824e44cae5824e3d88046cff0ec787b1c6a5ec35b91690ce04fa5f4e205c837",
+        "src/web/components/error-boundary.tsx": "1ae352ac2b2d67b2e8515714d5018ce93a02ca6001e2eab0900173fd4f9a9a92",
         "src/web/components/field.tsx": "47407ad280484d017eb808be60411ea2a0767450910013c20af87d1317ff57fa",
         "src/web/components/genre-card.tsx": "c1effa52ea1724b55e1c111a1dfaf850d059ef4d68e23c93b68a4625c84e65ad",
         "src/web/components/genre-coverage-summary.tsx": "34abb1cc072681da57263da556e5eb9e069ca23ea7a9bad438dd941230850456",
@@ -468,15 +468,16 @@
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "e6444eace03c626ec2b1b9d4218f9b6626bbd9f19d4ea1b627393fe4e2a5fdae",
+        "src/web/lib/api.ts": "d8531e66d731e3b2d91a3546094503278122eef2f237676af19aa6285056bb4d",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
         "src/web/lib/discovery-run-feedback.ts": "ee388d3fffef7a95a2b9456200e51f391a8c4c7608d2bbb91addef8e465acc3e",
         "src/web/lib/format-time.ts": "24a4efbcbc7a44f9374e74659fb7a4125c843792e11c053f017f99f1861f7a4d",
         "src/web/lib/hooks.ts": "a4d196f9890e1e1bac1d3be287409cfd51fb7eed49dba09ea4ac81b85bdb94d5",
-        "src/web/lib/i18n.tsx": "f1eb86fbf89498687ecaa0b552d1cbff7ba07bc71799458c68eaca00cfc1a5db",
+        "src/web/lib/i18n.tsx": "9151571885e7cccc2a642128c854b577c44759251081f399918ab85cc3c25bcc",
         "src/web/lib/intl.ts": "35ad1cf68ea978620305ab6fd66798a99343c2697ef969e528a48ed40d8a4d10",
+        "src/web/lib/locale-catalogs.ts": "6a9f4ecb955cc4385a70cfc98e5f095b5b99e8e81bee3d28ff286bc97f32fcba",
         "src/web/lib/locale-storage.ts": "a8bf64757283878e86e66bacd695f6b12c94969d84e419a4ace6d4c57bb8ffb3",
         "src/web/lib/menu-styles.ts": "ad7e058f2750f44ff4763919eef060169878c5d12e0c02ffeb2fd8c54aa2f018",
         "src/web/lib/nav.ts": "ac7e4bc9d3f0ceeae6af87ba0603426c600f686713ed15af0bb14c8a4d8482d4",
@@ -523,14 +524,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "6f007dc77bf8b3b4b2fcff35eca8d29de7dd16e9117f2ad57fec0b273e7da3df",
+      "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Removes orphaned components and two orphaned catalog keys, dedupes helpers; no user-visible change",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
         "breaking": "none",
         "migration": "",
-        "digest": "6f007dc77bf8b3b4b2fcff35eca8d29de7dd16e9117f2ad57fec0b273e7da3df"
+        "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946"
       }
     },
     "features": {
