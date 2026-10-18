@@ -1431,6 +1431,7 @@ export const ptBR = {
   'settings.plexAccountHint':
     'Teste a conexão, selecione seu ouvinte do Plex e salve. O histórico fica separado para cada usuário do Digarr.',
   'settings.slskdLidarrDownloadPath': 'Pasta de downloads vista pelo Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'obrigatório ao vincular ao Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Para importações vinculadas, use a pasta de downloads concluídos que o Lidarr consegue ler.',
   'settings.plexToken': 'Token do Plex',

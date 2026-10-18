@@ -1434,6 +1434,7 @@ export const fr = {
   'settings.plexAccountHint':
     'Teste la connexion, sélectionne ton auditeur Plex et enregistre. Chaque utilisateur Digarr conserve son propre historique.',
   'settings.slskdLidarrDownloadPath': 'Dossier des téléchargements vu par Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'requis si tu lies Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Pour les imports liés, indique le dossier des téléchargements terminés accessible à Lidarr.',
   'settings.plexToken': 'Jeton Plex',

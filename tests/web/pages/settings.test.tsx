@@ -1299,7 +1299,12 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Soulseek' } })
     fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://slskd:5030' } })
     fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'slskd-key' } })
+    const downloadPath = screen.getByLabelText('Download root as seen by Lidarr')
+    expect(downloadPath).not.toBeRequired()
     fireEvent.change(screen.getByLabelText('Lidarr Target'), { target: { value: '11' } })
+    expect(downloadPath).toBeRequired()
+    expect(screen.getByRole('button', { name: 'Add Target' })).toBeDisabled()
+    fireEvent.change(downloadPath, { target: { value: '/downloads' } })
 
     fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
 
@@ -1312,6 +1317,7 @@ describe('SettingsPage', () => {
           url: 'http://slskd:5030',
           apiKey: 'slskd-key',
           lidarrTargetId: 11,
+          lidarrDownloadPath: '/downloads',
         },
       })
     })
@@ -1401,6 +1407,28 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Catégorie'), { target: { value: 'slskd' } })
 
     expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
+  })
+
+  it('keeps the download path optional when editing an unlinked slskd target', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 1,
+        type: 'slskd',
+        name: 'Standalone Soulseek',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://slskd:5030', lidarrTargetId: null },
+      },
+    ])
+
+    renderWithQuery(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+
+    expect(await screen.findByLabelText('Download root as seen by Lidarr')).not.toBeRequired()
+    expect(screen.getByRole('button', { name: 'Save Changes' })).toBeEnabled()
   })
 
   it('allows editing an existing target from the targets tab', async () => {

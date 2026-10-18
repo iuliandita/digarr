@@ -698,6 +698,7 @@ This route group is registered only when the app is built with an slskd orchestr
 - No request body
 - Returns `202` with an empty body and lets the sync continue in the background; background failures are logged, not returned. A failure to start the sync returns `500` problem+json
 - The sync worker polls linked Lidarr wanted releases, creates deduped `slskd` jobs, advances active jobs through search and transfer states, and verifies Lidarr imports before marking linked jobs complete
+- Creating or updating a linked slskd target without a nonblank `lidarrDownloadPath` returns a 400 problem response. Existing targets remain readable, but jobs fail before searching or queueing until the path is set.
 - Linked target config requires `lidarrDownloadPath`, the completed downloads root visible to Lidarr. All queued files must succeed before `ManualImport`; partial, rejected, ambiguous, or unidentified files are refused. Imports use `move` and are verified through track `hasFile` values. Releases are capped at 500 files and 20 GiB, with a 2,048-character path limit; rejected manifests never enqueue downloads.
 - Failed work reuses its work-key job after a one-hour cooldown and increments `attempts`. Historical duplicate failures are retained in terminal `superseded` state.
 
