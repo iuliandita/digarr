@@ -1,6 +1,10 @@
 import { envConfig } from '@/config/env'
+import { exchangeLastFmSession } from '@/core/clients/scrobbler-write-back'
+import { isEncryptionEnabled } from '@/core/crypto'
 import type { PendingOAuth } from '@/db/queries/oauth-pending'
+import { hashOAuthValue, pendingBindingMatches } from '@/db/queries/oauth-pending'
 import { upsertOAuthToken } from '@/db/queries/oauth-tokens'
+import { getUserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { exchangeAuthCode } from '@/server/helpers/oauth-token-exchange'
 import {
@@ -178,8 +182,44 @@ const handleTidal: OAuthCallbackHandler = async ({ deps, code, pending }) => {
   return { ok: true }
 }
 
+const handleLastFm: OAuthCallbackHandler = async ({ deps, code, pending }) => {
+  const { clientId, clientSecret } = pending
+  const requestToken = pending.payload.requestToken
+  if (!requestToken || !pendingBindingMatches(hashOAuthValue(requestToken), code)) {
+    return { ok: false, error: 'token_mismatch' }
+  }
+  const connections = await getUserConnections(deps.db, pending.userId)
+  if (
+    !clientId ||
+    !clientSecret ||
+    !isEncryptionEnabled() ||
+    clientId !== connections?.lastfmApiKey ||
+    clientSecret !== envConfig.lastfmSharedSecret
+  ) {
+    return { ok: false, error: 'missing_credentials' }
+  }
+  try {
+    const sessionKey = await exchangeLastFmSession(clientId, clientSecret, requestToken)
+    await upsertOAuthToken(deps.db, {
+      userId: pending.userId,
+      provider: 'lastfm',
+      accessToken: sessionKey,
+      refreshToken: null,
+      // Last.fm sessions do not expire; the shared token table requires a date.
+      expiresAt: new Date('9999-12-31T23:59:59.999Z'),
+      scopes: null,
+      clientId,
+      clientSecret,
+    })
+    return { ok: true }
+  } catch {
+    return { ok: false, error: 'token_exchange_failed' }
+  }
+}
+
 export const OAUTH_CALLBACK_HANDLERS: Record<string, OAuthCallbackHandler> = {
   spotify: handleSpotify,
   deezer: handleDeezer,
   tidal: handleTidal,
+  lastfm: handleLastFm,
 }

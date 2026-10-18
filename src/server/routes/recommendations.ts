@@ -5,6 +5,7 @@ import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveProviderToken } from '@/core/provider-auth'
+import type { FeedbackTrack } from '@/core/scrobbler-write-back'
 import { deriveStatusFromActions } from '@/core/targets/action-status'
 import {
   hasRetryState,
@@ -14,6 +15,7 @@ import {
 } from '@/core/targets/lidarr-retry'
 import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
 import { conciseErrMsg } from '@/core/validation'
+import { getOwnedAuditionTrack } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -794,6 +796,29 @@ export function recommendationRoutes(deps: AppDependencies) {
         if (loaded instanceof Response) return loaded
         const { rec, userId } = loaded
 
+        const sameArtist = (name: string) =>
+          name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase() ===
+          rec.artist.name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+        let feedbackTrack: FeedbackTrack | undefined
+        if (body.auditionTrackId !== undefined) {
+          try {
+            const track = userId
+              ? await getOwnedAuditionTrack(deps.db, userId, body.auditionTrackId, rec.artist.mbid)
+              : null
+            if (track?.trackName?.trim() && sameArtist(track.artistName)) {
+              feedbackTrack = {
+                artistName: track.artistName,
+                trackName: track.trackName,
+                ...(track.recordingMbid ? { recordingMbid: track.recordingMbid } : {}),
+              }
+            }
+          } catch {
+            console.error('[write-back] Could not resolve approved Audition track')
+          }
+        } else if (body.feedbackTrack && sameArtist(body.feedbackTrack.artistName)) {
+          feedbackTrack = body.feedbackTrack
+        }
+
         const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
         const priorActions = rec.targetActions ?? {}
         const effectiveTargets = targets.filter((t) =>
@@ -950,6 +975,16 @@ export function recommendationRoutes(deps: AppDependencies) {
         if (result.lidarrError) extra.lidarrError = result.lidarrError
 
         await deps.updateRecommendationStatus(id, finalStatus, extra)
+
+        if (
+          userId &&
+          feedbackTrack &&
+          (finalStatus === 'approved' || finalStatus === 'added_to_lidarr')
+        ) {
+          void deps.scrobblerWriteBack?.approvedTrack(userId, feedbackTrack).catch(() => {
+            console.error('[write-back] Could not dispatch approved track')
+          })
+        }
 
         const targetsById = new Map(targets.map((target) => [target.id, target]))
         return c.json({

@@ -23,6 +23,8 @@ vi.mock('@/core/clients/lastfm', () => ({
   createLastFmClient: vi.fn(),
 }))
 
+vi.mock('@/db/queries/playlists', () => ({ getOwnedAuditionTrack: vi.fn(async () => null) }))
+
 vi.mock('@/db/queries/users', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/db/queries/users')>()),
   getUserConnections: vi.fn(async () => null),
@@ -51,6 +53,7 @@ vi.mock('@/core/sessions', () => ({
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createSpotifyClient } from '@/core/clients/spotify'
+import { getOwnedAuditionTrack } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 
 function makeMockOrchestrator() {
@@ -363,6 +366,127 @@ describe('GET /api/v1/recommendations/:id', () => {
 })
 
 describe('PATCH /api/v1/recommendations/:id', () => {
+  it.each([
+    [{ status: 'approved' }, false],
+    [{ status: 'rejected', permanent: true }, false],
+    [
+      { status: 'approved', feedbackTrack: { artistName: 'Other artist', trackName: 'A song' } },
+      false,
+    ],
+    [
+      {
+        status: 'approved',
+        feedbackTrack: {
+          artistName: 'Test Artist',
+          trackName: 'Exact song',
+          recordingMbid: 'df523108-2308-4bb5-8972-7185bcbbbd45',
+        },
+      },
+      true,
+    ],
+  ] as const)(
+    'dispatches track feedback only for exact successful approval %j',
+    async (body, sends) => {
+      const approvedTrack = vi.fn(async () => {})
+      const deps = makeDeps({
+        scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn(async () => {}) },
+      })
+      const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      expect(res.status).toBe(200)
+      expect(approvedTrack).toHaveBeenCalledTimes(sends ? 1 : 0)
+      if (sends) {
+        expect(approvedTrack).toHaveBeenCalledWith(1, body.feedbackTrack)
+        expect(deps.updateRecommendationStatus).toHaveBeenCalledBefore(approvedTrack)
+      }
+    },
+  )
+
+  it('finishes approval while write-back remains pending and survives its rejection', async () => {
+    let reject!: (error: Error) => void
+    const delivery = new Promise<void>((_resolve, fail) => {
+      reject = fail
+    })
+    const approvedTrack = vi.fn(() => delivery)
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const app = createApp(
+      makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } }),
+    )
+    const res = await authedRequest(app, '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        status: 'approved',
+        feedbackTrack: { artistName: 'Test Artist', trackName: 'Exact song' },
+      }),
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ status: 'approved' })
+    reject(new Error('provider-secret'))
+    await vi.waitFor(() =>
+      expect(log).toHaveBeenCalledWith('[write-back] Could not dispatch approved track'),
+    )
+    expect(log.mock.calls.flat().join(' ')).not.toContain('provider-secret')
+    log.mockRestore()
+  })
+
+  it.each([
+    null,
+    { artistName: 'Other artist', trackName: 'Exact song', recordingMbid: null },
+    { artistName: 'Test Artist', trackName: '   ', recordingMbid: null },
+    {
+      artistName: 'Test Artist',
+      trackName: 'Exact song',
+      recordingMbid: 'df523108-2308-4bb5-8972-7185bcbbbd45',
+    },
+  ])('uses only an owned Audition track matching the recommendation: %j', async (track) => {
+    vi.mocked(getOwnedAuditionTrack).mockResolvedValueOnce(track)
+    const approvedTrack = vi.fn(async () => {})
+    const deps = makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } })
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
+    })
+    expect(getOwnedAuditionTrack).toHaveBeenCalledWith(deps.db, 1, 123, mockArtist.mbid)
+    const valid = track?.artistName === 'Test Artist' && Boolean(track.trackName.trim())
+    expect(res.status).toBe(200)
+    expect(approvedTrack).toHaveBeenCalledTimes(valid ? 1 : 0)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
+  })
+  it('approves a stale Audition track without write-back configured', async () => {
+    const deps = makeDeps()
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
+    })
+    expect(res.status).toBe(200)
+    expect(await res.json()).toMatchObject({ status: 'approved' })
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
+  })
+
+  it('approves without feedback when the Audition lookup fails', async () => {
+    vi.mocked(getOwnedAuditionTrack).mockRejectedValueOnce(new Error('database-private-detail'))
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const approvedTrack = vi.fn(async () => {})
+    const deps = makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } })
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
+    })
+    expect(res.status).toBe(200)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
+    expect(approvedTrack).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalledWith('[write-back] Could not resolve approved Audition track')
+    expect(log.mock.calls.flat().join(' ')).not.toContain('database-private-detail')
+    log.mockRestore()
+  })
+
   it('updates to rejected status without calling Lidarr', async () => {
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))

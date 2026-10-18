@@ -50,6 +50,10 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 
 vi.mock('@/web/lib/api', () => ({
   getSettings: vi.fn(),
+  getScrobblerWriteBackStatus: vi.fn().mockResolvedValue({
+    listenbrainz: { configured: false, lastError: null },
+    lastfm: { configured: false, connected: false, lastError: null },
+  }),
   getPlexSections: vi.fn().mockResolvedValue({ sections: [] }),
   getAuthMeta: vi.fn().mockResolvedValue({ oidcEnabled: false, proxyAuthEnabled: false }),
   linkOidcAccount: vi.fn().mockResolvedValue({ url: '#oidc-link-test' }),

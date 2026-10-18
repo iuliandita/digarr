@@ -9,6 +9,8 @@ const ERROR_MESSAGE_KEYS = {
   no_pending_auth: 'oauth.error.noPendingAuth',
   state_expired: 'oauth.error.stateExpired',
   browser_mismatch: 'oauth.error.browserMismatch',
+  token_mismatch: 'oauth.error.tokenMismatch',
+  authorization_denied: 'oauth.error.authorizationDenied',
   missing_credentials: 'oauth.error.missingCredentials',
   token_exchange_unreachable: 'oauth.error.tokenExchangeUnreachable',
   token_exchange_failed: 'oauth.error.tokenExchangeFailed',
@@ -19,6 +21,7 @@ const ERROR_MESSAGE_KEYS = {
 
 const PROVIDER_LABELS = {
   spotify: 'Spotify',
+  lastfm: 'Last.fm',
   deezer: 'Deezer',
   tidal: 'TIDAL',
 } as const

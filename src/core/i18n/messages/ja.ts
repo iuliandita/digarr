@@ -1,4 +1,7 @@
 export const ja = {
+  'oauth.error.tokenMismatch': '認証トークンが一致しません - 接続をやり直してください。',
+  'oauth.error.authorizationDenied': '認証が拒否されました - 接続する場合はやり直してください。',
+  'jobHistory.writeBack': '{service}への送信',
   'tokens.mcpTitle': 'MCPクライアント設定',
   'tokens.mcpDescription':
     'リモートサーバーと認証ヘッダーに対応したMCPクライアントに、このJSONを貼り付けてください。トークンが含まれているため、安全に保管してください。',
@@ -37,6 +40,29 @@ export const ja = {
     '「{name}」を取り消しますか？このトークンを使うスクリプトはすぐにアクセスできなくなります。',
   'tokens.readOnlyError': 'このトークンではGETとHEADリクエストのみ使用できます。',
   'tokens.notFoundError': 'このトークンが見つかりません。',
+  'writeBack.lastfmReconnect': 'Last.fmに再接続',
+  'writeBack.title': 'スクリブラーへの送信',
+  'writeBack.scope':
+    'プレビューやAuditionで正確な曲を承認した場合のみ送信されます。拒否、ブロック、アーティストのみの承認はローカルに保存されます。',
+  'writeBack.offHelp':
+    'スイッチをオフにすると今後の送信が停止します。送信済みの内容は取り消されません。',
+  'writeBack.listenbrainzLoves': 'お気に入りの曲をListenBrainzに送信',
+  'writeBack.listenbrainzHelp': '承認した曲の録音MBIDをListenBrainzアカウントに送信します。',
+  'writeBack.listenbrainzPlaylists': '生成したプレイリストをListenBrainzに送信',
+  'writeBack.playlistHelp':
+    '別の同意が必要です。プレイリスト名、アーティスト名、曲名、既知の録音MBIDを非公開のListenBrainzプレイリストとして送信します。録音MBIDのない曲はスキップされます。 手動で生成したプレイリストのみ送信されます - スケジュール実行では送信されません。',
+  'writeBack.listenbrainzMissing':
+    '送信するには、接続設定でListenBrainzトークンを追加してください。',
+  'writeBack.lastfmLoves': 'お気に入りの曲をLast.fmに送信',
+  'writeBack.lastfmHelp': '承認した曲のアーティスト名と曲名をLast.fmアカウントに送信します。',
+  'writeBack.lastfmMissing':
+    'Last.fmへの接続には、自分のAPIキーとサーバー設定のLASTFM_SHARED_SECRETおよびDIGARR_ENCRYPTION_KEYが必要です。',
+  'writeBack.lastfmConnected':
+    'Last.fmに接続済みです。送信を始めるには、お気に入りの曲を明示的にオンにしてください。',
+  'writeBack.lastfmConnect':
+    'お気に入りの曲をオンにするとLast.fmに接続します。戻ったら、送信を始めるためにもう一度オンにしてください - 接続だけでは送信は有効になりません。',
+  'writeBack.lastError': '最後の送信エラー: {0}',
+  'writeBack.loadFailed': '送信設定を読み込めませんでした。',
   'notification.approvalFailed': '{0} の Lidarr への承認は24時間以内に完了しませんでした: {1}',
   'recommendation.waitingForLidarr': 'Lidarr を待機中',
   'recommendation.nextRetry': '次の再試行: {0}',

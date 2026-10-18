@@ -1,11 +1,13 @@
 import { createContext, useContext } from 'react'
 import type { AuditionQueue } from '../hooks/use-audition-queue'
+import type { PreviewSource } from '../hooks/use-preview'
 
 type PreviewContextValue = {
   play: (mbid: string, artistName: string, streamingUrls: Record<string, string> | null) => void
   stop: () => void
   hasPreview: (streamingUrls: Record<string, string> | null) => boolean
   currentMbid: string | null
+  currentTrack?: PreviewSource['track']
   playing: boolean
   globalPlayId: number
   volume: number
