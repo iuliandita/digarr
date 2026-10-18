@@ -154,7 +154,6 @@ export function playlistRoutes(deps: PlaylistDeps) {
       targetIds: body.targetIds ?? [],
       schedule: body.schedule ?? null,
       config: body.config ?? null,
-      enabled: body.enabled ?? true,
     }
 
     const row = await createPlaylist(db, data)
@@ -218,8 +217,11 @@ export function playlistRoutes(deps: PlaylistDeps) {
       const loaded = await loadOwnedPlaylist(c, id, userId)
       if (!loaded.ok) return loaded.response
 
-      const body = c.req.valid('json')
-      await updatePlaylist(db, id, body as Record<string, unknown>)
+      // enabled is still accepted for older clients but ignored: a playlist runs on its schedule alone.
+      const { enabled: _ignored, ...update } = c.req.valid('json')
+      if (Object.keys(update).length > 0) {
+        await updatePlaylist(db, id, update as Record<string, unknown>)
+      }
       await deps.restartPlaylistScheduler()
       return c.body(null, 204)
     },

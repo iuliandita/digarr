@@ -544,13 +544,11 @@ export const ptBR = {
     'Gere esta playlist com artistas pendentes para ouvi-los antes de aprová-los.',
   'playlist.detailActionsHint':
     'Após a geração, baixe as faixas como M3U ou XSPF ou adicione um destino de playlist para enviar as próximas gerações ao Navidrome, Jellyfin ou Plex automaticamente.',
-  'playlist.disable': 'Desativar playlist',
   'playlist.download': 'Baixar',
   'playlist.downloadFailed': 'Falha ao baixar a lista de reprodução',
   'playlist.downloaded': 'baixado',
   'playlist.downloading': 'Baixando...',
   'playlist.edit': 'Editar playlist',
-  'playlist.enable': 'Ativar playlist',
   'playlist.generateFailed': 'Falha ao iniciar a geração',
   'playlist.generateNow': 'Gerar agora',
   'playlist.generatingNamed': 'Geração da playlist iniciada',

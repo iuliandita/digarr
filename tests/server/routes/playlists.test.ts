@@ -320,13 +320,13 @@ describe('playlist configuration writes', () => {
       body: JSON.stringify(requestBody(method, config)),
     })
     expect(res.status).toBe(method === 'POST' ? 201 : 204)
+    if (method === 'PATCH' && config === undefined) {
+      expect(updatePlaylist).not.toHaveBeenCalled()
+      return
+    }
     const saved =
       method === 'POST' ? createPlaylist.mock.calls[0]?.[1] : updatePlaylist.mock.calls[0]?.[2]
-    if (method === 'PATCH' && config === undefined) {
-      expect(saved).not.toHaveProperty('config')
-    } else {
-      expect(saved).toHaveProperty('config', null)
-    }
+    expect(saved).toHaveProperty('config', null)
   })
 
   it.each(

@@ -541,13 +541,11 @@ export const fr = {
     'Génère cette playlist à partir des artistes en attente pour les écouter avant de les approuver.',
   'playlist.detailActionsHint':
     'Après la génération, télécharge les pistes au format M3U ou XSPF, ou ajoute une cible de playlist pour envoyer automatiquement les prochaines générations vers Navidrome, Jellyfin ou Plex.',
-  'playlist.disable': 'Désactiver la playlist',
   'playlist.download': 'Télécharger',
   'playlist.downloadFailed': 'Échec du téléchargement de la playlist',
   'playlist.downloaded': 'téléchargé',
   'playlist.downloading': 'Téléchargement...',
   'playlist.edit': 'Modifier la playlist',
-  'playlist.enable': 'Activer la playlist',
   'playlist.generateFailed': 'Échec du démarrage de la génération',
   'playlist.generateNow': 'Générer maintenant',
   'playlist.generatingNamed': 'Génération de la playlist lancée',
