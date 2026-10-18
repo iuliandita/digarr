@@ -308,7 +308,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "920f41b0b78a36ba517e33fd367891d6a195e6cbb56d2f6bc5fd751c9a8c2fbd",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
+        "src/server/routes/subscriptions.ts": "1806f93c110ce6c4d0f2eec68288ae5c9fc8f980d1efe8343ff6b761f8a392cf",
         "src/server/routes/targets.ts": "b3682f7c1d2166ee234af764b65537100d1be73c66364cdec4b63c6ac4824c0d",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/routes/user-notifications.ts": "9d2889d4d02034d7e6890c5c4fef58a1b5f18f81a99edcc43ab52cb7e0d5abd7",
@@ -329,14 +329,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9d74b1373c0e3a5cb683bccb15536b13f9f7761fc85a085f957b49bddc6f36dd",
+      "digest": "7bc06785b83f1a458e6a0c3f456a00b5ad8762184dd26e20978de1f7fa8e9429",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Re-recorded after merging develop into #1060; its webhook signing docs and CHANGELOG entry are already in this branch.",
+        "note": "Re-recorded after merging develop into #1057; its API docs and CHANGELOG entry are already in this branch.",
         "breaking": "none",
         "migration": "",
-        "digest": "9d74b1373c0e3a5cb683bccb15536b13f9f7761fc85a085f957b49bddc6f36dd"
+        "digest": "7bc06785b83f1a458e6a0c3f456a00b5ad8762184dd26e20978de1f7fa8e9429"
       }
     },
     "interface": {
@@ -347,24 +347,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "0f340147de0a57a8655084d789bbab68bc84b0cc1a63817295dd4a4a7659de8c",
-        "src/core/i18n/messages/en.ts": "d2855d5c993f0abeb370a01993102727bb0d4720ae7b566b4f6792ff6f42b4c7",
-        "src/core/i18n/messages/es.ts": "5049fc7847d5d4b67850b64e0c7419d9f5b10468deb14fd8b2f2436fc400341f",
-        "src/core/i18n/messages/fr.ts": "7012047ba97dcdcf06897a7703a0c2283f2b4b14bda1d12e906f3d5680345904",
+        "src/core/i18n/messages/de.ts": "586392db71964e205fa984d8fc64bc7cadad4719bcc0bef738c8dc242c9f60aa",
+        "src/core/i18n/messages/en.ts": "7ca68d015c9bab5de35b32b52cd2e1ca613f4be3eaac8ce60c8f8b9fa05eb4eb",
+        "src/core/i18n/messages/es.ts": "77d49f416d5269b33416588b916826c1edf97adbf8ecada90785937ebb06d1ff",
+        "src/core/i18n/messages/fr.ts": "93aecc4306a616653c29656dcfbd561d13ee4b676d751114731083d3f9df3915",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "f49a63292a9acf1ba8c106995f158d29251f9adc80e3de54da9e881d1ad972f0",
-        "src/core/i18n/messages/ja.ts": "1e2e65871678865b221f5da5d2f0cd5f6533d8a233ad357496be491d270e83c7",
-        "src/core/i18n/messages/ko.ts": "fac5e2aa8db298c5a63273e8f156feaa79e91da835e25331c586af1683f01032",
-        "src/core/i18n/messages/nl.ts": "6c2b535440090219b0f43b3e045f50ca61a1500c8050f97b037c66bd751478e8",
-        "src/core/i18n/messages/pl.ts": "26f1242c71a33176872a867eb2481204b7e8fbd7fdee2a273ca2d3288bfa25b0",
-        "src/core/i18n/messages/pt-BR.ts": "aa220a828fd67e2b54a3fe63f41fa1c2991c5769dff8d4f7987c7c579efaf4d7",
-        "src/core/i18n/messages/ro.ts": "01b5324a0c098c998478d2d4bcbb2dc7a662c3f386a33f779f68bdaa207d1e7b",
-        "src/core/i18n/messages/ru.ts": "b1b6bfef33001c55ce64df719558b9d7c3cc3537b7135e49cfd1da894110619e",
-        "src/core/i18n/messages/source-lock.json": "4f685bec5e3cd984a1d1b19d5ba1a02112513f0ace4845064f83c7517ebf8821",
-        "src/core/i18n/messages/tr.ts": "20edd91fd8e6f3e180af5ca6134e3f60711e932a91e9cf74c603acf034bba0e6",
+        "src/core/i18n/messages/it.ts": "2a2ca3ce975a5c681a3131d376f3548d7276288aa606b322f4a9f61e3da46ae9",
+        "src/core/i18n/messages/ja.ts": "7c74e22d2fecdf57130624f027a4a314b6b5ce3e53006852f2420599a7a15c86",
+        "src/core/i18n/messages/ko.ts": "0786887adae44fe4d57ad58ba4e010a06aa51419b372087ece31302aa3881f0a",
+        "src/core/i18n/messages/nl.ts": "c7c90931a2cec1c001e3c0666809fd9351ec5ba1747f3c303ead5ef9c12bb96c",
+        "src/core/i18n/messages/pl.ts": "c6eff1115be686532611f7daf132e653e5b26c472f1d03b3361cc8f2f90636c1",
+        "src/core/i18n/messages/pt-BR.ts": "b9f291edaead09b13be840f4405c719da4b6c89569ce65632839438e23cc8c88",
+        "src/core/i18n/messages/ro.ts": "9d93065370c8392165abf5fc24f5cae07058f4f9d9c73ce25ca065deadf8cb14",
+        "src/core/i18n/messages/ru.ts": "4963e059a23c5e72368f6612f69c28e7229e807ba587bfb4ef7961531330ff75",
+        "src/core/i18n/messages/source-lock.json": "7339c81707d0636ea466926630c2b66672e3dcf2912a911956ad40245389dca7",
+        "src/core/i18n/messages/tr.ts": "58fa3e36760518b1e3fa924ada0fffec76d8e088fe021a3a1dd1e8d590cf1bfa",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "2455dada7899b3eda8a551ad2357602903f3775f8cb4fbf4b57b9af10dee9425",
-        "src/core/i18n/messages/zh-CN.ts": "93ddc843d0c7ae522b1600a3b669daf861bacccdf454149b68374f5878a6ab30",
+        "src/core/i18n/messages/uk.ts": "aa0d92048ea8a16156a1941d803f73b805204d802e537068ec8b56d8ff0d3883",
+        "src/core/i18n/messages/zh-CN.ts": "438b58852ea2a2b876487b663ad3b86dbbcd7f752993078d3433bcae683e41d4",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -437,7 +437,7 @@
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
         "src/web/components/streaming-links.tsx": "30d58c3c644b9cadd64cfbe1321af237c696076851e96263a6fd012a15261807",
         "src/web/components/subscription-form.tsx": "62165ec6e944a02ab6f43d775f774c6bd55a958424ab2257199580564bef01d9",
-        "src/web/components/subscription-presets.tsx": "eb9616ea1cc8d300a1e07b2dd2b2350a3149e5735d4dd47deb75cd526cfda5b8",
+        "src/web/components/subscription-presets.tsx": "3a033e7ad150601a70937d8cb9bae9612e1b9c47f2accb032d060e2918b9c93f",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
         "src/web/components/system-health-card.tsx": "63571202edee5054acd8611f32c0774bf8e1b554f32aa3581a92d5409aecd5c1",
         "src/web/components/target-utils.tsx": "39f5850e648b8a584c117f75d969611ab33b07acddb3ae5f010c36667c348a6a",
@@ -522,14 +522,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "7abb99dd3c6e7b69c027ee41d8c39b36e7ebe34ecbb0a25353079130357ac09e",
+      "digest": "69ffc6ebdc29893c7680582f0fa19c16c83765f3fb67014a57a48256f55bc1e1",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "ja/zh signing-secret labels switched to full-width parentheses to match those catalogs.",
+        "note": "Re-recorded after merging develop into #1057; its API docs and CHANGELOG entry are already in this branch.",
         "breaking": "none",
         "migration": "",
-        "digest": "7abb99dd3c6e7b69c027ee41d8c39b36e7ebe34ecbb0a25353079130357ac09e"
+        "digest": "69ffc6ebdc29893c7680582f0fa19c16c83765f3fb67014a57a48256f55bc1e1"
       }
     },
     "features": {
@@ -708,7 +708,7 @@
         "src/core/subscriptions/adapters/lastfm-tag.ts": "b9259c82b372f025cc1f338e418d80793a8d16f64d1e1d02b2a974146f9f5126",
         "src/core/subscriptions/adapters/listenbrainz.ts": "dc799407411d0e76c53d861f04729a1b851f35e0fefd51337b631faa873205f6",
         "src/core/subscriptions/adapters/similar.ts": "f1d06dfce912da090dadd1f094659817165aec22a785d7d8aaa50a9b70d7790d",
-        "src/core/subscriptions/adapters/spotify-charts.ts": "9820a88f49b62931189d75e983f5686d9962f2cf7b1931b8ae1289926b4aa1ad",
+        "src/core/subscriptions/adapters/spotify-charts.ts": "cd09d91eeeca198394a30569237f8d630a4339cc2623bc783cccb94d39ca7b7c",
         "src/core/subscriptions/adapters/spotify-liked-songs.ts": "2153d1af62f9a9e94d75ba8f4fdab2eb045a96b66fe1a9fdf49ebd74c874227c",
         "src/core/subscriptions/adapters/spotify-playlist.ts": "e12d155118c465043d9758edadfda4c239d6b9f6483923eaf82fb6f717f16275",
         "src/core/subscriptions/adapters/spotify-shared.ts": "76a0b26cb7de95200cea81db0f49e7b431a0194bbb7b5e806579545d1ae80273",
@@ -746,14 +746,14 @@
         "src/index.ts": "53524337a72040e766d1a3786af2995eaaffc0f2b277d3bad3c4cdbfcfa6aa88",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "1ccf43562e89800bc17bc6d3d5636e9330e4b2b84bdc3da5ae3ae59b57e84d59",
+      "digest": "5a72d536614a2d596f454d3bb5d690ff19c02bdc6903c40531aa3b3ab5e015b6",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Re-recorded after merging develop into #1060; its webhook signing docs and CHANGELOG entry are already in this branch.",
+        "note": "Re-recorded after merging develop into #1057; its API docs and CHANGELOG entry are already in this branch.",
         "breaking": "none",
         "migration": "",
-        "digest": "1ccf43562e89800bc17bc6d3d5636e9330e4b2b84bdc3da5ae3ae59b57e84d59"
+        "digest": "5a72d536614a2d596f454d3bb5d690ff19c02bdc6903c40531aa3b3ab5e015b6"
       }
     },
     "deployment": {
