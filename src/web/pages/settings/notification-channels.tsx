@@ -76,7 +76,7 @@ function channelTarget(channel: NotificationChannel): string {
 
 // Per-type secret fields, mirroring the backend's CHANNEL_SECRET_FIELDS.
 const CHANNEL_SECRET_FIELDS: Record<ChannelType, readonly string[]> = {
-  webhook: [],
+  webhook: ['signingSecret'],
   ntfy: ['token'],
   telegram: ['botToken'],
   apprise: ['urls'],
@@ -141,15 +141,26 @@ function ChannelFields({
   switch (channel.type) {
     case 'webhook':
       return (
-        <Field label={t('settings.channels.webhookUrl')} id={`ch-${channel.id}-url`}>
-          <Input
-            id={`ch-${channel.id}-url`}
-            type="url"
-            placeholder="https://example.com/digarr-webhook"
-            value={channel.url}
-            onChange={(e) => onPatch({ url: e.target.value })}
-          />
-        </Field>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label={t('settings.channels.webhookUrl')} id={`ch-${channel.id}-url`}>
+            <Input
+              id={`ch-${channel.id}-url`}
+              type="url"
+              placeholder="https://example.com/digarr-webhook"
+              value={channel.url}
+              onChange={(e) => onPatch({ url: e.target.value })}
+            />
+          </Field>
+          <Field label={t('settings.channels.webhookSigningSecret')} id={`ch-${channel.id}-sign`}>
+            <Input
+              id={`ch-${channel.id}-sign`}
+              type="password"
+              placeholder={keepPlaceholder('signingSecret')}
+              value={channel.signingSecret ?? ''}
+              onChange={(e) => onPatch({ signingSecret: e.target.value })}
+            />
+          </Field>
+        </div>
       )
     case 'ntfy':
       return (

@@ -137,6 +137,7 @@ vi.mock('@/web/lib/api', () => ({
     playlists: { status: 'ok', lastRun: null },
     librarySync: { status: 'ok', lastRun: null },
     sources: {},
+    integrations: [],
   }),
   listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   updateUserPreferences: vi.fn().mockResolvedValue({ success: true }),
@@ -712,6 +713,15 @@ describe('SettingsPage', () => {
       playlists: { status: 'degraded', lastRun: null },
       librarySync: { status: 'ok', lastRun: null },
       sources: { spotify: 'ok', lastfm: 'degraded' },
+      integrations: [
+        {
+          kind: 'target',
+          name: 'lidarr',
+          status: 'failing',
+          lastSuccess: null,
+          lastError: { at: new Date().toISOString(), message: 'Lidarr unreachable' },
+        },
+      ],
     })
     renderWithQuery(<SettingsPage />)
 
@@ -724,6 +734,9 @@ describe('SettingsPage', () => {
     await waitFor(() => {
       expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)
       expect(screen.getAllByText('Library Sync').length).toBeGreaterThan(0)
+      expect(screen.getByText('Integrations')).toBeInTheDocument()
+      expect(screen.getByText(/Lidarr unreachable/)).toBeInTheDocument()
+      expect(screen.getByText('Failing')).toBeInTheDocument()
     })
   })
 

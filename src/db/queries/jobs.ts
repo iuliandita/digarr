@@ -1,6 +1,7 @@
 import { and, count, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { JobRunRow, JobType, SourceResult } from '@/core/jobs/types'
 import type { PlaylistExportOutcome, PlaylistGenerationSummary } from '@/core/playlists/types'
+import { redactSecrets } from '@/core/validation'
 import type { Database } from '@/db'
 import { type JobMetadata, jobRuns, recommendations } from '@/db/schema'
 
@@ -127,7 +128,7 @@ function playlistExportOutcomes(value: unknown): PlaylistExportOutcome[] | null 
   return projected
 }
 
-function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
+export function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
   if (!value || typeof value !== 'object') return null
   const summary = value as Record<string, unknown>
   const validCount = (count: unknown): count is number =>
@@ -209,12 +210,107 @@ export async function getLatestPlaylistGeneration(
     : null
 }
 
+export type IntegrationKind = 'target' | 'library' | 'source' | 'subscription' | 'scrobbler'
+
+export type IntegrationHealth = {
+  kind: IntegrationKind
+  name: string
+  status: 'ok' | 'failing'
+  lastSuccess: string | null
+  lastError: { at: string; message: string | null } | null
+}
+
+export const INTEGRATION_HEALTH_WINDOW_DAYS = 30
+const INTEGRATION_ERROR_MAX_LENGTH = 300
+
+function toIso(value: unknown): string | null {
+  if (value == null) return null
+  const date = value instanceof Date ? value : new Date(String(value))
+  return Number.isNaN(date.getTime()) ? null : date.toISOString()
+}
+
+// Derived only from recorded job_runs outcomes; never probes the services.
+export async function getIntegrationHealth(db: Database): Promise<IntegrationHealth[]> {
+  const since = new Date(Date.now() - INTEGRATION_HEALTH_WINDOW_DAYS * 24 * 60 * 60 * 1000)
+  const result = await db.execute(sql`
+    WITH events AS (
+      SELECT
+        CASE
+          WHEN type = 'target' AND metadata->>'writeBackService' IS NOT NULL THEN 'scrobbler'
+          WHEN type = 'target' THEN 'target'
+          WHEN type = 'library_sync' THEN 'library'
+          ELSE 'subscription'
+        END AS kind,
+        CASE
+          WHEN type = 'target' THEN coalesce(metadata->>'writeBackService', metadata->>'targetType')
+          WHEN type = 'library_sync' THEN metadata->>'source'
+          ELSE metadata->>'adapterType'
+        END AS name,
+        status = 'completed' AS ok,
+        error,
+        coalesce(completed_at, started_at) AS at
+      FROM ${jobRuns}
+      WHERE type IN ('target', 'library_sync', 'subscription')
+        AND status IN ('completed', 'failed')
+        AND started_at >= ${since}
+        AND coalesce(metadata->>'skipped', '') <> 'true'
+      UNION ALL
+      SELECT
+        'source' AS kind,
+        s.key AS name,
+        s.value->>'status' = 'ok' AS ok,
+        s.value->>'error' AS error,
+        coalesce(j.completed_at, j.started_at) AS at
+      FROM ${jobRuns} j
+      CROSS JOIN LATERAL jsonb_each(
+        CASE WHEN jsonb_typeof(j.source_results) = 'object' THEN j.source_results ELSE '{}'::jsonb END
+      ) AS s
+      WHERE j.type IN ('pipeline', 'quick_discover')
+        AND j.started_at >= ${since}
+        AND s.value->>'status' IN ('ok', 'error')
+    )
+    SELECT
+      kind,
+      name,
+      max(at) FILTER (WHERE ok) AS last_success,
+      max(at) FILTER (WHERE NOT ok) AS last_error_at,
+      (array_agg(error ORDER BY at DESC) FILTER (WHERE NOT ok))[1] AS last_error
+    FROM events
+    WHERE name IS NOT NULL AND name <> ''
+    GROUP BY kind, name
+    ORDER BY kind, name
+  `)
+
+  const rows = result.rows as Array<{
+    kind: IntegrationKind
+    name: string
+    last_success: unknown
+    last_error_at: unknown
+    last_error: string | null
+  }>
+  return rows.map((row) => {
+    const lastSuccess = toIso(row.last_success)
+    const lastErrorAt = toIso(row.last_error_at)
+    const message = row.last_error
+      ? redactSecrets(row.last_error).slice(0, INTEGRATION_ERROR_MAX_LENGTH)
+      : null
+    return {
+      kind: row.kind,
+      name: row.name,
+      status: lastErrorAt && (!lastSuccess || lastErrorAt > lastSuccess) ? 'failing' : 'ok',
+      lastSuccess,
+      lastError: lastErrorAt ? { at: lastErrorAt, message } : null,
+    }
+  })
+}
+
 export type HealthSummary = {
   pipeline: { status: string; lastRun: string | null; nextRun: string | null }
   subscriptions: { status: string; healthy: number; total: number }
   playlists: { status: string; lastRun: string | null }
   librarySync?: { status: string; lastRun: string | null }
   sources: Record<string, string>
+  integrations: IntegrationHealth[]
 }
 
 export async function getJobHealth(
@@ -346,6 +442,7 @@ export async function getJobHealth(
       lastRun: lastLibrarySync?.completedAt?.toISOString() ?? null,
     },
     sources,
+    integrations: await getIntegrationHealth(db),
   }
 }
 

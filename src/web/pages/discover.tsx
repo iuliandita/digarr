@@ -21,6 +21,7 @@ import {
 import { Hint } from '../components/hint'
 import { MonitoringOptions, type MonitorOption } from '../components/monitoring-options'
 import { MoodPromptBar } from '../components/mood-prompt-bar'
+import { PendingPlayabilitySummary } from '../components/pending-playability-summary'
 import {
   type Recommendation,
   RecommendationCard,
@@ -399,6 +400,10 @@ export function DiscoverPage() {
   } | null>(null)
   const [albumPickerRecId, setAlbumPickerRecId] = useState<number | null>(null)
   const [showClearAllConfirm, setShowClearAllConfirm] = useState(false)
+  const [approveAbovePending, setApproveAbovePending] = useState<{
+    ids: number[]
+    threshold: number
+  } | null>(null)
   const [activeDecades, setActiveDecades] = useState<Set<Decade>>(new Set())
   const [insightsOpen, setInsightsOpen] = useState(false)
   const [approveDialogState, setApproveDialogState] = useState<{
@@ -934,7 +939,7 @@ export function DiscoverPage() {
     if (approved) toast.success(`${t('discover.approvedCount')} ${approved}`)
   }
 
-  async function handleApproveAbove() {
+  function handleApproveAbove() {
     const eligible = items.filter(
       (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
     )
@@ -942,11 +947,12 @@ export function DiscoverPage() {
       toast.info(`${t('discover.noPendingAbove')} ${approveThreshold}%`)
       return
     }
+    setApproveAbovePending({ ids: eligible.map((r) => r.id), threshold: approveThreshold })
+  }
+
+  async function confirmApproveAbove(ids: number[]) {
     try {
-      const result = await bulkAction(
-        eligible.map((r) => r.id),
-        'approve',
-      )
+      const result = await bulkAction(ids, 'approve')
       reportBulkApproval(result)
       refetch()
     } catch (error) {
@@ -1181,6 +1187,7 @@ export function DiscoverPage() {
           </ul>
         </section>
       )}
+      {filter === 'pending' && <PendingPlayabilitySummary />}
       {/* Pull-to-refresh indicator */}
       {pullY > 0 && (
         <div
@@ -1730,6 +1737,28 @@ export function DiscoverPage() {
             />
           )
         })()}
+      {approveAbovePending && (
+        <ConfirmDialog
+          title={t('discover.approveAboveTitle').replace(
+            '{1}',
+            String(approveAbovePending.threshold),
+          )}
+          message={t('discover.approveAboveMessage')
+            .replace('{0}', String(approveAbovePending.ids.length))
+            .replace('{1}', String(approveAbovePending.threshold))}
+          confirmLabel={t('discover.approveAboveConfirm').replace(
+            '{0}',
+            String(approveAbovePending.ids.length),
+          )}
+          destructive={false}
+          onConfirm={() => {
+            const { ids } = approveAbovePending
+            setApproveAbovePending(null)
+            void confirmApproveAbove(ids)
+          }}
+          onCancel={() => setApproveAbovePending(null)}
+        />
+      )}
       {showClearAllConfirm && (
         <ConfirmDialog
           title={t('discover.rejectAllPending')}

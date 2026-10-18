@@ -79,13 +79,9 @@ Offset-paginated routes:
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
-| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
+| GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document covering every route operation |
 
-The OpenAPI document is partial: it describes 19 of the 163 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
-
-OpenAPI coverage currently includes auth status/login/register/session
-migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
-and bulk ignore, and settings service probes. Some mutation bodies remain generic objects; bulk recommendations, feedback summaries, playlist projections, and preference writes are not machine-described. The Markdown reference is the complete route inventory and the detailed contract for those operations.
+The OpenAPI document lists every route operation in this reference, with path and query parameters, authentication (`sessionCookie` + `csrfHeader` for cookie mutations, `bearerToken`, cookie-only token management, personal-token-only MCP), problem+json error responses, and "Admin only." on admin operations. Request bodies come from the same Zod validators the routes use. Response schemas are detailed for auth, recommendations, artist blocks, jobs, library reconciliation, and settings probes; most other responses are loose objects, so this Markdown reference stays the detailed contract for response shapes. `bun run check:api-docs` verifies both this reference and the OpenAPI document against the server's route declarations, and checks admin markers against detectable admin guards.
 
 
 ## MCP
@@ -430,14 +426,17 @@ The parser coerces rather than rejects most fields:
 | GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable) |
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
-| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block) |
+| POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block; optional `Idempotency-Key`) |
 | POST | `/api/v1/recommendations/missing-albums` | Yes | Approve selected missing studio albums for an artist using the caller's album-capable targets |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 acted-on recommendations per genre), scoped to the calling user's own feedback |
 | GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Credential availability for the popular-album approve option: Spotify token resolution succeeds and/or a Last.fm API key is stored. Does not probe album lookups; a subsequent lookup can still fail. Returns `{ available, spotify, lastfm }` (booleans). |
+| GET | `/api/v1/recommendations/playability` | Yes | Track availability for the caller's pending artists, read from saved Audition playlist outcomes. Sends no provider requests. |
 
 **GET /api/v1/recommendations/feedback-summary** returns `{ summary: [{ genre, approved, rejected, other, total, rate }] }` in v2.0.0, ordered by descending rate and limited to 20 genres with at least 3 acted-on recommendations each. `total` counts recommendations with an action timestamp. `approved` counts current `approved` and `added_to_lidarr` statuses; `rejected` counts only current `rejected` rows, including those without a reason. `other` counts the remaining acted-on rows, such as failed approvals and recommendations restored to pending. Thus `approved + rejected + other = total`. `rate` remains `approved / total`, including those other outcomes in the denominator, so it is not a pure like/dislike ratio. Recommendation scoring is unchanged.
 
 v1.19.0 has no `other` field and labels every non-approved acted-on row as `rejected` ([#789](https://github.com/iuliandita/digarr/issues/789)). API consumers upgrading to v2.0.0 must use `other` when reconciling totals instead of assuming `approved + rejected = total`. There is no schema migration or stored-row rewrite; rollback restores the old response calculation.
+
+**GET /api/v1/recommendations/playability** returns `{ pendingArtists, withTrack, withoutTrack, reasons: { missingSource, noMatch, upstreamFailure }, unknown, checkedAt }`. It counts distinct artists with a pending recommendation, using each artist's newest outcome from the caller's last 20 Audition playlist runs (failed runs included). `missingSource` means no track source was configured for that run, `noMatch` means the configured sources found no track, and `upstreamFailure` means a source lookup failed. Artists no run has resolved count as `unknown`, never as missing a track. A MusicBrainz title without a playable source counts as `withTrack`, matching the playlist outcome. `checkedAt` is the newest run that classified a pending artist, or `null`. No schema change; the endpoint reads existing job history.
 
 **GET /api/v1/recommendations** query params:
 - `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `waiting`, `duplicate`, `queued` (comma-separated)
@@ -519,6 +518,8 @@ Approve response (status `approved`):
 **POST /api/v1/recommendations/bulk** accepts 1-500 positive integer `ids` and `action: "approve" | "reject"`. Approval returns per-row results, for example `{ "results": [{ "id": 1, "status": "added_to_lidarr" }] }`, with status `added_to_lidarr`, `approved`, `waiting`, `add_failed`, or `not_found`; missing or unowned IDs return `not_found` entries. Rejection returns `{ "updated": 1 }` for owned rows.
 
 Bulk rejection accepts a shared `reason` (including null or omission) and `permanent`, which defaults to false. In v2.0.0, `action: "reject"` with `permanent: true` and `reason: "not_right_now"` returns `400` before any updates, matching PATCH's compatibility rule. The bulk error is the shared `validation_failed` problem with a `permanent` field issue in `details`. v1.19.0 accepts that incompatible combination ([#786](https://github.com/iuliandita/digarr/issues/786)). A null or omitted reason remains valid with either permanent value; `not_right_now` remains valid with `permanent: false`. Reject-only compatibility rules do not apply to bulk approval.
+
+Bulk requests accept an optional `Idempotency-Key` header (1-255 printable ASCII characters, no spaces; otherwise `400`). Keys are scoped per user. The server keeps the response status and body, with a hash of the request body, for 24 hours. A repeat with the same key and body returns the stored response with `Idempotent-Replayed: true` and does not run again. The same key with a different body returns `422` problem details (`/problems/idempotency-key-reuse`). A repeat while the first request is still running returns `409` (`/problems/idempotency-request-in-flight`). Responses with status 500 or higher are not stored, so those can be retried. Storage is in memory, per process, and capped at 5,000 keys, like the rate limiters; a restart forgets keys. Without the header nothing changes.
 
 Bulk rejection does not save free-text reasons: `reasonText` is not a bulk field and the handler passes null. With no shared reason or permanent block, the fast path updates status without rewriting existing reason fields.
 
@@ -707,6 +708,8 @@ Manual `POST /api/v1/subscriptions/:id/run` awaits library preparation and subsc
 In v2.0.0, Spotify playlist imports and recurring `spotify-playlist` subscriptions read the current [`/playlists/{id}/items` endpoint](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items) in playlist order until `maxArtistsPerRun` distinct artist names are collected or the playlist ends. Names are deduplicated case-insensitively across pages, including collaborations. Local files contribute usable artist names; missing local artist metadata is skipped. New import subscriptions retain their 100-artist cap; ordinary subscriptions retain their 20-artist default, and reused subscriptions keep their saved cap. Requests use 50 items per page with a 20-page/1,000-item safety bound. If that bound is reached before the cap or playlist end, a later page fails, or pagination/data is invalid, the run fails without resolving/storing the accumulated partial artists. Successful empty playlists remain successful. Pagination links are validated and rebuilt for the same playlist, and redirects are refused. These requests use the subscription owner's token; Spotify restricts this endpoint to playlists they own or collaborate on (`403` otherwise). Pagination is not a snapshot: playlist edits between requests can change the observed items. v1.19.0 reads only the embedded first page and ignores this cap ([#779](https://github.com/iuliandita/digarr/issues/779)).
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer` (with `sourceConfig.feedType` of `favorites`, `followed`, `flow`, or `playlists`; `playlistIds` supplies comma-separated IDs for `playlists`), `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
+
+`spotify-charts` reads Spotify-owned chart playlists, which Spotify stopped serving to new and development-mode apps on 2024-11-27 ([announcement](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api)), so it may fail for newer apps. `sourceConfig.region` must be `global`, `us`, `gb`, `de`, `fr`, `au` or `br` and `chartType` must exist for that region (`viral50` is global only); create and update return `400` otherwise, and a run no longer falls back to the global Top 50. A `403` or `404` from Spotify fails the run with an error naming this cause.
 
 Deezer subscription token-resolution failures and provider error envelopes fail the run instead of completing with zero artists. Disconnected subscriptions still record a failed attempt for their owner. Manual-run failures return `503` with `service: "deezer"`, `retryable: true` and check/reconnect guidance; this is a source failure, not an application-session `401`. Inspect the saved subscription `lastError` and Job History, then reconnect Deezer in Settings when needed before retrying. Successful empty feeds still complete with zero results and clear the previous error. Playlist feeds retain the 500-distinct-artist cap ([#774](https://github.com/iuliandita/digarr/issues/774)).
 
@@ -1187,7 +1190,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 |--------|------|------|-------------|
 | GET | `/api/v1/jobs` | Admin | Paginated job list |
 | GET | `/api/v1/jobs/:id` | Admin | Single job detail |
-| GET | `/api/v1/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources) |
+| GET | `/api/v1/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources, integrations) |
 
 **GET /api/v1/jobs** query params:
 - `type` - `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`
@@ -1201,6 +1204,15 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. For AudioMuse-AI, an unconfigured connection has no entry. Queried scans include `seedsQueried`, `seedsWithResults` (valid nonempty API responses before ownership filtering), and `skipReasons` counts for actual seed requests. A source with results reports `ok`, even when some seeds fail or all candidates are owned/blocked. With no results, failures use `skipped`, with a reason such as `audiomuse_unreachable`, `audiomuse_not_indexed`, or `audiomuse_artist_unknown`. Authentication and contract errors use `audiomuse_authentication_required`, `audiomuse_invalid_response`, or `audiomuse_request_failed`. Registration failures use `audiomuse_invalid_url` or `audiomuse_token_unreadable`; re-enter an unreadable saved token. Other sources retain their existing failure behavior: any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
 Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. Within that sample, `/api/v1/jobs/health` counts only `ok` and `error` attempts for each source; successful zero-artist lookups count as `ok`. Skips do not count as successes or errors, and sources with no attempts are omitted from `sources`. Zero errors yields `ok`, an error rate below 50% yields `degraded`, and 50% or more yields `failing`. Skipped runs still occupy the sample; the query does not pull in older attempts to replace them. Individual job records retain their skip reasons. v1.19.0 counts skips as failures; this is corrected in v2.0.0 ([#769](https://github.com/iuliandita/digarr/issues/769)).
+
+`integrations` lists the last success and last error per integration, derived from the past 30 days of recorded job runs; no service is probed. Each entry is `{ "kind", "name", "status", "lastSuccess", "lastError" }`:
+
+- `kind` - `target` (approval targets such as `lidarr` or `slskd`, keyed by target type), `library` (library sync sources: `lidarr`, `plex`, `jellyfin`, `emby`, `subsonic`), `source` (discovery `sourceResults` keys, including `ai` for the AI provider), `subscription` (adapter type), or `scrobbler` (ListenBrainz/Last.fm write-back)
+- `lastSuccess` - ISO timestamp of the newest completed run, `ok` source result, or `null`
+- `lastError` - `{ "at": "<ISO timestamp>", "message": "..." }` for the newest failed run or `error` source result, or `null`. Messages are secret-redacted and capped at 300 characters
+- `status` - `failing` when the last error is newer than the last success, otherwise `ok`
+
+Running, stuck, cancelled, and skipped runs and skipped source results are ignored. Integrations with no recorded attempt in the window are omitted. Playlist exports and notification channels are not listed because their outcomes are not recorded per integration.
 
 ---
 
@@ -1256,11 +1268,11 @@ Notification channels:
   same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
   string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
   "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
-  - `webhook` - `{ ..., url }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON)
+  - `webhook` - `{ ..., url, signingSecret? }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON; see [webhook signing](OPERATIONS.md#webhook-signing))
   - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
-- Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
+- Channel secrets (`telegram.botToken`, `ntfy.token`, `webhook.signingSecret`, `apprise.urls`) are returned masked as `***`;
   sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it

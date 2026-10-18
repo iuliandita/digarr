@@ -3,11 +3,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   compareAdminAuth,
+  compareOpenapi,
   compareRouteDocs,
   extractAdminPrefixes,
   extractAdminRoutes,
   extractDocumentedAuth,
   extractDocumentedPaths,
+  extractOpenapiRoutes,
   extractRouteDeclarations,
   normalizePath,
 } from '../../scripts/check-api-docs'
@@ -101,5 +103,30 @@ describe('API docs drift checker', () => {
 
     expect(result.missingAdmin).toEqual(['GET /api/v1/stats (documented: Yes)'])
     expect(result.unguardedAdmin).toEqual(['GET /api/v1/open'])
+  })
+
+  it('fails missing, stale, and mismarked OpenAPI operations', () => {
+    const operations = extractOpenapiRoutes({
+      '/api/v1/users/{id}': { get: { description: 'Admin only.' } },
+      '/api/v1/stats': { get: {} },
+      '/api/v1/gone': { delete: {} },
+    })
+
+    const result = compareOpenapi(
+      [
+        { method: 'GET', path: '/api/v1/users/:id' },
+        { method: 'GET', path: '/api/v1/stats' },
+        { method: 'POST', path: '/api/v1/new' },
+      ],
+      new Set(['GET /api/v1/stats']),
+      operations,
+    )
+
+    expect(result).toEqual({
+      missing: ['POST /api/v1/new'],
+      stale: ['DELETE /api/v1/gone'],
+      missingAdmin: ['GET /api/v1/stats'],
+      unguardedAdmin: ['GET /api/v1/users/:id'],
+    })
   })
 })

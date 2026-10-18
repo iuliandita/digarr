@@ -222,6 +222,7 @@ export function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependenc
         subscriptions: { status: 'ok', healthy: 0, total: 0 },
         playlists: { status: 'ok', lastRun: null },
         sources: {},
+        integrations: [],
       })),
       getJobsForSubscription: vi.fn(async () => []),
     },

@@ -3,6 +3,7 @@
 // one pass.
 
 import { LIBRARY_BULK_IGNORE_LIMIT } from '@/core/library/types'
+import { buildCatalogPaths } from '@/server/helpers/openapi-routes'
 import { VERSION } from '@/version'
 
 const json = 'application/json'
@@ -59,13 +60,13 @@ function sessionResponse(description: string) {
   }
 }
 
-export const openapiDoc = {
+const baseDoc = {
   openapi: '3.1.0',
   info: {
     title: 'digarr API',
     version: VERSION,
     description:
-      'Backend API for Digarr. This specification is partial: it covers a subset of the routes, and docs/API.md is the complete route reference. REST error responses use RFC 9457 problem+json (`application/problem+json`); MCP protocol and tool errors keep their MCP shapes. Errors from routes that used to return `{error}` keep a deprecated `error` member with the same text as `detail`. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request; /api/v1/mcp accepts personal API tokens only.',
+      'Backend API for Digarr. This specification lists every route operation; docs/API.md remains the detailed contract where a response schema here is a loose object. REST error responses use RFC 9457 problem+json (`application/problem+json`); MCP protocol and tool errors keep their MCP shapes. Errors from routes that used to return `{error}` keep a deprecated `error` member with the same text as `detail`. Operations that need an admin account say "Admin only" in their description. Authentication is session-cookie OR `Authorization: Bearer <token>` per request; /api/v1/mcp accepts personal API tokens only.',
   },
   servers: [{ url: '/', description: 'Current deployment' }],
   components: {
@@ -301,15 +302,54 @@ export const openapiDoc = {
       },
       JobHealth: {
         type: 'object',
-        required: ['pipeline', 'subscriptions', 'playlists', 'librarySync', 'sources'],
+        required: [
+          'pipeline',
+          'subscriptions',
+          'playlists',
+          'librarySync',
+          'sources',
+          'integrations',
+        ],
         properties: {
           pipeline: { type: 'object', additionalProperties: true },
           subscriptions: { type: 'object', additionalProperties: true },
           playlists: { type: 'object', additionalProperties: true },
           librarySync: { type: 'object', additionalProperties: true },
           sources: { type: 'object', additionalProperties: true },
+          integrations: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/IntegrationHealth' },
+          },
         },
         additionalProperties: true,
+      },
+      IntegrationHealth: {
+        type: 'object',
+        required: ['kind', 'name', 'status', 'lastSuccess', 'lastError'],
+        properties: {
+          kind: {
+            type: 'string',
+            enum: ['target', 'library', 'source', 'subscription', 'scrobbler'],
+          },
+          name: { type: 'string' },
+          status: { type: 'string', enum: ['ok', 'failing'] },
+          lastSuccess: { type: ['string', 'null'], format: 'date-time' },
+          lastError: {
+            oneOf: [
+              { type: 'null' },
+              {
+                type: 'object',
+                required: ['at', 'message'],
+                properties: {
+                  at: { type: 'string', format: 'date-time' },
+                  message: { type: ['string', 'null'] },
+                },
+                additionalProperties: false,
+              },
+            ],
+          },
+        },
+        additionalProperties: false,
       },
       ProbeSuccess: {
         type: 'object',
@@ -340,6 +380,21 @@ export const openapiDoc = {
           accountName: { type: 'string' },
         },
         additionalProperties: false,
+      },
+      CursorPage: {
+        type: 'object',
+        required: ['data', 'meta'],
+        properties: {
+          data: { type: 'array', items: { type: 'object', additionalProperties: true } },
+          meta: {
+            type: 'object',
+            required: ['limit', 'nextCursor'],
+            properties: {
+              limit: { type: 'integer' },
+              nextCursor: { type: ['string', 'null'] },
+            },
+          },
+        },
       },
       LibraryArtistIdentity: {
         type: 'object',
@@ -1078,3 +1133,8 @@ export const openapiDoc = {
     },
   },
 } as const
+
+export const openapiDoc = {
+  ...baseDoc,
+  paths: { ...buildCatalogPaths(baseDoc.paths), ...baseDoc.paths },
+}

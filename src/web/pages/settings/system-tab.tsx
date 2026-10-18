@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
+import { IntegrationHealthCard } from '../../components/integration-health-card'
 import { SystemHealthCard } from '../../components/system-health-card'
 import { useI18n } from '../../lib/i18n'
 import JobHistoryPage from '../job-history'
@@ -35,7 +36,10 @@ export function SystemTab() {
         aria-label={t('systemHealth.title')}
         className="scroll-mt-4"
       >
-        <SystemHealthCard embedded />
+        <div className="space-y-6">
+          <SystemHealthCard embedded />
+          <IntegrationHealthCard />
+        </div>
       </section>
     </div>
   )

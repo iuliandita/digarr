@@ -122,10 +122,55 @@ describe('createSpotifyChartsAdapter', () => {
     expect(globalUrl).not.toBe(gbUrl)
   })
 
-  it('falls back to global top50 for unknown region', async () => {
+  it.each([
+    [{ region: 'zz', chartType: 'top50' }, /Unknown Spotify charts region "zz"/],
+    [{ region: 'us', chartType: 'viral50' }, /not available for region "us"/],
+    [{ region: 'global', chartType: 'bogus' }, /not available for region "global"/],
+  ])('rejects invalid config %j instead of falling back', async (config, message) => {
     const adapter = createSpotifyChartsAdapter({ getToken: async () => 'tok', baseUrl })
-    // Should not throw, falls back to global
-    const result = await adapter.fetch({ region: 'zz', chartType: 'top50' })
-    expect(result.artists.length).toBeGreaterThanOrEqual(0)
+    await expect(adapter.fetch(config)).rejects.toThrow(message)
+  })
+
+  it.each([403, 404])(
+    'explains %i as Spotify no longer serving editorial charts',
+    async (status) => {
+      const failing = http.createServer((_req, res) => {
+        res.writeHead(status)
+        res.end('{}')
+      })
+      await new Promise<void>((resolve) => failing.listen(0, '127.0.0.1', resolve))
+      const { port } = failing.address() as AddressInfo
+      try {
+        const adapter = createSpotifyChartsAdapter({
+          getToken: async () => 'tok',
+          baseUrl: `http://127.0.0.1:${port}`,
+        })
+        await expect(adapter.fetch({ region: 'global', chartType: 'top50' })).rejects.toThrow(
+          new RegExp(`${status}.*no longer serves its own editorial chart playlists`),
+        )
+      } finally {
+        failing.close()
+      }
+    },
+  )
+
+  it('keeps the bare status error for other failures', async () => {
+    const failing = http.createServer((_req, res) => {
+      res.writeHead(500)
+      res.end('{}')
+    })
+    await new Promise<void>((resolve) => failing.listen(0, '127.0.0.1', resolve))
+    const { port } = failing.address() as AddressInfo
+    try {
+      const adapter = createSpotifyChartsAdapter({
+        getToken: async () => 'tok',
+        baseUrl: `http://127.0.0.1:${port}`,
+      })
+      await expect(adapter.fetch({ region: 'global', chartType: 'top50' })).rejects.toThrow(
+        /failed: 500(?!.*editorial)/,
+      )
+    } finally {
+      failing.close()
+    }
   })
 })
