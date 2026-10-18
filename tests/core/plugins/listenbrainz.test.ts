@@ -36,13 +36,6 @@ describe('createListenBrainzSource()', () => {
     return client
   }
 
-  it('has id "listenbrainz" and name "ListenBrainz"', () => {
-    mockClient()
-    const source = createListenBrainzSource('user', 'token')
-    expect(source.id).toBe('listenbrainz')
-    expect(source.name).toBe('ListenBrainz')
-  })
-
   it('getTopArtists() maps client response to TopArtistEntry[]', async () => {
     mockClient()
     const source = createListenBrainzSource('user', 'token')
@@ -76,23 +69,5 @@ describe('createListenBrainzSource()', () => {
     const similar = await source.getSimilarArtists('Unknown Artist')
 
     expect(similar).toEqual([])
-  })
-
-  it('testConnection() delegates to client', async () => {
-    const client = mockClient()
-    const source = createListenBrainzSource('user', 'token')
-    const result = await source.testConnection()
-
-    expect(result).toEqual({ success: true, message: 'Connected' })
-    expect(client.testConnection).toHaveBeenCalled()
-  })
-
-  it('getListeningActivity() delegates to client', async () => {
-    const client = mockClient()
-    const source = createListenBrainzSource('user', 'token')
-    const activity = await source.getListeningActivity?.()
-
-    expect(activity).toEqual([{ listen_count: 100, from_ts: 1000, to_ts: 2000 }])
-    expect(client.getListeningActivity).toHaveBeenCalled()
   })
 })

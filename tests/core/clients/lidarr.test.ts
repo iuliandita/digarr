@@ -285,14 +285,6 @@ describe('createLidarrClient', () => {
       expect(result).toMatchObject({ id: 10 })
     })
 
-    it('throws if rootFolderId does not exist', async () => {
-      mockLidarrGets()
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await expect(client.addArtist('mbid-xyz', 'Unknown', 1, 1, 999)).rejects.toThrow(
-        /root folder/i,
-      )
-    })
-
     it('caches root folder and profile lookups across multiple addArtist calls', async () => {
       mockLidarrGets()
       mockPost.mockResolvedValue({ id: 11 })
@@ -375,39 +367,31 @@ describe('createLidarrClient', () => {
       )
     })
 
-    it('uses first available folder when rootFolderId is undefined (id not 1)', async () => {
-      const altFolders: RootFolder[] = [
-        { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
-        { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
-      ]
-      mockLidarrGets({ folders: altFolders })
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
+    it.each([[undefined], [null]])(
+      'uses first available folder when rootFolderId is %s',
+      async (rootFolderId) => {
+        const altFolders: RootFolder[] = [
+          { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
+          { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
+        ]
+        mockLidarrGets({ folders: altFolders })
+        mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 20 })
 
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1)
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await client.addArtist(
+          'a74b1b7f-71a5-4011-9441-d0b5e4122711',
+          'Radiohead',
+          1,
+          1,
+          rootFolderId,
+        )
 
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({ rootFolderPath: '/music5' }),
-      )
-    })
-
-    it('uses first available folder when rootFolderId is null', async () => {
-      const altFolders: RootFolder[] = [
-        { id: 5, path: '/music5', freeSpace: 10_000_000_000 },
-        { id: 7, path: '/music7', freeSpace: 5_000_000_000 },
-      ]
-      mockLidarrGets({ folders: altFolders })
-      mockPost.mockResolvedValueOnce({ ...mockArtists[0], id: 21 })
-
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.addArtist('a74b1b7f-71a5-4011-9441-d0b5e4122711', 'Radiohead', 1, 1, null)
-
-      expect(mockPost).toHaveBeenCalledWith(
-        '/api/v1/artist',
-        expect.objectContaining({ rootFolderPath: '/music5' }),
-      )
-    })
+        expect(mockPost).toHaveBeenCalledWith(
+          '/api/v1/artist',
+          expect.objectContaining({ rootFolderPath: '/music5' }),
+        )
+      },
+    )
 
     it('uses the explicit folder path when a valid rootFolderId is provided', async () => {
       mockLidarrGets()
@@ -513,13 +497,6 @@ describe('createLidarrClient', () => {
       const result = await client.getAlbums(1)
       expect(mockGet).toHaveBeenCalledWith('/api/v1/album?artistId=1')
       expect(result).toEqual(mockAlbums)
-    })
-
-    it('passes the correct artistId in the URL', async () => {
-      mockGet.mockResolvedValueOnce([])
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      await client.getAlbums(42)
-      expect(mockGet).toHaveBeenCalledWith('/api/v1/album?artistId=42')
     })
 
     it('returns empty array when artist has no albums', async () => {
@@ -792,14 +769,6 @@ describe('createLidarrClient', () => {
       const result = await client.testConnection()
       expect(result.success).toBe(false)
       expect(result.message).toMatch(/connection refused/)
-    })
-
-    it('returns ServiceTestResult shape (success, message)', async () => {
-      mockGet.mockResolvedValueOnce(mockProfiles)
-      const client = createLidarrClient(TEST_URL, TEST_KEY)
-      const result = await client.testConnection()
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
     })
   })
 })

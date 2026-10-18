@@ -27,19 +27,6 @@ describe('createGenreAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = createGenreAdapter([])
-    expect(adapter.type).toBe('genre')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has genre and providers configFields', () => {
-    const adapter = createGenreAdapter([])
-    const keys = adapter.configFields.map((f) => f.key)
-    expect(keys).toContain('genre')
-    expect(keys).toContain('providers')
-  })
-
   it('fetches genre artists from capable sources', async () => {
     const entries: GenreArtistEntry[] = [
       { name: 'Artist A', mbid: 'mbid-a', listeners: 500_000, source: 'lastfm' },

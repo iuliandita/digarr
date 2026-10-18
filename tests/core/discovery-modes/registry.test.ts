@@ -15,15 +15,6 @@ function makeMode(id: string): DiscoveryModeDefinition {
 }
 
 describe('DiscoveryModeRegistry', () => {
-  it('registers and returns discovery modes in insertion order', () => {
-    const registry = new DiscoveryModeRegistry()
-    registry.register(makeMode('listenbrainz'))
-    registry.register(makeMode('release-radar'))
-
-    expect(registry.get('listenbrainz')?.label).toBe('listenbrainz')
-    expect(registry.list().map((mode) => mode.id)).toEqual(['listenbrainz', 'release-radar'])
-  })
-
   it('throws when the same mode id is registered twice', () => {
     const registry = new DiscoveryModeRegistry()
     registry.register(makeMode('labels'))

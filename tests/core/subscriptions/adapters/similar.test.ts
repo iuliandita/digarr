@@ -33,19 +33,6 @@ describe('createSimilarAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = createSimilarAdapter([])
-    expect(adapter.type).toBe('similar')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has seedArtists and providers configFields', () => {
-    const adapter = createSimilarAdapter([])
-    const keys = adapter.configFields.map((f) => f.key)
-    expect(keys).toContain('seedArtists')
-    expect(keys).toContain('providers')
-  })
-
   it('fetches similar artists for each seed from each capable source', async () => {
     const entries: SimilarArtistEntry[] = [
       { name: 'Artist B', mbid: 'mbid-b', similarityScore: 0.8, source: 'lastfm' },

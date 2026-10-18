@@ -97,23 +97,15 @@ beforeEach(() => {
 })
 
 describe('parseYear', () => {
-  it('parses full date string', () => {
-    expect(parseYear('1985-03-15')).toBe(1985)
-  })
-  it('parses year-month string', () => {
-    expect(parseYear('1985-03')).toBe(1985)
-  })
-  it('parses year-only string', () => {
-    expect(parseYear('1985')).toBe(1985)
-  })
-  it('returns undefined for empty string', () => {
-    expect(parseYear('')).toBeUndefined()
-  })
-  it('returns undefined for undefined', () => {
-    expect(parseYear(undefined)).toBeUndefined()
-  })
-  it('returns undefined for garbage input', () => {
-    expect(parseYear('not-a-date')).toBeUndefined()
+  it.each([
+    ['1985-03-15', 1985],
+    ['1985-03', 1985],
+    ['1985', 1985],
+    ['', undefined],
+    [undefined, undefined],
+    ['not-a-date', undefined],
+  ])('parseYear(%j) is %s', (input, expected) => {
+    expect(parseYear(input)).toBe(expected)
   })
 })
 
@@ -214,14 +206,6 @@ describe('createMusicBrainzClient', () => {
       expect(result.disambiguation).toBe('UK rock band')
       expect(result.tags).toHaveLength(2)
       expect(result.tags?.[0]).toEqual({ name: 'alternative rock', count: 10 })
-      expect(Array.isArray(result.relations)).toBe(true)
-    })
-
-    it('returns MBArtist shape with relations array', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse(MOCK_ARTIST_RESPONSE))
-      const client = createMusicBrainzClient()
-      const result = await client.lookupArtist(MOCK_ARTIST_MBID)
-
       expect(result.relations).toHaveLength(6)
       expect(result.relations?.[0]).toMatchObject({
         type: 'streaming music',
@@ -292,85 +276,19 @@ describe('createMusicBrainzClient', () => {
   })
 
   describe('extractStreamingUrls(relations)', () => {
-    it('extracts spotify URL from url-rels', () => {
+    it.each([
+      ['spotify', 'streaming music', 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb'],
+      ['youtube', 'free streaming', 'https://www.youtube.com/channel/UCq19-LqvG35A-30oyAiPiqA'],
+      ['appleMusic', 'streaming music', 'https://music.apple.com/gb/artist/radiohead/657515'],
+      ['deezer', 'streaming music', 'https://www.deezer.com/en/artist/394'],
+      ['tidal', 'streaming music', 'https://tidal.com/browse/artist/13858'],
+      ['soundcloud', 'free streaming', 'https://soundcloud.com/radiohead'],
+      ['bandcamp', 'free streaming', 'https://radiohead.bandcamp.com'],
+      ['youtube', 'streaming music', 'https://music.youtube.com/channel/UC123'],
+    ])('extracts the %s URL from a %s relation (%s)', (key, type, resource) => {
       const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        {
-          type: 'streaming music',
-          url: { resource: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
-        },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.spotify).toBe('https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb')
-    })
-
-    it('extracts youtube URL from url-rels', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        {
-          type: 'free streaming',
-          url: { resource: 'https://www.youtube.com/channel/UCq19-LqvG35A-30oyAiPiqA' },
-        },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.youtube).toBe('https://www.youtube.com/channel/UCq19-LqvG35A-30oyAiPiqA')
-    })
-
-    it('extracts apple music URL', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        {
-          type: 'streaming music',
-          url: { resource: 'https://music.apple.com/gb/artist/radiohead/657515' },
-        },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.appleMusic).toBe('https://music.apple.com/gb/artist/radiohead/657515')
-    })
-
-    it('extracts deezer URL', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        { type: 'streaming music', url: { resource: 'https://www.deezer.com/en/artist/394' } },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.deezer).toBe('https://www.deezer.com/en/artist/394')
-    })
-
-    it('extracts tidal URL', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        { type: 'streaming music', url: { resource: 'https://tidal.com/browse/artist/13858' } },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.tidal).toBe('https://tidal.com/browse/artist/13858')
-    })
-
-    it('extracts soundcloud URL', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        { type: 'free streaming', url: { resource: 'https://soundcloud.com/radiohead' } },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.soundcloud).toBe('https://soundcloud.com/radiohead')
-    })
-
-    it('extracts bandcamp URL', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        { type: 'free streaming', url: { resource: 'https://radiohead.bandcamp.com' } },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.bandcamp).toBe('https://radiohead.bandcamp.com')
-    })
-
-    it('extracts music.youtube.com URL into youtube key', () => {
-      const client = createMusicBrainzClient()
-      const relations: MBRelation[] = [
-        { type: 'streaming music', url: { resource: 'https://music.youtube.com/channel/UC123' } },
-      ]
-      const urls = client.extractStreamingUrls(relations)
-      expect(urls.youtube).toBe('https://music.youtube.com/channel/UC123')
+      const urls = client.extractStreamingUrls([{ type, url: { resource } }] as MBRelation[])
+      expect(urls[key as keyof typeof urls]).toBe(resource)
     })
 
     it('ignores non-streaming relations', () => {
@@ -475,15 +393,6 @@ describe('createMusicBrainzClient', () => {
       expect(url).toContain(`artist=${MOCK_ARTIST_MBID}`)
       expect(url).toContain('fmt=json')
       expect(url).toContain('limit=100')
-    })
-
-    it('includes type filter in the query string', async () => {
-      mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
-      const client = createMusicBrainzClient()
-      await client.getReleaseGroups(MOCK_ARTIST_MBID)
-
-      const [url] = mockFetch.mock.calls[0] as [string]
-      expect(url).toContain('type=')
     })
 
     it('defaults the type filter to album|ep|single', async () => {

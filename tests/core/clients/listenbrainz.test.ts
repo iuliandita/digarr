@@ -126,13 +126,6 @@ describe('createListenBrainzClient', () => {
       expect(mockGet).toHaveBeenCalledWith(`/1/user/${TEST_USERNAME}/listen-count`)
       expect(count).toBe(12345)
     })
-
-    it('returns a number', async () => {
-      mockGet.mockResolvedValueOnce({ payload: { count: 0 } })
-      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      const count = await client.getListenCount()
-      expect(typeof count).toBe('number')
-    })
   })
 
   describe('getListeningActivity()', () => {
@@ -448,13 +441,7 @@ describe('createListenBrainzClient', () => {
       const result = await client.testConnection()
       expect(result.success).toBe(true)
       expect(typeof result.message).toBe('string')
-    })
-
-    it('includes listen count in details', async () => {
-      mockGet.mockResolvedValueOnce({ payload: { count: 7654 } })
-      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      const result = await client.testConnection()
-      expect(result.details).toMatchObject({ listenCount: 7654 })
+      expect(result.details).toMatchObject({ listenCount: 999 })
     })
 
     it('returns success:false with error message when getListenCount() rejects', async () => {
@@ -463,14 +450,6 @@ describe('createListenBrainzClient', () => {
       const result = await client.testConnection()
       expect(result.success).toBe(false)
       expect(result.message).toMatch(/network timeout/)
-    })
-
-    it('returns ServiceTestResult shape (success, message)', async () => {
-      mockGet.mockResolvedValueOnce({ payload: { count: 1 } })
-      const client = createListenBrainzClient(TEST_USERNAME, TEST_TOKEN)
-      const result = await client.testConnection()
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
     })
   })
 })

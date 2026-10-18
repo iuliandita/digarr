@@ -152,6 +152,7 @@ describe('createDeezerClient', () => {
       const client = createDeezerClient({ baseUrl })
       const results = await client.searchArtists('portishead')
       expect(results).toHaveLength(2)
+      expect(results[1]?.imageUrl).toBeUndefined()
       expect(results[0]).toEqual({
         id: 1234,
         name: 'Portishead',
@@ -159,23 +160,6 @@ describe('createDeezerClient', () => {
         imageUrl: 'https://cdn.deezer.com/portishead.jpg',
         url: 'https://www.deezer.com/artist/1234',
       })
-    })
-
-    it('omits imageUrl when picture_medium is empty string', async () => {
-      const client = createDeezerClient({ baseUrl })
-      const results = await client.searchArtists('portishead')
-      expect(results[1]?.imageUrl).toBeUndefined()
-    })
-
-    it('returns correct shape with all required fields', async () => {
-      const client = createDeezerClient({ baseUrl })
-      const results = await client.searchArtists('test')
-      for (const r of results) {
-        expect(typeof r.id).toBe('number')
-        expect(typeof r.name).toBe('string')
-        expect(typeof r.fans).toBe('number')
-        expect(typeof r.url).toBe('string')
-      }
     })
 
     it('throws on HTTP error', async () => {
@@ -187,13 +171,6 @@ describe('createDeezerClient', () => {
       const client = createDeezerClient({ baseUrl })
       await expect(client.searchArtists('apierror')).rejects.toThrow(/Deezer API error/)
     })
-
-    it('uses provided baseUrl', async () => {
-      const client = createDeezerClient({ baseUrl })
-      const results = await client.searchArtists('portishead')
-      // Results returned from our mock server means baseUrl was used
-      expect(results.length).toBeGreaterThan(0)
-    })
   })
 
   describe('testConnection()', () => {
@@ -201,12 +178,6 @@ describe('createDeezerClient', () => {
       const client = createDeezerClient({ baseUrl })
       const result = await client.testConnection()
       expect(result.success).toBe(true)
-      expect(typeof result.message).toBe('string')
-    })
-
-    it('includes resultCount in details', async () => {
-      const client = createDeezerClient({ baseUrl })
-      const result = await client.testConnection()
       expect(result.details).toHaveProperty('resultCount')
     })
 
@@ -233,12 +204,6 @@ describe('createDeezerClient', () => {
         previewUrl: 'https://cdns-preview.deezer.com/track/2.mp3',
         durationMs: 217000,
       })
-    })
-
-    it('converts duration from seconds to milliseconds', async () => {
-      const client = createDeezerClient({ baseUrl })
-      const tracks = await client.getArtistTopTracks(1234)
-      expect(tracks[0]?.durationMs).toBe(245 * 1000)
       expect(tracks[2]?.durationMs).toBe(303 * 1000)
     })
 
@@ -284,16 +249,6 @@ describe('createDeezerClient', () => {
     it('throws when API returns error field', async () => {
       const client = createDeezerClient({ baseUrl })
       await expect(client.searchTracks('trackapierror')).rejects.toThrow(/Deezer API error/)
-    })
-  })
-
-  describe('default baseUrl', () => {
-    it('creates a client without options', () => {
-      expect(() => createDeezerClient()).not.toThrow()
-    })
-
-    it('creates a client with empty options', () => {
-      expect(() => createDeezerClient({})).not.toThrow()
     })
   })
 })

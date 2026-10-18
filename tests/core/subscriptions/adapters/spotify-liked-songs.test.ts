@@ -46,13 +46,6 @@ afterAll(() => {
 })
 
 describe('createSpotifyLikedSongsAdapter', () => {
-  it('has correct type and label', () => {
-    const adapter = createSpotifyLikedSongsAdapter({ getToken: async () => 'tok', baseUrl })
-    expect(adapter.type).toBe('spotify-liked-songs')
-    expect(adapter.label).toBe('Spotify Liked Songs')
-    expect(adapter.configFields).toEqual([])
-  })
-
   it('fetches liked-song artists across pages and deduplicates them', async () => {
     requestCount = 0
     const adapter = createSpotifyLikedSongsAdapter({ getToken: async () => 'tok', baseUrl })

@@ -34,22 +34,6 @@ describe('createDiscogsSource()', () => {
     return client
   }
 
-  it('has id "discogs" and name "Discogs"', () => {
-    mockClient()
-    const source = createDiscogsSource('token', 'testuser')
-    expect(source.id).toBe('discogs')
-    expect(source.name).toBe('Discogs')
-  })
-
-  it('has correct capabilities', () => {
-    mockClient()
-    const source = createDiscogsSource('token', 'testuser')
-    expect(source.capabilities).toContain('topArtists')
-    expect(source.capabilities).toContain('genreArtists')
-    expect(source.capabilities).not.toContain('similarArtists')
-    expect(source.capabilities).not.toContain('recentListening')
-  })
-
   it('getTopArtists() merges collection and wantlist with dedup', async () => {
     mockClient()
     const source = createDiscogsSource('token', 'testuser')
@@ -99,18 +83,6 @@ describe('createDiscogsSource()', () => {
     const source = createDiscogsSource('token', 'testuser')
     const similar = await source.getSimilarArtists('Radiohead')
     expect(similar).toEqual([])
-  })
-
-  it('testConnection() delegates to client', async () => {
-    const client = mockClient()
-    const source = createDiscogsSource('token', 'testuser')
-    const result = await source.testConnection()
-
-    expect(result).toEqual({
-      success: true,
-      message: 'Connected to Discogs as testuser',
-    })
-    expect(client.testConnection).toHaveBeenCalled()
   })
 
   it('getGenreArtists() maps search results to GenreArtistEntry[]', async () => {

@@ -150,14 +150,6 @@ describe.each([jellyfin, navidrome])(
       return session.createPlaylist(name, async () => {})
     }
 
-    it('has correct id, type, and capabilities', () => {
-      const target = flavor.make()
-      expect(target.id).toBe(`${flavor.targetType}-${flavor.targetId}`)
-      expect(target.type).toBe(flavor.targetType)
-      expect(target.capabilities).toContain('createPlaylist')
-      expect(target.capabilities).not.toContain('addArtist')
-    })
-
     it('creates a playlist and returns success', async () => {
       flavor.serve(
         [

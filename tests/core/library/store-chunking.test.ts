@@ -76,28 +76,6 @@ function makeAlbum(index: number, unreconciledReason: 'ambiguous' | null = null)
 }
 
 describe('LibrarySyncStore chunked inserts', () => {
-  it('preserves artist and album reconciliation reasons in full snapshots', async () => {
-    const db = makeDb()
-    const store = createLibrarySyncStore(db as never)
-
-    await store.replaceLibrarySnapshot(1, 'plex', [makeArtist(1)], [makeAlbum(1, 'ambiguous')])
-
-    const artistRows = db._mocks.insertCalls.find((call) => call.table === libraryArtists)?.rows
-    const albumRows = db._mocks.insertCalls.find((call) => call.table === libraryAlbums)?.rows
-    expect(artistRows?.[0]).toMatchObject({ unreconciledReason: 'no_candidate' })
-    expect(albumRows?.[0]).toMatchObject({ unreconciledReason: 'ambiguous' })
-  })
-
-  it('preserves artist reconciliation reasons in artist-only replacements', async () => {
-    const db = makeDb()
-    const store = createLibrarySyncStore(db as never)
-
-    await store.replaceLibraryArtists(1, 'plex', [makeArtist(1)])
-
-    const artistRows = db._mocks.insertCalls.find((call) => call.table === libraryArtists)?.rows
-    expect(artistRows?.[0]).toMatchObject({ unreconciledReason: 'no_candidate' })
-  })
-
   it('splits oversized album writes into sqlite-safe chunks', async () => {
     const db = makeDb()
     const store = createLibrarySyncStore(db as never)

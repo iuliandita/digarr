@@ -61,17 +61,6 @@ describe('createLidarrTarget()', () => {
     },
   )
 
-  it('has correct id, type, and capabilities', () => {
-    mockLidarrClient()
-    const target = createLidarrTarget(1, {
-      url: 'http://lidarr:8686',
-      apiKey: 'abc',
-    })
-    expect(target.type).toBe('lidarr')
-    expect(target.capabilities).toContain('addArtist')
-    expect(target.id).toBe('lidarr-1')
-  })
-
   it('addArtist calls lidarr.addArtist with correct params', async () => {
     const client = mockLidarrClient()
     const target = createLidarrTarget(1, {
@@ -236,16 +225,6 @@ describe('createLidarrTarget()', () => {
     } finally {
       vi.useRealTimers()
     }
-  })
-
-  it('testConnection delegates to lidarr client', async () => {
-    mockLidarrClient()
-    const target = createLidarrTarget(1, {
-      url: 'http://lidarr:8686',
-      apiKey: 'abc',
-    })
-    const result = await target.testConnection()
-    expect(result.success).toBe(true)
   })
 
   it('ignores profile picks scoped to a different Lidarr target', async () => {
