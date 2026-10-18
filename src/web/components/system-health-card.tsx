@@ -4,9 +4,49 @@ import { getJobHealth } from '../lib/api'
 import { formatRelativeTime } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 
-function StatusDot({ status }: { status: string }) {
-  const color = status === 'ok' ? 'bg-approve' : status === 'degraded' ? 'bg-warning' : 'bg-reject'
-  return <span className={`inline-block h-2 w-2 rounded-full ${color}`} />
+type HealthLevel = 'ok' | 'degraded' | 'error'
+
+function healthLevel(status: string): HealthLevel {
+  return status === 'ok' ? 'ok' : status === 'degraded' ? 'degraded' : 'error'
+}
+
+const STATUS_LABEL_KEY = {
+  ok: 'systemHealth.statusOk',
+  degraded: 'systemHealth.statusDegraded',
+  error: 'systemHealth.statusError',
+} as const
+
+function StatusIcon({ status }: { status: string }) {
+  const { t } = useI18n()
+  const level = healthLevel(status)
+  const color =
+    level === 'ok' ? 'text-approve' : level === 'degraded' ? 'text-warning' : 'text-reject'
+  const shape =
+    level === 'ok' ? (
+      <path d="M3.5 8.5l3 3 6-6.5" />
+    ) : level === 'degraded' ? (
+      <path d="M8 2.5l6 10.5H2z M8 7v2.5 M8 11.2v.1" />
+    ) : (
+      <path d="M4 4l8 8 M12 4l-8 8" />
+    )
+  return (
+    <>
+      <svg
+        viewBox="0 0 16 16"
+        className={`h-3.5 w-3.5 shrink-0 ${color}`}
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+        data-status={level}
+      >
+        {shape}
+      </svg>
+      <span className="sr-only">{t(STATUS_LABEL_KEY[level])}</span>
+    </>
+  )
 }
 
 function SummaryCard({ label, value }: { label: string; value: string }) {
@@ -117,7 +157,10 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
-        <SummaryCard label={t('systemHealth.pipeline')} value={data.pipeline.status} />
+        <SummaryCard
+          label={t('systemHealth.pipeline')}
+          value={t(STATUS_LABEL_KEY[healthLevel(data.pipeline.status)])}
+        />
         <SummaryCard
           label={t('systemHealth.subscriptions')}
           value={`${data.subscriptions.healthy}/${data.subscriptions.total}`}
@@ -141,7 +184,7 @@ export function SystemHealthCard({ embedded = false }: { embedded?: boolean }) {
           {rows.map((row) => (
             <div key={row.key} className="flex items-start justify-between gap-4 px-4 py-3">
               <span className="flex items-center gap-2 text-sm text-text">
-                <StatusDot status={row.status} />
+                <StatusIcon status={row.status} />
                 {row.label}
               </span>
               <span className="text-right text-xs text-muted">{row.detail}</span>

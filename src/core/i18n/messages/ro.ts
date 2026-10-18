@@ -414,6 +414,10 @@ export const ro = {
   'discover.undoRejected': '{name} respins',
   'discover.undoBlocked': '{name} respins și blocat',
   'discover.approveAllAbove': 'Aprobă toate cele de mai sus',
+  'discover.approveAboveTitle': 'Aprobi tot ce depășește {1}%?',
+  'discover.approveAboveMessage':
+    'Aprobi {0} recomandări în așteptare de {1}% sau mai mult? Destinații precum Lidarr pot primi adăugări.',
+  'discover.approveAboveConfirm': 'Aprobă {0}',
   'discover.approvedCount': 'Aprobat',
   'discover.approvePartial': 'Adăugat la {0} din {1} ținte. Eșuate: {2}',
   'discover.approveAllFailed': 'Nu s-a putut adăuga la nicio țintă. Eșuate: {0}',
@@ -740,6 +744,8 @@ export const ro = {
   'subscriptionPresets.getStarted': 'Începe cu un preset',
   'subscriptionPresets.intro':
     'Alege un preset pentru a crea programări automat sau construiește-ți propria configurație.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify nu mai oferă playlisturile sale de topuri aplicațiilor noi, așa că presetările Spotify Charts pot eșua.',
   'subscriptionPresets.casualTitle': 'Lejer',
   'subscriptionPresets.casualDescription': 'Recomandări săptămânale cu puțin zgomot',
   'subscriptionPresets.deepDiverTitle': 'Explorare profundă',
@@ -946,6 +952,9 @@ export const ro = {
   'systemHealth.lastRun': 'ultima:',
   'systemHealth.nextRun': 'următoarea:',
   'systemHealth.healthy': 'funcțional',
+  'systemHealth.statusOk': 'Funcțional',
+  'systemHealth.statusDegraded': 'Degradat',
+  'systemHealth.statusError': 'Eroare',
   'systemHealth.overdue': 'întârziat',
   'systemHealth.inMinutes': 'în {0}m',
   'systemHealth.inHours': 'în {0}h',
@@ -1892,6 +1901,7 @@ export const ro = {
   'settings.channels.allowPrivateWarning':
     'Permite livrarea către adrese private/LAN. Metadatele din cloud și intervalele link-local rămân blocate.',
   'settings.channels.webhookUrl': 'URL webhook',
+  'settings.channels.webhookSigningSecret': 'Secret de semnare (opțional)',
   'settings.channels.ntfyServer': 'Adresă server',
   'settings.channels.ntfyTopic': 'Subiect',
   'settings.channels.ntfyPriority': 'Prioritate',
