@@ -162,6 +162,30 @@ Notes:
 - Preference values are checked with the same types and ranges as `preferences` in `PATCH /api/v1/settings`; an invalid value, such as a non-integer `rejectionCooldownDays`, returns `400` without saving anything
 - `GET /api/v1/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 
+Dashboard customization (#995) uses the same per-user preferences endpoint. PATCH a complete `dashboardLayout` value; omitting this key preserves the saved layout and all other preferences are merged as usual:
+
+```json
+{
+  "dashboardLayout": {
+    "version": 1,
+    "cards": [
+      { "id": "pick", "visible": true, "size": "large" },
+      { "id": "decisions", "visible": true, "size": "medium" },
+      { "id": "listening", "visible": true, "size": "medium" },
+      { "id": "genres", "visible": true, "size": "small" },
+      { "id": "subscriptions", "visible": true, "size": "small" }
+    ],
+    "showEmpty": false
+  }
+}
+```
+
+The array order is the display order. Sizes `small`, `medium`, and `large` span 1, 2, and 3 desktop columns; all fill the phone width. The server drops unknown card IDs, keeps the first occurrence of each known ID, and inserts missing cards at their default index without changing the relative order of saved cards. Version must be `1`, visibility and `showEmpty` must be booleans, and known cards must use one of the three sizes. The array accepts at most 64 entries and IDs at most 64 characters. Invalid values return `400` without saving any part of the request.
+
+GET merges saved layouts with defaults. New accounts and accounts without a layout get the example above; malformed stored layouts fall back to it. Source-page Show on dashboard switches update the same `visible` setting. Reset to default sends the default object. Layouts live in `users.preferences`, with no database migration. The dashboard's Your decisions card uses the authenticated user's recommendation list, including rejected decisions in its All view; the activity endpoint below retains its existing broader event feed.
+
+In v2.0.0, the Recommendations settings page saves user preferences for every user and writes shared AudioDB/Wikidata settings only for admins. Personal preferences and recommendations are refreshed after the user write succeeds. If an admin's later global write fails, the notice explicitly reports that personal preferences saved; it does not imply rollback. Shared metadata controls are admin-only; personal fanart and metadata-fallback controls remain available to everyone. Server permissions are unchanged. v1.19.0 unconditionally attempts the global write, so non-admins see a false save failure and stale cached values ([#792](https://github.com/iuliandita/digarr/issues/792)). Verify saved values with `GET /api/v1/auth/me/preferences`, or use the per-user `PATCH` directly.
+
 The Recommendations settings page saves only personal recommendation preferences and refreshes them after a successful write. Image-source controls now live under Connections > Artist images: Fanart.tv and metadata fallback still use the per-user preferences API, while AudioDB, image proxy, and Wikidata still use the admin settings API. Members see the server row read-only in the UI; API permissions and preference scopes are unchanged. If the admin image save's personal write succeeds but its later server write fails, the notice reports partial success without implying rollback. Read back user values with `GET /api/v1/auth/me/preferences`.
 
 In v2.0.0, `PATCH /api/v1/auth/me/preferences` accepts `{"netNewAlbumDiscovery":true}` or `{"netNewAlbumDiscovery":false}`, and the saved boolean is returned by a fresh preferences GET. Omission preserves the saved value; other value types return `400` before writing. Admins may also set `preferences.netNewAlbumDiscovery` through `PATCH /api/v1/settings`. The default remains off, and existing per-user/global fallback rules are unchanged. v1.19.0 silently ignores the per-user key and rejects it in global preferences ([#791](https://github.com/iuliandita/digarr/issues/791)); use Release Radar or Library Gap-Fill until upgrading.

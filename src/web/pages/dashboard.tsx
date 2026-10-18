@@ -1,10 +1,16 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
+import type { DashboardCardId } from '@/core/dashboard-layout'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { ArtistThumb } from '../components/artist-thumb'
+import {
+  DASHBOARD_LINKS,
+  DASHBOARD_TITLES,
+  DashboardCustomize,
+} from '../components/dashboard-customize'
 import { GenreCoverageSummary } from '../components/genre-coverage-summary'
 import { Hint } from '../components/hint'
 import type { MonitorOption } from '../components/monitoring-options'
@@ -21,12 +27,11 @@ import { EmptyState } from '../components/ui/empty-state'
 import { Notice } from '../components/ui/notice'
 import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
+import { useDashboardLayout } from '../hooks/use-dashboard-layout'
 import {
-  type ActivityEntry,
   approveRecommendation,
   approveToTarget,
   type GenreCoverage,
-  getDashboardActivity,
   getDashboardGenreCoverage,
   getDashboardTaste,
   getRecentTracks,
@@ -59,24 +64,41 @@ function formatRelativeTime(locale: string, dateStr: string | Date): string {
   return formatter.format(Math.round(diffHours / 24), 'day')
 }
 
-function SectionHeader({
-  title,
-  linkText,
-  linkTo,
+function SectionHeader({ title, linkTo }: { title: string; linkTo: string }) {
+  return (
+    <h2 className="mb-3 text-lead font-semibold text-text">
+      <Link to={linkTo} className="hover:underline">
+        {title}
+      </Link>
+    </h2>
+  )
+}
+
+function CardViewToggle({
+  value,
+  onChange,
+  options,
+  label,
 }: {
-  title: string
-  linkText?: string
-  linkTo?: string
+  value: string
+  onChange: (value: string) => void
+  options: { value: string; label: string }[]
+  label: string
 }) {
   return (
-    <div className="flex items-center justify-between mb-3">
-      <h2 className="text-lead font-semibold text-text">{title}</h2>
-      {linkText && linkTo && (
-        <Link to={linkTo} className="text-xs text-accent-text underline">
-          {linkText}
-        </Link>
-      )}
-    </div>
+    <fieldset aria-label={label} className="mb-3 flex flex-wrap gap-1">
+      {options.map((option) => (
+        <Button
+          key={option.value}
+          size="sm"
+          variant={value === option.value ? 'secondary' : 'ghost'}
+          aria-pressed={value === option.value}
+          onClick={() => onChange(option.value)}
+        >
+          {option.label}
+        </Button>
+      ))}
+    </fieldset>
   )
 }
 
@@ -91,7 +113,6 @@ function SubscriptionPulse({
   if (!subs || subs.length === 0) {
     return (
       <div>
-        <SectionHeader title={t('dashboard.subscriptions')} />
         <EmptyState
           className="bg-surface border border-border rounded-surface"
           message={t('dashboard.subscriptionsEmpty')}
@@ -107,11 +128,6 @@ function SubscriptionPulse({
 
   return (
     <div className="flex h-full flex-col">
-      <SectionHeader
-        title={t('dashboard.subscriptions')}
-        linkText={t('dashboard.manage')}
-        linkTo="/subscriptions"
-      />
       <div className="flex-1 bg-surface border border-border rounded-lg divide-y divide-border">
         {subs.slice(0, 5).map((sub) => {
           const job = scheduler?.jobs.find((j) => j.name === `subscription-${sub.id}`)
@@ -207,7 +223,6 @@ function ListeningHistory({
   return (
     <div className="flex flex-1 flex-col">
       <div className="flex items-center justify-between mb-3 gap-2">
-        <h2 className="text-lead font-semibold text-text">{t('dashboard.listeningHistory')}</h2>
         <div className="flex gap-1 flex-wrap justify-end">
           {LISTENING_TOP_RANGES.map((r) => (
             <button
@@ -300,11 +315,9 @@ function RecentActivity({
   onRetry: () => void
 }) {
   const { t, locale } = useI18n()
-  if (!data?.hasSource && !error) return null
   const failed = error || data?.status === 'error'
   return (
     <div>
-      <h2 className="text-lead font-semibold text-text mb-3">{t('dashboard.recentPlays')}</h2>
       {failed && <ListeningHistoryError onRetry={onRetry} />}
       {!data || data.tracks.length === 0 ? (
         failed ? null : (
@@ -354,7 +367,6 @@ function TasteProfile({
   const { t } = useI18n()
   return (
     <div className="flex h-full flex-col">
-      <SectionHeader title={t('dashboard.yourTaste')} />
       <div className="flex-1 bg-surface border border-border rounded-lg p-4">
         {loading ? (
           <div className="space-y-3">
@@ -392,93 +404,53 @@ function TasteProfile({
   )
 }
 
-function activitySignature(entry: ActivityEntry): string {
-  const d = entry.data
-  return [
-    entry.type,
-    d.username,
-    d.artistName,
-    d.subscriptionName,
-    d.artistsNew,
-    d.discovered,
-  ].join('|')
-}
-
-// Consecutive identical entries (e.g. repeated empty scans) collapse into one row with a count.
-function groupActivity(entries: ActivityEntry[]): { entry: ActivityEntry; count: number }[] {
-  const groups: { entry: ActivityEntry; count: number }[] = []
-  for (const entry of entries) {
-    const last = groups[groups.length - 1]
-    if (last && activitySignature(last.entry) === activitySignature(entry)) last.count++
-    else groups.push({ entry, count: 1 })
-  }
-  return groups
+type DecisionEntry = {
+  id: number
+  type: 'approved' | 'rejected'
+  timestamp: string
+  artistName: string
 }
 
 function ActivityFeed({
   entries,
   loading,
 }: {
-  entries: ActivityEntry[] | undefined
+  entries: DecisionEntry[] | undefined
   loading: boolean
 }) {
   const { locale, t } = useI18n()
   return (
-    <div>
-      <SectionHeader title={t('dashboard.recentActivity')} />
-      <div className="bg-surface border border-border rounded-lg">
-        {loading ? (
-          <div className="p-4 space-y-3">
-            {['a1', 'a2', 'a3', 'a4', 'a5'].map((k) => (
-              <Skeleton key={k} className="h-4 w-full" />
-            ))}
-          </div>
-        ) : !entries || entries.length === 0 ? (
-          <EmptyState className="py-6" message={t('dashboard.activityEmpty')} />
-        ) : (
-          <div className="divide-y divide-border">
-            {groupActivity(entries).map(({ entry, count }) => (
-              <div
-                key={`${entry.type}-${entry.timestamp}-${entry.data.artistName ?? entry.data.subscriptionName ?? ''}`}
-                className="flex items-center gap-3 px-4 py-2.5"
-              >
-                <span className="text-xs shrink-0">
-                  {entry.type === 'approved'
-                    ? '\u2713'
-                    : entry.type === 'rejected'
-                      ? '\u2717'
-                      : entry.type === 'subscription_run'
-                        ? '\u21BB'
-                        : '\u25C9'}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm text-text truncate">
-                    {entry.data.username && (
-                      <span className="text-muted">{entry.data.username}: </span>
-                    )}
-                    {entry.type === 'approved' &&
-                      `${t('dashboard.activityApproved')} ${entry.data.artistName}`}
-                    {entry.type === 'rejected' &&
-                      `${t('dashboard.activityRejected')} ${entry.data.artistName}`}
-                    {entry.type === 'subscription_run' &&
-                      `${entry.data.subscriptionName}: ${entry.data.artistsNew} ${t('dashboard.activityNew')}`}
-                    {entry.type === 'scan_completed' &&
-                      `${t('dashboard.activityScan')}: ${entry.data.discovered} ${t('dashboard.activityDiscovered')}`}
-                  </p>
-                </div>
-                {count > 1 && (
-                  <span className="text-xs text-muted shrink-0">
-                    {t('dashboard.activityRepeated').replace('{0}', String(count))}
-                  </span>
-                )}
-                <span className="text-xs text-muted shrink-0">
-                  {formatRelativeTime(locale, entry.timestamp)}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+    <div className="bg-surface border border-border rounded-lg">
+      {loading ? (
+        <div className="p-4 space-y-3">
+          {['a1', 'a2', 'a3', 'a4', 'a5'].map((key) => (
+            <Skeleton key={key} className="h-4 w-full" />
+          ))}
+        </div>
+      ) : !entries?.length ? (
+        <EmptyState className="py-6" message={t('dashboard.activityEmpty')} />
+      ) : (
+        <div className="divide-y divide-border">
+          {entries.map((entry) => (
+            <div key={entry.id} className="flex items-center gap-3 px-4 py-2.5">
+              <span className="text-xs shrink-0" aria-hidden="true">
+                {entry.type === 'approved' ? '\u2713' : '\u2717'}
+              </span>
+              <p className="min-w-0 flex-1 text-sm text-text truncate">
+                {t(
+                  entry.type === 'approved'
+                    ? 'dashboard.activityApproved'
+                    : 'dashboard.activityRejected',
+                )}{' '}
+                {entry.artistName}
+              </p>
+              <span className="text-xs text-muted shrink-0">
+                {formatRelativeTime(locale, entry.timestamp)}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
@@ -486,6 +458,16 @@ function ActivityFeed({
 export function Dashboard() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const {
+    layout,
+    disabled: layoutDisabled,
+    save: saveLayout,
+    error: layoutError,
+    retry: retryLayout,
+  } = useDashboardLayout()
+  const [customizing, setCustomizing] = useState(false)
+  const [decisionsView, setDecisionsView] = useState('approved')
+  const [listeningView, setListeningView] = useState('top')
   const [skippedIds, setSkippedIds] = useState<Set<number>>(new Set())
   const [actedIds, setActedIds] = useState<Set<number>>(new Set())
   const [listenRange, setListenRange] = useState<ListeningTopRange>('this_month')
@@ -576,7 +558,23 @@ export function Dashboard() {
   // Activity
   const { data: activityData, isLoading: activityLoading } = useQuery({
     queryKey: ['dashboard-activity'],
-    queryFn: () => getDashboardActivity(5),
+    queryFn: async () => {
+      const result = await getRecommendations({
+        status: 'added_to_lidarr,add_failed,approved,rejected',
+        sort: 'acted_on_desc',
+        limit: '5',
+      })
+      return (
+        result.items as (Recommendation & { actedOnAt: string | null; createdAt: string })[]
+      ).map(
+        (rec): DecisionEntry => ({
+          id: rec.id,
+          type: rec.status === 'rejected' ? 'rejected' : 'approved',
+          timestamp: rec.actedOnAt ?? rec.createdAt,
+          artistName: rec.artist.name,
+        }),
+      )
+    },
     staleTime: 30_000,
   })
 
@@ -628,6 +626,7 @@ export function Dashboard() {
         )
       }
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
       if (status === 'approved') {
         queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
       }
@@ -653,6 +652,7 @@ export function Dashboard() {
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
     } catch {
       toast.error(t('dashboard.actionFailed'))
       setActedIds((prev) => {
@@ -690,6 +690,7 @@ export function Dashboard() {
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.sentToTarget'))
       queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
       queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
+      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
     } catch {
       toast.error(t('dashboard.approveFailed'))
     } finally {
@@ -705,75 +706,77 @@ export function Dashboard() {
     setSkippedIds((prev) => new Set([...prev, id]))
   }
 
-  return (
-    <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
-      <PageHeader title={t('dashboard.title')} />
-      {/* Pipeline progress (self-hides) */}
-      <PipelineProgress
-        onComplete={() => {
-          queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-          queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-          queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
-          queryClient.invalidateQueries({ queryKey: ['dashboard-genre-coverage'] })
-        }}
-        isFirstScan={
-          (!pickData || pickData.items.length === 0) &&
-          (!approvedData || approvedData.items.length === 0)
-        }
+  const empty: Record<DashboardCardId, boolean> = {
+    pick: !pickLoading && !currentPick,
+    decisions:
+      !approvedLoading && !activityLoading && !approvedRecs.length && !activityData?.length,
+    listening:
+      !topArtistsLoading &&
+      !topArtistsError &&
+      !recentTracksError &&
+      !topArtistsData?.source &&
+      !recentTracksData?.hasSource,
+    genres: !tasteLoading && !tasteData?.length && !genreCoverageData?.totalArtists,
+    subscriptions: subsData !== undefined && subsData.length === 0,
+  }
+  const runScan = () => {
+    void triggerPipeline()
+      .then((res) =>
+        toast.success(
+          res.status === 'duplicate'
+            ? t('discover.scanAlreadyRunning')
+            : res.queued
+              ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+              : t('discover.scanStarted'),
+        ),
+      )
+      .catch(() => toast.error(t('discover.scanStartFailed')))
+  }
+  const content: Record<DashboardCardId, ReactNode> = {
+    pick: (
+      <TodaysPick
+        rec={currentPick}
+        loading={pickLoading}
+        onApprove={(id) => handleAction(id, 'approved')}
+        onReject={(id) => handleAction(id, 'rejected')}
+        onSkip={handleSkip}
+        onRunScan={runScan}
+        targets={approveTargets}
+        onApproveToTarget={handleApproveToTarget}
+        onApproveWithOption={handleApproveWithOption}
+        onOpenAlbumPicker={handleOpenAlbumPicker}
       />
-
-      {/* Today's Pick - full-width hero, the daily-return hook */}
-      <section>
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-lead font-semibold text-text">{t('dashboard.todaysPick')}</h2>
-          <Link to="/discover" className="text-xs text-accent-text underline">
-            {t('dashboard.discover')}
-          </Link>
-        </div>
-        <TodaysPick
-          rec={currentPick}
-          loading={pickLoading}
-          onApprove={(id) => handleAction(id, 'approved')}
-          onReject={(id) => handleAction(id, 'rejected')}
-          onSkip={handleSkip}
-          onRunScan={() => {
-            triggerPipeline()
-              .then((res) =>
-                toast.success(
-                  res.status === 'duplicate'
-                    ? t('discover.scanAlreadyRunning')
-                    : res.queued
-                      ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                      : t('discover.scanStarted'),
-                ),
-              )
-              .catch(() => toast.error(t('discover.scanStartFailed')))
-          }}
-          targets={approveTargets}
-          onApproveToTarget={handleApproveToTarget}
-          onApproveWithOption={handleApproveWithOption}
-          onOpenAlbumPicker={handleOpenAlbumPicker}
+    ),
+    decisions: (
+      <>
+        <CardViewToggle
+          label={t('dashboard.yourDecisions')}
+          value={decisionsView}
+          onChange={setDecisionsView}
+          options={[
+            { value: 'approved', label: t('discover.approved') },
+            { value: 'all', label: t('discover.all') },
+          ]}
         />
-      </section>
-
-      {/* The empty taste profile already says this, so only show it once there is data. */}
-      {tasteData && tasteData.length > 0 && (
-        <Hint id="dashboard-feedback-tip" type="spotlight">
-          {t('dashboard.feedbackTip')}
-        </Hint>
-      )}
-
-      {/* Recently Approved + Listening Activity */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="flex flex-col">
-          <SectionHeader
-            title={t('dashboard.recentlyApproved')}
-            linkText={t('dashboard.viewAll')}
-            linkTo="/discover"
-          />
+        {decisionsView === 'approved' ? (
           <RecentlyApproved recs={approvedRecs} loading={approvedLoading} emptyClassName="flex-1" />
-        </div>
-        <div className="flex flex-col gap-3">
+        ) : (
+          <ActivityFeed entries={activityData} loading={activityLoading} />
+        )}
+      </>
+    ),
+    listening: (
+      <>
+        <CardViewToggle
+          label={t('dashboard.listening')}
+          value={listeningView}
+          onChange={setListeningView}
+          options={[
+            { value: 'top', label: t('dashboard.topArtists') },
+            { value: 'recent', label: t('dashboard.recentPlays') },
+          ]}
+        />
+        {listeningView === 'top' ? (
           <ListeningHistory
             data={topArtistsData}
             loading={topArtistsLoading}
@@ -784,12 +787,13 @@ export function Dashboard() {
             range={listenRange}
             page={listenPage}
             pageSize={LISTEN_PAGE_SIZE}
-            onRangeChange={(r) => {
-              setListenRange(r)
+            onRangeChange={(range) => {
+              setListenRange(range)
               setListenPage(0)
             }}
             onPageChange={setListenPage}
           />
+        ) : (
           <RecentActivity
             data={recentTracksData}
             error={recentTracksError}
@@ -797,21 +801,85 @@ export function Dashboard() {
               void retryRecentTracks()
             }}
           />
-        </div>
-      </div>
+        )}
+      </>
+    ),
+    genres: <TasteProfile genres={tasteData} coverage={genreCoverageData} loading={tasteLoading} />,
+    subscriptions: <SubscriptionPulse subs={subsData} scheduler={schedulerData} />,
+  }
+  const spans = { small: 'md:col-span-1', medium: 'md:col-span-2', large: 'md:col-span-3' }
 
-      {/* Subscription Pulse + Taste Profile */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <SubscriptionPulse subs={subsData} scheduler={schedulerData} />
-        </div>
-        <div>
-          <TasteProfile genres={tasteData} coverage={genreCoverageData} loading={tasteLoading} />
-        </div>
+  return (
+    <div className="p-4 sm:p-6 space-y-6 max-w-6xl mx-auto">
+      <PageHeader
+        title={t('dashboard.title')}
+        actions={
+          <>
+            {empty.pick && !layout.showEmpty && (
+              <Button onClick={runScan}>{t('app.runScan')}</Button>
+            )}
+            <Button
+              variant="outline"
+              aria-expanded={customizing}
+              aria-controls="dashboard-customize"
+              onClick={() => setCustomizing((value) => !value)}
+            >
+              {t('dashboard.customize')}
+            </Button>
+          </>
+        }
+      />
+      {customizing && (
+        <>
+          <DashboardCustomize layout={layout} disabled={layoutDisabled} onChange={saveLayout} />
+          {layoutError && (
+            <Notice
+              tone="error"
+              action={<Button onClick={retryLayout}>{t('errorBoundary.retry')}</Button>}
+            >
+              {t('dashboard.layoutLoadFailed')}
+            </Notice>
+          )}
+        </>
+      )}
+      <PipelineProgress
+        onComplete={() => {
+          for (const key of [
+            'dashboard-pick',
+            'dashboard-approved',
+            'dashboard-activity',
+            'dashboard-genre-coverage',
+          ]) {
+            void queryClient.invalidateQueries({ queryKey: [key] })
+          }
+        }}
+        isFirstScan={!pickData?.items.length && !approvedData?.items.length}
+      />
+      {tasteData && tasteData.length > 0 && (
+        <Hint id="dashboard-feedback-tip" type="spotlight">
+          {t('dashboard.feedbackTip')}
+        </Hint>
+      )}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+        {layout.cards
+          .filter((card) => card.visible && (layout.showEmpty || !empty[card.id]))
+          .map((card) => (
+            <section
+              key={card.id}
+              data-dashboard-card={card.id}
+              aria-labelledby={`dashboard-${card.id}`}
+              className={`@container min-w-0 ${spans[card.size]}`}
+            >
+              <div id={`dashboard-${card.id}`}>
+                <SectionHeader
+                  title={t(DASHBOARD_TITLES[card.id])}
+                  linkTo={DASHBOARD_LINKS[card.id]}
+                />
+              </div>
+              {content[card.id]}
+            </section>
+          ))}
       </div>
-
-      {/* Activity Feed - full-width */}
-      <ActivityFeed entries={activityData} loading={activityLoading} />
 
       {/* Lidarr profile picker dialog (Today's Pick target approve) */}
       {approveDialogState && (
@@ -841,6 +909,7 @@ export function Dashboard() {
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
               queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
               queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
+              queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
             } catch {
               toast.error(t('dashboard.addToLidarrFailed'))
             } finally {
@@ -876,6 +945,7 @@ export function Dashboard() {
                   if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
                   queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
                   queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
+                  queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
                 } catch {
                   toast.error(t('dashboard.actionFailed'))
                 } finally {

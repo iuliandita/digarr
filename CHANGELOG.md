@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Customize the Dashboard per account: show or hide every card, drag or use move buttons and arrow keys to reorder, choose one to three desktop columns, and reset to the curated layout. Empty cards hide by default with an option to keep them visible. Your decisions combines approvals and rejections; Listening switches between top artists and recent plays. Card titles link to their source pages, which have a Show on dashboard switch. All 15 languages are supported (#995).
+
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
 - The slskd connection test checks the linked Lidarr download directory, reports missing or unlistable paths and likely incomplete folders, and shows the result in your language (#972).
 - Personal API tokens in Settings > Account for scripts and automation, with read, write, or admin scope, optional expiry, one-time reveal, last-used metadata, and immediate revocation. Stored as SHA-256 hashes only and excluded from application backups and backend copies. Recreate tokens after recovery onto a fresh instance; password changes and logout keep them active, so revoke them if a password was compromised. Read/write tokens never inherit admin access, and exhausted failed-auth budgets block credential lookups. Legacy `DIGARR_AUTH_TOKEN` keeps working with a startup deprecation pointing at personal tokens. Migration 0057 adds a table; take a complete backup before upgrading. Rolling back leaves it unused and tokens stop working on older images; existing sessions remain supported. (#978)

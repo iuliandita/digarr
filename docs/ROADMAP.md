@@ -37,6 +37,7 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 ## Unreleased
 
 - Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
+- Customizable dashboard (#995): account-saved card visibility, order, size, source-page switches, merged decision and listening views, and reset.
 
 ## Next priorities
 

@@ -1,9 +1,12 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
+import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { DEFAULT_DASHBOARD_LAYOUT } from '@/core/dashboard-layout'
+import { DashboardCardToggle } from '@/web/components/dashboard-card-toggle'
 import { I18nProvider } from '@/web/lib/i18n'
 
 function renderWithQuery(ui: ReactElement) {
@@ -110,8 +113,10 @@ import {
   getSchedulerInfo,
   getSubscriptions,
   getTopArtists,
+  getUserPreferences,
   listTargets,
   rescanArtists,
+  updateUserPreferences,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
 
@@ -249,6 +254,8 @@ function setupMocks() {
 describe('Dashboard', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getUserPreferences).mockResolvedValue({ dismissedHints: [] })
+    vi.mocked(updateUserPreferences).mockResolvedValue(undefined)
     const storage = new Map<string, string>()
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
@@ -299,15 +306,17 @@ describe('Dashboard', () => {
     expect(await screen.findByText('Le choix du jour')).toBeInTheDocument()
   })
 
-  it('renders listening history and recent plays', async () => {
+  it('switches between top artists and recent plays', async () => {
     setupMocks()
     renderWithQuery(<Dashboard />)
 
     await waitFor(() => {
       expect(screen.getByText('42 plays this month')).toBeInTheDocument()
-      expect(screen.getByText('Holocene')).toBeInTheDocument()
       expect(screen.getAllByText('Bon Iver').length).toBeGreaterThan(0)
     })
+    fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
+    expect(await screen.findByText('Holocene')).toBeInTheDocument()
+    expect(screen.queryByText('42 plays this month')).not.toBeInTheDocument()
   })
 
   it('renders taste profile genres', async () => {
@@ -338,33 +347,36 @@ describe('Dashboard', () => {
     expect(invalidate).toHaveBeenCalledWith({ queryKey: ['dashboard-genre-coverage'] })
   })
 
-  it('renders activity feed entries', async () => {
+  it('shows your approved and rejected decisions through the All toggle', async () => {
     setupMocks()
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText(/Approved Mogwai/)).toBeInTheDocument()
+    mockGetRecommendations.mockImplementation((params) => {
+      if (params?.status === 'pending') return Promise.resolve({ items: [pendingRec], total: 1 })
+      if (params?.status === 'added_to_lidarr,add_failed,approved,rejected')
+        return Promise.resolve({
+          items: [
+            {
+              ...approvedRec,
+              actedOnAt: '2026-01-01T00:00:00Z',
+              artist: { ...approvedRec.artist, name: 'Mogwai' },
+            },
+            {
+              ...approvedRec,
+              id: 99,
+              status: 'rejected',
+              actedOnAt: '2026-01-02T00:00:00Z',
+              artist: { ...approvedRec.artist, name: 'Rejected artist' },
+            },
+          ],
+          total: 2,
+        })
+      return Promise.resolve({ items: [approvedRec], total: 1 })
     })
-  })
-
-  it('collapses consecutive identical activity rows into one with a count', async () => {
-    setupMocks()
-    const scan = (timestamp: string) => ({
-      type: 'scan_completed' as const,
-      timestamp,
-      data: { discovered: 0 },
-    })
-    mockGetDashboardActivity.mockResolvedValue([
-      scan('2026-01-03T00:00:00Z'),
-      scan('2026-01-02T00:00:00Z'),
-      scan('2026-01-01T00:00:00Z'),
-      { type: 'approved', timestamp: '2025-12-31T00:00:00Z', data: { artistName: 'Mogwai' } },
-    ])
     renderWithQuery(<Dashboard />)
-
-    expect(await screen.findByText(/Approved Mogwai/)).toBeInTheDocument()
-    expect(screen.getAllByText('Scan: 0 discovered')).toHaveLength(1)
-    expect(screen.getByText('3 times')).toBeInTheDocument()
+    const card = await screen.findByRole('region', { name: 'Your decisions' })
+    fireEvent.click(within(card).getByRole('button', { name: 'All' }))
+    expect(await screen.findByText('Approved Mogwai')).toBeInTheDocument()
+    expect(screen.getByText('Rejected Rejected artist')).toBeInTheDocument()
+    expect(mockGetDashboardActivity).not.toHaveBeenCalled()
   })
 
   it('renders subscription pulse', async () => {
@@ -377,9 +389,12 @@ describe('Dashboard', () => {
     })
   })
 
-  it('shows empty state when no pending recommendations', async () => {
+  it('shows the pick empty state when Show empty cards is enabled', async () => {
     setupMocks()
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    vi.mocked(getUserPreferences).mockResolvedValue({
+      dashboardLayout: { ...DEFAULT_DASHBOARD_LAYOUT, showEmpty: true },
+    })
     renderWithQuery(<Dashboard />)
 
     await waitFor(() => {
@@ -427,6 +442,9 @@ describe('Dashboard', () => {
     localStorage.setItem('digarr-locale', 'fr')
     setupMocks()
     mockGetSubscriptions.mockResolvedValue([] as never)
+    vi.mocked(getUserPreferences).mockResolvedValue({
+      dashboardLayout: { ...DEFAULT_DASHBOARD_LAYOUT, showEmpty: true },
+    })
 
     renderWithQuery(<Dashboard />)
 
@@ -477,10 +495,15 @@ describe('Dashboard', () => {
     expect(rescanArtists).not.toHaveBeenCalled()
   })
 
-  it('explains an empty Recently Approved list instead of drawing placeholder tiles', async () => {
+  it('explains an empty approved view when rejected decisions exist instead of drawing placeholder tiles', async () => {
     setupMocks()
     mockGetRecommendations.mockImplementation((params) => {
       const p = params as Record<string, string> | undefined
+      if (p?.status === 'added_to_lidarr,add_failed,approved,rejected')
+        return Promise.resolve({
+          items: [{ ...approvedRec, status: 'rejected', actedOnAt: '2026-01-01T00:00:00Z' }],
+          total: 1,
+        })
       if (p?.status === 'pending') return Promise.resolve({ items: [pendingRec], total: 1 })
       return Promise.resolve({ items: [], total: 0 })
     })
@@ -642,5 +665,132 @@ describe('Dashboard', () => {
         approvalMode: 'single_target',
       })
     })
+  })
+  it('persists visibility, keyboard order, size and reset while preserving other preferences', async () => {
+    setupMocks()
+    const { client } = renderWithQuery(<Dashboard />)
+    await screen.findByText('Sigur Ros')
+    fireEvent.click(screen.getByRole('button', { name: 'Customize' }))
+    const panel = screen.getByRole('region', { name: 'Customize' })
+    const pick = within(panel).getByRole('checkbox', { name: "Today's Pick" })
+    await waitFor(() => expect(pick).toBeEnabled())
+    fireEvent.click(pick)
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: "Today's Pick" })).not.toBeInTheDocument(),
+    )
+    fireEvent.click(pick)
+    await screen.findByRole('region', { name: "Today's Pick" })
+    const handle = within(panel).getByRole('button', { name: "Reorder Today's Pick" })
+    await waitFor(() => expect(handle).not.toHaveAttribute('aria-disabled', 'true'))
+    handle.focus()
+    fireEvent.keyDown(handle, { key: 'ArrowDown' })
+    await waitFor(() =>
+      expect(panel.querySelector('li')).toHaveAttribute('data-dashboard-editor-card', 'decisions'),
+    )
+    expect(handle).toHaveFocus()
+    expect(within(panel).getByText("Today's Pick moved to position 2 of 5.")).toHaveAttribute(
+      'aria-live',
+      'polite',
+    )
+    const size = within(panel).getByRole('combobox', { name: "Size of Today's Pick" })
+    await waitFor(() => expect(size).toBeEnabled())
+    fireEvent.change(size, { target: { value: 'small' } })
+    await waitFor(() =>
+      expect(screen.getByRole('region', { name: "Today's Pick" })).toHaveClass('md:col-span-1'),
+    )
+    const reset = within(panel).getByRole('button', { name: 'Reset to default' })
+    await waitFor(() => expect(reset).toBeEnabled())
+    fireEvent.click(reset)
+    await waitFor(() =>
+      expect(client.getQueryData(['user-preferences'])).toMatchObject({
+        dismissedHints: [],
+        dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
+      }),
+    )
+    expect(screen.getByRole('region', { name: "Today's Pick" })).toHaveClass('md:col-span-3')
+    expect(updateUserPreferences).toHaveBeenLastCalledWith({
+      dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
+    })
+  })
+
+  it('hides empty cards until Show empty cards is enabled and preserves explicit hiding', async () => {
+    setupMocks()
+    mockGetSubscriptions.mockResolvedValue([])
+    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+    mockGetDashboardTaste.mockResolvedValue([])
+    mockGetDashboardGenreCoverage.mockResolvedValue(null)
+    mockGetTopArtists.mockResolvedValue({
+      tracks: [],
+      total: 0,
+      offset: 0,
+      limit: 5,
+      source: null,
+      status: 'not_configured',
+    })
+    mockGetRecentTracks.mockResolvedValue({
+      tracks: [],
+      hasSource: false,
+      source: null,
+      status: 'not_configured',
+    })
+    renderWithQuery(<Dashboard />)
+    fireEvent.click(screen.getByRole('button', { name: 'Customize' }))
+    const panel = screen.getByRole('region', { name: 'Customize' })
+    const showEmpty = within(panel).getByRole('checkbox', { name: 'Show empty cards' })
+    await waitFor(() => expect(showEmpty).toBeEnabled())
+    await waitFor(() => expect(document.querySelectorAll('[data-dashboard-card]')).toHaveLength(0))
+    fireEvent.click(showEmpty)
+    await waitFor(() => expect(document.querySelectorAll('[data-dashboard-card]')).toHaveLength(5))
+    const subscriptions = within(panel).getByRole('checkbox', { name: 'Subscriptions' })
+    await waitFor(() => expect(subscriptions).toBeEnabled())
+    fireEvent.click(subscriptions)
+    await waitFor(() =>
+      expect(screen.queryByRole('region', { name: 'Subscriptions' })).not.toBeInTheDocument(),
+    )
+  })
+
+  it.each(['genres', 'subscriptions', 'listening', 'decisions'] as const)(
+    'uses the same saved preference for the %s source toggle',
+    async (cardId) => {
+      renderWithQuery(<DashboardCardToggle cardId={cardId} />)
+      const toggle = screen.getByRole('checkbox', { name: 'Show on dashboard' })
+      await waitFor(() => expect(toggle).toBeEnabled())
+      fireEvent.click(toggle)
+      await waitFor(() => expect(toggle).not.toBeChecked())
+      expect(updateUserPreferences).toHaveBeenLastCalledWith({
+        dashboardLayout: {
+          ...DEFAULT_DASHBOARD_LAYOUT,
+          cards: DEFAULT_DASHBOARD_LAYOUT.cards.map((card) =>
+            card.id === cardId ? { ...card, visible: false } : card,
+          ),
+        },
+      })
+    },
+  )
+
+  it('normalizes saved layouts on the client and retains the layout after a failed save', async () => {
+    setupMocks()
+    vi.mocked(getUserPreferences).mockResolvedValue({
+      dashboardLayout: {
+        version: 1,
+        showEmpty: false,
+        cards: [
+          { id: 'removed', visible: true, size: 'small' },
+          { id: 'pick', visible: false, size: 'medium' },
+        ],
+      },
+    })
+    vi.mocked(updateUserPreferences).mockRejectedValue(new Error('offline'))
+    renderWithQuery(<Dashboard />)
+    fireEvent.click(screen.getByRole('button', { name: 'Customize' }))
+    const toggle = screen.getByRole('checkbox', { name: "Today's Pick" })
+    await waitFor(() => expect(toggle).toBeEnabled())
+    expect(toggle).not.toBeChecked()
+    expect(screen.getAllByRole('combobox')).toHaveLength(5)
+    fireEvent.click(toggle)
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Could not save your dashboard. Try again.'),
+    )
+    expect(toggle).not.toBeChecked()
   })
 })
