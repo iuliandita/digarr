@@ -9,6 +9,7 @@ import type { Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 import { makeDeps as makeSharedDeps } from '../../helpers/test-app'
+import { makeUser } from '../helpers/user-fixture'
 
 vi.mock('node:dns/promises', () => ({
   lookup: vi.fn(),
@@ -225,13 +226,9 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     getSettings: vi.fn(async () => mockSettings as unknown as SettingsRow),
     restartLibraryMaintenanceScheduler: vi.fn(),
     restartDigestNotifier: vi.fn(async () => {}),
-    getUserById: vi.fn(async () => ({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      authProvider: 'local',
-      createdAt: new Date(),
-    })) as unknown as AppDependencies['getUserById'],
+    getUserById: vi.fn(async () =>
+      makeUser({ username: 'admin', isAdmin: true }),
+    ) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 0),
     ...overrides,
   })
@@ -251,6 +248,19 @@ async function authedRequest(
       Authorization: `Bearer ${SESSION_TOKEN}`,
       ...((init?.headers as Record<string, string> | undefined) ?? {}),
     },
+  })
+}
+
+function authedJson(
+  app: ReturnType<typeof createApp>,
+  path: string,
+  method: string,
+  body: unknown,
+) {
+  return authedRequest(app, path, {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
   })
 }
 
@@ -340,12 +350,8 @@ describe('settings preference secrets', () => {
       deps.restartDigestNotifier = vi.fn(async () => {
         throw new Error('Invalid cron')
       })
-    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        preferences: path === 'normal' ? { scoreThreshold: 0.8 } : { [path]: '0 3 * * *' },
-      }),
+    const res = await authedJson(createApp(deps), '/api/v1/settings', 'PATCH', {
+      preferences: path === 'normal' ? { scoreThreshold: 0.8 } : { [path]: '0 3 * * *' },
     })
     expect(res.status).toBe(200)
     const serialized = await res.text()
@@ -385,17 +391,13 @@ describe('settings preference secrets', () => {
     for (const key of ['fanartApiKey', 'webhookUrl'] as const) {
       expect(body.preferences[key]).toBe(secrets[key] ? '***' : secrets[key])
     }
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        preferences: {
-          ...body.preferences,
-          fanartApiKey: body.preferences.fanartApiKey || '***',
-          webhookUrl: body.preferences.webhookUrl || '***',
-          scoreThreshold: 0.8,
-        },
-      }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      preferences: {
+        ...body.preferences,
+        fanartApiKey: body.preferences.fanartApiKey || '***',
+        webhookUrl: body.preferences.webhookUrl || '***',
+        scoreThreshold: 0.8,
+      },
     })
     expect(res.status).toBe(200)
     expect(read().preferences).toEqual({
@@ -420,10 +422,8 @@ describe('settings preference secrets', () => {
       ...storedPreferenceSecrets[0],
       scoreThreshold: 0.72,
     })
-    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: replacement }),
+    const res = await authedJson(createApp(deps), '/api/v1/settings', 'PATCH', {
+      preferences: replacement,
     })
     expect(res.status).toBe(200)
     expect(read().preferences).toEqual({ ...replacement, scoreThreshold: 0.72 })
@@ -579,11 +579,7 @@ describe('PATCH /api/v1/settings', () => {
     const deps = makeDeps({ updateSettings })
     const app = createApp(deps)
     const request = () =>
-      authedRequest(app, '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences: { [key]: value } }),
-      })
+      authedJson(app, '/api/v1/settings', 'PATCH', { preferences: { [key]: value } })
 
     expect((await request()).status).toBe(200)
     expect(updateSettings).toHaveBeenCalledWith({
@@ -602,10 +598,8 @@ describe('PATCH /api/v1/settings', () => {
       const updateSettings = vi.fn(async () => {})
       const app = createApp(makeDeps({ updateSettings }))
       for (const value of ['true', 'false', 1, 0, null, [], {}]) {
-        const response = await authedRequest(app, '/api/v1/settings', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ preferences: { [key]: value, scoreThreshold: 0.9 } }),
+        const response = await authedJson(app, '/api/v1/settings', 'PATCH', {
+          preferences: { [key]: value, scoreThreshold: 0.9 },
         })
         expect(response.status).toBe(400)
       }
@@ -621,10 +615,8 @@ describe('PATCH /api/v1/settings', () => {
         { id: 5, type: 'lidarr', config: { useServerConnection: true, tags: [4] } },
         { id: 6, type: 'lidarr', config: { url: 'http://other', apiKey: 'k', tags: [4] } },
       ] as never)
-      const response = await authedRequest(createApp(deps), '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ [field]: field === 'lidarrUrl' ? 'http://new:8686' : 'new-key' }),
+      const response = await authedJson(createApp(deps), '/api/v1/settings', 'PATCH', {
+        [field]: field === 'lidarrUrl' ? 'http://new:8686' : 'new-key',
       })
       expect(response.status).toBe(200)
       expect(deps.targetQueries.updateTarget).toHaveBeenCalledExactlyOnceWith(5, {
@@ -639,11 +631,7 @@ describe('PATCH /api/v1/settings', () => {
     const getSettings = vi.fn(async () => updatedSettings as unknown as SettingsRow)
     const app = createApp(makeDeps({ updateSettings, getSettings }))
 
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lidarrUrl: 'http://new:8686' }),
-    })
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', { lidarrUrl: 'http://new:8686' })
     expect(res.status).toBe(200)
     expect(updateSettings).toHaveBeenCalledTimes(1)
     const body = await res.json()
@@ -654,10 +642,9 @@ describe('PATCH /api/v1/settings', () => {
     const updateSettings = vi.fn(async () => {})
     const app = createApp(makeDeps({ updateSettings }))
 
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ tidalClientId: 'tidal-id', tidalClientSecret: 'tidal-secret' }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      tidalClientId: 'tidal-id',
+      tidalClientSecret: 'tidal-secret',
     })
 
     expect(res.status).toBe(200)
@@ -669,28 +656,17 @@ describe('PATCH /api/v1/settings', () => {
     )
   })
 
-  it('restarts scheduler when cron is updated', async () => {
+  it.each([
+    ['0 3 * * *', '0 3 * * *'],
+    ['', null],
+  ])('updates scheduler for cron %j to %j', async (scheduleCron, expected) => {
     const restartScheduler = vi.fn()
     const app = createApp(makeDeps({ restartScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { scheduleCron: '0 3 * * *' } }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      preferences: { scheduleCron },
     })
     expect(res.status).toBe(200)
-    expect(restartScheduler).toHaveBeenCalledWith('0 3 * * *')
-  })
-
-  it('stops scheduler when cron is set to empty string', async () => {
-    const restartScheduler = vi.fn()
-    const app = createApp(makeDeps({ restartScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { scheduleCron: '' } }),
-    })
-    expect(res.status).toBe(200)
-    expect(restartScheduler).toHaveBeenCalledWith(null)
+    expect(restartScheduler).toHaveBeenCalledWith(expected)
   })
 
   it.each(['scheduleCron', 'digestCron', 'playlistSchedule'])(
@@ -699,10 +675,8 @@ describe('PATCH /api/v1/settings', () => {
       const restartScheduler = vi.fn()
       const updateSettings = vi.fn(async () => {})
       const app = createApp(makeDeps({ restartScheduler, updateSettings }))
-      const res = await authedRequest(app, '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences: { [field]: 'not a cron' } }),
+      const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+        preferences: { [field]: 'not a cron' },
       })
       expect(res.status).toBe(400)
       expect((await res.json()).code).toBe('validation_failed')
@@ -711,99 +685,52 @@ describe('PATCH /api/v1/settings', () => {
     },
   )
 
-  it('does not restart scheduler when preferences lack scheduleCron', async () => {
+  it.each([
+    { stored: null, body: { preferences: { librarySeedRatio: 0.5 } } },
+    {
+      stored: { scheduleCron: '0 4 * * *', playlistEnabled: false },
+      body: { preferences: { librarySeedRatio: 0.4 } },
+    },
+    {
+      stored: { scheduleCron: null, playlistEnabled: true, playlistSchedule: '0 6 * * 1' },
+      body: { preferences: { librarySeedRatio: 0.4 } },
+    },
+    { stored: null, body: { lidarrUrl: 'http://new:8686' } },
+  ])('does not restart schedules for unrelated updates: %j', async ({ stored, body }) => {
     const restartScheduler = vi.fn()
-    const app = createApp(makeDeps({ restartScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { librarySeedRatio: 0.5 } }),
-    })
-    expect(res.status).toBe(200)
-    expect(restartScheduler).not.toHaveBeenCalled()
-  })
-
-  it('does not restart scheduler when scheduleCron only exists in stored preferences', async () => {
-    const restartScheduler = vi.fn()
-    const getSettings = vi.fn(
-      async () =>
-        ({
-          ...mockSettings,
-          preferences: {
-            scheduleCron: '0 4 * * *',
-            playlistEnabled: false,
-          },
-        }) as unknown as SettingsRow,
+    const restartPlaylistScheduler = vi.fn(async () => {})
+    const restartDigestNotifier = vi.fn(async () => {})
+    const app = createApp(
+      makeDeps({
+        restartScheduler,
+        restartPlaylistScheduler,
+        restartDigestNotifier,
+        getSettings: vi.fn(
+          async () => ({ ...mockSettings, preferences: stored }) as unknown as SettingsRow,
+        ),
+      }),
     )
-    const app = createApp(makeDeps({ restartScheduler, getSettings }))
-
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { librarySeedRatio: 0.4 } }),
-    })
-
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', body)
     expect(res.status).toBe(200)
     expect(restartScheduler).not.toHaveBeenCalled()
+    expect(restartPlaylistScheduler).not.toHaveBeenCalled()
+    expect(restartDigestNotifier).not.toHaveBeenCalled()
   })
 
   it('restarts playlist scheduling when playlist preferences change', async () => {
     const restartPlaylistScheduler = vi.fn(async () => {})
     const app = createApp(makeDeps({ restartPlaylistScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { playlistEnabled: true } }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      preferences: { playlistEnabled: true },
     })
     expect(res.status).toBe(200)
     expect(restartPlaylistScheduler).toHaveBeenCalledOnce()
   })
 
-  it('does not restart playlist scheduling when playlist fields only exist in stored preferences', async () => {
-    const restartPlaylistScheduler = vi.fn(async () => {})
-    const getSettings = vi.fn(
-      async () =>
-        ({
-          ...mockSettings,
-          preferences: {
-            scheduleCron: null,
-            playlistEnabled: true,
-            playlistSchedule: '0 6 * * 1',
-          },
-        }) as unknown as SettingsRow,
-    )
-    const app = createApp(makeDeps({ restartPlaylistScheduler, getSettings }))
-
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { librarySeedRatio: 0.4 } }),
-    })
-
-    expect(res.status).toBe(200)
-    expect(restartPlaylistScheduler).not.toHaveBeenCalled()
-  })
-
-  it('does not restart scheduler when no preferences in body', async () => {
-    const restartScheduler = vi.fn()
-    const app = createApp(makeDeps({ restartScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ lidarrUrl: 'http://new:8686' }),
-    })
-    expect(res.status).toBe(200)
-    expect(restartScheduler).not.toHaveBeenCalled()
-  })
-
   it('restarts library maintenance scheduling when the sync interval is updated', async () => {
     const restartLibraryMaintenanceScheduler = vi.fn()
     const app = createApp(makeDeps({ restartLibraryMaintenanceScheduler }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ librarySyncIntervalHours: 12 }),
-    })
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', { librarySyncIntervalHours: 12 })
 
     expect(res.status).toBe(200)
     expect(restartLibraryMaintenanceScheduler).toHaveBeenCalledWith(12)
@@ -818,12 +745,8 @@ describe('PATCH /api/v1/settings', () => {
       events: ['digest'],
       url: 'https://hooks.example.com/notify',
     }
-    const res = await authedRequest(createApp(deps), '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        preferences: { channels: [channel, { ...channel, enabled: false }] },
-      }),
+    const res = await authedJson(createApp(deps), '/api/v1/settings', 'PATCH', {
+      preferences: { channels: [channel, { ...channel, enabled: false }] },
     })
     expect(res.status).toBe(400)
     expect(JSON.stringify(await res.json())).toContain('Notification channel IDs must be unique')
@@ -847,11 +770,7 @@ describe('PATCH /api/v1/settings', () => {
         placement === 'top-level'
           ? { digestDeliveryPositions: positions, preferences: { digestCron: '0 6 * * *' } }
           : { preferences: { digestDeliveryPositions: positions } }
-      const res = await authedRequest(createApp(deps), '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      const res = await authedJson(createApp(deps), '/api/v1/settings', 'PATCH', body)
       if (placement === 'preferences') {
         expect(res.status).toBe(400)
         expect(deps.updateSettings).not.toHaveBeenCalled()
@@ -868,25 +787,11 @@ describe('PATCH /api/v1/settings', () => {
   it('restarts the digest notifier when digestCron is updated', async () => {
     const restartDigestNotifier = vi.fn(async () => {})
     const app = createApp(makeDeps({ restartDigestNotifier }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { digestCron: '0 6 * * 1' } }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      preferences: { digestCron: '0 6 * * 1' },
     })
     expect(res.status).toBe(200)
     expect(restartDigestNotifier).toHaveBeenCalledOnce()
-  })
-
-  it('does not restart the digest notifier when preferences lack digestCron', async () => {
-    const restartDigestNotifier = vi.fn(async () => {})
-    const app = createApp(makeDeps({ restartDigestNotifier }))
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { librarySeedRatio: 0.5 } }),
-    })
-    expect(res.status).toBe(200)
-    expect(restartDigestNotifier).not.toHaveBeenCalled()
   })
 
   it('merges partial preference updates with the stored preferences blob', async () => {
@@ -905,10 +810,8 @@ describe('PATCH /api/v1/settings', () => {
     )
     const app = createApp(makeDeps({ updateSettings, getSettings }))
 
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ preferences: { subscriptionMode: 'ai-only' } }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      preferences: { subscriptionMode: 'ai-only' },
     })
 
     expect(res.status).toBe(200)
@@ -956,40 +859,7 @@ describe('PATCH /api/v1/settings', () => {
       makeDeps({
         db: dbWithUpdate,
         getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () => makeUser({ id: 7, username: 'user7' })),
       }),
     )
 
@@ -1031,15 +901,11 @@ describe('PATCH /api/v1/settings', () => {
       .mockResolvedValueOnce(defaultUserConnections)
     const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        plexUrl: 'http://plex:32400',
-        plexToken: 'plex-token',
-        plexSectionId: 'music-1',
-        plexAccountId: 7,
-      }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      plexUrl: 'http://plex:32400',
+      plexToken: 'plex-token',
+      plexSectionId: 'music-1',
+      plexAccountId: 7,
     })
 
     expect(res.status).toBe(200)
@@ -1072,10 +938,8 @@ describe('PATCH /api/v1/settings', () => {
     mockGetUserConnections.mockResolvedValueOnce(currentPlex).mockResolvedValueOnce(currentPlex)
     const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ plexUrl: 'http://new-plex:32400' }),
+    const res = await authedJson(app, '/api/v1/settings', 'PATCH', {
+      plexUrl: 'http://new-plex:32400',
     })
 
     expect(res.status).toBe(200)
@@ -1108,11 +972,7 @@ describe('POST /api/v1/settings/test/:service', () => {
     mockGetUserConnections.mockResolvedValueOnce(current)
     mockCreatePlexClient.mockClear()
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/plex', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
+    const res = await authedJson(app, '/api/v1/settings/test/plex', 'POST', body)
     expect(res.status).toBe(200)
     expect(mockCreatePlexClient).toHaveBeenCalledWith(
       'http://plex:32400',
@@ -1128,40 +988,7 @@ describe('POST /api/v1/settings/test/:service', () => {
     const app = createApp(
       makeDeps({
         getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () => makeUser({ id: 7, username: 'user7' })),
       }),
     )
 
@@ -1206,20 +1033,15 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
     const app = createApp(
       makeDeps({
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          ...defaultUserConnections,
-          plexUrl: 'http://stored-plex:32400',
-          plexToken: 'stored-user-token',
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () =>
+          makeUser({
+            id: 7,
+            username: 'user7',
+            ...defaultUserConnections,
+            plexUrl: 'http://stored-plex:32400',
+            plexToken: 'stored-user-token',
+          }),
+        ),
       }),
     )
 
@@ -1246,14 +1068,10 @@ describe('POST /api/v1/settings/test/:service', () => {
 
   it('allows admins to test private HTTP service URLs', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/emby', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://127.0.0.1:8096',
-        apiKey: 'key',
-        userId: 'user-1',
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/emby', 'POST', {
+      url: 'http://127.0.0.1:8096',
+      apiKey: 'key',
+      userId: 'user-1',
     })
 
     expect(res.status).toBe(200)
@@ -1275,14 +1093,10 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
     const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings/test/plex', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://plex:32400',
-        token: 'plex-token',
-        ...selection,
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/plex', 'POST', {
+      url: 'http://plex:32400',
+      token: 'plex-token',
+      ...selection,
     })
 
     expect(res.status).toBe(200)
@@ -1306,15 +1120,11 @@ describe('POST /api/v1/settings/test/:service', () => {
       })
       const app = createApp(makeDeps())
 
-      const res = await authedRequest(app, '/api/v1/settings/test/jellyfin', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url: 'http://jellyfin:8096',
-          apiKey: 'jellyfin-key',
-          userId: 'user-1',
-          ...selection,
-        }),
+      const res = await authedJson(app, '/api/v1/settings/test/jellyfin', 'POST', {
+        url: 'http://jellyfin:8096',
+        apiKey: 'jellyfin-key',
+        userId: 'user-1',
+        ...selection,
       })
 
       expect(res.status).toBe(200)
@@ -1339,15 +1149,11 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
     const app = createApp(makeDeps())
 
-    const res = await authedRequest(app, '/api/v1/settings/test/emby', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://emby:8096',
-        apiKey: 'emby-key',
-        userId: 'user-1',
-        ...selection,
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/emby', 'POST', {
+      url: 'http://emby:8096',
+      apiKey: 'emby-key',
+      userId: 'user-1',
+      ...selection,
     })
 
     expect(res.status).toBe(200)
@@ -1421,59 +1227,28 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(body.detail).toBe('Unbekannter Fehler')
   })
 
-  it('tests lidarr and returns 200 or 502 with problem+json', async () => {
-    const app = createApp(makeDeps())
-    // Client will fail to connect - 502 problem+json, not a 200 with success:false
-    const res = await authedRequest(app, '/api/v1/settings/test/lidarr', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'http://invalid-lidarr:9999', apiKey: 'key' }),
-    })
-    expect([200, 502]).toContain(res.status)
-    const body = await res.json()
-    if (res.status === 200) expect(typeof body.message).toBe('string')
-    else expect(body.type).toBe('/problems/probe-failed')
-  })
-
-  it('tests listenbrainz and returns 200 or 502 with problem+json', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/listenbrainz', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'testuser', token: 'token123' }),
-    })
-    expect([200, 502]).toContain(res.status)
-    const body = await res.json()
-    if (res.status === 200) expect(typeof body.message).toBe('string')
-    else expect(body.type).toBe('/problems/probe-failed')
-  })
-
-  it('tests lastfm and returns 200 or 502 with problem+json', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/lastfm', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: 'testuser', apiKey: 'lfmkey' }),
-    })
-    expect([200, 502]).toContain(res.status)
-    const body = await res.json()
-    if (res.status === 200) expect(typeof body.message).toBe('string')
-    else expect(body.type).toBe('/problems/probe-failed')
-  })
-
-  it('tests ai provider and returns 200 or 502 with problem+json', async () => {
-    vi.mocked(lookup).mockResolvedValue({ address: '93.184.216.34', family: 4 })
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+  it.each([
+    { service: 'lidarr', body: { url: 'http://invalid-lidarr:9999', apiKey: 'key' } },
+    { service: 'listenbrainz', body: { username: 'testuser', token: 'token123' } },
+    { service: 'lastfm', body: { username: 'testuser', apiKey: 'lfmkey' } },
+    {
+      service: 'ai',
+      body: {
         provider: 'ollama',
         apiKey: null,
         model: 'llama3',
         baseUrl: 'http://ollama.example.com:11434',
-      }),
-    })
+      },
+    },
+    { service: 'emby', body: { url: 'http://invalid-emby:9999', apiKey: 'key', userId: 'user-1' } },
+  ])('returns a message or probe problem for $service', async ({ service, body: input }) => {
+    vi.mocked(lookup).mockResolvedValue({ address: '93.184.216.34', family: 4 })
+    const res = await authedJson(
+      createApp(makeDeps()),
+      `/api/v1/settings/test/${service}`,
+      'POST',
+      input,
+    )
     expect([200, 502]).toContain(res.status)
     const body = await res.json()
     if (res.status === 200) expect(typeof body.message).toBe('string')
@@ -1493,14 +1268,10 @@ describe('POST /api/v1/settings/test/:service', () => {
     }
     const app = createApp(makeDeps({ providerRegistry: providerRegistry as never }))
 
-    const res = await authedRequest(app, '/api/v1/settings/test/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        provider: 'ollama',
-        model: 'llama3',
-        baseUrl: 'http://ollama.example.com:11434',
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/ai', 'POST', {
+      provider: 'ollama',
+      model: 'llama3',
+      baseUrl: 'http://ollama.example.com:11434',
     })
 
     expect(res.status).toBe(200)
@@ -1515,14 +1286,10 @@ describe('POST /api/v1/settings/test/:service', () => {
 
   it('tests subsonic and invokes the client with the provided credentials', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://127.0.0.1:4533',
-        username: 'admin',
-        password: 'pw',
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/subsonic', 'POST', {
+      url: 'http://127.0.0.1:4533',
+      username: 'admin',
+      password: 'pw',
     })
 
     expect(res.status).toBe(200)
@@ -1533,25 +1300,25 @@ describe('POST /api/v1/settings/test/:service', () => {
     expect(body.message).toBe('Connected to Subsonic')
   })
 
-  it('returns a missing-input error when subsonic credentials are incomplete', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/subsonic', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'http://127.0.0.1:4533', username: 'admin' }),
-    })
-
+  it.each([
+    ['subsonic', { url: 'http://127.0.0.1:4533', username: 'admin' }],
+    ['tidal', { clientId: 'tidal-id' }],
+  ])('rejects incomplete %s credentials', async (service, input) => {
+    const res = await authedJson(
+      createApp(makeDeps()),
+      `/api/v1/settings/test/${service}`,
+      'POST',
+      input,
+    )
     expect(res.status).toBe(400)
-    const body = await res.json()
-    expect(body.type).toBe('/problems/probe-missing-input')
+    expect((await res.json()).type).toBe('/problems/probe-missing-input')
   })
 
   it('tests tidal and invokes the client with the provided credentials', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: 'tidal-id', clientSecret: 'tidal-secret' }),
+    const res = await authedJson(app, '/api/v1/settings/test/tidal', 'POST', {
+      clientId: 'tidal-id',
+      clientSecret: 'tidal-secret',
     })
 
     expect(res.status).toBe(200)
@@ -1576,11 +1343,7 @@ describe('POST /api/v1/settings/test/:service', () => {
         ),
       }),
     )
-    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
+    const res = await authedJson(app, '/api/v1/settings/test/tidal', 'POST', {})
 
     expect(res.status).toBe(200)
     expect(mockCreateTidalClient).toHaveBeenCalledWith({
@@ -1589,26 +1352,9 @@ describe('POST /api/v1/settings/test/:service', () => {
     })
   })
 
-  it('returns a missing-input error when tidal credentials are incomplete', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/tidal', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ clientId: 'tidal-id' }),
-    })
-
-    expect(res.status).toBe(400)
-    const body = await res.json()
-    expect(body.type).toBe('/problems/probe-missing-input')
-  })
-
   it('returns 400 for unknown service', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/unknown', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
+    const res = await authedJson(app, '/api/v1/settings/test/unknown', 'POST', {})
     expect(res.status).toBe(400)
   })
 
@@ -1629,40 +1375,7 @@ describe('POST /api/v1/settings/test/:service', () => {
     const app = createApp(
       makeDeps({
         getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () => makeUser({ id: 7, username: 'user7' })),
       }),
     )
 
@@ -1691,40 +1404,7 @@ describe('POST /api/v1/settings/test/:service', () => {
     const app = createApp(
       makeDeps({
         getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () => makeUser({ id: 7, username: 'user7' })),
       }),
     )
 
@@ -1749,13 +1429,9 @@ describe('POST /api/v1/settings/test/:service', () => {
 
   it('allows admins to test OIDC issuer URLs', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/oidc', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        issuerUrl: 'https://issuer.example',
-        clientId: 'client-id',
-      }),
+    const res = await authedJson(app, '/api/v1/settings/test/oidc', 'POST', {
+      issuerUrl: 'https://issuer.example',
+      clientId: 'client-id',
     })
 
     expect(res.status).toBe(200)
@@ -1835,67 +1511,23 @@ describe('per-user listening source connections', () => {
     await createSession(7, sessionToken)
 
     mockGetUserConnections.mockResolvedValueOnce({
-      listenbrainzUsername: null,
-      listenbrainzToken: null,
-      lastfmUsername: null,
-      lastfmApiKey: null,
-      plexUrl: null,
-      plexToken: null,
-      plexSectionId: null,
-      plexAccountId: null,
-      plexAccountName: null,
-      plexMachineIdentifier: null,
-      jellyfinUrl: null,
-      jellyfinApiKey: null,
-      jellyfinUserId: null,
-      jellyfinLibraryId: null,
+      ...defaultUserConnections,
       embyUrl: 'http://emby:8096',
       embyApiKey: 'secret',
       embyUserId: 'user-1',
-      embyLibraryId: null,
-      discogsToken: null,
-      discogsUsername: null,
-      subsonicUrl: null,
-      subsonicUsername: null,
-      subsonicPassword: null,
     })
 
     const app = createApp(
       makeDeps({
-        getUserById: vi.fn(async () => ({
-          id: 7,
-          username: 'user7',
-          isAdmin: false,
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: 'http://emby:8096',
-          embyApiKey: 'secret',
-          embyUserId: 'user-1',
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () =>
+          makeUser({
+            id: 7,
+            username: 'user7',
+            embyUrl: 'http://emby:8096',
+            embyApiKey: 'secret',
+            embyUserId: 'user-1',
+          }),
+        ),
       }),
     )
     const res = await app.request('/api/v1/settings', {
@@ -1907,23 +1539,6 @@ describe('per-user listening source connections', () => {
     expect(body.embyApiKey).toBe('***')
     expect(body.embyUserId).toBe('user-1')
     expect(body._embyScope).toBe('user')
-  })
-
-  it('POST /api/v1/settings/test/emby validates the Emby connection', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/settings/test/emby', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        url: 'http://invalid-emby:9999',
-        apiKey: 'key',
-        userId: 'user-1',
-      }),
-    })
-    expect([200, 502]).toContain(res.status)
-    const body = await res.json()
-    if (res.status === 200) expect(typeof body.message).toBe('string')
-    else expect(body.type).toBe('/problems/probe-failed')
   })
 
   it('PATCH excludes lastfm fields from global updateSettings when user is authenticated', async () => {
@@ -2008,11 +1623,9 @@ describe('POST /api/v1/settings/test-webhook', () => {
   })
 
   it('returns 400 when an inline channel body fails schema validation', async () => {
-    const res = await authedRequest(appWithWebhook(), '/api/v1/settings/test-webhook', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      // Inline path (type + id present) but missing required telegram fields.
-      body: JSON.stringify({ id: 'bad', type: 'telegram' }),
+    const res = await authedJson(appWithWebhook(), '/api/v1/settings/test-webhook', 'POST', {
+      id: 'bad',
+      type: 'telegram',
     })
     expect(res.status).toBe(400)
   })
@@ -2044,11 +1657,7 @@ describe('AudioMuse admin settings', () => {
     })
     const app = createApp(deps)
     const patch = (preferences: Record<string, unknown>) =>
-      authedRequest(app, '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences }),
-      })
+      authedJson(app, '/api/v1/settings', 'PATCH', { preferences })
     const saved = await patch({ audiomuseToken: 'private-token', audiomuseSkipTlsVerify: true })
     expect(saved.status).toBe(200)
     expect((await saved.json()).preferences.audiomuseToken).toBe('***')
@@ -2078,11 +1687,7 @@ describe('AudioMuse admin settings', () => {
       ['/api/v1/settings', { preferences: { audiomuseUrl: 'https://other.example' } }],
       ['/api/v1/settings/test/audiomuse', {}],
     ] as const) {
-      const res = await authedRequest(app, path, {
-        method: path.includes('/test/') ? 'POST' : 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      const res = await authedJson(app, path, path.includes('/test/') ? 'POST' : 'PATCH', body)
       expect(res.status).toBe(403)
     }
     expect(deps.updateSettings).not.toHaveBeenCalled()
@@ -2101,11 +1706,12 @@ describe('AudioMuse admin settings', () => {
     })
     const fetch = vi.fn().mockResolvedValue(Response.json({ app_version: 'v3.6.4' }))
     vi.stubGlobal('fetch', fetch)
-    const response = await authedRequest(createApp(deps), '/api/v1/settings/test/audiomuse', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    })
+    const response = await authedJson(
+      createApp(deps),
+      '/api/v1/settings/test/audiomuse',
+      'POST',
+      body,
+    )
     expect(response.status).toBe(200)
     expect((await response.json()).version).toBe('v3.6.4')
     const [url, init] = fetch.mock.calls[0] ?? []
@@ -2128,11 +1734,12 @@ describe('AudioMuse admin settings', () => {
       const fetch = vi.fn()
       vi.stubGlobal('fetch', fetch)
 
-      const response = await authedRequest(createApp(deps), '/api/v1/settings/test/audiomuse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      const response = await authedJson(
+        createApp(deps),
+        '/api/v1/settings/test/audiomuse',
+        'POST',
+        body,
+      )
 
       expect(response.status).toBe(502)
       const result = await response.json()
@@ -2148,11 +1755,12 @@ describe('AudioMuse admin settings', () => {
     async (body) => {
       const fetch = vi.fn()
       vi.stubGlobal('fetch', fetch)
-      const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/test/audiomuse', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      const res = await authedJson(
+        createApp(makeDeps()),
+        '/api/v1/settings/test/audiomuse',
+        'POST',
+        body,
+      )
       expect(res.status).toBe(400)
       expect(fetch).not.toHaveBeenCalled()
     },
@@ -2165,10 +1773,9 @@ describe('AudioMuse admin settings', () => {
         Response.json({ error_code: 1005, error: 'private-token' }, { status: 401 }),
       )
     vi.stubGlobal('fetch', fetch)
-    const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/test/audiomuse', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ url: 'https://audiomuse.example', token: 'private-token' }),
+    const res = await authedJson(createApp(makeDeps()), '/api/v1/settings/test/audiomuse', 'POST', {
+      url: 'https://audiomuse.example',
+      token: 'private-token',
     })
     expect(res.status).toBe(502)
     const body = await res.json()

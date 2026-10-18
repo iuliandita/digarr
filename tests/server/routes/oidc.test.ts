@@ -403,51 +403,47 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     )
   })
 
-  it('sanitizes malicious preferredUsername claims', async () => {
-    const deps = makeDeps()
-    deps.mockOidcService.handleCallback.mockResolvedValue({
-      purpose: { kind: 'login' },
+  it.each([
+    {
+      name: 'sanitizes preferred username',
       claims: {
-        iss: 'https://idp.example.com',
         sub: 'oidc-subject-777',
         email: 'mallory@example.com',
         emailVerified: true,
         preferredUsername: 'mallory<script>alert(1)</script>',
       },
-    })
-    const app = createTestApp(deps)
-
-    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-    expect(deps.createUser).toHaveBeenCalledWith(
-      expect.objectContaining({ username: 'malloryscriptalert1script' }),
-      { bootstrap: 'allow-existing' },
-    )
-  })
-
-  it('lowercases the email claim before creating the user', async () => {
-    // Local registration and getUserByEmail lowercase; the unique index is
-    // case-sensitive, so a raw mixed-case claim would create an account
-    // invisible to email lookups and allow same-email duplicates.
-    const deps = makeDeps()
-    deps.mockOidcService.handleCallback.mockResolvedValue({
-      purpose: { kind: 'login' },
+      expected: { username: 'malloryscriptalert1script' },
+    },
+    {
+      name: 'normalizes email',
       claims: {
-        iss: 'https://idp.example.com',
         sub: 'oidc-subject-999',
         email: 'Carol.MixedCase@Example.COM',
         emailVerified: true,
         preferredUsername: 'carol',
       },
+      expected: { email: 'carol.mixedcase@example.com' },
+    },
+    {
+      name: 'uses email prefix without preferred username',
+      claims: { sub: 'oidc-subject-456', email: 'bob@example.com', name: 'Bob' },
+      expected: { username: 'bob' },
+    },
+    {
+      name: 'uses subject without username or email',
+      claims: { sub: 'abcdefghijklmnop' },
+      expected: { username: 'oidc-abcdefgh' },
+    },
+  ])('$name during provisioning', async ({ claims, expected }) => {
+    const deps = makeDeps()
+    deps.mockOidcService.handleCallback.mockResolvedValue({
+      purpose: { kind: 'login' },
+      claims: { iss: 'https://idp.example.com', ...claims },
     })
-    const app = createTestApp(deps)
-
-    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-    expect(deps.createUser).toHaveBeenCalledWith(
-      expect.objectContaining({ email: 'carol.mixedcase@example.com' }),
-      { bootstrap: 'allow-existing' },
-    )
+    await createTestApp(deps).request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
+    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining(expected), {
+      bootstrap: 'allow-existing',
+    })
   })
 
   it('delegates admin selection to atomic bootstrap', async () => {
@@ -459,42 +455,6 @@ describe('GET /api/v1/auth/oidc/callback', () => {
     expect(res.status).toBe(302)
     expect(deps.createUser).toHaveBeenCalledWith(
       expect.objectContaining({ authProvider: 'oidc' }),
-      { bootstrap: 'allow-existing' },
-    )
-  })
-
-  it('falls back to email prefix for username when preferredUsername is absent', async () => {
-    const deps = makeDeps()
-    deps.mockOidcService.handleCallback.mockResolvedValue({
-      purpose: { kind: 'login' },
-      claims: {
-        iss: 'https://idp.example.com',
-        sub: 'oidc-subject-456',
-        email: 'bob@example.com',
-        name: 'Bob',
-      },
-    })
-    const app = createTestApp(deps)
-
-    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-    expect(deps.createUser).toHaveBeenCalledWith(expect.objectContaining({ username: 'bob' }), {
-      bootstrap: 'allow-existing',
-    })
-  })
-
-  it('falls back to oidc-{sub} when no username or email', async () => {
-    const deps = makeDeps()
-    deps.mockOidcService.handleCallback.mockResolvedValue({
-      purpose: { kind: 'login' },
-      claims: { iss: 'https://idp.example.com', sub: 'abcdefghijklmnop' },
-    })
-    const app = createTestApp(deps)
-
-    await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-    expect(deps.createUser).toHaveBeenCalledWith(
-      expect.objectContaining({ username: 'oidc-abcdefgh' }),
       { bootstrap: 'allow-existing' },
     )
   })
@@ -728,51 +688,36 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       await expect(getSession('mock-session-token-123')).resolves.toEqual({ userId: 1 })
     })
 
-    it('rejects a callback with no transaction cookie (no exchange, no user, no session)', async () => {
-      const deps = bindingEnforcingDeps()
-      const app = createTestApp(deps)
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123')
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(deps.mockOidcService.handleCallback).toHaveBeenCalledWith(expect.any(URL), undefined)
-      expect(deps.createUser).not.toHaveBeenCalled()
-      expect(res.headers.get('set-cookie')).not.toContain('digarr_session')
-      await expect(getSession('mock-session-token-123')).resolves.toBeNull()
-      warn.mockRestore()
-    })
-
-    it('rejects a callback whose transaction cookie value is wrong', async () => {
-      const deps = bindingEnforcingDeps()
-      const app = createTestApp(deps)
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
+    it.each([
+      { name: 'missing transaction cookie', state: 'abc', headers: {}, binding: undefined },
+      {
+        name: 'wrong transaction binding',
+        state: 'abc',
         headers: cookieHeader('abc', 'not-the-binding'),
-      })
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(deps.createUser).not.toHaveBeenCalled()
-      expect(res.headers.get('set-cookie')).not.toContain('digarr_session')
-      warn.mockRestore()
-    })
-
-    it('rejects an attacker state presented with another transaction cookie', async () => {
+        binding: 'not-the-binding',
+      },
+      {
+        name: 'foreign transaction state',
+        state: 'attacker',
+        headers: cookieHeader('victim', 'binding-abc'),
+        binding: undefined,
+      },
+    ])('rejects $name without provisioning or a session', async ({ state, headers, binding }) => {
       const deps = bindingEnforcingDeps()
-      const app = createTestApp(deps)
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      // Browser holds a cookie for the victim's flow; attacker forces a foreign state.
-      const res = await app.request(
-        '/api/v1/auth/oidc/callback?state=attacker&code=auth-code-123',
-        { headers: cookieHeader('victim', 'binding-abc') },
-      )
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(deps.mockOidcService.handleCallback).toHaveBeenCalledWith(expect.any(URL), undefined)
-      expect(deps.createUser).not.toHaveBeenCalled()
-      warn.mockRestore()
+      try {
+        const res = await createTestApp(deps).request(
+          `/api/v1/auth/oidc/callback?state=${state}&code=auth-code-123`,
+          { headers },
+        )
+        expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
+        expect(deps.mockOidcService.handleCallback).toHaveBeenCalledWith(expect.any(URL), binding)
+        expect(deps.createUser).not.toHaveBeenCalled()
+        expect(res.headers.get('set-cookie')).not.toContain('digarr_session')
+        await expect(getSession('mock-session-token-123')).resolves.toBeNull()
+      } finally {
+        warn.mockRestore()
+      }
     })
 
     it('rejects replay of an already-consumed transaction', async () => {
@@ -802,55 +747,32 @@ describe('GET /api/v1/auth/oidc/callback', () => {
       warn.mockRestore()
     })
 
-    it('deletes the transaction cookie on provider failure', async () => {
-      const deps = makeDeps()
-      deps.mockOidcService.handleCallback.mockRejectedValue(new Error('provider boom'))
-      const app = createTestApp(deps)
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
-        headers: cookieHeader('abc', 'binding-abc'),
-      })
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(res.headers.get('set-cookie')).toMatch(deletionRegex('abc'))
-      warn.mockRestore()
-    })
-
-    it('deletes the transaction cookie on provisioning failure', async () => {
-      const deps = makeDeps({
-        createUser: vi.fn(async () => {
-          throw new Error('db down')
-        }),
-      })
-      const app = createTestApp(deps)
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
-        headers: cookieHeader('abc', 'binding-abc'),
-      })
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(res.headers.get('set-cookie')).toMatch(deletionRegex('abc'))
-      warn.mockRestore()
-    })
-
-    it('deletes the transaction cookie on session-issuance failure', async () => {
-      envConfig.allowedOrigin = 'file:///tmp/app'
-      const deps = makeDeps({
-        getUserByOidcIdentity: vi.fn(async () => ({ id: 7, username: 'existing' })),
-      })
-      const app = createTestApp(deps)
-      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-
-      const res = await app.request('/api/v1/auth/oidc/callback?state=abc&code=auth-code-123', {
-        headers: cookieHeader('abc', 'binding-abc'),
-      })
-
-      expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
-      expect(res.headers.get('set-cookie')).not.toContain('digarr_session')
-      expect(res.headers.get('set-cookie')).toMatch(deletionRegex('abc'))
-      warn.mockRestore()
-    })
+    it.each(['provider', 'provisioning', 'session-issuance'])(
+      'deletes the transaction cookie on %s failure',
+      async (stage) => {
+        const deps = makeDeps()
+        if (stage === 'provider')
+          deps.mockOidcService.handleCallback.mockRejectedValue(new Error('provider boom'))
+        if (stage === 'provisioning') deps.createUser.mockRejectedValue(new Error('db down'))
+        if (stage === 'session-issuance') {
+          envConfig.allowedOrigin = 'file:///tmp/app'
+          deps.getUserByOidcIdentity.mockResolvedValue({ id: 7, username: 'existing' } as never)
+        }
+        const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+        try {
+          const res = await createTestApp(deps).request(
+            '/api/v1/auth/oidc/callback?state=abc&code=auth-code-123',
+            {
+              headers: cookieHeader('abc', 'binding-abc'),
+            },
+          )
+          expect(res.headers.get('Location')).toBe('/#oidc_error=oidc_failed')
+          expect(res.headers.get('set-cookie')).not.toContain('digarr_session')
+          expect(res.headers.get('set-cookie')).toMatch(deletionRegex('abc'))
+        } finally {
+          warn.mockRestore()
+        }
+      },
+    )
   })
 })
