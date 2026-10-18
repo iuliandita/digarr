@@ -52,6 +52,11 @@ export const tr = {
     '"{name}" iptal edilsin mi? Bu belirteci kullanan betikler erişimi hemen kaybedecek.',
   'tokens.readOnlyError': 'Bu belirteç yalnızca GET ve HEAD isteklerine izin verir.',
   'tokens.notFoundError': 'Bu belirteç bulunamadı.',
+  'notification.approvalFailed': '{0} için Lidarr onayı 24 saat içinde tamamlanamadı: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr bekleniyor',
+  'recommendation.nextRetry': 'Sonraki deneme: {0}',
+  'settings.channels.eventApprovalFailed': 'Onay başarısız',
+
   'settings.monitorMissing': 'Eksik albümler',
   'settings.monitorExisting': 'Mevcut albümler',
   'settings.monitorLatest': 'En son albüm',

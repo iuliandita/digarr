@@ -15,6 +15,8 @@ export const TARGET_TYPES = [
 export type TargetType = (typeof TARGET_TYPES)[number]
 
 export type TargetAddOptions = {
+  followUpTargetId?: string
+  retryExisting?: boolean
   monitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none' | 'selected'
   tags?: number[]
   selectedAlbumIds?: string[]

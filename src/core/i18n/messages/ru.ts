@@ -53,6 +53,11 @@ export const ru = {
   'tokens.revokeConfirm': 'Отозвать «{name}»? Скрипты с этим токеном сразу потеряют доступ.',
   'tokens.readOnlyError': 'Этот токен разрешает только запросы GET и HEAD.',
   'tokens.notFoundError': 'Этот токен не найден.',
+  'notification.approvalFailed': 'Не удалось завершить одобрение {0} в Lidarr за 24 часа: {1}',
+  'recommendation.waitingForLidarr': 'Ожидание Lidarr',
+  'recommendation.nextRetry': 'Следующая попытка: {0}',
+  'settings.channels.eventApprovalFailed': 'Ошибка одобрения',
+
   'settings.monitorMissing': 'Недостающие альбомы',
   'settings.monitorExisting': 'Имеющиеся альбомы',
   'settings.monitorLatest': 'Последний альбом',

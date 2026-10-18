@@ -78,7 +78,7 @@ describe('target-aware approval', () => {
     )
   })
 
-  it('approves with Lidarr target - adds to Lidarr and sets added_to_lidarr', async () => {
+  it('first approval accepts an existing Lidarr artist and sets added_to_lidarr', async () => {
     mockDeps.getRecommendation.mockResolvedValue({
       userId: 1,
       id: 1,
@@ -108,7 +108,7 @@ describe('target-aware approval', () => {
     expect(body.status).toBe('added_to_lidarr')
     expect(mockTarget.addArtist).toHaveBeenCalledWith(
       { mbid: 'mbid-1', name: 'Radiohead' },
-      expect.any(Object),
+      expect.objectContaining({ retryExisting: true }),
     )
   })
 
@@ -389,7 +389,9 @@ describe('target-aware approval', () => {
         addAlbum: vi
           .fn()
           .mockResolvedValue(
-            success ? { success, externalId: 7 } : { success, error: 'album not found in Lidarr' },
+            success
+              ? { success, externalId: 7 }
+              : { success, error: 'HTTP 404: album not found in Lidarr' },
           ),
       }))
       mockDeps.getEnabledTargetsForUser.mockResolvedValue(targets)
@@ -434,13 +436,13 @@ describe('target-aware approval', () => {
                 'lidarr-1': {
                   status: lidarr ? 'added' : 'failed',
                   externalId: lidarr ? 7 : undefined,
-                  error: lidarr ? undefined : 'album not found in Lidarr',
+                  error: lidarr ? undefined : 'HTTP 404: album not found in Lidarr',
                 },
               }
             : {}),
           ...(slskd ? { 'slskd-1': { status: 'queued', externalId: 7, error: undefined } } : {}),
         },
-        ...(lidarr === false ? { lidarrError: 'album not found in Lidarr' } : {}),
+        ...(lidarr === false ? { lidarrError: 'HTTP 404: album not found in Lidarr' } : {}),
       })
     },
   )
@@ -609,7 +611,9 @@ describe('target-aware approval', () => {
         type: 'lidarr',
         name: 'Lidarr Backup',
         capabilities: ['addArtist'],
-        addArtist: vi.fn().mockResolvedValue({ success: false, error: 'connection refused' }),
+        addArtist: vi
+          .fn()
+          .mockResolvedValue({ success: false, error: 'HTTP 400: invalid profile' }),
       },
     ])
 
@@ -626,7 +630,7 @@ describe('target-aware approval', () => {
       total: 2,
       succeeded: 1,
       failed: 1,
-      failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'connection refused' }],
+      failures: [{ id: 'lidarr-2', name: 'Lidarr Backup', error: 'HTTP 400: invalid profile' }],
       warnings: [],
     })
   })

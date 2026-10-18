@@ -52,6 +52,11 @@ export const ko = {
     '"{name}"을 취소할까요? 이 토큰을 사용하는 스크립트는 즉시 접근할 수 없게 돼요.',
   'tokens.readOnlyError': '이 토큰은 GET 및 HEAD 요청만 허용해요.',
   'tokens.notFoundError': '이 토큰을 찾을 수 없어요.',
+  'notification.approvalFailed': '{0}의 Lidarr 승인을 24시간 이내에 완료하지 못했어요: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr 대기 중',
+  'recommendation.nextRetry': '다음 재시도: {0}',
+  'settings.channels.eventApprovalFailed': '승인 실패',
+
   'settings.monitorMissing': '누락된 앨범',
   'settings.monitorExisting': '기존 앨범',
   'settings.monitorLatest': '최신 앨범',
