@@ -6,11 +6,9 @@ import { HealthCheckCard } from '@/web/components/health-check-card'
 import type { HealthCheckResult } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'de'),
-  getStoredLocale: vi.fn(() => 'de'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock('de'),
+)
 
 const check = (id: string, name: string): HealthCheckResult => ({
   id,

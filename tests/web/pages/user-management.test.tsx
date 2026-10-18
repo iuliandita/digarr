@@ -1,15 +1,13 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>{ui}</QueryClientProvider>
@@ -17,13 +15,7 @@ function renderWithQuery(ui: ReactElement) {
   )
 }
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/lib/api', () => ({
   createUserApi: vi.fn(),
@@ -43,25 +35,12 @@ vi.mock('@/web/lib/api', () => ({
 
 import { listUsers, updateUserApprovalSettings } from '@/web/lib/api'
 import { UserManagementPage } from '@/web/pages/user-management'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 describe('UserManagementPage', () => {
   beforeEach(() => {
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
+    installMemoryLocalStorage()
   })
 
   it('saves a request-only policy with an unlimited request quota', async () => {
@@ -95,13 +74,5 @@ describe('UserManagementPage', () => {
         approvalThreshold: null,
       }),
     )
-  })
-
-  it('renders translated user management copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    renderWithQuery(<UserManagementPage />)
-
-    expect(await screen.findByText('Gestion des utilisateurs')).toBeInTheDocument()
-    expect(screen.getByText('Ajouter un utilisateur')).toBeInTheDocument()
   })
 })

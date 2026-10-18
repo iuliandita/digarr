@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -11,6 +11,7 @@ import { LidarrPreferencesSection } from '@/web/pages/settings/lidarr-preference
 import { NotificationChannelsCard } from '@/web/pages/settings/notification-channels'
 import { ScheduleTab } from '@/web/pages/settings/schedule-tab'
 import { TargetsTab } from '@/web/pages/settings/targets-tab'
+import { createTestQueryClient } from '../../helpers/query'
 
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
 
@@ -38,7 +39,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
 const mocked = vi.mocked(api)
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={client}>

@@ -98,129 +98,66 @@ describe('createDefaultRegistry', () => {
     ])
   })
 
-  test('creates AnthropicProvider for "anthropic"', async () => {
-    const registry = createDefaultRegistry()
-    const provider = await registry.create('anthropic', {
-      apiKey: 'sk-ant-key',
-      model: 'claude-3-5-sonnet-20241022',
-    })
-    expect(AnthropicProvider).toHaveBeenCalledWith(
-      'sk-ant-key',
-      'claude-3-5-sonnet-20241022',
-      undefined,
-      undefined,
-    )
+  const ANT = { apiKey: 'sk-ant-key', model: 'claude-3-5-sonnet-20241022' }
+  const OAI = { apiKey: 'sk-openai-key', model: 'gpt-4o' }
+  const OLL = { apiKey: null, model: 'llama3', baseUrl: 'http://localhost:11434' }
+  const PROXY = 'https://proxy.example.com'
+
+  test.each([
+    ['anthropic', () => AnthropicProvider, ANT, ['sk-ant-key', ANT.model, undefined, undefined]],
+    [
+      'anthropic',
+      () => AnthropicProvider,
+      { ...ANT, baseUrl: PROXY },
+      ['sk-ant-key', ANT.model, PROXY, undefined],
+    ],
+    [
+      'anthropic',
+      () => AnthropicProvider,
+      { ...ANT, timeoutSeconds: 45 },
+      ['sk-ant-key', ANT.model, undefined, 45],
+    ],
+    ['openai', () => OpenAIProvider, OAI, ['sk-openai-key', 'gpt-4o', undefined, undefined]],
+    [
+      'openai',
+      () => OpenAIProvider,
+      { ...OAI, baseUrl: PROXY },
+      ['sk-openai-key', 'gpt-4o', PROXY, undefined],
+    ],
+    [
+      'openai',
+      () => OpenAIProvider,
+      { ...OAI, timeoutSeconds: 45 },
+      ['sk-openai-key', 'gpt-4o', undefined, 45],
+    ],
+    ['ollama', () => OllamaProvider, OLL, ['llama3', 'http://localhost:11434', undefined]],
+    [
+      'ollama',
+      () => OllamaProvider,
+      { ...OLL, timeoutSeconds: 30 },
+      ['llama3', 'http://localhost:11434', 30],
+    ],
+    [
+      'gemini',
+      () => GeminiProvider,
+      { apiKey: 'gemini-key', model: 'gemini-3-flash-preview', timeoutSeconds: 45 },
+      ['gemini-key', 'gemini-3-flash-preview', 45],
+    ],
+    [
+      'openai-compatible',
+      () => OpenAICompatibleProvider,
+      {
+        apiKey: 'compat-key',
+        model: 'local-model',
+        baseUrl: 'http://localhost:8080',
+        timeoutSeconds: 45,
+      },
+      ['http://localhost:8080', 'local-model', 'compat-key', 45],
+    ],
+  ] as const)('maps %s config to constructor arguments', async (id, ctor, config, args) => {
+    const provider = await createDefaultRegistry().create(id, { ...config })
+    expect(ctor()).toHaveBeenCalledWith(...args)
     expect(provider).toBeDefined()
-  })
-
-  test('threads baseUrl into AnthropicProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('anthropic', {
-      apiKey: 'sk-ant-key',
-      model: 'claude-3-5-sonnet-20241022',
-      baseUrl: 'https://proxy.example.com',
-    })
-    expect(AnthropicProvider).toHaveBeenCalledWith(
-      'sk-ant-key',
-      'claude-3-5-sonnet-20241022',
-      'https://proxy.example.com',
-      undefined,
-    )
-  })
-
-  test('threads timeoutSeconds into AnthropicProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('anthropic', {
-      apiKey: 'sk-ant-key',
-      model: 'claude-3-5-sonnet-20241022',
-      timeoutSeconds: 45,
-    })
-    expect(AnthropicProvider).toHaveBeenCalledWith(
-      'sk-ant-key',
-      'claude-3-5-sonnet-20241022',
-      undefined,
-      45,
-    )
-  })
-
-  test('creates OpenAIProvider for "openai"', async () => {
-    const registry = createDefaultRegistry()
-    const provider = await registry.create('openai', { apiKey: 'sk-openai-key', model: 'gpt-4o' })
-    expect(OpenAIProvider).toHaveBeenCalledWith('sk-openai-key', 'gpt-4o', undefined, undefined)
-    expect(provider).toBeDefined()
-  })
-
-  test('threads baseUrl into OpenAIProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('openai', {
-      apiKey: 'sk-openai-key',
-      model: 'gpt-4o',
-      baseUrl: 'https://proxy.example.com',
-    })
-    expect(OpenAIProvider).toHaveBeenCalledWith(
-      'sk-openai-key',
-      'gpt-4o',
-      'https://proxy.example.com',
-      undefined,
-    )
-  })
-
-  test('threads timeoutSeconds into OpenAIProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('openai', {
-      apiKey: 'sk-openai-key',
-      model: 'gpt-4o',
-      timeoutSeconds: 45,
-    })
-    expect(OpenAIProvider).toHaveBeenCalledWith('sk-openai-key', 'gpt-4o', undefined, 45)
-  })
-
-  test('creates OllamaProvider for "ollama"', async () => {
-    const registry = createDefaultRegistry()
-    const provider = await registry.create('ollama', {
-      apiKey: null,
-      model: 'llama3',
-      baseUrl: 'http://localhost:11434',
-    })
-    expect(OllamaProvider).toHaveBeenCalledWith('llama3', 'http://localhost:11434', undefined)
-    expect(provider).toBeDefined()
-  })
-
-  test('threads timeoutSeconds into OllamaProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('ollama', {
-      apiKey: null,
-      model: 'llama3',
-      baseUrl: 'http://localhost:11434',
-      timeoutSeconds: 30,
-    })
-    expect(OllamaProvider).toHaveBeenCalledWith('llama3', 'http://localhost:11434', 30)
-  })
-
-  test('threads timeoutSeconds into GeminiProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('gemini', {
-      apiKey: 'gemini-key',
-      model: 'gemini-3-flash-preview',
-      timeoutSeconds: 45,
-    })
-    expect(GeminiProvider).toHaveBeenCalledWith('gemini-key', 'gemini-3-flash-preview', 45)
-  })
-
-  test('threads timeoutSeconds into OpenAICompatibleProvider', async () => {
-    const registry = createDefaultRegistry()
-    await registry.create('openai-compatible', {
-      apiKey: 'compat-key',
-      model: 'local-model',
-      baseUrl: 'http://localhost:8080',
-      timeoutSeconds: 45,
-    })
-    expect(OpenAICompatibleProvider).toHaveBeenCalledWith(
-      'http://localhost:8080',
-      'local-model',
-      'compat-key',
-      45,
-    )
   })
 
   test('throws when anthropic is missing an API key', async () => {

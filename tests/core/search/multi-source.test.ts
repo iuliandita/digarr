@@ -223,6 +223,17 @@ describe('multiSourceSearch', () => {
     expect(results).toEqual([])
   })
 
+  it('returns empty when every source fails', async () => {
+    const failing = (id: string): SearchSource => ({
+      id,
+      name: id,
+      available: true,
+      search: vi.fn().mockRejectedValue(new Error(`${id} is down`)),
+    })
+    const results = await multiSourceSearch('anything', [failing('spotify'), failing('deezer')])
+    expect(results).toEqual([])
+  })
+
   it('returns empty array when sources return no results', async () => {
     const results = await multiSourceSearch('zzznomatch', [makeSource('a', [])])
     expect(results).toEqual([])

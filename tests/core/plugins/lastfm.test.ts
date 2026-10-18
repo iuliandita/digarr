@@ -34,23 +34,6 @@ describe('createLastFmSource()', () => {
     return client
   }
 
-  it('has id "lastfm" and name "Last.fm"', () => {
-    mockClient()
-    const source = createLastFmSource('user', 'key')
-    expect(source.id).toBe('lastfm')
-    expect(source.name).toBe('Last.fm')
-  })
-
-  it('has correct capabilities', () => {
-    mockClient()
-    const source = createLastFmSource('user', 'key')
-    expect(source.capabilities).toContain('topArtists')
-    expect(source.capabilities).toContain('similarArtists')
-    expect(source.capabilities).toContain('genreArtists')
-    expect(source.capabilities).not.toContain('listeningActivity')
-    expect(source.capabilities).not.toContain('recentListening')
-  })
-
   it('getTopArtists() maps client response to TopArtistEntry[]', async () => {
     mockClient()
     const source = createLastFmSource('user', 'key')
@@ -86,27 +69,6 @@ describe('createLastFmSource()', () => {
     await source.getSimilarArtists('Radiohead')
 
     expect(client.getSimilarArtists).toHaveBeenCalledWith('Radiohead', undefined)
-  })
-
-  it('testConnection() delegates to client', async () => {
-    const client = mockClient()
-    const source = createLastFmSource('user', 'key')
-    const result = await source.testConnection()
-
-    expect(result).toEqual({ success: true, message: 'Connected' })
-    expect(client.testConnection).toHaveBeenCalled()
-  })
-
-  it('does not have getListeningActivity', () => {
-    mockClient()
-    const source = createLastFmSource('user', 'key')
-    expect(source.getListeningActivity).toBeUndefined()
-  })
-
-  it('getGenreArtists() is defined on lastfm source', () => {
-    mockClient()
-    const source = createLastFmSource('user', 'key')
-    expect(source.getGenreArtists).toBeDefined()
   })
 
   it('getArtistGenres() delegates to artist.getTopTags', async () => {

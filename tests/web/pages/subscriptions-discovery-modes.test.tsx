@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -10,12 +10,9 @@ import type { SubscriptionFormData } from '@/web/components/subscription-form'
 import type { DiscoveryModeResponse, Subscription } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getRequestLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 type SubscriptionFormMockProps = {
   discoveryModes?: DiscoveryModeResponse[]
@@ -25,14 +22,7 @@ type SubscriptionFormMockProps = {
 
 const discoveryModeProps: SubscriptionFormMockProps[] = []
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    promise: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/components/subscription-form', async () => {
   const actual = await vi.importActual<typeof import('@/web/components/subscription-form')>(
@@ -131,14 +121,13 @@ import {
   updateSubscriptionApi,
 } from '@/web/lib/api'
 import { DiscoveryModesPage } from '@/web/pages/discovery-modes'
+import { createTestQueryClient } from '../helpers/query'
 
 const mockCreateSubscriptionApi = vi.mocked(createSubscriptionApi)
 const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
 
 function renderPage() {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
 
   return render(
     <QueryClientProvider client={client}>

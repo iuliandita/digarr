@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { score } from '@/core/pipeline/score'
+import { computeWeightedScore, score } from '@/core/pipeline/score'
 import type { ResolvedArtist } from '@/core/types'
 import type { Preferences } from '@/db/schema'
 
@@ -349,5 +349,38 @@ describe('score()', () => {
     const artist = makeArtist({ genres: ['rock', 'metal'] })
     const [result] = score([artist], [], defaultWeights, new Map())
     expect(result?.sourceScores.genreOverlap).toBe(0)
+  })
+})
+
+describe('computeWeightedScore clamp', () => {
+  const ones = {
+    consensus: 1,
+    similarity: 1,
+    genreOverlap: 1,
+    aiConfidence: 1,
+    feedbackBoost: 1,
+    popularity: 1,
+  }
+  const uniform = (w: number) => ({
+    ...ones,
+    consensus: w,
+    similarity: w,
+    genreOverlap: w,
+    aiConfidence: w,
+    feedbackBoost: w,
+    popularity: w,
+  })
+
+  it.each([
+    ['above 1', 5, 1],
+    ['below 0', -2, 0],
+  ])('clamps a result %s', (_label, weight, expected) => {
+    expect(computeWeightedScore(uniform(weight), ones)).toBe(expected)
+  })
+
+  it('treats an omitted popularity weight as 0', () => {
+    const { popularity: _omitted, ...rest } = defaultWeights
+    const weights = { ...rest, consensus: 0.3 } as unknown as Preferences['scoringWeights']
+    expect(computeWeightedScore(weights, ones)).toBeCloseTo(0.3 + 0.25 + 0.2 + 0.15 + 0.1, 5)
   })
 })

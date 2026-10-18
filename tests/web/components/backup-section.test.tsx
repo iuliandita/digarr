@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BackupSection } from '@/web/components/admin/backup-section'
 import { ApiError, getLastAutoBackup, restoreBackupApi } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 vi.mock('@/web/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/web/lib/api')>()),
@@ -14,9 +16,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => ({
   restoreBackupApi: vi.fn(),
 }))
 
-vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 const restored = {
   tablesRestored: { users: 2, settings: 1 },
@@ -26,7 +26,7 @@ const restored = {
 }
 
 function setup() {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   const view = render(
     <I18nProvider>
       <QueryClientProvider client={client}>
@@ -191,4 +191,17 @@ describe('BackupSection restore confirmation', () => {
       expect(toast.success).not.toHaveBeenCalled()
     },
   )
+
+  it('formats the last auto backup timestamp with the active locale', async () => {
+    installMemoryLocalStorage({ 'digarr-locale': 'fr' })
+    vi.mocked(getLastAutoBackup).mockResolvedValue({
+      lastAutoBackup: { filename: 'auto.json', createdAt: '2025-12-31T14:05:00.000Z' },
+    })
+
+    setup()
+
+    expect(await screen.findByText(/Dernière sauvegarde auto/)).toHaveTextContent(
+      `Dernière sauvegarde auto : ${new Date('2025-12-31T14:05:00.000Z').toLocaleString('fr')}`,
+    )
+  })
 })

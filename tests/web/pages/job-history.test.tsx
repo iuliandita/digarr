@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -11,10 +11,11 @@ vi.mock('@/web/lib/api', () => ({
 
 import { listJobs } from '@/web/lib/api'
 import JobHistoryPage from '@/web/pages/job-history'
+import { createTestQueryClient } from '../helpers/query'
 
 describe('JobHistoryPage', () => {
   it('filters to failed runs', async () => {
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const client = createTestQueryClient()
     render(
       <I18nProvider>
         <QueryClientProvider client={client}>

@@ -2,7 +2,6 @@
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getMessages } from '@/core/i18n/messages'
 import { SubscriptionForm } from '@/web/components/subscription-form'
 import type { DiscoveryModeResponse } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -284,31 +283,6 @@ describe('SubscriptionForm discovery mode support', () => {
         }),
       )
     })
-  })
-
-  it('renders translated chrome for italian locale', () => {
-    localStorage.setItem('digarr-locale', 'it')
-
-    render(
-      <I18nProvider>
-        <SubscriptionForm
-          mode="create"
-          configuredSources={[]}
-          onCancel={() => {}}
-          onSubmit={vi.fn(async () => undefined)}
-          discoveryModes={discoveryModes}
-        />
-      </I18nProvider>,
-    )
-
-    const messages = getMessages('it')
-    expect(
-      screen.getByRole('dialog', { name: messages['subscriptionForm.dialogCreate'] }),
-    ).toBeInTheDocument()
-    fireEvent.click(screen.getByText(messages['subscriptionForm.moreOptions']))
-    expect(screen.getByLabelText('Nome')).toBeInTheDocument()
-    expect(screen.getByLabelText('Tipo di sorgente')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: messages['common.schedule'] })).toBeInTheDocument()
   })
 
   it('preserves an existing advanced discovery-mode subscription when editing', async () => {

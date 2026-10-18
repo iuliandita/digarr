@@ -1,17 +1,16 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { HygieneSection } from '@/web/components/admin/hygiene-section'
 import { getAiAuditResults, runHygieneTool } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { createTestQueryClient } from '../helpers/query'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/web/lib/api', () => ({
   getAiAuditResults: vi.fn(),
@@ -30,7 +29,7 @@ describe('HygieneSection audit polling', () => {
       .mockResolvedValueOnce(status(true))
       .mockResolvedValueOnce(status(true))
       .mockResolvedValue(status(false))
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const client = createTestQueryClient()
     render(
       <I18nProvider>
         <QueryClientProvider client={client}>
@@ -73,7 +72,7 @@ describe('HygieneSection results', () => {
       skipped: 1,
       weightProfile: { a: 1 },
     })
-    const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+    const client = createTestQueryClient()
     render(
       <I18nProvider>
         <QueryClientProvider client={client}>

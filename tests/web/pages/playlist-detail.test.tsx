@@ -1,12 +1,13 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, expect, it, vi } from 'vitest'
 import { getPlaylist, updateRecommendation } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PlaylistDetailPage } from '@/web/pages/playlist-detail'
+import { createTestQueryClient } from '../helpers/query'
 
 vi.mock('@/web/lib/api', () => ({
   getPlaylist: vi.fn(),
@@ -17,11 +18,9 @@ vi.mock('@/web/lib/api', () => ({
   generatePlaylistApi: vi.fn(),
 }))
 vi.mock('sonner', () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }))
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 beforeEach(() => vi.clearAllMocks())
 
@@ -61,9 +60,7 @@ it.each([12, undefined])(
     vi.mocked(updateRecommendation).mockResolvedValue({ status: 'approved' })
     render(
       <I18nProvider>
-        <QueryClientProvider
-          client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-        >
+        <QueryClientProvider client={createTestQueryClient()}>
           <MemoryRouter initialEntries={['/playlists/1']}>
             <Routes>
               <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
@@ -142,9 +139,7 @@ it('shows each target outcome so a failed target does not hide a successful one'
   })
   render(
     <I18nProvider>
-      <QueryClientProvider
-        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
-      >
+      <QueryClientProvider client={createTestQueryClient()}>
         <MemoryRouter initialEntries={['/playlists/1']}>
           <Routes>
             <Route path="/playlists/:id" element={<PlaylistDetailPage />} />

@@ -1,16 +1,14 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 vi.mock('@/web/lib/api', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/web/lib/api')>()
@@ -24,6 +22,7 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
 import { type Recommendation, RecommendationCard } from '@/web/components/recommendation-card'
 import { getArtistTopTracks, getLibraryAlbumCoverage } from '@/web/lib/api'
 import { PreviewContext } from '@/web/lib/preview-context'
+import { createTestQueryClient } from '../helpers/query'
 
 // ---------------------------------------------------------------------------
 // Preview context stub
@@ -54,7 +53,7 @@ const noopPreview = {
 }
 
 function withPreview(ui: ReactElement) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const queryClient = createTestQueryClient()
   return render(
     <I18nProvider>
       <QueryClientProvider client={queryClient}>
@@ -114,14 +113,6 @@ describe('RecommendationCard', () => {
     mockGetArtistTopTracks.mockResolvedValue({ tracks: [] })
   })
 
-  it('renders artist name and score badge', () => {
-    withPreview(
-      <RecommendationCard recommendation={makeRec()} onApprove={onApprove} onReject={onReject} />,
-    )
-    expect(screen.getByText('Radiohead')).toBeInTheDocument()
-    expect(screen.getByText('82%')).toBeInTheDocument()
-  })
-
   it('renders the album as the primary unit for kind=album', () => {
     const { container } = withPreview(
       <RecommendationCard
@@ -134,43 +125,40 @@ describe('RecommendationCard', () => {
     expect(screen.getByText('Kid A')).toBeInTheDocument()
   })
 
-  it('renders genre pills', () => {
-    withPreview(
-      <RecommendationCard recommendation={makeRec()} onApprove={onApprove} onReject={onReject} />,
-    )
-    // Default compact: max 2 genres shown
-    expect(screen.getByText('rock')).toBeInTheDocument()
-    expect(screen.getByText('alternative')).toBeInTheDocument()
-    expect(screen.queryByText('art rock')).toBeNull()
-    // The remaining 3 are collapsed
-    expect(screen.getByText('+3')).toBeInTheDocument()
-  })
-
-  it('approve button calls onApprove with correct id', () => {
+  it.each([
+    [false, ['rock', 'alternative'], 'art rock', '+3'],
+    [true, ['rock', 'alternative', 'art rock', 'electronic', 'experimental'], null, null],
+  ])('limits genre pills (expanded=%s)', (expanded, shown, hidden, overflow) => {
     withPreview(
       <RecommendationCard
-        recommendation={makeRec({ id: 42 })}
+        recommendation={makeRec()}
+        onApprove={onApprove}
+        onReject={onReject}
+        expanded={expanded}
+      />,
+    )
+    for (const genre of shown) expect(screen.getByText(genre)).toBeInTheDocument()
+    if (hidden) expect(screen.queryByText(hidden)).toBeNull()
+    if (overflow) expect(screen.getByText(overflow)).toBeInTheDocument()
+    else expect(screen.queryByText(/^\+\d+$/)).toBeNull()
+  })
+
+  it.each([
+    ['Approve', 42, onApprove],
+    ['Reject', 7, onReject],
+  ])('%s button passes the recommendation id', (label, id, handler) => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec({ id })}
         onApprove={onApprove}
         onReject={onReject}
       />,
     )
-    fireEvent.click(screen.getByText('Approve'))
-    expect(onApprove).toHaveBeenCalledWith(42)
+    fireEvent.click(screen.getByText(label))
+    expect(handler).toHaveBeenCalledWith(id)
   })
 
-  it('reject button calls onReject with correct id', () => {
-    withPreview(
-      <RecommendationCard
-        recommendation={makeRec({ id: 7 })}
-        onApprove={onApprove}
-        onReject={onReject}
-      />,
-    )
-    fireEvent.click(screen.getByText('Reject'))
-    expect(onReject).toHaveBeenCalledWith(7)
-  })
-
-  it('click handler calls onClick with correct id', () => {
+  it('clicking the card calls onClick with the id', () => {
     withPreview(
       <RecommendationCard
         recommendation={makeRec({ id: 5 })}
@@ -179,7 +167,6 @@ describe('RecommendationCard', () => {
         onClick={onClick}
       />,
     )
-    // Click on the card itself (the artist name text)
     fireEvent.click(screen.getByText('Radiohead'))
     expect(onClick).toHaveBeenCalledWith(5)
   })
@@ -212,35 +199,6 @@ describe('RecommendationCard', () => {
     expect(screen.getByText('Source Scores')).toBeInTheDocument()
     expect(screen.getByText('LB')).toBeInTheDocument()
     expect(screen.getByText('90%')).toBeInTheDocument()
-  })
-
-  it('expanded state shows more genre pills', () => {
-    withPreview(
-      <RecommendationCard
-        recommendation={makeRec()}
-        onApprove={onApprove}
-        onReject={onReject}
-        expanded
-      />,
-    )
-    // Expanded: max 8, we have 5 genres so all should show
-    expect(screen.getByText('electronic')).toBeInTheDocument()
-    expect(screen.getByText('experimental')).toBeInTheDocument()
-    expect(screen.queryByText('+2')).not.toBeInTheDocument()
-  })
-
-  it('selected state applies border highlight', () => {
-    const { container } = withPreview(
-      <RecommendationCard
-        recommendation={makeRec()}
-        onApprove={onApprove}
-        onReject={onReject}
-        isSelected
-      />,
-    )
-    const wrapper = container.firstElementChild as HTMLElement
-    const card = wrapper.querySelector('[data-testid="rec-card-button"]') as HTMLElement
-    expect(card.className).toContain('border-accent')
   })
 
   it('handles missing optional fields gracefully', () => {

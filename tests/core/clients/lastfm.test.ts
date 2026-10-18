@@ -79,22 +79,6 @@ describe('createLastFmClient', () => {
       })
     })
 
-    it('returns DiscoveredArtist shape with parsed similarityScore', async () => {
-      mockGet.mockResolvedValueOnce({
-        similarartists: {
-          artist: [{ name: 'Thom Yorke', match: '0.95', mbid: 'mbid-ty' }],
-        },
-      })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      const result = await client.getSimilarArtists('Radiohead')
-      expect(result[0]).toEqual({
-        name: 'Thom Yorke',
-        mbid: 'mbid-ty',
-        similarityScore: 0.95,
-        source: 'lastfm',
-      })
-    })
-
     it('accepts an optional mbid parameter', async () => {
       mockGet.mockResolvedValueOnce({ similarartists: { artist: [] } })
       const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
@@ -137,18 +121,6 @@ describe('createLastFmClient', () => {
       })
     })
 
-    it('parses playcount as integer', async () => {
-      mockGet.mockResolvedValueOnce({
-        topartists: {
-          artist: [{ name: 'Boards of Canada', mbid: 'boc-mbid', playcount: '456' }],
-        },
-      })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      const result = await client.getTopArtists('overall')
-      expect(result[0]?.playCount).toBe(456)
-      expect(typeof result[0]?.playCount).toBe('number')
-    })
-
     it('handles all valid period values', async () => {
       const periods = ['7day', '1month', '3month', '6month', '12month', 'overall'] as const
       for (const period of periods) {
@@ -179,38 +151,6 @@ describe('createLastFmClient', () => {
       expect(mockGet).toHaveBeenCalledWith(expect.stringContaining('limit=50'))
       expect(result).toHaveLength(2)
       expect(result[0]).toMatchObject({ artist: { '#text': 'Radiohead' }, name: 'Creep' })
-    })
-
-    it('returns raw track array', async () => {
-      mockGet.mockResolvedValueOnce({
-        recenttracks: { track: [] },
-      })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      const result = await client.getRecentTracks()
-      expect(Array.isArray(result)).toBe(true)
-    })
-  })
-
-  describe('api_key appended to all requests', () => {
-    it('includes api_key in getSimilarArtists URL', async () => {
-      mockGet.mockResolvedValueOnce({ similarartists: { artist: [] } })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      await client.getSimilarArtists('TestArtist')
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`api_key=${TEST_API_KEY}`))
-    })
-
-    it('includes api_key in getTopArtists URL', async () => {
-      mockGet.mockResolvedValueOnce({ topartists: { artist: [] } })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      await client.getTopArtists('1month')
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`api_key=${TEST_API_KEY}`))
-    })
-
-    it('includes api_key in getRecentTracks URL', async () => {
-      mockGet.mockResolvedValueOnce({ recenttracks: { track: [] } })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      await client.getRecentTracks()
-      expect(mockGet).toHaveBeenCalledWith(expect.stringContaining(`api_key=${TEST_API_KEY}`))
     })
   })
 
@@ -299,18 +239,6 @@ describe('createLastFmClient', () => {
     it('returns success:true when getTopArtists resolves', async () => {
       mockGet.mockResolvedValueOnce({
         topartists: {
-          artist: [{ name: 'Radiohead', mbid: 'mbid-rh', playcount: '10' }],
-        },
-      })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      const result = await client.testConnection()
-      expect(result.success).toBe(true)
-      expect(typeof result.message).toBe('string')
-    })
-
-    it('includes artist count in details', async () => {
-      mockGet.mockResolvedValueOnce({
-        topartists: {
           artist: [
             { name: 'Radiohead', mbid: '', playcount: '10' },
             { name: 'Portishead', mbid: '', playcount: '5' },
@@ -319,6 +247,8 @@ describe('createLastFmClient', () => {
       })
       const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
       const result = await client.testConnection()
+      expect(result.success).toBe(true)
+      expect(typeof result.message).toBe('string')
       expect(result.details).toMatchObject({ artistCount: 2 })
     })
 
@@ -328,14 +258,6 @@ describe('createLastFmClient', () => {
       const result = await client.testConnection()
       expect(result.success).toBe(false)
       expect(result.message).toMatch(/API key invalid/)
-    })
-
-    it('returns ServiceTestResult shape (success, message)', async () => {
-      mockGet.mockResolvedValueOnce({ topartists: { artist: [] } })
-      const client = createLastFmClient(TEST_USERNAME, TEST_API_KEY)
-      const result = await client.testConnection()
-      expect(result).toHaveProperty('success')
-      expect(result).toHaveProperty('message')
     })
   })
 

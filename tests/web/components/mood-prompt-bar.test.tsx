@@ -5,11 +5,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { MoodPromptBar } from '@/web/components/mood-prompt-bar'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 vi.mock('@/web/lib/api', () => ({
   moodDiscover: vi.fn(),

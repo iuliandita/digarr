@@ -1,22 +1,21 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PlaylistSchedulingToggle } from '@/web/components/playlist-scheduling-toggle'
 import { getAuthStatus, updateSettings } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { createTestQueryClient } from '../helpers/query'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 vi.mock('sonner', () => ({ toast: { error: vi.fn(), success: vi.fn() } }))
 vi.mock('@/web/lib/api', () => ({ getAuthStatus: vi.fn(), updateSettings: vi.fn() }))
 
 function renderToggle(enabled: boolean, nextRun: string | null = null) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   return render(
     <QueryClientProvider client={client}>
       <I18nProvider>

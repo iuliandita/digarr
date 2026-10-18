@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -11,10 +11,9 @@ import {
   resolveApprovalRequest,
 } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { createTestQueryClient } from '../helpers/query'
 
-vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn(), info: vi.fn() },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 vi.mock('@/web/lib/api', () => ({
   listApprovalRequests: vi.fn(),
   listOwnApprovalRequests: vi.fn(),
@@ -39,7 +38,7 @@ const request: ApprovalRequest = {
 }
 
 function mount(admin = false) {
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const client = createTestQueryClient()
   const invalidate = vi.spyOn(client, 'invalidateQueries')
   render(
     <I18nProvider>

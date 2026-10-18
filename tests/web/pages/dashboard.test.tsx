@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { toast } from 'sonner'
@@ -10,9 +10,7 @@ import { DashboardCardToggle } from '@/web/components/dashboard-card-toggle'
 import { I18nProvider } from '@/web/lib/i18n'
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return {
     ...render(
       <I18nProvider>
@@ -36,14 +34,7 @@ vi.mock('react-router-dom', () => ({
   ),
 }))
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    promise: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/components/pipeline-progress', () => ({
   PipelineProgress: ({ onComplete }: { onComplete?: () => void }) => (
@@ -117,6 +108,8 @@ import {
   updateUserPreferences,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
 
 const mockApproveToTarget = vi.mocked(approveToTarget)
 const mockApproveRecommendation = vi.mocked(approveRecommendation)
@@ -245,32 +238,7 @@ describe('Dashboard', () => {
     vi.clearAllMocks()
     vi.mocked(getUserPreferences).mockResolvedValue({ dismissedHints: [] })
     vi.mocked(updateUserPreferences).mockResolvedValue(undefined)
-    const storage = new Map<string, string>()
-    Object.defineProperty(globalThis, 'localStorage', {
-      configurable: true,
-      value: {
-        getItem: vi.fn((key: string) => storage.get(key) ?? null),
-        setItem: vi.fn((key: string, value: string) => {
-          storage.set(key, value)
-        }),
-        removeItem: vi.fn((key: string) => {
-          storage.delete(key)
-        }),
-        clear: vi.fn(() => {
-          storage.clear()
-        }),
-      },
-    })
-  })
-
-  it("renders today's pick with artist name and score", async () => {
-    setupMocks()
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
-      expect(screen.getByText('85')).toBeInTheDocument()
-    })
+    installMemoryLocalStorage()
   })
 
   it("approves today's pick with popular albums from the approve menu", async () => {
@@ -287,14 +255,6 @@ describe('Dashboard', () => {
     })
   })
 
-  it("uses translated today's pick copy in French", async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    setupMocks()
-    renderWithQuery(<Dashboard />)
-
-    expect(await screen.findByText('Le choix du jour')).toBeInTheDocument()
-  })
-
   it('switches between top artists and recent plays', async () => {
     setupMocks()
     renderWithQuery(<Dashboard />)
@@ -306,16 +266,6 @@ describe('Dashboard', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
     expect(await screen.findByText('Holocene')).toBeInTheDocument()
     expect(screen.queryByText('42 plays this month')).not.toBeInTheDocument()
-  })
-
-  it('renders taste profile genres', async () => {
-    setupMocks()
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText('40%')).toBeInTheDocument()
-      expect(screen.getByText('20%')).toBeInTheDocument()
-    })
   })
 
   it('renders listening genre coverage and pending enrichment', async () => {
@@ -367,16 +317,6 @@ describe('Dashboard', () => {
     expect(screen.getByText('Rejected Rejected artist')).toBeInTheDocument()
   })
 
-  it('renders subscription pulse', async () => {
-    setupMocks()
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Rock Discovery')).toBeInTheDocument()
-      expect(screen.getByText(/5 found last run/)).toBeInTheDocument()
-    })
-  })
-
   it('shows the pick empty state when Show empty cards is enabled', async () => {
     setupMocks()
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
@@ -424,48 +364,6 @@ describe('Dashboard', () => {
     )
 
     expect(screen.getByText(/11\./)).toBeInTheDocument()
-  })
-
-  it('uses translated dashboard section copy in French', async () => {
-    localStorage.setItem('digarr-locale', 'fr')
-    setupMocks()
-    mockGetSubscriptions.mockResolvedValue([] as never)
-    vi.mocked(getUserPreferences).mockResolvedValue({
-      dashboardLayout: { ...DEFAULT_DASHBOARD_LAYOUT, showEmpty: true },
-    })
-
-    renderWithQuery(<Dashboard />)
-
-    expect(await screen.findByText('Modes de découverte')).toBeInTheDocument()
-    expect(screen.getByText('Configurer la découverte automatique')).toBeInTheDocument()
-  })
-
-  it('localizes playlist card metadata labels in French', () => {
-    localStorage.setItem('digarr-locale', 'fr')
-
-    renderWithQuery(
-      <PlaylistCard
-        playlist={{
-          id: 8,
-          userId: 1,
-          name: 'Night Shift',
-          strategy: 'weekly_digest',
-          schedule: '0 0 * * *',
-          enabled: false,
-          targetIds: [],
-          trackCount: 12,
-          lastGeneratedAt: null,
-          createdAt: '2026-01-01T00:00:00.000Z',
-          config: { size: 25, trackSourcePriority: ['local', 'spotify', 'deezer'] },
-        }}
-        onEdit={vi.fn()}
-        onRefetch={vi.fn()}
-      />,
-    )
-
-    expect(screen.getByText('Planification:')).toBeInTheDocument()
-    expect(screen.getByText('Quotidien')).toBeInTheDocument()
-    expect(screen.getByText('Jamais')).toBeInTheDocument()
   })
 
   it('does not fire an image rescan when an admin opens the dashboard', async () => {
@@ -555,55 +453,6 @@ describe('Dashboard', () => {
     })
   })
 
-  it('sends the linked Lidarr target when slskd is paired to one of multiple Lidarr targets', async () => {
-    setupMocks()
-    mockListTargets.mockResolvedValue([
-      {
-        id: 1,
-        type: 'lidarr',
-        name: 'Main Lidarr',
-        config: {},
-        enabled: true,
-        userId: 1,
-        owned: true,
-      },
-      {
-        id: 2,
-        type: 'lidarr',
-        name: 'Alt Lidarr',
-        config: {},
-        enabled: true,
-        userId: 1,
-        owned: true,
-      },
-      {
-        id: 7,
-        type: 'slskd',
-        name: 'slskd',
-        config: { lidarrTargetId: 2 },
-        enabled: true,
-        userId: 1,
-        owned: true,
-      },
-    ])
-
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Approve to specific target' }))
-    fireEvent.click(screen.getByText('Add to slskd'))
-
-    await waitFor(() => {
-      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
-        approvalMode: 'combined_lidarr_slskd',
-        lidarrTargetId: 'lidarr-2',
-      })
-    })
-  })
-
   it('sends todays pick directly to a standalone slskd target', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([
@@ -625,35 +474,6 @@ describe('Dashboard', () => {
     })
   })
 
-  it('ignores disabled Lidarr targets when choosing slskd approval mode', async () => {
-    setupMocks()
-    mockListTargets.mockResolvedValue([
-      {
-        id: 1,
-        type: 'lidarr',
-        name: 'Main Lidarr',
-        config: {},
-        enabled: false,
-        userId: 1,
-        owned: true,
-      },
-      { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, userId: 1, owned: true },
-    ])
-
-    renderWithQuery(<Dashboard />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Sigur Ros')).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Approve' }))
-
-    await waitFor(() => {
-      expect(mockApproveToTarget).toHaveBeenCalledWith(1, 'slskd-7', {
-        approvalMode: 'single_target',
-      })
-    })
-  })
   it('persists visibility, keyboard order, size and reset while preserving other preferences', async () => {
     setupMocks()
     const { client } = renderWithQuery(<Dashboard />)

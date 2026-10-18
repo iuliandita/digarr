@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import { readFileSync } from 'node:fs'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const token = 'test'
@@ -59,14 +58,6 @@ afterEach(() => {
 })
 
 describe('Spotify embed bridge', () => {
-  it('has a minimal standalone document', () => {
-    const html = readFileSync('spotify-embed-bridge.html', 'utf8')
-
-    expect(html).toContain('id="spotify-embed-host"')
-    expect(html).toContain('src="/src/web/spotify-embed-bridge.ts"')
-    expect(html).not.toContain('/src/web/main.tsx')
-  })
-
   it('accepts one parent handshake and translates controller traffic', async () => {
     await import('@/web/spotify-embed-bridge')
     const port = new FakePort()

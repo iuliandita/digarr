@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -8,17 +8,12 @@ import { DEFAULT_DASHBOARD_LAYOUT } from '@/core/dashboard-layout'
 import { getRecentTracks, getTopArtists, getUserPreferences } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getRequestLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 function renderWithQuery(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
   return {
     ...render(
       <QueryClientProvider client={client}>
@@ -38,14 +33,7 @@ vi.mock('react-router-dom', () => ({
   ),
 }))
 
-vi.mock('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-    info: vi.fn(),
-    promise: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/lib/api', () => ({
   getRecommendations: vi.fn(async () => ({ items: [], total: 0 })),
@@ -90,6 +78,7 @@ vi.mock('@/web/lib/hooks', () => ({
 }))
 
 import { Dashboard } from '@/web/pages/dashboard'
+import { createTestQueryClient } from '../helpers/query'
 
 function mockCachedListeningRows() {
   vi.mocked(getTopArtists).mockResolvedValue({

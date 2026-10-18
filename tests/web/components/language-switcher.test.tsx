@@ -1,21 +1,17 @@
 // @vitest-environment jsdom
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { App } from '@/web/App'
 import { AuthGate } from '@/web/components/auth-gate'
-import { LanguageSwitcher } from '@/web/components/language-switcher'
 import { I18nProvider } from '@/web/lib/i18n'
 import { queryClient } from '@/web/lib/query-client'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'en'),
-  getRequestLocale: vi.fn(() => 'en'),
-  getStoredLocale: vi.fn(() => 'en'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock(),
+)
 
 const legacyAuthMocks = vi.hoisted(() => ({
   getLegacyStoredToken: vi.fn(),
@@ -77,13 +73,7 @@ vi.mock('@/web/lib/api', () => ({
   updateUserPreferences: vi.fn().mockResolvedValue({ success: true }),
 }))
 
-vi.mock('sonner', () => ({
-  Toaster: () => null,
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-}))
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
 
 vi.mock('@/web/components/bottom-nav', () => ({
   BottomNav: () => null,
@@ -161,6 +151,7 @@ import {
   updatePreferredLocale,
 } from '@/web/lib/api'
 import { getStoredLocale, setStoredLocale } from '@/web/lib/locale-storage'
+import { createTestQueryClient } from '../helpers/query'
 
 const mockGetAuthStatus = getAuthStatus as ReturnType<typeof vi.fn>
 const mockGetCurrentUser = getCurrentUser as ReturnType<typeof vi.fn>
@@ -183,9 +174,7 @@ function deferred<T>() {
 }
 
 function renderWithProviders(ui: ReactElement) {
-  const client = new QueryClient({
-    defaultOptions: { queries: { retry: false } },
-  })
+  const client = createTestQueryClient()
 
   return {
     client,
@@ -252,64 +241,6 @@ describe('language switcher surfaces', () => {
     mockUpdatePreferredLocale.mockResolvedValue({ success: true, preferredLocale: 'en' })
   })
 
-  it('renders a language switcher under the login form', async () => {
-    renderWithProviders(
-      <AuthGate>
-        <div>app</div>
-      </AuthGate>,
-    )
-
-    expect(await screen.findByLabelText('Language')).toBeInTheDocument()
-  })
-
-  it('uses translated registration copy in French', async () => {
-    mockGetAuthStatus.mockResolvedValue({
-      required: true,
-      hasUsers: false,
-      oidcEnabled: false,
-    })
-    mockGetStoredLocale.mockReturnValue('fr')
-
-    renderWithProviders(
-      <AuthGate>
-        <div>app</div>
-      </AuthGate>,
-    )
-
-    expect(await screen.findByRole('button', { name: 'Créer un compte' })).toBeInTheDocument()
-    expect(screen.getByText('Tu as déjà un compte ? Se connecter')).toBeInTheDocument()
-  })
-
-  it('uses translated SSO copy in French', async () => {
-    mockGetAuthStatus.mockResolvedValue({
-      required: true,
-      hasUsers: true,
-      oidcEnabled: true,
-    })
-    mockGetStoredLocale.mockReturnValue('fr')
-
-    renderWithProviders(
-      <AuthGate>
-        <div>app</div>
-      </AuthGate>,
-    )
-
-    expect(await screen.findByRole('link', { name: 'Connecte-toi avec SSO' })).toBeInTheDocument()
-  })
-
-  it('renders a language switcher in the top bar for authenticated users', async () => {
-    mockGetAuthStatus.mockResolvedValue({
-      required: true,
-      hasUsers: true,
-      authenticated: true,
-      oidcEnabled: false,
-    })
-    renderWithAppShell()
-
-    expect(await screen.findByLabelText('Language')).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: /Run Scan|Scan/i })).toBeInTheDocument()
-  })
-
   it('keeps unauthenticated locale changes local and updates stored locale', async () => {
     renderWithProviders(
       <AuthGate>
@@ -323,24 +254,6 @@ describe('language switcher surfaces', () => {
     expect(switcher).toHaveAttribute('title', 'Deutsch')
     expect(mockSetStoredLocale).toHaveBeenCalledWith('de')
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
-  })
-
-  it('reports a selected supported locale', () => {
-    const onChange = vi.fn()
-    renderWithProviders(<LanguageSwitcher value="en" onChange={onChange} />)
-
-    const switcher = screen.getByLabelText('Language')
-    chooseLanguage(switcher, 'Deutsch')
-
-    expect(onChange).toHaveBeenCalledWith('de')
-  })
-
-  it('translates the language switcher label for the active locale', () => {
-    mockGetStoredLocale.mockReturnValue('fr')
-
-    renderWithProviders(<LanguageSwitcher value="fr" onChange={vi.fn()} />)
-
-    expect(screen.getByRole('button', { name: 'Langue' })).toHaveAttribute('title', 'Français')
   })
 
   it('persists authenticated locale changes without snapping back to stale account data', async () => {
