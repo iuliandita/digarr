@@ -486,7 +486,7 @@ export function Dashboard() {
     queryKey: ['dashboard-approved'],
     queryFn: () =>
       getRecommendations({
-        status: 'added_to_lidarr,add_failed,approved',
+        status: 'added_to_lidarr,add_failed,approved,waiting',
         sort: 'acted_on_desc',
         limit: '9',
       }),

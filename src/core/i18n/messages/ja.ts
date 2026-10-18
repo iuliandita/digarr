@@ -31,6 +31,11 @@ export const ja = {
     '「{name}」を取り消しますか？このトークンを使うスクリプトはすぐにアクセスできなくなります。',
   'tokens.readOnlyError': 'このトークンではGETとHEADリクエストのみ使用できます。',
   'tokens.notFoundError': 'このトークンが見つかりません。',
+  'notification.approvalFailed': '{0} の Lidarr への承認は24時間以内に完了しませんでした: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr を待機中',
+  'recommendation.nextRetry': '次の再試行: {0}',
+  'settings.channels.eventApprovalFailed': '承認に失敗',
+
   'settings.monitorMissing': '未取得のアルバム',
   'settings.monitorExisting': '取得済みのアルバム',
   'settings.monitorLatest': '最新のアルバム',

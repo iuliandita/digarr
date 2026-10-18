@@ -94,7 +94,7 @@ function getStoredViewMode(): ViewMode {
 const STATUS_PARAM: Record<FilterTab, string | undefined> = {
   all: undefined,
   pending: 'pending',
-  approved: 'added_to_lidarr,add_failed,approved',
+  approved: 'added_to_lidarr,add_failed,approved,waiting',
   rejected: 'rejected',
 }
 
@@ -716,7 +716,7 @@ export function DiscoverPage() {
   const { data: approvedCountData } = useQuery({
     queryKey: ['recommendations', 'count', 'approved'],
     queryFn: () =>
-      getRecommendations({ status: 'added_to_lidarr,add_failed,approved', limit: '1' }),
+      getRecommendations({ status: 'added_to_lidarr,add_failed,approved,waiting', limit: '1' }),
   })
   const { data: rejectedCountData } = useQuery({
     queryKey: ['recommendations', 'count', 'rejected'],

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reportApprovalOutcome } from '@/web/lib/approval'
 
 vi.mock('sonner', () => ({
-  toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+  toast: { info: vi.fn(), success: vi.fn(), error: vi.fn(), warning: vi.fn() },
 }))
 
 const { toast } = await import('sonner')
@@ -81,4 +81,17 @@ describe('reportApprovalOutcome', () => {
   it('returns true for a plain approve with no targets', () => {
     expect(reportApprovalOutcome({ status: 'approved' }, t)).toBe(true)
   })
+})
+
+it('reports deferred approval as waiting without a failure or success toast', () => {
+  vi.clearAllMocks()
+  expect(
+    reportApprovalOutcome(
+      { status: 'waiting', targetSummary: { total: 1, succeeded: 0, failed: 0, failures: [] } },
+      t,
+    ),
+  ).toBe(false)
+  expect(toast.info).toHaveBeenCalledWith('recommendation.waitingForLidarr')
+  expect(toast.error).not.toHaveBeenCalled()
+  expect(toast.success).not.toHaveBeenCalled()
 })
