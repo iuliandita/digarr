@@ -1,23 +1,34 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect } from 'react'
+import { lazy, Suspense, useEffect } from 'react'
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { AdministrationTab } from '../../components/admin/administration-tab'
 import { OAuthCallbackNotice } from '../../components/oauth-callback-notice'
 import { Button } from '../../components/ui/button'
 import { PageHeader } from '../../components/ui/page-header'
 import { Skeleton } from '../../components/ui/skeleton'
 import { getCurrentUser, getSettings } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
-import { UserManagementPage } from '../user-management'
-import { AccountTab } from './account-tab'
-import { AuthTab } from './auth-tab'
-import { ConnectionsTab } from './connections-tab'
-import { RecommendationsTab } from './recommendations-tab'
-import { ScheduleTab } from './schedule-tab'
 import { SettingsNav } from './settings-nav'
-import { SystemTab } from './system-tab'
 import { LEGACY_BLOCKED_TAB, resolveTab, type Tab } from './tabs'
-import { TargetsTab } from './targets-tab'
+
+const AdministrationTab = lazy(() =>
+  import('../../components/admin/administration-tab').then((m) => ({
+    default: m.AdministrationTab,
+  })),
+)
+const UserManagementPage = lazy(() =>
+  import('../user-management').then((m) => ({ default: m.UserManagementPage })),
+)
+const AccountTab = lazy(() => import('./account-tab').then((m) => ({ default: m.AccountTab })))
+const AuthTab = lazy(() => import('./auth-tab').then((m) => ({ default: m.AuthTab })))
+const ConnectionsTab = lazy(() =>
+  import('./connections-tab').then((m) => ({ default: m.ConnectionsTab })),
+)
+const RecommendationsTab = lazy(() =>
+  import('./recommendations-tab').then((m) => ({ default: m.RecommendationsTab })),
+)
+const ScheduleTab = lazy(() => import('./schedule-tab').then((m) => ({ default: m.ScheduleTab })))
+const SystemTab = lazy(() => import('./system-tab').then((m) => ({ default: m.SystemTab })))
+const TargetsTab = lazy(() => import('./targets-tab').then((m) => ({ default: m.TargetsTab })))
 
 function SettingsSkeleton() {
   return (
@@ -120,17 +131,19 @@ export function SettingsPage() {
       <div className="grid gap-6 md:grid-cols-[13.75rem_minmax(0,1fr)]">
         <SettingsNav active={tab} onChange={handleTabChange} isAdmin={isAdmin} />
         <div className="min-w-0 space-y-6">
-          {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
-          {tab === 'targets' && <TargetsTab />}
-          {tab === 'recommendations' && <RecommendationsTab />}
-          {tab === 'schedule' && (
-            <ScheduleTab settings={data} onSaved={refetch} isAdmin={isAdmin} />
-          )}
-          {tab === 'account' && <AccountTab />}
-          {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
-          {tab === 'users' && <UserManagementPage embedded />}
-          {tab === 'administration' && <AdministrationTab />}
-          {tab === 'system' && <SystemTab />}
+          <Suspense fallback={<Skeleton className="h-40 w-full rounded-surface" />}>
+            {tab === 'connections' && <ConnectionsTab settings={data} onSaved={refetch} />}
+            {tab === 'targets' && <TargetsTab />}
+            {tab === 'recommendations' && <RecommendationsTab />}
+            {tab === 'schedule' && (
+              <ScheduleTab settings={data} onSaved={refetch} isAdmin={isAdmin} />
+            )}
+            {tab === 'account' && <AccountTab />}
+            {tab === 'auth' && <AuthTab settings={data} onSaved={refetch} />}
+            {tab === 'users' && <UserManagementPage embedded />}
+            {tab === 'administration' && <AdministrationTab />}
+            {tab === 'system' && <SystemTab />}
+          </Suspense>
         </div>
       </div>
     </div>

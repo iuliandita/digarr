@@ -113,6 +113,14 @@ afterEach(() => {
 })
 
 describe('useAuditionQueue', () => {
+  it('returns the same object across re-renders that change nothing', () => {
+    const fake = createFakePreview()
+    const { result, rerender } = renderQueue(fake)
+    const first = result.current
+    rerender({ preview: fake })
+    expect(result.current).toBe(first)
+  })
+
   it('retains every unavailable item after the queue ends and can dismiss the summary', async () => {
     const fake = createFakePreview({
       a: { outcome: 'no-source' },

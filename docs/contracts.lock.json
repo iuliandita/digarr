@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -369,7 +372,7 @@
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
-        "src/web/App.tsx": "d8e25abb6741a7e33769c9fef24fb233d3c5f6d16c82105c982a96e97023ffb9",
+        "src/web/App.tsx": "81b8517deaef8853b18fd87803c45598bb43f756294f7c02b24ae6b67342df7f",
         "src/web/components/admin/administration-tab.tsx": "6af6a3773aa3d669a89a520aa636eb185ec86d8bbabaafda66f6609e58092fa7",
         "src/web/components/admin/backup-section.tsx": "aac1e33dbc5c1e98e79e519560c50d253823c00c2bca497b4f9b7e8675374ee6",
         "src/web/components/admin/hygiene-section.tsx": "a02f8318469d01b51202b9537a5d40f7694496824cedb1a42f9bd294e8fd9b28",
@@ -454,7 +457,7 @@
         "src/web/components/ui/select.tsx": "d1bf3a859cf27e8ef45e86731bddecd984994c1265794bec9f1bef394726f833",
         "src/web/components/ui/skeleton.tsx": "1d33366a895e482264f4fa13030ef65269396d281554c46a31d356137e3ef11e",
         "src/web/components/user-approval-policy.tsx": "cc359a7cf8e19ef2dc2047eb61089d9ddd4105c51bb6407f9d72f192d8c8528b",
-        "src/web/hooks/use-audition-queue.ts": "f546b67ce9f458a8bc2418e173a99acfbd37efa5ce33308b968a2ec366dc60fe",
+        "src/web/hooks/use-audition-queue.ts": "3c092ab394ac26bcf1c73cc04482a0fd38019bf35e7ef566d9456a181e8dd564",
         "src/web/hooks/use-click-outside.ts": "4b5d69046fdd1307242e0560e7367f1e9647660cd3ca2dcb8becff9315765621",
         "src/web/hooks/use-dashboard-layout.ts": "05c162361785554bff1afd9adf04b5886331c47cf3744df0dadb12f9ffa12e60",
         "src/web/hooks/use-dialog-focus.ts": "22fa8ad597dec3cfa38c35c061688e86a60348e5ecfb8f1bdede3009a00b532e",
@@ -507,7 +510,7 @@
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
         "src/web/pages/settings/connection-picker.tsx": "49360515b4df1d7ffb5b9b6c0affd640727cdcddcf4c364098b6a8f01a782e4e",
         "src/web/pages/settings/connections-tab.tsx": "6d0c1bea1a8588a5c3b98d8b697faedaff08e480138f4b5d505e16400dd6322e",
-        "src/web/pages/settings/index.tsx": "cf82d5aa1fee27fbb1afafd6742f0131bf04b88c664fd92382bd8180901085e4",
+        "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
         "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
         "src/web/pages/settings/recommendations-tab.tsx": "a05f52b26f1429997ab501cdf8cffa0a10dc181c04bd7e376b8478cbec2fac5b",
@@ -524,14 +527,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946",
+      "digest": "a80b2bfe9e241f36838f26a4438de6e909af5682c1a771b42fab97fe575b6bba",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Settings tabs and the setup wizard load as lazy chunks and the preview context value is memoized; screens, routes and ?tab= links are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946"
+        "digest": "a80b2bfe9e241f36838f26a4438de6e909af5682c1a771b42fab97fe575b6bba"
       }
     },
     "features": {
@@ -797,7 +800,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",

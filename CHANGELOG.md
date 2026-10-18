@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- Settings tabs and the setup wizard load on demand, so the main web bundle is smaller (the Settings chunk went from 217 kB to 9 kB), and the audio preview context no longer re-renders every consumer on each app update (#1098).
+
 ### Fixed
 
 - The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
