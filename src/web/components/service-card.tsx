@@ -24,6 +24,8 @@ export type ServiceCardProps = {
   icon?: React.ReactNode
   /** Shown in the collapsed row, for notices that must stay visible (e.g. Experimental). */
   badge?: React.ReactNode
+  onRemove?: () => void
+  removing?: boolean
   onTest?: () => void
   /** Fires on any field change inside the panel, so callers can drop stale test results. */
   onEdit?: () => void
@@ -64,6 +66,8 @@ export function ServiceCard({
   icon,
   badge,
   onTest,
+  onRemove,
+  removing,
   onEdit,
   defaultOpen = false,
   children,
@@ -105,6 +109,11 @@ export function ServiceCard({
       >
         {description && <p className="text-body text-muted">{description}</p>}
         {children}
+        {onRemove && (
+          <Button variant="outline" size="sm" onClick={onRemove} disabled={removing}>
+            {t('settings.disconnect')}
+          </Button>
+        )}
         {onTest && (
           <Button variant="outline" size="sm" onClick={onTest} disabled={status === 'testing'}>
             {t('serviceCard.testConnection')}

@@ -398,7 +398,7 @@ Without a qualifying Spotify app, use Plex, Jellyfin, Emby, Subsonic, Last.fm, o
    ```
 
    Spotify does not accept `localhost` redirect URIs. For local HTTP use `http://127.0.0.1:3000/api/v1/auth/oauth/spotify/callback`, open Digarr at `http://127.0.0.1:3000`, and set `ALLOWED_ORIGIN` to that same origin. For a remote instance, use its public HTTPS URL, such as `https://digarr.example.com/api/v1/auth/oauth/spotify/callback`. See [Spotify redirect URI requirements](https://developer.spotify.com/documentation/web-api/concepts/redirect_uri).
-3. In Digarr, open **Settings > Connections > Your connections > Spotify**, paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
+3. In Digarr, open **Settings > Connections > Add connection > Spotify** (or expand the saved Spotify row), paste your **Client ID** and **Client Secret**, then click **Connect with Spotify**. The connect form shows the exact Redirect URI to register (with a copy button), so you can match it without guessing.
 
 Spotify playlist imports use the current items endpoint, which Spotify restricts to playlists owned by the connected user or playlists they collaborate on. A `403` fails the subscription run; reconnecting does not grant playlist ownership. See [pagination and artist limits](API.md#subscriptions) and [Spotify's endpoint reference](https://developer.spotify.com/documentation/web-api/reference/get-playlists-items).
 
@@ -417,8 +417,8 @@ TIDAL uses a single app registered by an admin, which every user then authorizes
 
    Digarr builds this URI from `ALLOWED_ORIGIN`, not from the URL your browser happens to be on. Set `ALLOWED_ORIGIN` first, then register exactly the URI it produces - a mismatched scheme or a trailing slash makes TIDAL reject the authorization with no useful error. Production requires `ALLOWED_ORIGIN`. Without it, only non-production loopback callback URLs are accepted.
 
-2. The admin pastes the **Client ID** and **Client Secret** into **Settings > Connections > TIDAL app** (the same credentials that power experimental TIDAL search).
-3. Each user then opens **Settings > Connections > Your connections > TIDAL** and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
+2. The admin opens **Settings > Connections > Add connection**, enables **Show experimental integrations** at the bottom, selects **TIDAL app** in the server group, and pastes the **Client ID** and **Client Secret** (the same credentials that power experimental TIDAL search).
+3. Each user then selects **Settings > Connections > Add connection > TIDAL** (or expands the saved TIDAL row) and clicks **Connect TIDAL**. The flow is Authorization Code + PKCE and requests the `user.read` and `collection.read` scopes, which grant read-only access to your TIDAL collection.
 
 Once connected, the **TIDAL Favorite Artists** discovery mode seeds recommendations from the artists in your collection. TIDAL's public API exposes no separate followed-artists list, so favorites are the only user-artist signal.
 
@@ -445,7 +445,7 @@ Deezer connection requires your own working app credentials; Digarr does not reg
 
 1. Register the callback `<ALLOWED_ORIGIN>/api/v1/auth/oauth/deezer/callback` with your app, using the exact public origin.
 2. Set `DEEZER_APP_ID` and `DEEZER_APP_SECRET` in the deployment environment and restart Digarr. These are deployment-wide credentials, not fields accepted from the browser.
-3. Each user opens **Settings > Connections > Your connections > Deezer** and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
+3. Each user opens **Settings > Connections > Add connection > Deezer** (or expands the saved Deezer row) and selects **Connect Deezer**. Authorization requests `basic_access,email,listening_history`.
 
 Deezer has no refresh-token flow in Digarr. Reconnect if its stored token becomes unusable. Flow discovery and favorites/followed-artist/playlist subscription feeds depend on this connection. Missing connections, token-resolution failures and provider error responses record failed subscription runs with Settings/reconnect guidance instead of successful empty feeds. The subscription row refreshes its saved error after a failed manual run; genuine empty feeds remain successful. Check Job History and reconnect in Settings when needed before retrying ([#774](https://github.com/iuliandita/digarr/issues/774)). Playlist feeds collect at most 500 distinct artists across the selected playlists.
 

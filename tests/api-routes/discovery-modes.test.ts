@@ -5,6 +5,7 @@ import {
   DiscoveryModeRegistry,
 } from '@/core/discovery-modes/registry'
 import type { DiscoveryModeDefinition } from '@/core/discovery-modes/types'
+import { DEFAULT_PREFERENCES } from '@/db/schema'
 import { createTestApp } from '../helpers/test-app'
 
 vi.mock('@/core/sessions', () => ({
@@ -38,6 +39,26 @@ function fakeDiscoveryRegistry() {
 }
 
 describe('API routes: discovery modes', () => {
+  it.each([false, true])(
+    'filters experimental modes from every picker (enabled: %s)',
+    async (showExperimentalIntegrations) => {
+      const { app } = createTestApp({
+        discoveryModeRegistry: createDefaultDiscoveryModeRegistry(),
+        getSettings: vi.fn().mockResolvedValue({
+          preferences: { ...DEFAULT_PREFERENCES, showExperimentalIntegrations },
+        }),
+      })
+      const response = await app.request('/api/v1/discovery-modes', {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+      const body = await response.json()
+      expect(body.modes.some((mode: { id: string }) => mode.id === 'tidal-favorite-artists')).toBe(
+        showExperimentalIntegrations,
+      )
+      expect(body.modes.some((mode: { id: string }) => mode.id === 'listenbrainz')).toBe(true)
+    },
+  )
+
   it('returns 401 when unauthenticated', async () => {
     const { app } = createTestApp({
       discoveryModeRegistry: fakeDiscoveryRegistry(),

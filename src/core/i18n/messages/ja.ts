@@ -1099,8 +1099,31 @@ export const ja = {
   'settings.groups.personal': '個人',
   'settings.groups.library': 'ライブラリとサービス',
   'settings.groups.admin': '管理',
-  'settings.globalSettings': 'グローバル設定',
+  'settings.globalSettings': 'サーバー（管理者）',
   'settings.adminOnly': 'グローバル設定を変更できるのは管理者のみです。',
+  'settings.addConnection': '接続を追加',
+  'settings.searchConnections': '接続を検索',
+  'settings.connectionResults': '{0} 件の接続が見つかりました',
+  'settings.noConnectionsFound': '一致する接続はありません。',
+  'settings.showExperimentalIntegrations': '実験的な連携を表示',
+  'settings.experimentalIntegrationsHelp':
+    '接続、検索、ディスカバリーの選択肢に TIDAL と Bandcamp を表示します。非表示にしても既存の接続は動作します。',
+  'settings.picker.listening': '再生履歴',
+  'settings.picker.streaming': 'ストリーミングアカウント',
+  'settings.picker.servers': 'メディアサーバー',
+  'settings.picker.collections': 'コレクション',
+  'settings.picker.listenbrainz': 'よく聴くアーティスト、最近の再生、ラジオによる発見。',
+  'settings.picker.lastfm': 'よく聴くアーティストと最近の再生。Release Radar を有効にします。',
+  'settings.picker.spotify':
+    'フォロー中のアーティスト、保存済みアルバム、プレイリストのインポートとエクスポート。',
+  'settings.picker.deezer': 'Flow、お気に入り、フォロー中のアーティスト、プレイリスト。',
+  'settings.picker.tidal': 'お気に入りのアーティストを好みの基準に使用します。',
+  'settings.picker.jellyfin': 'ライブラリ同期とプレイリストのエクスポート。',
+  'settings.picker.media': '再生履歴、ライブラリ同期、プレイリストのエクスポート。',
+  'settings.picker.subsonic': 'お気に入り、ライブラリ同期、プレイリストのエクスポート。',
+  'settings.picker.discogs': 'コレクションと欲しいものリストを好みの基準に使用します。',
+  'settings.artistImagesPartiallySaved':
+    '画像の設定は保存されましたが、サーバーの画像設定を保存できませんでした。',
   'settings.yourConnections': '接続済みサービス',
   'settings.yourConnectionsDescription': 'アカウントに紐付けられた個人の視聴ソースです。',
   'settings.testConnection': '接続テスト',
@@ -1242,7 +1265,7 @@ export const ja = {
   'settings.libraryDiscoveryHelp':
     'ディスカバリーで既存の Lidarr ライブラリをシードとする割合（視聴履歴との比較）。高いほど所有曲に近いアーティストを発見します。低いほど ListenBrainz/Last.fm データを重視します。',
   'settings.librarySeedRatio': 'ライブラリシード比率',
-  'settings.imageSources': '画像ソース',
+  'settings.imageSources': 'アーティスト画像',
   'settings.imageSourcesHelp':
     'アーティスト画像はまず TheAudioDB から取得され、Lidarr/SkyHook、fanart.tv、musicinfo.pro がフォールバックとして使用されます。',
   'settings.audiodb.apiKey': 'TheAudioDB プレミアム API キー（任意）',
@@ -1250,7 +1273,6 @@ export const ja = {
   'settings.audiodb.proxyImages': '画像を Digarr 経由で配信',
   'settings.audiodb.proxyHint':
     '画像リクエストをこのサーバー経由にすることで、TheAudioDB の CDN から IP アドレスを隠します。',
-  'settings.wikidata.title': 'Wikidata エンリッチメント',
   'settings.wikidata.enabled': 'レコメンデーションカードにアーティストの経歴と外部リンクを表示',
   'artist.noDescription': '説明はありません。',
   'artist.externalLinks.wikipedia': 'Wikipedia',
@@ -1280,8 +1302,6 @@ export const ja = {
     'Lidarr のメタデータサーバーが利用できないときに使用されます。デフォルトは api.musicinfo.pro。セルフホストの場合はインスタンスの URL を設定してください。',
   'settings.recommendationsSaved': 'おすすめの設定を保存しました',
   'settings.recommendationsFailed': '設定の保存に失敗しました',
-  'settings.recommendationsPartiallySaved':
-    '個人設定は保存されましたが、全体のメタデータ設定を保存できませんでした。',
   'settings.scheduleTip':
     'プリセットを選ぶか cron 式を入力すると、ディスカバリーを自動実行します。ほとんどのライブラリには毎日か毎週で十分です。',
   'settings.librarySyncInterval': 'ライブラリ同期',

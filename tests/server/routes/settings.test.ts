@@ -714,44 +714,49 @@ describe('GET /api/v1/settings/plex/sections', () => {
 })
 
 describe('PATCH /api/v1/settings', () => {
-  it.each([true, false])(
-    'saves the global album discovery boolean %s for admins only',
-    async (value) => {
+  it.each([
+    ['netNewAlbumDiscovery', true],
+    ['netNewAlbumDiscovery', false],
+    ['showExperimentalIntegrations', true],
+    ['showExperimentalIntegrations', false],
+  ] as const)('saves the global %s boolean %s for admins only', async (key, value) => {
+    const updateSettings = vi.fn(async () => {})
+    const deps = makeDeps({ updateSettings })
+    const app = createApp(deps)
+    const request = () =>
+      authedRequest(app, '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences: { [key]: value } }),
+      })
+
+    expect((await request()).status).toBe(200)
+    expect(updateSettings).toHaveBeenCalledWith({
+      preferences: { [key]: value },
+    })
+    updateSettings.mockClear()
+    const admin = await deps.getUserById(1)
+    deps.getUserById = vi.fn(async () => (admin ? { ...admin, isAdmin: false } : null))
+    expect((await request()).status).toBe(403)
+    expect(updateSettings).not.toHaveBeenCalled()
+  })
+
+  it.each(['netNewAlbumDiscovery', 'showExperimentalIntegrations'])(
+    'rejects malformed global %s values without saving any settings',
+    async (key) => {
       const updateSettings = vi.fn(async () => {})
-      const deps = makeDeps({ updateSettings })
-      const app = createApp(deps)
-      const request = () =>
-        authedRequest(app, '/api/v1/settings', {
+      const app = createApp(makeDeps({ updateSettings }))
+      for (const value of ['true', 'false', 1, 0, null, [], {}]) {
+        const response = await authedRequest(app, '/api/v1/settings', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value } }),
+          body: JSON.stringify({ preferences: { [key]: value, scoreThreshold: 0.9 } }),
         })
-
-      expect((await request()).status).toBe(200)
-      expect(updateSettings).toHaveBeenCalledWith({
-        preferences: { netNewAlbumDiscovery: value },
-      })
-      updateSettings.mockClear()
-      const admin = await deps.getUserById(1)
-      deps.getUserById = vi.fn(async () => (admin ? { ...admin, isAdmin: false } : null))
-      expect((await request()).status).toBe(403)
+        expect(response.status).toBe(400)
+      }
       expect(updateSettings).not.toHaveBeenCalled()
     },
   )
-
-  it('rejects malformed global album discovery values without saving any settings', async () => {
-    const updateSettings = vi.fn(async () => {})
-    const app = createApp(makeDeps({ updateSettings }))
-    for (const value of ['true', 'false', 1, 0, null, [], {}]) {
-      const response = await authedRequest(app, '/api/v1/settings', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ preferences: { netNewAlbumDiscovery: value, scoreThreshold: 0.9 } }),
-      })
-      expect(response.status).toBe(400)
-    }
-    expect(updateSettings).not.toHaveBeenCalled()
-  })
 
   it.each(['lidarrUrl', 'lidarrApiKey'] as const)(
     'clears reference target tags when %s changes',

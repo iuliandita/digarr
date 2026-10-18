@@ -3,7 +3,7 @@ import { envSettingsOverrides } from '@/config/env'
 import { decryptFields, encryptFields, SENSITIVE_SETTINGS } from '@/core/crypto'
 import type { Database, DbOrTx } from '@/db'
 import type { Preferences } from '@/db/schema'
-import { settings } from '@/db/schema'
+import { DEFAULT_PREFERENCES, oauthTokens, settings } from '@/db/schema'
 
 export type SettingsRow = typeof settings.$inferSelect
 type SettingsPartial = Partial<
@@ -23,6 +23,22 @@ export type SetupConfig = {
   aiModel?: string
   aiBaseUrl?: string
   preferences?: Preferences
+}
+
+export async function initializeExperimentalIntegrations(db: Database): Promise<void> {
+  // Preserve visibility for saved TIDAL integrations only; legacy Bandcamp use
+  // does not opt an installation into experimental integrations.
+  await db
+    .update(settings)
+    .set({
+      preferences: sql`coalesce(${settings.preferences}, '{}'::jsonb) || jsonb_build_object(
+      'showExperimentalIntegrations',
+      nullif(${settings.tidalClientId}, '') is not null
+        or nullif(${settings.tidalClientSecret}, '') is not null
+        or exists (select 1 from ${oauthTokens} where ${oauthTokens.provider} = 'tidal')
+    )`,
+    })
+    .where(sql`${settings.preferences}->'showExperimentalIntegrations' is null`)
 }
 
 export async function getSettings(db: Database): Promise<SettingsRow | null> {
@@ -51,12 +67,23 @@ export async function updateSettings(db: Database, partial: SettingsPartial): Pr
 
 export async function completeSetup(db: DbOrTx, config: SetupConfig): Promise<SettingsRow> {
   const encrypted = encryptFields(config, SENSITIVE_SETTINGS)
+  const initialPreferences = {
+    ...(config.preferences ?? DEFAULT_PREFERENCES),
+    showExperimentalIntegrations: config.preferences?.showExperimentalIntegrations ?? false,
+  }
   const rows = await db
     .insert(settings)
-    .values({ ...encrypted, setupComplete: true, id: 1 })
+    .values({ ...encrypted, preferences: initialPreferences, setupComplete: true, id: 1 })
     .onConflictDoUpdate({
       target: settings.id,
-      set: { ...encrypted, setupComplete: true, updatedAt: new Date() },
+      set: {
+        ...encrypted,
+        preferences: config.preferences
+          ? initialPreferences
+          : sql`jsonb_build_object('showExperimentalIntegrations', false) || coalesce(${settings.preferences}, '{}'::jsonb)`,
+        setupComplete: true,
+        updatedAt: new Date(),
+      },
     })
     .returning()
   const row = rows[0]
