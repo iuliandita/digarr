@@ -6,97 +6,28 @@
 
 ## Current release
 
-v2.0.0 fixes discovery filtering, album coverage and approval, saved playlist exports, setup, and recovery. OIDC identities now use exact issuer/subject pairs; existing SSO installations require verified recovery after migration. v2.0.1 fixes the automatic pre-migration backup for databases one release behind. Read the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) before updating.
+v2.0.1 fixes the automatic pre-migration backup for databases one release behind. v2.0.0 moved OIDC to exact issuer/subject identities; read the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) before updating from v1.19.0. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
 
-Digarr already supports artist and album recommendations, scheduled discovery, playlists, multi-user accounts, and library sync with Lidarr, Plex, Jellyfin, Emby, and Subsonic. The interface and AI discovery output support 15 languages. Next priorities are better recommendations, usable playlists, and clear reports of what reached each target. Security and reliability remain release requirements.
+Known gaps and integration limitations are tracked in [OPERATIONS.md](OPERATIONS.md#known-limitations).
 
-## Shipped highlights
+## Current focus
 
-- Album coverage paginates complete catalogs and excludes secondary release types; Gap-Fill failures retain the selected slice for retry.
-- Quick Discover seeds follow owner-scoped filters; individual, bulk, and automatic album approval retain the recommended release.
-- Saved playlists refresh their bound remote destinations, search connected local libraries, and report unmatched exports without substituting tracks.
-- Per-channel digest positions retain failed delivery windows; complete persistent-state backups reject unsafe partial restores.
-- First-account creation precedes the browser setup wizard; configured admin bootstrap completes before HTTP opens.
-- Settings saves respect user/admin permissions, mask secret-bearing preferences, and retain explicit configuration failures.
-- Exact OIDC issuer/subject matching includes a dry-run recovery helper for verified legacy identities.
-- The pre-migration backup reads only the tables and columns the database already has, so upgrades from the previous release no longer need the backup override.
-- v2.0.0 publishes separate signed Alpine and Debian container inventories with explicit amd64 scope. See the [release assets](https://github.com/iuliandita/digarr/releases/tag/v2.0.0) and [verification instructions](../deploy/docker/README.md#verifying-image-signatures).
+Make recommendations easier to hear and act on before adding more integrations. Security and reliability remain release requirements.
 
-See [v2.0.1](../CHANGELOG.md#v201---2026-10-16) and [v2.0.0](../CHANGELOG.md#v200---2026-10-15) for the full changes and migration requirements.
+1. **First useful listen.** Clearer setup paths for discovery-only and existing-library installs, documented recipes using the existing subscription presets, and human listening review (including niche genres and non-English artist names) before any ranking change.
+2. **Preserve recommended tracks.** Keep the recommended recording through review, playlist generation and export, and show unresolved matches instead of substituting another song by the same artist.
+3. **Explain playlist outcomes.** Show what was submitted, skipped or failed for each target, and tell submitted tracks apart from verified delivery where a target supports it.
+4. **Control exploration and repetition.** Make familiar versus adventurous discovery understandable with existing controls first, then add recently played exclusions where reliable history exists.
 
-## Known integration limitations
+Ranking changes are compared against the [recommendation-quality baseline](RECOMMENDATION-QUALITY.md); more tracks do not prove better recommendations.
 
-The community Unraid template corrections remain pending in [Selfhosters PR #697](https://github.com/selfhosters/unRAID-CA-templates/pull/697). Follow the [Unraid workarounds](guides/unraid.md#step-2-configure-the-container) until the published template is verified. The optional Debian fallback retains upstream HIGH vulnerabilities without an available fix; Alpine remains the default. See [current limitations](OPERATIONS.md#known-limitations).
+## Not planned
 
-TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-artist retrieval have not been tested with a live account. This is an accepted release limitation, with [community testing requested](AUTHENTICATION.md#tidal-feedback). The Experimental badges stay until these flows are verified.
+These keep coming up. They are out of scope unless something fundamental changes.
 
-## Release history
-
-[CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
-
-## Unreleased
-
-On `develop` and the `:nightly` image, not yet in a release. Some changes alter behavior on upgrade (strict boolean environment values, recommendation ownership migration, problem+json errors, playlist schedules); read the [CHANGELOG](../CHANGELOG.md#unreleased) before running nightly.
-
-- Multi-user scoping and secret-handling fixes: account and user listings no longer return connection secrets, and secrets saved before `DIGARR_ENCRYPTION_KEY` was set are encrypted at startup once a key is configured.
-- Personal API tokens with read, write, or admin scope, and a built-in [MCP endpoint](MCP.md) for recommendations, approvals, scans, discovery modes, and playlists.
-- Optional [AudioMuse-AI audio similarity](OPERATIONS.md#audiomuse-ai-audio-similarity), experimental and checked against v3.6.4 source/fixtures without a live instance. Existing metadata discovery stays independent.
-- Shared instances can use admin-managed approval requests, trusted score thresholds, request limits, decision notes, and opt-in outcome notifications (#980). Direct approval remains the default.
-- Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
-- Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
-- Customizable dashboard (#995): account-saved card visibility, order, size, source-page switches, merged decision and listening views, and reset.
-- Import artists from M3U, M3U8 and XSPF playlist files alongside CSV.
-- Lidarr approvals wait and retry through temporary Lidarr outages, offer more monitoring options, and can apply default tags per target.
-- slskd searches are spaced and back off when slskd is busy; a missing Lidarr download path is reported before any download starts.
-- Refreshed interface and navigation: Discovery Modes on one page with run and schedule together, a Connections picker, and a combined Library page.
-
-## Next priorities
-
-Planned direction, in this order. Make recommendations easier to hear and use before adding more integrations.
-
-1. **First useful listen.** Make discovery-only and existing-library setup paths clearer, document recipes using existing subscription presets, and evaluate setup friction and the shipped Audition failure explanations. Extend the replayable recommendation-quality baseline with human listening review, including niche genres and non-English artist names, before changing ranking.
-2. **Preserve recommended tracks.** Start with one recording-aware source and retain the recommended recording through review, playlist generation, and export. Show unresolved matches instead of silently substituting another song by the artist. Artist and album approval remain available.
-3. **Explain playlist outcomes.** Build on the shipped local per-artist generation outcomes to show submitted items, partial output, and failures for each target. Distinguish submitted tracks from verified delivery when a target supports verification. Strict local-generation matching and complete-release import checks remain required. Media-server exports now reject unmatched search results and report skipped counts in Job History; per-target reports in playlist details and read-back verification remain future work.
-4. **Control exploration and repetition.** Make familiar versus adventurous discovery understandable using existing controls first. Add recently played track exclusions where reliable history is available, with an explicit history window and missing-data behavior. Recording-level exclusions depend on preserving track identities; permanent blocks still take precedence.
-
-Delivery reports can improve while preserving track identities. Compare ranking and repetition changes with the baseline; more tracks do not prove better recommendations.
-
-## Exploring
-
-These need a feasibility and usefulness evaluation before a feature commitment.
-
-- Optional playback feedback from supported servers, with trustworthy track identity and a clear distinction between a deliberate skip and a playback failure.
-- Evaluate recommendation quality and live-library behavior of the optional AudioMuse-AI source before removing its Experimental label.
-- Continuously refreshed discovery queues in existing music clients, after track identity and history-aware selection are established. Target capabilities determine feasibility.
-
-## Future
-
-Good ideas with no timeline yet.
-
-- Additional graph-based discovery modes
-- Odesli / song.link resolution, when it improves listening or matching
-- Apple Music / iTunes metadata enrichment
-- Taste DNA / shareable profile
-- Browsable API reference on top of the OpenAPI document, which covers part of the API today
-- Artist detail page with richer biographies
-- Local artwork and metadata cache for missing images and slow upstream sources
-
-## Experiments
-
-Low confidence. Would build only with real demand.
-
-- Festival lineup scanner
-- Blended household discovery / party mode
-- Listening-history time analysis beyond recent-play exclusions
-- Human-curated subscription sources
-- Beatport discovery (electronic music)
-- Social / collaborative discovery
-- Advanced analytics export
-- Navidrome WASM plugin
-- TUI client (terminal UI for discovery and approval)
-- Native desktop client (Linux/Mac/Windows) - PWA install already covers most of this
-- Native mobile apps (Android/iOS) - PWA is already installable; native value is mostly reliable push notifications
-
-## Recommendation evaluation
-
-The [evaluation guide](RECOMMENDATION-QUALITY.md) describes production-prompt cases and replayable contract reports. Recommendation fit, catalog identity, previews, and delivery still need separate human and end-to-end evaluation before ranking changes.
+- A built-in music player. Digarr is the discovery layer in front of your player and media server; previews cover auditioning.
+- Its own downloader, tagger or audio analyzer. Acquisition stays with Lidarr and slskd, and audio similarity comes from optional external services such as AudioMuse-AI.
+- More acquisition targets (Prowlarr, yt-dlp, Qobuz or TIDAL downloaders). Lidarr and slskd are the acquisition boundary.
+- Apple Music or Qobuz as sources: no usable official API access for this project.
+- Spotify browser-cookie authentication as a way around Spotify's app limits.
+- Sending rejects or blocks to scrobblers as dislikes. They stay local.
