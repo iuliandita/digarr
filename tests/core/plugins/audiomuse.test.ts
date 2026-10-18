@@ -123,6 +123,7 @@ describe('AudioMuse discovery source', () => {
         return Response.json([
           { artist: 'OWNED', divergence: 0 },
           { artist: 'BLOCKED', divergence: 0 },
+          { artist: '(Unknown)', divergence: 0 },
           { artist: 'Shared', divergence: 0.1 },
           ...Array.from({ length: 20 }, (_, i) => ({
             artist: `${seed} match ${i}`,
@@ -151,7 +152,9 @@ describe('AudioMuse discovery source', () => {
     )
     expect(discovered).toHaveLength(AUDIOMUSE_MAX_CANDIDATES)
     expect(new Set(discovered.map((artist) => artist.name)).size).toBe(AUDIOMUSE_MAX_CANDIDATES)
-    expect(discovered.some((artist) => ['OWNED', 'BLOCKED'].includes(artist.name))).toBe(false)
+    expect(
+      discovered.some((artist) => ['OWNED', 'BLOCKED', '(Unknown)'].includes(artist.name)),
+    ).toBe(false)
     const searchArtist = vi.fn(async (name: string) => ({
       artists: [{ id: name, name, score: 100 }],
     }))

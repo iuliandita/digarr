@@ -62,7 +62,11 @@ export function createAudioMuseSource(
           summary.seedsWithResults++
           // Rank eligible matches within each seed, preserving the strongest matches first.
           const eligible = artists
-            .filter((artist) => !excluded.has(normalizeArtistName(artist.name)))
+            .filter((artist) => {
+              const key = normalizeArtistName(artist.name)
+              // Placeholder names like "(Unknown)" normalize to '' and would share one key.
+              return key !== '' && !excluded.has(key)
+            })
             .sort((a, b) => b.similarityScore - a.similarityScore)
           const result = []
           const seedNames = new Set<string>()

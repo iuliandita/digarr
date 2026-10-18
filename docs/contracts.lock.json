@@ -663,7 +663,7 @@
         "src/core/playlists/strategy-deps.ts": "a6a88f3057ba5f204a789da4ed2b4b14fb30f5ce6fbfa80aad08b3c767975a18",
         "src/core/playlists/track-resolver.ts": "356f2400061e0db6243450654367e002019a70dba0708c27d6d8aa6471071bc6",
         "src/core/playlists/types.ts": "103df693bced14be3b00f9fc407bfba267ba6562a20b3752ab8665eadd154aa2",
-        "src/core/plugins/audiomuse.ts": "2aae73e9d4f18015e42cb50e78a4536e128014283f24cce69e21a7a5ed3dd56c",
+        "src/core/plugins/audiomuse.ts": "5f4dcc3bb590d63a53a544432932b6a114645fde1c659863d8f77f0266f7a948",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
         "src/core/plugins/emby.ts": "ad73fab18f531878937b7cbbcbb2c0c8ff13aff42fece578bbaef560d0469600",
         "src/core/plugins/jellyfin-family.ts": "e5bde5b7aaa28f346472a155e9db08a9e08734a241ebc0deebd280201ab52f06",
@@ -750,14 +750,14 @@
         "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "6857ee6aff51fd1b4451e7a73e6d069c0cbf35b2938d26655f927f72b6a2e394",
+      "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "AudioMuse name matching now uses the existing reconciler normalizer; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
+        "note": "AudioMuse name matching now uses the existing reconciler normalizer and skips names that normalize to empty; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
         "breaking": "none",
         "migration": "",
-        "digest": "6857ee6aff51fd1b4451e7a73e6d069c0cbf35b2938d26655f927f72b6a2e394"
+        "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8"
       }
     },
     "deployment": {
