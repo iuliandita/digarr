@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -299,7 +302,8 @@
         "src/server/routes/jobs.ts": "b0a0b4abf7f0e0c284245cd3cbcb41f1ad0d15f7d827a1b2bb17a298fd6fd02c",
         "src/server/routes/library.ts": "ea1a73179de3543ef1e599d05cc2ca0d5b392d24b0f806b452fe6dd904bfc667",
         "src/server/routes/lidarr.ts": "d2f726dcae32a8146e887724b8fc484bc8c7bff3b495f3e08f679fda59c732a0",
-        "src/server/routes/listening.ts": "bc8c37bc858b73398791982861a2c39e792edcc25ef7c41c7df80152ad6ef251",
+        "src/server/routes/listening-images.ts": "872e674cc8a9bb4cd5b1eb60160dd096e6abd6379cb85d464e484f7a6b2c36b5",
+        "src/server/routes/listening.ts": "07cc8c4f308bfaa175ca088db30b961219c729d0386f6df55732f40fded1eeb8",
         "src/server/routes/mcp.ts": "75fdba073140ce4e5e20e26cb8bafe86dc08fb525a792ebf4f499047c2ed2b26",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
@@ -330,14 +334,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3",
+      "digest": "e6672662e571d2b1311450b3c892db7a548f16173713f6d72c08056033ad2cd7",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "Listening image enrichment reads the artist cache and caches Lidarr lookups in-process; routes, responses and auth are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3"
+        "digest": "e6672662e571d2b1311450b3c892db7a548f16173713f6d72c08056033ad2cd7"
       }
     },
     "interface": {
@@ -527,7 +531,9 @@
       "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
         "breaking": "none",
         "migration": "",
@@ -797,7 +803,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",

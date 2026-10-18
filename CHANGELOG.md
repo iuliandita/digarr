@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Listening pages no longer wait on one Lidarr image lookup per artist: known images come from the artist cache, the rest are looked up four at a time and cached (50 uncached artists went from ~10 s to ~2.7 s, repeats ~0.1 s) (#1093).
 - The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
 - A weekly workflow prunes `:nightly-<sha>` images older than 30 days, keeping the newest 20; `:nightly`, `:latest`, `:stable*` and release tags are never touched. Manual runs default to a dry run (#1053).
 - Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).
