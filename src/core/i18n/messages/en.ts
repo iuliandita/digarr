@@ -20,6 +20,12 @@ export const en = {
   'settings.scheduleOverviewFailed': 'Some schedules could not be loaded.',
   'settings.schedulePaused': 'Paused',
   'settings.librarySyncEvery': 'Every {hours} hours',
+  'tokens.mcpTitle': 'MCP client configuration',
+  'tokens.mcpDescription':
+    'Paste this JSON into an MCP client that supports remote servers and authorization headers. Keep it safe - it contains your token.',
+  'tokens.mcpCopy': 'Copy configuration',
+  'tokens.mcpCopied': 'Configuration copied',
+  'tokens.mcpCopyFailed': 'Could not copy. Select the configuration and copy it manually.',
   'settings.slskdSearchInterval': 'Minimum search gap in seconds (1-60, default 3)',
   'settings.slskdPathUnavailable':
     'Lidarr cannot find or list the download path. Check your mount and read permissions.',

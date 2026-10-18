@@ -20,6 +20,12 @@ export const ro = {
   'settings.scheduleOverviewFailed': 'Unele programe nu au putut fi încărcate.',
   'settings.schedulePaused': 'În pauză',
   'settings.librarySyncEvery': 'La fiecare {hours} ore',
+  'tokens.mcpTitle': 'Configurarea clientului MCP',
+  'tokens.mcpDescription':
+    'Lipește acest JSON într-un client MCP care acceptă servere la distanță și antete de autorizare. Păstrează-l în siguranță - conține tokenul tău.',
+  'tokens.mcpCopy': 'Copiază configurația',
+  'tokens.mcpCopied': 'Configurație copiată',
+  'tokens.mcpCopyFailed': 'Nu s-a putut copia. Selectează configurația și copiaz-o manual.',
   'settings.slskdSearchInterval': 'Interval minim între căutări în secunde (1-60, implicit 3)',
   'settings.slskdPathUnavailable':
     'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',

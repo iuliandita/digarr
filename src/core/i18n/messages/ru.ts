@@ -20,6 +20,12 @@ export const ru = {
   'settings.scheduleOverviewFailed': 'Не удалось загрузить некоторые расписания.',
   'settings.schedulePaused': 'Приостановлено',
   'settings.librarySyncEvery': 'Каждые {hours} ч.',
+  'tokens.mcpTitle': 'Конфигурация клиента MCP',
+  'tokens.mcpDescription':
+    'Вставь этот JSON в клиент MCP с поддержкой удалённых серверов и заголовков авторизации. Храни его в безопасности - он содержит твой токен.',
+  'tokens.mcpCopy': 'Копировать конфигурацию',
+  'tokens.mcpCopied': 'Конфигурация скопирована',
+  'tokens.mcpCopyFailed': 'Не удалось скопировать. Выдели конфигурацию и скопируй её вручную.',
   'settings.slskdSearchInterval':
     'Минимальный интервал между поисками в секундах (1-60, по умолчанию 3)',
   'settings.slskdPathUnavailable':

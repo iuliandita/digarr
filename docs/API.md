@@ -2,7 +2,7 @@
 
 This reference covers v2.0.1; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
-All endpoints require either a `digarr_session` cookie or an
+Except for [MCP](#mcp), all endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Personal API tokens are recommended for scripts; bearer sessions
 remain supported for existing API clients. Only
 `/api/v1/pipeline/events` and `/api/v1/preview/audio` also accept
@@ -28,7 +28,7 @@ Locale fallback is route-specific. Pipeline run and Quick Discover use `X-Digarr
 
 Admin-only endpoints return 403 `application/problem+json` for non-admin users. CSRF rejection also returns `403`, with `application/problem+json` and type `/problems/csrf-validation-failed`, before the route handler runs, code `errors.csrf.originMismatch`, and a `detail` telling you to check that the browsed address matches `ALLOWED_ORIGIN`, before the route handler runs.
 
-Every error response from an `/api/*` route uses RFC 9457 problem details with content type `application/problem+json`: `type` (a relative slug such as `/problems/not-found`), `title`, `status`, and usually `detail`. Optional extension members carry extra context: `code` is an i18n message key or a stable machine code, and route-specific members such as `details`, `issues`, `report`, or `affectedTables` keep their previous names. Errors that used to be plain `{ "error": "..." }` bodies now use type `/problems/http-<status>`, the standard HTTP reason phrase as `title`, the old message as `detail`, and keep the old message in a deprecated `error` member so existing clients keep working. Read `detail` (and `code` when you localize); `error` will be removed in a future major release. Request validation failures return `400` with type `/problems/validation-failed`, `code: "validation_failed"`, and a `details` array of `{ path, code, message }` issues. Two responses deliberately keep their shapes: the `/health` probe still returns `503` with a plain JSON `{ "status": ... }` body, and unknown paths outside `/api/*` still fall through to a plain-text `404` (or the web app). Status codes are not uniform across routes: for example, a missing settings row returns `404` from `GET /api/v1/settings` and `400` from the pipeline routes, an oversized CSV upload returns `413`, and unmet setup state returns `409` from setup routes or `403` with `redirect: "/setup"` from the setup guard.
+Except for [MCP protocol and tool errors](#mcp), error responses from `/api/*` routes use RFC 9457 problem details with content type `application/problem+json`: `type` (a relative slug such as `/problems/not-found`), `title`, `status`, and usually `detail`. Optional extension members carry extra context: `code` is an i18n message key or a stable machine code, and route-specific members such as `details`, `issues`, `report`, or `affectedTables` keep their previous names. Errors that used to be plain `{ "error": "..." }` bodies now use type `/problems/http-<status>`, the standard HTTP reason phrase as `title`, the old message as `detail`, and keep the old message in a deprecated `error` member so existing clients keep working. Read `detail` (and `code` when you localize); `error` will be removed in a future major release. Request validation failures return `400` with type `/problems/validation-failed`, `code: "validation_failed"`, and a `details` array of `{ path, code, message }` issues. Two responses deliberately keep their shapes: the `/health` probe still returns `503` with a plain JSON `{ "status": ... }` body, and unknown paths outside `/api/*` still fall through to a plain-text `404` (or the web app). Status codes are not uniform across routes: for example, a missing settings row returns `404` from `GET /api/v1/settings` and `400` from the pipeline routes, an oversized CSV upload returns `413`, and unmet setup state returns `409` from setup routes or `403` with `redirect: "/setup"` from the setup guard.
 
 ---
 
@@ -81,12 +81,24 @@ Offset-paginated routes:
 | GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document with shared schemas plus selected stable route groups |
 
-The OpenAPI document is partial: it describes 19 of the 159 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
+The OpenAPI document is partial: it describes 19 of the 163 route operations listed in this reference (it declares so in `info.description`) and marks admin operations with "Admin only". Treat this Markdown reference as the complete route inventory; `bun run check:api-docs` verifies it against the server's route declarations and its Auth column against detectable admin guards.
 
 OpenAPI coverage currently includes auth status/login/register/session
 migration, recommendation list/get/update, artist blocks, jobs, library reconciliation lists
 and bulk ignore, and settings service probes. Some mutation bodies remain generic objects; bulk recommendations, feedback summaries, playlist projections, and preference writes are not machine-described. The Markdown reference is the complete route inventory and the detailed contract for those operations.
 
+
+## MCP
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| POST | `/api/v1/mcp` | Personal API token | Stateless Streamable HTTP MCP endpoint; no cookie, session bearer, proxy, or legacy token authentication |
+| GET | `/api/v1/mcp` | Personal API token | Returns 405; no persistent server event stream |
+| DELETE | `/api/v1/mcp` | Personal API token | Returns 405; no MCP session to terminate (read scope returns 403) |
+
+Tools: `list_recommendations`, `get_recommendation`, `approve_recommendation`, `reject_recommendation`, `block_recommendation`, `run_scan`, `run_discovery_mode`, `get_scan_status`, `get_job_status`, `search_artists`, and `list_playlists`. Inputs are validated with Zod. POST accepts single JSON-RPC messages only (batch arrays return 400), with a 1 MiB request body limit enforced for declared and streamed bodies (413 when exceeded). Read scope permits MCP POST messages and read tools; approve, reject, block, scan, and discovery tools require write or admin scope. Recommendations, playlists, and job status are owner-scoped. An admin-owned read/write token never gains admin privileges.
+
+Unlike REST problem details, MCP tool failures return `isError: true` results and protocol failures use MCP JSON-RPC errors. HTTP authentication and rate-limit failures still use the existing problem-details responses. No session ID or server-side MCP session store is used. See the [MCP client guide](MCP.md) for configuration, tool inputs, permissions, and transport behavior.
 ---
 
 ## Auth
@@ -273,7 +285,8 @@ budgets), but a run requested while one is active is **queued FIFO**, not
 rejected: the response is still 202 with `queued: true` and the caller's 1-based
 `position`. A given user is deduped (a double-click does not stack two runs).
 The queue drains automatically when the active run finishes. The queue is
-in-memory and per-process.
+in-memory and per-process. This REST route has no additional scan-start rate limit.
+The MCP `run_scan` tool separately permits five start requests per minute per user.
 
 `POST /api/v1/pipeline/cancel` stops the in-flight run only for the user who started it or an admin, and removes only the caller's queued run; other users' queued runs keep their place. In v2.0.0, `cancelled: true` accepts a cooperative stop request; it does not report that the worker has stopped. Storage checks between complete artist/recommendation units, and automatic approval checks before new recommendations and targets. An operation already in flight finishes and records its actual result before stopping. Saved recommendations and remote additions remain; cancellation does not roll them back. An actual target or database failure remains a failure even when cancellation was requested. Interrupted storage marks its batch failed, while the pipeline job records cancellation after cleanup succeeds.
 
@@ -357,8 +370,9 @@ The parser coerces rather than rejects most fields:
 - a mode that is currently unavailable returns `400` with its reason; a pipeline already running returns `409` problem+json
 
 **POST /api/v1/discovery-modes/run** behavior:
+- This REST route has no additional start rate limit; the MCP `run_discovery_mode` tool separately permits five start requests per minute per user
 - Returns `202 { "message": "Discovery run started", "jobId": 123 }` after validation; the actual run continues in the background
-- The accepted response includes `jobId`. Admin clients can poll `/api/v1/jobs/:id`; job endpoints return `403` for non-admins. Ordinary users can refresh Discover to see stored recommendations; the bundled mode card shows the accepted-run feedback, not an unrestricted job-detail subscription
+- The accepted response includes `jobId`. Admin clients can poll `/api/v1/jobs/:id`; job endpoints return `403` for non-admins. MCP clients can use `get_job_status` for a safe status projection of their own jobs. Ordinary users can refresh Discover to see stored recommendations; the bundled mode card shows the accepted-run feedback, not an unrestricted job-detail subscription
 - The server re-evaluates availability and execution context from the current user connections before starting the run
 - Returns `400` with the availability reason when a mode is currently unavailable, matching the `availability.reason` shown in the UI
 - Mode-specific preflight preparation can still reject the request before `202`; for example, Artist Radio resolves free-text artist seeds to MusicBrainz IDs before the job is accepted

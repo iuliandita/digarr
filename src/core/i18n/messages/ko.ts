@@ -20,6 +20,12 @@ export const ko = {
   'settings.scheduleOverviewFailed': '일부 일정을 불러오지 못했어요.',
   'settings.schedulePaused': '일시 중지됨',
   'settings.librarySyncEvery': '{hours}시간마다',
+  'tokens.mcpTitle': 'MCP 클라이언트 설정',
+  'tokens.mcpDescription':
+    '원격 서버와 인증 헤더를 지원하는 MCP 클라이언트에 이 JSON을 붙여 넣어 주세요. 토큰이 포함되어 있으니 안전하게 보관해 주세요.',
+  'tokens.mcpCopy': '설정 복사',
+  'tokens.mcpCopied': '설정을 복사했어요',
+  'tokens.mcpCopyFailed': '복사하지 못했어요. 설정을 선택해서 직접 복사해 주세요.',
   'settings.slskdSearchInterval': '검색 사이 최소 간격, 초 (1-60, 기본값 3)',
   'settings.slskdPathUnavailable':
     'Lidarr가 다운로드 경로를 찾거나 목록을 읽을 수 없습니다. 마운트와 읽기 권한을 확인해 주세요.',

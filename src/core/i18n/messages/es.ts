@@ -20,6 +20,12 @@ export const es = {
   'settings.scheduleOverviewFailed': 'No se pudieron cargar algunos horarios.',
   'settings.schedulePaused': 'En pausa',
   'settings.librarySyncEvery': 'Cada {hours} horas',
+  'tokens.mcpTitle': 'Configuración del cliente MCP',
+  'tokens.mcpDescription':
+    'Pega este JSON en un cliente MCP que admita servidores remotos y cabeceras de autorización. Guárdalo en un lugar seguro - contiene tu token.',
+  'tokens.mcpCopy': 'Copiar configuración',
+  'tokens.mcpCopied': 'Configuración copiada',
+  'tokens.mcpCopyFailed': 'No se pudo copiar. Selecciona la configuración y cópiala manualmente.',
   'settings.slskdSearchInterval':
     'Intervalo mínimo entre búsquedas en segundos (1-60, predeterminado 3)',
   'settings.slskdPathUnavailable':

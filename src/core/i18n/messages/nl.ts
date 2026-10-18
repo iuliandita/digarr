@@ -20,6 +20,12 @@ export const nl = {
   'settings.scheduleOverviewFailed': "Sommige schema's konden niet worden geladen.",
   'settings.schedulePaused': 'Gepauzeerd',
   'settings.librarySyncEvery': 'Elke {hours} uur',
+  'tokens.mcpTitle': 'MCP-clientconfiguratie',
+  'tokens.mcpDescription':
+    'Plak deze JSON in een MCP-client die externe servers en autorisatieheaders ondersteunt. Bewaar deze veilig - je token staat erin.',
+  'tokens.mcpCopy': 'Configuratie kopiëren',
+  'tokens.mcpCopied': 'Configuratie gekopieerd',
+  'tokens.mcpCopyFailed': 'Kopiëren mislukt. Selecteer de configuratie en kopieer deze handmatig.',
   'settings.slskdSearchInterval':
     'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
   'settings.slskdPathUnavailable':
