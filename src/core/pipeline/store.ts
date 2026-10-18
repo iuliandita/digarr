@@ -1,4 +1,7 @@
+import { sql } from 'drizzle-orm'
 import type { ScoredArtist } from '@/core/types'
+import type { Database } from '@/db'
+import { artists as artistTable, recommendations } from '@/db/schema'
 import { checkPipelineCancelled, PipelineCancelledError } from './cancel'
 import type { GenreFeedback } from './score'
 
@@ -74,7 +77,7 @@ export interface StoreDb {
     spotifyPopularity: number | null
   } | null>
 
-  getPopularityMap?: () => Promise<Map<string, number>>
+  getPopularityMap?: (names: string[]) => Promise<Map<string, number>>
 
   getLibraryArtistsForUser?: (
     userId: number,
@@ -102,10 +105,69 @@ export interface StoreDb {
     rec: Omit<Parameters<StoreDb['insertRecommendation']>[0], 'artistId'>,
   ) => Promise<void>
 
+  saveRecommendationChunk?: (entries: RecommendationEntry[]) => Promise<void>
+
   tryConsumeRateLimit?: (
     key: string,
     config: { capacity: number; refillPerMs: number },
   ) => Promise<boolean>
+}
+
+export type RecommendationEntry = {
+  artist: Parameters<StoreDb['upsertArtist']>[0]
+  recommendation: Omit<Parameters<StoreDb['insertRecommendation']>[0], 'artistId'>
+}
+
+export async function saveRecommendationChunk(
+  db: Database,
+  entries: RecommendationEntry[],
+): Promise<void> {
+  if (entries.length === 0) return
+  const unique = new Map<string, typeof artistTable.$inferInsert>()
+  for (const { artist } of entries) {
+    const previous = unique.get(artist.mbid)
+    const { imageFailed, ...data } = artist
+    unique.set(artist.mbid, {
+      ...previous,
+      ...Object.fromEntries(Object.entries(data).filter(([, value]) => value != null)),
+      mbid: artist.mbid,
+      name: artist.name,
+      cachedAt: new Date(),
+      genresCachedAt: new Date(),
+      imageFailedAt: artist.imageUrl ? null : imageFailed ? new Date() : previous?.imageFailedAt,
+    })
+  }
+  await db.transaction(async (tx) => {
+    const rows = await tx
+      .insert(artistTable)
+      .values([...unique.values()])
+      .onConflictDoUpdate({
+        target: artistTable.mbid,
+        set: {
+          name: sql`excluded.name`,
+          disambiguation: sql`COALESCE(excluded.disambiguation, ${artistTable.disambiguation})`,
+          tags: sql`COALESCE(excluded.tags, ${artistTable.tags})`,
+          genres: sql`COALESCE(excluded.genres, ${artistTable.genres})`,
+          imageUrl: sql`COALESCE(excluded.image_url, ${artistTable.imageUrl})`,
+          logoUrl: sql`COALESCE(excluded.logo_url, ${artistTable.logoUrl})`,
+          streamingUrls: sql`COALESCE(excluded.streaming_urls, ${artistTable.streamingUrls})`,
+          beginYear: sql`COALESCE(excluded.begin_year, ${artistTable.beginYear})`,
+          endYear: sql`COALESCE(excluded.end_year, ${artistTable.endYear})`,
+          imageFailedAt: sql`CASE WHEN excluded.image_failed_at IS NOT NULL THEN NOW() WHEN excluded.image_url IS NOT NULL THEN NULL ELSE ${artistTable.imageFailedAt} END`,
+          cachedAt: sql`excluded.cached_at`,
+          genresCachedAt: sql`excluded.genres_cached_at`,
+        },
+      })
+      .returning({ id: artistTable.id, mbid: artistTable.mbid })
+    const ids = new Map(rows.map((row) => [row.mbid, row.id]))
+    await tx.insert(recommendations).values(
+      entries.map(({ artist, recommendation }) => {
+        const artistId = ids.get(artist.mbid)
+        if (artistId === undefined) throw new Error(`Missing stored artist ${artist.mbid}`)
+        return { ...recommendation, artistId }
+      }),
+    )
+  })
 }
 
 export type StoreOptions = {
@@ -133,8 +195,7 @@ export async function store(
   let failed = 0
 
   try {
-    for (const artist of artists) {
-      checkPipelineCancelled(options.signal)
+    const entries = artists.map((artist): RecommendationEntry => {
       const artistData = {
         mbid: artist.mbid,
         name: artist.name,
@@ -160,19 +221,38 @@ export async function store(
         kind: artist.kind ?? 'artist',
       }
 
+      return { artist: artistData, recommendation: recData }
+    })
+    async function saveOne(entry: RecommendationEntry) {
+      checkPipelineCancelled(options.signal)
       try {
         if (db.upsertArtistAndRecommendation) {
-          await db.upsertArtistAndRecommendation(artistData, recData)
+          await db.upsertArtistAndRecommendation(entry.artist, entry.recommendation)
         } else {
-          const upserted = await db.upsertArtist(artistData)
-          await db.insertRecommendation({ ...recData, artistId: upserted.id })
+          const upserted = await db.upsertArtist(entry.artist)
+          await db.insertRecommendation({ ...entry.recommendation, artistId: upserted.id })
         }
         added++
       } catch (err: unknown) {
         if (err instanceof PipelineCancelledError || options.signal?.aborted) throw err
         failed++
-        console.error(`Failed to store artist ${artist.mbid}:`, err)
+        console.error(`Failed to store artist ${entry.artist.mbid}:`, err)
       }
+    }
+    for (let offset = 0; offset < entries.length; offset += 200) {
+      checkPipelineCancelled(options.signal)
+      const chunk = entries.slice(offset, offset + 200)
+      if (db.saveRecommendationChunk) {
+        try {
+          await db.saveRecommendationChunk(chunk)
+          added += chunk.length
+          continue
+        } catch (err) {
+          if (err instanceof PipelineCancelledError || options.signal?.aborted) throw err
+          // The failed transaction rolled back; isolate bad rows without losing the rest.
+        }
+      }
+      for (const entry of chunk) await saveOne(entry)
     }
 
     checkPipelineCancelled(options.signal)

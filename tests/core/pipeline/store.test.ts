@@ -228,3 +228,38 @@ describe('store()', () => {
     expect(db.completeBatch).not.toHaveBeenCalled()
   })
 })
+
+describe('bulk store checkpoints', () => {
+  it('falls back after a rolled-back chunk and counts individual failures', async () => {
+    const db = {
+      ...makeDb(),
+      saveRecommendationChunk: vi.fn().mockRejectedValue(new Error('bad row')),
+    }
+    db.upsertArtist.mockRejectedValueOnce(new Error('invalid artist'))
+    await store([makeArtist('bad'), makeArtist('good')], db)
+    expect(db.saveRecommendationChunk).toHaveBeenCalledOnce()
+    expect(db.insertRecommendation).toHaveBeenCalledOnce()
+    expect(db.completeBatch).toHaveBeenCalledWith(1, { discovered: 2, added: 1, failed: 1 })
+  })
+
+  it('checks cancellation between bounded chunks and fails the batch', async () => {
+    const controller = new AbortController()
+    const db = {
+      ...makeDb(),
+      saveRecommendationChunk: vi.fn(async (_entries: unknown[]) => {
+        controller.abort()
+      }),
+    }
+    await expect(
+      store(
+        Array.from({ length: 201 }, (_, i) => makeArtist(`id-${i}`)),
+        db,
+        { signal: controller.signal },
+      ),
+    ).rejects.toBeInstanceOf(PipelineCancelledError)
+    expect(db.saveRecommendationChunk.mock.calls[0]?.[0]).toHaveLength(200)
+    expect(db.saveRecommendationChunk).toHaveBeenCalledOnce()
+    expect(db.failBatch).toHaveBeenCalledWith(1)
+    expect(db.completeBatch).not.toHaveBeenCalled()
+  })
+})

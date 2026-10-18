@@ -172,7 +172,7 @@
         "src/db/queries/api-tokens.ts": "ec3460118af7dbb12f4dbdc3854756a286644b74508d4fc9d71bcb1d11fae4ef",
         "src/db/queries/approval-requests.ts": "6547d3941a56731fbd48066b6334d8055415e229188f5f33e7c41564bf0833f3",
         "src/db/queries/artist-blocks.ts": "88fee42a98ec0483cd2bfbc296404765ce74e671a404c10eeebc8afba288e9a1",
-        "src/db/queries/artist-metadata.ts": "51250a52df988acc71f442ad2c687e15b26bab874f18c21ccc47a71cd7faaf78",
+        "src/db/queries/artist-metadata.ts": "66bb8aae77cef9ff2449884ffb3878d598c0a9c8500138b66dfad8e8b84f5b42",
         "src/db/queries/artists.ts": "ba4d5b665cf57127b7a5b549a0812966e605622ace93596116e0c9fb5182f221",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
@@ -197,14 +197,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd",
+      "digest": "acf51761ad78dc776541c704cfe189770e50d833bacc6fab1fbc8815308020b3",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "Restrict pipeline popularity reads to resolved normalized artist names; schema, stored data, backup and restore formats remain identical.",
         "breaking": "none",
-        "migration": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
-        "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd"
+        "migration": "Restrict pipeline popularity reads to resolved normalized artist names; schema, stored data, backup and restore formats remain identical.",
+        "digest": "acf51761ad78dc776541c704cfe189770e50d833bacc6fab1fbc8815308020b3"
       }
     },
     "configuration": {
@@ -638,10 +638,10 @@
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
         "src/core/pipeline/genre-backfill.ts": "aa1dee05dfe3588e304070f80db1d31afc36cc851247f703732967b70e431230",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
-        "src/core/pipeline/orchestrator.ts": "8d7b3b0aa448d73eb76fdfa586a056c152ecaa803cdd218c84a08682fe9b11bb",
-        "src/core/pipeline/resolve.ts": "1254cf614a9af0531c447ca636d4a618ff0c86ca7103c076443de1d357fb9f1b",
+        "src/core/pipeline/orchestrator.ts": "838a98fca35b1e519a3e4ea53825bebc3288227018d34c833f718f813b8ae92d",
+        "src/core/pipeline/resolve.ts": "06eb83373929c265677017e86ce33fe942e4951f54b6ecbdb7abb8d8d3d2f9b5",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
-        "src/core/pipeline/store.ts": "273a8de585542e39d666b4c5b2c518d6ea861ef2d75d3efcc60cac1fe1aa6939",
+        "src/core/pipeline/store.ts": "0c515bc9adb7bbee7f9650f7095b6ce912771b087bc9fca4a5d132bf796dbbca",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
         "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
@@ -698,7 +698,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "7d3789abf19f6d22bd427eba3e261f840d8661536218a0a5353e2c2d6280ca18",
+        "src/core/slskd/orchestrator.ts": "c60f7cae03f5a956dda10793b395e7f2ab6f05465f96e3b6056a4bfe3139667e",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -716,7 +716,7 @@
         "src/core/subscriptions/connections.ts": "a7a26cbba2e3ab823140a71c9bc4a40cf8a698014b5f9a78f1322ed60833b59e",
         "src/core/subscriptions/dedup.ts": "f23afd2e0b4385a7e0c416ce23ae89125d16de848623fafc12eda91b2610c849",
         "src/core/subscriptions/registry.ts": "e62daa124bf30b318ad7c99e73c240809fa59fed8929a106f515549c0351d224",
-        "src/core/subscriptions/runner.ts": "b8f37fb7a3423ad468007d7772db6f5f1bb211e59fcd08ebaf18bf5e61c367c1",
+        "src/core/subscriptions/runner.ts": "d0533e808cd69ae8548318095bc31a83a6d56aea56aaf457a6369e519f0452ea",
         "src/core/subscriptions/types.ts": "05e47b95327590fd88f4307c6eb27ddb4eb89fc6ee0f7429073544ed512a3c5e",
         "src/core/targets/action-status.ts": "cfa09e111312ce4d47bda3679e6328f18efbea6262ade6037bcdf34d80d99ccb",
         "src/core/targets/emby-playlist.ts": "517b800456ce079a87380f8cb38817ef3bf54aa0f6d55f6e30ea089ef6551401",
@@ -744,17 +744,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "c4ae00f83b83c4e877bbec02592399ed114172f4382ca5f1405b103a0bad8a94",
+        "src/index.ts": "06bd412217782582584c17fc23486c7d96d671ee87dd23453860fab8613f3b02",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c",
+      "digest": "0a5223993061c11a12d8885bd85341755fccba76868c228ac8122c94fcbfd65d",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Dead-code removal and helper dedupe (sleep, escapeXml, errMsg, cron pattern, adapter metadata the API never read); behaviour unchanged",
+        "note": "Skip definitely excluded artist resolution, bound and reuse run-local image work with cancellation draining, bulk-save recommendations with the existing conflict and failure semantics, and share target-local download snapshots; recommendation identities, scores, ownership and import verification remain unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "9603737f6b1afb8f3eea057be9746c56323dc1c910276d01da0294c80ac8d38c"
+        "digest": "0a5223993061c11a12d8885bd85341755fccba76868c228ac8122c94fcbfd65d"
       }
     },
     "deployment": {
