@@ -17,6 +17,7 @@ import {
   SLSKD_MAX_AUTO_RETRIES,
   type SlskdFailedRelease,
 } from '@/core/slskd/shared'
+import { redactSecrets } from '@/core/validation'
 
 type SlskdPendingJobBase = { id: number }
 type SlskdActiveJobState = 'pending' | 'searching' | 'queued' | 'downloading' | 'import_pending'
@@ -662,6 +663,14 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
           if (!target || target.userId !== job.userId) {
             throw new Error('slskd job target is missing or its owner changed')
           }
+          if (
+            target.config.lidarrTargetId != null &&
+            !normalizeString(target.config.lidarrDownloadPath)
+          ) {
+            throw new Error(
+              'Set the Lidarr download path (lidarrDownloadPath) on this slskd target in Settings > Targets before downloading - it is required when a Lidarr target is linked',
+            )
+          }
           if (target.config.lidarrTargetId != null && !getLinkedLidarrTarget(targets, target.id)) {
             throw new Error('slskd job linked Lidarr target is unavailable for its owner')
           }
@@ -677,8 +686,10 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
           await processTransferJob(job, slskd, targets)
         }
       } catch (err: unknown) {
-        const message = err instanceof Error ? err.message : String(err)
-        logger.error(`[slskd] Job ${job.id} (${job.state}) failed:`, err)
+        const message = redactSecrets(err instanceof Error ? err.message : String(err))
+          .replace(/\s+/g, ' ')
+          .trim()
+        logger.error(`[slskd] Job ${job.id} failed: ${message}`)
         try {
           await failJob(job, message)
         } catch (markErr) {

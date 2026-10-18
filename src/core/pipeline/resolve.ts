@@ -2,6 +2,7 @@ import { type AudiodbClient, RateLimitedError } from '@/core/clients/audiodb'
 import { extractImages, type ImageEntry } from '@/core/clients/image-utils'
 import type { MBArtist, MBSearchResult } from '@/core/clients/musicbrainz'
 import { parseYear } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import type { Translator } from '@/core/i18n/translator'
 import type { DiscoveredArtist, PipelineProgress, ResolvedArtist } from '@/core/types'
 import { PipelineCancelledError } from './cancel'
@@ -56,8 +57,9 @@ export async function resolve(
   // Album-kind discoveries (gap-fill / release-radar) carry a releaseGroupMbid and
   // must each resolve to their OWN recommendation -- one per release group, even
   // when several share an artist. They skip the artist-dedup grouping below.
-  const albumDiscovered = discovered.filter((d) => d.releaseGroupMbid)
-  const artistDiscovered = discovered.filter((d) => !d.releaseGroupMbid)
+  const eligible = discovered.filter((d) => !isSpecialPurposeArtist(d.mbid))
+  const albumDiscovered = eligible.filter((d) => d.releaseGroupMbid)
+  const artistDiscovered = eligible.filter((d) => !d.releaseGroupMbid)
 
   // Group artist-kind by MBID (if known) then by name, to deduplicate
   const byMbid = new Map<string, DiscoveredArtist[]>()
@@ -151,7 +153,7 @@ export async function resolve(
       let ambiguous = false
 
       for (const hit of searchResult.artists.slice(0, 5)) {
-        if (byMbid.has(hit.id)) continue
+        if (byMbid.has(hit.id) || isSpecialPurposeArtist(hit.id)) continue
         try {
           const mbArtist = await mb.lookupArtist(hit.id)
 
@@ -315,6 +317,7 @@ async function buildResolvedArtist(
   audiodb?: AudiodbClient | null,
   promoteSuggestedAlbums = false,
 ): Promise<ResolvedArtist> {
+  if (isSpecialPurposeArtist(mbArtist.id)) throw new Error('Special-purpose artist')
   const tags = (mbArtist.tags ?? []).map((t) => t.name)
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
 

@@ -63,6 +63,29 @@ describe('createReleaseRadarMode', () => {
     vi.useRealTimers()
   })
 
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'skips release groups for special-purpose artist %s',
+    async (mbid) => {
+      getUserConnections.mockResolvedValue({ lastfmUsername: 'user', lastfmApiKey: 'key' })
+      resolveProviderToken.mockResolvedValue(null)
+      lastfmGetTopArtists.mockResolvedValue([
+        { name: 'Special artist', mbid, playCount: 10, source: 'lastfm' },
+      ])
+      const { createReleaseRadarMode } = await import('@/core/discovery-modes/modes/release-radar')
+      const result = await createReleaseRadarMode().executor({
+        modeId: 'release-radar',
+        triggerType: 'manual',
+        settingsMode: 'advanced',
+        userId: 7,
+        rawUserSettings: {},
+        normalizedSettings: {},
+        providerContext: { providerPath: ['lastfm'] },
+        fallbackPolicy: 'allow-fallback',
+      })
+      expect(result.candidates).toEqual([])
+      expect(getReleaseGroups).not.toHaveBeenCalled()
+    },
+  )
   it('emits recent release candidates from fallback listening sources', async () => {
     getUserConnections.mockResolvedValue({
       lastfmUsername: 'lfm-user',

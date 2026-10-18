@@ -1474,6 +1474,7 @@ export const uk = {
   'settings.plexAccountHint':
     'Перевір з’єднання, вибери слухача Plex і збережи. Історія прослуховування окрема для кожного користувача Digarr.',
   'settings.slskdLidarrDownloadPath': 'Папка завантажень, доступна Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'обов’язково при підключенні Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Для пов’язаних імпортів використовуй папку завершених завантажень, яку може читати Lidarr.',
   'settings.plexToken': 'Токен Plex',

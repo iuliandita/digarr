@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { MBReleaseGroup } from '@/core/clients/musicbrainz'
 import { MusicBrainzHttpError } from '@/core/clients/musicbrainz'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
@@ -8,6 +8,27 @@ const OWNED_RELEASE_GROUP_MBID = '11111111-1111-1111-1111-111111111111'
 const MISSING_RELEASE_GROUP_MBID = '22222222-2222-2222-2222-222222222222'
 
 describe('createAlbumCoverageService', () => {
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'excludes special-purpose artist %s from coverage',
+    async (artistMbid) => {
+      const getReleaseGroups = vi.fn()
+      const listOwnedAlbumsForArtist = vi.fn()
+      const service = createAlbumCoverageService({
+        store: { listOwnedAlbumsForArtist },
+        mbClient: { getReleaseGroups },
+      })
+      expect(await service.getCoverageForArtist(7, artistMbid)).toEqual({
+        artistMbid,
+        ownedCount: 0,
+        totalCount: 0,
+        owned: [],
+        missing: [],
+      })
+      expect(getReleaseGroups).not.toHaveBeenCalled()
+      expect(listOwnedAlbumsForArtist).not.toHaveBeenCalled()
+    },
+  )
+
   it('returns owned and missing studio albums from MB release groups', async () => {
     const service = createAlbumCoverageService({
       store: {

@@ -10,11 +10,12 @@ import type { TargetInsert, TargetRow, TargetUpdate } from '@/db/queries/targets
 import { notAuthenticated } from '@/server/helpers/auth-problems'
 import { readPagination } from '@/server/helpers/pagination'
 import { type Cursor, encodeCursor } from '@/server/helpers/pagination-cursor'
-import { notFoundProblem } from '@/server/helpers/problem'
+import { notFoundProblem, problem } from '@/server/helpers/problem'
 import { adminGuard, effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import {
   createTargetSchema,
   targetIdParamSchema,
+  targetSaveConfigSchema,
   updateTargetSchema,
 } from '@/server/schemas/targets'
 import { zJson, zParam } from '@/server/schemas/validator'
@@ -162,6 +163,19 @@ export function targetRoutes(deps: TargetDeps) {
             clearDefaultsOnInstanceChange(loaded.target.config, allowed.config),
           )
         }
+      }
+      const configValidation = targetSaveConfigSchema.safeParse({
+        type: loaded.target.type,
+        config: allowed.config ?? loaded.target.config ?? {},
+      })
+      if (!configValidation.success) {
+        const details = configValidation.error.issues
+        const detail = details.map((issue) => issue.message).join('; ')
+        return problem(c, 'validation-failed', 'Validation failed', 400, detail, {
+          code: 'validation_failed',
+          details,
+          error: detail,
+        })
       }
       if (
         !(await validLidarrLink(

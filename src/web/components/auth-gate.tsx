@@ -376,7 +376,7 @@ function LoginForm({
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            <span className="text-accent-text">digarr</span>
+            <span className="text-title font-bold text-brand">digarr</span>
           </CardTitle>
           <CardDescription>{t('auth.loginDescription')}</CardDescription>
         </CardHeader>
@@ -494,7 +494,7 @@ function RegisterForm({
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            <span className="text-accent-text">digarr</span>
+            <span className="text-title font-bold text-brand">digarr</span>
           </CardTitle>
           <CardDescription>{t('auth.registerDescription')}</CardDescription>
         </CardHeader>

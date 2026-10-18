@@ -1487,6 +1487,7 @@ export const de = {
   'settings.plexAccountHint':
     'Teste die Verbindung, wähle deinen Plex-Hörer und speichere. Der Hörverlauf bleibt für jeden Digarr-Benutzer getrennt.',
   'settings.slskdLidarrDownloadPath': 'Download-Verzeichnis aus Sicht von Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'erforderlich bei Verknüpfung mit Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Für verknüpfte Importe das Verzeichnis abgeschlossener Downloads verwenden, auf das Lidarr zugreifen kann.',
   'settings.plexToken': 'Plex-Token',
