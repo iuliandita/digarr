@@ -25,7 +25,10 @@ export type Recommendation = {
   aiReasoning: string | null
   sources: Record<string, number> | null
   lidarrError: string | null
-  targetActions?: Record<string, { status?: string; error?: string } | null> | null
+  targetActions?: Record<
+    string,
+    { status?: string; error?: string; retry?: { nextAttemptAt: string } } | null
+  > | null
   recommendedReleaseGroupId: string | null
   recommendedReleaseGroupTitle: string | null
   artist: {
@@ -148,7 +151,10 @@ function StatusBadge({
 }: {
   status: string
   lidarrError: string | null
-  targetActions?: Record<string, { status?: string; error?: string } | null> | null
+  targetActions?: Record<
+    string,
+    { status?: string; error?: string; retry?: { nextAttemptAt: string } } | null
+  > | null
   onRetry?: (id: number) => void
   onRetryFailed?: (id: number, failedTargetIds: string[]) => void
   id: number
@@ -166,6 +172,37 @@ function StatusBadge({
   })?.[1]?.status
   const slskdStatusLabel = slskdStatus ? SLSKD_STATUS_LABELS[slskdStatus] : undefined
 
+  const waiting = Object.values(targetActions ?? {}).filter((a) => a?.status === 'waiting')
+  if (status === 'waiting') {
+    const nextRetry = waiting
+      .map((a) => a?.retry?.nextAttemptAt)
+      .filter((v): v is string => Boolean(v))
+      .sort()[0]
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <span className="text-xs text-accent-text font-medium">
+          {t('recommendation.waitingForLidarr')}
+        </span>
+        {nextRetry && (
+          <span className="text-xs text-muted">
+            {t('recommendation.nextRetry').replace('{0}', new Date(nextRetry).toLocaleString())}
+          </span>
+        )}
+        {onRetry && (
+          <button
+            type="button"
+            className="text-xs text-accent-text underline"
+            onClick={(e) => {
+              e.stopPropagation()
+              onRetry(id)
+            }}
+          >
+            {t('recommendation.retry')}
+          </button>
+        )}
+      </div>
+    )
+  }
   if (status === 'added_to_lidarr') {
     return (
       <div className="flex items-center gap-2 flex-wrap">
@@ -609,7 +646,10 @@ export function RecommendationCard({
   const isPending = rec.status === 'pending' || rec.status === 'approved'
   const isActed = rec.status !== 'pending'
   const isApproved =
-    rec.status === 'added_to_lidarr' || rec.status === 'add_failed' || rec.status === 'approved'
+    rec.status === 'waiting' ||
+    rec.status === 'added_to_lidarr' ||
+    rec.status === 'add_failed' ||
+    rec.status === 'approved'
   const artistIsPlaying = preview.playing && preview.currentMbid === rec.artist.mbid
   const hasPreview = preview.hasPreview(rec.artist.streamingUrls)
   const hasFailure = rec.status === 'add_failed'

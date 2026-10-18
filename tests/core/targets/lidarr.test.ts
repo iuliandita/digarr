@@ -299,3 +299,34 @@ describe('createLidarrTarget()', () => {
     expect(createLidarrClient).not.toHaveBeenCalled()
   })
 })
+
+it('reuses an artist accepted before a disconnected response', async () => {
+  const client = { ...mockLidarrClient(), findArtistByMbid: vi.fn().mockResolvedValue({ id: 42 }) }
+  vi.mocked(createLidarrClient).mockReturnValue(client as never)
+  const target = createLidarrTarget(1, { url: 'http://lidarr', apiKey: 'key' })
+  expect(
+    await target.addArtist?.({ mbid: 'mbid', name: 'Artist' }, { retryExisting: true }),
+  ).toMatchObject({ success: true, externalId: 42 })
+  expect(client.findArtistByMbid).toHaveBeenCalledWith('mbid')
+  expect(client.addArtist).not.toHaveBeenCalled()
+})
+
+it('retries a failed album search at job level while reusing the existing artist and album', async () => {
+  const client = { ...mockLidarrClient(), findArtistByMbid: vi.fn().mockResolvedValue({ id: 42 }) }
+  client.getAlbums.mockResolvedValue([{ id: 80, foreignAlbumId: 'rg-1', monitored: true }] as never)
+  vi.mocked(createLidarrClient).mockReturnValue(client as never)
+  const target = createLidarrTarget(1, { url: 'http://lidarr', apiKey: 'key' })
+  client.triggerCommand.mockRejectedValueOnce(new Error('HTTP 503: unavailable'))
+  expect(
+    await target.addAlbum?.({ artistMbid: 'mbid', artistName: 'Artist', releaseGroupMbid: 'rg-1' }),
+  ).toMatchObject({ success: false, error: 'HTTP 503: unavailable' })
+  expect(
+    await target.addAlbum?.(
+      { artistMbid: 'mbid', artistName: 'Artist', releaseGroupMbid: 'rg-1' },
+      { retryExisting: true },
+    ),
+  ).toMatchObject({ success: true, externalId: 80 })
+  expect(client.addArtist).not.toHaveBeenCalled()
+  expect(client.triggerCommand).toHaveBeenCalledTimes(2)
+  expect(client.setAlbumsMonitored).toHaveBeenCalledWith([80], true)
+})

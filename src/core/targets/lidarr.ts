@@ -81,14 +81,17 @@ export function createLidarrTarget(
       const ids = profileIds(options)
 
       try {
-        const added = await client.addArtist(
-          artist.mbid,
-          artist.name,
-          ids.qualityProfileId,
-          ids.metadataProfileId,
-          ids.rootFolderId,
-          { monitorOption: effectiveMonitor, ...(ids.tags ? { tags: ids.tags } : {}) },
-        )
+        const existing = options?.retryExisting ? await client.findArtistByMbid(artist.mbid) : null
+        const added =
+          existing ??
+          (await client.addArtist(
+            artist.mbid,
+            artist.name,
+            ids.qualityProfileId,
+            ids.metadataProfileId,
+            ids.rootFolderId,
+            { monitorOption: effectiveMonitor, ...(ids.tags ? { tags: ids.tags } : {}) },
+          ))
 
         // Monitor (and search) the selected albums after the add. The artist
         // was added unmonitored, so without this the selected album is never
@@ -169,7 +172,9 @@ export function createLidarrTarget(
             success: false,
             targetType: 'lidarr',
             targetId,
-            error: 'album not found in Lidarr',
+            error: existing
+              ? 'album not found in Lidarr'
+              : 'album not found in Lidarr after adding artist (metadata may still be refreshing)',
           }
         }
 
