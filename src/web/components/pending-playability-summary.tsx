@@ -11,7 +11,7 @@ export function PendingPlayabilitySummary() {
     queryFn: getPendingPlayability,
   })
   // Silent until an Audition run has actually found artists without a track.
-  if (!data || data.withoutTrack === 0) return null
+  if (!data?.reasons || !(data.withoutTrack > 0)) return null
 
   const parts: [MessageKey, number][] = [
     ['discover.playability.missingSource', data.reasons.missingSource],

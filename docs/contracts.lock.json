@@ -421,7 +421,7 @@
         "src/web/components/monitoring-options.tsx": "e7b92559caa013ff83c07bf5cd0576f9cafecb512b5f0efef406ee86b418f148",
         "src/web/components/mood-prompt-bar.tsx": "2ee5b1c43f76e6c14ab12ad72d753af7ef5f0f264a91401373d8a5ddda50d766",
         "src/web/components/oauth-callback-notice.tsx": "0672ae55a10cce7adf2eeaeff1cc14f716fedde97b69a74293d7f1522e5181de",
-        "src/web/components/pending-playability-summary.tsx": "a19dff4f986f5c574d094080cfcc0902372fcbabcf721722e72b767138146a61",
+        "src/web/components/pending-playability-summary.tsx": "e4e257123013490c7721f295ccf57676b09f7d9f7b48970fc768c0548acaea91",
         "src/web/components/pipeline-progress.tsx": "43b74abf15dedf27c2a592d988ff6251771733c2c30b04a16e2e6a1b0663d657",
         "src/web/components/playlist-card.tsx": "812f9ff26df70a2f1c8d522640608d57977e106f4e03252318c8bf9c58f7312f",
         "src/web/components/playlist-form.tsx": "a1b6ca25da9f6f4cceb24466581cdac78caa6e1756b3eeaa408fa7050c4a5546",
@@ -522,14 +522,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "754b9ad500b53651a970da4b9def056f96e16fb3266099b7ecae0f4c108547f5",
+      "digest": "729a16318a98116e40874f672d800e82261da07c0ac33ac216c5d43fb74a7629",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "Describe the Discover pending-view summary of artists without a playable track and its reason categories.",
         "breaking": "none",
         "migration": "",
-        "digest": "754b9ad500b53651a970da4b9def056f96e16fb3266099b7ecae0f4c108547f5"
+        "digest": "729a16318a98116e40874f672d800e82261da07c0ac33ac216c5d43fb74a7629"
       }
     },
     "features": {
