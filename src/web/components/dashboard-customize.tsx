@@ -16,7 +16,7 @@ export const DASHBOARD_TITLES: Record<DashboardCardId, MessageKey> = {
   decisions: 'dashboard.yourDecisions',
   listening: 'dashboard.listening',
   genres: 'genres.title',
-  subscriptions: 'subscriptions.title',
+  subscriptions: 'dashboard.subscriptions',
 }
 
 export const DASHBOARD_LINKS: Record<DashboardCardId, string> = {
@@ -24,7 +24,7 @@ export const DASHBOARD_LINKS: Record<DashboardCardId, string> = {
   decisions: '/discover?status=approved',
   listening: '/settings?tab=connections',
   genres: '/genres',
-  subscriptions: '/subscriptions',
+  subscriptions: '/discovery-modes',
 }
 
 export function DashboardCustomize({

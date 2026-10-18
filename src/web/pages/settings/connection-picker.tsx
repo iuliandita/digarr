@@ -10,8 +10,11 @@ import { useI18n } from '../../lib/i18n'
 export type ConnectionChoice = {
   id: string
   name: string
-  description: MessageKey
+  description?: MessageKey
+  descriptionText?: string
   group: MessageKey
+  unavailableReason?: string
+  detail?: string
   icon: ReactNode
   experimental?: boolean
 }
@@ -23,6 +26,8 @@ export function ConnectionPicker({
   experimental,
   onExperimentalChange,
   saving,
+  labels,
+  footer,
 }: {
   choices: ConnectionChoice[]
   onPick: (id: string) => void
@@ -30,6 +35,8 @@ export function ConnectionPicker({
   experimental: boolean
   onExperimentalChange?: (value: boolean) => void
   saving: boolean
+  footer?: ReactNode
+  labels?: { title: string; search: string; results: string; empty: string }
 }) {
   const { t } = useI18n()
   const [search, setSearch] = useState('')
@@ -38,7 +45,7 @@ export function ConnectionPicker({
     searchRef.current?.focus()
   }, [])
   const filtered = choices.filter((choice) =>
-    `${choice.name} ${t(choice.description)} ${t(choice.group)}`
+    `${choice.name} ${choice.descriptionText ?? (choice.description ? t(choice.description) : '')} ${t(choice.group)} ${choice.unavailableReason ?? ''}`
       .toLocaleLowerCase()
       .includes(search.trim().toLocaleLowerCase()),
   )
@@ -47,7 +54,7 @@ export function ConnectionPicker({
   return (
     <section
       id="connection-picker"
-      aria-label={t('settings.addConnection')}
+      aria-label={labels?.title ?? t('settings.addConnection')}
       className="space-y-4 rounded-surface border border-border bg-surface p-4"
       onKeyDown={(event) => {
         if (event.key === 'Escape') {
@@ -61,8 +68,8 @@ export function ConnectionPicker({
         <Input
           ref={searchRef}
           type="search"
-          aria-label={t('settings.searchConnections')}
-          placeholder={t('settings.searchConnections')}
+          aria-label={labels?.search ?? t('settings.searchConnections')}
+          placeholder={labels?.search ?? t('settings.searchConnections')}
           value={search}
           onChange={(event) => setSearch(event.target.value)}
         />
@@ -71,10 +78,13 @@ export function ConnectionPicker({
         </Button>
       </div>
       <div aria-live="polite" aria-atomic="true" className="sr-only">
-        {t('settings.connectionResults').replace('{0}', String(filtered.length))}
+        {(labels?.results ?? t('settings.connectionResults')).replace(
+          '{0}',
+          String(filtered.length),
+        )}
       </div>
       {filtered.length === 0 && (
-        <p className="text-sm text-muted">{t('settings.noConnectionsFound')}</p>
+        <p className="text-sm text-muted">{labels?.empty ?? t('settings.noConnectionsFound')}</p>
       )}
       {groups.map((group) => (
         <div key={group} className="space-y-2">
@@ -88,7 +98,8 @@ export function ConnectionPicker({
                   type="button"
                   aria-label={choice.name}
                   onClick={() => onPick(choice.id)}
-                  className="flex items-start gap-3 rounded-surface border border-border px-3 py-3 text-left transition-colors hover:border-accent hover:bg-surface-2 focus-ring"
+                  disabled={!!choice.unavailableReason}
+                  className="flex items-start gap-3 rounded-surface border border-border px-3 py-3 text-left transition-colors hover:border-accent hover:bg-surface-2 focus-ring disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <span aria-hidden="true" className="mt-0.5 shrink-0">
                     {choice.icon}
@@ -100,13 +111,21 @@ export function ConnectionPicker({
                         <Badge variant="warning">{t('search.experimental')}</Badge>
                       )}
                     </span>
-                    <span className="block text-caption text-muted">{t(choice.description)}</span>
+                    <span className="block text-caption text-muted">
+                      {choice.descriptionText ?? (choice.description ? t(choice.description) : '')}
+                    </span>
+                    {(choice.unavailableReason || choice.detail) && (
+                      <span className="block text-caption text-warning">
+                        {choice.unavailableReason ?? choice.detail}
+                      </span>
+                    )}
                   </span>
                 </button>
               ))}
           </div>
         </div>
       ))}
+      {footer}
       {onExperimentalChange && (
         <label className="flex items-start gap-3 border-t border-border-subtle pt-4">
           <input

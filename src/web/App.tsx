@@ -18,6 +18,7 @@ import { errMsg } from '@/core/validation'
 import { CHANNEL, GIT_SHA, VERSION } from '@/version'
 import { AuthGate } from './components/auth-gate'
 import { BottomNav } from './components/bottom-nav'
+import { DiscoveryModesRedirect } from './components/discovery-modes-redirect'
 import { ErrorBoundary } from './components/error-boundary'
 import { KeyboardShortcuts } from './components/keyboard-shortcuts'
 import { LanguageSwitcher } from './components/language-switcher'
@@ -82,7 +83,6 @@ const SearchPage = lazy(() => import('./pages/search').then((m) => ({ default: m
 const SettingsPage = lazy(() =>
   import('./pages/settings').then((m) => ({ default: m.SettingsPage })),
 )
-const SubscriptionsPage = lazy(() => import('./pages/subscriptions'))
 const UserManagementPage = lazy(() =>
   import('./pages/user-management').then((m) => ({ default: m.UserManagementPage })),
 )
@@ -522,10 +522,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4 lg:gap-6">
-              <Link
-                to="/"
-                className="text-title font-bold text-accent-text focus-ring rounded-control"
-              >
+              <Link to="/" className="text-title font-bold text-brand focus-ring rounded-control">
                 digarr
               </Link>
               <ul className="hidden items-center gap-1 md:flex">
@@ -729,12 +726,13 @@ function InnerApp() {
                 <Route path="/" element={<Dashboard />} />
                 <Route path="/search" element={<SearchPage />} />
                 <Route path="/discover" element={<DiscoverPage />} />
-                <Route path="/discover/modes" element={<DiscoveryModesPage />} />
+                <Route path="/discovery-modes" element={<DiscoveryModesPage />} />
+                <Route path="/discover/modes" element={<DiscoveryModesRedirect />} />
                 <Route path="/genres" element={<GenresPage />} />
                 <Route path="/genres/:slug" element={<GenreDetailPage />} />
                 <Route path="/playlists" element={<PlaylistsPage />} />
                 <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
-                <Route path="/subscriptions" element={<SubscriptionsPage />} />
+                <Route path="/subscriptions" element={<DiscoveryModesRedirect />} />
                 <Route
                   path="/library"
                   element={

@@ -387,9 +387,9 @@ Locale notes:
 
 **GET /api/v1/discovery-modes** notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
-- In the web UI, these modes are exposed from Discover -> Discovery Modes
+- In the web UI, use Discover > Discovery Modes > Run a mode. The unified page offers Run now and Schedule; saved schedules keep the existing subscription APIs.
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
-- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. Clients should badge experimental modes rather than hide them. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reports.
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. The web picker shows experimental modes only when Show experimental integrations is enabled, using the same preference as Connections; visible experimental entries carry a badge. The REST catalog remains complete. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reports.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -760,6 +760,7 @@ This route group is registered only when the app is built with an slskd orchestr
 - No request body
 - Returns `202` with an empty body and lets the sync continue in the background; background failures are logged, not returned. A failure to start the sync returns `500` problem+json
 - The sync worker polls linked Lidarr wanted releases, creates deduped `slskd` jobs, advances active jobs through search and transfer states, and verifies Lidarr imports before marking linked jobs complete
+- Creating or updating a linked slskd target without a nonblank `lidarrDownloadPath` returns a 400 problem response. Existing targets remain readable, but jobs fail before searching or queueing until the path is set.
 - Linked target config requires `lidarrDownloadPath`, the completed downloads root visible to Lidarr. All queued files must succeed before `ManualImport`; partial, rejected, ambiguous, or unidentified files are refused. Imports use `move` and are verified through track `hasFile` values. Releases are capped at 500 files and 20 GiB, with a 2,048-character path limit; rejected manifests never enqueue downloads.
 - Failed work reuses its work-key job after a one-hour cooldown and increments `attempts`. Historical duplicate failures are retained in terminal `superseded` state.
 
@@ -846,7 +847,7 @@ When `config` is absent or null, generation defaults to size 25 and source prior
 
 Playlist PATCH and DELETE return `204` with no body.
 
-Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. Admins can turn it on with the Scheduled generation switch on the Playlists page, or with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must have a schedule. Manual generation does not require the global switch.
+Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. Admins can turn it on with the Scheduled generation switch in Settings > Schedule, or with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must have a schedule. Manual generation does not require the global switch.
 
 `GET /api/v1/playlists/scheduler` returns `{ nextRun, cron, enabled }`. `enabled` is the global switch, not a per-playlist flag. `nextRun` is the earliest registered next run among the current user's playlists, or null. `cron` is the single distinct nonempty schedule across that user's saved playlists, or null when there are none or several; it can be present even when scheduling is disabled.
 

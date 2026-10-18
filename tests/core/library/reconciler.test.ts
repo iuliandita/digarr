@@ -531,3 +531,33 @@ describe('reconcileArtist - continuity', () => {
     },
   )
 })
+
+describe('reconcileArtist - special-purpose album disambiguation', () => {
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'does not fetch release groups for special-purpose candidate %s',
+    async (mbid) => {
+      const ctx = makeCtx({
+        mbClient: {
+          searchArtist: vi.fn().mockResolvedValue({
+            artists: [
+              { id: mbid, name: 'Shared Name' },
+              { id: VALID_MBID, name: 'Shared Name' },
+            ],
+          }),
+          getReleaseGroups: vi.fn().mockResolvedValue([
+            { id: 'album-1', title: 'One' },
+            { id: 'album-2', title: 'Two' },
+          ]),
+        },
+      })
+      const result = await reconcileArtist(
+        { sourceArtistId: 'src-1', name: 'Shared Name', knownAlbumTitles: ['One', 'Two'] },
+        'plex',
+        ctx,
+      )
+      expect(result.mbid).toBe(VALID_MBID)
+      expect(ctx.mbClient.getReleaseGroups).toHaveBeenCalledExactlyOnceWith(VALID_MBID)
+      expect(ctx.counts.mbApiCallsFailed).toBe(0)
+    },
+  )
+})

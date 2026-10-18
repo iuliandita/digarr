@@ -117,7 +117,7 @@ function SubscriptionPulse({
           className="bg-surface border border-border rounded-surface"
           message={t('dashboard.subscriptionsEmpty')}
           action={
-            <Link to="/subscriptions" className="text-caption text-accent-text underline">
+            <Link to="/discovery-modes" className="text-caption text-accent-text underline">
               {t('dashboard.setUpAutomaticDiscovery')}
             </Link>
           }

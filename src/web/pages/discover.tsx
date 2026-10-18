@@ -167,13 +167,13 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/discover/modes?mode=gap-fill"
+            to="/discovery-modes?mode=gap-fill"
             className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
           >
             {t('discoveryMode.gap-fill.label')}
           </Link>
           <Link
-            to="/discover/modes?mode=release-radar"
+            to="/discovery-modes?mode=release-radar"
             className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discoveryMode.release-radar.label')}
@@ -195,7 +195,7 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
         <p className="text-muted text-sm">{t('discover.emptyAll')}</p>
         <div className="flex items-center justify-center gap-3">
           <Link
-            to="/subscriptions"
+            to="/discovery-modes"
             className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discover.importArtists')}

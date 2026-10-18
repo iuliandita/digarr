@@ -448,7 +448,7 @@ describe('Dashboard', () => {
 
     renderWithQuery(<Dashboard />)
 
-    expect(await screen.findByText('Abonnements')).toBeInTheDocument()
+    expect(await screen.findByText('Modes de découverte')).toBeInTheDocument()
     expect(screen.getByText('Configurer la découverte automatique')).toBeInTheDocument()
   })
 
@@ -741,11 +741,11 @@ describe('Dashboard', () => {
     await waitFor(() => expect(document.querySelectorAll('[data-dashboard-card]')).toHaveLength(0))
     fireEvent.click(showEmpty)
     await waitFor(() => expect(document.querySelectorAll('[data-dashboard-card]')).toHaveLength(5))
-    const subscriptions = within(panel).getByRole('checkbox', { name: 'Subscriptions' })
+    const subscriptions = within(panel).getByRole('checkbox', { name: 'Discovery Modes' })
     await waitFor(() => expect(subscriptions).toBeEnabled())
     fireEvent.click(subscriptions)
     await waitFor(() =>
-      expect(screen.queryByRole('region', { name: 'Subscriptions' })).not.toBeInTheDocument(),
+      expect(screen.queryByRole('region', { name: 'Discovery Modes' })).not.toBeInTheDocument(),
     )
   })
 

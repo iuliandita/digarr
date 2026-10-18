@@ -49,6 +49,7 @@
   --color-accent-hover: color-mix(in oklab, var(--color-accent) 88%, var(--color-text));
   /* Accent used as text; themes whose filled accent is too dark for text on surfaces override it */
   --color-accent-text: var(--color-accent);
+  --color-brand: var(--color-accent);
 
   --color-bg: #1a1b26;
   --color-surface: #24283b;
@@ -377,6 +378,7 @@
   --color-surface: #ffffff;
   --color-border: #e0e0e0;
   --color-accent: #1db954;
+  --color-brand: #00a541;
   --color-accent-fg: #191414;
   --color-accent-text: #00821b;
   --color-approve: #007100;
@@ -561,6 +563,7 @@
   --color-surface: #ffffff;
   --color-border: #e0e0e0;
   --color-accent: #00b4b4;
+  --color-brand: #009e9f;
   --color-accent-fg: #0d0d0d;
   --color-accent-text: #007c7d;
   --color-approve: #007100;

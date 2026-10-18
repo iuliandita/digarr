@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import type { LidarrAlbum, LidarrArtist } from '@/core/clients/lidarr'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { createWikidataClient } from '@/core/clients/wikidata'
 import type {
   HealthCheckId,
@@ -148,7 +149,9 @@ export class LibraryHealthService {
 
     const cachedByMbid = new Map(cachedArtists.map((a) => [a.mbid, a]))
 
-    const monitoredArtists = lidarrArtists.filter((a) => a.monitored)
+    const monitoredArtists = lidarrArtists.filter(
+      (a) => a.monitored && !isSpecialPurposeArtist(a.foreignArtistId),
+    )
     const missingAlbums = await this.checkMissingAlbums(monitoredArtists)
     const { failed, firstError } = missingAlbums
     if (failed > 0 && failed === monitoredArtists.length) {
