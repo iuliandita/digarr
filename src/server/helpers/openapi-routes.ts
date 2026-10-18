@@ -435,7 +435,7 @@ export const routeCatalog: RouteSpec[] = [
     tag: 'Setup',
     auth: 'conditional',
     summary: 'Complete initial setup',
-    description: 'Requested Lidarr or Emby services require an authenticated owner.',
+    description: 'The options that need an owner are Lidarr and Emby services.',
     ...body(setupCompleteSchema),
     ok: noContent('Setup completed.'),
     errors: { '409': 'Setup already complete or required state is missing.' },
@@ -574,6 +574,13 @@ export const routeCatalog: RouteSpec[] = [
     tag: 'Recommendations',
     auth: 'user',
     summary: 'Credential availability for the popular-album approve option',
+  },
+  {
+    method: 'get',
+    path: '/api/v1/recommendations/playability',
+    tag: 'Recommendations',
+    auth: 'user',
+    summary: "Playable-track summary for the caller's pending artists from recent Audition runs",
   },
 
   // Personal notification channels
