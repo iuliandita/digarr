@@ -157,7 +157,7 @@
         "src/core/ops/encryption-sites.ts": "7ac3926596fd13bc8d5e82d4900235b420166936bb98f2091efe056c96b04c19",
         "src/core/ops/hygiene.ts": "dbfd1fbbb9db88ceb9c044d0fc37b678025a81855b1bfd618bc5bc95cb90e1f2",
         "src/core/ops/initial-admin.ts": "7f8b81e3e103c8e7f103afae6ba61ae5116c06cb26d4ede30c19b21d439018f7",
-        "src/core/ops/legacy-listening-connections.ts": "3481616486fb80bd76abeb1474cc6a9062d8718e1cb21737668dc5d3859dcb3d",
+        "src/core/ops/legacy-listening-connections.ts": "0556c226322ec7e5fe543f2760a7452cbeca263ee5b5ac4d1cf7a2f0a1dd6b01",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
         "src/core/ops/types.ts": "0743c3fa4f69fd4f17d85f75cdb12c7fe7f9556d401fa7b95387afcf6dc458fd",
@@ -197,19 +197,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96",
+      "digest": "71796f1fe080e3ed703626d3046c1b7f171712eec57f936a01f80bbb439fba5a",
       "review": {
-        "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/runbooks/encryption-key-rotation.md"
-        ],
-        "note": "Document migration 0059, indexed nullable recommendation references, retained album identity and cooldown, synthetic-row cleanup and analytics exclusions, and policy/request backup recovery. PGlite migration replay and backup round-trips are covered by integration tests; live recovery is not tested.",
-        "breaking": "Older images ignore approval policies and restore unrestricted direct approval for affected accounts.",
-        "migration": "Stop writers and verify a consistent native backup with the matching image and encryption key before upgrading. JSON backups and backend copies retain request history including null references. For exact rollback restore the pre-upgrade native backup separately and restrict member access; remote additions and delivered notifications cannot be reversed.",
-        "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96"
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Log-only change: the legacy listening migration copies and clears the same data as before; only the redundant boot log line is skipped.",
+        "breaking": "none",
+        "migration": "No schema or data change. Upgrade needs no extra backup, and rollback to the previous image behaves the same; the migration still runs once.",
+        "digest": "71796f1fe080e3ed703626d3046c1b7f171712eec57f936a01f80bbb439fba5a"
       }
     },
     "configuration": {
@@ -306,7 +301,7 @@
         "src/server/routes/mcp.ts": "75fdba073140ce4e5e20e26cb8bafe86dc08fb525a792ebf4f499047c2ed2b26",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
-        "src/server/routes/pipeline.ts": "4dca038a97afadacacce0f36569ef7af3edd76ef6ca649d58febd191b5a684db",
+        "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
         "src/server/routes/recommendations.ts": "756789a635008f05da16be9a1d090c2b9b563f6b443f0746fc76022d0180f4bd",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
@@ -333,14 +328,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
+      "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Auto-approve deps now receive the existing job recorder; no route, request, or response change.",
         "breaking": "none",
         "migration": "",
-        "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2"
+        "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc"
       }
     },
     "interface": {
@@ -747,17 +742,17 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
+        "src/index.ts": "53524337a72040e766d1a3786af2995eaaffc0f2b277d3bad3c4cdbfcfa6aa88",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8",
+      "digest": "2abfcdb2bd7de6cf8cb0fb1cab56df64f412602373a74cc2ddf2e933397e869d",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "AudioMuse name matching now uses the existing reconciler normalizer and skips names that normalize to empty; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
+        "note": "Auto-approved target pushes record Job History rows and a boot warning text is longer; no new setting or contract.",
         "breaking": "none",
         "migration": "",
-        "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8"
+        "digest": "2abfcdb2bd7de6cf8cb0fb1cab56df64f412602373a74cc2ddf2e933397e869d"
       }
     },
     "deployment": {

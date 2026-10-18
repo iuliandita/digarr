@@ -3,7 +3,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { migrateLegacyListeningConnections } from '@/core/ops/legacy-listening-connections'
 import type { SettingsRow } from '@/db/queries/settings'
-import type { UserPublic } from '@/db/queries/users'
+import type { UserConnections, UserPublic } from '@/db/queries/users'
 
 function makeSettings(overrides: Partial<SettingsRow> = {}): SettingsRow {
   return {
@@ -183,6 +183,28 @@ describe('migrateLegacyListeningConnections', () => {
       listenbrainzUsername: 'env-lb-user',
       listenbrainzToken: 'env-lb-token',
     })
+  })
+
+  it('stays silent when the user already has the connections and nothing is cleared', async () => {
+    const info = vi.fn()
+    const updateUserConnections = vi.fn(async () => {})
+    const updateSettings = vi.fn(async () => {})
+
+    await migrateLegacyListeningConnections({
+      settings: null,
+      envLegacy: { listenbrainzUsername: 'env-lb-user', listenbrainzToken: 'env-lb-token' },
+      users: [makeUser()],
+      getUserConnections: vi.fn(
+        async () => ({ listenbrainzUsername: 'existing' }) as unknown as UserConnections,
+      ),
+      updateUserConnections,
+      updateSettings,
+      log: { info, warn: vi.fn() },
+    })
+
+    expect(updateUserConnections).not.toHaveBeenCalled()
+    expect(updateSettings).not.toHaveBeenCalled()
+    expect(info).not.toHaveBeenCalled()
   })
 
   it('refuses migration when multiple admins make ownership ambiguous', async () => {

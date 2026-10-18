@@ -63,8 +63,10 @@ export async function migrateLegacyListeningConnections(args: {
     patch.lastfmApiKey = legacy.lastfmApiKey
   }
 
+  let changed = false
   if (Object.keys(patch).length > 0) {
     await args.updateUserConnections(targetUser.id, patch)
+    changed = true
   }
 
   if (
@@ -80,9 +82,12 @@ export async function migrateLegacyListeningConnections(args: {
       lastfmUsername: null,
       lastfmApiKey: null,
     })
+    changed = true
   }
 
-  log.info(`[boot] Migrated legacy global listening sources to user "${targetUser.username}"`)
+  if (changed) {
+    log.info(`[boot] Migrated legacy global listening sources to user "${targetUser.username}"`)
+  }
 }
 
 function resolveTargetUser(users: UserPublic[]): UserPublic | null {

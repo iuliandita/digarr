@@ -10,6 +10,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).
 - System Health rows show a text status (OK, Degraded, Error) and a distinct icon per state instead of a color-only dot, in all 15 languages (#1041).
+- Auto-approved deliveries to Lidarr, slskd and playlist targets now record Job History rows like manual approvals, so a failed auto-approved push shows up there (#1039).
+- The legacy listening-source migration logs only when it actually copies connections or clears the global settings, instead of on every boot (#1035).
+- The production boot warning for a missing `ALLOWED_ORIGIN` now names the cookie, CSRF and OIDC/TIDAL redirect consequences, not just CORS (#1043).
 
 ### Changed
 
