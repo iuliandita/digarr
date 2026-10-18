@@ -1,4 +1,8 @@
 export const pl = {
+  'oauth.error.tokenMismatch': 'Token autoryzacji nie pasuje - rozpocznij połączenie ponownie.',
+  'oauth.error.authorizationDenied':
+    'Odmówiono autoryzacji - rozpocznij połączenie ponownie, jeśli chcesz się połączyć.',
+  'jobHistory.writeBack': 'Wysyłanie do {service}',
   'settings.slskdSearchInterval':
     'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
   'settings.slskdPathUnavailable':
@@ -32,6 +36,30 @@ export const pl = {
     'Unieważnić "{name}"? Skrypty korzystające z niego natychmiast stracą dostęp.',
   'tokens.readOnlyError': 'Ten token zezwala tylko na żądania GET i HEAD.',
   'tokens.notFoundError': 'Nie znaleziono tego tokena.',
+  'writeBack.lastfmReconnect': 'Połącz ponownie Last.fm',
+  'writeBack.title': 'Wysyłanie do scrobblerów',
+  'writeBack.scope':
+    'Wysyłane są tylko zatwierdzenia konkretnych utworów z podglądów lub Audition. Odrzucenia, blokady i zatwierdzenia samych wykonawców pozostają lokalne.',
+  'writeBack.offHelp':
+    'Wyłączenie opcji zatrzymuje przyszłe wysyłanie. Nie cofa tego, co już wysłano.',
+  'writeBack.listenbrainzLoves': 'Wysyłaj ulubione utwory do ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Wysyła MBID nagrania zatwierdzanego utworu na twoje konto ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Wysyłaj wygenerowane playlisty do ListenBrainz',
+  'writeBack.playlistHelp':
+    'Osobna zgoda: wysyła tytuł playlisty, nazwy wykonawców i utworów oraz znane MBID nagrań jako prywatną playlistę ListenBrainz. Utwory bez MBID nagrania są pomijane. Wysyłane są tylko playlisty, które generujesz ręcznie - zaplanowane uruchomienia nigdy ich nie wysyłają.',
+  'writeBack.listenbrainzMissing':
+    'Dodaj swój token ListenBrainz w Połączeniach, aby włączyć wysyłanie.',
+  'writeBack.lastfmLoves': 'Wysyłaj ulubione utwory do Last.fm',
+  'writeBack.lastfmHelp': 'Wysyła nazwę wykonawcy i zatwierdzanego utworu na twoje konto Last.fm.',
+  'writeBack.lastfmMissing':
+    'Last.fm potrzebuje twojego klucza API oraz ustawień serwera LASTFM_SHARED_SECRET i DIGARR_ENCRYPTION_KEY, zanim się połączysz.',
+  'writeBack.lastfmConnected':
+    'Last.fm jest połączony. Włącz osobno ulubione utwory, aby zacząć wysyłanie.',
+  'writeBack.lastfmConnect':
+    'Włącz ulubione utwory, aby połączyć Last.fm. Po powrocie włącz opcję ponownie, aby zacząć wysyłanie - samo połączenie jej nie włącza.',
+  'writeBack.lastError': 'Ostatni błąd wysyłania: {0}',
+  'writeBack.loadFailed': 'Nie udało się wczytać twoich ustawień wysyłania.',
   'settings.monitorMissing': 'Brakujące albumy',
   'settings.monitorExisting': 'Istniejące albumy',
   'settings.monitorLatest': 'Najnowszy album',

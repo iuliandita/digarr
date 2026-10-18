@@ -12,6 +12,7 @@ type PendingRow = typeof oauthPendingAuths.$inferSelect
 export type PendingOAuthPayload = {
   redirectUri?: string
   codeVerifier?: string
+  requestToken?: string
 }
 
 export type PendingOAuth = {

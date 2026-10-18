@@ -1,4 +1,8 @@
 export const tr = {
+  'oauth.error.tokenMismatch': 'Yetkilendirme belirteci eşleşmedi - bağlantıyı yeniden başlat.',
+  'oauth.error.authorizationDenied':
+    'Yetkilendirme reddedildi - bağlanmak istiyorsan bağlantıyı yeniden başlat.',
+  'jobHistory.writeBack': '{service} hizmetine gönderim',
   'settings.slskdSearchInterval': 'Aramalar arasındaki en kısa süre, saniye (1-60, varsayılan 3)',
   'settings.slskdPathUnavailable':
     'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',
@@ -31,6 +35,30 @@ export const tr = {
     '"{name}" iptal edilsin mi? Bu belirteci kullanan betikler erişimi hemen kaybedecek.',
   'tokens.readOnlyError': 'Bu belirteç yalnızca GET ve HEAD isteklerine izin verir.',
   'tokens.notFoundError': 'Bu belirteç bulunamadı.',
+  'writeBack.lastfmReconnect': 'Last.fm hizmetine yeniden bağlan',
+  'writeBack.title': 'Scrobbler hizmetlerine gönderme',
+  'writeBack.scope':
+    'Yalnızca önizlemelerden veya Audition üzerinden belirli parçalar için verdiğin onaylar gönderilir. Retler, engellemeler ve yalnızca sanatçı onayları yerel kalır.',
+  'writeBack.offHelp':
+    'Bir seçeneği kapatmak sonraki gönderimleri durdurur. Daha önce gönderilenleri geri almaz.',
+  'writeBack.listenbrainzLoves': 'Beğenilen parçaları ListenBrainz hizmetine gönder',
+  'writeBack.listenbrainzHelp':
+    'Onayladığın parçanın kayıt MBID bilgisini ListenBrainz hesabına gönderir.',
+  'writeBack.listenbrainzPlaylists': 'Oluşturulan çalma listelerini ListenBrainz hizmetine gönder',
+  'writeBack.playlistHelp':
+    'Ayrı izin: çalma listesi başlığını, sanatçı/parça adlarını ve bilinen kayıt MBID bilgilerini özel bir ListenBrainz çalma listesi olarak gönderir. Kayıt MBID bilgisi olmayan parçalar atlanır. Yalnızca elle oluşturduğun çalma listeleri gönderilir - zamanlanmış çalıştırmalar asla göndermez.',
+  'writeBack.listenbrainzMissing':
+    'Göndermeyi açmak için Bağlantılar bölümüne ListenBrainz belirtecini ekle.',
+  'writeBack.lastfmLoves': 'Beğenilen parçaları Last.fm hizmetine gönder',
+  'writeBack.lastfmHelp': 'Onayladığın parçanın sanatçı ve parça adını Last.fm hesabına gönderir.',
+  'writeBack.lastfmMissing':
+    'Last.fm bağlantısı için senin API anahtarın ve LASTFM_SHARED_SECRET ile DIGARR_ENCRYPTION_KEY sunucu ayarları gerekir.',
+  'writeBack.lastfmConnected':
+    'Last.fm bağlı. Göndermeye başlamak için beğenilen parçaları ayrıca aç.',
+  'writeBack.lastfmConnect':
+    'Last.fm bağlantısı için beğenilen parçaları aç. Döndüğünde göndermeye başlamak için seçeneği tekrar aç - yalnızca bağlanmak göndermeyi açmaz.',
+  'writeBack.lastError': 'Son gönderim hatası: {0}',
+  'writeBack.loadFailed': 'Gönderme ayarların yüklenemedi.',
   'settings.monitorMissing': 'Eksik albümler',
   'settings.monitorExisting': 'Mevcut albümler',
   'settings.monitorLatest': 'En son albüm',

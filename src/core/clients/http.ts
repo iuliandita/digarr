@@ -13,6 +13,8 @@ const SENSITIVE_QUERY_KEYS = new Set([
   'auth_token',
   'signature',
   'sig',
+  'api_sig',
+  'sk',
   // Subsonic auth params: 't' is md5(password+salt), 's' is the salt.
   // Logging both would expose an offline-brute-forceable credential.
   't',
@@ -68,10 +70,18 @@ export function createHttpClient(config: HttpClientConfig) {
         const init: GuardedInit = {
           method,
           headers: new Headers({
-            'Content-Type': 'application/json',
+            'Content-Type':
+              body instanceof URLSearchParams
+                ? 'application/x-www-form-urlencoded'
+                : 'application/json',
             ...headers,
           }),
-          body: body ? JSON.stringify(body) : undefined,
+          body:
+            body instanceof URLSearchParams
+              ? body.toString()
+              : body
+                ? JSON.stringify(body)
+                : undefined,
           signal: controller.signal,
           ...(skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
         }
@@ -157,6 +167,8 @@ export function createHttpClient(config: HttpClientConfig) {
     get: <T>(path: string, options?: HttpRequestOptions) =>
       request<T>('GET', path, undefined, options),
     post: <T>(path: string, body?: unknown, options?: HttpRequestOptions) =>
+      request<T>('POST', path, body, options),
+    postForm: <T>(path: string, body: URLSearchParams, options?: HttpRequestOptions) =>
       request<T>('POST', path, body, options),
     postVoid: (path: string, body?: unknown, options?: HttpRequestOptions) =>
       requestVoid('POST', path, body, options),

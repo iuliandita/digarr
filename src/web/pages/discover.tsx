@@ -604,6 +604,14 @@ export function DiscoverPage() {
     [items],
   )
 
+  const feedbackForRecommendation = useCallback(
+    (id: number) => {
+      const rec = items.find((item) => item.id === id)
+      return rec && preview.currentMbid === rec.artist.mbid ? preview.currentTrack : undefined
+    },
+    [items, preview.currentMbid, preview.currentTrack],
+  )
+
   const handleApproveToTarget = useCallback(
     async (recId: number, targetId: string) => {
       // Show profile picker dialog for Lidarr targets
@@ -620,6 +628,7 @@ export function DiscoverPage() {
         const targetOptions = resolveApprovalTargetOptions(targets, targetId)
         await approveToTarget(recId, targetId, {
           ...targetOptions,
+          feedbackTrack: feedbackForRecommendation(recId),
         })
         refetch()
         toast.success(t('dashboard.sentToTarget'))
@@ -633,7 +642,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [refetch, t, targets],
+    [feedbackForRecommendation, refetch, t, targets],
   )
 
   // Undo toast
@@ -735,6 +744,7 @@ export function DiscoverPage() {
         const res = await approveRecommendation(id, {
           monitorOption: option,
           selectedAlbumIds,
+          feedbackTrack: feedbackForRecommendation(id),
         })
         if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
         refetch()
@@ -748,7 +758,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [hasLidarrTarget, refetch, showUndo, t],
+    [feedbackForRecommendation, hasLidarrTarget, refetch, showUndo, t],
   )
 
   const handleApprove = useCallback(
@@ -760,9 +770,15 @@ export function DiscoverPage() {
         if (newStatus === 'approved' && standaloneSlskdTarget) {
           const targetId = `${standaloneSlskdTarget.type}-${standaloneSlskdTarget.id}`
           const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-          res = await approveToTarget(id, targetId, targetOptions)
+          res = await approveToTarget(id, targetId, {
+            ...targetOptions,
+            feedbackTrack: feedbackForRecommendation(id),
+          })
         } else {
-          res = await updateRecommendation(id, { status: newStatus })
+          res = await updateRecommendation(id, {
+            status: newStatus,
+            ...(newStatus === 'approved' ? { feedbackTrack: feedbackForRecommendation(id) } : {}),
+          })
         }
         if (filter !== 'rejected') {
           if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
@@ -782,7 +798,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [filter, refetch, showUndo, standaloneSlskdTarget, t, targets],
+    [feedbackForRecommendation, filter, refetch, showUndo, standaloneSlskdTarget, t, targets],
   )
 
   const handleReject = useCallback(
@@ -834,7 +850,10 @@ export function DiscoverPage() {
   async function handleRetry(id: number) {
     setActingIds((prev) => new Set([...prev, id]))
     try {
-      await updateRecommendation(id, { status: 'approved' })
+      await updateRecommendation(id, {
+        status: 'approved',
+        feedbackTrack: feedbackForRecommendation(id),
+      })
       toast.success(t('discover.queuedForRetry'))
       refetch()
     } catch {
@@ -856,11 +875,10 @@ export function DiscoverPage() {
     try {
       const stillFailed: string[] = []
       for (const targetId of failedTargetIds) {
-        const res = await approveToTarget(
-          id,
-          targetId,
-          resolveApprovalTargetOptions(targets, targetId),
-        )
+        const res = await approveToTarget(id, targetId, {
+          ...resolveApprovalTargetOptions(targets, targetId),
+          feedbackTrack: feedbackForRecommendation(id),
+        })
         stillFailed.push(...(res.targetSummary?.failures ?? []).map((f) => f.name))
       }
       if (stillFailed.length === 0) {
@@ -1618,11 +1636,13 @@ export function DiscoverPage() {
                 res = await approveToTarget(recId, targetId, {
                   ...overrides,
                   ...targetOptions,
+                  feedbackTrack: feedbackForRecommendation(recId),
                 })
               } else {
                 const dialogTarget = resolveDialogLidarrTarget(targets)
                 res = await approveRecommendation(recId, {
                   ...overrides,
+                  feedbackTrack: feedbackForRecommendation(recId),
                   ...(dialogTarget ? { lidarrTargetId: `lidarr-${dialogTarget.id}` } : {}),
                 })
               }

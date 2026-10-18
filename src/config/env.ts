@@ -123,6 +123,7 @@ export const envConfig = {
   // Last.fm
   lastfmUsername: env('LASTFM_USERNAME'),
   lastfmApiKey: env('LASTFM_API_KEY'),
+  lastfmSharedSecret: envOrFile('LASTFM_SHARED_SECRET'),
 
   // AI provider
   aiProvider: env('AI_PROVIDER'),

@@ -108,6 +108,7 @@ and bulk ignore, and settings service probes. Some mutation bodies remain generi
 | POST | `/api/v1/auth/tokens` | Cookie session | Create a personal token; returns its value once. Admin scope requires a current admin. |
 | DELETE | `/api/v1/auth/tokens/:id` | Cookie session | Revoke an owned token immediately. Returns `204`, or `404` for missing/unowned IDs. |
 | GET | `/api/v1/auth/me/preferences` | Yes | Get merged user preferences |
+| GET | `/api/v1/auth/me/write-back` | Yes | Current user scrobbler configuration, connection state, and last send errors |
 | PATCH | `/api/v1/auth/me/preferences` | Yes | Update user preferences (top-level partial merge). Per-user auth (session or personal token). |
 
 Personal token creation accepts `{"name":"nightly script","scope":"read","expiresInDays":30}`. `name` is trimmed and must be 1-100 characters; `scope` is `read`, `write`, or `admin`. Omit `expiresInDays` or pass `null` for no expiry; otherwise use 30, 90, or 365. Unknown fields and invalid values return `400`.
@@ -168,6 +169,21 @@ In v2.0.0, `PATCH /api/v1/auth/me/preferences` accepts `{"netNewAlbumDiscovery":
 
 Preference updates merge top-level keys only. A supplied `scoringWeights` object replaces the saved object; omitted weights fall back to defaults rather than retaining saved values. Send the complete intended `scoringWeights` object when changing weights.
 
+### Scrobbler write-back
+
+`GET /api/v1/auth/me/write-back` returns only the caller's state:
+
+```json
+{
+  "listenbrainz": { "configured": true, "lastError": null },
+  "lastfm": { "configured": true, "connected": false, "lastError": null }
+}
+```
+
+ListenBrainz `configured` means the user has a saved token. Last.fm `configured` requires the user's API key, server `LASTFM_SHARED_SECRET`, and `DIGARR_ENCRYPTION_KEY`; `connected` additionally means a stored session matching those credentials; it does not verify whether Last.fm still accepts that session. Use Reconnect Last.fm in Account after revocation or authorization errors. No credentials or session keys are returned. `lastError` is the last recorded provider send error or `null`.
+
+`PATCH /api/v1/auth/me/preferences` accepts independent booleans `listenbrainzLoveEnabled`, `listenbrainzPlaylistEnabled`, and `lastfmLoveEnabled`, all false by default. Omitted keys retain their values. Enabling Last.fm loves requires a current connected session; a callback never enables the preference automatically. Disabling stops future sends and does not undo remote writes. Exact-track approvals send a recording MBID to ListenBrainz or artist/title to Last.fm; artist-only approvals, rejects, and blocks remain local. Generated ListenBrainz playlists require their separate opt-in, are private, and are sent only on manual generation. Scheduled regenerations never send playlists. The send includes the playlist title, artist/track names, and known recording MBIDs; tracks without recording MBIDs are skipped, and no usable recordings produces a visible failure. See [setup and privacy](AUTHENTICATION.md#scrobbler-write-back).
+
 ### OIDC / OAuth
 
 | Method | Path | Auth | Description |
@@ -175,8 +191,9 @@ Preference updates merge top-level keys only. A supplied `scoringWeights` object
 | GET | `/api/v1/auth/oidc/login` | No | Redirect to OIDC provider. Requires `ALLOWED_ORIGIN` env var. Sets a browser-bound, one-time, 10-min `HttpOnly` transaction cookie. Rate limited: 10/min |
 | POST | `/api/v1/auth/oidc/link` | Cookie session | Start account linking after current-password verification. Returns `{ url }`. Requires CSRF protection and an unlinked local account. Rate limited: 5/min |
 | GET | `/api/v1/auth/oidc/callback` | Transaction-bound | OIDC callback; consumes the browser-bound transaction once. Login creates the user if needed and sets a session cookie. Linking also requires the initiating session and updates only its account's OIDC issuer and subject. Not rate limited |
-| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
-| GET | `/api/v1/auth/oauth/:provider/callback` | No | OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
+| POST | `/api/v1/auth/oauth/:provider/initiate` | Yes | Start OAuth flow (`spotify`, `deezer`, `tidal`, `lastfm`). Sets a browser-bound, 10-min `HttpOnly` transaction cookie scoped to the provider's callback path. Rate limited: 5/min |
+| GET | `/api/v1/auth/oauth/:provider/callback` | No | Spotify, Deezer, and TIDAL OAuth callback; requires the transaction cookie from initiate. The pending authorization is consumed on read, so a `state` works exactly once. Not rate limited |
+| GET | `/api/v1/auth/oauth/lastfm/callback/:state` | No | Last.fm callback; reads the one-time state from the path and the request token from `?token=`. Requires the transaction cookie scoped to `/api/v1/auth/oauth/lastfm/callback`; consumes the browser-bound pending authorization once. Not rate limited |
 | GET | `/api/v1/auth/oauth/:provider/status` | Yes | Check OAuth connection status |
 | DELETE | `/api/v1/auth/oauth/:provider` | Yes | Disconnect OAuth provider |
 
@@ -198,12 +215,13 @@ Logging out or changing the password before the callback invalidates the
 attempt. See [Authentication](AUTHENTICATION.md#oidc-account-matching).
 
 **POST /api/v1/auth/oauth/:provider/initiate** notes:
+- For `lastfm`, send `{}`. The server reads the user's saved Last.fm API key and `LASTFM_SHARED_SECRET`, and requires encryption. Set `ALLOWED_ORIGIN` to pin the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/lastfm/callback/<state>`. Outside production only, API clients may instead supply a loopback `redirectUri`. The response is `{ "authUrl": "..." }`. Authorize in the same browser. The server appends the one-time state as a path segment with no query string; Last.fm appends only `?token=<request-token>`. A successful callback stores an encrypted per-user session key and returns to `/settings?tab=account&oauth_success=lastfm`; the user must then enable loves explicitly.
 - For `tidal`, the body `clientId` / `clientSecret` are ignored: the server reads the one admin-registered TIDAL app from settings, so the bundled UI sends empty strings. Returns `400` with `TIDAL app credentials are not configured on the server` when no admin app is registered.
 - For `tidal`, the body `redirectUri` is ignored whenever `ALLOWED_ORIGIN` is set; the server pins the callback to `${ALLOWED_ORIGIN}/api/v1/auth/oauth/tidal/callback`. With `ALLOWED_ORIGIN` unset, the client-supplied value is accepted only outside production and only for a loopback host; production returns `400 ALLOWED_ORIGIN must be set to connect TIDAL`. The registered URI at TIDAL must match whichever value applies.
 - In-flight authorizations live in their own table, so calling initiate on an already-connected provider no longer disturbs the stored token: an abandoned re-connect leaves the existing connection intact. Starting a new flow discards the previous unfinished one for the same user and provider.
 - Only digests of the `state` and of the browser binding are persisted, and the row expires after 10 minutes.
 
-**GET /api/v1/auth/oauth/:provider/callback** redirects to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. The settings page renders both as a dismissible banner and then strips the parameter from the URL. Stages:
+**GET /api/v1/auth/oauth/:provider/callback** and **GET /api/v1/auth/oauth/lastfm/callback/:state** redirect to `/settings` with either `oauth_success=<provider>` or `oauth_error=<stage>`. The settings page renders both as a dismissible banner and then strips the parameter from the URL. Stages:
 
 | `oauth_error` | Meaning |
 |---------------|---------|
@@ -212,6 +230,8 @@ attempt. See [Authentication](AUTHENTICATION.md#oidc-account-matching).
 | `no_pending_auth` | No pending authorization matches the `state` (never initiated, already consumed, or superseded by a newer flow) |
 | `state_expired` | The pending authorization matched but is older than its 10-minute TTL |
 | `browser_mismatch` | The transaction cookie is missing or does not match the browser that started the flow |
+| `token_mismatch` | Last.fm returned a token different from the one stored for this authorization |
+| `authorization_denied` | Last.fm authorization was denied |
 | `missing_credentials` | The stored client ID/secret for the provider are gone |
 | `token_exchange_unreachable` | The token request threw before a response (DNS, TLS, reset, or the 10s timeout) |
 | `token_exchange_failed` | The token endpoint answered non-2xx. The upstream error body is logged, truncated to 300 chars |
@@ -416,6 +436,7 @@ Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `re
 The writable `status` values are `approved`, `rejected`, and `pending`; use `pending` to restore a recommendation.
 
 Approval notes:
+- Optional `feedbackTrack: { artistName, trackName, recordingMbid? }` identifies the exact preview track being approved; artist/title are nonempty strings and the optional recording MBID is a UUID. The credited artist must match the recommendation. Alternatively, `auditionTrackId` refers to a stored track in the caller's own Audition playlist with that artist. The stored Audition track supplies the authoritative identity when provided. Successful approval can send a track love only through that user's enabled scrobbler preferences; an ordinary artist approval sends nothing.
 - `approvalMode` defaults to `single_target`
 - `monitorOption` accepts `all`, `new`, `missing`, `existing`, `latest`, `first`, `selected`, `popular`, or `none`, and defaults to `none` when omitted: the artist is added to Lidarr without monitoring any albums and no search is triggered.
 
@@ -799,6 +820,8 @@ Before remote writes, Digarr verifies the destination identity and resolves matc
 **GET /api/v1/playlists/:id/exports** returns `{ exports: [{ targetId, remotePlaylistId, state, updatedAt }] }` for bindings whose playlist and target both belong to the caller. `state` is `creating`, `linked`, or `recovery_required`. Scope hashes and credentials are not returned.
 
 **POST /api/v1/playlists/:id/exports/:targetId/reset** requires exactly `{ "acknowledgePossibleDuplicate": true }` and returns `204`. It forgets only the owned local binding; it does not remove the remote playlist. Inspect the destination and remove or retain the old playlist deliberately before resetting, because the next export can create another copy. Reset is API-only; there is no automatic adoption or remote deletion. Another playlist owner or a missing/transferred target returns `404`; an overlapping generation/recovery returns `409` with `code: "errors.playlist.busy"`.
+
+**GET /api/v1/playlists/:id** may add `recommendationId` to an Audition track when its artist name identifies one unambiguous stored artist with a pending recommendation owned by the caller. Ambiguous artist identities or missing pending matches omit it, so the UI cannot approve the wrong recommendation.
 
 **GET /api/v1/playlists/:id** adds `generation`, either `null` for legacy/no-history playlists or `{ jobId, status, startedAt, completedAt, resolution }` for the latest owned generation job.
 
