@@ -1876,7 +1876,7 @@ export const ja = {
   'settings.channels.allowPrivateWarning':
     'プライベート/LAN アドレスへの配信を許可します。クラウドメタデータとリンクローカル範囲はブロックされたままです。',
   'settings.channels.webhookUrl': 'Webhook の URL',
-  'settings.channels.webhookSigningSecret': '署名シークレット(任意)',
+  'settings.channels.webhookSigningSecret': '署名シークレット（任意）',
   'settings.channels.ntfyServer': 'サーバー',
   'settings.channels.ntfyTopic': 'トピック',
   'settings.channels.ntfyPriority': '優先度',

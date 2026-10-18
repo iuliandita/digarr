@@ -1747,7 +1747,7 @@ export const zhCN = {
   'settings.channels.allowPrivateWarning':
     '允许投递到私有/局域网地址。云元数据和链路本地范围仍被阻止。',
   'settings.channels.webhookUrl': 'Webhook 的 URL',
-  'settings.channels.webhookSigningSecret': '签名密钥(可选)',
+  'settings.channels.webhookSigningSecret': '签名密钥（可选）',
   'settings.channels.ntfyServer': '服务器',
   'settings.channels.ntfyTopic': '主题',
   'settings.channels.ntfyPriority': '优先级',
