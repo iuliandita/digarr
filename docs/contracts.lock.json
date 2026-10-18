@@ -557,10 +557,11 @@
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "6b512e0e359a15d5a40349d349d785794a23e60b7232d147728d34c7f91f287b",
+        "src/core/clients/musicbrainz.ts": "1581fe7854ed48202478f051715640b3542ac250076c54e6a738ee356b39dbd8",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
+        "src/core/clients/release-group-cache.ts": "9aff724de4359a80b80a412a2e4faaa76e8f69f4a24015a97a5ee62e8f31df40",
         "src/core/clients/scrobbler-write-back.ts": "7ef373927545b67ca1eec769314168ed770560238296251f5bf5c860e074cb84",
         "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
@@ -603,7 +604,7 @@
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
-        "src/core/library/album-reconciler.ts": "cd9f1d2ca3ee9790693ef08638e99612502218015da06d3e9bdf34f9eedfa320",
+        "src/core/library/album-reconciler.ts": "a2ea482e01c215ba4dd33807c73c71067b72408c5427670efcf23d1498eea8bd",
         "src/core/library/health-scheduler.ts": "af286aae6e92bc4e712b15d1b2c2081fb7d7d4e2bb6680eaf766354d793cc410",
         "src/core/library/health.ts": "e67c96dc032158f1ffaeb6b009124d0c9ca9f9008284770ef8744eb233f59296",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
@@ -618,7 +619,7 @@
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "1a11c18e0c0e106cd864b99ab8dc5da668b0d0fc7ced106aa761ac44fb664d37",
-        "src/core/library/sync.ts": "2a4bda0806ab5aae742a1474b85cf0952759ef97e198a19a35bc077a6dcd5c07",
+        "src/core/library/sync.ts": "603c77d86e6e66264256943339290582857c475b3e85a53b16885dc3c5db50e4",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
         "src/core/net/guarded-fetch.ts": "517d7075fc57ed03c0173c10b6ba68c7253721c9d514e6ab90df9704540d6611",
@@ -748,14 +749,14 @@
         "src/index.ts": "3c404383a7367ac563b592456d38d93008dd1ee8282c82fb68c5e4d0bc0c1cb5",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "d1c9da5058064383547459a69348e19f07b993de41fbdfa570cabb3483c1ff56",
+      "digest": "ed17729310f801c7fdd3e0fca812dab0cdec1ecae0b755d8b6aa549e172a8f54",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Delay the boot library sync, health scan and slskd warmup by 60 seconds and cache the setup-complete flag in memory; the work performed and its results are unchanged.",
+        "note": "Cache complete MusicBrainz catalogs for 24 hours while preserving album responses, coverage filtering, ownership and manual sync freshness; the combined boot delay and setup-complete cache preserve the work performed and its results.",
         "breaking": "none",
         "migration": "",
-        "digest": "d1c9da5058064383547459a69348e19f07b993de41fbdfa570cabb3483c1ff56"
+        "digest": "ed17729310f801c7fdd3e0fca812dab0cdec1ecae0b755d8b6aa549e172a8f54"
       }
     },
     "deployment": {

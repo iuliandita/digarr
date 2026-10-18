@@ -82,49 +82,64 @@ describe('shared release-group catalog cache', () => {
     expect(upstream).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['404', '503', 'timeout', 'partial', 'malformed', 'malformed date'])(
-    'does not cache %s results',
-    async (failure) => {
-      const client = createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() })
-      if (failure === '404') upstream.mockResolvedValueOnce(new Response('', { status: 404 }))
-      if (failure === '503' || failure === 'timeout') {
-        vi.useFakeTimers()
-        for (let attempt = 0; attempt < 4; attempt += 1) {
-          if (failure === '503') upstream.mockResolvedValueOnce(new Response('', { status: 503 }))
-          else upstream.mockRejectedValueOnce(new DOMException('request timed out', 'AbortError'))
-        }
+  it.each([
+    '404',
+    '503',
+    'timeout',
+    'partial',
+    'malformed',
+    'malformed date',
+    'malformed primary type',
+  ])('does not cache %s results', async (failure) => {
+    const client = createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() })
+    if (failure === '404') upstream.mockResolvedValueOnce(new Response('', { status: 404 }))
+    if (failure === '503' || failure === 'timeout') {
+      vi.useFakeTimers()
+      for (let attempt = 0; attempt < 4; attempt += 1) {
+        if (failure === '503') upstream.mockResolvedValueOnce(new Response('', { status: 503 }))
+        else upstream.mockRejectedValueOnce(new DOMException('request timed out', 'AbortError'))
       }
-      if (failure === 'partial') {
-        upstream.mockResolvedValueOnce(
-          new Response(JSON.stringify({ 'release-groups': catalog, 'release-group-count': 4 })),
-        )
-        upstream.mockResolvedValueOnce(
-          new Response(JSON.stringify({ 'release-groups': [], 'release-group-count': 4 })),
-        )
-      }
-      if (failure === 'malformed') upstream.mockResolvedValueOnce(new Response('{}'))
-      if (failure === 'malformed date')
-        upstream.mockResolvedValueOnce(
-          new Response(
-            JSON.stringify({
-              'release-groups': catalog.map((group) => ({ ...group, 'first-release-date': 42 })),
-            }),
-          ),
-        )
-      if (failure === 'malformed') expect(await client.getReleaseGroups('artist')).toEqual([])
-      else if (failure === 'malformed date')
-        expect(await client.getReleaseGroups('artist')).toHaveLength(3)
-      else {
-        const assertion = expect(client.getReleaseGroups('artist')).rejects.toThrow()
-        if (failure === '503' || failure === 'timeout') await vi.runAllTimersAsync()
-        await assertion
-      }
-      if (failure === '503' || failure === 'timeout') expect(upstream).toHaveBeenCalledTimes(4)
-      const before = upstream.mock.calls.length
+    }
+    if (failure === 'partial') {
+      upstream.mockResolvedValueOnce(
+        new Response(JSON.stringify({ 'release-groups': catalog, 'release-group-count': 4 })),
+      )
+      upstream.mockResolvedValueOnce(
+        new Response(JSON.stringify({ 'release-groups': [], 'release-group-count': 4 })),
+      )
+    }
+    if (failure === 'malformed') upstream.mockResolvedValueOnce(new Response('{}'))
+    if (failure === 'malformed date')
+      upstream.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            'release-groups': catalog.map((group) => ({ ...group, 'first-release-date': 42 })),
+          }),
+        ),
+      )
+    if (failure === 'malformed primary type')
+      upstream.mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            'release-groups': catalog.map((group) => ({ ...group, 'primary-type': 42 })),
+          }),
+        ),
+      )
+    if (failure === 'malformed primary type')
+      expect(await client.getReleaseGroups('artist', ['album'])).toEqual([])
+    else if (failure === 'malformed') expect(await client.getReleaseGroups('artist')).toEqual([])
+    else if (failure === 'malformed date')
       expect(await client.getReleaseGroups('artist')).toHaveLength(3)
-      expect(upstream).toHaveBeenCalledTimes(before + 1)
-    },
-  )
+    else {
+      const assertion = expect(client.getReleaseGroups('artist')).rejects.toThrow()
+      if (failure === '503' || failure === 'timeout') await vi.runAllTimersAsync()
+      await assertion
+    }
+    if (failure === '503' || failure === 'timeout') expect(upstream).toHaveBeenCalledTimes(4)
+    const before = upstream.mock.calls.length
+    expect(await client.getReleaseGroups('artist')).toHaveLength(3)
+    expect(upstream).toHaveBeenCalledTimes(before + 1)
+  })
 
   it('bypasses cached entries for forced reads and unsupported types', async () => {
     const client = createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() })

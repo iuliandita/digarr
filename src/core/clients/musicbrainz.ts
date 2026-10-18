@@ -269,7 +269,9 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
     return types === DEFAULT_RELEASE_TYPES ||
       DEFAULT_RELEASE_TYPES.every((type) => types.includes(type))
       ? groups
-      : groups.filter((group) => types.includes(group.type.toLowerCase()))
+      : groups.filter(
+          (group) => typeof group.type === 'string' && types.includes(group.type.toLowerCase()),
+        )
   }
 
   async function fetchReleaseGroups(
