@@ -42,7 +42,6 @@ let rescanRunning = false
 
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
-
   // Intentionally NOT admin-gated: "Run Scan" is a core regular-user action,
   // reachable from the dashboard (TodaysPick) and discover surfaces. Any
   // authenticated user may start a run; single-flight is preserved by the

@@ -16,6 +16,7 @@ export function problemJsonErrors(): MiddlewareHandler {
       return
     }
     if (!body || typeof body !== 'object' || Array.isArray(body) || !('error' in body)) return
+    if (c.req.path === '/api/v1/mcp' && 'jsonrpc' in body && body.jsonrpc === '2.0') return
     const headers = new Headers(res.headers)
     headers.set('content-type', 'application/problem+json')
     headers.delete('content-length')
