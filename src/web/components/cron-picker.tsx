@@ -1,3 +1,4 @@
+import { Cron } from 'croner'
 import { useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { useI18n } from '../lib/i18n'
@@ -27,54 +28,42 @@ export function CronPicker({ value, onChange }: CronPickerProps) {
     PRESETS.some((p) => p.cron === value) ? 'preset' : 'custom',
   )
 
+  let valid = false
+  try {
+    new Cron(value, { maxRuns: 0 })
+    valid = true
+  } catch {
+    // Match the scheduler's cron parser before submitting.
+  }
+
   return (
     <div className="space-y-2">
-      <div className="flex gap-2">
-        <button
-          type="button"
-          onClick={() => setMode('preset')}
-          className={`px-3 py-1 rounded text-sm ${
-            mode === 'preset'
-              ? 'bg-accent text-accent-fg'
-              : 'bg-surface border border-border text-muted hover:text-text'
-          }`}
-        >
-          {t('cronPicker.preset')}
-        </button>
-        <button
-          type="button"
-          onClick={() => setMode('custom')}
-          className={`px-3 py-1 rounded text-sm ${
-            mode === 'custom'
-              ? 'bg-accent text-accent-fg'
-              : 'bg-surface border border-border text-muted hover:text-text'
-          }`}
-        >
-          {t('common.custom')}
-        </button>
-      </div>
-
-      {mode === 'preset' ? (
-        <div className="grid gap-1">
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.cron}
-              type="button"
-              onClick={() => onChange(preset.cron)}
-              className={`text-left px-3 py-2 rounded text-sm transition-colors ${
-                value === preset.cron
-                  ? 'bg-accent/5 text-accent-text border border-accent/30'
-                  : 'bg-surface border border-border text-text hover:border-accent/40'
-              }`}
-            >
-              <span className="font-medium">{t(preset.labelKey)}</span>
-              <span className="text-muted text-xs ml-2">({preset.cron})</span>
-            </button>
-          ))}
-        </div>
-      ) : (
+      <select
+        aria-label={t('common.schedule')}
+        value={mode === 'custom' ? 'custom' : value}
+        onChange={(e) => {
+          if (e.target.value === 'custom') setMode('custom')
+          else {
+            setMode('preset')
+            onChange(e.target.value)
+          }
+        }}
+        className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text"
+      >
+        {PRESETS.map((preset) => (
+          <option key={preset.cron} value={preset.cron}>
+            {t(preset.labelKey)}
+          </option>
+        ))}
+        <option value="custom">{t('common.custom')}</option>
+      </select>
+      {mode === 'custom' && (
         <div className="space-y-1">
           <input
+            aria-label={t('common.custom')}
+            required
+            aria-invalid={!valid}
+            ref={(input) => input?.setCustomValidity(valid ? '' : t('cronPicker.invalid'))}
             type="text"
             value={value}
             onChange={(e) => onChange(e.target.value)}
@@ -82,6 +71,11 @@ export function CronPicker({ value, onChange }: CronPickerProps) {
             className="w-full px-3 py-2 bg-surface border border-border rounded text-sm text-text placeholder:text-muted focus:border-accent focus:outline-none"
           />
           <p className="text-xs text-muted">{t('cronPicker.standardHint')}</p>
+          {!valid && (
+            <p role="alert" className="text-xs text-reject">
+              {t('cronPicker.invalid')}
+            </p>
+          )}
         </div>
       )}
 

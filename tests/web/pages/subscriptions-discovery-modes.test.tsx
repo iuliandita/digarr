@@ -1,10 +1,12 @@
 // @vitest-environment jsdom
 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactNode } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { SubscriptionFormData } from '@/web/components/subscription-form'
 import type { DiscoveryModeResponse, Subscription } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
@@ -17,19 +19,11 @@ vi.mock('@/web/lib/locale-storage', () => ({
 
 type SubscriptionFormMockProps = {
   discoveryModes?: DiscoveryModeResponse[]
+  onSubmit?: (data: SubscriptionFormData) => Promise<void>
   [key: string]: unknown
 }
 
 const discoveryModeProps: SubscriptionFormMockProps[] = []
-
-vi.mock('react-router-dom', () => ({
-  useSearchParams: () => [new URLSearchParams(), vi.fn()],
-  Link: ({ to, children, ...props }: { to: string; children: ReactNode }) => (
-    <a href={to} {...props}>
-      {children}
-    </a>
-  ),
-}))
 
 vi.mock('sonner', () => ({
   toast: {
@@ -81,7 +75,14 @@ vi.mock('@/web/components/ui/skeleton', () => ({
 }))
 
 vi.mock('@/web/lib/api', () => ({
+  getUserPreferences: vi.fn().mockResolvedValue({}),
+  updateUserPreferences: vi.fn().mockResolvedValue(undefined),
   bulkToggleSubscriptions: vi.fn(),
+  listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 1, isAdmin: true }),
+  getJob: vi.fn(),
+  runDiscoveryMode: vi.fn().mockResolvedValue({}),
+  updateSettings: vi.fn().mockResolvedValue({}),
   createSubscriptionApi: vi.fn(),
   deleteSubscriptionApi: vi.fn(),
   getOAuthStatus: vi.fn().mockResolvedValue({ connected: false }),
@@ -124,10 +125,12 @@ vi.mock('@/web/lib/api', () => ({
 import {
   createSubscriptionApi,
   getDiscoveryModes,
+  getSchedulerInfo,
   getSubscriptions,
   triggerSubscriptionRun,
+  updateSubscriptionApi,
 } from '@/web/lib/api'
-import SubscriptionsPage from '@/web/pages/subscriptions'
+import { DiscoveryModesPage } from '@/web/pages/discovery-modes'
 
 const mockCreateSubscriptionApi = vi.mocked(createSubscriptionApi)
 const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
@@ -140,7 +143,9 @@ function renderPage() {
   return render(
     <QueryClientProvider client={client}>
       <I18nProvider>
-        <SubscriptionsPage />
+        <MemoryRouter>
+          <DiscoveryModesPage />
+        </MemoryRouter>
       </I18nProvider>
     </QueryClientProvider>,
   )
@@ -168,9 +173,11 @@ const baseSubscription: Subscription = {
   updatedAt: '2026-10-15T00:00:00.000Z',
 }
 
-describe('SubscriptionsPage header controls (#993)', () => {
+describe('DiscoveryModesPage header controls (#993)', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
+    Element.prototype.scrollIntoView = vi.fn()
   })
 
   it.each([
@@ -191,25 +198,81 @@ describe('SubscriptionsPage header controls (#993)', () => {
     expect(screen.queryByRole('button', { name: 'Presets' })).toBeNull()
   })
 
-  it('opens the presets panel from the New menu', async () => {
+  it('shows compact scheduled rows with last results, inline editing and pause', async () => {
+    vi.mocked(getSubscriptions).mockResolvedValue([
+      {
+        ...baseSubscription,
+        name: 'Weekly radar',
+        sourceType: 'discovery-mode',
+        sourceConfig: { modeId: 'release-radar', settingsMode: 'easy', settings: {} },
+        lastRunAt: '2026-10-17T10:00:00.000Z',
+        lastResultCount: 7,
+      },
+    ])
+    vi.mocked(getSchedulerInfo).mockResolvedValue({
+      jobs: [
+        {
+          name: 'subscription-1',
+          nextRun: '2026-11-01T10:00:00.000Z',
+        },
+      ],
+    } as never)
+    renderPage()
+    await screen.findByRole('heading', { name: 'Your modes' })
+    const rowButton = await screen.findByRole('button', { name: 'Weekly radar' })
+    expect(rowButton).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByTestId('subscription-form')).toBeNull()
+    expect(screen.getByText(/7 found/)).toBeInTheDocument()
+    expect(screen.getByText(/Next:/)).toBeInTheDocument()
+    fireEvent.click(rowButton)
+    expect(rowButton).toHaveAttribute('aria-expanded', 'true')
+    expect(await screen.findByTestId('subscription-form')).toBeInTheDocument()
+    expect(discoveryModeProps.at(-1)).toMatchObject({
+      mode: 'edit',
+      initial: { name: 'Weekly radar' },
+    })
+    fireEvent.click(screen.getByRole('button', { name: 'Disable schedule' }))
+    await waitFor(() => expect(updateSubscriptionApi).toHaveBeenCalledWith(1, { enabled: false }))
+    await act(async () => {
+      await discoveryModeProps.at(-1)?.onSubmit?.({
+        name: 'Weekly radar',
+        sourceType: 'discovery-mode',
+        sourceProvider: 'deezer',
+        sourceConfig: { modeId: 'release-radar', settingsMode: 'easy', settings: {} },
+        cron: '0 0 * * *',
+        enabled: true,
+        maxArtistsPerRun: 20,
+        action: 'recommend',
+        scoreThreshold: null,
+        scoringWeightPreset: 'default',
+      })
+    })
+    const saved = vi.mocked(updateSubscriptionApi).mock.calls.at(-1)?.[1]
+    expect(saved).toMatchObject({ name: 'Weekly radar' })
+    expect(saved).not.toHaveProperty('enabled')
+  })
+
+  it('opens presets and imports from the add flow', async () => {
     vi.mocked(getSubscriptions).mockResolvedValue([baseSubscription])
     renderPage()
 
     await screen.findByText(baseSubscription.name)
     expect(screen.queryByTestId('subscription-presets')).toBeNull()
 
-    fireEvent.click(screen.getByRole('button', { name: 'More ways to add a subscription' }))
-    fireEvent.click(await screen.findByRole('menuitem', { name: 'From a preset' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Run a mode' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Presets and imports' }))
 
     expect(await screen.findByTestId('subscription-presets')).toBeInTheDocument()
     expect(screen.queryByRole('menu')).toBeNull()
   })
 })
 
-describe('SubscriptionsPage discovery mode support', () => {
+describe('DiscoveryModesPage discovery mode support', () => {
   beforeEach(() => {
     discoveryModeProps.length = 0
     vi.clearAllMocks()
+    localStorage.clear()
+    Element.prototype.scrollIntoView = vi.fn()
     vi.mocked(getSubscriptions).mockResolvedValue([])
   })
 
@@ -217,10 +280,12 @@ describe('SubscriptionsPage discovery mode support', () => {
     renderPage()
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /New/i })).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Run a mode' })).toBeInTheDocument()
     })
 
-    fireEvent.click(screen.getByRole('button', { name: /New/i }))
+    fireEvent.click(screen.getByRole('button', { name: 'Run a mode' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Release Radar' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Schedule' }))
 
     expect(await screen.findByTestId('subscription-form')).toBeInTheDocument()
     expect(discoveryModeProps.at(-1)).toEqual(
@@ -228,6 +293,14 @@ describe('SubscriptionsPage discovery mode support', () => {
         discoveryModes: [expect.objectContaining({ id: 'release-radar' })],
       }),
     )
+    expect(screen.getByTestId('subscription-form').closest('article')).toHaveAttribute(
+      'aria-label',
+      'Release Radar',
+    )
+    expect(screen.queryByText(/subscription/i)).toBeNull()
+    for (const element of document.querySelectorAll('[aria-label]')) {
+      expect(element.getAttribute('aria-label')).not.toMatch(/subscription/i)
+    }
     expect(mockGetDiscoveryModes).toHaveBeenCalled()
     expect(mockCreateSubscriptionApi).not.toHaveBeenCalled()
   })

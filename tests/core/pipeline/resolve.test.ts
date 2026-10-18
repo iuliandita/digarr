@@ -53,6 +53,29 @@ function makeMb(
 }
 
 describe('resolve()', () => {
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'excludes special-purpose artist %s by ID, album, and search',
+    async (mbid) => {
+      const mb = makeMb(makeMbArtist({ id: mbid }), {
+        artists: [{ id: mbid, name: 'Test Artist', score: 100 }],
+      })
+      mb.getReleaseGroups = vi.fn()
+      const common = { name: 'Test Artist', similarityScore: 1, source: 'listenbrainz' as const }
+      expect(
+        await resolve(
+          [
+            { ...common, mbid },
+            { ...common, mbid, releaseGroupMbid: 'release-1', suggestedAlbum: 'Album' },
+            common,
+          ],
+          mb,
+        ),
+      ).toEqual([])
+      expect(mb.lookupArtist).not.toHaveBeenCalled()
+      expect(mb.getReleaseGroups).not.toHaveBeenCalled()
+    },
+  )
+
   it('passes through artists that already have MBIDs', async () => {
     const discovered: DiscoveredArtist[] = [
       { name: 'Radiohead', mbid: 'mbid-rh', similarityScore: 0.9, source: 'listenbrainz' },

@@ -15,6 +15,11 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import {
+  type DashboardLayout,
+  DEFAULT_DASHBOARD_LAYOUT,
+  mergeDashboardLayout,
+} from '@/core/dashboard-layout'
 import type { HealthCheckResult, UnreconciledReason } from '@/core/library/types'
 import type { NotificationChannel } from '@/core/notifications/types'
 import type { GenreCoverage } from '@/core/types'
@@ -604,6 +609,7 @@ export type PlaylistStrategy =
   | 'audition'
 
 export type Preferences = {
+  dashboardLayout?: DashboardLayout
   qualityProfileId: number
   metadataProfileId: number
   rootFolderId?: number
@@ -649,6 +655,7 @@ export type Preferences = {
 export type ScoringWeights = Preferences['scoringWeights']
 
 export const DEFAULT_PREFERENCES: Preferences = {
+  dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
   qualityProfileId: 1,
   metadataProfileId: 1,
   scheduleCron: '0 0 * * 0',
@@ -689,6 +696,7 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
   const merged: Preferences = {
     ...DEFAULT_PREFERENCES,
     ...partial,
+    dashboardLayout: mergeDashboardLayout(partial.dashboardLayout),
     scoringWeights: {
       ...DEFAULT_PREFERENCES.scoringWeights,
       ...partial.scoringWeights,

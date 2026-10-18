@@ -428,7 +428,7 @@ Each user's connection stores a copy of the app credentials it was made with. Ch
 
 Live TIDAL testing is deferred because no account is available. This is an accepted release limitation, not a successful validation. The original [validation request (#553)](https://github.com/iuliandita/digarr/issues/553) records the decision; please [open a new issue](https://github.com/iuliandita/digarr/issues/new/choose) with your results so failures can be investigated individually.
 
-After [connecting TIDAL](#tidal-app-setup), run **Discover > Discovery Modes > TIDAL Favorite Artists**. Try again after the connection's access token expires, without disconnecting first, to exercise refresh. The read-only `GET /api/v1/auth/oauth/tidal/status` endpoint reports `expiresAt`; a connected status alone does not prove refresh or discovery works.
+After [connecting TIDAL](#tidal-app-setup), run **Discover > Discovery Modes > Run a mode > TIDAL Favorite Artists**. Try again after the connection's access token expires, without disconnecting first, to exercise refresh. The read-only `GET /api/v1/auth/oauth/tidal/status` endpoint reports `expiresAt`; a connected status alone does not prove refresh or discovery works.
 
 Please include:
 

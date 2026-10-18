@@ -121,6 +121,8 @@ vi.mock('@/web/lib/api', () => ({
   updateRecommendation: vi.fn().mockResolvedValue({}),
   getRecentListens: vi.fn().mockResolvedValue({ tracks: [] }),
   getSubscriptions: vi.fn().mockResolvedValue([]),
+  getPlaylists: vi.fn().mockResolvedValue([]),
+  getPlaylistScheduler: vi.fn().mockResolvedValue({ enabled: false, nextRun: null }),
   getSchedulerInfo: vi.fn().mockResolvedValue({ jobs: [] }),
   getDashboardTaste: vi.fn().mockResolvedValue([]),
   getDashboardActivity: vi.fn().mockResolvedValue([]),

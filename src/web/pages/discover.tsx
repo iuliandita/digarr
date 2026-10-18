@@ -8,6 +8,7 @@ import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
 import { ConfirmDialog } from '../components/confirm-dialog'
+import { DashboardCardToggle } from '../components/dashboard-card-toggle'
 import { DiscoverTabs } from '../components/discover-tabs'
 import {
   type Decade,
@@ -63,6 +64,10 @@ import { usePreviewContext } from '../lib/preview-context'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
+
+function initialStatusFromParam(value: string | null): FilterTab {
+  return value === 'approved' || value === 'all' || value === 'rejected' ? value : 'pending'
+}
 
 const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
   'missing-links': 'preview.reason.missing-links',
@@ -162,13 +167,13 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
         </div>
         <div className="flex flex-wrap items-center justify-center gap-3">
           <Link
-            to="/discover/modes?mode=gap-fill"
+            to="/discovery-modes?mode=gap-fill"
             className="px-3 py-1.5 text-sm bg-accent text-accent-fg rounded-md hover:opacity-90 transition-opacity"
           >
             {t('discoveryMode.gap-fill.label')}
           </Link>
           <Link
-            to="/discover/modes?mode=release-radar"
+            to="/discovery-modes?mode=release-radar"
             className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discoveryMode.release-radar.label')}
@@ -190,7 +195,7 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
         <p className="text-muted text-sm">{t('discover.emptyAll')}</p>
         <div className="flex items-center justify-center gap-3">
           <Link
-            to="/subscriptions"
+            to="/discovery-modes"
             className="px-3 py-1.5 text-sm text-accent-text border border-accent/40 rounded-md hover:bg-accent/10 transition-colors"
           >
             {t('discover.importArtists')}
@@ -365,7 +370,9 @@ export function DiscoverPage() {
   const { data: authStatus } = useQuery({ queryKey: ['auth-status'], queryFn: getAuthStatus })
   const isAdmin = authStatus?.isAdmin ?? false
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filter, setFilter] = useState<FilterTab>('pending')
+  const [filter, setFilter] = useState<FilterTab>(() =>
+    initialStatusFromParam(searchParams.get('status')),
+  )
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
     initialKindFromParam(searchParams.get('kind')),
   )
@@ -431,6 +438,12 @@ export function DiscoverPage() {
       setCheckedIds(new Set())
     }
   }
+
+  const statusFromUrl = searchParams.get('status')
+  useEffect(() => {
+    setFilter(initialStatusFromParam(statusFromUrl))
+    setPage(0)
+  }, [statusFromUrl])
 
   // Keep the kind filter in sync with the URL so deep-links (e.g. the Albums
   // nav entry -> /discover?kind=album) preselect Albums even when the page is
@@ -1113,7 +1126,10 @@ export function DiscoverPage() {
       {...pullHandlers}
     >
       <h1 className="sr-only">{t('discover.title')}</h1>
-      <DiscoverTabs className="mx-6 mt-2" />
+      <div className="mx-6 mt-2 flex flex-wrap items-center justify-between gap-2">
+        <DiscoverTabs />
+        <DashboardCardToggle cardId={filter === 'pending' ? 'pick' : 'decisions'} />
+      </div>
       {preview.audition.unavailable?.length > 0 && (
         <section
           className="rounded-lg border border-border bg-surface p-4 text-sm"

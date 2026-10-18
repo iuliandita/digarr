@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import type { GenreInfo } from '../../core/genre/types'
+import { DashboardCardToggle } from '../components/dashboard-card-toggle'
 import { DiscoverTabs } from '../components/discover-tabs'
 import { GenreGrid } from '../components/genre-grid'
 import { Hint } from '../components/hint'
@@ -88,13 +89,16 @@ export function GenresPage() {
         title={t('genres.title')}
         description={t('genres.subtitle')}
         actions={
-          <Input
-            type="search"
-            placeholder={t('genres.searchPlaceholder')}
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="sm:w-64"
-          />
+          <>
+            <DashboardCardToggle cardId="genres" />
+            <Input
+              type="search"
+              placeholder={t('genres.searchPlaceholder')}
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="sm:w-64"
+            />
+          </>
         }
       />
 

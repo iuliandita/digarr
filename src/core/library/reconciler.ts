@@ -1,4 +1,5 @@
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
 import { normalizeArtistName } from './normalize'
@@ -235,6 +236,9 @@ export async function reconcileArtist(
     const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
     const scored = await Promise.all(
       candidates.map(async (c) => {
+        if (isSpecialPurposeArtist(c.id)) {
+          return { candidate: c, overlap: 0, lookupFailed: false }
+        }
         try {
           const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
           const mbTitles = new Set(releaseGroups.map((rg) => normalizeArtistName(rg.title)))

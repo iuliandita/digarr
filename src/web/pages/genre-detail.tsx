@@ -264,7 +264,7 @@ export function GenreDetailPage() {
         actions={
           <Button
             variant="outline"
-            onClick={() => navigate(`/subscriptions?genre=${encodeURIComponent(data.name)}`)}
+            onClick={() => navigate(`/discovery-modes?genre=${encodeURIComponent(data.name)}`)}
           >
             {t('genreDetail.createSubscription')}
           </Button>

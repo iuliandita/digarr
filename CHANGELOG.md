@@ -6,9 +6,14 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, Custom cron validation and preview, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
+
 ### Added
 
 - Optional AudioMuse-AI audio-similarity source, marked Experimental in the Connections picker. Admins can save a URL, optional encrypted token, and per-connection TLS choice, then test authentication. Normal scans reuse library/listening seeds, exclude owned and blocked names before resolution, deduplicate across seeds, and cap AudioMuse at 50 candidates per scan. Per-seed rank normalization maps similarity to 0.5-1.0 with the best match at 1.0, using the existing similarity weight. Seed failures retain summary counts and partial success; invalid saved URLs or unreadable tokens skip the source without failing the scan. Unconfigured users get no AudioMuse job entry. Requires AudioMuse-AI v3.6.4 or newer. No database migration; normal backups retain the preferences and encryption key, and older versions ignore them. No live AudioMuse instance was available for validation. (#982)
+- Customize the Dashboard per account: show or hide every card, drag or use move buttons and arrow keys to reorder, choose one to three desktop columns, and reset to the curated layout. Empty cards hide by default with an option to keep them visible. Your decisions combines approvals and rejections; Listening switches between top artists and recent plays. Card titles link to their source pages, which have a Show on dashboard switch. All 15 languages are supported (#995).
 
 - Built-in Streamable HTTP MCP endpoint at `/api/v1/mcp` for recommendations, approvals, rejections, blocks, scans, discovery modes, job status, artist search, and playlists. Personal API tokens are required; read scope permits read tools only. Account settings shows a copyable client configuration after token creation in all 15 languages. No extra service or MCP session store is needed. (#979)
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
@@ -53,6 +58,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - CI: a release is now one PR, from a branch cut off `develop` straight to `main`, and the release-readiness report finds its boundary from that PR. The deploy digest-sync PR gets its required checks from a dispatched `ci.yml` run, since PRs opened with the workflow token start no checks. The `-debian` image is built (not pushed) on pull requests that touch `deploy/docker/`. The `verify-digest-sync` release job is removed because `bun run check:versions` already compares the same digests (#878, #938).
 
 ### Fixed
+
+- Skip Various Artists and other MusicBrainz special-purpose artists in library album reconciliation, missing-album checks, and discovery recommendations (#1021).
 - Linked slskd targets now require the Lidarr download path when saving, and existing targets missing it fail jobs before searching or downloading. Job failures log one redacted line instead of a bundled-source stack trace (#1019).
 - The logo keeps each theme's brand color where it reaches 3:1 contrast, with minimal lightness adjustments where needed. Sign-in and registration logos are now large bold text too (#1020).
 - MCP requests now accept single messages only and enforce a 1 MiB body limit. Scan-start rate limits apply only to MCP tools, preserving REST scan behavior. Client configuration includes the HTTP transport type. (#979)

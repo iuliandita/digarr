@@ -2,20 +2,20 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
   ChevronDown,
   ChevronRight,
+  History,
   LayoutGrid,
   Pause,
-  Pencil,
   Play,
   Plus,
   Trash2,
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { describeCron } from '../components/cron-picker'
-import { Hint } from '../components/hint'
+import { DashboardCardToggle } from '../components/dashboard-card-toggle'
 import { ImportArtists } from '../components/import-artists'
 import {
   buildSubscriptionUpdate,
@@ -26,7 +26,6 @@ import { SubscriptionPresets } from '../components/subscription-presets'
 import { Button } from '../components/ui/button'
 import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
-import { useMenu } from '../hooks/use-menu'
 import {
   bulkToggleSubscriptions,
   createSubscriptionApi,
@@ -46,8 +45,6 @@ import { translateDiscoveryModeLabel } from '../lib/discovery-i18n'
 import { formatDuration } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 import { formatShortDateTime } from '../lib/intl'
-import { MENU_CLASS, MENU_ITEM_CLASS } from '../lib/menu-styles'
-import { cn } from '../lib/utils'
 
 function formatDate(
   locale: string,
@@ -175,6 +172,8 @@ function SubscriptionCard({
   onDelete,
   onToggle,
   onRunNow,
+  expanded,
+  editor,
 }: {
   sub: Subscription
   nextRun: string | null
@@ -182,9 +181,11 @@ function SubscriptionCard({
   onDelete: () => void
   onToggle: () => void
   onRunNow: () => void
+  expanded: boolean
+  editor: ReactNode
 }) {
   const { locale, t } = useI18n()
-  const [expanded, setExpanded] = useState(false)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   const sourceLabel = (() => {
     const cfg = sub.sourceConfig as Record<string, unknown>
@@ -199,7 +200,9 @@ function SubscriptionCard({
     if (sub.sourceType === 'spotify-playlist') return (cfg.playlistName as string) ?? null
     if (sub.sourceType === 'discovery-mode') {
       const modeId = cfg.modeId as string | undefined
-      return modeId ? translateDiscoveryModeLabel(t, { id: modeId, label: modeId }) : null
+      if (!modeId) return null
+      const label = translateDiscoveryModeLabel(t, { id: modeId, label: modeId })
+      return label === modeId ? null : label
     }
     return null
   })()
@@ -208,36 +211,49 @@ function SubscriptionCard({
 
   return (
     <div data-testid="subscription-card" className="bg-surface border border-border rounded-lg">
-      <div className="p-4 flex items-start gap-3">
+      <div className="p-4 flex flex-wrap items-start gap-3">
         <button
           type="button"
-          onClick={() => setExpanded(!expanded)}
+          onClick={onEdit}
+          aria-expanded={expanded}
+          aria-controls={`subscription-edit-${sub.id}`}
           className="mt-0.5 text-muted hover:text-text transition-colors shrink-0"
-          aria-label={
-            expanded ? t('subscriptions.collapseRunHistory') : t('subscriptions.expandRunHistory')
-          }
+          aria-label={`${t('common.edit')} ${sub.name}`}
         >
           {expanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
         </button>
 
         {/* Info */}
-        <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex-1 basis-40 min-w-0 space-y-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-medium text-text truncate">{sub.name}</span>
-            {sourceLabel && (
+            <button
+              type="button"
+              onClick={onEdit}
+              aria-expanded={expanded}
+              aria-controls={`subscription-edit-${sub.id}`}
+              className="font-medium text-text truncate text-left hover:text-accent-text"
+            >
+              {sub.name}
+            </button>
+            <span className="text-xs text-muted">
+              {sub.enabled ? t('discoveryModes.scheduled') : t('discoveryModes.paused')}
+            </span>
+            {sourceLabel && sourceLabel !== sub.name && (
               <span className="text-xs px-2 py-0.5 bg-accent/5 text-accent-text rounded-full min-w-0 max-w-full break-words">
                 {sourceLabel}
               </span>
             )}
           </div>
           <div className="flex items-center gap-3 text-xs text-muted flex-wrap">
-            <span>
-              {Array.isArray((sub.sourceConfig as Record<string, unknown>)?.providers)
-                ? ((sub.sourceConfig as Record<string, unknown>).providers as string[])
-                    .map((id) => PROVIDER_NAMES[id] ?? id)
-                    .join(', ')
-                : (PROVIDER_NAMES[sub.sourceProvider] ?? sub.sourceProvider)}
-            </span>
+            {sub.sourceType !== 'discovery-mode' && (
+              <span>
+                {Array.isArray((sub.sourceConfig as Record<string, unknown>)?.providers)
+                  ? ((sub.sourceConfig as Record<string, unknown>).providers as string[])
+                      .map((id) => PROVIDER_NAMES[id] ?? id)
+                      .join(', ')
+                  : (PROVIDER_NAMES[sub.sourceProvider] ?? sub.sourceProvider)}
+              </span>
+            )}
             <span>{actionLabel}</span>
             <span title={sub.cron}>{describeCron(t, sub.cron)}</span>
           </div>
@@ -272,6 +288,7 @@ function SubscriptionCard({
           className={`shrink-0 w-10 h-5 rounded-full transition-colors relative ${
             sub.enabled ? 'bg-approve' : 'bg-border'
           }`}
+          aria-pressed={sub.enabled}
           aria-label={
             sub.enabled
               ? t('subscriptions.disableSubscription')
@@ -291,22 +308,26 @@ function SubscriptionCard({
             type="button"
             onClick={onRunNow}
             className="p-1.5 text-muted hover:text-accent-text transition-colors"
+            aria-label={t('subscriptions.runNow')}
             title={t('subscriptions.runNow')}
           >
             <Play size={14} />
           </button>
           <button
             type="button"
-            onClick={onEdit}
+            onClick={() => setHistoryOpen(!historyOpen)}
+            aria-expanded={historyOpen}
             className="p-1.5 text-muted hover:text-text transition-colors"
-            title={t('common.edit')}
+            aria-label={t('discoveryModes.runHistory')}
+            title={t('discoveryModes.runHistory')}
           >
-            <Pencil size={14} />
+            <History size={14} />
           </button>
           <button
             type="button"
             onClick={onDelete}
             className="p-1.5 text-muted hover:text-reject transition-colors"
+            aria-label={t('common.delete')}
             title={t('common.delete')}
           >
             <Trash2 size={14} />
@@ -314,8 +335,12 @@ function SubscriptionCard({
         </div>
       </div>
 
-      {/* Expanded run history */}
       {expanded && (
+        <div id={`subscription-edit-${sub.id}`} className="border-t border-border">
+          {editor}
+        </div>
+      )}
+      {historyOpen && (
         <>
           <hr className="border-border" />
           <RunHistoryPanel subscriptionId={sub.id} />
@@ -327,22 +352,45 @@ function SubscriptionCard({
 
 // SubscriptionsPage
 
-export default function SubscriptionsPage() {
+export default function SubscriptionsPage({
+  embedded = false,
+  addAction,
+  createRequest,
+  onCreateRequestHandled,
+  showAddFlow = 0,
+  recentModes,
+}: {
+  embedded?: boolean
+  addAction?: ReactNode
+  createRequest?: { id: number; initial: Partial<SubscriptionFormData> } | null
+  onCreateRequestHandled?: () => void
+  showAddFlow?: number
+  recentModes?: ReactNode
+} = {}) {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const [searchParams, setSearchParams] = useSearchParams()
   const prefillGenre = searchParams.get('genre')
   const [showForm, setShowForm] = useState<
-    | { mode: 'create'; initial?: Partial<SubscriptionFormData> }
+    | { mode: 'create'; initial?: Partial<SubscriptionFormData>; requestId?: number }
     | { mode: 'edit'; sub: Subscription }
     | null
   >(null)
   const [showPresets, setShowPresets] = useState(false)
-  const newMenu = useMenu()
   const [confirmDeleteSub, setConfirmDeleteSub] = useState<{
     id: number
     name: string
   } | null>(null)
+
+  useEffect(() => {
+    if (!createRequest) return
+    setShowForm({ mode: 'create', initial: createRequest.initial, requestId: createRequest.id })
+    onCreateRequestHandled?.()
+  }, [createRequest, onCreateRequestHandled])
+
+  useEffect(() => {
+    if (showAddFlow) setShowPresets(true)
+  }, [showAddFlow])
 
   // Auto-open create form when ?genre= is present
   useEffect(() => {
@@ -379,9 +427,6 @@ export default function SubscriptionsPage() {
     return sources
   })()
 
-  const subscriptionMode = (settings?.preferences as Record<string, unknown> | undefined)
-    ?.subscriptionMode as 'active' | 'ai-only' | null | undefined
-
   const { data: subscriptions, isLoading } = useQuery({
     queryKey: ['subscriptions'],
     queryFn: getSubscriptions,
@@ -397,6 +442,27 @@ export default function SubscriptionsPage() {
     queryKey: ['discovery-modes'],
     queryFn: getDiscoveryModes,
   })
+
+  const requestedSubscription = searchParams.get('subscription')
+  useEffect(() => {
+    if (!requestedSubscription || !subscriptions) return
+    const sub = subscriptions.find((item) => item.id === Number(requestedSubscription))
+    if (!sub) return
+    setShowForm({ mode: 'edit', sub })
+    setSearchParams(
+      (params) => {
+        const next = new URLSearchParams(params)
+        next.delete('subscription')
+        return next
+      },
+      { replace: true },
+    )
+    requestAnimationFrame(() => {
+      const row = document.getElementById(`subscription-${sub.id}`)
+      row?.scrollIntoView({ block: 'center' })
+      row?.querySelector<HTMLButtonElement>('button[aria-expanded]')?.focus()
+    })
+  }, [requestedSubscription, subscriptions, setSearchParams])
 
   // Invalidation helper
   const invalidate = () => {
@@ -455,7 +521,9 @@ export default function SubscriptionsPage() {
   }
 
   const handleEdit = async (subId: number, data: SubscriptionFormData) => {
-    await updateSubscriptionApi(subId, buildSubscriptionUpdate(data))
+    const update = buildSubscriptionUpdate(data)
+    delete update.enabled
+    await updateSubscriptionApi(subId, update)
     invalidate()
     setShowForm(null)
     toast.success(t('subscriptions.updated'))
@@ -469,138 +537,123 @@ export default function SubscriptionsPage() {
 
   const anyEnabled = subscriptions?.some((s) => s.enabled) ?? false
 
+  const renderForm = (form: NonNullable<typeof showForm>, inline = false) => (
+    <SubscriptionForm
+      key={form.mode === 'edit' ? `edit-${form.sub.id}` : `create-${form.requestId ?? 'default'}`}
+      inline={inline}
+      mode={form.mode}
+      configuredSources={configuredSources}
+      discoveryModes={discoveryModes?.modes ?? []}
+      initial={
+        form.mode === 'edit'
+          ? {
+              name: form.sub.name,
+              sourceType: form.sub.sourceType,
+              sourceProvider: form.sub.sourceProvider,
+              sourceConfig: form.sub.sourceConfig,
+              cron: form.sub.cron,
+              enabled: form.sub.enabled,
+              maxArtistsPerRun: form.sub.maxArtistsPerRun,
+              action: form.sub.action,
+              scoreThreshold: form.sub.scoreThreshold,
+              scoringWeightPreset: form.sub.scoringWeightPreset ?? 'default',
+            }
+          : form.initial
+      }
+      onSubmit={async (data) => {
+        if (form.mode === 'edit') await handleEdit(form.sub.id, data)
+        else await handleCreate(data)
+      }}
+      onCancel={() => setShowForm(null)}
+    />
+  )
+
+  const actions = (
+    <>
+      <DashboardCardToggle cardId="subscriptions" />
+      {subscriptions && subscriptions.length >= 2 && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => bulkMutation.mutate(!anyEnabled)}
+          disabled={bulkMutation.isPending}
+        >
+          {anyEnabled ? (
+            <Pause size={14} aria-hidden="true" />
+          ) : (
+            <Play size={14} aria-hidden="true" />
+          )}
+          {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
+        </Button>
+      )}
+      {addAction ?? (
+        <Button size="sm" onClick={() => setShowForm({ mode: 'create' })}>
+          <Plus size={14} aria-hidden="true" />
+          {t('subscriptions.new')}
+        </Button>
+      )}
+      {!embedded && (
+        <Button variant="outline" size="sm" onClick={() => setShowPresets(!showPresets)}>
+          <LayoutGrid size={14} aria-hidden="true" />
+          {t('subscriptions.fromPreset')}
+        </Button>
+      )}
+    </>
+  )
+
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
-      <PageHeader
-        title={t('subscriptions.title')}
-        actions={
-          <>
-            {subscriptions && subscriptions.length >= 2 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => bulkMutation.mutate(!anyEnabled)}
-                disabled={bulkMutation.isPending}
-              >
-                {anyEnabled ? (
-                  <Pause size={14} aria-hidden="true" />
-                ) : (
-                  <Play size={14} aria-hidden="true" />
-                )}
-                {anyEnabled ? t('subscriptions.pauseAll') : t('subscriptions.resumeAll')}
-              </Button>
-            )}
-            <div ref={newMenu.containerRef} className="relative inline-flex">
-              <Button
-                size="sm"
-                className="rounded-r-none"
-                onClick={() => setShowForm({ mode: 'create' })}
-              >
-                <Plus size={14} aria-hidden="true" />
-                {t('subscriptions.new')}
-              </Button>
-              <Button
-                size="sm"
-                className="rounded-l-none border-l border-accent-fg/30 px-2"
-                aria-label={t('subscriptions.newOptions')}
-                {...newMenu.triggerProps}
-              >
-                <ChevronDown size={14} aria-hidden="true" />
-              </Button>
-              {newMenu.open && (
-                <div
-                  {...newMenu.menuProps}
-                  role="menu"
-                  aria-label={t('subscriptions.newOptions')}
-                  className={cn(MENU_CLASS, 'right-0 w-48')}
-                >
-                  <button
-                    type="button"
-                    role="menuitem"
-                    tabIndex={-1}
-                    onClick={() => {
-                      newMenu.close(false)
-                      setShowPresets(true)
-                    }}
-                    className={cn(MENU_ITEM_CLASS, 'text-text')}
-                  >
-                    <LayoutGrid size={14} aria-hidden="true" />
-                    {t('subscriptions.fromPreset')}
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
-        }
-      />
+    <section className={embedded ? 'space-y-4' : 'p-6 space-y-6 max-w-6xl mx-auto'}>
+      {embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className="text-base font-semibold text-text">{t('discoveryModes.yourModes')}</h2>
+          <div className="flex flex-wrap gap-2">{actions}</div>
+        </div>
+      ) : (
+        <PageHeader title={t('subscriptions.title')} actions={actions} />
+      )}
 
-      <Hint id="subscriptions-intro-tip" type="spotlight">
-        {t('subscriptions.introTip')}
-      </Hint>
-
-      {/* Loading state */}
-      {isLoading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-surface border border-border rounded-lg p-4 space-y-3">
-              <div className="flex items-start gap-3">
-                <Skeleton className="h-4 w-4 mt-0.5 shrink-0" />
-                <div className="flex-1 space-y-2">
-                  <Skeleton className="h-4 w-48" />
-                  <Skeleton className="h-3 w-64" />
-                  <Skeleton className="h-3 w-40" />
-                </div>
-                <Skeleton className="h-5 w-10 rounded-full shrink-0" />
-              </div>
+      {isLoading && <Skeleton className="h-20 w-full" />}
+      {!isLoading && subscriptions?.length === 0 && !recentModes && (
+        <p className="text-sm text-muted">{t('discoveryModes.emptyHint')}</p>
+      )}
+      {!isLoading && subscriptions && subscriptions.length > 0 && (
+        <div className="space-y-2">
+          {subscriptions.map((sub) => (
+            <div key={sub.id} id={`subscription-${sub.id}`} className="scroll-mt-24">
+              <SubscriptionCard
+                sub={sub}
+                nextRun={getNextRun(sub.id)}
+                expanded={showForm?.mode === 'edit' && showForm.sub.id === sub.id}
+                editor={
+                  showForm?.mode === 'edit' && showForm.sub.id === sub.id
+                    ? renderForm(showForm, true)
+                    : null
+                }
+                onEdit={() =>
+                  setShowForm((current) =>
+                    current?.mode === 'edit' && current.sub.id === sub.id
+                      ? null
+                      : { mode: 'edit', sub },
+                  )
+                }
+                onDelete={() => setConfirmDeleteSub({ id: sub.id, name: sub.name })}
+                onToggle={() => toggleMutation.mutate({ id: sub.id, enabled: !sub.enabled })}
+                onRunNow={() => runNowMutation.mutate(sub.id)}
+              />
             </div>
           ))}
         </div>
       )}
-
-      {/* Empty state */}
-      {!isLoading && subscriptions && subscriptions.length === 0 && (
-        <div className="space-y-4">
-          <p className="text-sm text-muted">{t('subscriptions.emptyDescription')}</p>
-          {subscriptionMode === 'ai-only' && !showPresets ? (
-            <div className="bg-surface border border-border rounded-lg px-4 py-12 text-center space-y-3">
-              <p className="text-sm font-medium text-text">{t('subscriptions.aiOnlyMode')}</p>
-              <p className="text-xs text-muted">{t('subscriptions.aiOnlyDescription')}</p>
-              <button
-                type="button"
-                onClick={() => setShowPresets(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-muted border border-border rounded-md hover:text-text hover:border-accent/40 transition-colors"
-              >
-                <LayoutGrid size={14} />
-                {t('subscriptions.switchToPreset')}
-              </button>
-            </div>
-          ) : (
-            <div className="bg-surface border border-border rounded-lg p-6 space-y-6">
-              <SubscriptionPresets
-                connectedServices={configuredSources}
-                onComplete={() => {
-                  invalidate()
-                  setShowPresets(false)
-                }}
-                onCustom={() => setShowForm({ mode: 'create' })}
-              />
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Inline presets panel (shown when list is non-empty and user clicked Presets) */}
-      {!isLoading && subscriptions && subscriptions.length > 0 && showPresets && (
-        <div className="bg-surface border border-border rounded-lg p-6 space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-text">{t('subscriptions.addFromPresets')}</p>
-            <button
-              type="button"
-              onClick={() => setShowPresets(false)}
-              className="text-xs text-muted hover:text-text transition-colors"
-            >
+      {recentModes}
+      {showPresets && (
+        <div className="bg-surface border border-border rounded-lg p-4 space-y-4">
+          <div className="flex items-center justify-between gap-2">
+            <h3 className="text-sm font-medium text-text">
+              {t('discoveryModes.presetsAndImports')}
+            </h3>
+            <Button variant="ghost" size="sm" onClick={() => setShowPresets(false)}>
               {t('common.close')}
-            </button>
+            </Button>
           </div>
           <SubscriptionPresets
             connectedServices={configuredSources}
@@ -613,71 +666,14 @@ export default function SubscriptionsPage() {
               setShowForm({ mode: 'create' })
             }}
           />
+          <ImportArtists
+            spotifyConnected={spotifyStatus?.connected ?? false}
+            defaultExpanded
+            onImportStarted={invalidate}
+          />
         </div>
       )}
-
-      {/* Subscription list */}
-      {!isLoading && subscriptions && subscriptions.length > 0 && (
-        <div className="space-y-3">
-          {subscriptions.map((sub) => (
-            <SubscriptionCard
-              key={sub.id}
-              sub={sub}
-              nextRun={getNextRun(sub.id)}
-              onEdit={() =>
-                setShowForm({
-                  mode: 'edit',
-                  sub,
-                })
-              }
-              onDelete={() => setConfirmDeleteSub({ id: sub.id, name: sub.name })}
-              onToggle={() => toggleMutation.mutate({ id: sub.id, enabled: !sub.enabled })}
-              onRunNow={() => runNowMutation.mutate(sub.id)}
-            />
-          ))}
-        </div>
-      )}
-
-      {!isLoading && (
-        <ImportArtists
-          spotifyConnected={spotifyStatus?.connected ?? false}
-          defaultExpanded={!subscriptions || subscriptions.length === 0}
-          onImportStarted={invalidate}
-        />
-      )}
-
-      {/* Form dialog */}
-      {showForm && (
-        <SubscriptionForm
-          mode={showForm.mode}
-          configuredSources={configuredSources}
-          discoveryModes={discoveryModes?.modes ?? []}
-          initial={
-            showForm.mode === 'edit'
-              ? {
-                  name: showForm.sub.name,
-                  sourceType: showForm.sub.sourceType,
-                  sourceProvider: showForm.sub.sourceProvider,
-                  sourceConfig: showForm.sub.sourceConfig,
-                  cron: showForm.sub.cron,
-                  enabled: showForm.sub.enabled,
-                  maxArtistsPerRun: showForm.sub.maxArtistsPerRun,
-                  action: showForm.sub.action,
-                  scoreThreshold: showForm.sub.scoreThreshold,
-                  scoringWeightPreset: showForm.sub.scoringWeightPreset ?? 'default',
-                }
-              : showForm.initial
-          }
-          onSubmit={async (data) => {
-            if (showForm.mode === 'edit') {
-              await handleEdit(showForm.sub.id, data)
-            } else {
-              await handleCreate(data)
-            }
-          }}
-          onCancel={() => setShowForm(null)}
-        />
-      )}
+      {showForm?.mode === 'create' && renderForm(showForm, embedded)}
       {confirmDeleteSub && (
         <ConfirmDialog
           title={t('subscriptions.deleteSubscription')}
@@ -690,6 +686,6 @@ export default function SubscriptionsPage() {
           onCancel={() => setConfirmDeleteSub(null)}
         />
       )}
-    </div>
+    </section>
   )
 }

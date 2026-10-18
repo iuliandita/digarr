@@ -1,4 +1,5 @@
 import { type createMusicBrainzClient, MusicBrainzHttpError } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 
 type MBClient = Pick<ReturnType<typeof createMusicBrainzClient>, 'getReleaseGroups'>
 
@@ -33,6 +34,9 @@ export function createAlbumCoverageService(deps: {
 }) {
   return {
     async getCoverageForArtist(userId: number, artistMbid: string): Promise<AlbumCoverage> {
+      if (isSpecialPurposeArtist(artistMbid)) {
+        return { artistMbid, ownedCount: 0, totalCount: 0, owned: [], missing: [] }
+      }
       const [ownedAlbums, releaseGroups] = await Promise.all([
         deps.store.listOwnedAlbumsForArtist(userId, artistMbid),
         deps.mbClient.getReleaseGroups(artistMbid, ['album']).catch((err: unknown) => {

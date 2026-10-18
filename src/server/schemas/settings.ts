@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { dashboardLayoutSchema } from '@/core/dashboard-layout'
 import type { NotificationChannel } from '@/core/notifications/types'
 import { cronSchema } from './subscriptions'
 
@@ -64,6 +65,7 @@ const optionalCronSchema = z.union([z.literal(''), cronSchema]).optional()
 
 export const preferencesSchema = z
   .object({
+    dashboardLayout: dashboardLayoutSchema.optional(),
     qualityProfileId: z.number().int().optional(),
     metadataProfileId: z.number().int().optional(),
     rootFolderId: z.number().int().optional(),
