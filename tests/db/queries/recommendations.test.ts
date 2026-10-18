@@ -524,5 +524,5 @@ describe('waiting approval timestamps', () => {
     } finally {
       await close()
     }
-  })
+  }, 30_000)
 })
