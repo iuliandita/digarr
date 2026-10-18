@@ -9,6 +9,14 @@ vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
 }))
 
+const validBody = {
+  name: 'Test Sub',
+  sourceType: 'genre',
+  sourceProvider: 'library',
+  sourceConfig: { genreSlug: 'rock' },
+  cron: '0 9 * * *',
+}
+
 const USER_ID = 42
 
 const mockSub = {
@@ -60,6 +68,10 @@ const mockGenreService = {
   slugify: vi.fn((name: string) => name.toLowerCase()),
 }
 
+function json(body: unknown, method = 'POST'): RequestInit {
+  return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
+}
+
 function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   return makeSharedDeps({
     storeDb: {} as unknown as AppDependencies['storeDb'],
@@ -93,16 +105,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   })
 }
 
-// Helper to make authenticated requests (injects userId via session simulation)
-// Since auth middleware checks getUserCount() == 0 to skip auth, we keep it at 0
-// so no token is needed and userId is undefined. For endpoints that need userId,
-// we need a session. Instead we test the 401 paths (no auth) and ownership (403).
-// For ownership tests, we need a way to set userId. We do this by patching
-// the app to bypass auth (getUserCount returns 0) and set userId via a custom middleware.
-// The cleanest approach is to use the existing session mechanism - but since sessions
-// are in-memory we can't easily inject one in tests. Instead we wrap createApp
-// with a pre-auth middleware that sets userId on the context.
-
 import { Hono } from 'hono'
 import { getOAuthToken } from '@/db/queries/oauth-tokens'
 import { genreRoutes } from '@/server/routes/genres'
@@ -112,7 +114,6 @@ const mockGetOAuthToken = getOAuthToken as ReturnType<typeof vi.fn>
 
 function createTestApp(deps: AppDependencies, userId: number | undefined) {
   const app = new Hono()
-  // Inject userId before route handlers
   app.use('*', async (c, next) => {
     if (userId !== undefined) {
       c.set('userId' as never, userId as never)
@@ -163,12 +164,6 @@ describe('GET /api/v1/subscriptions', () => {
     expect(mockSubQueries.getSubscriptionsByUser).toHaveBeenCalledWith(USER_ID)
   })
 
-  it('returns 401 when not authenticated', async () => {
-    const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/v1/subscriptions')
-    expect(res.status).toBe(401)
-  })
-
   it('returns {data, meta} envelope when limit is sent', async () => {
     const rows = Array.from({ length: 11 }, (_, i) => ({
       ...mockSub,
@@ -197,21 +192,9 @@ describe('GET /api/v1/subscriptions', () => {
 })
 
 describe('POST /api/v1/subscriptions', () => {
-  const validBody = {
-    name: 'Test Sub',
-    sourceType: 'genre',
-    sourceProvider: 'library',
-    sourceConfig: { genreSlug: 'rock' },
-    cron: '0 9 * * *',
-  }
-
   it('creates a subscription with valid fields', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validBody),
-    })
+    const res = await app.request('/api/v1/subscriptions', json(validBody))
     expect(res.status).toBe(201)
     expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -220,55 +203,31 @@ describe('POST /api/v1/subscriptions', () => {
         action: 'add_to_recommendations',
       }),
     )
-  })
-
-  for (const field of ['name', 'sourceType', 'sourceProvider', 'sourceConfig', 'cron'] as const) {
-    it(`returns 400 when ${field} is missing`, async () => {
-      const app = createTestApp(makeDeps(), USER_ID)
-      const body = { ...validBody }
-      delete (body as Record<string, unknown>)[field]
-      const res = await app.request('/api/v1/subscriptions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      expect(res.status).toBe(400)
-    })
-  }
-
-  it('returns 400 for invalid cron expression', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ...validBody, cron: 'not-a-cron' }),
-    })
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 401 when not authenticated', async () => {
-    const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/v1/subscriptions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validBody),
-    })
-    expect(res.status).toBe(401)
-  })
-
-  it('auto-schedules new subscription in scheduler', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(validBody),
-    })
-    expect(res.status).toBe(201)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       `subscription-${mockSub.id}`,
       validBody.cron,
       expect.any(Function),
     )
+  })
+
+  it.each(['name', 'sourceType', 'sourceProvider', 'sourceConfig', 'cron'] as const)(
+    'returns 400 when %s is missing',
+    async (field) => {
+      const app = createTestApp(makeDeps(), USER_ID)
+      const body = { ...validBody }
+      delete (body as Record<string, unknown>)[field]
+      const res = await app.request('/api/v1/subscriptions', json(body))
+      expect(res.status).toBe(400)
+    },
+  )
+
+  it('returns 400 for invalid cron expression', async () => {
+    const app = createTestApp(makeDeps(), USER_ID)
+    const res = await app.request(
+      '/api/v1/subscriptions',
+      json({ ...validBody, cron: 'not-a-cron' }),
+    )
+    expect(res.status).toBe(400)
   })
 })
 
@@ -309,29 +268,18 @@ describe('POST /api/v1/subscriptions/import/spotify-liked-songs', () => {
     expect(runSubscription).toHaveBeenCalledWith(1)
   })
 
-  it('returns 400 when Spotify is not connected', async () => {
-    mockGetOAuthToken.mockResolvedValueOnce(null)
-    const app = createTestApp(makeDeps(), USER_ID)
-
-    const res = await app.request('/api/v1/subscriptions/import/spotify-liked-songs', {
-      method: 'POST',
-    })
-
-    expect(res.status).toBe(400)
-    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
-  })
-
-  it('returns 400 when the stored Spotify token is a legacy pending marker', async () => {
-    mockGetOAuthToken.mockResolvedValueOnce({ accessToken: 'pending:1:abc' })
-    const app = createTestApp(makeDeps(), USER_ID)
-
-    const res = await app.request('/api/v1/subscriptions/import/spotify-liked-songs', {
-      method: 'POST',
-    })
-
-    expect(res.status).toBe(400)
-    expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
-  })
+  it.each([null, { accessToken: 'pending:1:abc' }])(
+    'rejects unusable Spotify liked-song credentials: %j',
+    async (credential) => {
+      mockGetOAuthToken.mockResolvedValueOnce(credential)
+      const app = createTestApp(makeDeps(), USER_ID)
+      const res = await app.request('/api/v1/subscriptions/import/spotify-liked-songs', {
+        method: 'POST',
+      })
+      expect(res.status).toBe(400)
+      expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
+    },
+  )
 
   it('localizes spotify import errors', async () => {
     mockGetOAuthToken.mockResolvedValueOnce(null)
@@ -354,11 +302,10 @@ describe('POST /api/v1/subscriptions/import/spotify-liked-songs', () => {
 describe('PATCH /api/v1/subscriptions/:id', () => {
   it('updates subscription when user owns it', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Updated Name' }),
-    })
+    const res = await app.request(
+      '/api/v1/subscriptions/1',
+      json({ name: 'Updated Name' }, 'PATCH'),
+    )
     expect(res.status).toBe(204)
     expect(mockSubQueries.updateSubscription).toHaveBeenCalledWith(
       1,
@@ -369,42 +316,26 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
   it('hides cross-user subscription with 404', async () => {
     const OTHER_USER = 99
     const app = createTestApp(makeDeps(), OTHER_USER)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'Hacked' }),
-    })
+    const res = await app.request('/api/v1/subscriptions/1', json({ name: 'Hacked' }, 'PATCH'))
     expect(res.status).toBe(404)
     expect(mockSubQueries.updateSubscription).not.toHaveBeenCalled()
   })
 
   it('returns 404 when subscription does not exist', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/999', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'x' }),
-    })
+    const res = await app.request('/api/v1/subscriptions/999', json({ name: 'x' }, 'PATCH'))
     expect(res.status).toBe(404)
   })
 
   it('returns 400 for invalid cron in update', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cron: 'bad-cron' }),
-    })
+    const res = await app.request('/api/v1/subscriptions/1', json({ cron: 'bad-cron' }, 'PATCH'))
     expect(res.status).toBe(400)
   })
 
   it('reschedules in scheduler when cron changes', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ cron: '0 12 * * 1' }),
-    })
+    const res = await app.request('/api/v1/subscriptions/1', json({ cron: '0 12 * * 1' }, 'PATCH'))
     expect(res.status).toBe(204)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       'subscription-1',
@@ -415,11 +346,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
 
   it('removes from scheduler when disabled via PATCH', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: false }),
-    })
+    const res = await app.request('/api/v1/subscriptions/1', json({ enabled: false }, 'PATCH'))
     expect(res.status).toBe(204)
     expect(mockScheduler.remove).toHaveBeenCalledWith('subscription-1')
   })
@@ -427,11 +354,7 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
   it('re-schedules when re-enabled via PATCH', async () => {
     mockSubQueries.getSubscription.mockResolvedValueOnce({ ...mockSub, enabled: false })
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: true }),
-    })
+    const res = await app.request('/api/v1/subscriptions/1', json({ enabled: true }, 'PATCH'))
     expect(res.status).toBe(204)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       'subscription-1',
@@ -442,11 +365,10 @@ describe('PATCH /api/v1/subscriptions/:id', () => {
 
   it('rejects non-allowlisted fields on update (strict schema)', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: 'ok', sourceType: 'evil', userId: 999 }),
-    })
+    const res = await app.request(
+      '/api/v1/subscriptions/1',
+      json({ name: 'ok', sourceType: 'evil', userId: 999 }, 'PATCH'),
+    )
     expect(res.status).toBe(400)
     const body = await res.json()
     expect(body.code).toBe('validation_failed')
@@ -459,11 +381,7 @@ describe('POST /api/v1/subscriptions/bulk-toggle', () => {
     const subs = [mockSub, { ...mockSub, id: 2, name: 'Sub B', cron: '0 0 * * 1' }]
     mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce(subs)
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/bulk-toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: false }),
-    })
+    const res = await app.request('/api/v1/subscriptions/bulk-toggle', json({ enabled: false }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.updated).toBe(2)
@@ -476,11 +394,7 @@ describe('POST /api/v1/subscriptions/bulk-toggle', () => {
     const subs = [{ ...mockSub, enabled: false }]
     mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce(subs)
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/bulk-toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: true }),
-    })
+    const res = await app.request('/api/v1/subscriptions/bulk-toggle', json({ enabled: true }))
     expect(res.status).toBe(200)
     expect(mockScheduler.schedule).toHaveBeenCalledWith(
       'subscription-1',
@@ -491,45 +405,12 @@ describe('POST /api/v1/subscriptions/bulk-toggle', () => {
 
   it('returns 400 when enabled is missing', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/bulk-toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
+    const res = await app.request('/api/v1/subscriptions/bulk-toggle', json({}))
     expect(res.status).toBe(400)
-  })
-
-  it('returns 401 when not authenticated', async () => {
-    const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/v1/subscriptions/bulk-toggle', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ enabled: false }),
-    })
-    expect(res.status).toBe(401)
   })
 })
 
 describe('GET /api/v1/subscriptions/scheduler', () => {
-  it('returns scheduler job info', async () => {
-    mockScheduler.listJobs.mockReturnValueOnce([
-      { name: 'subscription-1', expression: '0 9 * * *', nextRun: new Date('2026-04-01') },
-    ])
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/scheduler')
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(Array.isArray(body.jobs)).toBe(true)
-    expect(body.jobs).toHaveLength(1)
-    expect(body.jobs[0].name).toBe('subscription-1')
-  })
-
-  it('returns 401 when not authenticated', async () => {
-    const app = createTestApp(makeDeps(), undefined)
-    const res = await app.request('/api/v1/subscriptions/scheduler')
-    expect(res.status).toBe(401)
-  })
-
   it('filters out jobs belonging to other users', async () => {
     mockScheduler.listJobs.mockReturnValueOnce([
       { name: 'subscription-1', expression: '0 9 * * *', nextRun: new Date('2026-04-01') },
@@ -541,6 +422,7 @@ describe('GET /api/v1/subscriptions/scheduler', () => {
     const res = await app.request('/api/v1/subscriptions/scheduler')
     expect(res.status).toBe(200)
     const body = await res.json()
+    expect(Array.isArray(body.jobs)).toBe(true)
     expect(body.jobs).toHaveLength(1)
     expect(body.jobs[0].name).toBe('subscription-1')
   })
@@ -560,12 +442,6 @@ describe('DELETE /api/v1/subscriptions/:id', () => {
     const res = await app.request('/api/v1/subscriptions/1', { method: 'DELETE' })
     expect(res.status).toBe(404)
     expect(mockSubQueries.deleteSubscription).not.toHaveBeenCalled()
-  })
-
-  it('returns 404 when subscription does not exist', async () => {
-    const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/999', { method: 'DELETE' })
-    expect(res.status).toBe(404)
   })
 
   it('returns the same hidden 404 body for missing and cross-user subscriptions', async () => {
@@ -757,18 +633,6 @@ describe('POST /api/v1/subscriptions/import/csv', () => {
     expect(res.status).toBe(400)
     expect(mockSubQueries.createSubscription).not.toHaveBeenCalled()
   })
-
-  it('returns 401 when not authenticated', async () => {
-    const app = createTestApp(makeDeps(), undefined)
-    const formData = new FormData()
-    formData.append('file', new Blob(['artist\nRadiohead'], { type: 'text/csv' }), 'a.csv')
-
-    const res = await app.request('/api/v1/subscriptions/import/csv', {
-      method: 'POST',
-      body: formData,
-    })
-    expect(res.status).toBe(401)
-  })
 })
 
 describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
@@ -782,11 +646,10 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
     mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
     const app = createTestApp(makeDeps(), USER_ID)
 
-    const res = await app.request('/api/v1/subscriptions/import/spotify-playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
-    })
+    const res = await app.request(
+      '/api/v1/subscriptions/import/spotify-playlist',
+      json({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
+    )
 
     expect(res.status).toBe(202)
     const body = await res.json()
@@ -813,11 +676,10 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
     ])
     const app = createTestApp(makeDeps(), USER_ID)
 
-    const res = await app.request('/api/v1/subscriptions/import/spotify-playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
-    })
+    const res = await app.request(
+      '/api/v1/subscriptions/import/spotify-playlist',
+      json({ playlistId: '37i9dQZEVXbMDoHDwVN2tF' }),
+    )
 
     expect(res.status).toBe(202)
     const body = await res.json()
@@ -828,13 +690,12 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
     mockSubQueries.getSubscriptionsByUser.mockResolvedValueOnce([])
     const app = createTestApp(makeDeps(), USER_ID)
 
-    const res = await app.request('/api/v1/subscriptions/import/spotify-playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const res = await app.request(
+      '/api/v1/subscriptions/import/spotify-playlist',
+      json({
         playlistId: 'https://open.spotify.com/playlist/37i9dQZEVXbMDoHDwVN2tF?si=abc',
       }),
-    })
+    )
 
     expect(res.status).toBe(202)
     expect(mockSubQueries.createSubscription).toHaveBeenCalledWith(
@@ -846,11 +707,7 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
 
   it('returns 400 when playlistId is missing', async () => {
     const app = createTestApp(makeDeps(), USER_ID)
-    const res = await app.request('/api/v1/subscriptions/import/spotify-playlist', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
+    const res = await app.request('/api/v1/subscriptions/import/spotify-playlist', json({}))
     expect(res.status).toBe(400)
   })
 
@@ -865,4 +722,22 @@ describe('POST /api/v1/subscriptions/import/spotify-playlist', () => {
     })
     expect(res.status).toBe(400)
   })
+})
+
+it.each([
+  { method: 'GET', path: '/api/v1/subscriptions', body: undefined },
+  { method: 'POST', path: '/api/v1/subscriptions', body: validBody },
+  { method: 'POST', path: '/api/v1/subscriptions/bulk-toggle', body: { enabled: false } },
+  { method: 'GET', path: '/api/v1/subscriptions/scheduler', body: undefined },
+  { method: 'POST', path: '/api/v1/subscriptions/import/csv', body: 'csv' },
+])('rejects anonymous $method $path', async ({ method, path, body }) => {
+  const app = createTestApp(makeDeps(), undefined)
+  let init: RequestInit = { method }
+  if (body === 'csv') {
+    const form = new FormData()
+    form.append('file', new Blob(['artist\nRadiohead'], { type: 'text/csv' }), 'a.csv')
+    init = { method, body: form }
+  } else if (body !== undefined) init = json(body, method)
+  const res = await app.request(path, init)
+  expect(res.status).toBe(401)
 })

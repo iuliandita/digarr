@@ -6,7 +6,6 @@ import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 import { makeDeps as makeSharedDeps } from '../../helpers/test-app'
 
-// Hoist the mock so vitest can resolve it before imports
 vi.mock('@/core/clients/lidarr', () => ({
   createLidarrClient: vi.fn(),
 }))
@@ -43,7 +42,6 @@ vi.mock('@/core/clients/musicbrainz', () => ({
   })),
 }))
 
-// Mock sessions so auth middleware sets userId
 vi.mock('@/core/sessions', () => ({
   getSession: vi.fn(async () => ({
     userId: 1,
@@ -103,6 +101,10 @@ const mockRecommendation = {
   actedOnAt: null,
   createdAt: new Date('2024-01-01'),
   artist: mockArtist,
+}
+
+function json(body: unknown, method = 'PATCH'): RequestInit {
+  return { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }
 }
 
 function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
@@ -277,11 +279,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       const deps = makeDeps({
         scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn(async () => {}) },
       })
-      const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', json(body))
       expect(res.status).toBe(200)
       expect(approvedTrack).toHaveBeenCalledTimes(sends ? 1 : 0)
       if (sends) {
@@ -301,14 +299,14 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     const app = createApp(
       makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } }),
     )
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'approved',
         feedbackTrack: { artistName: 'Test Artist', trackName: 'Exact song' },
       }),
-    })
+    )
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ status: 'approved' })
     reject(new Error('provider-secret'))
@@ -332,11 +330,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     vi.mocked(getOwnedAuditionTrack).mockResolvedValueOnce(track)
     const approvedTrack = vi.fn(async () => {})
     const deps = makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } })
-    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
-    })
+    const res = await authedRequest(
+      createApp(deps),
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', auditionTrackId: 123 }),
+    )
     expect(getOwnedAuditionTrack).toHaveBeenCalledWith(deps.db, 1, 123, mockArtist.mbid)
     const valid = track?.artistName === 'Test Artist' && Boolean(track.trackName.trim())
     expect(res.status).toBe(200)
@@ -345,11 +343,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
   })
   it('approves a stale Audition track without write-back configured', async () => {
     const deps = makeDeps()
-    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
-    })
+    const res = await authedRequest(
+      createApp(deps),
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', auditionTrackId: 123 }),
+    )
     expect(res.status).toBe(200)
     expect(await res.json()).toMatchObject({ status: 'approved' })
     expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
@@ -360,11 +358,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {})
     const approvedTrack = vi.fn(async () => {})
     const deps = makeDeps({ scrobblerWriteBack: { approvedTrack, generatedPlaylist: vi.fn() } })
-    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved', auditionTrackId: 123 }),
-    })
+    const res = await authedRequest(
+      createApp(deps),
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', auditionTrackId: 123 }),
+    )
     expect(res.status).toBe(200)
     expect(deps.updateRecommendationStatus).toHaveBeenCalledTimes(1)
     expect(approvedTrack).not.toHaveBeenCalled()
@@ -376,11 +374,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
   it('updates to rejected status without calling Lidarr', async () => {
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'rejected' }),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json({ status: 'rejected' }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body).toEqual({ status: 'rejected', blockCreated: false })
@@ -396,15 +390,15 @@ describe('PATCH /api/v1/recommendations/:id', () => {
   it('persists structured reason + permanent block when supplied', async () => {
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const app = createApp(makeDeps({ rejectRecommendation }))
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'rejected',
         reason: 'tried_didnt_like',
         permanent: true,
       }),
-    })
+    )
     expect(res.status).toBe(200)
     expect(rejectRecommendation).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -412,20 +406,6 @@ describe('PATCH /api/v1/recommendations/:id', () => {
         permanent: true,
       }),
     )
-  })
-
-  it('returns 400 when reason=not_right_now combined with permanent=true', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        status: 'rejected',
-        reason: 'not_right_now',
-        permanent: true,
-      }),
-    })
-    expect(res.status).toBe(400)
   })
 
   it('approve triggers target add and sets added_to_lidarr on success', async () => {
@@ -449,11 +429,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
         getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
       }),
     )
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json({ status: 'approved' }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('added_to_lidarr')
@@ -500,11 +476,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
         getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
       }),
     )
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json({ status: 'approved' }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('added_to_lidarr')
@@ -549,11 +521,7 @@ describe('PATCH /api/v1/recommendations/:id', () => {
         getEnabledTargetsForUser: vi.fn().mockResolvedValue([mockTarget]),
       }),
     )
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json({ status: 'approved' }))
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.status).toBe('add_failed')
@@ -565,23 +533,22 @@ describe('PATCH /api/v1/recommendations/:id', () => {
     )
   })
 
-  it('returns 400 when status is missing', async () => {
+  it.each([
+    ['missing status', {}],
+    ['permanent not_right_now', { status: 'rejected', reason: 'not_right_now', permanent: true }],
+  ])('returns 400 for %s', async (_case, fields) => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json(fields))
     expect(res.status).toBe(400)
   })
 
   it('returns 404 for approve when recommendation not found', async () => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/recommendations/999', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/999',
+      json({ status: 'approved' }),
+    )
     expect(res.status).toBe(404)
   })
 
@@ -607,16 +574,16 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'approved',
         qualityProfileId: 5,
         metadataProfileId: 3,
         rootFolderId: 2,
       }),
-    })
+    )
 
     expect(res.status).toBe(200)
     expect(mockAddArtist).toHaveBeenCalledWith(
@@ -660,11 +627,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved', monitorOption: 'popular' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', monitorOption: 'popular' }),
+    )
 
     expect(res.status).toBe(200)
     expect(mockAddArtist).toHaveBeenCalledWith(
@@ -713,11 +680,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved', monitorOption: 'popular' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', monitorOption: 'popular' }),
+    )
 
     expect(res.status).toBe(200)
     expect(mockAddArtist).toHaveBeenCalledWith(
@@ -751,11 +718,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved', monitorOption: 'popular' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', monitorOption: 'popular' }),
+    )
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toMatchObject({ code: 'no_source' })
@@ -776,11 +743,11 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved', targetId: 'missing-target' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({ status: 'approved', targetId: 'missing-target' }),
+    )
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({
@@ -829,15 +796,15 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'approved',
         approvalMode: 'combined_lidarr_slskd',
         targetId: 'slskd-7',
       }),
-    })
+    )
 
     expect(res.status).toBe(200)
     expect(mockLidarrTarget.addArtist).toHaveBeenCalledBefore(mockSlskdTarget.addArtist as never)
@@ -910,16 +877,16 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'approved',
         approvalMode: 'combined_lidarr_slskd',
         targetId: 'slskd-7',
         lidarrTargetId: 'lidarr-2',
       }),
-    })
+    )
 
     expect(res.status).toBe(200)
     expect(firstLidarrTarget.addArtist).not.toHaveBeenCalled()
@@ -966,15 +933,15 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/1',
+      json({
         status: 'approved',
         approvalMode: 'combined_lidarr_slskd',
         targetId: 'slskd-7',
       }),
-    })
+    )
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({
@@ -1076,16 +1043,19 @@ describe('POST /api/v1/recommendations/bulk', () => {
   it('rejects permanent not_right_now before ownership queries or writes', async () => {
     const deps = makeDeps()
     const app = createApp(deps)
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ids: [1, 2],
-        action: 'reject',
-        reason: 'not_right_now',
-        permanent: true,
-      }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json(
+        {
+          ids: [1, 2],
+          action: 'reject',
+          reason: 'not_right_now',
+          permanent: true,
+        },
+        'POST',
+      ),
+    )
 
     expect(res.status).toBe(400)
     expect(await res.json()).toMatchObject({
@@ -1110,16 +1080,19 @@ describe('POST /api/v1/recommendations/bulk', () => {
   ])('preserves owned bulk rejection semantics for %j', async (fields) => {
     const deps = makeDeps({ filterOwnedIds: vi.fn(async () => [1]) })
     const app = createApp(deps)
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ids: [1, 2],
-        action: 'reject',
-        ...fields,
-        reasonText: 'not supported in bulk',
-      }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json(
+        {
+          ids: [1, 2],
+          action: 'reject',
+          ...fields,
+          reasonText: 'not supported in bulk',
+        },
+        'POST',
+      ),
+    )
 
     expect(res.status).toBe(200)
     expect(await res.json()).toEqual({ updated: 1 })
@@ -1142,16 +1115,19 @@ describe('POST /api/v1/recommendations/bulk', () => {
   it('ignores rejection compatibility fields when bulk approving', async () => {
     const deps = makeDeps()
     const app = createApp(deps)
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ids: [1],
-        action: 'approve',
-        reason: 'not_right_now',
-        permanent: true,
-      }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json(
+        {
+          ids: [1],
+          action: 'approve',
+          reason: 'not_right_now',
+          permanent: true,
+        },
+        'POST',
+      ),
+    )
 
     expect(res.status).toBe(200)
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(1, 'approved', expect.any(Object))
@@ -1163,11 +1139,11 @@ describe('POST /api/v1/recommendations/bulk', () => {
     const bulkUpdateStatus = vi.fn(async () => {})
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
     const app = createApp(makeDeps({ bulkUpdateStatus, filterOwnedIds }))
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: [1, 2, 3], action: 'reject' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json({ ids: [1, 2, 3], action: 'reject' }, 'POST'),
+    )
     expect(res.status).toBe(200)
     const body = await res.json()
     expect(body.updated).toBe(3)
@@ -1180,16 +1156,19 @@ describe('POST /api/v1/recommendations/bulk', () => {
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
     const app = createApp(makeDeps({ bulkUpdateStatus, rejectRecommendation, filterOwnedIds }))
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ids: [1, 2],
-        action: 'reject',
-        reason: 'wrong_style',
-        permanent: true,
-      }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json(
+        {
+          ids: [1, 2],
+          action: 'reject',
+          reason: 'wrong_style',
+          permanent: true,
+        },
+        'POST',
+      ),
+    )
     expect(res.status).toBe(200)
     expect((await res.json()).updated).toBe(2)
     // Shared-reason path routes each id through rejectRecommendation, not the
@@ -1205,23 +1184,12 @@ describe('POST /api/v1/recommendations/bulk', () => {
     })
   })
 
-  it('returns 400 for invalid action', async () => {
+  it.each([
+    ['invalid action', { ids: [1], action: 'delete' }],
+    ['empty ids', { ids: [], action: 'reject' }],
+  ])('returns 400 for bulk %s', async (_case, fields) => {
     const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: [1], action: 'delete' }),
-    })
-    expect(res.status).toBe(400)
-  })
-
-  it('returns 400 for missing ids', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ ids: [], action: 'reject' }),
-    })
+    const res = await authedRequest(app, '/api/v1/recommendations/bulk', json(fields, 'POST'))
     expect(res.status).toBe(400)
   })
 
@@ -1240,11 +1208,11 @@ describe('POST /api/v1/recommendations/bulk', () => {
       }),
     )
 
-    const res = await authedRequest(app, '/api/v1/recommendations/bulk', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ ids: [1], action: 'approve', targetId: 'missing-target' }),
-    })
+    const res = await authedRequest(
+      app,
+      '/api/v1/recommendations/bulk',
+      json({ ids: [1], action: 'approve', targetId: 'missing-target' }, 'POST'),
+    )
 
     expect(res.status).toBe(400)
     await expect(res.json()).resolves.toEqual({
@@ -1374,11 +1342,10 @@ describe('deferred Lidarr approvals', () => {
     const res = await authedRequest(
       createApp(deps),
       bulk ? '/api/v1/recommendations/bulk' : '/api/v1/recommendations/1',
-      {
-        method: bulk ? 'POST' : 'PATCH',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-        body: JSON.stringify(bulk ? { ids: [1], action: 'approve' } : { status: 'approved' }),
-      },
+      json(
+        bulk ? { ids: [1], action: 'approve' } : { status: 'approved' },
+        bulk ? 'POST' : 'PATCH',
+      ),
     )
     expect(res.status).toBe(200)
     expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
@@ -1432,11 +1399,11 @@ describe('deferred Lidarr approvals', () => {
         { id: 'slskd-2', type: 'slskd', capabilities: ['addArtist'], addArtist: successful },
       ]),
     })
-    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
-      body: JSON.stringify({ status: 'approved' }),
-    })
+    const res = await authedRequest(
+      createApp(deps),
+      '/api/v1/recommendations/1',
+      json({ status: 'approved' }),
+    )
     expect(res.status).toBe(200)
     expect(addArtist).toHaveBeenCalledWith(
       expect.anything(),

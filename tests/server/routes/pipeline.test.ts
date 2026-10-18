@@ -121,6 +121,83 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
   })
 }
 
+function localeUser(id: number) {
+  return {
+    id,
+    username: 'test',
+    isAdmin: false,
+    preferredLocale: 'de',
+    preferences: null,
+    email: null,
+    oidcSubject: null,
+    oidcIssuer: null,
+    authProvider: 'local',
+    listenbrainzUsername: null,
+    listenbrainzToken: null,
+    lastfmUsername: null,
+    lastfmApiKey: null,
+    plexUrl: null,
+    plexToken: null,
+    plexSectionId: null,
+    plexAccountId: null,
+    plexAccountName: null,
+    plexMachineIdentifier: null,
+    jellyfinUrl: null,
+    jellyfinApiKey: null,
+    jellyfinUserId: null,
+    jellyfinLibraryId: null,
+    embyUrl: null,
+    embyApiKey: null,
+    embyUserId: null,
+    embyLibraryId: null,
+    discogsToken: null,
+    discogsUsername: null,
+    subsonicUrl: null,
+    subsonicUsername: null,
+    subsonicPassword: null,
+    createdAt: new Date(),
+  }
+}
+
+function quickDiscoverDeps(
+  getRecommendations: ReturnType<typeof vi.fn>,
+  userId = 1,
+  getRejectedMbids = vi.fn(async () => new Set<string>()),
+) {
+  return makeDeps({
+    getUserCount: vi.fn(async () => 1),
+    getUserById: vi.fn(async () => localeUser(userId)),
+    providerRegistry: {
+      create: vi.fn().mockResolvedValue({
+        getRecommendations,
+        testConnection: vi.fn(),
+      }),
+      register: vi.fn(),
+      has: vi.fn().mockReturnValue(true),
+      availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
+    } as unknown as AppDependencies['providerRegistry'],
+    getSettings: vi.fn(
+      async () =>
+        ({
+          id: 1,
+          lidarrUrl: null,
+          lidarrApiKey: null,
+          aiProvider: 'openai',
+          aiModel: 'gpt-4o-mini',
+          aiApiKey: 'test-key',
+          aiBaseUrl: null,
+          preferences: null,
+        }) as SettingsRow,
+    ),
+    storeDb: {
+      getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
+      getRejectedMbids,
+      getBlockedMbids: vi.fn(async () => new Set<string>()),
+      getFeedbackHistory: vi.fn(async () => new Map()),
+    } as unknown as AppDependencies['storeDb'],
+  })
+}
+
 const SESSION_TOKEN = 'pipeline-session-token'
 
 async function authedRequest(
@@ -298,41 +375,7 @@ describe('POST /api/v1/pipeline/run', () => {
       makeDeps({
         orchestrator,
         getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: 1,
-          username: 'test',
-          isAdmin: false,
-          preferredLocale: 'de',
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
+        getUserById: vi.fn(async () => localeUser(1)),
       }),
     )
 
@@ -367,22 +410,14 @@ describe('POST /api/v1/pipeline/run', () => {
 })
 
 describe('GET /api/v1/pipeline/status', () => {
-  it('returns running: false when not running', async () => {
-    const app = createApp(makeDeps())
-    const res = await authedRequest(app, '/api/v1/pipeline/status')
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.running).toBe(false)
-    expect(body.lastRun).toBeUndefined()
-  })
-
-  it('returns running: true when orchestrator is running', async () => {
-    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+  it.each([false, true])('reports running=%s for the current user', async (running) => {
+    const orchestrator = makeMockOrchestrator(running) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
     const res = await authedRequest(app, '/api/v1/pipeline/status')
     expect(res.status).toBe(200)
     const body = await res.json()
-    expect(body.running).toBe(true)
+    expect(body.running).toBe(running)
+    if (!running) expect(body.lastRun).toBeUndefined()
   })
 
   it('hides other users runs and queue from non-admins, shows them to admins', async () => {
@@ -428,24 +463,16 @@ describe('GET /api/v1/pipeline/status', () => {
 })
 
 describe('POST /api/v1/pipeline/cancel', () => {
-  it('cancels the in-flight run and returns 202', async () => {
-    const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
+  it.each([false, true])('returns cancelled=%s for running state', async (running) => {
+    const orchestrator = makeMockOrchestrator(running) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
     const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
     expect(res.status).toBe(202)
     const body = await res.json()
-    expect(body.cancelled).toBe(true)
-    expect(orchestrator.cancel).toHaveBeenCalledOnce()
+    expect(body.cancelled).toBe(running)
+    if (running) expect(orchestrator.cancel).toHaveBeenCalledOnce()
   })
 
-  it('returns cancelled: false (202) when nothing is running', async () => {
-    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
-    const app = createApp(makeDeps({ orchestrator }))
-    const res = await authedRequest(app, '/api/v1/pipeline/cancel', { method: 'POST' })
-    expect(res.status).toBe(202)
-    const body = await res.json()
-    expect(body.cancelled).toBe(false)
-  })
   it('returns a finishing response when completion has committed', async () => {
     const mock = makeMockOrchestrator(true)
     mock.cancel.mockReturnValue({ cancelled: false })
@@ -492,72 +519,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
           { artistName: 'Similar Artist', confidence: 0.8, reasoning: 'Shared style' },
         ])
       const getRejectedMbids = vi.fn(async () => new Set<string>())
-      const deps = makeDeps({
-        getUserCount: vi.fn(async () => 1),
-        getUserById: vi.fn(async () => ({
-          id: userId,
-          username: 'test',
-          isAdmin: false,
-          preferredLocale: 'de',
-          preferences: null,
-          email: null,
-          oidcSubject: null,
-          oidcIssuer: null,
-          authProvider: 'local',
-          listenbrainzUsername: null,
-          listenbrainzToken: null,
-          lastfmUsername: null,
-          lastfmApiKey: null,
-          plexUrl: null,
-          plexToken: null,
-          plexSectionId: null,
-          plexAccountId: null,
-          plexAccountName: null,
-          plexMachineIdentifier: null,
-          jellyfinUrl: null,
-          jellyfinApiKey: null,
-          jellyfinUserId: null,
-          jellyfinLibraryId: null,
-          embyUrl: null,
-          embyApiKey: null,
-          embyUserId: null,
-          embyLibraryId: null,
-          discogsToken: null,
-          discogsUsername: null,
-          subsonicUrl: null,
-          subsonicUsername: null,
-          subsonicPassword: null,
-          createdAt: new Date(),
-        })),
-        providerRegistry: {
-          create: vi.fn().mockResolvedValue({
-            getRecommendations,
-            testConnection: vi.fn(),
-          }),
-          register: vi.fn(),
-          has: vi.fn().mockReturnValue(true),
-          availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
-        } as unknown as AppDependencies['providerRegistry'],
-        getSettings: vi.fn(
-          async () =>
-            ({
-              id: 1,
-              lidarrUrl: null,
-              lidarrApiKey: null,
-              aiProvider: 'openai',
-              aiModel: 'gpt-4o-mini',
-              aiApiKey: 'test-key',
-              aiBaseUrl: null,
-              preferences: null,
-            }) as SettingsRow,
-        ),
-        storeDb: {
-          getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-          getRejectedMbids,
-          getBlockedMbids: vi.fn(async () => new Set<string>()),
-          getFeedbackHistory: vi.fn(async () => new Map()),
-        } as unknown as AppDependencies['storeDb'],
-      })
+      const deps = quickDiscoverDeps(getRecommendations, userId, getRejectedMbids)
       const app = createApp(deps)
 
       const { createSession } = await import('@/core/sessions')
@@ -593,72 +555,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
 
   it('does not let an ambiguous latin-script artist name override the resolved locale', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])
-    const deps = makeDeps({
-      getUserCount: vi.fn(async () => 1),
-      getUserById: vi.fn(async () => ({
-        id: 1,
-        username: 'test',
-        isAdmin: false,
-        preferredLocale: 'de',
-        preferences: null,
-        email: null,
-        oidcSubject: null,
-        oidcIssuer: null,
-        authProvider: 'local',
-        listenbrainzUsername: null,
-        listenbrainzToken: null,
-        lastfmUsername: null,
-        lastfmApiKey: null,
-        plexUrl: null,
-        plexToken: null,
-        plexSectionId: null,
-        plexAccountId: null,
-        plexAccountName: null,
-        plexMachineIdentifier: null,
-        jellyfinUrl: null,
-        jellyfinApiKey: null,
-        jellyfinUserId: null,
-        jellyfinLibraryId: null,
-        embyUrl: null,
-        embyApiKey: null,
-        embyUserId: null,
-        embyLibraryId: null,
-        discogsToken: null,
-        discogsUsername: null,
-        subsonicUrl: null,
-        subsonicUsername: null,
-        subsonicPassword: null,
-        createdAt: new Date(),
-      })),
-      providerRegistry: {
-        create: vi.fn().mockResolvedValue({
-          getRecommendations,
-          testConnection: vi.fn(),
-        }),
-        register: vi.fn(),
-        has: vi.fn().mockReturnValue(true),
-        availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
-      } as unknown as AppDependencies['providerRegistry'],
-      getSettings: vi.fn(
-        async () =>
-          ({
-            id: 1,
-            lidarrUrl: null,
-            lidarrApiKey: null,
-            aiProvider: 'openai',
-            aiModel: 'gpt-4o-mini',
-            aiApiKey: 'test-key',
-            aiBaseUrl: null,
-            preferences: null,
-          }) as SettingsRow,
-      ),
-      storeDb: {
-        getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-        getRejectedMbids: vi.fn(async () => new Set<string>()),
-        getBlockedMbids: vi.fn(async () => new Set<string>()),
-        getFeedbackHistory: vi.fn(async () => new Map()),
-      } as unknown as AppDependencies['storeDb'],
-    })
+    const deps = quickDiscoverDeps(getRecommendations)
     const app = createApp(deps)
 
     const { createSession } = await import('@/core/sessions')
@@ -689,72 +586,7 @@ describe('POST /api/v1/pipeline/quick-discover', () => {
 
   it('keeps responseLocale on the resolved UI locale when promptLocale differs', async () => {
     const getRecommendations = vi.fn().mockResolvedValue([])
-    const deps = makeDeps({
-      getUserCount: vi.fn(async () => 1),
-      getUserById: vi.fn(async () => ({
-        id: 1,
-        username: 'test',
-        isAdmin: false,
-        preferredLocale: 'de',
-        preferences: null,
-        email: null,
-        oidcSubject: null,
-        oidcIssuer: null,
-        authProvider: 'local',
-        listenbrainzUsername: null,
-        listenbrainzToken: null,
-        lastfmUsername: null,
-        lastfmApiKey: null,
-        plexUrl: null,
-        plexToken: null,
-        plexSectionId: null,
-        plexAccountId: null,
-        plexAccountName: null,
-        plexMachineIdentifier: null,
-        jellyfinUrl: null,
-        jellyfinApiKey: null,
-        jellyfinUserId: null,
-        jellyfinLibraryId: null,
-        embyUrl: null,
-        embyApiKey: null,
-        embyUserId: null,
-        embyLibraryId: null,
-        discogsToken: null,
-        discogsUsername: null,
-        subsonicUrl: null,
-        subsonicUsername: null,
-        subsonicPassword: null,
-        createdAt: new Date(),
-      })),
-      providerRegistry: {
-        create: vi.fn().mockResolvedValue({
-          getRecommendations,
-          testConnection: vi.fn(),
-        }),
-        register: vi.fn(),
-        has: vi.fn().mockReturnValue(true),
-        availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
-      } as unknown as AppDependencies['providerRegistry'],
-      getSettings: vi.fn(
-        async () =>
-          ({
-            id: 1,
-            lidarrUrl: null,
-            lidarrApiKey: null,
-            aiProvider: 'openai',
-            aiModel: 'gpt-4o-mini',
-            aiApiKey: 'test-key',
-            aiBaseUrl: null,
-            preferences: null,
-          }) as SettingsRow,
-      ),
-      storeDb: {
-        getExistingRecommendationMbids: vi.fn(async () => new Set<string>()),
-        getRejectedMbids: vi.fn(async () => new Set<string>()),
-        getBlockedMbids: vi.fn(async () => new Set<string>()),
-        getFeedbackHistory: vi.fn(async () => new Map()),
-      } as unknown as AppDependencies['storeDb'],
-    })
+    const deps = quickDiscoverDeps(getRecommendations)
     const app = createApp(deps)
 
     const { createSession } = await import('@/core/sessions')

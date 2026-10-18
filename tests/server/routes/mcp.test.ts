@@ -127,13 +127,23 @@ function data(result: { content: Array<{ type: string; text?: string }> }) {
   return JSON.parse(result.content.find((item) => item.type === 'text')?.text ?? 'null')
 }
 
+const json = (credential: string, body: unknown, method = 'POST') => ({
+  method,
+  headers: { Authorization: `Bearer ${credential}`, 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+})
+
 describe('approval policy enforcement and queue on migrated PGlite', () => {
   const albumMbid = '00000000-0000-4000-8000-000000000099'
-  const json = (credential: string, body: unknown, method = 'POST') => ({
-    method,
-    headers: { Authorization: `Bearer ${credential}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  })
+
+  async function queueApproval(credential: string, options: Record<string, unknown> = {}) {
+    const queued = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved', ...options }, 'PATCH'),
+    )
+    return (await queued.json()).requestId as number
+  }
+
   async function requestUser() {
     await db.update(users).set({ approvalPolicy: 'request_only' }).where(eq(users.id, 2))
     return mint('write', 2)
@@ -230,11 +240,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
           .update(recommendations)
           .set({ kind, recommendedReleaseGroupId: albumMbid })
           .where(eq(recommendations.id, 2))
-      const queued = await app.request(
-        '/api/v1/recommendations/2',
-        json(credential, { status: 'approved', monitorOption: 'all' }, 'PATCH'),
-      )
-      const { requestId } = await queued.json()
+      const requestId = await queueApproval(credential, { monitorOption: 'all' })
       vi.mocked(deps.getEnabledTargetsForUser).mockClear()
       const notify = vi.fn(async () => {})
       deps.notifyApprovalRequestResolved = notify
@@ -268,11 +274,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
       } as never)
       const notify = vi.fn(async () => {})
       deps.notifyApprovalRequestResolved = notify
-      const queued = await app.request(
-        '/api/v1/recommendations/2',
-        json(credential, { status: 'approved' }, 'PATCH'),
-      )
-      const { requestId } = await queued.json()
+      const requestId = await queueApproval(credential)
       const admin = await mint('admin')
       const failed = await app.request(
         `/api/v1/approval-requests/${requestId}/approve`,
@@ -310,11 +312,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
         testConnection: vi.fn(),
       },
     ] as never)
-    const queued = await app.request(
-      '/api/v1/recommendations/2',
-      json(credential, { status: 'approved' }, 'PATCH'),
-    )
-    const { requestId } = await queued.json()
+    const requestId = await queueApproval(credential)
     const request = json(await mint('admin'), {})
     const response = await app.request(`/api/v1/approval-requests/${requestId}/approve`, {
       ...request,
@@ -335,11 +333,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
       targetId: 8,
       error: 'HTTP 503: Service Unavailable',
     } as never)
-    const queued = await app.request(
-      '/api/v1/recommendations/2',
-      json(credential, { status: 'approved' }, 'PATCH'),
-    )
-    const { requestId } = await queued.json()
+    const requestId = await queueApproval(credential)
     const response = await app.request(
       `/api/v1/approval-requests/${requestId}/approve`,
       json(await mint('admin'), {}),
@@ -428,11 +422,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
     async (condition) => {
       const credential = await requestUser()
       const adds = target()
-      const queued = await app.request(
-        '/api/v1/recommendations/2',
-        json(credential, { status: 'approved' }, 'PATCH'),
-      )
-      const { requestId } = await queued.json()
+      const requestId = await queueApproval(credential)
       if (condition === 'rejected')
         await db
           .update(recommendations)
@@ -454,11 +444,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
 
   it('scopes history and denies non-admin queue decisions while preserving decline notes', async () => {
     const credential = await requestUser()
-    const queued = await app.request(
-      '/api/v1/recommendations/2',
-      json(credential, { status: 'approved' }, 'PATCH'),
-    )
-    const { requestId } = await queued.json()
+    const requestId = await queueApproval(credential)
     expect(
       (
         await app.request('/api/v1/approval-requests', {
@@ -501,11 +487,7 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
       await finish
       return { success: true, targetType: 'lidarr', targetId: 8, externalId: 88 }
     })
-    const queued = await app.request(
-      '/api/v1/recommendations/2',
-      json(credential, { status: 'approved' }, 'PATCH'),
-    )
-    const { requestId } = await queued.json()
+    const requestId = await queueApproval(credential)
     const admin = await mint('admin')
     const approving = app.request(`/api/v1/approval-requests/${requestId}/approve`, json(admin, {}))
     await began
