@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -185,7 +188,7 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "53e3afe9bbcb09c962fba06e773cadf6c629dfc0f97b78098393ab4e5f19394a",
-        "src/db/queries/recommendations.ts": "2b1d553be9097c75ed144acf7d2054460175c3ce042d2f325535b61c262d6bfe",
+        "src/db/queries/recommendations.ts": "3568f1828ad8b35edd126e373bebf500294d4b6f7728dfa6075b40a4ae4f1377",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
@@ -197,14 +200,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd",
+      "digest": "43fea7be9cdd65375fed986f305d759449b3909e555f9ed1f1b378b46fa95f13",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "Adds a read-only tab counts query; no schema, migration, backup or restore change.",
         "breaking": "none",
-        "migration": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
-        "digest": "3cd4132126874a824d1ad813b6e3862aa2efb15b9a0478aace287cb4dc83b5fd"
+        "migration": "Adds a read-only tab counts query; no schema, migration, backup or restore change.",
+        "digest": "43fea7be9cdd65375fed986f305d759449b3909e555f9ed1f1b378b46fa95f13"
       }
     },
     "configuration": {
@@ -275,7 +278,7 @@
         "src/server/deps.ts": "b0757dea7c1168ec33d036590967a6b31791df7a24183ad47be131caf16244d1",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
         "src/server/helpers/openapi-doc.ts": "10866df5ca12fa942ec685472bbc1a90157d0dcc29001fc6f48bcd75704a1fe6",
-        "src/server/helpers/openapi-routes.ts": "92cda8cc478444325509fec3f4ce6fd0554df4acf328f8cabfdc6bbf852a1183",
+        "src/server/helpers/openapi-routes.ts": "09187c4cd72a57088485977b41c2650a9691e74d658fb28487b3fd0829ced57a",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
@@ -305,7 +308,7 @@
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "69087cc7593cd18d52993f5c562e0f9bfef829647e30b5b5b4652efae62443ce",
+        "src/server/routes/recommendations.ts": "01653b5bb6f64fb96c67846c241fc5253825f45452f5ba8d6dc42d52081bdb50",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
         "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -330,14 +333,16 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3",
+      "digest": "ecdf12672feab1477e730d6cde1bafc9c56d4c2657dc2c7d0bae3b04ea3041e5",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "outcome": "docs-updated",
+        "docs": [
+          "docs/API.md"
+        ],
+        "note": "Document the new GET /api/v1/recommendations/counts endpoint; existing endpoints are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "5a75e9e5823d478fad6c5a9f48d0b3964ab0b83e104a790879c2d1accaa5c5b3"
+        "digest": "ecdf12672feab1477e730d6cde1bafc9c56d4c2657dc2c7d0bae3b04ea3041e5"
       }
     },
     "interface": {
@@ -385,7 +390,7 @@
         "src/web/components/blocked-albums-tab.tsx": "b7183b82387212253a5659a29073860fa8ce0debe45a7961ee7258bfef87f6d3",
         "src/web/components/blocked-artists-tab.tsx": "745f164a66ede7570250801c9140d00cd2b5394987009021e64aed41d076de26",
         "src/web/components/bottom-nav.tsx": "66ef43a9dde69c425a1c1745e55869e57738984b620657f53c1dad80f6c8941b",
-        "src/web/components/card-stack.tsx": "7354e27d1f9f2cc85977d5603f42d15679bc20faabebeeb2c06d09f60743704e",
+        "src/web/components/card-stack.tsx": "de3b82a14f1103f48f655b58fa962bbd773da375f9a6df10a81bbede09ec36ba",
         "src/web/components/confirm-dialog.tsx": "2b4b5ffb3316c6f78977953384a793d0b1f72d10a85a598480cb9d149de54e61",
         "src/web/components/cron-picker.tsx": "e270427b67aaa6e721dd8c290cd04e3f2c250b02f805ef03b3849b84378b6c04",
         "src/web/components/dashboard-card-toggle.tsx": "942a1102a39680daa17ffa421b0e72e0d56570348543aec283ec0e767070c56a",
@@ -468,9 +473,10 @@
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "d8531e66d731e3b2d91a3546094503278122eef2f237676af19aa6285056bb4d",
+        "src/web/lib/api.ts": "06025c97c747054c39f3fdb14ac52fb7f9cad5b85368255051f70b0982e8c832",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
+        "src/web/lib/discover-cache.ts": "33b98aaeed8fdd7f9e53fbfe9ee5b23779920483bcf10481048c11a2ad7f4a2e",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
         "src/web/lib/discovery-run-feedback.ts": "ee388d3fffef7a95a2b9456200e51f391a8c4c7608d2bbb91addef8e465acc3e",
         "src/web/lib/format-time.ts": "24a4efbcbc7a44f9374e74659fb7a4125c843792e11c053f017f99f1861f7a4d",
@@ -490,8 +496,8 @@
         "src/web/lib/utils.ts": "29c4c23be2d7b7438299d59be219d2197d94cacb72f6de3e63c41f8525c126c0",
         "src/web/main.tsx": "ccd448a84acb20e8bc42daeefb02b726d58400149c0cc34b8b1517f5a3283337",
         "src/web/pages/analytics.tsx": "3e530e18a0c5ccf4d64f1df017095f8d3f2caad335197903aea2f4308f600f63",
-        "src/web/pages/dashboard.tsx": "86b7052904708da15c88cb66ed2974830aa4de72d8d198ca155d17ef4885a1ad",
-        "src/web/pages/discover.tsx": "cc5fbae89becb9091fadc19e24b3435bcdd2979681018d206bf14843791b41be",
+        "src/web/pages/dashboard.tsx": "6dc7cd6372a4bb041b1ddea60b02d5d08119c638438b095126f4ca9d4b28fb71",
+        "src/web/pages/discover.tsx": "762933ac565aa97bf2af6f7f3d8e09f99dec48def0199821f4a8787cfaf3ec3e",
         "src/web/pages/discovery-modes.tsx": "03001fe47cf4402bb1a22a250c8a43d97c5a024d00ddbe70c4511b5e4dbfe24b",
         "src/web/pages/genre-detail.tsx": "49d5bcb372c5bb727be376f9231731b1783092a7eeb35b73153726467ae2234c",
         "src/web/pages/genres.tsx": "993a08b560ee596026a9c5f0895ff33f180a28e35ab3541f1de204c410337d36",
@@ -524,14 +530,16 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946",
+      "digest": "ac132a72c992d62f0123bf20c6baaa5113012935798f21da5c27003885a94df3",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
+        "docs": [
+          "CHANGELOG.md"
+        ],
+        "note": "Discover and Dashboard update their caches in place after actions and load tab counts from one endpoint; what each view shows is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "c3cda6348e4594b0a2971ec3d7964eddf6184f82a862bd17f4acb0fbb2b41946"
+        "digest": "ac132a72c992d62f0123bf20c6baaa5113012935798f21da5c27003885a94df3"
       }
     },
     "features": {
@@ -797,7 +805,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",

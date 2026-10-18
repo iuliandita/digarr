@@ -302,10 +302,19 @@ export function CardStack({
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [total])
 
+  // The acted card may leave the list in the same render as the advance, so
+  // track the next card by id rather than by index.
+  function advanceFrom(id: number) {
+    const at = recommendations.findIndex((r) => r.id === id)
+    const next = recommendations[at + 1]
+    if (at >= 0 && next) shownIdRef.current = next.id
+  }
+
   function triggerApprove() {
     if (!rec || exiting) return
     setExiting('right')
     setTimeout(() => {
+      advanceFrom(rec.id)
       onApprove(rec.id, rec.status)
       setIndex((i) => Math.min(i + 1, total - 1))
       setExiting(null)
@@ -324,6 +333,7 @@ export function CardStack({
     if (!target) return
     setExiting('left')
     setTimeout(() => {
+      advanceFrom(target.id)
       onReject(target.id, target.prevStatus, payload)
       setIndex((i) => Math.min(i + 1, total - 1))
       setExiting(null)
