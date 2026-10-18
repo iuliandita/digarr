@@ -1479,6 +1479,7 @@ export const nl = {
   'settings.plexAccountHint':
     'Test de verbinding, selecteer je Plex-luisteraar en sla op. Elke Digarr-gebruiker houdt een eigen luistergeschiedenis.',
   'settings.slskdLidarrDownloadPath': 'Downloadmap zoals Lidarr die ziet',
+  'settings.slskdLidarrDownloadPathRequired': 'verplicht als je Lidarr koppelt',
   'settings.slskdLidarrDownloadPathHint':
     'Gebruik voor gekoppelde imports de map met voltooide downloads die Lidarr kan lezen.',
   'settings.plexToken': 'Plex-token',

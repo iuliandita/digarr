@@ -1489,6 +1489,7 @@ export const es = {
   'settings.plexAccountHint':
     'Prueba la conexión, selecciona tu oyente de Plex y guarda. El historial se mantiene separado para cada usuario de Digarr.',
   'settings.slskdLidarrDownloadPath': 'Carpeta de descargas visible para Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'obligatorio si vinculas Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Para importar, usa la carpeta de descargas completadas que Lidarr puede leer.',
   'settings.plexToken': 'Token de Plex',

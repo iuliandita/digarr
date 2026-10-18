@@ -1466,6 +1466,7 @@ export const en = {
   'settings.plexAccountHint':
     'Test the connection, then select your Plex listener and save. Listening history stays separate for each Digarr user.',
   'settings.slskdLidarrDownloadPath': 'Download root as seen by Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'required when linked to Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'For linked imports, use the completed downloads root that Lidarr can read.',
   'settings.plexToken': 'Plex Token',

@@ -422,6 +422,8 @@ function AddTargetDialog({
   const selectedType = targetTypes.find((tt) => tt.value === type)
   const isEditing = Boolean(initialTarget)
   const isLidarr = type === 'lidarr'
+  const requiresLidarrDownloadPath = type === 'slskd' && Number(config.lidarrTargetId) > 0
+  const missingLidarrDownloadPath = requiresLidarrDownloadPath && !config.lidarrDownloadPath?.trim()
   const hideConnectionFields = isLidarr && useServerConnection
   // The saved key is masked out of the form, so any typed key is a change.
   const instanceChanged =
@@ -430,7 +432,7 @@ function AddTargetDialog({
       Boolean(config.apiKey))
 
   async function handleSave() {
-    if (!type || !selectedType) return
+    if (!type || !selectedType || missingLidarrDownloadPath) return
     setSaving(true)
     try {
       if (initialTarget) {
@@ -568,6 +570,11 @@ function AddTargetDialog({
                 return (
                   <label htmlFor={fieldId} className="block text-xs text-muted mb-1">
                     {field.label}
+                    {field.key === 'lidarrDownloadPath' && requiresLidarrDownloadPath && (
+                      <span className="ml-1">
+                        - {t('settings.slskdLidarrDownloadPathRequired')}
+                      </span>
+                    )}
                     {field.kind === 'select' ? (
                       <select
                         id={fieldId}
@@ -587,6 +594,7 @@ function AddTargetDialog({
                         type={field.type ?? 'text'}
                         min={field.min}
                         max={field.max}
+                        required={field.key === 'lidarrDownloadPath' && requiresLidarrDownloadPath}
                         value={config[field.key] ?? ''}
                         onChange={(e) => setConfig({ ...config, [field.key]: e.target.value })}
                         placeholder={field.placeholder}
@@ -649,7 +657,13 @@ function AddTargetDialog({
             <Button
               size="sm"
               onClick={handleSave}
-              disabled={saving || !type || !userId || !users.some((user) => user.id === userId)}
+              disabled={
+                saving ||
+                !type ||
+                !userId ||
+                missingLidarrDownloadPath ||
+                !users.some((user) => user.id === userId)
+              }
             >
               {saving
                 ? isEditing

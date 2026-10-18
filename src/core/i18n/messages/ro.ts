@@ -1482,6 +1482,7 @@ export const ro = {
   'settings.plexAccountHint':
     'Testează conexiunea, selectează ascultătorul Plex și salvează. Istoricul rămâne separat pentru fiecare utilizator Digarr.',
   'settings.slskdLidarrDownloadPath': 'Directorul de descărcări văzut de Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'obligatoriu când conectezi Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Pentru importuri asociate, folosește directorul descărcărilor finalizate pe care Lidarr îl poate citi.',
   'settings.plexToken': 'Token Plex',
