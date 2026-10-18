@@ -5,7 +5,9 @@ import {
   getGenreFeedbackHistory,
   getRejectedArtistMbids,
   listRecommendations,
+  listWaitingApprovals,
   rejectRecommendation,
+  updateRecommendationStatus,
 } from '@/db/queries/recommendations'
 import { artists, recommendationBatches, recommendations, users } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
@@ -531,4 +533,62 @@ describe('taste priority ordering', () => {
       await close()
     }
   }, 20000)
+})
+
+describe('waiting approval timestamps', () => {
+  it('preserves approval order during retries and advances the timestamp on terminal writes', async () => {
+    const { db, close } = await makeTestDb()
+    try {
+      const [artist] = await db
+        .insert(artists)
+        .values({ mbid: '00000000-0000-0000-0000-000000000999', name: 'Retry artist' })
+        .returning()
+      const [batch] = await db.insert(recommendationBatches).values({}).returning()
+      if (!artist || !batch) throw new Error('fixture missing')
+      const original = new Date('2025-01-01T00:00:00Z')
+      const later = new Date('2025-01-02T00:00:00Z')
+      const inserted = await db
+        .insert(recommendations)
+        .values(
+          [later, original, original].map((actedOnAt) => ({
+            artistId: artist.id,
+            batchId: batch.id,
+            score: 0.5,
+            status: 'waiting',
+            actedOnAt,
+          })),
+        )
+        .returning()
+      const [newer, older, tied] = inserted
+      if (!newer || !older || !tied) throw new Error('fixture missing')
+      const database = db as unknown as Database
+      await updateRecommendationStatus(database, older.id, 'waiting', {
+        preserveActedOnAt: true,
+        targetActions: { 'lidarr-1': { status: 'waiting' } },
+      })
+      const waiting = await listWaitingApprovals(database)
+      expect(waiting.map((rec) => rec.id)).toEqual([older.id, tied.id, newer.id])
+      expect(waiting[0]?.actedOnAt).toEqual(original)
+      expect(waiting[0]?.targetActions).toEqual({ 'lidarr-1': { status: 'waiting' } })
+
+      await updateRecommendationStatus(database, older.id, 'added_to_lidarr', {
+        preserveActedOnAt: true,
+        targetActions: {
+          'lidarr-1': { status: 'waiting' },
+          'lidarr-2': { status: 'added' },
+        },
+      })
+      expect((await listWaitingApprovals(database)).map((rec) => rec.id)).toContain(older.id)
+      await updateRecommendationStatus(database, older.id, 'add_failed', {
+        targetActions: { 'lidarr-1': { status: 'failed' } },
+      })
+      expect((await listWaitingApprovals(database)).map((rec) => rec.id)).not.toContain(older.id)
+      const rows = await db.select().from(recommendations)
+      expect(rows.find((rec) => rec.id === older.id)?.actedOnAt?.getTime()).toBeGreaterThan(
+        later.getTime(),
+      )
+    } finally {
+      await close()
+    }
+  })
 })

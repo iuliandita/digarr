@@ -31,6 +31,12 @@ export const de = {
     '"{name}" widerrufen? Skripte mit diesem Token verlieren sofort den Zugriff.',
   'tokens.readOnlyError': 'Dieses Token erlaubt nur GET- und HEAD-Anfragen.',
   'tokens.notFoundError': 'Dieses Token wurde nicht gefunden.',
+  'notification.approvalFailed':
+    'Die Lidarr-Freigabe für {0} konnte nicht innerhalb von 24 Stunden abgeschlossen werden: {1}',
+  'recommendation.waitingForLidarr': 'Warten auf Lidarr',
+  'recommendation.nextRetry': 'Nächster Versuch: {0}',
+  'settings.channels.eventApprovalFailed': 'Freigabe fehlgeschlagen',
+
   'settings.monitorMissing': 'Fehlende Alben',
   'settings.monitorExisting': 'Vorhandene Alben',
   'settings.monitorLatest': 'Neuestes Album',

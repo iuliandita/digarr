@@ -1228,3 +1228,129 @@ describe('GET /api/v1/recommendations/feedback-summary', () => {
     expect(getFeedbackHistory).toHaveBeenCalledWith(1)
   })
 })
+
+describe('deferred Lidarr approvals', () => {
+  it.each([
+    ['artist', false, 'HTTP 503: unavailable', 'waiting'],
+    ['album', false, 'HTTP 503: metadata server unavailable', 'waiting'],
+    ['artist', true, 'connect ECONNREFUSED', 'waiting'],
+    ['album', true, 'read ECONNRESET', 'waiting'],
+    ['artist', false, 'HTTP 400: invalid profile', 'add_failed'],
+    ['album', false, 'HTTP 401: unauthorized', 'add_failed'],
+  ])('persists %s bulk=%s failure %s as %s', async (kind, bulk, error, status) => {
+    const rec = {
+      ...mockRecommendation,
+      kind,
+      recommendedReleaseGroupId: kind === 'album' ? 'rg-1' : null,
+    }
+    const target = {
+      id: 'lidarr-1',
+      name: 'Lidarr',
+      type: 'lidarr',
+      capabilities: ['addArtist', 'addAlbum'],
+      addArtist: vi
+        .fn()
+        .mockResolvedValue({ success: false, targetType: 'lidarr', targetId: 1, error }),
+      addAlbum: vi
+        .fn()
+        .mockResolvedValue({ success: false, targetType: 'lidarr', targetId: 1, error }),
+    }
+    const deps = makeDeps({
+      getRecommendation: vi.fn(async () => rec),
+      getUserCount: vi.fn(async () => 1),
+      getEnabledTargetsForUser: vi.fn().mockResolvedValue([target]),
+    })
+    const res = await authedRequest(
+      createApp(deps),
+      bulk ? '/api/v1/recommendations/bulk' : '/api/v1/recommendations/1',
+      {
+        method: bulk ? 'POST' : 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+        body: JSON.stringify(bulk ? { ids: [1], action: 'approve' } : { status: 'approved' }),
+      },
+    )
+    expect(res.status).toBe(200)
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      status,
+      expect.objectContaining({
+        targetActions: {
+          'lidarr-1': expect.objectContaining({
+            status: status === 'waiting' ? 'waiting' : 'failed',
+          }),
+        },
+      }),
+    )
+  })
+
+  it('manual Retry runs waiting work immediately, preserving options and successful targets', async () => {
+    const addArtist = vi
+      .fn()
+      .mockResolvedValue({ success: true, targetType: 'lidarr', targetId: 1, externalId: 42 })
+    const successful = vi.fn()
+    const rec = {
+      ...mockRecommendation,
+      status: 'waiting',
+      targetActions: {
+        'lidarr-1': {
+          status: 'waiting',
+          error: 'HTTP 503',
+          retry: {
+            startedAt: new Date().toISOString(),
+            nextAttemptAt: new Date(Date.now() + 3600000).toISOString(),
+            attempts: 2,
+            options: { monitorOption: 'selected', selectedAlbumIds: ['rg-1'], rootFolderId: 3 },
+          },
+        },
+        'slskd-2': { status: 'queued' },
+      },
+    }
+    const recorder = {
+      start: vi.fn(async () => 99),
+      complete: vi.fn(),
+      fail: vi.fn(),
+      cancel: vi.fn(),
+      markStuck: vi.fn(),
+    }
+    const deps = makeDeps({
+      jobRecorder: recorder,
+      getRecommendation: vi.fn(async () => rec),
+      getUserCount: vi.fn(async () => 1),
+      getEnabledTargetsForUser: vi.fn().mockResolvedValue([
+        { id: 'lidarr-1', type: 'lidarr', capabilities: ['addArtist'], addArtist },
+        { id: 'slskd-2', type: 'slskd', capabilities: ['addArtist'], addArtist: successful },
+      ]),
+    })
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/1', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: 'Bearer test-token' },
+      body: JSON.stringify({ status: 'approved' }),
+    })
+    expect(res.status).toBe(200)
+    expect(addArtist).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        retryExisting: true,
+        monitorOption: 'selected',
+        selectedAlbumIds: ['rg-1'],
+        rootFolderId: 3,
+      }),
+    )
+    expect(successful).not.toHaveBeenCalled()
+    expect(recorder.start).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          monitorOption: 'selected',
+          selectedAlbumIds: ['rg-1'],
+        }),
+      }),
+    )
+    expect(deps.updateRecommendationStatus).toHaveBeenCalledWith(
+      1,
+      'added_to_lidarr',
+      expect.objectContaining({
+        targetActions: expect.objectContaining({ 'slskd-2': { status: 'queued' } }),
+      }),
+    )
+  })
+})
