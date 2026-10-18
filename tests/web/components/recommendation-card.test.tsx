@@ -184,6 +184,20 @@ describe('RecommendationCard', () => {
     expect(onClick).toHaveBeenCalledWith(5)
   })
 
+  it('clicking a link inside the expanded card does not toggle it', () => {
+    withPreview(
+      <RecommendationCard
+        recommendation={makeRec({ id: 5 })}
+        onApprove={onApprove}
+        onReject={onReject}
+        onClick={onClick}
+        expanded
+      />,
+    )
+    fireEvent.click(screen.getByTitle('YT Music'))
+    expect(onClick).not.toHaveBeenCalled()
+  })
+
   it('expanded state shows AI reasoning and source scores', () => {
     withPreview(
       <RecommendationCard

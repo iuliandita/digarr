@@ -716,7 +716,15 @@ export function RecommendationCard({
               ? 'border-accent'
               : 'border-border hover:border-border/80',
         )}
-        onClick={handleCardClick}
+        onClick={(e) => {
+          // Links, buttons and embeds inside the expanded card must not collapse it.
+          const control =
+            e.target instanceof Element
+              ? e.target.closest('a, button, input, select, textarea, label, iframe')
+              : null
+          if (control && e.currentTarget.contains(control)) return
+          handleCardClick()
+        }}
       >
         {layout === 'grid' && (
           <div

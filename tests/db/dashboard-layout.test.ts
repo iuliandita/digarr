@@ -44,4 +44,16 @@ describe('dashboard layout preference merging', () => {
     )
     expect(mergeDashboardLayout(raw)).toEqual(expected)
   })
+
+  it.each([
+    [
+      { columns: 5, rows: 2 },
+      { columns: 5, rows: 2 },
+    ],
+    [{ columns: 7, rows: 2 }, undefined],
+    [{ columns: 3, rows: 0 }, undefined],
+  ])('keeps a valid decisions grid and rejects out-of-range ones: %j', (grid, expected) => {
+    const merged = mergeDashboardLayout({ ...DEFAULT_DASHBOARD_LAYOUT, decisionsGrid: grid })
+    expect(merged.decisionsGrid).toEqual(expected)
+  })
 })

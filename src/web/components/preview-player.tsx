@@ -52,7 +52,11 @@ export function PreviewPlayer({
   const spotifyUrl = source?.type === 'spotify-embed' ? source.url : null
   const queueActive = Boolean(queue)
   const reportedUnavailableUrlRef = useRef<string | null>(null)
-  const { hostRef: spotifyHostRef, failed: spotifyControllerFailed } = useSpotifyEmbed({
+  const {
+    hostRef: spotifyHostRef,
+    ready: spotifyReady,
+    failed: spotifyControllerFailed,
+  } = useSpotifyEmbed({
     url: spotifyUrl,
     keepAlive: queueActive,
     command: spotify.command,
@@ -183,9 +187,16 @@ export function PreviewPlayer({
 
         {showSpotifyHost && (
           <div
-            ref={spotifyHostRef}
-            className={`mt-2 rounded overflow-hidden ${spotifyUrl && !spotifyControllerFailed ? '' : 'hidden'}`}
-          />
+            className={`relative mt-2 rounded overflow-hidden ${spotifyUrl && !spotifyControllerFailed ? '' : 'hidden'}`}
+          >
+            {/* The bridge iframe paints the browser's default white until Spotify is ready. */}
+            <div ref={spotifyHostRef} className={spotifyReady ? '' : 'invisible'} />
+            {!spotifyReady && (
+              <div className="absolute inset-0 flex items-center justify-center rounded bg-bg animate-pulse text-xs text-muted">
+                {t('preview.loadingPreview')}
+              </div>
+            )}
+          </div>
         )}
 
         {spotifyFallbackUrl && (

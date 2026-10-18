@@ -713,6 +713,25 @@ describe('Dashboard', () => {
     })
   })
 
+  it('saves the Your decisions grid and fetches columns times rows', async () => {
+    setupMocks()
+    renderWithQuery(<Dashboard />)
+    await screen.findByText('Sigur Ros')
+    fireEvent.click(screen.getByRole('button', { name: 'Customize' }))
+    const panel = screen.getByRole('region', { name: 'Customize' })
+    const columns = within(panel).getByRole('combobox', { name: 'Columns in Your decisions' })
+    await waitFor(() => expect(columns).toBeEnabled())
+    fireEvent.change(columns, { target: { value: '5' } })
+    await waitFor(() =>
+      expect(updateUserPreferences).toHaveBeenLastCalledWith({
+        dashboardLayout: { ...DEFAULT_DASHBOARD_LAYOUT, decisionsGrid: { columns: 5, rows: 3 } },
+      }),
+    )
+    await waitFor(() =>
+      expect(mockGetRecommendations).toHaveBeenCalledWith(expect.objectContaining({ limit: '15' })),
+    )
+  })
+
   it('hides empty cards until Show empty cards is enabled and preserves explicit hiding', async () => {
     setupMocks()
     mockGetSubscriptions.mockResolvedValue([])
@@ -786,7 +805,7 @@ describe('Dashboard', () => {
     const toggle = screen.getByRole('checkbox', { name: "Today's Pick" })
     await waitFor(() => expect(toggle).toBeEnabled())
     expect(toggle).not.toBeChecked()
-    expect(screen.getAllByRole('combobox')).toHaveLength(5)
+    expect(screen.getAllByRole('combobox')).toHaveLength(7)
     fireEvent.click(toggle)
     await waitFor(() =>
       expect(toast.error).toHaveBeenCalledWith('Could not save your dashboard. Try again.'),

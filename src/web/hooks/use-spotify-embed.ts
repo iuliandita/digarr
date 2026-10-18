@@ -56,6 +56,7 @@ export function useSpotifyEmbed({
   const onPlaybackPausedRef = useRef(onPlaybackPaused)
   const onPlaybackEndedRef = useRef(onPlaybackEnded)
   const [failedUrl, setFailedUrl] = useState<string | null>(null)
+  const [ready, setReady] = useState(false)
 
   latestRef.current = { url, keepAlive, command }
   onPlaybackStartedRef.current = onPlaybackStarted
@@ -71,6 +72,7 @@ export function useSpotifyEmbed({
 
   const resetPlaybackState = useCallback(() => {
     readyRef.current = false
+    setReady(false)
     loadedUrlRef.current = null
     startedRef.current = false
     pausedRef.current = false
@@ -221,6 +223,7 @@ export function useSpotifyEmbed({
         readyTimeoutRef.current = null
         creatingRef.current = false
         readyRef.current = true
+        setReady(true)
         applyLatest(controller)
         return
       }
@@ -296,5 +299,5 @@ export function useSpotifyEmbed({
     }
   }, [destroyController])
 
-  return { hostRef, failed: Boolean(url && failedUrl === url) }
+  return { hostRef, ready, failed: Boolean(url && failedUrl === url) }
 }

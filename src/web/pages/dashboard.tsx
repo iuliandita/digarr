@@ -2,7 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { type ReactNode, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
-import type { DashboardCardId } from '@/core/dashboard-layout'
+import { type DashboardCardId, DEFAULT_DECISIONS_GRID } from '@/core/dashboard-layout'
 import { AlbumPicker } from '../components/album-picker'
 import { ApproveDialog } from '../components/approve-dialog'
 import { ArtistThumb } from '../components/artist-thumb'
@@ -366,6 +366,8 @@ function TasteProfile({
   loading: boolean
 }) {
   const { t } = useI18n()
+  // Bars are relative to the top genre; shares of all genres are too small to read as bars.
+  const maxPercentage = Math.max(...(genres ?? []).map((g) => g.percentage), 0)
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 bg-surface border border-border rounded-lg p-4">
@@ -388,7 +390,10 @@ function TasteProfile({
                 <div className="h-2 bg-bg rounded-full overflow-hidden">
                   <div
                     className="h-full bg-accent rounded-full transition-[width] duration-300"
-                    style={{ width: `${g.percentage}%`, opacity: 1 - i * 0.15 }}
+                    style={{
+                      width: `${maxPercentage > 0 ? (g.percentage / maxPercentage) * 100 : 0}%`,
+                      opacity: 1 - i * 0.15,
+                    }}
                   />
                 </div>
               </div>
@@ -483,13 +488,15 @@ export function Dashboard() {
   })
 
   // Recently approved
+  const decisionsGrid = layout.decisionsGrid ?? DEFAULT_DECISIONS_GRID
+  const approvedLimit = decisionsGrid.columns * decisionsGrid.rows
   const { data: approvedData, isLoading: approvedLoading } = useQuery({
-    queryKey: ['dashboard-approved'],
+    queryKey: ['dashboard-approved', approvedLimit],
     queryFn: () =>
       getRecommendations({
         status: 'added_to_lidarr,add_failed,approved,waiting',
         sort: 'acted_on_desc',
-        limit: '9',
+        limit: String(approvedLimit),
       }),
     staleTime: 30_000,
   })
@@ -763,7 +770,13 @@ export function Dashboard() {
           ]}
         />
         {decisionsView === 'approved' ? (
-          <RecentlyApproved recs={approvedRecs} loading={approvedLoading} emptyClassName="flex-1" />
+          <RecentlyApproved
+            recs={approvedRecs}
+            loading={approvedLoading}
+            columns={decisionsGrid.columns}
+            count={approvedLimit}
+            emptyClassName="flex-1"
+          />
         ) : (
           <ActivityFeed entries={activityData} loading={activityLoading} />
         )}
@@ -865,7 +878,7 @@ export function Dashboard() {
           {t('dashboard.feedbackTip')}
         </Hint>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 md:grid-flow-row-dense gap-4 items-start">
         {layout.cards
           .filter((card) => card.visible && (layout.showEmpty || !empty[card.id]))
           .map((card) => (

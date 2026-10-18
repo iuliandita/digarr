@@ -4,6 +4,9 @@ import {
   type DashboardCardId,
   type DashboardCardSize,
   type DashboardLayout,
+  DECISIONS_GRID_COLUMNS,
+  DECISIONS_GRID_ROWS,
+  DEFAULT_DECISIONS_GRID,
   mergeDashboardLayout,
 } from '@/core/dashboard-layout'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -41,6 +44,7 @@ export function DashboardCustomize({
   const [announcement, setAnnouncement] = useState('')
   const dragging = useRef<DashboardCardId | null>(null)
   const [dropTarget, setDropTarget] = useState<string | null>(null)
+  const decisionsGrid = layout.decisionsGrid ?? DEFAULT_DECISIONS_GRID
 
   function move(id: DashboardCardId, index: number) {
     const from = layout.cards.findIndex((card) => card.id === id)
@@ -172,6 +176,46 @@ export function DashboardCustomize({
                 <option value="medium">{t('dashboard.sizeMedium')}</option>
                 <option value="large">{t('dashboard.sizeLarge')}</option>
               </Select>
+              {card.id === 'decisions' && (
+                <>
+                  <Select
+                    className="w-auto"
+                    aria-label={t('dashboard.gridColumnsLabel').replace('{card}', title)}
+                    value={decisionsGrid.columns}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onChange({
+                        ...layout,
+                        decisionsGrid: { ...decisionsGrid, columns: Number(event.target.value) },
+                      })
+                    }
+                  >
+                    {DECISIONS_GRID_COLUMNS.map((n) => (
+                      <option key={n} value={n}>
+                        {t('dashboard.gridColumns').replace('{0}', String(n))}
+                      </option>
+                    ))}
+                  </Select>
+                  <Select
+                    className="w-auto"
+                    aria-label={t('dashboard.gridRowsLabel').replace('{card}', title)}
+                    value={decisionsGrid.rows}
+                    disabled={disabled}
+                    onChange={(event) =>
+                      onChange({
+                        ...layout,
+                        decisionsGrid: { ...decisionsGrid, rows: Number(event.target.value) },
+                      })
+                    }
+                  >
+                    {DECISIONS_GRID_ROWS.map((n) => (
+                      <option key={n} value={n}>
+                        {t('dashboard.gridRows').replace('{0}', String(n))}
+                      </option>
+                    ))}
+                  </Select>
+                </>
+              )}
               <Button
                 variant="ghost"
                 size="icon"
