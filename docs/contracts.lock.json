@@ -239,6 +239,7 @@
         "src/server/middleware/admin-guard.ts": "eb66a95d878c1ddf8757391452d578fb5cd3ecaa4c163ab35807b5569fc46264",
         "src/server/middleware/auth.ts": "458f5c99af6918d5336fc7660c39b754595b9ddd0455058d7fde29510bd336bb",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
+        "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
         "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
         "src/server/middleware/problem-json.ts": "b1b07dc5522735858efe4a8157d064d29c1440b0a4cca881139a4d0bab919085",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
@@ -259,14 +260,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
+      "digest": "e82ecba3dec64114a95793a1c951624b6309a2ec247bea3e1d63f2d7ef97a8fa",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Re-recorded after merging develop into #1058; its API docs and CHANGELOG entry are already in this branch.",
         "breaking": "none",
         "migration": "",
-        "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7"
+        "digest": "e82ecba3dec64114a95793a1c951624b6309a2ec247bea3e1d63f2d7ef97a8fa"
       }
     },
     "api": {
@@ -303,7 +304,7 @@
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "756789a635008f05da16be9a1d090c2b9b563f6b443f0746fc76022d0180f4bd",
+        "src/server/routes/recommendations.ts": "1c21ce21c1413cd7bfc653a6a39a23a2776c144ee93b784c3f7655ec7c1bb9a4",
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "920f41b0b78a36ba517e33fd367891d6a195e6cbb56d2f6bc5fd751c9a8c2fbd",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -328,14 +329,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc",
+      "digest": "98d95e3c50c6b14ba06495ebbe7117d327490ccf722b109de2200d5e66bb162a",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Auto-approve deps now receive the existing job recorder; no route, request, or response change.",
+        "note": "Re-recorded after merging develop into #1058; its API docs and CHANGELOG entry are already in this branch.",
         "breaking": "none",
         "migration": "",
-        "digest": "0df3083a5750973701b57b120ddf32f2f954f1f704d1de63e4246e644109c4bc"
+        "digest": "98d95e3c50c6b14ba06495ebbe7117d327490ccf722b109de2200d5e66bb162a"
       }
     },
     "interface": {
