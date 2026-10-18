@@ -6,6 +6,14 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).
+- System Health rows show a text status (OK, Degraded, Error) and a distinct icon per state instead of a color-only dot, in all 15 languages (#1041).
+- Auto-approved deliveries to Lidarr, slskd and playlist targets now record Job History rows like manual approvals, so a failed auto-approved push shows up there (#1039).
+- The legacy listening-source migration logs only when it actually copies connections or clears the global settings, instead of on every boot (#1035).
+- The production boot warning for a missing `ALLOWED_ORIGIN` now names the cookie, CSRF and OIDC/TIDAL redirect consequences, not just CORS (#1043).
+
 ### Changed
 
 - Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, presets that show their run time in server time, Custom cron validation, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
@@ -13,6 +21,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Added
 
 - Optional signing secret on webhook notification channels. When set, requests carry `X-Digarr-Timestamp` and an HMAC-SHA256 `X-Digarr-Signature` so receivers can verify them; off by default. The secret is encrypted at rest, masked in the API, and covered by key rotation. All 15 languages are supported (#1051).
+- `POST /api/v1/recommendations/bulk` accepts an optional `Idempotency-Key` header so a timed-out bulk approve can be retried safely. A repeat with the same key and body replays the stored response for 24 hours, a different body returns 422, and a repeat while the first is still running returns 409. Keys are kept in memory per process and are forgotten on restart. No migration (#1052).
 - Optional per-user approval policies for shared instances: direct approval remains the default; request-only accounts and below-threshold trusted approvals enter an admin queue. Admin decisions retain the requester's targets and approval choices, with notes, opt-in outcome notifications, and pending/declined history on Approved. Admins can cap open requests. All approval interfaces enforce the same policy. Migration 0059 adds the request table and user policy fields on PostgreSQL and PGlite. Back up the database and encryption key before upgrading; JSON exports and backend copies include requests. Older images ignore approval policies, so restoring the previous image also restores unrestricted direct approval. For exact rollback, restore the matching pre-upgrade native backup into a separate database. (#980)
 - Optional AudioMuse-AI audio-similarity source, marked Experimental in the Connections picker. Admins can save a URL, optional encrypted token, and per-connection TLS choice, then test authentication. Normal scans reuse library/listening seeds, exclude owned and blocked names before resolution, deduplicate across seeds, and cap AudioMuse at 50 candidates per scan. Per-seed rank normalization maps similarity to 0.5-1.0 with the best match at 1.0, using the existing similarity weight. Seed failures retain summary counts and partial success; invalid saved URLs or unreadable tokens skip the source without failing the scan. Unconfigured users get no AudioMuse job entry. Requires AudioMuse-AI v3.6.4 or newer. No database migration; normal backups retain the preferences and encryption key, and older versions ignore them. No live AudioMuse instance was available for validation. (#982)
 - Customize the Dashboard per account: show or hide every card, drag or use move buttons and arrow keys to reorder, choose one to three desktop columns, and reset to the curated layout. Empty cards hide by default with an option to keep them visible. Your decisions combines approvals and rejections; Listening switches between top artists and recent plays. Card titles link to their source pages, which have a Show on dashboard switch. All 15 languages are supported (#995).

@@ -97,6 +97,7 @@ export function pipelineRoutes(deps: AppDependencies) {
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       userId,
+      jobRecorder: deps.jobRecorder,
       ...(user && user.approvalPolicy !== 'direct'
         ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
         : {}),
