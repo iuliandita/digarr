@@ -949,6 +949,31 @@ describe('LibraryHealthService', () => {
   // -------------------------------------------------------------------------
 
   describe('missing-albums check', () => {
+    it('still fails when every attempted lookup fails alongside skipped artists', async () => {
+      mocks.getArtists.mockResolvedValue([
+        ARTIST_PORTISHEAD,
+        { ...ARTIST_RADIOHEAD, foreignArtistId: '89ad4ac3-39f7-470e-963a-56509c546377' },
+      ])
+      mocks.getAlbums.mockRejectedValue(new Error('Lidarr unavailable'))
+      mocks.cacheGetAll.mockResolvedValue([])
+      await expect(service.runChecks()).rejects.toThrow(
+        'Album lookups failed for all 1 monitored artists',
+      )
+      expect(mocks.getAlbums).toHaveBeenCalledExactlyOnceWith(ARTIST_PORTISHEAD.id)
+    })
+
+    it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+      'excludes special-purpose artist %s',
+      async (mbid) => {
+        mocks.getArtists.mockResolvedValue([{ ...ARTIST_PORTISHEAD, foreignArtistId: mbid }])
+        mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
+        mocks.cacheGetAll.mockResolvedValue([])
+        const results = await service.runChecks()
+        expect(results.find((r) => r.id === 'missing-albums')?.count).toBe(0)
+        expect(mocks.getAlbums).not.toHaveBeenCalled()
+      },
+    )
+
     it('flags monitored artists with empty monitored albums', async () => {
       mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD])
       mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])

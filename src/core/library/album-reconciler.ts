@@ -1,4 +1,5 @@
 import { type createMusicBrainzClient, parseYear } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { isValidMbid } from '@/core/validation'
 import { normalizeAlbumTitle } from './normalize'
 import type { LibraryAlbum } from './sources/types'
@@ -75,6 +76,17 @@ export async function reconcileAlbumsForArtist(
     onMbError?: (err: unknown) => void
   },
 ): Promise<ReconciledAlbum[]> {
+  if (isSpecialPurposeArtist(artistMbid)) {
+    // Keep the source inventory without attempting discography matching.
+    return albums.map((album) =>
+      makeRow(album, normalizeAlbumTitle(album.title), artistMbid, {
+        albumMbid: isValidMbid(album.mbid) ? album.mbid : null,
+        releaseYear: album.releaseYear ?? null,
+        primaryType: album.primaryType ?? null,
+      }),
+    )
+  }
+
   let releaseGroups: Awaited<ReturnType<MBClient['getReleaseGroups']>>
   let releaseGroupLookupFailed = false
   try {

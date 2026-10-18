@@ -176,7 +176,7 @@
         "src/db/queries/artists.ts": "ba4d5b665cf57127b7a5b549a0812966e605622ace93596116e0c9fb5182f221",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
-        "src/db/queries/gap-fill.ts": "a892a9108aaef2e231e02ec5453c2875b90fad105e660287101f4e5f601c8b50",
+        "src/db/queries/gap-fill.ts": "614d60689b39a363cea37394d22f09dfc482486061e16131beeb2a758d589e7f",
         "src/db/queries/genres.ts": "0f143655c07c8ea6d1d006cff284025c1ab3744be0cfde25116673dafbb894ba",
         "src/db/queries/jobs.ts": "09bbd671ab0a9440bd42e508990a075b88f1eaaa5ba3702b26cb2b544936a2cb",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
@@ -197,7 +197,7 @@
         "src/db/schema.ts": "00dfb96e40057c1b8ef837266620b0e2417aa607d37d9feaaa96ec615038c56e",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "6be4abe81fa6eb38e3c50b98f49386f4485d520bba9a4fc8c9d5371b876171b8",
+      "digest": "30d6098771f6692cf78843bbd18400513cef0a3f91b3e69ebab0572e9fdc5e27",
       "review": {
         "outcome": "docs-updated",
         "docs": [
@@ -209,7 +209,7 @@
         "note": "Document migration 0059, indexed nullable recommendation references, retained album identity and cooldown, synthetic-row cleanup and analytics exclusions, and policy/request backup recovery. PGlite migration replay and backup round-trips are covered by integration tests; live recovery is not tested.",
         "breaking": "Older images ignore approval policies and restore unrestricted direct approval for affected accounts.",
         "migration": "Stop writers and verify a consistent native backup with the matching image and encryption key before upgrading. JSON backups and backend copies retain request history including null references. For exact rollback restore the pre-upgrade native backup separately and restrict member access; remote additions and delivered notifications cannot be reversed.",
-        "digest": "6be4abe81fa6eb38e3c50b98f49386f4485d520bba9a4fc8c9d5371b876171b8"
+        "digest": "30d6098771f6692cf78843bbd18400513cef0a3f91b3e69ebab0572e9fdc5e27"
       }
     },
     "configuration": {
@@ -552,6 +552,7 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "fb5bb4072d5d0452e09830d7987057e2ba79b5b92d585bde2cbb5ce5fb855d95",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
+        "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
         "src/core/clients/musicbrainz.ts": "e032ee869d7ba9d71672a5027693422efe4bd450e4984dd3de439fa442dc6022",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
@@ -573,10 +574,10 @@
         "src/core/discovery-modes/modes/artist-relationships.ts": "053d11414e4642d5548c7fc6cb538afa00f636d0aba0e8c8ca065a4f15cec613",
         "src/core/discovery-modes/modes/charts.ts": "1d01a88bcf59b1f2afc6e7240c93aa78b1c28cfa1c745be026cc1b6fe7b0f0d3",
         "src/core/discovery-modes/modes/deezer-flow.ts": "0eee1d434256cf9bf4ab9fadb166045a66cbd6d0222f6ed3bf9b4f98c8a8ff7e",
-        "src/core/discovery-modes/modes/gap-fill.ts": "6e9307543fbd7dd3b477a9eaf29a454f61c40164a192aa0e4aaf47feadd89502",
+        "src/core/discovery-modes/modes/gap-fill.ts": "ff88d11bcc37f53f79774f67f1d1d6e2fea5a841d24aa78e068e0f7b702c157c",
         "src/core/discovery-modes/modes/labels.ts": "a9ebf278f6d1b72a975b605db0d4714365c8fb74a4e5201aeb99ecd44a16ac14",
         "src/core/discovery-modes/modes/listenbrainz.ts": "d4759751f17b555bc69969b856d4771d5dfdaeaea8e36a7b283ead1c5ac413ff",
-        "src/core/discovery-modes/modes/release-radar.ts": "1e5f3b6af9d0ee663ec8819469a6ed7149e06326eb111700253e1f31576416df",
+        "src/core/discovery-modes/modes/release-radar.ts": "2763ae2f1745c0712996dcd0b1129eeff703671b2af49ba974a0fe6c6860699f",
         "src/core/discovery-modes/modes/runtime.ts": "b2f52eeb674e0fda51e4e52978310c8917367e650d0882af20db409f9e8faf25",
         "src/core/discovery-modes/modes/similar-artist-web.ts": "8f2dade268cea6643c1d96577680a763af15c4cf07deaf1848b46b1f0ccc289d",
         "src/core/discovery-modes/modes/spotify-followed-artists.ts": "b81463e0080b7dad8c399bfa258be294f3bddbbba8da49ab5435870d215e6341",
@@ -596,12 +597,12 @@
         "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "1cd1e0124fa698c7f54a5ebc6dea64ef200e850b7cd2da9d7f96b3c251ec02ab",
-        "src/core/library/album-coverage.ts": "2f3f7e53e1b3608440e2c436da94b7498f159ecb48acb30b75da41190331df48",
-        "src/core/library/album-reconciler.ts": "63fe8125b397b32e58fa9cfd65bc0d7a7b1800b2aba07e2d9adc33fb59fee0b9",
+        "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
+        "src/core/library/album-reconciler.ts": "5f22c6ff347b1095fcf33baf0322449db33326c216af3b0dd18ef3549cd7a4fe",
         "src/core/library/health-scheduler.ts": "1bc22e2658aadf5ddc910e2951196e021792bb268f5c4986773b409ae8d28592",
-        "src/core/library/health.ts": "ed9120f65aab5f0b3c1d7b79c12dc88ee519409d55c2191e006f9f09b6c1f39d",
+        "src/core/library/health.ts": "e67c96dc032158f1ffaeb6b009124d0c9ca9f9008284770ef8744eb233f59296",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "77d8c99af24ec8892609bcbab693fb4b4e4b3ed8f8d66023fa5924135b4568e5",
+        "src/core/library/reconciler.ts": "a101d17709aa6b0828709907f697db67e5d47a43f49ccc7d56b87dd4d86fd1a2",
         "src/core/library/scheduler.ts": "334383301fc5695b84f88ab478534f966eaf10e4c858d9ba3d5cf9f644a319c5",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -634,7 +635,7 @@
         "src/core/pipeline/genre-backfill.ts": "65cc5401afdf79c9039ce898a3660ba3b742d7c6a7a59f5a5a9cdca1ed72f43b",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
         "src/core/pipeline/orchestrator.ts": "2c3138d0c7e01259aa4ccd38565754ab1a440ce6ebeab6f2c83012fe25fcd04f",
-        "src/core/pipeline/resolve.ts": "dbd078fd31f0250edb4fd234d616dd4ad23e4c41693a428df1ecddb7d1804368",
+        "src/core/pipeline/resolve.ts": "1254cf614a9af0531c447ca636d4a618ff0c86ca7103c076443de1d357fb9f1b",
         "src/core/pipeline/scheduler.ts": "108abc5f29c6c4595407d8b26137d4068b24fd71b44d5ccd92161a28a8ecbed2",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
         "src/core/pipeline/store.ts": "9637b00f39f960b4eea5c3788cca67db07d8da459b9464c995c9f86e4ad9607e",
@@ -742,14 +743,14 @@
         "src/index.ts": "e79e6987032cb926330cec0a9d8b87ab0d4ca00b6a7afdf73cc27429f88e127d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "f97346cb6769c87addde280428cd45547f74ff8c4385c52717770ac0a2ee9881",
+      "digest": "4672520c02e09c7f17c337a404b3ec70853f3b6231a03fc06e648595163778ef",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Describe shared approval enforcement with unchanged direct defaults, cached policy per approval request or pipeline run, personal localized outcomes, synthetic album cleanup and the 24-hour decline cooldown.",
         "breaking": "none",
         "migration": "",
-        "digest": "f97346cb6769c87addde280428cd45547f74ff8c4385c52717770ac0a2ee9881"
+        "digest": "4672520c02e09c7f17c337a404b3ec70853f3b6231a03fc06e648595163778ef"
       }
     },
     "deployment": {
