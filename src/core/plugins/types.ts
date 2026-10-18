@@ -38,12 +38,19 @@ export type SourceCapability =
   | 'recentListening'
   | 'listeningActivity'
 
+export type DiscoverySummary = {
+  seedsQueried: number
+  seedsWithResults: number
+  skipReasons: Record<string, number>
+}
+
 export interface DiscoverySource {
   id: string
   name: string
   capabilities: SourceCapability[]
   getTopArtists(limit?: number): Promise<TopArtistEntry[]>
   getSimilarArtists(artistName: string, mbid?: string): Promise<SimilarArtistEntry[]>
+  getDiscoverySummary?(): DiscoverySummary
   testConnection(): Promise<ServiceTestResult>
   getListeningActivity?(): Promise<ListeningActivityEntry[]>
   getGenreArtists?(genre: string, options?: { limit?: number }): Promise<GenreArtistEntry[]>

@@ -13,6 +13,17 @@ describe('JobRunRow source results', () => {
       'Skipped - Similar-artist lookup is not supported',
     ],
     ['en', { status: 'ok', artists: 0 }, 'Success (0 artists)'],
+    [
+      'en',
+      {
+        status: 'ok',
+        artists: 50,
+        seedsQueried: 30,
+        seedsWithResults: 25,
+        skipReasons: { artist_unknown: 5 },
+      },
+      'Success (50 artists) - 30 seeds queried, 25 with results - Artist unknown or no similar artists in the index. (5)',
+    ],
     ['en', { status: 'error', error: 'upstream unavailable' }, 'Error - upstream unavailable'],
     ['en', { status: 'skipped', reason: 'future_reason' }, 'Skipped - future_reason'],
     [
@@ -35,7 +46,7 @@ describe('JobRunRow source results', () => {
       durationMs: 0,
       error: null,
       metadata: {},
-      sourceResults: { spotify: result },
+      sourceResults: { [result.seedsQueried != null ? 'audiomuse' : 'spotify']: result },
       subscriptionId: null,
       batchId: null,
     }

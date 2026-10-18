@@ -1,4 +1,7 @@
 export const ptBR = {
+  'audiomuse.seedSummary': '{queried} artistas iniciais consultados, {results} com resultados',
+  'audiomuse.invalid_url': 'URL do AudioMuse-AI inválida.',
+  'audiomuse.token_unreadable': 'Token do AudioMuse-AI ilegível - digite de novo.',
   'settings.picker.audiomuse': 'Similaridade de áudio da tua biblioteca indexada.',
   'settings.audiomuseDescription':
     'Encontra artistas semelhantes com a análise de áudio do AudioMuse-AI.',

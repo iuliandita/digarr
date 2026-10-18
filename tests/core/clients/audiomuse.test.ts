@@ -69,16 +69,23 @@ describe('AudioMuse-AI v3.6.4 contract', () => {
     ).rejects.toThrow('AudioMuse-AI: unreachable')
   })
 
-  it.each([
-    null,
-    {},
-    [{ artist: 'A', divergence: -1 }],
-    [{ artist: 'A', divergence: NaN }],
-    [{ artist: 'A', divergence: Infinity }],
-    [{ artist: '', divergence: 0 }],
-    [{ artist: 'A', divergence: '0.5' }],
-  ])('rejects malformed results: %j', (body) => {
+  it.each([null, {}])('rejects malformed results: %j', (body) => {
     expect(() => normalizeAudioMuseArtists(body)).toThrow('invalid_response')
+  })
+
+  it('drops malformed rows without discarding valid matches', () => {
+    expect(
+      normalizeAudioMuseArtists([
+        null,
+        {},
+        { artist: 'A', divergence: -1 },
+        { artist: 'B', divergence: NaN },
+        { artist: 'C', divergence: Infinity },
+        { artist: '', divergence: 0 },
+        { artist: 'D', divergence: '0.5' },
+        { artist: 'Valid', divergence: 0 },
+      ]),
+    ).toEqual([{ name: 'Valid', similarityScore: 1, source: 'audiomuse' }])
   })
 
   it('normalizes zero divergence and unbounded distances without mistaking server IDs for MBIDs', () => {

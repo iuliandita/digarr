@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { encryptField, initEncryption } from '@/core/crypto'
 import { resolve } from '@/core/pipeline/resolve'
 import { store } from '@/core/pipeline/store'
 import { createSession } from '@/core/sessions'
@@ -71,6 +72,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  initEncryption(undefined)
   const { clearAllSessions } = await import('@/core/sessions')
   await clearAllSessions()
 })
@@ -302,6 +304,40 @@ describe('POST /api/v1/pipeline/run', () => {
           },
         }),
       }),
+    )
+  })
+
+  it('starts a run with AudioMuse skipped when the saved token uses a different encryption key', async () => {
+    initEncryption('original-key')
+    const token = encryptField('private-token')
+    initEncryption('restored-key')
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const app = createApp(
+      makeDeps({
+        orchestrator,
+        getSettings: vi.fn().mockResolvedValue({
+          id: 1,
+          preferences: {
+            ...DEFAULT_PREFERENCES,
+            audiomuseUrl: 'https://audiomuse:8000',
+            audiomuseToken: token,
+          },
+        }),
+      }),
+    )
+
+    const response = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+
+    expect(response.status).toBe(202)
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          audiomuse: expect.objectContaining({ skipReason: 'token_unreadable' }),
+        }),
+      }),
+    )
+    expect(JSON.stringify(vi.mocked(orchestrator.enqueue).mock.calls)).not.toContain(
+      'private-token',
     )
   })
 

@@ -1,4 +1,7 @@
 export const fr = {
+  'audiomuse.seedSummary': '{queried} artistes de départ interrogés, {results} avec des résultats',
+  'audiomuse.invalid_url': 'URL AudioMuse-AI invalide.',
+  'audiomuse.token_unreadable': 'Token AudioMuse-AI illisible - saisis-le à nouveau.',
   'settings.picker.audiomuse': 'Similarité audio de ta bibliothèque indexée.',
   'settings.audiomuseDescription':
     'Trouve des artistes similaires grâce à l’analyse audio d’AudioMuse-AI.',

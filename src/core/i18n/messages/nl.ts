@@ -1,4 +1,7 @@
 export const nl = {
+  'audiomuse.seedSummary': '{queried} startartiesten opgevraagd, {results} met resultaten',
+  'audiomuse.invalid_url': 'Ongeldige AudioMuse-AI-URL.',
+  'audiomuse.token_unreadable': 'AudioMuse-AI-token onleesbaar - voer het opnieuw in.',
   'settings.picker.audiomuse': 'Audiovergelijking uit je geïndexeerde bibliotheek.',
   'settings.audiomuseDescription':
     'Vind vergelijkbare artiesten met de audioanalyse van AudioMuse-AI.',

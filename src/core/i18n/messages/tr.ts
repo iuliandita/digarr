@@ -1,4 +1,8 @@
 export const tr = {
+  'audiomuse.seedSummary':
+    '{queried} başlangıç sanatçısı sorgulandı, {results} tanesinde sonuç var',
+  'audiomuse.invalid_url': 'Geçersiz AudioMuse-AI URL adresi.',
+  'audiomuse.token_unreadable': 'AudioMuse-AI tokeni okunamıyor - yeniden gir.',
   'settings.picker.audiomuse': 'İndekslenmiş kitaplığından ses benzerliği.',
   'settings.audiomuseDescription': 'AudioMuse-AI ses analiziyle benzer sanatçılar bul.',
   'settings.audiomuseToken': 'API belirteci (isteğe bağlı)',

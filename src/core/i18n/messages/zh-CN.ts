@@ -1,4 +1,7 @@
 export const zhCN = {
+  'audiomuse.seedSummary': '已查询 {queried} 位种子艺人，{results} 位有结果',
+  'audiomuse.invalid_url': 'AudioMuse-AI URL 无效。',
+  'audiomuse.token_unreadable': '无法读取 AudioMuse-AI 令牌 - 请重新输入。',
   'settings.picker.audiomuse': '从已索引的曲库中查找声音相似的艺人。',
   'settings.audiomuseDescription': '使用 AudioMuse-AI 音频分析查找相似艺人。',
   'settings.audiomuseToken': 'API 令牌（可选）',

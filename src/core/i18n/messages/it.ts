@@ -1,4 +1,7 @@
 export const it = {
+  'audiomuse.seedSummary': '{queried} artisti iniziali cercati, {results} con risultati',
+  'audiomuse.invalid_url': 'URL AudioMuse-AI non valido.',
+  'audiomuse.token_unreadable': 'Token AudioMuse-AI illeggibile - inseriscilo di nuovo.',
   'settings.picker.audiomuse': 'Somiglianza audio dalla tua libreria indicizzata.',
   'settings.audiomuseDescription': 'Trova artisti simili con l’analisi audio di AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (facoltativo)',

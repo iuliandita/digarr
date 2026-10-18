@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { lookup } from 'node:dns/promises'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { decryptField, initEncryption } from '@/core/crypto'
+import { decryptField, encryptField, initEncryption } from '@/core/crypto'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { UserConnections } from '@/db/queries/users'
@@ -2260,6 +2260,34 @@ describe('AudioMuse admin settings', () => {
     expect(init.tls).toEqual('url' in body ? undefined : { rejectUnauthorized: false })
     expect(deps.updateSettings).not.toHaveBeenCalled()
   })
+
+  it.each([{}, { token: '***' }])(
+    'returns a probe error for an unreadable saved token: %j',
+    async (body) => {
+      initEncryption('original-key')
+      const token = encryptField('private-token')
+      initEncryption('restored-key')
+      const { deps } = makePreferenceFixture({
+        audiomuseUrl: 'https://saved.example',
+        audiomuseToken: token ?? undefined,
+      })
+      const fetch = vi.fn()
+      vi.stubGlobal('fetch', fetch)
+
+      const response = await authedRequest(createApp(deps), '/api/v1/settings/test/audiomuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      expect(response.status).toBe(502)
+      const result = await response.json()
+      expect(result.type).toContain('probe-failed')
+      expect(result.detail).toBe('AudioMuse-AI token unreadable, re-enter it')
+      expect(JSON.stringify(result)).not.toContain('private-token')
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
 
   it.each([{ skipTlsVerify: 'true' }, { url: 'file:///etc/passwd' }, { url: '' }, { token: 12 }])(
     'rejects invalid probe input before any request: %j',

@@ -1,4 +1,7 @@
 export const ja = {
+  'audiomuse.seedSummary': '{queried} 件の起点アーティストを検索、{results} 件で結果あり',
+  'audiomuse.invalid_url': 'AudioMuse-AI の URL が無効です。',
+  'audiomuse.token_unreadable': 'AudioMuse-AI のトークンを読み取れません - 入力し直してください。',
   'settings.picker.audiomuse': 'インデックス済みライブラリの音響的な類似性。',
   'settings.audiomuseDescription': 'AudioMuse-AIの音声解析で似たアーティストを探します。',
   'settings.audiomuseToken': 'APIトークン（任意）',

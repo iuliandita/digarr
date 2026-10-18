@@ -1,4 +1,7 @@
 export const ro = {
+  'audiomuse.seedSummary': '{queried} artiști de pornire căutați, {results} cu rezultate',
+  'audiomuse.invalid_url': 'URL AudioMuse-AI nevalid.',
+  'audiomuse.token_unreadable': 'Tokenul AudioMuse-AI nu poate fi citit - introdu-l din nou.',
   'settings.picker.audiomuse': 'Similaritate audio din biblioteca ta indexată.',
   'settings.audiomuseDescription': 'Găsește artiști similari prin analiza audio AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (opțional)',

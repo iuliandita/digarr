@@ -1,4 +1,7 @@
 export const ko = {
+  'audiomuse.seedSummary': '시작 아티스트 {queried}명 조회, {results}명 결과 있음',
+  'audiomuse.invalid_url': 'AudioMuse-AI URL이 잘못됐어요.',
+  'audiomuse.token_unreadable': 'AudioMuse-AI 토큰을 읽을 수 없어요 - 다시 입력해 주세요.',
   'settings.picker.audiomuse': '색인된 라이브러리의 오디오 유사성입니다.',
   'settings.audiomuseDescription': 'AudioMuse-AI 오디오 분석으로 비슷한 아티스트를 찾습니다.',
   'settings.audiomuseToken': 'API 토큰 (선택 사항)',

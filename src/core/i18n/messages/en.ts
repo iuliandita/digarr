@@ -1,4 +1,7 @@
 export const en = {
+  'audiomuse.seedSummary': '{queried} seeds queried, {results} with results',
+  'audiomuse.invalid_url': 'Invalid AudioMuse-AI URL.',
+  'audiomuse.token_unreadable': 'AudioMuse-AI token unreadable - re-enter it.',
   'settings.picker.audiomuse': 'Audio similarity from your indexed library.',
   'settings.audiomuseDescription': 'Find similar artists using AudioMuse-AI audio analysis.',
   'settings.audiomuseToken': 'API token (optional)',

@@ -1345,7 +1345,16 @@ export type JobRun = {
   metadata: Record<string, unknown>
   sourceResults: Record<
     string,
-    { status: string; artists?: number; ms?: number; error?: string; reason?: string }
+    {
+      status: string
+      artists?: number
+      ms?: number
+      error?: string
+      reason?: string
+      seedsQueried?: number
+      seedsWithResults?: number
+      skipReasons?: Record<string, number>
+    }
   > | null
   subscriptionId: number | null
   batchId: number | null

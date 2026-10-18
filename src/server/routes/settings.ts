@@ -637,10 +637,19 @@ export function settingsRoutes(deps: AppDependencies) {
       case 'audiomuse': {
         const prefs = stored?.preferences
         const url = body.url ?? prefs?.audiomuseUrl ?? ''
-        const token =
-          body.token === '***' || body.token === undefined
-            ? (decryptField(prefs?.audiomuseToken) ?? '')
-            : body.token
+        let token: unknown
+        try {
+          token =
+            body.token === '***' || body.token === undefined
+              ? (decryptField(prefs?.audiomuseToken) ?? '')
+              : body.token
+        } catch {
+          return probeResult(
+            c,
+            { success: false, message: 'AudioMuse-AI token unreadable, re-enter it' },
+            messages['common.unknownError'],
+          )
+        }
         if (typeof url !== 'string' || !url) return missingInput('Missing URL')
         if (typeof token !== 'string') return missingInput('Token must be a string')
         try {

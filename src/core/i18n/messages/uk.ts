@@ -1,4 +1,8 @@
 export const uk = {
+  'audiomuse.seedSummary':
+    'Перевірено початкових виконавців: {queried}, із результатами: {results}',
+  'audiomuse.invalid_url': 'Недійсна URL-адреса AudioMuse-AI.',
+  'audiomuse.token_unreadable': 'Не вдалося прочитати токен AudioMuse-AI - введи його знову.',
   'settings.picker.audiomuse': 'Звукова схожість з твоєї проіндексованої бібліотеки.',
   'settings.audiomuseDescription': 'Знаходь схожих виконавців завдяки аудіоаналізу AudioMuse-AI.',
   'settings.audiomuseToken': 'Токен API (необов’язково)',

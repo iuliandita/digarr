@@ -1,4 +1,7 @@
 export const ru = {
+  'audiomuse.seedSummary': 'Проверено исходных исполнителей: {queried}, с результатами: {results}',
+  'audiomuse.invalid_url': 'Недопустимый URL AudioMuse-AI.',
+  'audiomuse.token_unreadable': 'Не удалось прочитать токен AudioMuse-AI - введи его заново.',
   'settings.picker.audiomuse': 'Звуковое сходство из твоей проиндексированной библиотеки.',
   'settings.audiomuseDescription':
     'Находи похожих исполнителей с помощью аудиоанализа AudioMuse-AI.',

@@ -373,6 +373,16 @@ const storeDb: StoreDb = {
   },
   getRejectedMbids: (cooldownDays, userId) => getRejectedArtistMbids(db, cooldownDays, userId),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
+  getBlockedArtistNames: async (userId) => {
+    const names: string[] = []
+    let cursor: import('./db/queries/artist-blocks').ListBlocksCursor | null = null
+    do {
+      const page = await listArtistBlocksQuery(db, { userId, limit: 200, cursor })
+      names.push(...page.items.map((artist) => artist.name))
+      cursor = page.nextCursor
+    } while (cursor)
+    return names
+  },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),

@@ -2,7 +2,12 @@ import { createHttpClient, HttpError } from '@/core/clients/http'
 import type { ServiceTestResult } from '@/core/types'
 import { isCloudMetadata } from '@/core/validation'
 
-export type AudioMuseConfig = { url: string; token?: string; skipTlsVerify?: boolean }
+export type AudioMuseConfig = {
+  url: string
+  token?: string
+  skipTlsVerify?: boolean
+  skipReason?: 'token_unreadable'
+}
 export type AudioMuseSkipReason =
   | 'unreachable'
   | 'not_indexed'
@@ -20,7 +25,7 @@ export class AudioMuseError extends Error {
 // Verified against v3.6.4: app_artist_similarity.py and tasks/artist_gmm_manager.py.
 export function normalizeAudioMuseArtists(body: unknown) {
   if (!Array.isArray(body)) throw new AudioMuseError('invalid_response')
-  return body.map((row: unknown) => {
+  return body.flatMap((row: unknown) => {
     if (
       row === null ||
       typeof row !== 'object' ||
@@ -32,13 +37,15 @@ export function normalizeAudioMuseArtists(body: unknown) {
       !Number.isFinite(row.divergence) ||
       row.divergence < 0
     ) {
-      throw new AudioMuseError('invalid_response')
+      return []
     }
-    return {
-      name: row.artist.trim(),
-      similarityScore: 1 / (1 + row.divergence),
-      source: 'audiomuse',
-    }
+    return [
+      {
+        name: row.artist.trim(),
+        similarityScore: 1 / (1 + row.divergence),
+        source: 'audiomuse',
+      },
+    ]
   })
 }
 

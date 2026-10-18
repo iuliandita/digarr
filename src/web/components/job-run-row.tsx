@@ -23,6 +23,8 @@ const SOURCE_REASON_KEYS: Record<string, MessageKey> = {
   no_seeds: 'jobHistory.sourceNoSeeds',
   explicit_run: 'jobHistory.sourceExplicitRun',
   not_configured: 'jobHistory.sourceNotConfigured',
+  audiomuse_invalid_url: 'audiomuse.invalid_url',
+  audiomuse_token_unreadable: 'audiomuse.token_unreadable',
   audiomuse_unreachable: 'audiomuse.unreachable',
   audiomuse_not_indexed: 'audiomuse.not_indexed',
   audiomuse_artist_unknown: 'audiomuse.artist_unknown',
@@ -193,6 +195,16 @@ export function JobRunRow({ job }: { job: JobRun }) {
                       {result.ms != null && ` ${result.ms}ms`}
                       {result.error && ` - ${result.error}`}
                       {result.reason && ` - ${sourceLabel(result.reason, SOURCE_REASON_KEYS, t)}`}
+                      {result.seedsQueried != null &&
+                        ` - ${t('audiomuse.seedSummary')
+                          .replace('{queried}', String(result.seedsQueried))
+                          .replace('{results}', String(result.seedsWithResults ?? 0))}`}
+                      {Object.entries(result.skipReasons ?? {})
+                        .map(
+                          ([reason, count]) =>
+                            ` - ${sourceLabel([source, reason].join('_'), SOURCE_REASON_KEYS, t)} (${count})`,
+                        )
+                        .join('')}
                     </span>
                   </div>
                 ))}

@@ -4,7 +4,11 @@ import { encryptField, initEncryption } from '@/core/crypto'
 import { discover } from '@/core/pipeline/discover'
 import { resolve } from '@/core/pipeline/resolve'
 import { computeWeightedScore, score } from '@/core/pipeline/score'
-import { createAudioMuseSource, getAudioMuseConfig } from '@/core/plugins/audiomuse'
+import {
+  AUDIOMUSE_MAX_CANDIDATES,
+  createAudioMuseSource,
+  getAudioMuseConfig,
+} from '@/core/plugins/audiomuse'
 import type { TasteProfile } from '@/core/types'
 import { DEFAULT_PREFERENCES } from '@/db/schema'
 import fixture from '../../fixtures/audiomuse/v3.6.4.json'
@@ -78,11 +82,11 @@ describe('AudioMuse discovery source', () => {
     const scored = score(resolved, [], weights, new Map())
     expect(scored.map((a) => a.name)).toEqual(['Portishead', 'Massive Attack', 'Tricky'])
     const best = scored[0]
-    expect(best?.sourceScores.similarity).toBeCloseTo(0.8)
+    expect(best?.sourceScores.similarity).toBeCloseTo(1)
     expect(best?.score).toBeCloseTo(
       computeWeightedScore(weights, {
         consensus: 0.25,
-        similarity: 0.8,
+        similarity: 1,
         genreOverlap: 0,
         aiConfidence: 0.5,
         feedbackBoost: 0.5,
@@ -93,6 +97,138 @@ describe('AudioMuse discovery source', () => {
       score(resolved, [], { ...weights, similarity: 0 }, new Map())[0]?.score ?? 0,
     )
     expect(best?.discoveries.every((d) => d.source === 'audiomuse')).toBe(true)
+  })
+
+  it('marks a restored encrypted token unreadable without exposing it', () => {
+    initEncryption('original-key')
+    const token = encryptField('secret')
+    initEncryption('replacement-key')
+    expect(
+      getAudioMuseConfig({
+        audiomuseUrl: 'https://audiomuse.example',
+        audiomuseToken: token ?? undefined,
+      }),
+    ).toEqual({
+      url: 'https://audiomuse.example',
+      skipTlsVerify: false,
+      skipReason: 'token_unreadable',
+    })
+  })
+
+  it('excludes owned and blocked names before resolution, dedupes seeds, and caps the strongest candidates', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        const seed = new URL(url).searchParams.get('artist')
+        return Response.json([
+          { artist: 'OWNED', divergence: 0 },
+          { artist: 'BLOCKED', divergence: 0 },
+          { artist: 'Shared', divergence: 0.1 },
+          ...Array.from({ length: 20 }, (_, i) => ({
+            artist: `${seed} match ${i}`,
+            divergence: 20 - i,
+          })),
+        ])
+      }),
+    )
+    const source = createAudioMuseSource(
+      { url: 'https://audiomuse.example' },
+      {
+        excludedArtistNames: ['Owned', 'Blocked'],
+      },
+    )
+    const discovered = await discover(
+      {
+        ...profile,
+        topArtists: Array.from({ length: 30 }, (_, i) => ({
+          name: `Seed ${i}`,
+          playCount: 30 - i,
+          source: 'lastfm',
+        })),
+      },
+      { listeningSources: [source] },
+      30,
+    )
+    expect(discovered).toHaveLength(AUDIOMUSE_MAX_CANDIDATES)
+    expect(new Set(discovered.map((artist) => artist.name)).size).toBe(AUDIOMUSE_MAX_CANDIDATES)
+    expect(discovered.some((artist) => ['OWNED', 'BLOCKED'].includes(artist.name))).toBe(false)
+    const searchArtist = vi.fn(async (name: string) => ({
+      artists: [{ id: name, name, score: 100 }],
+    }))
+    await resolve(discovered, {
+      searchArtist,
+      lookupArtist: vi.fn(async (id: string) => ({ id, name: id, tags: [], relations: [] })),
+      extractStreamingUrls: vi.fn(() => ({})),
+    })
+    expect(searchArtist).toHaveBeenCalledTimes(AUDIOMUSE_MAX_CANDIDATES)
+    expect(searchArtist.mock.calls.every(([name]) => !['OWNED', 'BLOCKED'].includes(name))).toBe(
+      true,
+    )
+    const thirdSeed = discovered.filter((artist) => artist.name.startsWith('Seed 2 match'))
+    expect(thirdSeed.map((artist) => artist.name)).toEqual(
+      Array.from({ length: 9 }, (_, i) => `Seed 2 match ${19 - i}`),
+    )
+  })
+
+  it('normalizes each seed by rank onto 0.5 to 1 without changing divergence ordering', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => Response.json([...fixture.artists].reverse())),
+    )
+    const result = await createAudioMuseSource({
+      url: 'https://audiomuse.example',
+    }).getSimilarArtists('Seed')
+    expect(result.map((artist) => [artist.name, artist.similarityScore])).toEqual([
+      ['Portishead', 1],
+      ['Massive Attack', 0.75],
+      ['Tricky', 0.5],
+    ])
+  })
+
+  it('summarizes successful and unknown seeds without losing partial success', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) => {
+        const seed = Number(new URL(url).searchParams.get('artist'))
+        return seed % 6 === 0
+          ? Response.json(fixture.unknownArtist, { status: 404 })
+          : Response.json(fixture.artists)
+      }),
+    )
+    const source = createAudioMuseSource({ url: 'https://audiomuse.example' })
+    await Promise.allSettled(
+      Array.from({ length: 30 }, (_, i) => source.getSimilarArtists(String(i))),
+    )
+    expect(source.getDiscoverySummary?.()).toEqual({
+      seedsQueried: 30,
+      seedsWithResults: 25,
+      skipReasons: { artist_unknown: 5 },
+    })
+  })
+
+  it('keeps querying after one failed seed and disables after two consecutive unreachable seeds', async () => {
+    const fetch = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('timeout'))
+      .mockResolvedValueOnce(Response.json(fixture.artists))
+      .mockResolvedValueOnce(Response.json({}, { status: 400 }))
+      .mockResolvedValueOnce(Response.json(fixture.artists))
+      .mockRejectedValue(new Error('timeout'))
+    vi.stubGlobal('fetch', fetch)
+    const source = createAudioMuseSource({ url: 'https://audiomuse.example' })
+    await expect(source.getSimilarArtists('A')).rejects.toMatchObject({ reason: 'unreachable' })
+    expect(await source.getSimilarArtists('B')).toHaveLength(3)
+    await expect(source.getSimilarArtists('C')).rejects.toMatchObject({ reason: 'request_failed' })
+    await expect(source.getSimilarArtists('D')).resolves.toEqual([])
+    for (const name of ['E', 'F', 'G']) {
+      await expect(source.getSimilarArtists(name)).rejects.toMatchObject({ reason: 'unreachable' })
+    }
+    expect(fetch).toHaveBeenCalledTimes(6)
+    expect(source.getDiscoverySummary?.()).toEqual({
+      seedsQueried: 6,
+      seedsWithResults: 2,
+      skipReasons: { unreachable: 3, request_failed: 1 },
+    })
   })
 
   it.each([
