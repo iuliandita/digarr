@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -223,11 +220,7 @@
       "digest": "4920756c18b171d00b751902b2d2d0070a8cc600859a9f448ccf8542dd26ebaf",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          ".env.example",
-          "docs/AUTHENTICATION.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md"],
         "note": "Document optional LASTFM_SHARED_SECRET and its file variant, matching per-user API keys, encryption and public-origin prerequisites, restart and per-user consent.",
         "breaking": "none",
         "migration": "",
@@ -274,11 +267,7 @@
       "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/AUTHENTICATION.md",
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
         "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
         "breaking": "none",
         "migration": "",
@@ -347,11 +336,7 @@
       "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "src/server/helpers/openapi-doc.ts",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
         "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
         "breaking": "none",
         "migration": "",
@@ -544,9 +529,7 @@
       "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
         "breaking": "none",
         "migration": "",
@@ -770,11 +753,7 @@
       "digest": "f15b7f0d0dab507ba5af535818779ea83b0169f49f01585499dcd4de17dd4426",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "README.md",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Describe shared approval enforcement with unchanged direct defaults, cached policy per approval request or pipeline run, personal localized outcomes, synthetic album cleanup and the 24-hour decline cooldown.",
         "breaking": "none",
         "migration": "",
@@ -821,10 +800,7 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",
@@ -852,9 +828,7 @@
       "digest": "5cfb4d0c95a172a832974bbca65d1638836424e2d8f0db0834cfca4b10b45bcb",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Single-PR release flow, dispatched CI for the digest-sync PR, Debian build check, verify-digest-sync removed; procedure documented in docs/MAINTENANCE.md and the changelog.",
         "breaking": "none",
         "migration": "",
