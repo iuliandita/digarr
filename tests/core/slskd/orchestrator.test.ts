@@ -128,9 +128,10 @@ function downloadsFor(
         {
           directory: DIR,
           fileCount: files.length,
+          // Only the first file carries its own username; the rest inherit the user's.
           files: files.map((file, index) => ({
             id: `d-${index}`,
-            username: 'peer-a',
+            ...(index === 0 ? { username: 'peer-a' } : {}),
             ...file,
             state,
             ...extra,
