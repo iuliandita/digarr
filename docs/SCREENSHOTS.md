@@ -17,6 +17,10 @@ In v2.0.0, first-time browser setup starts with account creation before the exis
 
 In v1.19.0, listening tiles distinguish an unconfigured account, empty history, and a failed fetch. Network or request failures retain cached entries with a retry notice. In v2.0.0, upstream failures returned by the API as HTTP 200 with `status: error` also retain cached entries and show a retry notice; v1.19.0 can replace them with an empty error state ([#770](https://github.com/iuliandita/digarr/issues/770)).
 
+The upcoming customizable dashboard (#995) replaces the fixed layout shown above. Customize lists every card, including hidden and empty cards, with visibility, size, pointer drag handles, move buttons, and arrow-key reordering. Screen readers hear the new position. Small, medium, and large span one, two, and three desktop columns and fill the width on phones. Reset to default restores Today's Pick, Your decisions, Listening, Genres, and Subscriptions. The layout follows the signed-in account. Empty cards hide unless Show empty cards is enabled; listening-source failures remain visible in the affected view. When Today's Pick has no recommendations, Run Scan stays available in the dashboard header.
+
+Your decisions switches between Approved and All; Listening switches between Top artists and Recently Played. Card headings link to their source page. Genres, Subscriptions, Discover's pending and decision views, and Settings > Connections expose the same visibility preference through Show on dashboard. The existing screenshot capture script still navigates to `/` for both dashboard themes; its selectors need no update. The images above predate these controls.
+
 ## Dashboard (light)
 
 ![Dashboard Light](screenshots/dashboard-light.png)
@@ -113,6 +117,8 @@ In v2.0.0, Settings > Administration asks for confirmation before uploading a se
 
 The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. A Tips section brings back dismissed help tips. This capture uses a sample account with OIDC enabled.
 
+The current Account page also manages personal notification channels for your own request decisions. Subscribe explicitly to request outcomes; new channels leave the event off. These controls are newer than the capture above.
+
 The current Account page also manages personal API tokens. After creating a token, its one-time reveal includes a copyable MCP client configuration with `type: "http"`, the endpoint URL, and the bearer header. The capture above predates these controls; closing the dialog removes the token and configuration from view.
 
 ## Settings > Connections > Your Connections
@@ -126,3 +132,7 @@ The capture script can produce `settings-connections-picker.png` from the open A
 ## Settings > Recommendations > Blocked
 
 The screenshot capture script can produce `settings-blocked.png` by opening `/settings?tab=blocked`, which lands on the Blocked section at the bottom of Settings > Recommendations. That section holds separate permanent artist and album blocklists; no `settings-blocked.png` artifact is currently checked in.
+
+## User management and approval requests
+
+The current user-management page adds per-user approval policies, a trusted score threshold, and an optional open-request limit. Its Requests section shows the admin queue with scores, reasons, and approve/decline decisions with optional notes. Members see their pending and declined requests on Discover > Approved. The existing captures predate these controls; see [approval policies](AUTHENTICATION.md#approval-policies) for the workflow.

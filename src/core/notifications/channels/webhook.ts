@@ -37,11 +37,11 @@ function isDiscordWebhook(url: string): boolean {
 }
 
 export function formatDiscordPayload(payload: WebhookPayload): Record<string, unknown> {
-  if (payload.event === 'approval_failed')
+  if (payload.event === 'approval_failed' || payload.event === 'request_resolved')
     return {
       embeds: [
         {
-          title: 'Lidarr',
+          title: payload.event === 'request_resolved' ? 'digarr' : 'Lidarr',
           description: payload.message,
           timestamp: payload.timestamp,
         },

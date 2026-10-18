@@ -75,6 +75,8 @@ vi.mock('@/web/components/ui/skeleton', () => ({
 }))
 
 vi.mock('@/web/lib/api', () => ({
+  getUserPreferences: vi.fn().mockResolvedValue({}),
+  updateUserPreferences: vi.fn().mockResolvedValue(undefined),
   bulkToggleSubscriptions: vi.fn(),
   listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   getCurrentUser: vi.fn().mockResolvedValue({ id: 1, isAdmin: true }),

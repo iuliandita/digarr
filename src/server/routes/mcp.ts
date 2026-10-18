@@ -94,13 +94,20 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, operations: Ho
       { requestContext: c },
     )
     if (!response.ok) {
+      const details = (await response.json().catch(() => null)) as { code?: string } | null
       const message =
         response.status === 404
           ? 'Not found'
           : response.status === 429
             ? 'Too many requests'
             : response.status === 409
-              ? 'A scan is already running'
+              ? details?.code === 'errors.approval.requestLimit'
+                ? 'The maximum number of open approval requests has been reached'
+                : details?.code === 'errors.approval.declineCooldown'
+                  ? 'This approval request was recently declined. Try again after 24 hours.'
+                  : path.startsWith('/api/v1/pipeline/')
+                    ? 'A scan is already running'
+                    : 'The operation conflicts with the current state'
               : response.status === 400
                 ? 'The operation could not be completed with these inputs'
                 : 'The operation failed'
@@ -192,6 +199,14 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, operations: Ho
         ...options,
         status: 'approved',
       })
+      if (output.status === 'requested')
+        return {
+          id,
+          status: 'requested',
+          requestId: output.requestId,
+          message:
+            'Approval requested. An administrator must review this request before it is added.',
+        }
       const actions = output.targetActions as Record<string, { status?: unknown }> | undefined
       return {
         id,

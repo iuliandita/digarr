@@ -101,7 +101,7 @@ describe('pglite backend contract', () => {
       FROM information_schema.columns
       WHERE table_schema = 'public' AND column_name = 'id'
     `)
-    expect(res.rows.length).toBe(26)
+    expect(res.rows.length).toBe(27)
     expect(res.rows.every((r) => r.is_identity === 'YES')).toBe(true)
     expect(res.rows.every((r) => r.identity_generation === 'BY DEFAULT')).toBe(true)
   })

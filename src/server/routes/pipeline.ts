@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
+import { requiresApprovalRequest } from '@/core/approvals/policy'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
@@ -21,6 +22,7 @@ import type { PipelineDeps } from '@/core/pipeline/orchestrator'
 import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
+import { getAudioMuseConfig } from '@/core/plugins/audiomuse'
 import { resolveProviderToken } from '@/core/provider-auth'
 import type { ScoredArtist } from '@/core/types'
 import { errMsg, logAndSanitize } from '@/core/validation'
@@ -95,6 +97,9 @@ export function pipelineRoutes(deps: AppDependencies) {
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       userId,
+      ...(user && user.approvalPolicy !== 'direct'
+        ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
+        : {}),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
       warmArtist: deps.skyhookWarmer
@@ -108,7 +113,12 @@ export function pipelineRoutes(deps: AppDependencies) {
     // Start now, or queue behind the in-flight run (single-flight preserved).
     const enqueued = deps.orchestrator.enqueue({
       db: deps.storeDb,
-      settings: { ...settings, preferences: userPreferences, spotifyAccessToken },
+      settings: {
+        ...settings,
+        preferences: userPreferences,
+        spotifyAccessToken,
+        audiomuse: getAudioMuseConfig(settings.preferences),
+      },
       userId,
       providerRegistry: deps.providerRegistry,
       userConnections,

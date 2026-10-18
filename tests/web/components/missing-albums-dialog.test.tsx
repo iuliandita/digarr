@@ -120,3 +120,45 @@ it('loads preselected albums, excludes unchecked albums, and retries only mixed-
   await waitFor(() => expect(opener).toHaveFocus())
   client.clear()
 })
+
+it('treats requested albums as awaiting approval and closes without an approved toast', async () => {
+  vi.clearAllMocks()
+  vi.mocked(getLibraryAlbumCoverage).mockResolvedValue({
+    artistMbid: 'artist-mbid',
+    ownedCount: 0,
+    totalCount: 1,
+    owned: [],
+    missing: [{ albumMbid: 'a', title: 'Album A', releaseYear: null }],
+  })
+  vi.mocked(approveMissingAlbums).mockResolvedValue({
+    results: [
+      { albumMbid: 'a', success: false, status: 'requested', requestId: 5, targetActions: {} },
+    ],
+    succeeded: 0,
+    failed: 0,
+    requested: 1,
+  })
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  const invalidate = vi.spyOn(client, 'invalidateQueries')
+  const close = vi.fn()
+  render(
+    <I18nProvider>
+      <QueryClientProvider client={client}>
+        <MissingAlbumsDialog
+          open
+          onClose={close}
+          artistId={42}
+          artistMbid="artist-mbid"
+          artistName="Test Artist"
+        />
+      </QueryClientProvider>
+    </I18nProvider>,
+  )
+  expect(await screen.findByText('Album A')).toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button', { name: 'Get selected albums' }))
+  await waitFor(() => expect(close).toHaveBeenCalled())
+  expect(toast.success).toHaveBeenCalledWith('Request sent for approval. (1)')
+  expect(invalidate).toHaveBeenCalledWith({ queryKey: ['approval-requests'] })
+  expect(screen.queryByText('0 approved, 0 failed.')).not.toBeInTheDocument()
+  client.clear()
+})

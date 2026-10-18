@@ -23,6 +23,7 @@ import { setupGuard } from './middleware/setup-guard'
 import { adminRoutes } from './routes/admin'
 import { albumBlocksRoutes } from './routes/album-blocks'
 import { analyticsRoutes } from './routes/analytics'
+import { approvalRequestRoutes } from './routes/approval-requests'
 import { artistBlocksRoutes } from './routes/artist-blocks'
 import { artistRoutes } from './routes/artists'
 import { authRoutes } from './routes/auth'
@@ -51,6 +52,7 @@ import { slskdRoutes } from './routes/slskd'
 import { subscriptionRoutes } from './routes/subscriptions'
 import { targetRoutes } from './routes/targets'
 import { testSeedRoutes } from './routes/test-seed'
+import { userNotificationRoutes } from './routes/user-notifications'
 import { userRoutes } from './routes/users'
 import type { HonoEnv } from './types'
 
@@ -312,6 +314,7 @@ export function createApp(deps: AppDependencies) {
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'oauth' }),
   )
   app.route('/', authRoutes(deps))
+  app.route('/', userNotificationRoutes(deps))
   app.route('/', oauthRoutes(deps))
   app.route('/', healthRoutes({ db: deps.db }))
   app.route('/', setupRoutes(deps))
@@ -320,6 +323,7 @@ export function createApp(deps: AppDependencies) {
   app.route('/', mcpRoutes(deps, pipeline))
   app.route('/', pipeline)
   app.route('/', recommendationRoutes(deps))
+  app.route('/', approvalRequestRoutes(deps))
   app.route('/', batchRoutes(deps))
   app.use('/api/v1/admin/*', adminGuard(deps.getUserById))
   app.use('/api/v1/analytics/*', adminGuard(deps.getUserById))

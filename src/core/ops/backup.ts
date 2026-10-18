@@ -13,6 +13,7 @@ import {
 } from '@/core/crypto'
 import {
   albumBlocks,
+  approvalRequests,
   artistBlocks,
   artistGenreAliases,
   artistMetadata,
@@ -52,6 +53,7 @@ import type {
 
 type BackupTable =
   | typeof albumBlocks
+  | typeof approvalRequests
   | typeof artistBlocks
   | typeof artistGenreAliases
   | typeof artistMetadata
@@ -212,6 +214,8 @@ async function readBackup(
   const jobRunRows = await read(jobRuns)
   const batchRows = await read(recommendationBatches)
   const recRows = await read(recommendations)
+  const artistRows = await read(artists)
+  const requestRows = await read(approvalRequests)
   const playlistRows = await read(playlists)
   const trackRows = await read(playlistTracks)
   const blockRows = await read(artistBlocks)
@@ -231,11 +235,22 @@ async function readBackup(
       jobRuns: jobRunRows,
       recommendationBatches: batchRows,
       recommendations: recRows,
+      approvalRequests: requestRows?.map((row) => {
+        const rec = recRows?.find((rec) => rec.id === row.recommendationId)
+        return {
+          ...row,
+          requesterUsername: userRows?.find((user) => user.id === row.userId)?.username,
+          deciderUsername: userRows?.find((user) => user.id === row.decidedBy)?.username ?? null,
+          recommendationKey: rec
+            ? recommendationNaturalKey(rec, userRows ?? [], artistRows ?? [], batchRows ?? [])
+            : undefined,
+        }
+      }),
       playlists: playlistRows,
       playlistTracks: trackRows,
       playlistExports: await read(playlistExports),
       artistBlocks: blockRows,
-      artists: await read(artists),
+      artists: artistRows,
       artistGenreAliases: await read(artistGenreAliases),
       genres: await read(genres),
     },
@@ -286,8 +301,13 @@ export async function createBackupSnapshot(
 // (e.g. 'preferences.fanartApiKey'). The detector only uses these labels for
 // the surfaced error message, so dotted paths are a pure string contract.
 const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
-  settings: [...SENSITIVE_SETTINGS, 'preferences.fanartApiKey'],
-  users: SENSITIVE_USER_CONNECTIONS,
+  settings: [
+    ...SENSITIVE_SETTINGS,
+    'preferences.fanartApiKey',
+    'preferences.audiomuseToken',
+    'preferences.channels',
+  ],
+  users: [...SENSITIVE_USER_CONNECTIONS, 'preferences.channels'],
   oauthTokens: SENSITIVE_OAUTH,
   targets: SENSITIVE_TARGET_CONFIG,
 }
@@ -463,6 +483,7 @@ const RESTORE_ORDER = [
   createRestoreSpec('recommendationBatches', recommendationBatches),
   createRestoreSpec('jobRuns', jobRuns),
   createRestoreSpec('recommendations', recommendations),
+  createRestoreSpec('approvalRequests', approvalRequests, approvalRequests.token),
   createRestoreSpec('playlistTracks', playlistTracks),
   createRestoreSpec('playlistExports', playlistExports, [
     playlistExports.playlistId,
@@ -676,6 +697,54 @@ function detectEncryptionMismatch(backup: BackupFile): { mismatch: boolean; fiel
   return { mismatch: false, fields: [] }
 }
 
+function recommendationNaturalKey(
+  rec: Record<string, unknown>,
+  userRows: Record<string, unknown>[],
+  artistRows: Record<string, unknown>[],
+  batchRows: Record<string, unknown>[],
+): string {
+  return JSON.stringify([
+    userRows.find((row) => row.id === rec.userId)?.username ?? null,
+    artistRows.find((row) => row.id === rec.artistId)?.mbid,
+    canonical(batchRows.find((row) => row.id === rec.batchId)?.createdAt),
+    canonical(rec.createdAt),
+    rec.kind ?? 'artist',
+    rec.recommendedReleaseGroupId ?? null,
+  ])
+}
+
+async function remapApprovalRequests(tx: RestoreTx, rows: Record<string, unknown>[]) {
+  const [userRows, recRows, artistRows, batchRows] = await Promise.all([
+    selectAll(tx, users),
+    selectAll(tx, recommendations),
+    selectAll(tx, artists),
+    selectAll(tx, recommendationBatches),
+  ])
+  return rows.map((row) => {
+    const mapped = { ...row }
+    if (typeof row.requesterUsername === 'string') {
+      const user = userRows.find((user) => user.username === row.requesterUsername)
+      if (!user) throw new Error('Approval request has an unresolved requester')
+      mapped.userId = user.id
+    }
+    if (typeof row.deciderUsername === 'string') {
+      const user = userRows.find((user) => user.username === row.deciderUsername)
+      if (!user) throw new Error('Approval request has an unresolved decider')
+      mapped.decidedBy = user.id
+    }
+    if (typeof row.recommendationKey === 'string') {
+      const matches = recRows.filter(
+        (rec) =>
+          recommendationNaturalKey(rec, userRows, artistRows, batchRows) === row.recommendationKey,
+      )
+      if (matches.length !== 1)
+        throw new Error('Approval request has an unresolved or ambiguous recommendation')
+      mapped.recommendationId = matches[0]?.id
+    }
+    return mapped
+  })
+}
+
 export async function restoreBackup(
   db: OpsDb,
   backup: BackupFile,
@@ -729,7 +798,10 @@ export async function restoreBackup(
       const rows = backup.data[spec.key]
       if (!Array.isArray(rows) || rows.length === 0) continue
 
-      await spec.restore(tx, rows)
+      await spec.restore(
+        tx,
+        spec.key === 'approvalRequests' ? await remapApprovalRequests(tx, rows) : rows,
+      )
       await spec.resetSequence(tx)
       tablesRestored[spec.key] = rows.length
     }

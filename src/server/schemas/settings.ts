@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { dashboardLayoutSchema } from '@/core/dashboard-layout'
 import type { NotificationChannel } from '@/core/notifications/types'
 import { cronSchema } from './subscriptions'
 
@@ -26,7 +27,12 @@ const scoringWeightsSchema = z
 // Notification channels. Secret string fields (telegram botToken, ntfy token,
 // apprise urls) stay plain z.string() so the masked '***' placeholder round-trips
 // on save; only real URLs that are never masked get .url() validation.
-const notificationEvent = z.enum(['batch_complete', 'digest', 'approval_failed'])
+const notificationEvent = z.enum([
+  'batch_complete',
+  'digest',
+  'approval_failed',
+  'request_resolved',
+])
 const channelBase = {
   id: z.string().min(1),
   enabled: z.boolean(),
@@ -64,6 +70,7 @@ const optionalCronSchema = z.union([z.literal(''), cronSchema]).optional()
 
 export const preferencesSchema = z
   .object({
+    dashboardLayout: dashboardLayoutSchema.optional(),
     qualityProfileId: z.number().int().optional(),
     metadataProfileId: z.number().int().optional(),
     rootFolderId: z.number().int().optional(),
@@ -94,6 +101,9 @@ export const preferencesSchema = z
     dismissedHints: z.array(z.string()).optional(),
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),
     fanartApiKey: z.string().optional(),
+    audiomuseUrl: z.union([z.literal(''), z.string().url().max(2048)]).optional(),
+    audiomuseToken: z.string().max(4096).optional(),
+    audiomuseSkipTlsVerify: z.boolean().optional(),
     metadataFallbackUrl: z.string().optional(),
     channels: z
       .array(notificationChannel)

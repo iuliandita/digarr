@@ -28,7 +28,7 @@ This dashboard capture predates v1.19.0; see [current behavior and screenshots](
 - **Find artists and albums.** Connect a listening source, scan, and review scored suggestions. Release Radar finds new releases; Library Gap-Fill finds missing albums. Use **Get missing albums** on an artist to review and approve missing studio albums together. Mood and artist searches work without a listening history.
 - **Review before adding.** Preview, approve, reject, or permanently block suggestions. Individual and bulk album approval monitor and search only the recommended album in Lidarr. Automatic album approval also uses only the recommended release; its monitoring setting applies to artist recommendations.
 - **Keep discovery running.** Run or schedule a mode from one Discovery Modes page, review all schedules in Settings > Schedule, or generate playlists from your connected libraries and catalog searches for Spotify and supported media servers. Saved playlists refresh their bound remote playlists; [explicit recovery](docs/OPERATIONS.md#playlists-and-notifications) handles uncertain creation and changed destinations. Audition playlists use pending artists without approving them. You can also export M3U/XSPF files. Media-server exports use music already in that server's library.
-- **Share an instance.** Each user has their own queue, connections, and preferences; admins assign targets to each user. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
+- **Share an instance.** Each user has their own queue, connections, and preferences; admins assign targets to each user. Optional [approval policies](docs/AUTHENTICATION.md#approval-policies) let members request additions for admin review, with score-based trust and open-request limits. Local accounts and OIDC/SSO are supported, with 15 languages and light and dark themes.
 
 Digarr calls your connected services. It doesn't include a downloader or a full music player.
 
@@ -44,6 +44,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 | Approval and acquisition | Lidarr, slskd |
 | Playlist export | Spotify, Navidrome, Jellyfin, Emby, Plex |
 | Search | Spotify, Deezer, MusicBrainz; Bandcamp and TIDAL (both experimental) |
+| [Audio similarity](docs/OPERATIONS.md#audiomuse-ai-audio-similarity) | AudioMuse-AI (optional, experimental; v3.6.4+) |
 | AI recommendations | Anthropic, OpenAI, Gemini, Ollama, OpenAI-compatible endpoints |
 | Notifications | Webhooks, ntfy, Telegram, Apprise |
 
@@ -96,11 +97,13 @@ A scan can complete with a failed source. Admins can check Job History for parti
 ## Configuration
 
 <a id="connecting-plex-listeners"></a><a id="importing-slskd-downloads-into-lidarr"></a><a id="data-hygiene"></a>
+Use Customize on the Dashboard to show or hide any card, drag or use the keyboard to reorder cards, and choose small, medium, or large sizes. Layouts follow your account across devices. Empty cards hide by default; enable Show empty cards to keep them visible. Reset to default restores Today's Pick, Your decisions, Listening, Genres, and Subscriptions. Genres, Subscriptions, Discover's pending and decision views, and Settings > Connections have a Show on dashboard switch for their card.
+
 Use Settings for connections, scoring, schedules, preferences, and language. For scripts, create a named, revocable credential in Settings > Account > API tokens with read, write, or admin scope and an optional expiry; [personal token setup](docs/AUTHENTICATION.md#personal-api-tokens) explains the one-time reveal and permissions. [Authentication](docs/AUTHENTICATION.md) covers origins, cookies, SSO, and proxies. [Operations](docs/OPERATIONS.md) covers Plex listeners, slskd imports, Data Hygiene, playlists, notifications, and local AI.
 
 ### Service apps
 
-Connections lists saved services, including incomplete setups. Add connection opens a searchable picker grouped by listening history, streaming accounts, media servers, and collections. Missing admin services are also available there. Disconnecting a service returns it to the picker. The admin-only Show experimental integrations switch at the bottom reveals TIDAL and Bandcamp in settings, search-source choices, and discovery-mode choices. New setups default to off; completed older setups retain their previously enabled Bandcamp search. Hiding a service does not disable stored connections or scheduled jobs.
+Connections lists saved services, including incomplete setups. Add connection opens a searchable picker grouped by listening history, streaming accounts, media servers, and collections. Missing admin services are also available there. Disconnecting a service returns it to the picker. The admin-only Show experimental integrations switch at the bottom reveals AudioMuse-AI, TIDAL and Bandcamp in settings, search-source choices, and discovery-mode choices. New setups default to off; completed older setups retain their previously enabled Bandcamp search. Hiding a service does not disable stored connections or scheduled jobs.
 
 <a id="connecting-spotify"></a>**Spotify** needs your own OAuth app, a Premium app owner, and up to five allowlisted Development Mode users. Search needs a connected account. Local HTTP uses `127.0.0.1`, with the same `ALLOWED_ORIGIN` and browser address. Follow [Spotify setup](docs/AUTHENTICATION.md#spotify-app-setup) before changing the quick-start origin.
 

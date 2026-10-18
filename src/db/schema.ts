@@ -15,6 +15,11 @@ import {
   uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core'
+import {
+  type DashboardLayout,
+  DEFAULT_DASHBOARD_LAYOUT,
+  mergeDashboardLayout,
+} from '@/core/dashboard-layout'
 import type { HealthCheckResult, UnreconciledReason } from '@/core/library/types'
 import type { NotificationChannel } from '@/core/notifications/types'
 import type { GenreCoverage } from '@/core/types'
@@ -80,6 +85,9 @@ export const libraryHealthState = pgTable('library_health_state', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+export type ApprovalPolicy = 'direct' | 'request_only' | 'auto_approve'
+export type ApprovalRequestStatus = 'pending' | 'approved' | 'declined'
+
 export const users = pgTable(
   'users',
   {
@@ -87,6 +95,9 @@ export const users = pgTable(
     username: text('username').unique().notNull(),
     passwordHash: text('password_hash').notNull(),
     isAdmin: boolean('is_admin').default(false).notNull(),
+    approvalPolicy: text('approval_policy').$type<ApprovalPolicy>().notNull().default('direct'),
+    maxOpenRequests: integer('max_open_requests'),
+    approvalThreshold: real('approval_threshold'),
     preferredLocale: text('preferred_locale'),
     email: text('email'),
     oidcIssuer: text('oidc_issuer'),
@@ -119,6 +130,18 @@ export const users = pgTable(
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   },
   (table) => ({
+    approvalPolicyValid: check(
+      'users_approval_policy_valid',
+      sql`${table.approvalPolicy} IN ('direct', 'request_only', 'auto_approve')`,
+    ),
+    maxOpenRequestsValid: check(
+      'users_max_open_requests_valid',
+      sql`${table.maxOpenRequests} IS NULL OR ${table.maxOpenRequests} >= 0`,
+    ),
+    approvalThresholdValid: check(
+      'users_approval_threshold_valid',
+      sql`${table.approvalThreshold} IS NULL OR (${table.approvalThreshold} >= 0 AND ${table.approvalThreshold} <= 1)`,
+    ),
     emailUniqueIdx: uniqueIndex('users_email_unique_idx')
       .on(table.email)
       .where(sql`${table.email} IS NOT NULL`),
@@ -298,6 +321,43 @@ export const recommendations = pgTable(
     statusActedOnIdx: index('recommendations_status_acted_on_idx').on(
       table.status,
       table.actedOnAt,
+    ),
+  }),
+)
+
+export const approvalRequests = pgTable(
+  'approval_requests',
+  {
+    id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
+    token: uuid('token').notNull().defaultRandom().unique(),
+    recommendationId: integer('recommendation_id').references(() => recommendations.id, {
+      onDelete: 'set null',
+    }),
+    userId: integer('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status').$type<ApprovalRequestStatus>().notNull().default('pending'),
+    options: jsonb('options').$type<Record<string, unknown>>().notNull(),
+    note: text('note'),
+    lastError: text('last_error'),
+    decidedBy: integer('decided_by').references(() => users.id, { onDelete: 'set null' }),
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    decidedAt: timestamp('decided_at', { withTimezone: true }),
+  },
+  (table) => ({
+    pendingUnique: uniqueIndex('approval_requests_pending_unique_idx')
+      .on(table.recommendationId, table.userId)
+      .where(sql`${table.status} = 'pending'`),
+    recommendationIdx: index('approval_requests_recommendation_idx').on(table.recommendationId),
+    userIdx: index('approval_requests_user_idx').on(table.userId),
+    decidedByIdx: index('approval_requests_decided_by_idx').on(table.decidedBy),
+    statusCreatedIdx: index('approval_requests_status_created_idx').on(
+      table.status,
+      table.createdAt,
+    ),
+    statusValid: check(
+      'approval_requests_status_valid',
+      sql`${table.status} IN ('pending', 'approved', 'declined')`,
     ),
   }),
 )
@@ -604,6 +664,7 @@ export type PlaylistStrategy =
   | 'audition'
 
 export type Preferences = {
+  dashboardLayout?: DashboardLayout
   qualityProfileId: number
   metadataProfileId: number
   rootFolderId?: number
@@ -635,6 +696,9 @@ export type Preferences = {
   dismissedHints?: string[] // for UX hints system
   subscriptionMode?: 'active' | 'ai-only' | null
   fanartApiKey?: string
+  audiomuseUrl?: string
+  audiomuseToken?: string
+  audiomuseSkipTlsVerify?: boolean
   metadataFallbackUrl?: string
   showExperimentalIntegrations?: boolean
   netNewAlbumDiscovery?: boolean // C: promote AI suggestedAlbum to a first-class album rec
@@ -646,6 +710,7 @@ export type Preferences = {
 export type ScoringWeights = Preferences['scoringWeights']
 
 export const DEFAULT_PREFERENCES: Preferences = {
+  dashboardLayout: DEFAULT_DASHBOARD_LAYOUT,
   qualityProfileId: 1,
   metadataProfileId: 1,
   scheduleCron: '0 0 * * 0',
@@ -686,6 +751,7 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
   const merged: Preferences = {
     ...DEFAULT_PREFERENCES,
     ...partial,
+    dashboardLayout: mergeDashboardLayout(partial.dashboardLayout),
     scoringWeights: {
       ...DEFAULT_PREFERENCES.scoringWeights,
       ...partial.scoringWeights,

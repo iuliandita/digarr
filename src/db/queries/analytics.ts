@@ -43,6 +43,7 @@ export async function getOverviewStats(db: Database): Promise<OverviewStats> {
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved,
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr', 'rejected') THEN 1 END)::int AS acted
     FROM recommendations r
+    WHERE coalesce(r.sources->>'album_request', '') <> '0'
   `)
   const row = rows.rows[0] as {
     total_recs: number
@@ -51,7 +52,9 @@ export async function getOverviewStats(db: Database): Promise<OverviewStats> {
     acted: number
   }
 
-  const batchRows = await db.execute(sql`SELECT COUNT(*)::int AS total FROM recommendation_batches`)
+  const batchRows = await db.execute(
+    sql`SELECT COUNT(*)::int AS total FROM recommendation_batches WHERE coalesce(stats->>'_origin', '') <> 'album_request'`,
+  )
   const totalBatches = (batchRows.rows[0] as { total: number }).total
 
   return {
@@ -67,8 +70,8 @@ export async function getBatchesWithCounts(
   opts: { limit?: number; cursor?: Cursor | null } = {},
 ): Promise<BatchWithCounts[]> {
   const cursorClause = opts.cursor
-    ? sql`WHERE b.created_at < ${new Date(opts.cursor.ts)} OR (b.created_at = ${new Date(opts.cursor.ts)} AND b.id < ${opts.cursor.id})`
-    : sql``
+    ? sql`WHERE coalesce(b.stats->>'_origin', '') <> 'album_request' AND (b.created_at < ${new Date(opts.cursor.ts)} OR (b.created_at = ${new Date(opts.cursor.ts)} AND b.id < ${opts.cursor.id}))`
+    : sql`WHERE coalesce(b.stats->>'_origin', '') <> 'album_request'`
   const limitClause = opts.limit ? sql`LIMIT ${opts.limit}` : sql``
   const rows = await db.execute(sql`
     SELECT
@@ -79,9 +82,9 @@ export async function getBatchesWithCounts(
       COUNT(r.id)::int AS total,
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved,
       COUNT(CASE WHEN r.status = 'rejected' THEN 1 END)::int AS rejected,
-      COUNT(CASE WHEN r.status = 'pending' THEN 1 END)::int AS pending
+      COUNT(CASE WHEN r.status = 'pending' AND NOT EXISTS (SELECT 1 FROM approval_requests ar WHERE ar.recommendation_id = r.id AND ar.status = 'pending') THEN 1 END)::int AS pending
     FROM recommendation_batches b
-    LEFT JOIN recommendations r ON r.batch_id = b.id
+    LEFT JOIN recommendations r ON r.batch_id = b.id AND coalesce(r.sources->>'album_request', '') <> '0'
     ${cursorClause}
     GROUP BY b.id
     ORDER BY b.created_at DESC, b.id DESC
@@ -120,7 +123,7 @@ export async function getTopGenres(db: Database): Promise<GenreStat[]> {
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved
     FROM recommendations r
     JOIN artists a ON a.id = r.artist_id
-    WHERE a.genres IS NOT NULL
+    WHERE a.genres IS NOT NULL AND coalesce(r.sources->>'album_request', '') <> '0'
     GROUP BY genre
     ORDER BY count DESC
     LIMIT 20
@@ -145,7 +148,7 @@ export async function getScoreDistribution(db: Database): Promise<ScoreBucket[]>
       (LEAST(FLOOR(score * 10), 9) * 10)::int AS bucket_start,
       COUNT(*)::int AS count
     FROM recommendations
-    WHERE score IS NOT NULL
+    WHERE score IS NOT NULL AND coalesce(sources->>'album_request', '') <> '0'
     GROUP BY bucket_start
     ORDER BY bucket_start
   `)
@@ -165,7 +168,7 @@ export async function getApprovalTrend(db: Database): Promise<ApprovalTrend[]> {
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved,
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr', 'rejected') THEN 1 END)::int AS acted
     FROM recommendation_batches b
-    LEFT JOIN recommendations r ON r.batch_id = b.id
+    LEFT JOIN recommendations r ON r.batch_id = b.id AND coalesce(r.sources->>'album_request', '') <> '0'
     GROUP BY b.id
     HAVING COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr', 'rejected') THEN 1 END) > 0
     ORDER BY b.created_at
@@ -188,7 +191,7 @@ export async function getTimeToAct(db: Database): Promise<TimeToAct[]> {
       AVG(EXTRACT(EPOCH FROM (r.acted_on_at - r.created_at)) / 86400)::float AS avg_days,
       COUNT(*)::int AS count
     FROM recommendations r
-    WHERE r.status IN ('approved', 'added_to_lidarr', 'rejected')
+    WHERE coalesce(r.sources->>'album_request', '') <> '0' AND r.status IN ('approved', 'added_to_lidarr', 'rejected')
       AND r.acted_on_at IS NOT NULL
       AND r.acted_on_at > r.created_at
     GROUP BY r.status
@@ -211,7 +214,7 @@ export async function getSourceEffectiveness(db: Database): Promise<SourceStat[]
       COUNT(CASE WHEN r.status IN ('approved', 'added_to_lidarr') THEN 1 END)::int AS approved
     FROM recommendations r,
     LATERAL jsonb_each_text(r.sources::jsonb) AS src
-    WHERE r.sources IS NOT NULL
+    WHERE r.sources IS NOT NULL AND coalesce(r.sources->>'album_request', '') <> '0'
     GROUP BY src.key
     ORDER BY count DESC
   `)

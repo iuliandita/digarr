@@ -236,116 +236,120 @@ describe('encryption-key rotation coverage', () => {
       rmSync(dataDir, { recursive: true, force: true })
     }
   }, 35_000)
-  it('rotates every channel secret and preserves preferences through a primary-only second pass', async () => {
-    const dataDir = mkdtempSync(join(tmpdir(), 'digarr-rotation-'))
-    const channels: NotificationChannel[] = [
-      {
-        id: 'enc:v1:metadata-id',
-        type: 'webhook',
-        enabled: true,
-        events: ['batch_complete'],
-        url: 'https://example.test/private-hook',
-      },
-      {
-        id: 't',
-        type: 'telegram',
-        enabled: false,
-        events: ['digest'],
-        botToken: 'private-bot-token',
-        chatId: 'enc:v1:metadata-chat',
-      },
-      {
-        id: 'n',
+  it.each(['settings', 'users'] as const)(
+    'rotates every %s channel secret and preserves preferences through a primary-only second pass',
+    async (table) => {
+      const dataDir = mkdtempSync(join(tmpdir(), 'digarr-rotation-'))
+      const channels: NotificationChannel[] = [
+        {
+          id: 'enc:v1:metadata-id',
+          type: 'webhook',
+          enabled: true,
+          events: ['batch_complete'],
+          url: 'https://example.test/private-hook',
+        },
+        {
+          id: 't',
+          type: 'telegram',
+          enabled: false,
+          events: ['digest'],
+          botToken: 'private-bot-token',
+          chatId: 'enc:v1:metadata-chat',
+        },
+        {
+          id: 'n',
+          type: 'ntfy',
+          enabled: true,
+          events: ['digest'],
+          server: 'https://ntfy.test',
+          topic: 'enc:v1:metadata-topic',
+          token: 'private-ntfy-token',
+        },
+        {
+          id: 'a',
+          type: 'apprise',
+          enabled: true,
+          events: ['digest'],
+          endpoint: 'https://apprise.test',
+          urls: 'discord://private-token@id',
+        },
+      ]
+      initEncryption(OLD_KEY)
+      const encrypted = encryptChannelSecrets(channels)
+      initEncryption(CURRENT_KEY)
+      const currentChannel = encryptChannelSecrets([
+        { ...channels[1], id: 'current' } as NotificationChannel,
+      ])[0]
+      if (!currentChannel) throw new Error('Missing current-key channel fixture')
+      const plaintextChannel: NotificationChannel = {
+        id: 'plain',
         type: 'ntfy',
         enabled: true,
         events: ['digest'],
         server: 'https://ntfy.test',
-        topic: 'enc:v1:metadata-topic',
-        token: 'private-ntfy-token',
-      },
-      {
-        id: 'a',
-        type: 'apprise',
-        enabled: true,
-        events: ['digest'],
-        endpoint: 'https://apprise.test',
-        urls: 'discord://private-token@id',
-      },
-    ]
-    initEncryption(OLD_KEY)
-    const encrypted = encryptChannelSecrets(channels)
-    initEncryption(CURRENT_KEY)
-    const currentChannel = encryptChannelSecrets([
-      { ...channels[1], id: 'current' } as NotificationChannel,
-    ])[0]
-    if (!currentChannel) throw new Error('Missing current-key channel fixture')
-    const plaintextChannel: NotificationChannel = {
-      id: 'plain',
-      type: 'ntfy',
-      enabled: true,
-      events: ['digest'],
-      server: 'https://ntfy.test',
-      topic: 'enc:v1:plaintext-topic',
-      token: 'plaintext-token',
-    }
-    const absentChannel: NotificationChannel = {
-      id: 'absent',
-      type: 'ntfy',
-      enabled: false,
-      events: [],
-      server: 'https://ntfy.test',
-      topic: 'other',
-    }
-    const metadata = { theme: 'dark', custom: { enabled: true, values: [1, 'preserved'] } }
-    const preferences = {
-      ...metadata,
-      channels: [...encrypted, currentChannel, plaintextChannel, absentChannel],
-    }
-    try {
-      await createDatabase(dataDir)
-      const client = new PGlite(dataDir)
+        topic: 'enc:v1:plaintext-topic',
+        token: 'plaintext-token',
+      }
+      const absentChannel: NotificationChannel = {
+        id: 'absent',
+        type: 'ntfy',
+        enabled: false,
+        events: [],
+        server: 'https://ntfy.test',
+        topic: 'other',
+      }
+      const metadata = { theme: 'dark', custom: { enabled: true, values: [1, 'preserved'] } }
+      const preferences = {
+        ...metadata,
+        channels: [...encrypted, currentChannel, plaintextChannel, absentChannel],
+      }
       try {
-        await client.query(
-          'INSERT INTO settings (id, preferences) VALUES (1, $1), (2, $2), (3, $3), (4, NULL)',
-          [preferences, metadata, { channels: [] }],
-        )
-      } finally {
-        await client.close()
-      }
-      for (const nextKey of [OLD_KEY, '']) {
-        const result = runRotation(dataDir, nextKey)
-        expect(result.error).toBeUndefined()
-        expect(result.status, result.stderr).toBe(0)
-        expect(result.stdout).toContain(
-          'settings.preferences.channels ... 4 scanned, 1 rewritten, 0 failures',
-        )
-        initEncryption(CURRENT_KEY)
-        const rows = await readPreferences(dataDir)
-        const row = rows[0]
-        if (!row) throw new Error('Missing settings row after rotation')
-        const rotated = row.preferences as typeof preferences
-        const expected = {
-          ...metadata,
-          channels: [
-            ...channels,
-            { ...channels[1], id: 'current' },
-            plaintextChannel,
-            absentChannel,
-          ],
+        await createDatabase(dataDir)
+        const client = new PGlite(dataDir)
+        try {
+          await client.query(
+            `INSERT INTO ${table} (id, preferences) VALUES (1, $1), (2, $2), (3, $3), (4, NULL)`,
+            [preferences, metadata, { channels: [] }],
+          )
+        } finally {
+          await client.close()
         }
-        const decrypted = decryptChannelSecrets(rotated.channels)
-        expect({ ...rotated, channels: decrypted }).toEqual(expected)
-        expect(rotated.channels[0]).not.toEqual(encrypted[0])
-        expect(rows.slice(1)).toEqual([
-          { id: 2, preferences: metadata },
-          { id: 3, preferences: { channels: [] } },
-          { id: 4, preferences: null },
-        ])
+        for (const nextKey of [OLD_KEY, '']) {
+          const result = runRotation(dataDir, nextKey)
+          expect(result.error).toBeUndefined()
+          expect(result.status, result.stderr).toBe(0)
+          expect(result.stdout).toContain(
+            `${table}.preferences.channels ... 4 scanned, 1 rewritten, 0 failures`,
+          )
+          initEncryption(CURRENT_KEY)
+          const rows = await readPreferences(dataDir, table)
+          const row = rows[0]
+          if (!row) throw new Error('Missing settings row after rotation')
+          const rotated = row.preferences as typeof preferences
+          const expected = {
+            ...metadata,
+            channels: [
+              ...channels,
+              { ...channels[1], id: 'current' },
+              plaintextChannel,
+              absentChannel,
+            ],
+          }
+          const decrypted = decryptChannelSecrets(rotated.channels)
+          expect({ ...rotated, channels: decrypted }).toEqual(expected)
+          expect(rotated.channels[0]).not.toEqual(encrypted[0])
+          expect(rows.slice(1)).toEqual([
+            { id: 2, preferences: metadata },
+            { id: 3, preferences: { channels: [] } },
+            { id: 4, preferences: null },
+          ])
+        }
+      } finally {
+        rmSync(dataDir, { recursive: true, force: true })
       }
-    } finally {
-      rmSync(dataDir, { recursive: true, force: true })
-    }
-  }, 70_000)
+    },
+    70_000,
+  )
 
   it.each(['malformed', 'wrong-key'])(
     'fails safely for %s channel ciphertext',

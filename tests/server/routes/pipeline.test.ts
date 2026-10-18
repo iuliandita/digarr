@@ -2,6 +2,7 @@
 
 import { EventEmitter } from 'node:events'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { encryptField, initEncryption } from '@/core/crypto'
 import { resolve } from '@/core/pipeline/resolve'
 import { store } from '@/core/pipeline/store'
 import { createSession } from '@/core/sessions'
@@ -71,6 +72,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
+  initEncryption(undefined)
   const { clearAllSessions } = await import('@/core/sessions')
   await clearAllSessions()
 })
@@ -255,6 +257,31 @@ describe('POST /api/v1/pipeline/run', () => {
     expect(body.message).toBe('Pipeline started')
   })
 
+  it.each(['direct', 'auto_approve'] as const)(
+    'captures %s policy once for a 1000-item run',
+    async (approvalPolicy) => {
+      const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+      const getUserById = vi.fn(async () => ({
+        id: 1,
+        approvalPolicy,
+        approvalThreshold: 0.8,
+        isAdmin: false,
+        preferences: null,
+      })) as unknown as AppDependencies['getUserById']
+      const app = createApp(makeDeps({ orchestrator, getUserById }))
+      const response = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+      expect(response.status).toBe(202)
+      const run = vi.mocked(orchestrator.enqueue).mock.calls[0]?.[0]
+      const canApprove = run?.autoApproveDeps?.canApprove
+      if (approvalPolicy === 'direct') expect(canApprove).toBeUndefined()
+      else {
+        for (let i = 0; i < 1000; i++) expect(await canApprove?.(0.9)).toBe(true)
+        expect(await canApprove?.(0.7)).toBe(false)
+      }
+      expect(getUserById).toHaveBeenCalledOnce()
+    },
+  )
+
   it('queues the run (202) when a pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))
@@ -263,6 +290,80 @@ describe('POST /api/v1/pipeline/run', () => {
     const body = await res.json()
     expect(body.queued).toBe(true)
     expect(body.position).toBe(1)
+  })
+
+  it('keeps the admin AudioMuse connection when resolving personal preferences', async () => {
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const personalPreferences = { ...DEFAULT_PREFERENCES, scoreThreshold: 0.7 }
+    const app = createApp(
+      makeDeps({
+        orchestrator,
+        getSettings: vi.fn().mockResolvedValue({
+          id: 1,
+          preferences: {
+            ...DEFAULT_PREFERENCES,
+            audiomuseUrl: 'https://audiomuse:8000',
+            audiomuseToken: 'admin-token',
+            audiomuseSkipTlsVerify: true,
+          },
+        }),
+        getUserById: vi.fn().mockResolvedValue({
+          id: 1,
+          isAdmin: false,
+          preferences: personalPreferences,
+        }),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+
+    expect(res.status).toBe(202)
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          preferences: personalPreferences,
+          audiomuse: {
+            url: 'https://audiomuse:8000',
+            token: 'admin-token',
+            skipTlsVerify: true,
+          },
+        }),
+      }),
+    )
+  })
+
+  it('starts a run with AudioMuse skipped when the saved token uses a different encryption key', async () => {
+    initEncryption('original-key')
+    const token = encryptField('private-token')
+    initEncryption('restored-key')
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const app = createApp(
+      makeDeps({
+        orchestrator,
+        getSettings: vi.fn().mockResolvedValue({
+          id: 1,
+          preferences: {
+            ...DEFAULT_PREFERENCES,
+            audiomuseUrl: 'https://audiomuse:8000',
+            audiomuseToken: token,
+          },
+        }),
+      }),
+    )
+
+    const response = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+
+    expect(response.status).toBe(202)
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          audiomuse: expect.objectContaining({ skipReason: 'token_unreadable' }),
+        }),
+      }),
+    )
+    expect(JSON.stringify(vi.mocked(orchestrator.enqueue).mock.calls)).not.toContain(
+      'private-token',
+    )
   })
 
   it('reports duplicate (not queued) when the same user re-submits during their in-flight run', async () => {

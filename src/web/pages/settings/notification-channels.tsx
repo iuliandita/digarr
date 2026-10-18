@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
@@ -10,7 +11,13 @@ import { Button } from '../../components/ui/button'
 import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import { Select } from '../../components/ui/select'
-import { ApiError, testNotificationChannel, updateSettings } from '../../lib/api'
+import {
+  ApiError,
+  getPersonalNotificationChannels,
+  testNotificationChannel,
+  updatePersonalNotificationChannels,
+  updateSettings,
+} from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
 import { cn } from '../../lib/utils'
 import { textareaClass } from './shared'
@@ -230,10 +237,12 @@ export function NotificationChannelsCard({
   settings,
   isAdmin,
   onSaved,
+  personal = false,
 }: {
   settings: Settings
   isAdmin: boolean
   onSaved: () => void
+  personal?: boolean
 }) {
   const { t } = useI18n()
   const [channels, setChannels] = useState<NotificationChannel[]>(() =>
@@ -265,6 +274,7 @@ export function NotificationChannelsCard({
 
   function addChannel() {
     const channel = makeChannel(addType)
+    if (personal) channel.events = []
     setChannels((prev) => [...prev, channel])
     setChannelOpen(channel.id, true)
     setAddOpen(false)
@@ -283,12 +293,20 @@ export function NotificationChannelsCard({
   async function handleSave() {
     setSaving(true)
     try {
-      await updateSettings({
-        preferences: {
-          ...(settings.preferences ?? {}),
-          channels: channels.map((c) => applyStoredSecrets(c, hadSecret)),
-        },
-      })
+      if (personal) {
+        await updatePersonalNotificationChannels(
+          channels.map((channel) => ({
+            ...applyStoredSecrets(channel, hadSecret),
+            allowPrivateTarget: false,
+          })),
+        )
+      } else
+        await updateSettings({
+          preferences: {
+            ...(settings.preferences ?? {}),
+            channels: channels.map((c) => applyStoredSecrets(c, hadSecret)),
+          },
+        })
       toast.success(t('settings.channels.saved'))
       onSaved()
     } catch {
@@ -327,15 +345,15 @@ export function NotificationChannelsCard({
       .replace('{1}', String(enabledCount))
   }
 
-  // The backend strips channels from GET and 403s Save/Test for non-admins, so an
-  // editable card would be dead. Render nothing for them (the outer tab already
-  // shows an admin-only notice).
-  if (!isAdmin) return null
+  // Personal channels use an owner-scoped endpoint; global channels require admin.
+  if (!personal && !isAdmin) return null
 
   return (
     <ServiceCard
       name={t('settings.channels.title')}
-      description={t('settings.channels.description')}
+      description={t(
+        personal ? 'approvalRequests.notificationsHelp' : 'settings.channels.description',
+      )}
       status={(settings.preferences?.channels?.length ?? 0) > 0 ? 'saved' : 'not_configured'}
       icon={<WebhookIcon />}
       badge={<span className="text-caption font-normal text-muted">{summary}</span>}
@@ -395,85 +413,93 @@ export function NotificationChannelsCard({
               <div className="space-y-1.5">
                 <span className="text-sm text-muted">{t('settings.channels.events')}</span>
                 <div className="flex flex-wrap gap-4">
-                  {(['batch_complete', 'digest', 'approval_failed'] as NotificationEvent[]).map(
-                    (event) => (
-                      <label key={event} className="flex items-center gap-2 text-sm text-text">
-                        <input
-                          type="checkbox"
-                          checked={channel.events.includes(event)}
-                          onChange={() => toggleEvent(channel.id, event)}
-                          className="rounded border-border"
-                        />
-                        {event === 'approval_failed'
+                  {(
+                    (personal
+                      ? ['request_resolved']
+                      : ['batch_complete', 'digest', 'approval_failed']) as NotificationEvent[]
+                  ).map((event) => (
+                    <label key={event} className="flex items-center gap-2 text-sm text-text">
+                      <input
+                        type="checkbox"
+                        checked={channel.events.includes(event)}
+                        onChange={() => toggleEvent(channel.id, event)}
+                        className="rounded border-border"
+                      />
+                      {event === 'request_resolved'
+                        ? t('notifications.events.request_resolved')
+                        : event === 'approval_failed'
                           ? t('settings.channels.eventApprovalFailed')
                           : event === 'batch_complete'
                             ? t('settings.channels.eventBatch')
                             : t('settings.channels.eventDigest')}
-                      </label>
-                    ),
-                  )}
+                    </label>
+                  ))}
                 </div>
               </div>
 
-              <Disclosure
-                title={
-                  <span>
-                    {t('settings.advancedSettings')}
-                    <span className="sr-only"> ({t(CHANNEL_TYPE_LABEL[channel.type])})</span>
-                  </span>
-                }
-              >
-                <div className="space-y-3">
-                  {channel.type === 'ntfy' && (
-                    <Field
-                      label={t('settings.channels.ntfyPriority')}
-                      id={`ch-${channel.id}-priority`}
-                    >
-                      <Select
+              {!personal && (
+                <Disclosure
+                  title={
+                    <span>
+                      {t('settings.advancedSettings')}
+                      <span className="sr-only"> ({t(CHANNEL_TYPE_LABEL[channel.type])})</span>
+                    </span>
+                  }
+                >
+                  <div className="space-y-3">
+                    {channel.type === 'ntfy' && (
+                      <Field
+                        label={t('settings.channels.ntfyPriority')}
                         id={`ch-${channel.id}-priority`}
-                        value={channel.priority != null ? String(channel.priority) : ''}
-                        onChange={(e) =>
-                          patchChannel(channel.id, {
-                            priority: e.target.value ? Number(e.target.value) : undefined,
-                          })
-                        }
                       >
-                        <option value="">{t('settings.channels.ntfyPriorityDefault')}</option>
-                        {[1, 2, 3, 4, 5].map((p) => (
-                          <option key={p} value={p}>
-                            {p}
-                          </option>
-                        ))}
-                      </Select>
-                    </Field>
-                  )}
-                  <label className="flex items-center gap-2 text-sm text-text">
-                    <input
-                      type="checkbox"
-                      checked={channel.allowPrivateTarget ?? false}
-                      onChange={(e) =>
-                        patchChannel(channel.id, { allowPrivateTarget: e.target.checked })
-                      }
-                      className="rounded border-border"
-                    />
-                    {t('settings.channels.allowPrivate')}
-                  </label>
-                </div>
-              </Disclosure>
-              {channel.allowPrivateTarget && (
+                        <Select
+                          id={`ch-${channel.id}-priority`}
+                          value={channel.priority != null ? String(channel.priority) : ''}
+                          onChange={(e) =>
+                            patchChannel(channel.id, {
+                              priority: e.target.value ? Number(e.target.value) : undefined,
+                            })
+                          }
+                        >
+                          <option value="">{t('settings.channels.ntfyPriorityDefault')}</option>
+                          {[1, 2, 3, 4, 5].map((p) => (
+                            <option key={p} value={p}>
+                              {p}
+                            </option>
+                          ))}
+                        </Select>
+                      </Field>
+                    )}
+                    <label className="flex items-center gap-2 text-sm text-text">
+                      <input
+                        type="checkbox"
+                        checked={channel.allowPrivateTarget ?? false}
+                        onChange={(e) =>
+                          patchChannel(channel.id, { allowPrivateTarget: e.target.checked })
+                        }
+                        className="rounded border-border"
+                      />
+                      {t('settings.channels.allowPrivate')}
+                    </label>
+                  </div>
+                </Disclosure>
+              )}
+              {!personal && channel.allowPrivateTarget && (
                 <p className="text-xs text-warning">{t('settings.channels.allowPrivateWarning')}</p>
               )}
 
-              <div className="flex justify-end">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleTest(channel)}
-                  disabled={testingId === channel.id}
-                >
-                  {testingId === channel.id ? t('settings.sending') : t('settings.channels.test')}
-                </Button>
-              </div>
+              {!personal && (
+                <div className="flex justify-end">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleTest(channel)}
+                    disabled={testingId === channel.id}
+                  >
+                    {testingId === channel.id ? t('settings.sending') : t('settings.channels.test')}
+                  </Button>
+                </div>
+              )}
             </div>
           </Disclosure>
         ))}
@@ -517,5 +543,37 @@ export function NotificationChannelsCard({
         </Button>
       </div>
     </ServiceCard>
+  )
+}
+
+export function PersonalNotificationChannels() {
+  const { t } = useI18n()
+  const query = useQuery({
+    queryKey: ['personal-notification-channels'],
+    queryFn: getPersonalNotificationChannels,
+  })
+  if (query.isLoading)
+    return (
+      <p role="status" className="text-sm text-muted">
+        {t('common.loading')}
+      </p>
+    )
+  if (query.error)
+    return (
+      <p role="alert" className="text-sm text-reject">
+        {query.error.message}
+      </p>
+    )
+  if (!query.data) return null
+  return (
+    <NotificationChannelsCard
+      key={query.dataUpdatedAt}
+      personal
+      isAdmin={false}
+      settings={{ preferences: { channels: query.data.channels } }}
+      onSaved={() => {
+        void query.refetch()
+      }}
+    />
   )
 }

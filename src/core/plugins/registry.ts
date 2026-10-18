@@ -15,6 +15,7 @@ export const LISTENING_SOURCE_IDS = [
   'emby',
   'discogs',
   'subsonic',
+  'audiomuse',
 ] as const
 
 export class SourceRegistry {

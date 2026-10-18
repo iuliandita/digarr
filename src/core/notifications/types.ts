@@ -1,6 +1,13 @@
-export type NotificationEvent = 'batch_complete' | 'digest' | 'approval_failed'
+export type NotificationEvent = 'batch_complete' | 'digest' | 'approval_failed' | 'request_resolved'
 
 export type WebhookPayload =
+  | {
+      event: 'request_resolved'
+      recommendationId: number
+      status: 'approved' | 'declined'
+      message: string
+      timestamp: string
+    }
   | { event: 'approval_failed'; recommendationId: number; message: string; timestamp: string }
   | {
       event: 'batch_complete'

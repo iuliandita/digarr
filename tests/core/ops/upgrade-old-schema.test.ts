@@ -134,7 +134,7 @@ describe.each(backends)(
         expect(backup.absentSchema?.tables).toContain('playlist_exports')
         expect(backup.absentSchema?.columns).toMatchObject({
           settings: ['digest_delivery_positions'],
-          users: ['oidc_issuer'],
+          users: ['approval_policy', 'max_open_requests', 'approval_threshold', 'oidc_issuer'],
         })
 
         await h.migrate('drizzle')

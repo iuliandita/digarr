@@ -88,8 +88,9 @@ async function rotateTargetsConfig(): Promise<RotationResult> {
   return { scanned: rows.length, rewritten, failures }
 }
 
-async function rotateNotificationChannels(): Promise<RotationResult> {
-  const rows = (await db.execute(sql`SELECT id, preferences FROM settings`)).rows as Array<{
+async function rotateNotificationChannels(table: 'settings' | 'users'): Promise<RotationResult> {
+  const rows = (await db.execute(sql`SELECT id, preferences FROM ${sql.identifier(table)}`))
+    .rows as Array<{
     id: number
     preferences: Record<string, unknown> | null
   }>
@@ -114,7 +115,7 @@ async function rotateNotificationChannels(): Promise<RotationResult> {
         } catch (err) {
           failures++
           console.error(
-            `  skip settings.preferences.channels id=${row.id} index=${index}: ${(err as Error).message}`,
+            `  skip ${table}.preferences.channels id=${row.id} index=${index}: ${(err as Error).message}`,
           )
         }
       }
@@ -122,7 +123,9 @@ async function rotateNotificationChannels(): Promise<RotationResult> {
     })
     if (changed) {
       const preferences = { ...row.preferences, channels }
-      await db.execute(sql`UPDATE settings SET preferences = ${preferences} WHERE id = ${row.id}`)
+      await db.execute(
+        sql`UPDATE ${sql.identifier(table)} SET preferences = ${preferences} WHERE id = ${row.id}`,
+      )
       rewritten++
     }
   }
@@ -233,14 +236,16 @@ async function main(): Promise<void> {
     totalRewritten += rewritten
     totalFailures += failures
   }
-  process.stdout.write('settings.preferences.channels ... ')
-  const channelResult = await rotateNotificationChannels()
-  console.log(
-    `${channelResult.scanned} scanned, ${channelResult.rewritten} rewritten, ${channelResult.failures} failures`,
-  )
-  totalScanned += channelResult.scanned
-  totalRewritten += channelResult.rewritten
-  totalFailures += channelResult.failures
+  for (const table of ['settings', 'users'] as const) {
+    process.stdout.write(`${table}.preferences.channels ... `)
+    const channelResult = await rotateNotificationChannels(table)
+    console.log(
+      `${channelResult.scanned} scanned, ${channelResult.rewritten} rewritten, ${channelResult.failures} failures`,
+    )
+    totalScanned += channelResult.scanned
+    totalRewritten += channelResult.rewritten
+    totalFailures += channelResult.failures
+  }
 
   process.stdout.write('targets.config ... ')
   const { scanned, rewritten, failures } = await rotateTargetsConfig()

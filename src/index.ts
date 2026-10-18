@@ -2,6 +2,7 @@ import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { canAutoSetup, envConfig } from './config/env'
+import { requiresApprovalRequest } from './core/approvals/policy'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
@@ -53,6 +54,7 @@ import { generatePlaylist, playlistGenerationFailure } from './core/playlists/ge
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler, schedulePlaylists } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
+import { getAudioMuseConfig } from './core/plugins/audiomuse'
 import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
@@ -372,6 +374,16 @@ const storeDb: StoreDb = {
   },
   getRejectedMbids: (cooldownDays, userId) => getRejectedArtistMbids(db, cooldownDays, userId),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
+  getBlockedArtistNames: async (userId) => {
+    const names: string[] = []
+    let cursor: import('./db/queries/artist-blocks').ListBlocksCursor | null = null
+    do {
+      const page = await listArtistBlocksQuery(db, { userId, limit: 200, cursor })
+      names.push(...page.items.map((artist) => artist.name))
+      cursor = page.nextCursor
+    } while (cursor)
+    return names
+  },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),
@@ -646,10 +658,15 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     throw new Error('Settings not found')
   }
 
-  const [userConnections, userPreferences] = await Promise.all([
+  const [userConnections, user] = await Promise.all([
     getUserConnections(db, userId),
-    resolveUserPreferences(db, settings.preferences, userId),
+    getUserById(db, userId),
   ])
+  const userPreferences = await resolveUserPreferences(
+    async () => user,
+    settings.preferences,
+    userId,
+  )
 
   let spotifyAccessToken: string | null = null
   try {
@@ -673,8 +690,11 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
         },
       }))
     },
-    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId, userPreferences),
     userId,
+    ...(user && user.approvalPolicy !== 'direct'
+      ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
+      : {}),
     updateRecommendationStatus: (
       id: number,
       status: string,
@@ -695,6 +715,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       settings: {
         ...settings,
         preferences: mergePreferences(userPreferences),
+        audiomuse: getAudioMuseConfig(settings.preferences),
         spotifyAccessToken,
       },
       providerRegistry,
@@ -723,12 +744,15 @@ const executeDiscoveryModeRun = async (
 
 async function getEnabledTargetsForResolvedUser(
   userId: number,
+  resolvedPreferences?: Partial<import('./db/schema').Preferences> | null,
 ): Promise<import('./core/targets/types').DestinationTarget[]> {
   const rows = await getTargetsByUser(db, userId)
   const settings = await getSettings(db)
   // Server-connection defaults: the owner's preferences, falling back to global.
   const serverDefaults = mergePreferences(
-    await resolveUserPreferences(db, settings?.preferences ?? null, userId),
+    resolvedPreferences !== undefined
+      ? resolvedPreferences
+      : await resolveUserPreferences(db, settings?.preferences ?? null, userId),
   )
 
   const targets: import('./core/targets/types').DestinationTarget[] = []

@@ -17,6 +17,12 @@ const t = ((key: string) => {
 describe('reportApprovalOutcome', () => {
   beforeEach(() => vi.clearAllMocks())
 
+  it('reports a queued request without presenting it as a completed approval', () => {
+    expect(reportApprovalOutcome({ status: 'requested', requestId: 1 }, t)).toBe(false)
+    expect(toast.success).toHaveBeenCalledWith('approvalRequests.created')
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
   it('returns true and shows nothing when every target succeeds', () => {
     const clean = reportApprovalOutcome(
       {

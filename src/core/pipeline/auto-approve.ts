@@ -28,6 +28,7 @@ export type AutoApproveDeps = {
   warmArtist?: (mbid: string) => Promise<void>
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   userId?: number
+  canApprove?: (score: number) => Promise<boolean>
 }
 
 type AutoApproveConfig = {
@@ -69,6 +70,7 @@ export async function autoApprove(
 
   for (const rec of eligible) {
     checkPipelineCancelled(signal)
+    if (deps.canApprove && !(await deps.canApprove(rec.score))) continue
     const isAlbum = rec.kind === 'album'
     const recTargets = isAlbum ? albumTargets : addTargets
     if (

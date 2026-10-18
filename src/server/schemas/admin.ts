@@ -25,6 +25,7 @@ export const backupDataSchema = z.strictObject({
   jobRuns: tableArray,
   recommendationBatches: tableArray,
   recommendations: tableArray,
+  approvalRequests: tableArray.optional(),
   playlists: tableArray,
   playlistTracks: tableArray,
   playlistExports: tableArray.optional(),

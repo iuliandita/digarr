@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
+import type { AudioMuseConfig } from '@/core/clients/audiomuse'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
@@ -7,6 +8,7 @@ import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { normalizeAlbumTitle } from '@/core/library/normalize'
 import { dispatch } from '@/core/notifications'
+import { createAudioMuseSource, getAudioMuseConfig } from '@/core/plugins/audiomuse'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
@@ -48,6 +50,7 @@ export interface PipelineSettings {
   aiBaseUrl: string | null
   preferences: Preferences | null
   skipTlsVerify?: boolean
+  audiomuse?: AudioMuseConfig | null
   spotifyAccessToken?: string | null
   audiodbApiKey?: string | null
 }
@@ -276,6 +279,10 @@ export class PipelineOrchestrator extends EventEmitter {
         registry.register(createSubsonicSource(subUrl, subUser, subPass, settings.skipTlsVerify))
       }
 
+      const audiomuse =
+        settings.audiomuse === undefined ? getAudioMuseConfig(prefs) : settings.audiomuse
+      let audiomuseSkipReason: string | undefined
+
       const aiProvider =
         providerRegistry && settings.aiProvider && settings.aiModel
           ? await providerRegistry.create(settings.aiProvider, {
@@ -290,7 +297,8 @@ export class PipelineOrchestrator extends EventEmitter {
         !deps.explicitDiscoveryMode &&
         registry.all().length === 0 &&
         !lidarrClient &&
-        !aiProvider
+        !aiProvider &&
+        !audiomuse
       ) {
         throw new Error('At least one listening source or AI provider must be configured')
       }
@@ -375,6 +383,28 @@ export class PipelineOrchestrator extends EventEmitter {
       const blockedMbids = await db.getBlockedMbids(userIdForSync)
       const feedbackHistory = await db.getFeedbackHistory(userIdForSync)
 
+      if (audiomuse) {
+        if (audiomuse.skipReason) {
+          audiomuseSkipReason = audiomuse.skipReason
+        } else {
+          const allLibraryArtists = genreDb
+            ? genreLibraryArtists
+            : await db.getLibraryArtistsForUser(userIdForSync)
+          const blockedNames = (await db.getBlockedArtistNames?.(userIdForSync)) ?? []
+          try {
+            registry.register(
+              createAudioMuseSource(audiomuse, {
+                excludedArtistNames: [
+                  ...allLibraryArtists.map((artist) => artist.name),
+                  ...blockedNames,
+                ],
+              }),
+            )
+          } catch {
+            audiomuseSkipReason = 'invalid_url'
+          }
+        }
+      }
       ckpt()
       this.emit('progress', { stage: 'analyze', message: t('pipeline.message.buildingProfile') })
       const tasteProfile = {
@@ -442,9 +472,12 @@ export class PipelineOrchestrator extends EventEmitter {
 
       // Mark unconfigured sources as skipped
       for (const id of LISTENING_SOURCE_IDS) {
-        if (!registry.all().some((s) => s.id === id)) {
+        if (id !== 'audiomuse' && !registry.all().some((s) => s.id === id)) {
           sourceResults[id] = { status: 'skipped', reason: 'not_configured' }
         }
+      }
+      if (audiomuseSkipReason) {
+        sourceResults.audiomuse = { status: 'skipped', reason: `audiomuse_${audiomuseSkipReason}` }
       }
       if (!aiProvider) {
         sourceResults.ai = { status: 'skipped', reason: 'not_configured' }
@@ -460,15 +493,33 @@ export class PipelineOrchestrator extends EventEmitter {
         if (!sourceResults[source.id]) {
           const count = sourceArtistCounts.get(source.id) ?? 0
           const failure = discoverFailures.get(source.id)
+          const summary = source.getDiscoverySummary?.()
+          const hasResults = count > 0 || (summary?.seedsWithResults ?? 0) > 0
           sourceResults[source.id] = !source.capabilities.includes('similarArtists')
             ? { status: 'skipped', reason: 'unsupported_capability' }
             : deps.explicitDiscoveryMode != null
               ? { status: 'skipped', reason: 'explicit_run' }
               : failure !== undefined
-                ? { status: 'error', artists: count, error: failure }
+                ? source.id === 'audiomuse'
+                  ? {
+                      status: hasResults ? 'ok' : 'skipped',
+                      artists: count,
+                      ...(hasResults
+                        ? {}
+                        : { reason: `audiomuse_${failure.replace('AudioMuse-AI: ', '')}` }),
+                    }
+                  : { status: 'error', artists: count, error: failure }
                 : discoverySeedCount === 0
                   ? { status: 'skipped', reason: 'no_seeds' }
                   : { status: 'ok', artists: count }
+          if (
+            source.id === 'audiomuse' &&
+            deps.explicitDiscoveryMode == null &&
+            discoverySeedCount > 0
+          ) {
+            const result = sourceResults[source.id]
+            if (result) Object.assign(result, summary)
+          }
         }
       }
       if (aiProvider) {

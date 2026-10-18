@@ -1,8 +1,9 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Check, Copy, Plus } from 'lucide-react'
+import { Check, Copy, Plus, Waves } from 'lucide-react'
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
+import { DashboardCardToggle } from '../../components/dashboard-card-toggle'
 import { Field } from '../../components/field'
 import { GenreCoverageSummary } from '../../components/genre-coverage-summary'
 import { Hint } from '../../components/hint'
@@ -94,6 +95,11 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
     addButton.current?.focus()
   }
 
+  const [audiomuseUrl, setAudiomuseUrl] = useState(prefs.audiomuseUrl ?? '')
+  const [audiomuseToken, setAudiomuseToken] = useState(prefs.audiomuseToken ?? '')
+  const [audiomuseSkipTlsVerify, setAudiomuseSkipTlsVerify] = useState(
+    prefs.audiomuseSkipTlsVerify ?? false,
+  )
   const [lidarrUrl, setLidarrUrl] = useState(settings.lidarrUrl ?? '')
   const [lidarrPublicUrl, setLidarrPublicUrl] = useState(prefs.lidarrPublicUrl ?? '')
   const [lidarrApiKey, setLidarrApiKey] = useState(
@@ -227,6 +233,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   }
 
   const configuredServices: Record<string, boolean> = {
+    audiomuse: Boolean(prefs.audiomuseUrl),
     lidarr: Boolean(settings.lidarrUrl && settings.lidarrApiKey),
     listenbrainz: Boolean(settings.listenbrainzUsername && settings.listenbrainzToken),
     lastfm: Boolean(settings.lastfmUsername && settings.lastfmApiKey),
@@ -301,6 +308,17 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       }
     }
   }
+
+  const testAudiomuse = createTester('audiomuse', 'AudioMuse-AI', () =>
+    testService('audiomuse', {
+      url: audiomuseUrl,
+      token: audiomuseToken,
+      skipTlsVerify: audiomuseSkipTlsVerify,
+    }),
+  )
+  const saveAudiomuse = createSaver('audiomuse', 'AudioMuse-AI', () =>
+    updateSettings({ preferences: { audiomuseUrl, audiomuseToken, audiomuseSkipTlsVerify } }),
+  )
 
   const testLidarr = createTester('lidarr', 'Lidarr', () =>
     testService('lidarr', { url: lidarrUrl, apiKey: lidarrApiKey }),
@@ -547,6 +565,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   const isSubsonicConfigured = !!(subsonicUrl || settings.subsonicUrl)
 
   const savedCredentials: Record<string, unknown[]> = {
+    audiomuse: [prefs.audiomuseUrl],
     lidarr: [settings.lidarrUrl, settings.lidarrApiKey],
     ai: [settings.aiProvider, settings.aiModel, settings.aiApiKey, settings.aiBaseUrl],
     tidal: [settings.tidalClientId, settings.tidalClientSecret, settings._tidalAppConfigured],
@@ -575,6 +594,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
     }
   }, [selected, notificationsSaved])
   const draftCredentials: Record<string, unknown[]> = {
+    audiomuse: [audiomuseUrl],
     lidarr: [lidarrUrl, lidarrApiKey],
     ai: [aiModel, aiApiKey, aiBaseUrl],
     tidal: [tidalClientId, tidalClientSecret],
@@ -602,9 +622,16 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
     setSave(id, true)
     try {
       await updateSettings(
-        Object.fromEntries((connectionFields[id] ?? []).map((field) => [field, null])),
+        id === 'audiomuse'
+          ? { preferences: { audiomuseUrl: '', audiomuseToken: '', audiomuseSkipTlsVerify: false } }
+          : Object.fromEntries((connectionFields[id] ?? []).map((field) => [field, null])),
       )
       const reset: Record<string, () => void> = {
+        audiomuse: () => {
+          setAudiomuseUrl('')
+          setAudiomuseToken('')
+          setAudiomuseSkipTlsVerify(false)
+        },
         listenbrainz: () => {
           setLbUsername('')
           setLbToken('')
@@ -754,6 +781,14 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
     ...(isAdmin
       ? [
           {
+            id: 'audiomuse',
+            name: 'AudioMuse-AI',
+            description: 'settings.picker.audiomuse' as const,
+            group: 'settings.globalSettings' as const,
+            icon: <Waves aria-hidden="true" size={20} />,
+            experimental: true,
+          },
+          {
             id: 'lidarr',
             name: 'Lidarr',
             description: 'settings.lidarrDescription' as const,
@@ -785,8 +820,64 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
         ]
       : []),
   ]
-  const visible = (id: string) => experimental || (id !== 'tidal' && id !== 'tidal-user')
+  const visible = (id: string) => experimental || !['tidal', 'tidal-user', 'audiomuse'].includes(id)
   const forms: Record<string, ReactNode> = {
+    audiomuse: (
+      <ServiceCard
+        defaultOpen={selected === 'audiomuse'}
+        name="AudioMuse-AI"
+        icon={<Waves aria-hidden="true" size={20} />}
+        description={t('settings.audiomuseDescription')}
+        badge={<Badge variant="warning">{t('search.experimental')}</Badge>}
+        status={serviceStatus('audiomuse')}
+        onEdit={() => markEdited('audiomuse')}
+        onRemove={isSaved('audiomuse') ? () => removeConnection('audiomuse') : undefined}
+        removing={saving.audiomuse}
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <Field label={t('settings.fieldUrl')} id="audiomuse-url">
+            <Input
+              id="audiomuse-url"
+              type="url"
+              placeholder="https://localhost:8000"
+              value={audiomuseUrl}
+              onChange={(e) => setAudiomuseUrl(e.target.value)}
+            />
+          </Field>
+          <Field label={t('settings.audiomuseToken')} id="audiomuse-token">
+            <Input
+              id="audiomuse-token"
+              type="password"
+              value={audiomuseToken}
+              onChange={(e) => setAudiomuseToken(e.target.value)}
+            />
+          </Field>
+        </div>
+        <label className="flex items-center gap-2 text-sm text-text">
+          <input
+            type="checkbox"
+            checked={audiomuseSkipTlsVerify}
+            onChange={(e) => setAudiomuseSkipTlsVerify(e.target.checked)}
+            className="rounded border-border"
+          />
+          {t('setup.skipTlsVerification')}
+        </label>
+        <p className="text-xs text-muted">{t('settings.audiomuseHelp')}</p>
+        <div className="flex justify-end gap-2 pt-1">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={testAudiomuse}
+            disabled={tests.audiomuse === 'testing'}
+          >
+            {tests.audiomuse === 'testing' ? t('settings.testing') : t('settings.testConnection')}
+          </Button>
+          <Button size="sm" onClick={saveAudiomuse} disabled={saving.audiomuse}>
+            {saving.audiomuse ? t('settings.saving') : t('settings.save')}
+          </Button>
+        </div>
+      </ServiceCard>
+    ),
     lidarr: (
       <ServiceCard
         defaultOpen={selected === 'lidarr'}
@@ -1905,7 +1996,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       <NotificationChannelsCard settings={settings} isAdmin={isAdmin} onSaved={onSaved} />
     ),
   }
-  const serverIds = ['lidarr', 'ai', 'notifications', 'tidal']
+  const serverIds = ['lidarr', 'ai', 'notifications', 'tidal', 'audiomuse']
   const personalIds = [
     'listenbrainz',
     'lastfm',
@@ -1976,11 +2067,14 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
         <ArtistImagesCard settings={settings} isAdmin={isAdmin} onSaved={onSaved} />
       </section>
       <section aria-labelledby="personal-connections-heading" className="space-y-3">
-        <div>
-          <h2 id="personal-connections-heading" className="text-lead font-semibold text-text">
-            {t('settings.yourConnections')}
-          </h2>
-          <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 id="personal-connections-heading" className="text-lead font-semibold text-text">
+              {t('settings.yourConnections')}
+            </h2>
+            <p className="text-xs text-muted mt-1">{t('settings.yourConnectionsDescription')}</p>
+          </div>
+          <DashboardCardToggle cardId="listening" />
         </div>
         <Hint id="settings-connections-tip" type="inline">
           {t('settings.connectionsTip')}

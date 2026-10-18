@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { lookup } from 'node:dns/promises'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { decryptField, encryptField, initEncryption } from '@/core/crypto'
 import { clearAllSessions, createSession } from '@/core/sessions'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { UserConnections } from '@/db/queries/users'
@@ -2172,5 +2173,152 @@ describe('POST /api/v1/settings/test-webhook', () => {
     )
     const res = await authedRequest(app, '/api/v1/settings/test-webhook', { method: 'POST' })
     expect(res.status).toBe(400)
+  })
+})
+
+describe('AudioMuse admin settings', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    initEncryption(undefined)
+  })
+
+  it('encrypts, masks, preserves, and clears the optional token in existing preferences', async () => {
+    initEncryption('settings-test-key')
+    const { deps, read } = makePreferenceFixture({
+      audiomuseUrl: 'https://audiomuse.example',
+      primaryGenres: ['rock'],
+    })
+    const app = createApp(deps)
+    const patch = (preferences: Record<string, unknown>) =>
+      authedRequest(app, '/api/v1/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ preferences }),
+      })
+    const saved = await patch({ audiomuseToken: 'private-token', audiomuseSkipTlsVerify: true })
+    expect(saved.status).toBe(200)
+    expect((await saved.json()).preferences.audiomuseToken).toBe('***')
+    const encrypted = read().preferences?.audiomuseToken
+    expect(encrypted).toMatch(/^enc:v1:/)
+    expect(decryptField(encrypted)).toBe('private-token')
+    expect(read().preferences?.primaryGenres).toEqual(['rock'])
+    expect((await patch({ audiomuseToken: '***' })).status).toBe(200)
+    expect(read().preferences?.audiomuseToken).toBe(encrypted)
+    expect((await patch({ audiomuseToken: '' })).status).toBe(200)
+    expect(read().preferences?.audiomuseToken).toBe('')
+  })
+
+  it('hides the connection from members and rejects their writes and probes', async () => {
+    const { deps } = makePreferenceFixture({
+      audiomuseUrl: 'https://audiomuse.example',
+      audiomuseToken: 'secret',
+      audiomuseSkipTlsVerify: true,
+    })
+    deps.getUserById = vi.fn(async () => ({ id: 1, isAdmin: false }) as never)
+    const app = createApp(deps)
+    const response = await authedRequest(app, '/api/v1/settings')
+    expect(JSON.stringify(await response.json())).not.toMatch(
+      /audiomuseUrl|audiomuseToken|audiomuseSkipTlsVerify|secret/,
+    )
+    for (const [path, body] of [
+      ['/api/v1/settings', { preferences: { audiomuseUrl: 'https://other.example' } }],
+      ['/api/v1/settings/test/audiomuse', {}],
+    ] as const) {
+      const res = await authedRequest(app, path, {
+        method: path.includes('/test/') ? 'POST' : 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      expect(res.status).toBe(403)
+    }
+    expect(deps.updateSettings).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    {},
+    { token: '***' },
+    { url: 'https://draft.example', token: '', skipTlsVerify: false },
+  ])('probes saved credentials or explicit overrides: %j', async (body) => {
+    initEncryption('probe-test-key')
+    const { deps } = makePreferenceFixture({
+      audiomuseUrl: 'https://saved.example',
+      audiomuseToken: 'secret-token',
+      audiomuseSkipTlsVerify: true,
+    })
+    const fetch = vi.fn().mockResolvedValue(Response.json({ app_version: 'v3.6.4' }))
+    vi.stubGlobal('fetch', fetch)
+    const response = await authedRequest(createApp(deps), '/api/v1/settings/test/audiomuse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    expect(response.status).toBe(200)
+    expect((await response.json()).version).toBe('v3.6.4')
+    const [url, init] = fetch.mock.calls[0] ?? []
+    expect(url).toBe(`${'url' in body ? body.url : 'https://saved.example'}/api/version`)
+    expect(init.headers.get('Authorization')).toBe('url' in body ? null : 'Bearer secret-token')
+    expect(init.tls).toEqual('url' in body ? undefined : { rejectUnauthorized: false })
+    expect(deps.updateSettings).not.toHaveBeenCalled()
+  })
+
+  it.each([{}, { token: '***' }])(
+    'returns a probe error for an unreadable saved token: %j',
+    async (body) => {
+      initEncryption('original-key')
+      const token = encryptField('private-token')
+      initEncryption('restored-key')
+      const { deps } = makePreferenceFixture({
+        audiomuseUrl: 'https://saved.example',
+        audiomuseToken: token ?? undefined,
+      })
+      const fetch = vi.fn()
+      vi.stubGlobal('fetch', fetch)
+
+      const response = await authedRequest(createApp(deps), '/api/v1/settings/test/audiomuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+
+      expect(response.status).toBe(502)
+      const result = await response.json()
+      expect(result.type).toContain('probe-failed')
+      expect(result.detail).toBe('AudioMuse-AI token unreadable, re-enter it')
+      expect(JSON.stringify(result)).not.toContain('private-token')
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([{ skipTlsVerify: 'true' }, { url: 'file:///etc/passwd' }, { url: '' }, { token: 12 }])(
+    'rejects invalid probe input before any request: %j',
+    async (body) => {
+      const fetch = vi.fn()
+      vi.stubGlobal('fetch', fetch)
+      const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/test/audiomuse', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      expect(res.status).toBe(400)
+      expect(fetch).not.toHaveBeenCalled()
+    },
+  )
+
+  it('returns an actionable probe failure without upstream secrets', async () => {
+    const fetch = vi
+      .fn()
+      .mockResolvedValue(
+        Response.json({ error_code: 1005, error: 'private-token' }, { status: 401 }),
+      )
+    vi.stubGlobal('fetch', fetch)
+    const res = await authedRequest(createApp(makeDeps()), '/api/v1/settings/test/audiomuse', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: 'https://audiomuse.example', token: 'private-token' }),
+    })
+    expect(res.status).toBe(502)
+    const body = await res.json()
+    expect(body.detail).toBe('AudioMuse-AI: authentication_required')
+    expect(JSON.stringify(body)).not.toContain('private-token')
   })
 })

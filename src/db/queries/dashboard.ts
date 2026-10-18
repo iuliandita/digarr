@@ -32,7 +32,7 @@ export async function getTopGenresForUser(
       FROM recommendations r
       JOIN artists a ON a.id = r.artist_id
       WHERE r.status IN ('approved', 'added_to_lidarr', 'add_failed')
-        AND a.genres IS NOT NULL
+        AND a.genres IS NOT NULL AND coalesce(r.sources->>'album_request', '') <> '0'
         ${userClause}
     )
     SELECT
@@ -132,7 +132,7 @@ export async function getRecentActivity(
     })
     .from(recommendations)
     .innerJoin(artists, eq(recommendations.artistId, artists.id))
-    .where(recWhere)
+    .where(and(recWhere, sql`coalesce(${recommendations.sources}->>'album_request', '') <> '0'`))
     .orderBy(desc(recommendations.actedOnAt))
     .limit(10)
 
@@ -199,6 +199,7 @@ export async function getRecentActivity(
         stats: recommendationBatches.stats,
       })
       .from(recommendationBatches)
+      .where(sql`coalesce(${recommendationBatches.stats}->>'_origin', '') <> 'album_request'`)
       .orderBy(desc(recommendationBatches.createdAt))
       .limit(5)
 

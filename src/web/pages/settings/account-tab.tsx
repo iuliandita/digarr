@@ -24,6 +24,7 @@ import {
 } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
 import { broadcastSessionChanged } from '../../lib/session-broadcast'
+import { PersonalNotificationChannels } from './notification-channels'
 
 export function AccountTab() {
   const { t, locale, setLocale } = useI18n()
@@ -249,6 +250,8 @@ export function AccountTab() {
           </form>
         </section>
       </section>
+
+      <PersonalNotificationChannels />
 
       <ScrobblerWriteBackSettings />
 

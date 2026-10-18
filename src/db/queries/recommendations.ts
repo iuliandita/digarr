@@ -1,9 +1,10 @@
 import { and, asc, count, desc, eq, gte, inArray, isNull, ne, or, type SQL, sql } from 'drizzle-orm'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
-import { isValidStatus, parseStatusFilter } from '@/core/recommendations/statuses'
+import { parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
 import {
+  approvalRequests,
   artistBlocks,
   artistMetadata,
   artists,
@@ -71,16 +72,18 @@ export async function listRecommendations(
     offset = 0,
   } = filters
 
-  const conditions = []
+  const conditions = [
+    sql`(${recommendations.status} <> 'pending' OR coalesce(${recommendations.sources}->>'album_request', '') <> '0')`,
+  ]
   if (status !== undefined) {
-    if (status.includes(',')) {
-      const filtered = parseStatusFilter(status)
-      if (filtered.length > 0) {
-        conditions.push(inArray(recommendations.status, filtered))
-      }
-    } else if (isValidStatus(status)) {
-      conditions.push(eq(recommendations.status, status))
-    }
+    const filtered = parseStatusFilter(status)
+    if (filtered.includes('pending'))
+      conditions.push(sql`(${recommendations.status} <> 'pending' OR NOT EXISTS (
+      SELECT 1 FROM ${approvalRequests}
+      WHERE ${approvalRequests.recommendationId} = ${recommendations.id}
+        AND ${approvalRequests.status} = 'pending'
+    ))`)
+    if (filtered.length > 0) conditions.push(inArray(recommendations.status, filtered))
   }
   if (batchId !== undefined) conditions.push(eq(recommendations.batchId, batchId))
   if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
@@ -296,6 +299,7 @@ export async function getGenreFeedbackHistory(
     JOIN artists a ON a.id = r.artist_id
     CROSS JOIN LATERAL unnest(a.genres) AS genre
     WHERE r.acted_on_at IS NOT NULL
+      AND coalesce(r.sources->>'album_request', '') <> '0'
       AND a.genres IS NOT NULL
       ${userFilter}
     GROUP BY genre
@@ -427,6 +431,7 @@ export async function getGenreArtists(
   const genreCondition = sql`EXISTS (
     SELECT 1 FROM unnest(${artists.genres}) g WHERE lower(g) = lower(${genreName})
   )`
+  const originCondition = sql`coalesce(${recommendations.sources}->>'album_request', '') <> '0'`
   const userCondition = userId ? eq(recommendations.userId, userId) : sql`TRUE`
 
   if (view === 'recommended') {
@@ -442,7 +447,9 @@ export async function getGenreArtists(
       })
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
-      .where(and(genreCondition, eq(recommendations.status, 'approved'), userCondition))
+      .where(
+        and(originCondition, genreCondition, eq(recommendations.status, 'approved'), userCondition),
+      )
       .orderBy(desc(recommendations.score))
       .limit(limit)
     return rows
@@ -463,7 +470,14 @@ export async function getGenreArtists(
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
       .innerJoin(recommendationBatches, eq(recommendations.batchId, recommendationBatches.id))
-      .where(and(genreCondition, userCondition, gte(recommendationBatches.createdAt, cutoff)))
+      .where(
+        and(
+          originCondition,
+          genreCondition,
+          userCondition,
+          gte(recommendationBatches.createdAt, cutoff),
+        ),
+      )
       .orderBy(desc(recommendations.score))
       .limit(limit)
     return rows
@@ -488,6 +502,7 @@ export async function getGenreArtists(
     .leftJoin(artistMetadata, sql`${artistMetadata.nameNormalized} = lower(${artists.name})`)
     .where(
       and(
+        originCondition,
         genreCondition,
         userCondition,
         eq(recommendations.status, 'pending'),

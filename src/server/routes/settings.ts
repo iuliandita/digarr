@@ -1,12 +1,15 @@
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
+import { createAudioMuseClient } from '@/core/clients/audiomuse'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createTidalClient } from '@/core/clients/tidal'
 import {
   decryptChannelSecrets,
+  decryptField,
   encryptChannelSecrets,
+  encryptField,
   maskChannelSecrets,
   restoreMaskedChannelSecrets,
   SENSITIVE_PREFERENCES,
@@ -169,6 +172,8 @@ function stripForNonAdmin(settings: Record<string, unknown>): SettingsResponse {
   if (stripped.preferences && typeof stripped.preferences === 'object') {
     const prefs = { ...(stripped.preferences as Record<string, unknown>) }
     for (const field of SECRET_PREFERENCE_FIELDS) delete prefs[field]
+    delete prefs.audiomuseUrl
+    delete prefs.audiomuseSkipTlsVerify
     delete prefs.channels
     // Keep scheduleCron visible but not editable (frontend hides the tab)
     stripped.preferences = prefs
@@ -387,11 +392,22 @@ export function settingsRoutes(deps: AppDependencies) {
       for (const field of SECRET_PREFERENCE_FIELDS) {
         if (incomingPrefs[field] === '***') delete incomingPrefs[field]
       }
+      if (typeof incomingPrefs.audiomuseToken === 'string') {
+        incomingPrefs.audiomuseToken = encryptField(incomingPrefs.audiomuseToken) ?? undefined
+      }
       globalFields.preferences = mergePreferenceUpdate(storedSettings?.preferences, incomingPrefs)
     }
 
     if (!isAdmin && Object.keys(globalFields).length > 0) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
+    }
+
+    if (incomingPrefs?.audiomuseUrl) {
+      try {
+        createAudioMuseClient({ url: incomingPrefs.audiomuseUrl })
+      } catch {
+        return problem(c, 'invalid-audiomuse-url', 'Invalid AudioMuse-AI URL', 400)
+      }
     }
 
     if (typeof globalFields.aiBaseUrl === 'string' && globalFields.aiBaseUrl.length > 0) {
@@ -596,7 +612,7 @@ export function settingsRoutes(deps: AppDependencies) {
       return problem(c, 'probe-invalid-input', 'Invalid probe input', 400, 'Expected a JSON object')
     }
     if (
-      service === 'lidarr' &&
+      (service === 'lidarr' || service === 'audiomuse') &&
       body.skipTlsVerify !== undefined &&
       typeof body.skipTlsVerify !== 'boolean'
     ) {
@@ -618,6 +634,35 @@ export function settingsRoutes(deps: AppDependencies) {
       problem(c, 'probe-missing-input', 'Missing probe input', 400, message)
 
     switch (service) {
+      case 'audiomuse': {
+        const prefs = stored?.preferences
+        const url = body.url ?? prefs?.audiomuseUrl ?? ''
+        let token: unknown
+        try {
+          token =
+            body.token === '***' || body.token === undefined
+              ? (decryptField(prefs?.audiomuseToken) ?? '')
+              : body.token
+        } catch {
+          return probeResult(
+            c,
+            { success: false, message: 'AudioMuse-AI token unreadable, re-enter it' },
+            messages['common.unknownError'],
+          )
+        }
+        if (typeof url !== 'string' || !url) return missingInput('Missing URL')
+        if (typeof token !== 'string') return missingInput('Token must be a string')
+        try {
+          const client = createAudioMuseClient({
+            url,
+            token,
+            skipTlsVerify: body.skipTlsVerify ?? prefs?.audiomuseSkipTlsVerify ?? false,
+          })
+          return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
+        } catch {
+          return missingInput('Invalid AudioMuse-AI URL')
+        }
+      }
       case 'lidarr': {
         const url = body.url || (stored?.lidarrUrl as string) || ''
         const apiKey = body.apiKey || (stored?.lidarrApiKey as string) || ''

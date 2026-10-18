@@ -151,6 +151,13 @@ export const openapiDoc = {
           username: { type: 'string' },
           isAdmin: { type: 'boolean' },
           preferredLocale: { type: ['string', 'null'] },
+          approvalPolicy: {
+            type: 'string',
+            enum: ['direct', 'request_only', 'auto_approve'],
+            default: 'direct',
+          },
+          approvalThreshold: { type: ['number', 'null'], minimum: 0, maximum: 1 },
+          maxOpenRequests: { type: ['integer', 'null'], minimum: 0 },
         },
         additionalProperties: true,
       },
@@ -750,6 +757,28 @@ export const openapiDoc = {
             description: 'Updated recommendation status.',
             ...jsonSchema('#/components/schemas/RecommendationUpdateResult'),
           },
+          '202': {
+            description: 'Approval queued for admin review without contacting targets.',
+            content: {
+              [json]: {
+                schema: {
+                  type: 'object',
+                  required: ['status', 'requestId', 'approvalRequest'],
+                  properties: {
+                    status: { type: 'string', const: 'requested' },
+                    requestId: { type: 'integer' },
+                    approvalRequest: { type: 'object' },
+                  },
+                },
+              },
+            },
+          },
+          '409': {
+            description: 'The user has reached their admin-set open-request limit.',
+            content: {
+              [problemJson]: { schema: { $ref: '#/components/schemas/Problem' } },
+            },
+          },
           '400': {
             description:
               'Invalid input, target selection, popularity lookup, or rejection payload.',
@@ -1027,7 +1056,7 @@ export const openapiDoc = {
         operationId: 'testServiceConnection',
         summary: 'Test an external service connection',
         description:
-          'Admin only, except probing your own Plex connection. Send a JSON object ({} for saved credentials where supported); a missing, malformed, or non-object payload returns 400 problem+json before saved credentials are read. Where supported, non-empty connection and credential strings override saved values; empty strings reuse saved values, so probe success may validate the previous configuration. Plex sectionId and Jellyfin/Emby libraryId clear with an empty string (null falls back), while Plex accountId clears with null. Lidarr skipTlsVerify uses the saved setting when omitted (false when none is saved); send it explicitly to override, and send a boolean. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
+          'Admin only, except probing your own Plex connection. Send a JSON object ({} for saved credentials where supported); a missing, malformed, or non-object payload returns 400 problem+json before saved credentials are read. Where supported, non-empty connection and credential strings override saved values; empty strings reuse saved values, so probe success may validate the previous configuration. Plex sectionId and Jellyfin/Emby libraryId clear with an empty string (null falls back), while Plex accountId clears with null. AudioMuse-AI accepts url, optional token, and skipTlsVerify; omitted fields use saved values, a masked token preserves the saved token, an empty token sends no Bearer header, and an empty URL is rejected. It probes /api/version for authentication and reachability, not index readiness. Lidarr skipTlsVerify uses the saved setting when omitted (false when none is saved); send it explicitly to override, and send a boolean. The TIDAL probe tests catalog credentials only; it does not validate experimental per-user authorization, token refresh, or favorite-artist retrieval, which remain unverified against a live account.',
         security: unsafeAuthSecurity,
         parameters: [{ name: 'service', in: 'path', required: true, schema: { type: 'string' } }],
         requestBody: { required: true, content: { [json]: { schema: { type: 'object' } } } },

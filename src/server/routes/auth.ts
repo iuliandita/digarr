@@ -3,7 +3,12 @@ import { type Context, Hono, type MiddlewareHandler } from 'hono'
 import { getCookie } from 'hono/cookie'
 import { envConfig } from '@/config/env'
 import { hashPassword, verifyPassword } from '@/core/auth'
-import { encryptField, isEncryptionEnabled, SENSITIVE_PREFERENCES } from '@/core/crypto'
+import {
+  encryptField,
+  isEncryptionEnabled,
+  maskChannelSecrets,
+  SENSITIVE_PREFERENCES,
+} from '@/core/crypto'
 import { isUniqueViolation } from '@/core/db-errors'
 import { normalizeLocale } from '@/core/i18n/locales'
 import { getMessages } from '@/core/i18n/messages'
@@ -54,6 +59,7 @@ const DUMMY_PASSWORD_HASH = hashPassword(
 )
 
 const ALLOWED_PREF_KEYS = new Set([
+  'dashboardLayout',
   'scoreThreshold',
   'scoringWeights',
   'rejectionCooldownDays',
@@ -549,7 +555,10 @@ export function authRoutes(deps: AppDependencies) {
     if (!user) return c.json({ error: 'User not found' }, 404)
     const merged = mergePreferences(user.preferences)
     // Decrypt sensitive fields, then mask for the response
-    const response = { ...merged } as Record<string, unknown>
+    const response = { ...merged, channels: maskChannelSecrets(merged.channels ?? []) } as Record<
+      string,
+      unknown
+    >
     for (const key of SENSITIVE_PREFERENCES) {
       const val = response[key]
       if (typeof val === 'string' && val) {

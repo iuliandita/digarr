@@ -15,6 +15,7 @@ import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { ConfirmDialog } from '../components/confirm-dialog'
 import { describeCron } from '../components/cron-picker'
+import { DashboardCardToggle } from '../components/dashboard-card-toggle'
 import { ImportArtists } from '../components/import-artists'
 import {
   buildSubscriptionUpdate,
@@ -569,6 +570,7 @@ export default function SubscriptionsPage({
 
   const actions = (
     <>
+      <DashboardCardToggle cardId="subscriptions" />
       {subscriptions && subscriptions.length >= 2 && (
         <Button
           variant="outline"

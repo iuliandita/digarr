@@ -5,9 +5,11 @@ import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { AlbumPicker } from '../components/album-picker'
+import { ApprovalRequests } from '../components/approval-requests'
 import { ApproveDialog } from '../components/approve-dialog'
 import { CardStack } from '../components/card-stack'
 import { ConfirmDialog } from '../components/confirm-dialog'
+import { DashboardCardToggle } from '../components/dashboard-card-toggle'
 import { DiscoverTabs } from '../components/discover-tabs'
 import {
   type Decade,
@@ -63,6 +65,10 @@ import { usePreviewContext } from '../lib/preview-context'
 
 type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
 type KindFilter = 'all' | 'artist' | 'album'
+
+function initialStatusFromParam(value: string | null): FilterTab {
+  return value === 'approved' || value === 'all' || value === 'rejected' ? value : 'pending'
+}
 
 const PREVIEW_REASON_KEYS: Record<PreviewFailureReason, MessageKey> = {
   'missing-links': 'preview.reason.missing-links',
@@ -121,7 +127,11 @@ function approveErrorMessage(
   t: (key: MessageKey) => string,
 ): string {
   const code = err instanceof ApiError ? (err.data as { code?: string })?.code : undefined
-  return code === 'no_source' || code === 'no_match' ? t('discover.popularAlbumsFailed') : fallback
+  return code === 'no_source' || code === 'no_match'
+    ? t('discover.popularAlbumsFailed')
+    : err instanceof ApiError
+      ? err.message
+      : fallback
 }
 
 function SkeletonGrid() {
@@ -365,7 +375,9 @@ export function DiscoverPage() {
   const { data: authStatus } = useQuery({ queryKey: ['auth-status'], queryFn: getAuthStatus })
   const isAdmin = authStatus?.isAdmin ?? false
   const [searchParams, setSearchParams] = useSearchParams()
-  const [filter, setFilter] = useState<FilterTab>('pending')
+  const [filter, setFilter] = useState<FilterTab>(() =>
+    initialStatusFromParam(searchParams.get('status')),
+  )
   const [kindFilter, setKindFilter] = useState<KindFilter>(() =>
     initialKindFromParam(searchParams.get('kind')),
   )
@@ -407,6 +419,7 @@ export function DiscoverPage() {
 
   const refetch = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['recommendations'] })
+    queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
   }, [queryClient])
 
   const {
@@ -431,6 +444,12 @@ export function DiscoverPage() {
       setCheckedIds(new Set())
     }
   }
+
+  const statusFromUrl = searchParams.get('status')
+  useEffect(() => {
+    setFilter(initialStatusFromParam(statusFromUrl))
+    setPage(0)
+  }, [statusFromUrl])
 
   // Keep the kind filter in sync with the URL so deep-links (e.g. the Albums
   // nav entry -> /discover?kind=album) preselect Albums even when the page is
@@ -786,9 +805,13 @@ export function DiscoverPage() {
           toast.success(t('discover.restoredToPending'))
         }
         refetch()
-      } catch {
+      } catch (err) {
         toast.error(
-          filter === 'rejected' ? t('discover.restoreFailed') : t('dashboard.approveFailed'),
+          approveErrorMessage(
+            err,
+            filter === 'rejected' ? t('discover.restoreFailed') : t('dashboard.approveFailed'),
+            t,
+          ),
         )
       } finally {
         setActingIds((prev) => {
@@ -898,6 +921,19 @@ export function DiscoverPage() {
     }
   }
 
+  function reportBulkApproval(result: Awaited<ReturnType<typeof bulkAction>>) {
+    const requested = result.results.filter((entry) => entry.status === 'requested').length
+    const limited = result.results.filter(
+      (entry) => entry.status === 'request_limit_reached',
+    ).length
+    const approved = result.results.filter(
+      (entry) => entry.status !== 'requested' && entry.status !== 'request_limit_reached',
+    ).length
+    if (requested) toast.success(`${t('approvalRequests.created')} (${requested})`)
+    if (limited) toast.error(t('errors.approval.requestLimit'))
+    if (approved) toast.success(`${t('discover.approvedCount')} ${approved}`)
+  }
+
   async function handleApproveAbove() {
     const eligible = items.filter(
       (r) => r.score * 100 >= approveThreshold && r.status === 'pending',
@@ -907,14 +943,14 @@ export function DiscoverPage() {
       return
     }
     try {
-      await bulkAction(
+      const result = await bulkAction(
         eligible.map((r) => r.id),
         'approve',
       )
-      toast.success(`${t('discover.approvedCount')} ${eligible.length}`)
+      reportBulkApproval(result)
       refetch()
-    } catch {
-      toast.error(t('discover.bulkApproveFailed'))
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t('discover.bulkApproveFailed'))
     }
   }
 
@@ -1003,12 +1039,12 @@ export function DiscoverPage() {
     if (checkedIds.size === 0) return
     setBulkActing(true)
     try {
-      await bulkAction([...checkedIds], 'approve')
-      toast.success(`${t('discover.approvedCount')} ${checkedIds.size}`)
+      const result = await bulkAction([...checkedIds], 'approve')
+      reportBulkApproval(result)
       setCheckedIds(new Set())
       refetch()
-    } catch {
-      toast.error(t('discover.bulkApproveFailed'))
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.message : t('discover.bulkApproveFailed'))
     } finally {
       setBulkActing(false)
     }
@@ -1113,7 +1149,10 @@ export function DiscoverPage() {
       {...pullHandlers}
     >
       <h1 className="sr-only">{t('discover.title')}</h1>
-      <DiscoverTabs className="mx-6 mt-2" />
+      <div className="mx-6 mt-2 flex flex-wrap items-center justify-between gap-2">
+        <DiscoverTabs />
+        <DashboardCardToggle cardId={filter === 'pending' ? 'pick' : 'decisions'} />
+      </div>
       {preview.audition.unavailable?.length > 0 && (
         <section
           className="rounded-lg border border-border bg-surface p-4 text-sm"
@@ -1315,6 +1354,12 @@ export function DiscoverPage() {
           </div>
         </div>
       </div>
+
+      {filter === 'approved' && (
+        <div className="px-6">
+          <ApprovalRequests />
+        </div>
+      )}
 
       {/* Content area */}
       <div className="px-6">

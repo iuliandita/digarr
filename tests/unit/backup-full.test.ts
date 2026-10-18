@@ -278,6 +278,15 @@ describe('backup full-fidelity', () => {
       })
       .returning()
     if (!recommendation) throw new Error('recommendation insert failed')
+    await db.insert(schema.approvalRequests).values({
+      recommendationId: recommendation.id,
+      userId: user.id,
+      status: 'approved',
+      options: { monitorOption: 'all' },
+      note: 'fidelity note',
+      decidedBy: user.id,
+      decidedAt: new Date('2026-01-02T00:00:00Z'),
+    })
     const [playlist] = await db
       .insert(schema.playlists)
       .values({
@@ -397,8 +406,20 @@ describe('backup full-fidelity', () => {
       for (const [key, table] of Object.entries(BACKUP_TABLE_BY_KEY)) {
         if (key === 'artistMetadata') continue
         const restoredRows = await db2.select().from(table)
+        let expected = backup.data[key as keyof typeof backup.data] as unknown[]
+        if (key === 'approvalRequests') {
+          // Natural-key remap fields exist only in the snapshot, not in the table.
+          expected = (expected as Record<string, unknown>[]).map(
+            ({ requesterUsername, deciderUsername, recommendationKey, ...row }) => {
+              expect(requesterUsername).toBeTruthy()
+              expect(deciderUsername).toBeTruthy()
+              expect(recommendationKey).toBeTruthy()
+              return row
+            },
+          )
+        }
         expect(JSON.parse(JSON.stringify(restoredRows)), key).toEqual(
-          JSON.parse(JSON.stringify(backup.data[key as keyof typeof backup.data])),
+          JSON.parse(JSON.stringify(expected)),
         )
         expect(restoredRows.length, key).toBeGreaterThan(0)
       }

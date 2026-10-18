@@ -363,6 +363,7 @@ export type ApprovalResponse = {
   lidarrError?: string | null
   /** Rejects only: true when a permanent reject created a new block. */
   blockCreated?: boolean
+  requestId?: number
 }
 export const updateRecommendation = (id: number, body: Record<string, unknown>) =>
   fetchApi<ApprovalResponse>(`/recommendations/${id}`, {
@@ -388,9 +389,12 @@ export type MissingAlbumsApprovalResponse = {
     albumMbid: string
     success: boolean
     targetActions: Record<string, unknown>
+    status?: string
+    requestId?: number
   }>
   succeeded: number
   failed: number
+  requested?: number
 }
 export const approveMissingAlbums = (artistId: number, albumMbids: string[]) =>
   fetchApi<MissingAlbumsApprovalResponse>('/recommendations/missing-albums', {
@@ -403,10 +407,13 @@ export const bulkAction = (
   action: string,
   options?: { reason?: string | null; permanent?: boolean },
 ) =>
-  fetchApi('/recommendations/bulk', {
-    method: 'POST',
-    body: JSON.stringify({ ids, action, ...options }),
-  })
+  fetchApi<{ results: Array<{ id: number; status: string; requestId?: number; error?: string }> }>(
+    '/recommendations/bulk',
+    {
+      method: 'POST',
+      body: JSON.stringify({ ids, action, ...options }),
+    },
+  )
 
 export const getFeedbackSummary = () =>
   fetchApi<{
@@ -786,26 +793,77 @@ export const saveLibraryAlbumOverride = (payload: LibraryAlbumOverrideInput) =>
   })
 export const rerunLibraryReconciler = () => fetchApi<void>('/library/reconcile', { method: 'POST' })
 
+export type ApprovalPolicy = 'direct' | 'request_only' | 'auto_approve'
+export type UserApprovalSettings = {
+  approvalPolicy: ApprovalPolicy
+  maxOpenRequests: number | null
+  approvalThreshold: number | null
+}
+export type ApprovalRequest = {
+  id: number
+  token: string
+  recommendationId: number
+  requester: { id: number; username: string }
+  recommendation: {
+    artistName: string
+    albumTitle: string | null
+    score: number
+    reasons: string[]
+  }
+  status: 'pending' | 'approved' | 'declined'
+  lastError: string | null
+  note: string | null
+  createdAt: string
+}
+export const listApprovalRequests = () => fetchApi<ApprovalRequest[]>('/approval-requests')
+export const listOwnApprovalRequests = () => fetchApi<ApprovalRequest[]>('/approval-requests/mine')
+export const resolveApprovalRequest = (
+  id: number,
+  decision: 'approve' | 'decline',
+  note?: string,
+) =>
+  fetchApi<{ request: { status: ApprovalRequest['status'] }; approval?: ApprovalResponse }>(
+    `/approval-requests/${id}/${decision}`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ note }),
+    },
+  )
+
+export const getPersonalNotificationChannels = () =>
+  fetchApi<{ channels: NotificationChannel[] }>('/auth/me/notification-channels')
+export const updatePersonalNotificationChannels = (channels: NotificationChannel[]) =>
+  fetchApi<void>('/auth/me/notification-channels', {
+    method: 'PATCH',
+    body: JSON.stringify({ channels }),
+  })
+
 // User management (admin)
 export const listUsers = () =>
   fetchApi<
-    Array<{
-      id: number
-      username: string
-      isAdmin: boolean
-      email: string | null
-      oidcSubject: string | null
-      authProvider: string
-      createdAt: string
-    }>
+    Array<
+      {
+        id: number
+        username: string
+        isAdmin: boolean
+        email: string | null
+        oidcSubject: string | null
+        authProvider: string
+        createdAt: string
+      } & UserApprovalSettings
+    >
   >('/users')
-export const createUserApi = (data: { username: string; password: string; isAdmin?: boolean }) =>
+export const createUserApi = (
+  data: { username: string; password: string; isAdmin?: boolean } & Partial<UserApprovalSettings>,
+) =>
   fetchApi<{ id: number; username: string; isAdmin: boolean }>('/users', {
     method: 'POST',
     body: JSON.stringify(data),
   })
 export const updateUserAdmin = (id: number, isAdmin: boolean) =>
   fetchApi(`/users/${id}`, { method: 'PATCH', body: JSON.stringify({ isAdmin }) })
+export const updateUserApprovalSettings = (id: number, data: UserApprovalSettings) =>
+  fetchApi(`/users/${id}`, { method: 'PATCH', body: JSON.stringify(data) })
 export const deleteUserApi = (id: number) => fetchApi(`/users/${id}`, { method: 'DELETE' })
 
 // Targets
@@ -1345,7 +1403,16 @@ export type JobRun = {
   metadata: Record<string, unknown>
   sourceResults: Record<
     string,
-    { status: string; artists?: number; ms?: number; error?: string; reason?: string }
+    {
+      status: string
+      artists?: number
+      ms?: number
+      error?: string
+      reason?: string
+      seedsQueried?: number
+      seedsWithResults?: number
+      skipReasons?: Record<string, number>
+    }
   > | null
   subscriptionId: number | null
   batchId: number | null

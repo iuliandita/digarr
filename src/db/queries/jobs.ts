@@ -323,13 +323,19 @@ export async function getDigestStats(db: Database, since: Date): Promise<DigestS
     db
       .select({ count: count() })
       .from(recommendations)
-      .where(gte(recommendations.createdAt, since)),
+      .where(
+        and(
+          gte(recommendations.createdAt, since),
+          sql`coalesce(${recommendations.sources}->>'album_request', '') <> '0'`,
+        ),
+      ),
     db
       .select({ count: count() })
       .from(recommendations)
       .where(
         and(
           gte(recommendations.actedOnAt, since),
+          sql`coalesce(${recommendations.sources}->>'album_request', '') <> '0'`,
           inArray(recommendations.status, ['approved', 'added_to_lidarr']),
         ),
       ),

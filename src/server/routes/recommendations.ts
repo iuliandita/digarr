@@ -1,5 +1,6 @@
 import { type Context, Hono } from 'hono'
 import { type PopularAlbumCandidate, selectPopularReleaseGroups } from '@/core/albums/popular'
+import { requiresApprovalRequest } from '@/core/approvals/policy'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createSpotifyClient } from '@/core/clients/spotify'
@@ -15,6 +16,11 @@ import {
 } from '@/core/targets/lidarr-retry'
 import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
 import { conciseErrMsg } from '@/core/validation'
+import {
+  ApprovalRequestCooldownError,
+  ApprovalRequestLimitError,
+  approvalRequestQueries,
+} from '@/db/queries/approval-requests'
 import { getOwnedAuditionTrack } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
@@ -601,8 +607,12 @@ async function buildAddOptions(
   }
 }
 
-export function recommendationRoutes(deps: AppDependencies) {
+function createRecommendationRoutes(
+  deps: AppDependencies,
+  authorizedRequest?: { userId: number; recommendationId: number },
+) {
   const router = new Hono<HonoEnv>()
+  const requests = deps.approvalRequests ?? approvalRequestQueries(deps.db)
 
   router.post('/api/v1/recommendations/missing-albums', zJson(missingAlbumsSchema), async (c) => {
     const auth = requireSessionUser(c)
@@ -619,6 +629,74 @@ export function recommendationRoutes(deps: AppDependencies) {
     const selected = [...new Set(albumMbids)]
     if (selected.some((mbid) => !missing.has(mbid))) {
       return problem(c, 'invalid-album-selection', 'Invalid album selection', 400)
+    }
+
+    if (requiresApprovalRequest(await deps.getUserById(auth.userId), 0)) {
+      const results = []
+      for (const albumMbid of selected) {
+        const album = coverage.missing.find((entry) => entry.albumMbid.toLowerCase() === albumMbid)
+        const id = await requests.ensureAlbumRecommendation(
+          auth.userId,
+          artistId,
+          albumMbid,
+          album?.title ?? '',
+        )
+        try {
+          const request = await requests.create(auth.userId, id, { status: 'approved' })
+          results.push({
+            albumMbid,
+            status: 'requested',
+            requestId: request.id,
+            success: false,
+            targetActions: {},
+          })
+        } catch (error) {
+          await requests.cleanupAlbumRecommendation(auth.userId, id)
+          if (
+            !(error instanceof ApprovalRequestLimitError) &&
+            !(error instanceof ApprovalRequestCooldownError)
+          )
+            throw error
+          results.push({
+            albumMbid,
+            status:
+              error instanceof ApprovalRequestCooldownError
+                ? 'request_cooldown'
+                : 'request_limit_reached',
+            success: false,
+            targetActions: {},
+          })
+        }
+      }
+      if (results.every((entry) => entry.status === 'request_cooldown'))
+        return problem(
+          c,
+          'approval-request-cooldown',
+          'This request was recently declined. Try again after 24 hours.',
+          409,
+          undefined,
+          { results },
+          'errors.approval.declineCooldown',
+        )
+      if (results.every((entry) => entry.status === 'request_limit_reached'))
+        return problem(
+          c,
+          'approval-request-limit',
+          'The maximum number of open approval requests has been reached',
+          409,
+          undefined,
+          { results },
+          'errors.approval.requestLimit',
+        )
+      return c.json(
+        {
+          results,
+          succeeded: 0,
+          failed: results.filter((entry) => entry.status !== 'requested').length,
+          requested: results.filter((entry) => entry.status === 'requested').length,
+        },
+        202,
+      )
     }
 
     const targets = (await deps.getEnabledTargetsForUser(auth.userId)).filter((target) =>
@@ -795,6 +873,66 @@ export function recommendationRoutes(deps: AppDependencies) {
         const loaded = await loadOwnedRecommendation(c, id)
         if (loaded instanceof Response) return loaded
         const { rec, userId } = loaded
+
+        const requestAuthorized =
+          authorizedRequest?.userId === userId && authorizedRequest?.recommendationId === id
+        if (
+          requestAuthorized &&
+          userId &&
+          (rec.status === 'rejected' ||
+            (typeof deps.storeDb.getBlockedMbids === 'function' &&
+              (await deps.storeDb.getBlockedMbids(userId)).has(rec.artist.mbid)) ||
+            (rec.kind === 'album' &&
+              rec.recommendedReleaseGroupId &&
+              typeof deps.storeDb.getBlockedAlbumKeys === 'function' &&
+              (await deps.storeDb.getBlockedAlbumKeys(userId)).has(rec.recommendedReleaseGroupId)))
+        ) {
+          return problem(
+            c,
+            'approval-recommendation-unavailable',
+            'Recommendation is no longer available for approval',
+            409,
+            undefined,
+            undefined,
+            'errors.approval.recommendationUnavailable',
+          )
+        }
+
+        if (
+          userId &&
+          !requestAuthorized &&
+          requiresApprovalRequest(await deps.getUserById(userId), rec.score)
+        ) {
+          try {
+            const request = await requests.create(userId, id, body)
+            return c.json(
+              { status: 'requested', approvalRequest: request, requestId: request.id },
+              202,
+            )
+          } catch (error) {
+            if (error instanceof ApprovalRequestCooldownError)
+              return problem(
+                c,
+                'approval-request-cooldown',
+                error.message,
+                409,
+                undefined,
+                undefined,
+                'errors.approval.declineCooldown',
+              )
+            if (error instanceof ApprovalRequestLimitError)
+              return problem(
+                c,
+                'approval-request-limit',
+                error.message,
+                409,
+                undefined,
+                undefined,
+                'errors.approval.requestLimit',
+              )
+            throw error
+          }
+        }
 
         const sameArtist = (name: string) =>
           name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase() ===
@@ -1067,6 +1205,8 @@ export function recommendationRoutes(deps: AppDependencies) {
       })
     }
 
+    const approvalUser = userId ? await deps.getUserById(userId) : null
+
     // Approve: route through targets
     const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
     const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
@@ -1089,7 +1229,13 @@ export function recommendationRoutes(deps: AppDependencies) {
       lidarrOptionsTargetId: resolveLidarrOptionsTargetId(effectiveTargets, { targetId }),
     })
 
-    const results: Array<{ id: number; status: string; error?: string }> = []
+    const results: Array<{
+      id: number
+      status: string
+      error?: string
+      code?: string
+      requestId?: number
+    }> = []
 
     for (const id of ids) {
       await withApprovalLock(id, async () => {
@@ -1100,6 +1246,38 @@ export function recommendationRoutes(deps: AppDependencies) {
         }
         if (!isOwned(rec, userId)) {
           results.push({ id, status: 'not_found' })
+          return
+        }
+
+        if (userId && requiresApprovalRequest(approvalUser, rec.score)) {
+          try {
+            const request = await requests.create(userId, id, {
+              status: 'approved',
+              targetId,
+              qualityProfileId: qpOverride,
+              metadataProfileId: mpOverride,
+              rootFolderId: rfOverride,
+            })
+            results.push({ id, status: 'requested', requestId: request.id })
+          } catch (error) {
+            if (
+              !(error instanceof ApprovalRequestLimitError) &&
+              !(error instanceof ApprovalRequestCooldownError)
+            )
+              throw error
+            results.push({
+              id,
+              status:
+                error instanceof ApprovalRequestCooldownError
+                  ? 'request_cooldown'
+                  : 'request_limit_reached',
+              error: error.message,
+              code:
+                error instanceof ApprovalRequestCooldownError
+                  ? 'errors.approval.declineCooldown'
+                  : 'errors.approval.requestLimit',
+            })
+          }
           return
         }
 
@@ -1152,8 +1330,51 @@ export function recommendationRoutes(deps: AppDependencies) {
       })
     }
 
+    if (results.length > 0 && results.every((entry) => entry.status === 'request_cooldown'))
+      return problem(
+        c,
+        'approval-request-cooldown',
+        'This request was recently declined. Try again after 24 hours.',
+        409,
+        undefined,
+        { results },
+        'errors.approval.declineCooldown',
+      )
+    if (results.length > 0 && results.every((entry) => entry.status === 'request_limit_reached'))
+      return problem(
+        c,
+        'approval-request-limit',
+        'The maximum number of open approval requests has been reached',
+        409,
+        undefined,
+        { results },
+        'errors.approval.requestLimit',
+      )
     return c.json({ results })
   })
 
   return router
+}
+
+export function recommendationRoutes(deps: AppDependencies) {
+  return createRecommendationRoutes(deps)
+}
+
+export async function executeRequestedApproval(
+  deps: AppDependencies,
+  userId: number,
+  recommendationId: number,
+  options: Record<string, unknown>,
+) {
+  const app = new Hono<HonoEnv>()
+  app.use('*', async (c, next) => {
+    c.set('userId', userId)
+    await next()
+  })
+  app.route('/', createRecommendationRoutes(deps, { userId, recommendationId }))
+  return app.request(`/api/v1/recommendations/${recommendationId}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...options, status: 'approved' }),
+  })
 }
