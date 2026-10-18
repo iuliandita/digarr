@@ -360,7 +360,7 @@
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
-        "src/web/App.tsx": "3aacbff8cc40d0e40e7594e759413fbca26f93167877c6e195743270d758cb38",
+        "src/web/App.tsx": "d64bebca47ab949bd6900056a00078b0aa667396061716b63817f4f442d3a201",
         "src/web/components/admin/administration-tab.tsx": "6af6a3773aa3d669a89a520aa636eb185ec86d8bbabaafda66f6609e58092fa7",
         "src/web/components/admin/backup-section.tsx": "aac1e33dbc5c1e98e79e519560c50d253823c00c2bca497b4f9b7e8675374ee6",
         "src/web/components/admin/hygiene-section.tsx": "a02f8318469d01b51202b9537a5d40f7694496824cedb1a42f9bd294e8fd9b28",
@@ -371,7 +371,7 @@
         "src/web/components/approve-dialog.tsx": "6ed99631ddb300113876292dd984751dea1fc18d4b6bbd7acb4d38009ecb9522",
         "src/web/components/artist-enrichment-panel.tsx": "6bb679742243d5e8990ea02bbb638534845a9e02d116481ef62fca79be304a10",
         "src/web/components/artist-thumb.tsx": "00ef215d126d91fe362ac5920529d3cf282cbb9a60efa72530b03e9a20da16ed",
-        "src/web/components/auth-gate.tsx": "507e96081ace4506bea71278e1577d722591ba227f69d03c685b34eb0be961f4",
+        "src/web/components/auth-gate.tsx": "4629a97c0e27c1491cb1172254c1ea844170f65faff949099800701459274f69",
         "src/web/components/blocked-albums-tab.tsx": "b7183b82387212253a5659a29073860fa8ce0debe45a7961ee7258bfef87f6d3",
         "src/web/components/blocked-artists-tab.tsx": "745f164a66ede7570250801c9140d00cd2b5394987009021e64aed41d076de26",
         "src/web/components/bottom-nav.tsx": "66ef43a9dde69c425a1c1745e55869e57738984b620657f53c1dad80f6c8941b",
@@ -452,7 +452,7 @@
         "src/web/hooks/use-pull-to-refresh.ts": "3f2712e5eeedb351704404d837f6b82290fd4414de60274d3c70988253004a76",
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
-        "src/web/index.css": "86dea50495fd76524a1131b900baf64aad5fdc2a14c26e3641969f44b6d1f764",
+        "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
         "src/web/lib/api.ts": "b95b483885e3576420e26c76fac2ce7d3be1f5944f526ce2067915e37e5d1c8b",
         "src/web/lib/approval.ts": "17d8039f2b3ad3831c3e5a4ce0b766d9a23e9fc21494539df09901877ca805fd",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
@@ -502,20 +502,20 @@
         "src/web/pages/settings/tabs.ts": "6357a22ef5a0417e789f5f0c29bccc64093e5a519c5252e0f238138fe6ea4e28",
         "src/web/pages/settings/targets-tab.tsx": "a85ae3154db3e45ca748465f34f32f7ba1244184b40ad93be76e1e43e0ae7bb0",
         "src/web/pages/settings/types.ts": "fd701cb112b64dd6c1de1c3cf5c25fc395772dbb705f202a76326fd5d2757a71",
-        "src/web/pages/setup.tsx": "d0d836f200270d2fe4bfb7f0f7b61bf8b19be6c0550cce6626a7330bb561b318",
+        "src/web/pages/setup.tsx": "5dba6914b8df8955ac89b73fe86850e88667bc8a30c4540489802e85d57b5c06",
         "src/web/pages/subscriptions.tsx": "0c7c7c6d4d5a4754fc0681c00d07cd805a51fa48bacca067d2486803db21fe8d",
         "src/web/pages/user-management.tsx": "6eee86e37564eb34d86d55b85af08928474caacc998c2c8ca99da0f5c9d42fc1",
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "0a1df4208b1af8fe203e2c58a23979e77a2c57de2faf85d67c266deaebeb61c2",
+      "digest": "b35ccd581b468da4f91dca81ba106fe28c701d0f1adaf980809314b337bcbe4e",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document the required linked slskd path in all locales while standalone targets stay optional; retain the combined schedule-only playlist controls and single-target selection.",
         "breaking": "none",
         "migration": "",
-        "digest": "0a1df4208b1af8fe203e2c58a23979e77a2c57de2faf85d67c266deaebeb61c2"
+        "digest": "b35ccd581b468da4f91dca81ba106fe28c701d0f1adaf980809314b337bcbe4e"
       }
     },
     "features": {
