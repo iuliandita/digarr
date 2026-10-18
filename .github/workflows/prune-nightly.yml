@@ -1,0 +1,69 @@
+name: Prune nightly images
+
+# Removes old immutable :nightly-<sha> GHCR versions. A version is only a
+# candidate when every tag on it matches nightly-<hex>; anything carrying
+# nightly, latest, stable*, or a v* tag is never touched. The newest KEEP_COUNT
+# nightly-<sha> versions are always kept, and only versions older than
+# MAX_AGE_DAYS are deleted. Untagged child manifests are left alone.
+# Scheduled runs delete; manual runs default to a dry run.
+
+on:
+  schedule:
+    - cron: "17 3 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "List what would be deleted without deleting"
+        type: boolean
+        default: true
+
+permissions:
+  packages: write
+
+concurrency:
+  group: prune-nightly
+  cancel-in-progress: false
+
+env:
+  KEEP_COUNT: "20"
+  MAX_AGE_DAYS: "30"
+
+jobs:
+  prune:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - name: Prune old nightly-<sha> versions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          PACKAGE: ${{ github.event.repository.name }}
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
+        run: |
+          set -euo pipefail
+          cutoff=$(date -u -d "${MAX_AGE_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
+
+          gh api --paginate "/users/${OWNER}/packages/container/${PACKAGE}/versions?per_page=100" \
+            | jq -s 'add' > versions.json
+
+          jq -r --argjson keep "$KEEP_COUNT" --arg cutoff "$cutoff" '
+            [ .[]
+              | select((.metadata.container.tags | length) > 0)
+              | select(all(.metadata.container.tags[]; test("^nightly-[0-9a-f]{7,40}$")))
+            ]
+            | sort_by(.created_at) | reverse
+            | .[$keep:]
+            | map(select(.created_at < $cutoff))
+            | .[] | "\(.id) \(.created_at) \(.metadata.container.tags | join(","))"
+          ' versions.json > prune.txt
+
+          echo "Candidates: $(wc -l < prune.txt) (cutoff ${cutoff}, keeping newest ${KEEP_COUNT}, dry run: ${DRY_RUN})"
+          while read -r id created tags; do
+            [ -n "$id" ] || continue
+            if [ "$DRY_RUN" = "true" ]; then
+              echo "would delete ${id} (${tags}, ${created})"
+            else
+              echo "deleting ${id} (${tags}, ${created})"
+              gh api --method DELETE "/users/${OWNER}/packages/container/${PACKAGE}/versions/${id}"
+            fi
+          done < prune.txt

@@ -6,6 +6,11 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
+- A weekly workflow prunes `:nightly-<sha>` images older than 30 days, keeping the newest 20; `:nightly`, `:latest`, `:stable*` and release tags are never touched. Manual runs default to a dry run (#1053).
+
 ### Changed
 
 - Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, presets that show their run time in server time, Custom cron validation, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
