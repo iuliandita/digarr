@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The pre-migration auto-backup streams each table to disk in pages instead of building the whole database in memory first, so upgrades on large libraries no longer risk running out of memory before the server starts. Snapshots are now compact JSON (about 30% smaller) and restore exactly as before (#1092).
 - The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
 - A weekly workflow prunes `:nightly-<sha>` images older than 30 days, keeping the newest 20; `:nightly`, `:latest`, `:stable*` and release tags are never touched. Manual runs default to a dry run (#1053).
 - Approve All Above on Discover now asks for confirmation first, stating how many recommendations will be approved and that targets like Lidarr may receive adds; cancelling does nothing (#1036).

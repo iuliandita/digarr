@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { getTableColumns, getTableName, sql } from 'drizzle-orm'
+import { asc, getTableColumns, getTableName, gt, inArray, sql } from 'drizzle-orm'
 import type { AnyPgColumn, AnyPgTable } from 'drizzle-orm/pg-core'
 import { getTableConfig } from 'drizzle-orm/pg-core'
 import {
@@ -124,43 +124,191 @@ async function probeLiveSchema(db: Pick<OpsDb, 'execute'>): Promise<SchemaProbe>
   return { live, absent: { tables: [], columns: {} } }
 }
 
+async function selectAll(
+  db: Pick<OpsDb, 'select'>,
+  table: BackupTable,
+): Promise<Record<string, unknown>[]> {
+  return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
+}
+
+type Columns = Record<string, AnyPgColumn>
+type Row = Record<string, unknown>
+
 // With a probe, read only what the live database has and record the rest. A
 // missing table returns undefined so its key never reaches the snapshot and a
 // restore leaves that table alone instead of clearing it.
-async function selectAll(
-  db: Pick<OpsDb, 'select'>,
-  table: BackupTable,
-): Promise<Record<string, unknown>[]>
-async function selectAll(
-  db: Pick<OpsDb, 'select'>,
-  table: BackupTable,
-  probe: SchemaProbe | undefined,
-): Promise<Record<string, unknown>[] | undefined>
-async function selectAll(
-  db: Pick<OpsDb, 'select'>,
-  table: BackupTable,
-  probe?: SchemaProbe,
-): Promise<Record<string, unknown>[] | undefined> {
-  if (!probe) {
-    return db.select().from(table as AnyPgTable) as unknown as Record<string, unknown>[]
-  }
+function readableColumns(table: BackupTable, probe?: SchemaProbe): Columns | undefined {
+  const all = getTableColumns(table) as Columns
+  if (!probe) return all
   const name = getTableName(table)
   const liveColumns = probe.live.get(name)
   if (!liveColumns) {
     probe.absent.tables.push(name)
     return undefined
   }
-  const present: Record<string, AnyPgColumn> = {}
+  const present: Columns = {}
   const missing: string[] = []
-  for (const [key, col] of Object.entries(getTableColumns(table)) as [string, AnyPgColumn][]) {
+  for (const [key, col] of Object.entries(all)) {
     if (liveColumns.has(col.name)) present[key] = col
     else missing.push(col.name)
   }
   if (missing.length > 0) probe.absent.columns[name] = missing
-  return (await db.select(present).from(table as AnyPgTable)) as unknown as Record<
-    string,
-    unknown
-  >[]
+  return present
+}
+
+const BACKUP_PAGE_SIZE = 1000
+
+type BackupPlan = {
+  header: Omit<TolerantBackupFile, 'data' | 'absentSchema'>
+  tables: { key: keyof BackupData; table: BackupTable; columns: Columns | undefined }[]
+  absentSchema?: TolerantBackupFile['absentSchema']
+}
+
+async function planBackup(
+  db: Pick<OpsDb, 'execute'>,
+  options: BackupOptions | TolerantBackupOptions,
+): Promise<BackupPlan> {
+  const { includeCaches = false, full = true, tolerateMissingSchema = false } = options
+  const probe = tolerateMissingSchema ? await probeLiveSchema(db) : undefined
+  const entries: [keyof BackupData, BackupTable][] = [
+    ['settings', settings],
+    ['users', users],
+    ['oauthTokens', oauthTokens],
+    ['targets', targets],
+    ['subscriptions', subscriptions],
+    ['jobRuns', jobRuns],
+    ['recommendationBatches', recommendationBatches],
+    ['recommendations', recommendations],
+    ['approvalRequests', approvalRequests],
+    ['playlists', playlists],
+    ['playlistTracks', playlistTracks],
+    ['playlistExports', playlistExports],
+    ['artistBlocks', artistBlocks],
+    ['artists', artists],
+    ['artistGenreAliases', artistGenreAliases],
+    ['genres', genres],
+  ]
+  if (includeCaches) entries.push(['artistMetadata', artistMetadata])
+  if (full) {
+    entries.push(
+      ['albumBlocks', albumBlocks],
+      ['libraryArtists', libraryArtists],
+      ['libraryAlbums', libraryAlbums],
+      ['librarySyncState', librarySyncState],
+      ['libraryMatchOverrides', libraryMatchOverrides],
+      ['libraryAlbumMatchOverrides', libraryAlbumMatchOverrides],
+      ['libraryHealthState', libraryHealthState],
+      ['recordingArtistCache', recordingArtistCache],
+      ['slskdJobs', slskdJobs],
+    )
+  }
+  const tables = entries.map(([key, table]) => ({
+    key,
+    table,
+    columns: readableColumns(table, probe),
+  }))
+  const absent =
+    probe && (probe.absent.tables.length > 0 || Object.keys(probe.absent.columns).length > 0)
+      ? probe.absent
+      : undefined
+  return {
+    header: {
+      version: 1,
+      appVersion: getAppVersion(),
+      createdAt: new Date().toISOString(),
+      encryptionKeyHash: getKeyFingerprint(),
+      includesCaches: includeCaches,
+    },
+    tables,
+    ...(absent ? { absentSchema: absent } : {}),
+  }
+}
+
+async function selectByIds(
+  db: Pick<OpsDb, 'select'>,
+  table: BackupTable,
+  columns: Columns | undefined,
+  ids: unknown[],
+): Promise<Row[] | undefined> {
+  if (!columns) return undefined
+  const unique = [...new Set(ids.filter((id) => id != null))]
+  if (unique.length === 0) return []
+  const idColumn = (getTableColumns(table) as Columns).id as AnyPgColumn
+  return (await db
+    .select(columns)
+    .from(table as AnyPgTable)
+    .where(inArray(idColumn, unique))) as unknown as Row[]
+}
+
+// Restore resolves approval requests by natural keys, so look up only the rows this page references.
+async function annotateApprovalRequests(
+  db: Pick<OpsDb, 'select'>,
+  plan: BackupPlan,
+  rows: Row[],
+): Promise<Row[]> {
+  if (rows.length === 0) return rows
+  const columnsOf = (table: BackupTable) => plan.tables.find((t) => t.table === table)?.columns
+  const recRows = await selectByIds(
+    db,
+    recommendations,
+    columnsOf(recommendations),
+    rows.map((row) => row.recommendationId),
+  )
+  const userRows = await selectByIds(db, users, columnsOf(users), [
+    ...rows.flatMap((row) => [row.userId, row.decidedBy]),
+    ...(recRows ?? []).map((rec) => rec.userId),
+  ])
+  const artistRows = await selectByIds(
+    db,
+    artists,
+    columnsOf(artists),
+    (recRows ?? []).map((rec) => rec.artistId),
+  )
+  const batchRows = await selectByIds(
+    db,
+    recommendationBatches,
+    columnsOf(recommendationBatches),
+    (recRows ?? []).map((rec) => rec.batchId),
+  )
+  return rows.map((row) => {
+    const rec = recRows?.find((rec) => rec.id === row.recommendationId)
+    return {
+      ...row,
+      requesterUsername: userRows?.find((user) => user.id === row.userId)?.username,
+      deciderUsername: userRows?.find((user) => user.id === row.decidedBy)?.username ?? null,
+      recommendationKey: rec
+        ? recommendationNaturalKey(rec, userRows ?? [], artistRows ?? [], batchRows ?? [])
+        : undefined,
+    }
+  })
+}
+
+// Keyset pages in primary-key order; every present table yields at least one (possibly empty) page.
+async function* readBackupPages(
+  db: Pick<OpsDb, 'select'>,
+  plan: BackupPlan,
+  pageSize: number,
+): AsyncGenerator<{ key: keyof BackupData; rows: Row[] }> {
+  for (const { key, table, columns } of plan.tables) {
+    if (!columns) continue
+    const pk = Object.entries(columns).find(([, col]) => col.primary)
+    let after: unknown
+    for (;;) {
+      const query = db.select(columns).from(table as AnyPgTable)
+      const rows = (await (pk
+        ? query
+            .where(after === undefined ? undefined : gt(pk[1], after))
+            .orderBy(asc(pk[1]))
+            .limit(pageSize)
+        : query)) as unknown as Row[]
+      yield {
+        key,
+        rows: key === 'approvalRequests' ? await annotateApprovalRequests(db, plan, rows) : rows,
+      }
+      if (!pk || rows.length < pageSize) break
+      after = rows[rows.length - 1]?.[pk[0]]
+    }
+  }
 }
 
 function canonical(value: unknown): unknown {
@@ -202,81 +350,49 @@ async function readBackup(
   db: Pick<OpsDb, 'select' | 'execute'>,
   options: BackupOptions | TolerantBackupOptions,
 ): Promise<TolerantBackupFile> {
-  const { includeCaches = false, full = true, tolerateMissingSchema = false } = options
-  const probe = tolerateMissingSchema ? await probeLiveSchema(db) : undefined
-  const read = (table: BackupTable) => selectAll(db, table, probe)
+  const plan = await planBackup(db, options)
+  const data: Partial<BackupData> = {}
+  for await (const { key, rows } of readBackupPages(db, plan, BACKUP_PAGE_SIZE)) {
+    const target = (data[key] ?? []) as Row[]
+    for (const row of rows) target.push(row)
+    data[key] = target
+  }
+  return {
+    ...plan.header,
+    data,
+    ...(plan.absentSchema ? { absentSchema: plan.absentSchema } : {}),
+  }
+}
 
-  const settingsRows = await read(settings)
-  const userRows = await read(users)
-  const oauthRows = await read(oauthTokens)
-  const targetRows = await read(targets)
-  const subRows = await read(subscriptions)
-  const jobRunRows = await read(jobRuns)
-  const batchRows = await read(recommendationBatches)
-  const recRows = await read(recommendations)
-  const artistRows = await read(artists)
-  const requestRows = await read(approvalRequests)
-  const playlistRows = await read(playlists)
-  const trackRows = await read(playlistTracks)
-  const blockRows = await read(artistBlocks)
-
-  const backup: TolerantBackupFile = {
-    version: 1,
-    appVersion: getAppVersion(),
-    createdAt: new Date().toISOString(),
-    encryptionKeyHash: getKeyFingerprint(),
-    includesCaches: includeCaches,
-    data: {
-      settings: settingsRows,
-      users: userRows,
-      oauthTokens: oauthRows,
-      targets: targetRows,
-      subscriptions: subRows,
-      jobRuns: jobRunRows,
-      recommendationBatches: batchRows,
-      recommendations: recRows,
-      approvalRequests: requestRows?.map((row) => {
-        const rec = recRows?.find((rec) => rec.id === row.recommendationId)
-        return {
-          ...row,
-          requesterUsername: userRows?.find((user) => user.id === row.userId)?.username,
-          deciderUsername: userRows?.find((user) => user.id === row.decidedBy)?.username ?? null,
-          recommendationKey: rec
-            ? recommendationNaturalKey(rec, userRows ?? [], artistRows ?? [], batchRows ?? [])
-            : undefined,
+// Same structure as JSON.stringify(createBackupSnapshot(...)), compact, written one page at a time.
+export async function writeBackupSnapshot(
+  db: OpsDb,
+  write: (chunk: string) => void,
+  options: BackupOptions | TolerantBackupOptions = {},
+  pageSize = BACKUP_PAGE_SIZE,
+): Promise<Pick<TolerantBackupFile, 'absentSchema'>> {
+  return db.transaction(
+    async (tx) => {
+      const plan = await planBackup(tx, options)
+      write(`${JSON.stringify(plan.header).slice(0, -1)},"data":{`)
+      let open: keyof BackupData | undefined
+      let empty = true
+      for await (const { key, rows } of readBackupPages(tx, plan, pageSize)) {
+        if (key !== open) {
+          write(`${open ? '],' : ''}${JSON.stringify(key)}:[`)
+          open = key
+          empty = true
         }
-      }),
-      playlists: playlistRows,
-      playlistTracks: trackRows,
-      playlistExports: await read(playlistExports),
-      artistBlocks: blockRows,
-      artists: artistRows,
-      artistGenreAliases: await read(artistGenreAliases),
-      genres: await read(genres),
+        if (rows.length === 0) continue
+        write(`${empty ? '' : ','}${rows.map((row) => JSON.stringify(row)).join(',')}`)
+        empty = false
+      }
+      const absent = plan.absentSchema ? `,"absentSchema":${JSON.stringify(plan.absentSchema)}` : ''
+      write(`${open ? ']' : ''}}${absent}}`)
+      return plan.absentSchema ? { absentSchema: plan.absentSchema } : {}
     },
-  }
-
-  if (includeCaches) {
-    backup.data.artistMetadata = await read(artistMetadata)
-  }
-
-  if (full) {
-    backup.data.albumBlocks = await read(albumBlocks)
-    backup.data.libraryArtists = await read(libraryArtists)
-    backup.data.libraryAlbums = await read(libraryAlbums)
-    backup.data.librarySyncState = await read(librarySyncState)
-    backup.data.libraryMatchOverrides = await read(libraryMatchOverrides)
-    backup.data.libraryAlbumMatchOverrides = await read(libraryAlbumMatchOverrides)
-    backup.data.libraryHealthState = await read(libraryHealthState)
-    backup.data.recordingArtistCache = await read(recordingArtistCache)
-    backup.data.slskdJobs = await read(slskdJobs)
-  }
-
-  if (probe && (probe.absent.tables.length > 0 || Object.keys(probe.absent.columns).length > 0)) {
-    backup.absentSchema = probe.absent
-  }
-
-  return backup
+    { isolationLevel: 'repeatable read', accessMode: 'read only' },
+  )
 }
 
 export async function createBackupSnapshot(
