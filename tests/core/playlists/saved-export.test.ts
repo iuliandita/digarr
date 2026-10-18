@@ -200,6 +200,95 @@ describe('saved playlist exports', () => {
     })
   })
 
+  it('reports each target outcome without one failure hiding another success', async () => {
+    await db.insert(targets).values({ id: 3, userId: 1, name: 'Target', type: 'spotify-playlist' })
+    const verified = destination(1, { readBackTrackCount: vi.fn().mockResolvedValue(1) })
+    const partial = destination(2, {
+      createPlaylist: vi.fn(async (_name, onCreated) => {
+        await onCreated('remote-2')
+        return {
+          success: true,
+          targetType: 'spotify-playlist',
+          targetId: 2,
+          playlistId: 'remote-2',
+          itemsAdded: 1,
+          itemsSkipped: 2,
+        }
+      }),
+    })
+    const failed = destination(3, {
+      createPlaylist: vi.fn().mockRejectedValue(new Error(`upstream ${'x'.repeat(400)}`)),
+    })
+    const report = vi.fn().mockResolvedValue(undefined)
+    await expect(
+      pushSavedPlaylistToTargets(
+        [{ ...verified.entry, targetName: 'Living room' }, partial.entry, failed.entry],
+        'Mix',
+        items,
+        store(),
+        report,
+      ),
+    ).rejects.toThrow(/skipped 2.*spotify-playlist\(3\): upstream/)
+    expect(report).toHaveBeenCalledOnce()
+    const [outcomes] = report.mock.calls[0] ?? []
+    expect(outcomes).toEqual([
+      {
+        targetId: 1,
+        targetName: 'Living room',
+        targetType: 'spotify-playlist',
+        status: 'submitted',
+        verified: true,
+        itemsAdded: 1,
+        itemsSkipped: 0,
+      },
+      {
+        targetId: 2,
+        targetName: 'Target',
+        targetType: 'spotify-playlist',
+        status: 'partial',
+        verified: false,
+        itemsAdded: 1,
+        itemsSkipped: 2,
+      },
+      expect.objectContaining({ targetId: 3, status: 'failed', verified: false }),
+    ])
+    expect(outcomes[2].error).toHaveLength(300)
+  })
+
+  it.each([
+    ['a mismatched count', vi.fn().mockResolvedValue(5)],
+    ['a failed read-back', vi.fn().mockRejectedValue(new Error('read failed'))],
+  ])('leaves a successful write unverified after %s', async (_case, readBackTrackCount) => {
+    const report = vi.fn().mockResolvedValue(undefined)
+    await pushSavedPlaylistToTargets(
+      [destination(1, { readBackTrackCount }).entry],
+      'Mix',
+      items,
+      store(),
+      report,
+    )
+    expect(readBackTrackCount).toHaveBeenCalledWith('remote-1')
+    expect(report.mock.calls[0]?.[0]).toEqual([
+      expect.objectContaining({ status: 'submitted', verified: false }),
+    ])
+  })
+
+  it('fails loudly when outcomes cannot be saved, after every target was attempted', async () => {
+    const first = destination(1)
+    const second = destination(2)
+    await expect(
+      pushSavedPlaylistToTargets(
+        [first.entry, second.entry],
+        'Mix',
+        items,
+        store(),
+        vi.fn().mockRejectedValue(new Error('db down')),
+      ),
+    ).rejects.toThrow('export outcomes could not be saved: db down')
+    expect(first.session.createPlaylist).toHaveBeenCalledOnce()
+    expect(second.session.createPlaylist).toHaveBeenCalledOnce()
+  })
+
   it('serializes generation and recovery for one playlist while allowing others, and releases after failures', async () => {
     let release = () => {}
     const running = withPlaylistLock(

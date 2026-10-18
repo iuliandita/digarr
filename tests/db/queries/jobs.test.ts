@@ -261,6 +261,7 @@ describe('job queries on migrated PGlite', () => {
     expect(generation?.resolution).toEqual(resolution)
     expect(Object.keys(generation ?? {}).sort()).toEqual([
       'completedAt',
+      'exports',
       'jobId',
       'resolution',
       'startedAt',
@@ -329,5 +330,45 @@ describe('job queries on migrated PGlite', () => {
       status: 'completed',
       resolution: null,
     })
+  })
+
+  it('projects valid per-target export outcomes and drops malformed ones', async () => {
+    const submitted = {
+      targetId: 1,
+      targetName: 'Plex',
+      targetType: 'plex-playlist',
+      status: 'submitted',
+      verified: true,
+      itemsAdded: 3,
+      itemsSkipped: 0,
+    }
+    const failed = {
+      targetId: 2,
+      targetName: 'Spotify',
+      targetType: 'spotify-playlist',
+      status: 'failed',
+      verified: false,
+      error: 'Spotify API 500',
+    }
+    await db.insert(jobRuns).values([
+      {
+        type: 'playlist',
+        status: 'failed',
+        userId: ownerId,
+        startedAt: new Date('2026-01-02'),
+        metadata: { playlistId: 7, playlistExports: [{ ...submitted, token: 'secret' }, failed] },
+      },
+      {
+        type: 'playlist',
+        status: 'failed',
+        userId: ownerId,
+        startedAt: new Date('2026-01-01'),
+        metadata: { playlistId: 8, playlistExports: [{ ...failed, status: 'done' }] },
+      },
+    ])
+    const generation = await getLatestPlaylistGeneration(db, 7, ownerId)
+    expect(generation?.exports).toEqual([submitted, failed])
+    expect(JSON.stringify(generation)).not.toContain('secret')
+    expect((await getLatestPlaylistGeneration(db, 8, ownerId))?.exports).toBeNull()
   })
 })

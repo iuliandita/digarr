@@ -266,6 +266,50 @@ const OUTCOME_STATUS_KEYS: Record<string, MessageKey> = {
   limited: 'playlist.resolutionLimited',
 }
 
+const EXPORT_STATUS: Record<string, { label: MessageKey; className: string }> = {
+  submitted: { label: 'playlist.exportSubmitted', className: 'bg-green-500/15 text-green-400' },
+  partial: { label: 'playlist.exportPartial', className: 'bg-yellow-500/15 text-yellow-400' },
+  failed: { label: 'common.failed', className: 'bg-red-500/15 text-red-400' },
+}
+
+function ExportOutcomes({ outcomes }: { outcomes: NonNullable<PlaylistGeneration['exports']> }) {
+  const { t } = useI18n()
+  if (outcomes.length === 0) return null
+  return (
+    <div className="space-y-2">
+      <h3 className="text-sm font-semibold text-text">{t('playlist.exportResults')}</h3>
+      <ul className="space-y-2 text-sm">
+        {outcomes.map((outcome) => {
+          const status = EXPORT_STATUS[outcome.status] ?? EXPORT_STATUS.failed
+          return (
+            <li key={outcome.targetId} data-testid="playlist-export-outcome">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-text">{outcome.targetName}</span>
+                <span className={`px-2 py-0.5 rounded text-xs ${status?.className ?? ''}`}>
+                  {t(status?.label ?? 'common.failed')}
+                </span>
+                {outcome.status !== 'failed' && (
+                  <span className="text-xs text-muted">
+                    {t(outcome.verified ? 'playlist.exportVerified' : 'playlist.exportUnverified')}
+                  </span>
+                )}
+              </div>
+              {outcome.itemsAdded !== undefined && (
+                <p className="text-xs text-muted">
+                  {t('playlist.exportCounts')
+                    .replace('{0}', String(outcome.itemsAdded))
+                    .replace('{1}', String(outcome.itemsSkipped ?? 0))}
+                </p>
+              )}
+              {outcome.error && <p className="text-xs text-muted break-words">{outcome.error}</p>}
+            </li>
+          )
+        })}
+      </ul>
+    </div>
+  )
+}
+
 function GenerationSummary({ generation }: { generation: PlaylistGeneration | null }) {
   const { t } = useI18n()
   if (!generation) return null
@@ -336,6 +380,7 @@ function GenerationSummary({ generation }: { generation: PlaylistGeneration | nu
           </ul>
         </>
       )}
+      {generation.exports && <ExportOutcomes outcomes={generation.exports} />}
     </section>
   )
 }

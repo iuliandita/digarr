@@ -893,11 +893,13 @@ Before remote writes, Digarr verifies the destination identity and resolves matc
 
 **GET /api/v1/playlists/:id** may add `recommendationId` to an Audition track when its artist name identifies one unambiguous stored artist with a pending recommendation owned by the caller. Ambiguous artist identities or missing pending matches omit it, so the UI cannot approve the wrong recommendation.
 
-**GET /api/v1/playlists/:id** adds `generation`, either `null` for legacy/no-history playlists or `{ jobId, status, startedAt, completedAt, resolution }` for the latest owned generation job.
+**GET /api/v1/playlists/:id** adds `generation`, either `null` for legacy/no-history playlists or `{ jobId, status, startedAt, completedAt, resolution, exports }` for the latest owned generation job.
 
 `resolution` is `null` until its local result is recorded, and includes `requestedArtistCount`, `resolvedArtistCount`, `includedArtistCount`, `trackCount` and `outcomes` when available.
 
 Each outcome has `artistName`, optional `artistMbid`, `status`, `resolvedTrackCount` and `includedTrackCount`. Outcome statuses are `resolved`, `unmatched`, `unavailable`, `error` and `limited`. A partially included artist remains `resolved` with both counts; `limited` means tracks resolved but none fit the playlist cap.
+
+`exports` is `null` until that run reaches its selected targets, then lists one entry per target: `targetId`, `targetName`, `targetType`, `status`, `verified`, optional `itemsAdded`/`itemsSkipped`, and an optional `error` capped at 300 characters. `status` is `submitted` (the destination accepted every matched track), `partial` (accepted, with skipped tracks), or `failed`. `verified` is `true` only when a single bounded read-back of the remote playlist's track count matched `itemsAdded`; Navidrome, Plex, Jellyfin, and Emby support it. Spotify exports, failed read-backs, and mismatched counts stay `verified: false`, meaning submitted but unverified. Each target is reported on its own, so one failure does not hide another target's result; the job itself still fails when any target fails or skips tracks.
 
 A failed target export can coexist with a saved local resolution summary. This projection does not expose raw job errors, secrets, other users' results, or remote read-back verification.
 

@@ -441,6 +441,21 @@ describe('Navidrome scheduled export session', () => {
     },
   )
 
+  it.each([
+    [{ id: 'pl-42', owner: 'admin', songCount: 3 }, 3],
+    [{ id: 'pl-7', owner: 'admin', songCount: 3 }, null],
+    [{ id: 'pl-42', owner: 'admin' }, null],
+  ])('reads back the playlist track count without writing', async (playlist, expected) => {
+    const session = await createNavidromePlaylistTarget(5, CONFIG).openPlaylistExportSession?.([
+      item,
+    ])
+    mockFetch.mockImplementation(async () => okResponse({ playlist }))
+    const read = session?.readBackTrackCount?.('pl-42')
+    if (expected === null) await expect(read).rejects.toThrow('track count')
+    else expect(await read).toBe(expected)
+    expect(String(mockFetch.mock.lastCall?.[0])).toContain('/rest/getPlaylist?')
+  })
+
   it.each(['envelope', 'transport'])(
     'redacts credentials from %s preparation failures',
     async (kind) => {

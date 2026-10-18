@@ -87,3 +87,76 @@ it.each([12, undefined])(
     }
   },
 )
+
+it('shows each target outcome so a failed target does not hide a successful one', async () => {
+  vi.mocked(getPlaylist).mockResolvedValue({
+    playlist: {
+      id: 1,
+      userId: 1,
+      config: null,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      name: 'Digest',
+      strategy: 'weekly_digest',
+      targetIds: [1, 2, 3],
+      enabled: true,
+      schedule: null,
+      lastGeneratedAt: null,
+      trackCount: 0,
+    },
+    tracks: [],
+    generation: {
+      jobId: 4,
+      status: 'failed',
+      startedAt: '2026-01-01T00:00:00.000Z',
+      completedAt: '2026-01-01T00:00:00.000Z',
+      resolution: null,
+      exports: [
+        {
+          targetId: 1,
+          targetName: 'Living room Plex',
+          targetType: 'plex-playlist',
+          status: 'submitted',
+          verified: true,
+          itemsAdded: 3,
+          itemsSkipped: 0,
+        },
+        {
+          targetId: 2,
+          targetName: 'Navidrome',
+          targetType: 'navidrome-playlist',
+          status: 'partial',
+          verified: false,
+          itemsAdded: 2,
+          itemsSkipped: 1,
+        },
+        {
+          targetId: 3,
+          targetName: 'Spotify',
+          targetType: 'spotify-playlist',
+          status: 'failed',
+          verified: false,
+          error: 'Spotify API 500',
+        },
+      ],
+    },
+  })
+  render(
+    <I18nProvider>
+      <QueryClientProvider
+        client={new QueryClient({ defaultOptions: { queries: { retry: false } } })}
+      >
+        <MemoryRouter initialEntries={['/playlists/1']}>
+          <Routes>
+            <Route path="/playlists/:id" element={<PlaylistDetailPage />} />
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>
+    </I18nProvider>,
+  )
+  const rows = await screen.findAllByTestId('playlist-export-outcome')
+  expect(rows.map((row) => row.textContent)).toEqual([
+    'Living room PlexSubmittedConfirmed by read-back3 added, 0 skipped',
+    'NavidromePartialUnverified2 added, 1 skipped',
+    'SpotifyFailedSpotify API 500',
+  ])
+})

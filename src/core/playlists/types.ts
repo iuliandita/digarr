@@ -16,6 +16,18 @@ export type PlaylistGenerationSummary = {
   outcomes: PlaylistArtistOutcome[]
 }
 
+export type PlaylistExportOutcome = {
+  targetId: number
+  targetName: string
+  targetType: string
+  status: 'submitted' | 'partial' | 'failed'
+  /** True only when a bounded read-back matched the submitted track count. */
+  verified: boolean
+  itemsAdded?: number
+  itemsSkipped?: number
+  error?: string
+}
+
 export type ResolvedTrack = {
   artistName: string
   trackName: string

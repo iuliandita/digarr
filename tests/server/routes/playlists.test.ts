@@ -378,14 +378,34 @@ describe('GET /api/v1/playlists/:id', () => {
     expect(getLatestPlaylistGeneration).toHaveBeenCalledWith(mockDb, 1, USER_ID)
   })
 
-  it('returns the latest failed run without inventing an older resolution', async () => {
+  it('returns the latest failed run with per-target outcomes and no older resolution', async () => {
     const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
+    const exports = [
+      {
+        targetId: 1,
+        targetName: 'Plex',
+        targetType: 'plex-playlist',
+        status: 'submitted' as const,
+        verified: true,
+        itemsAdded: 3,
+        itemsSkipped: 0,
+      },
+      {
+        targetId: 2,
+        targetName: 'Spotify',
+        targetType: 'spotify-playlist',
+        status: 'failed' as const,
+        verified: false,
+        error: 'Spotify API 500',
+      },
+    ]
     getLatestPlaylistGeneration.mockResolvedValue({
       jobId: 8,
       status: 'failed',
       startedAt: new Date('2026-01-01'),
       completedAt: new Date('2026-01-01'),
       resolution: null,
+      exports,
     })
     const res = await createTestApp(makeDeps(), USER_ID).request('/api/v1/playlists/1')
     expect(res.status).toBe(200)
@@ -395,6 +415,7 @@ describe('GET /api/v1/playlists/:id', () => {
       startedAt: '2026-01-01T00:00:00.000Z',
       completedAt: '2026-01-01T00:00:00.000Z',
       resolution: null,
+      exports,
     })
   })
 

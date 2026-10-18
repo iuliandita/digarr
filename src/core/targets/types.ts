@@ -66,6 +66,7 @@ export type PlaylistExportSession = {
     onCreated: (playlistId: string) => Promise<void>,
   ): Promise<PlaylistResult>
   replacePlaylist(playlistId: string, name: string): Promise<PlaylistResult>
+  readBackTrackCount?(playlistId: string): Promise<number>
 }
 
 export interface DestinationTarget {

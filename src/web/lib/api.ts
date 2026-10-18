@@ -4,7 +4,7 @@ import type { GenreInfo } from '../../core/genre/types'
 import { getMessages } from '../../core/i18n/messages'
 import type { MessageKey } from '../../core/i18n/messages/types'
 import type { NotificationChannel } from '../../core/notifications/types'
-import type { PlaylistGenerationSummary } from '../../core/playlists/types'
+import type { PlaylistExportOutcome, PlaylistGenerationSummary } from '../../core/playlists/types'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -1266,6 +1266,7 @@ export type PlaylistGeneration = {
   startedAt: string
   completedAt: string | null
   resolution: PlaylistGenerationSummary | null
+  exports: PlaylistExportOutcome[] | null
 }
 
 export const getPlaylist = (id: number) =>

@@ -1137,13 +1137,13 @@ async function generatePlaylistContents(
         spotifyUri: track.spotifyUri ?? undefined,
       }))
 
-      const targets: Array<{ targetId: number; target: DestinationTarget }> = []
+      const targets: Array<{ targetId: number; target: DestinationTarget; targetName: string }> = []
       for (const targetRow of enabledTargetRows) {
         const target = createSavedPlaylistExportTarget(targetRow, {
           globalSkipTlsVerify,
           getSpotifyAccessToken: () => resolveProviderToken(db, userId, 'spotify'),
         })
-        if (target) targets.push({ targetId: targetRow.id, target })
+        if (target) targets.push({ targetId: targetRow.id, target, targetName: targetRow.name })
       }
 
       await pushSavedPlaylistToTargets(
@@ -1151,6 +1151,9 @@ async function generatePlaylistContents(
         playlist.name,
         playlistItems,
         createSavedPlaylistExportStore(db, userId, playlist.id),
+        async (playlistExports) => {
+          if (jobId != null) await jobQueries.updateJobMetadata(db, jobId, { playlistExports })
+        },
       )
     }
 

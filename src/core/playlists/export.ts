@@ -1,5 +1,11 @@
 import { cellSafe } from '@/core/csv/cell-safe'
-import type { DestinationTarget, PlaylistItem, PlaylistResult } from '@/core/targets/types'
+import type { PlaylistExportOutcome } from '@/core/playlists/types'
+import type {
+  DestinationTarget,
+  PlaylistExportSession,
+  PlaylistItem,
+  PlaylistResult,
+} from '@/core/targets/types'
 import { errMsg } from '@/core/validation'
 import type { Database } from '@/db'
 import type { PlaylistExportRow } from '@/db/queries/playlist-exports'
@@ -165,15 +171,35 @@ export function createSavedPlaylistExportStore(
   }
 }
 
+const OUTCOME_ERROR_MAX = 300
+
+async function confirmTrackCount(
+  session: PlaylistExportSession,
+  result: PlaylistResult,
+): Promise<boolean> {
+  if (!session.readBackTrackCount || !result.playlistId || result.itemsAdded === undefined)
+    return false
+  try {
+    return (await session.readBackTrackCount(result.playlistId)) === result.itemsAdded
+  } catch {
+    // A failed read-back leaves the write unverified; it does not change what was submitted.
+    return false
+  }
+}
+
 export async function pushSavedPlaylistToTargets(
-  targets: Array<{ targetId: number; target: DestinationTarget }>,
+  targets: Array<{ targetId: number; target: DestinationTarget; targetName?: string }>,
   name: string,
   items: PlaylistItem[],
   store: SavedPlaylistExportStore,
+  reportOutcomes?: (outcomes: PlaylistExportOutcome[]) => Promise<void>,
 ): Promise<void> {
   const failures: string[] = []
-  for (const { targetId, target } of targets) {
+  const outcomes: PlaylistExportOutcome[] = []
+  for (const { targetId, target, targetName } of targets) {
+    const base = { targetId, targetName: targetName ?? target.name, targetType: target.type }
     let created = false
+    let recorded = false
     try {
       if (items.length === 0)
         throw new Error('No generated tracks; the remote playlist was preserved')
@@ -205,8 +231,16 @@ export async function pushSavedPlaylistToTargets(
         result = await session.replacePlaylist(binding.remotePlaylistId, name)
       }
       if (!result.success) throw new Error(result.error || 'Export failed')
-      if ((result.itemsSkipped ?? 0) > 0)
-        throw new Error(`Added ${result.itemsAdded ?? 0}, skipped ${result.itemsSkipped}`)
+      const skipped = result.itemsSkipped ?? 0
+      outcomes.push({
+        ...base,
+        status: skipped > 0 ? 'partial' : 'submitted',
+        verified: await confirmTrackCount(session, result),
+        itemsAdded: result.itemsAdded,
+        itemsSkipped: skipped,
+      })
+      recorded = true
+      if (skipped > 0) throw new Error(`Added ${result.itemsAdded ?? 0}, skipped ${skipped}`)
     } catch (error) {
       let message = errMsg(error)
       if (created) {
@@ -216,7 +250,22 @@ export async function pushSavedPlaylistToTargets(
           message += `; recovery state could not be persisted: ${errMsg(checkpointError)}`
         }
       }
+      if (!recorded) {
+        outcomes.push({
+          ...base,
+          status: 'failed',
+          verified: false,
+          error: message.slice(0, OUTCOME_ERROR_MAX),
+        })
+      }
       failures.push(`${target.type}(${targetId}): ${message}`)
+    }
+  }
+  if (reportOutcomes) {
+    try {
+      await reportOutcomes(outcomes)
+    } catch (error) {
+      failures.push(`export outcomes could not be saved: ${errMsg(error)}`)
     }
   }
   if (failures.length > 0) throw new Error(`Playlist export failed: ${failures.join('; ')}`)

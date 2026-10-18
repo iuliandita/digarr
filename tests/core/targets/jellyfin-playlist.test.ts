@@ -209,6 +209,24 @@ describe('Jellyfin scheduled playlist session', () => {
     expect(mutations(fetchMock)).toHaveLength(1)
   })
 
+  it.each([
+    [undefined, 1],
+    [{ Items: [] }, null],
+  ])('reads back the playlist track count with one bounded request', async (entries, expected) => {
+    const fetchMock = exportFetch({ entries })
+    mockFetch.mockImplementation(fetchMock)
+    const session = await createJellyfinPlaylistTarget(7, CONFIG).openPlaylistExportSession?.(
+      EXPORT_ITEMS,
+    )
+    const read = session?.readBackTrackCount?.('playlist-1')
+    if (expected === null) await expect(read).rejects.toThrow('track count')
+    else expect(await read).toBe(expected)
+    const request = new URL(String(fetchMock.mock.lastCall?.[0]))
+    expect(request.pathname).toBe('/Playlists/playlist-1/Items')
+    expect(request.searchParams.get('Limit')).toBe('1')
+    expect(mutations(fetchMock)).toHaveLength(0)
+  })
+
   it('replaces entry IDs on the same playlist and preserves its metadata', async () => {
     const fetchMock = exportFetch()
     mockFetch.mockImplementation(fetchMock)

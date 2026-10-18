@@ -288,6 +288,25 @@ describe('Plex scheduled playlist session', () => {
     expect(sessionWrites(fetchMock)).toHaveLength(1)
   })
 
+  it.each([
+    [{ ratingKey: '99', leafCount: 3 }, 3],
+    [{ ratingKey: '98', leafCount: 3 }, null],
+    [{ ratingKey: '99' }, null],
+  ])('reads back the playlist track count without writing', async (metadata, expected) => {
+    const base = sessionFetch()
+    const fetchMock = vi.fn(async (url: string, init: RequestInit) =>
+      new URL(url).pathname === '/playlists/99'
+        ? ok({ MediaContainer: { Metadata: [metadata] } })
+        : base(url, init),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    const session = await createPlexPlaylistTarget(4, CONFIG).openPlaylistExportSession?.([ITEM])
+    const read = session?.readBackTrackCount?.('99')
+    if (expected === null) await expect(read).rejects.toThrow('track count')
+    else expect(await read).toBe(expected)
+    expect(sessionWrites(fetchMock)).toHaveLength(0)
+  })
+
   it('clears and populates the bound dumb audio playlist without recreating or renaming it', async () => {
     const fetchMock = sessionFetch()
     vi.stubGlobal('fetch', fetchMock)

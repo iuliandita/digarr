@@ -1,6 +1,6 @@
 import { and, count, desc, eq, gte, inArray, isNotNull, sql } from 'drizzle-orm'
 import type { JobRunRow, JobType, SourceResult } from '@/core/jobs/types'
-import type { PlaylistGenerationSummary } from '@/core/playlists/types'
+import type { PlaylistExportOutcome, PlaylistGenerationSummary } from '@/core/playlists/types'
 import type { Database } from '@/db'
 import { type JobMetadata, jobRuns, recommendations } from '@/db/schema'
 
@@ -86,6 +86,45 @@ export type PlaylistGeneration = {
   startedAt: Date
   completedAt: Date | null
   resolution: PlaylistGenerationSummary | null
+  exports: PlaylistExportOutcome[] | null
+}
+
+const EXPORT_STATUSES = new Set(['submitted', 'partial', 'failed'])
+
+function playlistExportOutcomes(value: unknown): PlaylistExportOutcome[] | null {
+  if (!Array.isArray(value)) return null
+  const optionalCount = (count: unknown) =>
+    count === undefined || (typeof count === 'number' && Number.isSafeInteger(count) && count >= 0)
+  const projected: PlaylistExportOutcome[] = []
+  for (const entry of value) {
+    if (!entry || typeof entry !== 'object') return null
+    const { targetId, targetName, targetType, status, verified, itemsAdded, itemsSkipped, error } =
+      entry as Record<string, unknown>
+    if (
+      typeof targetId !== 'number' ||
+      !Number.isSafeInteger(targetId) ||
+      typeof targetName !== 'string' ||
+      typeof targetType !== 'string' ||
+      typeof status !== 'string' ||
+      !EXPORT_STATUSES.has(status) ||
+      typeof verified !== 'boolean' ||
+      !optionalCount(itemsAdded) ||
+      !optionalCount(itemsSkipped) ||
+      (error !== undefined && typeof error !== 'string')
+    )
+      return null
+    projected.push({
+      targetId,
+      targetName,
+      targetType,
+      status: status as PlaylistExportOutcome['status'],
+      verified,
+      ...(itemsAdded === undefined ? {} : { itemsAdded: itemsAdded as number }),
+      ...(itemsSkipped === undefined ? {} : { itemsSkipped: itemsSkipped as number }),
+      ...(error === undefined ? {} : { error }),
+    })
+  }
+  return projected
 }
 
 function playlistResolution(value: unknown): PlaylistGenerationSummary | null {
@@ -149,6 +188,7 @@ export async function getLatestPlaylistGeneration(
       startedAt: jobRuns.startedAt,
       completedAt: jobRuns.completedAt,
       resolution: sql<unknown>`${jobRuns.metadata}->'playlistResolution'`,
+      exports: sql<unknown>`${jobRuns.metadata}->'playlistExports'`,
     })
     .from(jobRuns)
     .where(
@@ -160,7 +200,13 @@ export async function getLatestPlaylistGeneration(
     )
     .orderBy(desc(jobRuns.startedAt), desc(jobRuns.id))
     .limit(1)
-  return row ? { ...row, resolution: playlistResolution(row.resolution) } : null
+  return row
+    ? {
+        ...row,
+        resolution: playlistResolution(row.resolution),
+        exports: playlistExportOutcomes(row.exports),
+      }
+    : null
 }
 
 export type HealthSummary = {

@@ -247,6 +247,16 @@ export function createJellyfinFamilyPlaylistTarget(
               return failure(error, playlistId)
             }
           },
+          async readBackTrackCount(playlistId) {
+            if (!validId(playlistId)) throw new Error('Invalid playlist ID')
+            const params = new URLSearchParams({ UserId: userId, StartIndex: '0', Limit: '1' })
+            const result = await get<{ TotalRecordCount?: number }>(
+              `/Playlists/${encodeURIComponent(playlistId)}/Items?${params}`,
+            )
+            if (!Number.isSafeInteger(result.TotalRecordCount))
+              throw new Error(`${serviceName} did not return the playlist track count`)
+            return result.TotalRecordCount as number
+          },
         }
       } catch (error) {
         rethrowProviderError(error)

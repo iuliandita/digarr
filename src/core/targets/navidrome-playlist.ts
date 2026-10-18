@@ -214,6 +214,15 @@ export function createNavidromePlaylistTarget(
               return failure(error, playlistId)
             }
           },
+          async readBackTrackCount(playlistId) {
+            const current = await subsonicFetch<{ playlist?: { id?: string; songCount?: number } }>(
+              apiPath('getPlaylist', { id: playlistId }),
+            )
+            const count = current.playlist?.songCount
+            if (current.playlist?.id !== playlistId || !Number.isSafeInteger(count))
+              throw new Error('Navidrome did not return the playlist track count')
+            return count as number
+          },
         }
       } catch (error) {
         throw new Error(redactError(error))

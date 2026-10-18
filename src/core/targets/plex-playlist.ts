@@ -228,6 +228,16 @@ export function createPlexPlaylistTarget(
               return failure(error, playlistId)
             }
           },
+          async readBackTrackCount(playlistId) {
+            if (!validId(playlistId)) throw new Error('Invalid playlist ID')
+            const response = await get<{
+              MediaContainer?: { Metadata?: Array<{ ratingKey?: string; leafCount?: number }> }
+            }>(`/playlists/${encodeURIComponent(playlistId)}`)
+            const playlist = response.MediaContainer?.Metadata?.[0]
+            if (playlist?.ratingKey !== playlistId || !Number.isSafeInteger(playlist.leafCount))
+              throw new Error('Plex did not return the playlist track count')
+            return playlist.leafCount as number
+          },
         }
       } catch (error) {
         rethrowPlexError(error)
