@@ -150,8 +150,8 @@ import {
 import { deleteExpiredPendingOAuth } from './db/queries/oauth-pending'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
-  getEnabledPlaylists,
   getPlaylistWithTracks,
+  getScheduledPlaylists,
   replacePlaylistTracks,
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
@@ -1205,7 +1205,7 @@ async function restartPlaylistScheduler(): Promise<void> {
   const enabled = mergePreferences(settings?.preferences).playlistEnabled ?? false
   schedulePlaylists(playlistScheduler, {
     enabled,
-    playlists: enabled ? await getEnabledPlaylists(db) : [],
+    playlists: enabled ? await getScheduledPlaylists(db) : [],
     generate: (playlistId) => executePlaylistGeneration(playlistId, 'scheduled'),
   })
 }

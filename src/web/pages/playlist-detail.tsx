@@ -448,9 +448,6 @@ export function PlaylistDetailPage() {
                 {t('playlist.tracks')}: <span className="text-text">{playlist.trackCount}</span>
               </span>
             )}
-            {!playlist.enabled && (
-              <span className="text-muted/60 italic">{t('common.disabled')}</span>
-            )}
           </span>
         }
         actions={

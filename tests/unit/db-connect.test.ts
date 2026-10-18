@@ -1,4 +1,4 @@
-import { mkdtempSync } from 'node:fs'
+import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { sql } from 'drizzle-orm'
@@ -19,6 +19,7 @@ describe('connectTarget', () => {
     process.env.DIGARR_MIGRATE_DATA_ROOT = mkdtempSync(join(tmpdir(), 'digarr-root-'))
   })
   afterEach(() => {
+    rmSync(process.env.DIGARR_MIGRATE_DATA_ROOT as string, { recursive: true, force: true })
     delete process.env.DIGARR_MIGRATE_DATA_ROOT
   })
 
