@@ -1885,4 +1885,16 @@ export const es = {
   'discover.secondaryTaste': 'Otros géneros preferidos',
   'discover.scoreOrder': 'Por puntuación',
   'errors.preferences.invalidGenres': 'Prioridades de géneros no válidas',
+  'missingAlbums.action': 'Obtener álbumes que faltan',
+  'missingAlbums.title': 'Álbumes de estudio que faltan',
+  'missingAlbums.description': 'Elige los álbumes que quieres para {artist}.',
+  'missingAlbums.selected': '{selected} de {total} seleccionados',
+  'missingAlbums.confirm': 'Obtener álbumes seleccionados',
+  'missingAlbums.empty': 'Ya tienes todos los álbumes de estudio.',
+  'missingAlbums.loadError': 'No se pudieron cargar los álbumes que faltan.',
+  'missingAlbums.approveError':
+    'No se pudieron aprobar los álbumes seleccionados. Inténtalo de nuevo.',
+  'missingAlbums.result': '{succeeded} aprobados, {failed} fallidos.',
+  'missingAlbums.failed': 'Error - inténtalo de nuevo',
+  'missingAlbums.success': 'Aprobado',
 } as const

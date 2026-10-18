@@ -34,8 +34,9 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 [CHANGELOG.md](../CHANGELOG.md) records shipped changes by version. Copyable README and Compose version examples must match the release before tagging. Immutable deployment pins update separately after image publication; see the [release checks](MAINTENANCE.md#limits-and-release-checks).
 
-## Unreleased work
+## Unreleased
 
+- Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
 - Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
 
 ## Next priorities

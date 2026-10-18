@@ -6,14 +6,17 @@ import { createSpotifyClient } from '@/core/clients/spotify'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { resolveProviderToken } from '@/core/provider-auth'
 import type { FeedbackTrack } from '@/core/scrobbler-write-back'
+import { conciseErrMsg } from '@/core/validation'
 import { getOwnedAuditionTrack } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
+import { requireSessionUser } from '@/server/helpers/require-user'
 import {
   bulkRecommendationSchema,
   listRecommendationsQuerySchema,
+  missingAlbumsSchema,
   recommendationIdParamSchema,
   rejectStatusSchema,
   updateRecommendationSchema,
@@ -355,16 +358,26 @@ async function approveAlbumToTargets(
         })
       : null
 
-    const result = await target.addAlbum?.(
-      {
-        artistMbid: album.artistMbid,
-        artistName: album.artistName,
-        releaseGroupMbid: album.releaseGroupMbid,
-      },
-      { ...addOptions, userId, recommendationId },
-    )
+    const result = await target
+      .addAlbum?.(
+        {
+          artistMbid: album.artistMbid,
+          artistName: album.artistName,
+          releaseGroupMbid: album.releaseGroupMbid,
+        },
+        { ...addOptions, userId, recommendationId },
+      )
+      .catch((err: unknown) => ({
+        success: false,
+        externalId: undefined,
+        error: conciseErrMsg(err),
+      }))
 
     if (!result) {
+      targetActions[target.id] = {
+        status: 'failed',
+        error: 'Target did not return an album result',
+      }
       if (targetJobId != null && jobRecorder) {
         await jobRecorder.complete(targetJobId, {
           metadata: { targetType: target.type, artistName: album.artistName, skipped: true },
@@ -536,6 +549,70 @@ async function buildAddOptions(
 
 export function recommendationRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
+
+  router.post('/api/v1/recommendations/missing-albums', zJson(missingAlbumsSchema), async (c) => {
+    const auth = requireSessionUser(c)
+    if (!auth.ok) return auth.response
+    const { artistId, albumMbids } = c.req.valid('json')
+    const artist = await deps.getArtistById(artistId)
+    if (!artist) return problem(c, 'artist-not-found', 'Artist not found', 404)
+    if (!deps.albumCoverage) {
+      return problem(c, 'album-coverage-unavailable', 'Album coverage unavailable', 503)
+    }
+
+    const coverage = await deps.albumCoverage.getCoverageForArtist(auth.userId, artist.mbid)
+    const missing = new Set(coverage.missing.map((album) => album.albumMbid.toLowerCase()))
+    const selected = [...new Set(albumMbids)]
+    if (selected.some((mbid) => !missing.has(mbid))) {
+      return problem(c, 'invalid-album-selection', 'Invalid album selection', 400)
+    }
+
+    const targets = (await deps.getEnabledTargetsForUser(auth.userId)).filter((target) =>
+      target.capabilities.includes('addAlbum'),
+    )
+    if (targets.length === 0) {
+      return problem(c, 'no-album-targets', 'No enabled album targets', 400)
+    }
+    const addOptions = await buildAddOptions(deps, auth.userId, artist, {
+      lidarrOptionsTargetId: resolveLidarrOptionsTargetId(targets, {}),
+    })
+    const results = []
+    for (const albumMbid of selected) {
+      try {
+        const result = await approveAlbumToTargets(
+          { artistMbid: artist.mbid, artistName: artist.name, releaseGroupMbid: albumMbid },
+          targets,
+          addOptions,
+          deps.jobRecorder,
+          auth.userId,
+        )
+        const targetActions = Object.fromEntries(
+          Object.entries(result.targetActions).map(([id, value]) => {
+            const action = value as NonNullable<TargetActionRecord>
+            return [
+              id,
+              { ...action, ...(action.error ? { error: conciseErrMsg(action.error) } : {}) },
+            ]
+          }),
+        )
+        results.push({
+          albumMbid,
+          success: targets.every((target) =>
+            isTargetSuccess(targetActions[target.id] as TargetActionRecord),
+          ),
+          targetActions,
+        })
+      } catch (err) {
+        results.push({
+          albumMbid,
+          success: false,
+          targetActions: { batch: { status: 'failed', error: conciseErrMsg(err) } },
+        })
+      }
+    }
+    const succeeded = results.filter((result) => result.success).length
+    return c.json({ results, succeeded, failed: results.length - succeeded })
+  })
 
   // Missing and non-owned both 404 (don't leak ownership); on failure returns the Response to return as-is.
   const loadOwnedRecommendation = async (

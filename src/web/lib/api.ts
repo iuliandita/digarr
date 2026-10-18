@@ -383,6 +383,21 @@ export const approveRecommendation = (
     auditionTrackId?: number
   },
 ) => updateRecommendation(id, { status: 'approved', ...options })
+export type MissingAlbumsApprovalResponse = {
+  results: Array<{
+    albumMbid: string
+    success: boolean
+    targetActions: Record<string, unknown>
+  }>
+  succeeded: number
+  failed: number
+}
+export const approveMissingAlbums = (artistId: number, albumMbids: string[]) =>
+  fetchApi<MissingAlbumsApprovalResponse>('/recommendations/missing-albums', {
+    method: 'POST',
+    body: JSON.stringify({ artistId, albumMbids }),
+  })
+
 export const bulkAction = (
   ids: number[],
   action: string,
