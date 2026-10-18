@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -220,7 +223,11 @@
       "digest": "4920756c18b171d00b751902b2d2d0070a8cc600859a9f448ccf8542dd26ebaf",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md"],
+        "docs": [
+          ".env.example",
+          "docs/AUTHENTICATION.md",
+          "docs/OPERATIONS.md"
+        ],
         "note": "Document optional LASTFM_SHARED_SECRET and its file variant, matching per-user API keys, encryption and public-origin prerequisites, restart and per-user consent.",
         "breaking": "none",
         "migration": "",
@@ -267,7 +274,11 @@
       "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/AUTHENTICATION.md",
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
         "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
         "breaking": "none",
         "migration": "",
@@ -336,7 +347,11 @@
       "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "src/server/helpers/openapi-doc.ts",
+          "CHANGELOG.md"
+        ],
         "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
         "breaking": "none",
         "migration": "",
@@ -529,7 +544,11 @@
       "digest": "db0c454ccd38ae02bc4905dbb953262245faf8e61690ec846d1b9c86294d0078",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "README.md",
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Describe policy controls, admin queue errors with retry or decline, requester history, personal notification subscriptions and fifteen-locale waiting and cooldown messages. Existing screenshots predate these controls.",
         "breaking": "none",
         "migration": "",
@@ -663,7 +682,7 @@
         "src/core/playlists/strategy-deps.ts": "a6a88f3057ba5f204a789da4ed2b4b14fb30f5ce6fbfa80aad08b3c767975a18",
         "src/core/playlists/track-resolver.ts": "356f2400061e0db6243450654367e002019a70dba0708c27d6d8aa6471071bc6",
         "src/core/playlists/types.ts": "103df693bced14be3b00f9fc407bfba267ba6562a20b3752ab8665eadd154aa2",
-        "src/core/plugins/audiomuse.ts": "34a582ecddcc9e21a38f67ca791850b18ec32dc47a142839288bc7d7b09376c2",
+        "src/core/plugins/audiomuse.ts": "2aae73e9d4f18015e42cb50e78a4536e128014283f24cce69e21a7a5ed3dd56c",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
         "src/core/plugins/emby.ts": "ad73fab18f531878937b7cbbcbb2c0c8ff13aff42fece578bbaef560d0469600",
         "src/core/plugins/jellyfin-family.ts": "e5bde5b7aaa28f346472a155e9db08a9e08734a241ebc0deebd280201ab52f06",
@@ -750,14 +769,14 @@
         "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "f15b7f0d0dab507ba5af535818779ea83b0169f49f01585499dcd4de17dd4426",
+      "digest": "6857ee6aff51fd1b4451e7a73e6d069c0cbf35b2938d26655f927f72b6a2e394",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Describe shared approval enforcement with unchanged direct defaults, cached policy per approval request or pipeline run, personal localized outcomes, synthetic album cleanup and the 24-hour decline cooldown.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "AudioMuse name matching now uses the existing reconciler normalizer; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
         "breaking": "none",
         "migration": "",
-        "digest": "f15b7f0d0dab507ba5af535818779ea83b0169f49f01585499dcd4de17dd4426"
+        "digest": "6857ee6aff51fd1b4451e7a73e6d069c0cbf35b2938d26655f927f72b6a2e394"
       }
     },
     "deployment": {
@@ -800,7 +819,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",
@@ -828,7 +850,9 @@
       "digest": "5cfb4d0c95a172a832974bbca65d1638836424e2d8f0db0834cfca4b10b45bcb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Single-PR release flow, dispatched CI for the digest-sync PR, Debian build check, verify-digest-sync removed; procedure documented in docs/MAINTENANCE.md and the changelog.",
         "breaking": "none",
         "migration": "",

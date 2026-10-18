@@ -134,7 +134,7 @@ describe('AudioMuse discovery source', () => {
     const source = createAudioMuseSource(
       { url: 'https://audiomuse.example' },
       {
-        excludedArtistNames: ['Owned', 'Blocked'],
+        excludedArtistNames: ['The Owned', 'Blöcked'],
       },
     )
     const discovered = await discover(

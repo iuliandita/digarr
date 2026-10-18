@@ -5,6 +5,7 @@ import {
   createAudioMuseClient,
 } from '@/core/clients/audiomuse'
 import { decryptField } from '@/core/crypto'
+import { normalizeArtistName } from '@/core/library/normalize'
 import type { Preferences } from '@/db/schema'
 import type { DiscoverySource } from './types'
 
@@ -33,8 +34,7 @@ export function createAudioMuseSource(
 ): DiscoverySource {
   const client = createAudioMuseClient(config)
   const queue = new PQueue({ concurrency: 2 })
-  const normalizeName = (name: string) => name.toLowerCase()
-  const excluded = new Set([...(options.excludedArtistNames ?? [])].map(normalizeName))
+  const excluded = new Set([...(options.excludedArtistNames ?? [])].map(normalizeArtistName))
   const emitted = new Set<string>()
   const summary = {
     seedsQueried: 0,
@@ -62,18 +62,18 @@ export function createAudioMuseSource(
           summary.seedsWithResults++
           // Rank eligible matches within each seed, preserving the strongest matches first.
           const eligible = artists
-            .filter((artist) => !excluded.has(normalizeName(artist.name)))
+            .filter((artist) => !excluded.has(normalizeArtistName(artist.name)))
             .sort((a, b) => b.similarityScore - a.similarityScore)
           const result = []
           const seedNames = new Set<string>()
           const unique = eligible.filter((artist) => {
-            const key = normalizeName(artist.name)
+            const key = normalizeArtistName(artist.name)
             if (seedNames.has(key)) return false
             seedNames.add(key)
             return true
           })
           for (const [rank, artist] of unique.entries()) {
-            const key = normalizeName(artist.name)
+            const key = normalizeArtistName(artist.name)
             if (emitted.has(key) || emitted.size >= AUDIOMUSE_MAX_CANDIDATES) continue
             emitted.add(key)
             result.push({
