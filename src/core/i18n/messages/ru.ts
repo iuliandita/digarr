@@ -1110,8 +1110,34 @@ export const ru = {
   'settings.groups.personal': 'Личное',
   'settings.groups.library': 'Библиотека и сервисы',
   'settings.groups.admin': 'Администрирование',
-  'settings.globalSettings': 'Глобальные настройки',
+  'settings.globalSettings': 'Сервер (администратор)',
   'settings.adminOnly': 'Только администраторы могут изменять глобальные настройки.',
+  'settings.addConnection': 'Добавить подключение',
+  'settings.searchConnections': 'Поиск подключений',
+  'settings.connectionResults': 'Найдено подключений: {0}',
+  'settings.noConnectionsFound': 'Подходящих подключений нет.',
+  'settings.showExperimentalIntegrations': 'Показывать экспериментальные интеграции',
+  'settings.experimentalIntegrationsHelp':
+    'Показывай TIDAL и Bandcamp при выборе подключений, поиска и открытий. Существующие подключения работают и после скрытия.',
+  'settings.picker.listening': 'История прослушиваний',
+  'settings.picker.streaming': 'Стриминговые аккаунты',
+  'settings.picker.servers': 'Медиасерверы',
+  'settings.picker.collections': 'Коллекции',
+  'settings.picker.listenbrainz':
+    'Популярные исполнители, недавние прослушивания и открытия через радио.',
+  'settings.picker.lastfm':
+    'Популярные исполнители и недавние прослушивания. Включает Release Radar.',
+  'settings.picker.spotify':
+    'Отслеживаемые исполнители, сохранённые альбомы, импорт и экспорт плейлистов.',
+  'settings.picker.deezer': 'Flow, избранное, отслеживаемые исполнители и плейлисты.',
+  'settings.picker.tidal': 'Любимые исполнители как основа твоего вкуса.',
+  'settings.picker.jellyfin': 'Синхронизация библиотеки и экспорт плейлистов.',
+  'settings.picker.media':
+    'История воспроизведения, синхронизация библиотеки и экспорт плейлистов.',
+  'settings.picker.subsonic': 'Избранное, синхронизация библиотеки и экспорт плейлистов.',
+  'settings.picker.discogs': 'Твоя коллекция и список желаний как основа вкуса.',
+  'settings.artistImagesPartiallySaved':
+    'Настройки изображений сохранены, но не удалось сохранить настройки изображений сервера.',
   'settings.yourConnections': 'Твои подключения',
   'settings.yourConnectionsDescription':
     'Личные источники прослушивания, привязанные к твоему аккаунту.',
@@ -1260,7 +1286,7 @@ export const ru = {
   'settings.libraryDiscoveryHelp':
     'Какая часть поиска основана на твоей библиотеке Lidarr, а какая - на истории прослушивания. Более высокие значения находят исполнителей, похожих на тех, что уже есть у тебя. Более низкие значения больше полагаются на данные ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Доля начальных данных из библиотеки',
-  'settings.imageSources': 'Источники изображений',
+  'settings.imageSources': 'Изображения исполнителей',
   'settings.imageSourcesHelp':
     'Изображения исполнителей сначала берутся из TheAudioDB; Lidarr/SkyHook, fanart.tv и musicinfo.pro используются как резервные источники.',
   'settings.audiodb.apiKey': 'Премиум API-ключ TheAudioDB (необязательно)',
@@ -1269,7 +1295,6 @@ export const ru = {
   'settings.audiodb.proxyImages': 'Проксировать изображения через Digarr',
   'settings.audiodb.proxyHint':
     'Скрывает твой IP от CDN TheAudioDB, направляя запросы изображений через этот сервер.',
-  'settings.wikidata.title': 'Обогащение из Wikidata',
   'settings.wikidata.enabled':
     'Показывать биографию исполнителя и внешние ссылки на карточках рекомендаций',
   'artist.noDescription': 'Описание недоступно.',
@@ -1300,8 +1325,6 @@ export const ru = {
     'Используется, когда сервер метаданных Lidarr недоступен. По умолчанию api.musicinfo.pro. Укажи URL своего экземпляра hearring-aid, если ты самостоятельно его разворачиваешь.',
   'settings.recommendationsSaved': 'Настройки рекомендаций сохранены',
   'settings.recommendationsFailed': 'Не удалось сохранить настройки',
-  'settings.recommendationsPartiallySaved':
-    'Личные настройки сохранены, но не удалось сохранить глобальные настройки метаданных.',
   'settings.scheduleTip':
     'Выбери шаблон или введи выражение cron, чтобы поиск запускался автоматически. Для большинства библиотек подходит ежедневно или еженедельно.',
   'settings.librarySyncInterval': 'Синхронизация библиотеки',

@@ -75,6 +75,7 @@ export const preferencesSchema = z
     topArtistsLimit: z.number().int().min(1).optional(),
     librarySeedRatio: z.number().min(0).max(1).optional(),
     netNewAlbumDiscovery: z.boolean().optional(),
+    showExperimentalIntegrations: z.boolean().optional(),
     primaryGenres: preferredGenreListSchema.optional(),
     secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),

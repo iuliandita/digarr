@@ -1105,8 +1105,32 @@ export const pl = {
   'settings.groups.personal': 'Osobiste',
   'settings.groups.library': 'Biblioteka i usługi',
   'settings.groups.admin': 'Administracja',
-  'settings.globalSettings': 'Ustawienia globalne',
+  'settings.globalSettings': 'Serwer (administrator)',
   'settings.adminOnly': 'Tylko administratorzy mogą modyfikować ustawienia globalne.',
+  'settings.addConnection': 'Dodaj połączenie',
+  'settings.searchConnections': 'Szukaj połączeń',
+  'settings.connectionResults': 'Znaleziono połączenia: {0}',
+  'settings.noConnectionsFound': 'Brak pasujących połączeń.',
+  'settings.showExperimentalIntegrations': 'Pokaż eksperymentalne integracje',
+  'settings.experimentalIntegrationsHelp':
+    'Pokaż TIDAL i Bandcamp w wyborze połączeń, wyszukiwania i odkrywania. Istniejące połączenia działają także po ukryciu.',
+  'settings.picker.listening': 'Historia słuchania',
+  'settings.picker.streaming': 'Konta streamingowe',
+  'settings.picker.servers': 'Serwery multimediów',
+  'settings.picker.collections': 'Kolekcje',
+  'settings.picker.listenbrainz':
+    'Najczęściej słuchani artyści, ostatnie odsłuchy i odkrywanie przez radio.',
+  'settings.picker.lastfm':
+    'Najczęściej słuchani artyści i ostatnie odsłuchy. Włącza Release Radar.',
+  'settings.picker.spotify': 'Obserwowani artyści, zapisane albumy, import i eksport playlist.',
+  'settings.picker.deezer': 'Flow, ulubione, obserwowani artyści i playlisty.',
+  'settings.picker.tidal': 'Ulubieni artyści jako podstawa twojego gustu.',
+  'settings.picker.jellyfin': 'Synchronizacja biblioteki i eksport playlist.',
+  'settings.picker.media': 'Historia odtwarzania, synchronizacja biblioteki i eksport playlist.',
+  'settings.picker.subsonic': 'Ulubione, synchronizacja biblioteki i eksport playlist.',
+  'settings.picker.discogs': 'Twoja kolekcja i lista życzeń jako podstawa gustu.',
+  'settings.artistImagesPartiallySaved':
+    'Zapisano preferencje obrazów, ale nie udało się zapisać ustawień obrazów serwera.',
   'settings.yourConnections': 'Twoje połączenia',
   'settings.yourConnectionsDescription': 'Osobiste źródła słuchania powiązane z Twoim kontem.',
   'settings.testConnection': 'Testuj połączenie',
@@ -1251,7 +1275,7 @@ export const pl = {
   'settings.libraryDiscoveryHelp':
     'Określa, ile odkrywania bazuje na istniejących artystach w Lidarr, a ile na historii słuchania. Wyższe wartości znajdują artystów podobnych do już posiadanych. Niższe wartości bardziej polegają na danych ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Współczynnik zasilania z biblioteki',
-  'settings.imageSources': 'Źródła obrazów',
+  'settings.imageSources': 'Zdjęcia artystów',
   'settings.imageSourcesHelp':
     'Zdjęcia artystów pochodzą najpierw z TheAudioDB; Lidarr/SkyHook, fanart.tv i musicinfo.pro pełnią rolę źródeł zapasowych.',
   'settings.audiodb.apiKey': 'Klucz API premium TheAudioDB (opcjonalny)',
@@ -1259,7 +1283,6 @@ export const pl = {
   'settings.audiodb.proxyImages': 'Przekazuj obrazy przez Digarr',
   'settings.audiodb.proxyHint':
     'Ukrywa Twoje IP przed CDN TheAudioDB, kierując żądania obrazów przez ten serwer.',
-  'settings.wikidata.title': 'Wzbogacenie z Wikidata',
   'settings.wikidata.enabled':
     'Pokazuj biografie i linki zewnętrzne artysty na kartach rekomendacji',
   'artist.noDescription': 'Brak dostępnego opisu.',
@@ -1290,8 +1313,6 @@ export const pl = {
     'Używane gdy serwer metadanych Lidarr jest niedostępny. Domyślnie api.musicinfo.pro. Przy self-hostingu podaj URL własnej instancji hearring-aid.',
   'settings.recommendationsSaved': 'Ustawienia rekomendacji zapisane',
   'settings.recommendationsFailed': 'Nie udało się zapisać ustawień',
-  'settings.recommendationsPartiallySaved':
-    'Zapisano preferencje osobiste, ale nie udało się zapisać globalnych ustawień metadanych.',
   'settings.scheduleTip':
     'Wybierz ustawienie wstępne lub wpisz wyrażenie cron, aby odkrywanie uruchamiało się automatycznie. Codziennie lub co tydzień wystarcza dla większości bibliotek.',
   'settings.librarySyncInterval': 'Synchronizacja biblioteki',

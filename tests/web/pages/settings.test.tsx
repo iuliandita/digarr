@@ -17,8 +17,15 @@ vi.mock('@/web/lib/locale-storage', () => ({
 }))
 
 async function expandService(name: string) {
-  const card = await screen.findByRole('group', { name: new RegExp(name) })
-  fireEvent.click(within(card).getAllByRole('button', { expanded: false })[0] as HTMLElement)
+  await screen.findByRole('button', { name: 'Add connection' })
+  let card = screen.queryByRole('group', { name: new RegExp(name) })
+  if (!card) {
+    fireEvent.click(screen.getByRole('button', { name: 'Add connection' }))
+    fireEvent.click(await screen.findByRole('button', { name: new RegExp(`^${name}`) }))
+    card = await screen.findByRole('group', { name: new RegExp(name) })
+  }
+  const button = card.querySelector<HTMLButtonElement>('h3 > button[aria-expanded="false"]')
+  if (button) fireEvent.click(button)
 }
 
 function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
@@ -590,12 +597,8 @@ describe('SettingsPage', () => {
       screen.queryByLabelText('Show artist bio and external links on recommendation cards'),
     ).toBeNull()
     fireEvent.change(primary, { target: { value: 'metal' } })
-    fireEvent.change(screen.getByLabelText('Fanart.tv API key (optional)'), {
-      target: { value: 'personal-fanart-key' },
-    })
-    fireEvent.change(screen.getByLabelText('Metadata fallback URL (optional)'), {
-      target: { value: 'https://metadata.example.com' },
-    })
+    expect(screen.queryByLabelText('Fanart.tv API key (optional)')).toBeNull()
+    expect(screen.queryByLabelText('Metadata fallback URL (optional)')).toBeNull()
     const saved = {
       ...client.getQueryData<Record<string, unknown>>(['user-preferences']),
       primaryGenres: ['metal'],
@@ -607,8 +610,6 @@ describe('SettingsPage', () => {
     expect(mockUpdateUserPreferences).toHaveBeenCalledWith(
       expect.objectContaining({
         primaryGenres: ['metal'],
-        fanartApiKey: 'personal-fanart-key',
-        metadataFallbackUrl: 'https://metadata.example.com',
       }),
     )
     expect(mockUpdateSettings).not.toHaveBeenCalled()
@@ -619,71 +620,7 @@ describe('SettingsPage', () => {
     await waitFor(() => expect(client.getQueryData(['user-preferences'])).toEqual(saved))
   })
 
-  it('saves admin personal preferences before global metadata settings', async () => {
-    setupMocks({ ...mockSettings, audiodbProxyImages: false, wikidataEnabled: true })
-    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
-    await screen.findByLabelText('Priority genres (optional)')
-    const invalidate = vi.spyOn(client, 'invalidateQueries')
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
-    fireEvent.change(screen.getByLabelText('TheAudioDB premium API key (optional)'), {
-      target: { value: 'global-audiodb-key' },
-    })
-    fireEvent.click(screen.getByLabelText(/Proxy images through Digarr/))
-    fireEvent.click(
-      screen.getByLabelText('Show artist bio and external links on recommendation cards'),
-    )
-    mockUpdateSettings.mockImplementationOnce(async () => {
-      expect(mockUpdateUserPreferences).toHaveBeenCalledOnce()
-      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['user-preferences'] })
-      expect(invalidate).toHaveBeenCalledWith({ queryKey: ['recommendations'] })
-      expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('0')
-    })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() => expect(toast.success).toHaveBeenCalledWith('Recommendation settings saved'))
-    expect(mockUpdateSettings).toHaveBeenCalledWith({
-      audiodbApiKey: 'global-audiodb-key',
-      audiodbProxyImages: true,
-      wikidataEnabled: false,
-    })
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['settings'] })
-    expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('1')
-    expect(toast.error).not.toHaveBeenCalled()
-  })
-
-  it('reports partial admin saves and refreshes personal preferences after global failure', async () => {
-    setupMocks({ ...mockSettings, audiodbProxyImages: false })
-    mockUpdateSettings.mockRejectedValueOnce(new Error('Global settings unavailable'))
-    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
-    const primary = await screen.findByLabelText('Priority genres (optional)')
-    const invalidate = vi.spyOn(client, 'invalidateQueries')
-    fireEvent.change(primary, { target: { value: 'jazz' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
-    fireEvent.click(screen.getByLabelText(/Proxy images through Digarr/))
-    const saved = {
-      ...client.getQueryData<Record<string, unknown>>(['user-preferences']),
-      primaryGenres: ['jazz'],
-    }
-    mockGetUserPreferences.mockResolvedValueOnce(saved)
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
-
-    await waitFor(() =>
-      expect(toast.error).toHaveBeenCalledWith(
-        'Personal preferences saved, but global metadata settings failed to save.',
-      ),
-    )
-    expect(mockUpdateSettings).toHaveBeenCalledOnce()
-    expect(toast.success).not.toHaveBeenCalled()
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: ['recommendations'] })
-    expect(invalidate).not.toHaveBeenCalledWith({ queryKey: ['settings'] })
-    await waitFor(() => expect(client.getQueryData(['user-preferences'])).toEqual(saved))
-    expect(localStorage.getItem('digarr:audiodbProxyImages')).toBe('0')
-    expect(primary).toHaveValue('jazz')
-    expect(screen.getByLabelText(/Proxy images through Digarr/)).toBeChecked()
-    expect(screen.getByRole('button', { name: 'Save' })).toBeEnabled()
-  })
-
-  it('aborts global settings when saving personal preferences fails', async () => {
+  it('reports a personal preference save failure without writing global settings', async () => {
     setupMocks()
     mockUpdateUserPreferences.mockRejectedValueOnce(new Error('Preferences unavailable'))
     const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
@@ -828,6 +765,7 @@ describe('SettingsPage', () => {
     mockTestNotificationChannel.mockResolvedValue(undefined)
     renderWithQuery(<SettingsPage />)
 
+    await expandService('Notifications')
     const addButton = await screen.findByText('Add channel')
     const card = screen.getByRole('group', { name: /^Notifications/ })
     expect(card).toBeTruthy()
@@ -992,7 +930,7 @@ describe('SettingsPage', () => {
     renderWithQuery(<SettingsPage />)
 
     await waitFor(() => {
-      expect(screen.getByText('ListenBrainz')).toBeInTheDocument()
+      expect(screen.getByRole('group', { name: /^ListenBrainz/ })).toBeInTheDocument()
     })
     await expandService('ListenBrainz')
     await expandService('Plex')

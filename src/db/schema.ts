@@ -636,6 +636,7 @@ export type Preferences = {
   subscriptionMode?: 'active' | 'ai-only' | null
   fanartApiKey?: string
   metadataFallbackUrl?: string
+  showExperimentalIntegrations?: boolean
   netNewAlbumDiscovery?: boolean // C: promote AI suggestedAlbum to a first-class album rec
 }
 
@@ -666,6 +667,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   dismissedHints: [],
   subscriptionMode: null,
   netNewAlbumDiscovery: false,
+  showExperimentalIntegrations: false,
 }
 
 /**
