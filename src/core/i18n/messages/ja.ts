@@ -409,6 +409,10 @@ export const ja = {
   'discover.undoRejected': '{name} を拒否しました',
   'discover.undoBlocked': '{name} を拒否してブロックしました',
   'discover.approveAllAbove': '上記すべてを承認する',
+  'discover.approveAboveTitle': '{1}%以上をすべて承認しますか?',
+  'discover.approveAboveMessage':
+    '保留中の推奨事項 {0} 件(スコア {1}% 以上)を承認しますか? Lidarr などのターゲットに追加される場合があります。',
+  'discover.approveAboveConfirm': '{0} 件を承認',
   'discover.approvedCount': '承認済み',
   'discover.approvePartial': '{1} 個中 {0} 個のターゲットに追加しました。失敗: {2}',
   'discover.approveAllFailed': 'いずれのターゲットにも追加できませんでした。失敗: {0}',
@@ -730,6 +734,8 @@ export const ja = {
   'subscriptionPresets.getStarted': 'プリセットから始める',
   'subscriptionPresets.intro':
     'プリセットを選んでスケジュールを自動作成するか、独自の構成を作成してください。',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify は新しいアプリにチャートのプレイリストを提供しなくなったため、Spotify Charts のプリセットは失敗する場合があります。',
   'subscriptionPresets.casualTitle': 'カジュアル',
   'subscriptionPresets.casualDescription': 'ノイズの少ない毎週のおすすめ',
   'subscriptionPresets.deepDiverTitle': 'ディープダイバー',
@@ -932,6 +938,9 @@ export const ja = {
   'systemHealth.lastRun': '最終:',
   'systemHealth.nextRun': '次回:',
   'systemHealth.healthy': '正常',
+  'systemHealth.statusOk': '正常',
+  'systemHealth.statusDegraded': '低下',
+  'systemHealth.statusError': 'エラー',
   'systemHealth.overdue': '期限超過',
   'systemHealth.inMinutes': '{0}分後',
   'systemHealth.inHours': '{0}時間後',
@@ -1869,6 +1878,7 @@ export const ja = {
   'settings.channels.allowPrivateWarning':
     'プライベート/LAN アドレスへの配信を許可します。クラウドメタデータとリンクローカル範囲はブロックされたままです。',
   'settings.channels.webhookUrl': 'Webhook の URL',
+  'settings.channels.webhookSigningSecret': '署名シークレット（任意）',
   'settings.channels.ntfyServer': 'サーバー',
   'settings.channels.ntfyTopic': 'トピック',
   'settings.channels.ntfyPriority': '優先度',

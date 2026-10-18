@@ -94,6 +94,8 @@ Before upgrade, review both bootstrap variables and retain a consistent database
 
 ## Discovery modes and schedules
 
+For worked setups, seasonal and decade schedules, and familiar versus adventurous tuning, see the [discovery recipes](guides/discovery-recipes.md).
+
 Open Discover > Discovery Modes (`/discovery-modes`) for both manual and scheduled discovery. Your modes lists saved schedules and recently run modes as compact rows. Expand a saved row to edit it or review its run history; pause, resume, run, and delete controls remain beside the row. Bulk pause and resume are available when you have multiple schedules.
 
 Choose Run a mode to search the mode picker. Modes that need a connection show the reason there. The experimental toggle shares the Connections preference. Pick a mode, adjust its Easy or Advanced settings, then choose Run now or Schedule. Schedule keeps those settings inside the same mode card. Choose a schedule preset or Custom for a validated cron expression and cron preview. More options holds the prefilled name, artist limit, and scoring preset. New schedules start enabled; pause or resume them with the row switch. Expanding a saved row uses the same compact editor. Preset and import schedules remain editable, with their source shown. Presets and imports in the add flow retains CSV, M3U, XSPF, playlist, and connected-service imports, plus custom genre and similar-artist subscriptions.
@@ -133,6 +135,12 @@ For a failed or changed destination, inspect Job History and `GET /api/v1/playli
 Audition playlists choose one track per pending artist without approving recommendations, and can refresh on demand or on a schedule. Their detail hint describes pending artists; other strategies describe approved recommendations. Generate a playlist before downloading its tracks. These playlists are separate from the Audition preview queue in Discover, which plays short previews in the browser. That queue selects pending recommendations even when a preview is unavailable. The Discover queue retains a dismissible summary of unavailable previews, including missing links, empty or failed lookups, browser blocking, and playback failures. Starting a new queue resets that summary; retrying an item replaces its previous outcome. An embed starting is not proof of a successful listen.
 
 Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Connections > Notifications, with scan-complete and scheduled-digest subscriptions per channel. The digest schedule (cron) is in Settings > Schedule, next to the other schedules. Private-network destinations are blocked by default; the per-channel LAN option permits private IPv4 destinations for self-hosted services. It does not override your container or Kubernetes network policy.
+
+#### Webhook signing
+
+A webhook channel can have an optional signing secret (off by default; stored encrypted and masked like other channel secrets). When set, every request carries `X-Digarr-Timestamp` (unix seconds) and `X-Digarr-Signature: sha256=<hex>`, where the hex value is the HMAC-SHA256 of `<timestamp>.<raw request body>` keyed with the secret. Verify against the raw bytes before parsing, and reject old timestamps to limit replay.
+
+Test vector: secret `whsec_test`, timestamp `1700000000`, body `{"event":"digest","message":"hello"}` gives `sha256=69063f9268083f6b8a9f648b71756b35fb62251050afe40fec18f25dd4b5a737`.
 
 Each digest channel has its own saved delivery position. Only its confirmed successful send or an empty activity window advances it. Failed channels retry from their saved start on the next scheduled run, with totals covering the longer interval; successful channels keep their own shorter interval. The first window start is saved before sending, so a failed first attempt survives a restart.
 
