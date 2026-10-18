@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
+import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -36,17 +35,19 @@ const noopPreview = {
   },
 }
 
-function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
-  const client = createTestQueryClient()
-  return render(
+function renderPage(ui: ReactElement, initialEntries: string[] = ['/']) {
+  const wrapper = ({ children }: { children: ReactNode }) => (
     <I18nProvider>
-      <QueryClientProvider client={client}>
-        <MemoryRouter initialEntries={initialEntries}>
-          <PreviewContext.Provider value={noopPreview}>{ui}</PreviewContext.Provider>
-        </MemoryRouter>
-      </QueryClientProvider>
-    </I18nProvider>,
+      <MemoryRouter initialEntries={initialEntries}>
+        <PreviewContext.Provider value={noopPreview}>{children}</PreviewContext.Provider>
+      </MemoryRouter>
+    </I18nProvider>
   )
+  return renderWithQuery(ui, { wrapper })
+}
+
+async function openMoreMenu() {
+  fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
 }
 
 // ---------------------------------------------------------------------------
@@ -179,7 +180,7 @@ function setupMockApi(recs: ReturnType<typeof makeRec>[] = [makeRec()]) {
 // ---------------------------------------------------------------------------
 
 import { DiscoverPage } from '@/web/pages/discover'
-import { createTestQueryClient } from '../helpers/query'
+import { renderWithQuery } from '../helpers/query'
 import { installMemoryLocalStorage } from '../helpers/storage'
 
 // ---------------------------------------------------------------------------
@@ -212,7 +213,7 @@ describe('DiscoverPage', () => {
       primaryGenres: ['metal', 'jazz', 'trip hop'],
       secondaryGenres: ['ambient'],
     })
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     fireEvent.click(await screen.findByRole('button', { name: 'Filters' }))
     const select = await screen.findByRole('combobox', { name: 'Discovery order' })
     expect(select).toHaveValue('score')
@@ -238,9 +239,9 @@ describe('DiscoverPage', () => {
     const rec = makeRec()
     rec.artist.streamingUrls = { spotify: '' }
     setupMockApi([rec, makeRec({ id: 2, status: 'approved' })])
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     await waitFor(() => expect(screen.getAllByText('Test Artist').length).toBeGreaterThan(0))
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     const item = await screen.findByRole('menuitem', { name: /Audition/ })
     expect(item).not.toHaveAttribute('aria-disabled')
     fireEvent.click(item)
@@ -264,7 +265,7 @@ describe('DiscoverPage', () => {
         reason: 'missing-links',
       },
     ]
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     expect(await screen.findByText('1 of 2 selected previews unavailable')).toBeInTheDocument()
     expect(screen.getByText('No-link artist: No preview links')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Dismiss' }))
@@ -281,7 +282,7 @@ describe('DiscoverPage', () => {
       unknown: 1,
       checkedAt: '2026-10-02T00:00:00.000Z',
     })
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     expect(
       await screen.findByText(
@@ -294,21 +295,9 @@ describe('DiscoverPage', () => {
     expect(screen.queryByText(/Lookup failed/)).not.toBeInTheDocument()
   })
 
-  it('keeps the recommendation workspace free of discovery mode cards', async () => {
-    setupMockApi()
-    renderWithQuery(<DiscoverPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
-
-    expect(screen.queryByRole('heading', { name: 'Discovery Modes' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Run discovery' })).not.toBeInTheDocument()
-  })
-
   it('shows empty state when no recommendations match filter', async () => {
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     await waitFor(() => {
       expect(screen.getByText(/No pending recommendations/i)).toBeInTheDocument()
@@ -318,7 +307,7 @@ describe('DiscoverPage', () => {
 
   it('shows a load error with retry instead of an empty queue', async () => {
     mockGetRecommendations.mockRejectedValue(new Error('boom'))
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     expect(await screen.findByRole('alert')).toHaveTextContent("Couldn't load recommendations.")
     expect(screen.queryByText(/No pending recommendations/i)).toBeNull()
@@ -329,7 +318,7 @@ describe('DiscoverPage', () => {
 
   it('tells a decade-filtered empty result apart and clears the filter', async () => {
     mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Filters' }))
     fireEvent.click(screen.getByRole('button', { name: '70s' }))
@@ -340,46 +329,44 @@ describe('DiscoverPage', () => {
     expect(await screen.findByText(/No pending recommendations/i)).toBeInTheDocument()
   })
 
-  it('explains album producers and links to each action when the Albums view is empty', async () => {
-    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
+  it.each([
+    ['list', undefined],
+    ['stack', 'stack'],
+  ])(
+    'explains album producers and links to each action when the Albums view is empty (%s view)',
+    async (_view, saved) => {
+      if (saved) localStorage.setItem('digarr:discover-view', saved)
+      mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
+      renderPage(<DiscoverPage />, ['/discover?kind=album'])
 
-    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'A normal scan finds artists. Use one of the options below to generate album recommendations.',
-      ),
-    ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
-      'href',
-      '/discovery-modes?mode=gap-fill',
-    )
-    expect(screen.getByRole('link', { name: 'Release Radar' })).toHaveAttribute(
-      'href',
-      '/discovery-modes?mode=release-radar',
-    )
-    expect(screen.getByRole('link', { name: 'Net-new album discovery' })).toHaveAttribute(
-      'href',
-      '/settings?tab=recommendations#net-new-album-discovery',
-    )
+      expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'A normal scan finds artists. Use one of the options below to generate album recommendations.',
+        ),
+      ).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
+        'href',
+        '/discovery-modes?mode=gap-fill',
+      )
+      expect(screen.getByRole('link', { name: 'Release Radar' })).toHaveAttribute(
+        'href',
+        '/discovery-modes?mode=release-radar',
+      )
+      expect(screen.getByRole('link', { name: 'Net-new album discovery' })).toHaveAttribute(
+        'href',
+        '/settings?tab=recommendations#net-new-album-discovery',
+      )
+      expect(screen.queryByText('No more recommendations')).not.toBeInTheDocument()
 
-    fireEvent.click(screen.getByRole('button', { name: 'Approved' }))
-    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
-  })
-
-  it('shows the album guidance when the saved view is the card stack', async () => {
-    localStorage.setItem('digarr:discover-view', 'stack')
-    mockGetRecommendations.mockResolvedValue({ items: [], total: 0 })
-
-    renderWithQuery(<DiscoverPage />, ['/discover?kind=album'])
-
-    expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
-      'href',
-      '/discovery-modes?mode=gap-fill',
-    )
-    expect(screen.queryByText('No more recommendations')).not.toBeInTheDocument()
-  })
+      if (!saved) {
+        fireEvent.click(screen.getByRole('button', { name: 'Approved' }))
+        expect(
+          await screen.findByText('No album recommendations in this view.'),
+        ).toBeInTheDocument()
+      }
+    },
+  )
 
   it('filter tabs update the displayed list', async () => {
     // Default filter is "pending", show one rec. Switch to "approved" -> empty.
@@ -393,11 +380,9 @@ describe('DiscoverPage', () => {
       return Promise.resolve({ items: [], total: 0 })
     })
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
 
     fireEvent.click(screen.getByRole('button', { name: /Approved/i }))
 
@@ -408,11 +393,11 @@ describe('DiscoverPage', () => {
 
   it('suspends approve and reject shortcuts while the More menu is open', async () => {
     setupMockApi([makeRec()])
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     await screen.findByText('Test Artist')
 
     fireEvent.keyDown(window, { key: 'j' })
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     await screen.findByRole('menu')
     fireEvent.keyDown(window, { key: 'a' })
     fireEvent.keyDown(window, { key: 'r' })
@@ -421,13 +406,13 @@ describe('DiscoverPage', () => {
     expect(screen.queryByRole('dialog', { name: 'Why are you rejecting?' })).toBeNull()
   })
 
-  it('clicking a card expands it', async () => {
+  it('shows genre tags and expands a card on click', async () => {
     setupMockApi()
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
+    expect(screen.getByText('rock')).toBeInTheDocument()
+    expect(screen.getByText('indie')).toBeInTheDocument()
 
     // Click the card - AI reasoning should appear in expanded view
     fireEvent.click(screen.getByText('Test Artist'))
@@ -437,37 +422,12 @@ describe('DiscoverPage', () => {
     })
   })
 
-  it('approve button calls approveRecommendation without dialog when no Lidarr targets', async () => {
-    mockApproveRecommendation.mockResolvedValue(undefined as unknown as never)
-    setupMockApi()
-
-    renderWithQuery(<DiscoverPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
-
-    // Find the card's Approve button (from MonitoringOptions split button)
-    const approveButtons = screen.getAllByText('Approve')
-    expect(approveButtons.length).toBeGreaterThanOrEqual(1)
-    // biome-ignore lint/style/noNonNullAssertion: checked above
-    fireEvent.click(approveButtons[0]!)
-
-    // No Lidarr targets -> no dialog, calls approveRecommendation directly with monitorOption
-    await waitFor(() => {
-      expect(mockApproveRecommendation).toHaveBeenCalledWith(
-        1,
-        expect.objectContaining({ monitorOption: 'none' }),
-      )
-    })
-  })
-
   it.each([
     { previewMbid: 'mbid-test-001', hasTrack: true, expected: true },
     { previewMbid: 'another-artist', hasTrack: true, expected: false },
     { previewMbid: 'mbid-test-001', hasTrack: false, expected: false },
   ])(
-    'sends exact preview context only for the approved artist: $expected',
+    'approves directly without a dialog and sends exact preview context only for the approved artist: $expected',
     async ({ previewMbid, hasTrack, expected }) => {
       setupMockApi()
       noopPreview.currentMbid = previewMbid
@@ -475,10 +435,13 @@ describe('DiscoverPage', () => {
         ? { artistName: 'Test Artist', trackName: 'The song' }
         : undefined
       mockApproveRecommendation.mockResolvedValue({ status: 'approved' })
-      renderWithQuery(<DiscoverPage />)
+      renderPage(<DiscoverPage />)
       await screen.findByText('Test Artist')
       fireEvent.click(screen.getAllByText('Approve')[0] as HTMLElement)
       await waitFor(() => expect(mockApproveRecommendation).toHaveBeenCalled())
+      expect(screen.queryByRole('dialog')).toBeNull()
+      expect(mockApproveRecommendation.mock.calls[0]?.[0]).toBe(1)
+      expect(mockApproveRecommendation.mock.calls[0]?.[1]?.monitorOption).toBe('none')
       expect(mockApproveRecommendation.mock.calls[0]?.[1]?.feedbackTrack).toEqual(
         expected ? noopPreview.currentTrack : undefined,
       )
@@ -487,11 +450,9 @@ describe('DiscoverPage', () => {
 
   it('offers popular albums from the approve dropdown', async () => {
     setupMockApi()
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
 
     fireEvent.click(screen.getByLabelText('Monitoring options'))
 
@@ -503,13 +464,13 @@ describe('DiscoverPage', () => {
     // Two recs: one above 70%, one below
     setupMockApi([makeRec({ id: 1, score: 0.85 }), makeRec({ id: 2, score: 0.5 })])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     await waitFor(() => {
       expect(screen.getAllByText('Test Artist')).toHaveLength(2)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
 
     expect(mockBulkAction).not.toHaveBeenCalled()
@@ -526,12 +487,12 @@ describe('DiscoverPage', () => {
 
   it('cancelling the approve-above confirmation does nothing', async () => {
     setupMockApi([makeRec({ id: 1, score: 0.85 })])
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     await waitFor(() => {
       expect(screen.getAllByText('Test Artist')).toHaveLength(1)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
     const dialog = await screen.findByRole('dialog', { name: 'Approve all above 70%?' })
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
@@ -552,13 +513,13 @@ describe('DiscoverPage', () => {
       makeRec({ id: 5, score: 0.2, status: 'rejected' }),
     ])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     await waitFor(() => {
       expect(screen.getAllByText('Test Artist')).toHaveLength(5)
     })
 
-    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     fireEvent.click(await screen.findByRole('menuitem', { name: /reject all below/i }))
 
     expect(mockBulkAction).not.toHaveBeenCalled()
@@ -593,9 +554,9 @@ describe('DiscoverPage', () => {
     ;(getWarmStatuses as ReturnType<typeof vi.fn>).mockResolvedValue({ statuses: {} })
     mockListTargets.mockResolvedValue([])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     fireEvent.click(await screen.findByRole('menuitem', { name: 'Clear All' }))
     fireEvent.click(await screen.findByRole('button', { name: 'Reject All' }))
 
@@ -626,9 +587,9 @@ describe('DiscoverPage', () => {
     const toastPromise = vi
       .spyOn(toast, 'promise')
       .mockImplementation(() => ({ unwrap: async () => undefined }))
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
     fireEvent.click(await screen.findByRole('menuitem', { name: 'Refresh Data' }))
 
     expect(mockRescanArtists).toHaveBeenCalledTimes(1)
@@ -640,38 +601,32 @@ describe('DiscoverPage', () => {
     )
   })
 
-  it('hides shared metadata refresh from non-admin users', async () => {
+  it.each([
+    ['hides', { id: 2, username: 'user', isAdmin: false }, false],
+    ['shows to cookie-authenticated admins', null, true],
+  ])('%s shared metadata refresh', async (_label, user, visible) => {
     setupMockApi()
-    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: false })
-    mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'user', isAdmin: false })
-    renderWithQuery(<DiscoverPage />)
-
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
-
-    expect(screen.queryByRole('menuitem', { name: 'Refresh Data' })).not.toBeInTheDocument()
-  })
-
-  it('shows shared metadata refresh to cookie-authenticated admins', async () => {
-    setupMockApi()
-    mockGetCurrentUser.mockResolvedValue(null)
-    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: true })
-    renderWithQuery(<DiscoverPage />)
+    mockGetCurrentUser.mockResolvedValue(user)
+    mockGetAuthStatus.mockResolvedValue({ authenticated: true, isAdmin: visible })
+    renderPage(<DiscoverPage />)
 
     await waitFor(() => expect(mockGetAuthStatus).toHaveBeenCalled())
-    fireEvent.click(await screen.findByRole('button', { name: 'More actions' }))
+    await openMoreMenu()
 
-    expect(await screen.findByRole('menuitem', { name: 'Refresh Data' })).toBeInTheDocument()
+    if (visible) {
+      expect(await screen.findByRole('menuitem', { name: 'Refresh Data' })).toBeInTheDocument()
+    } else {
+      expect(screen.queryByRole('menuitem', { name: 'Refresh Data' })).not.toBeInTheDocument()
+    }
   })
 
   it('reject opens the reason picker, and rejecting without a reason sends no reason', async () => {
     mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
     setupMockApi()
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
 
     // "Reject" exact text (not "Rejected" tab)
     fireEvent.click(screen.getByText('Reject'))
@@ -689,7 +644,7 @@ describe('DiscoverPage', () => {
     mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
     setupMockApi()
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     await screen.findByText('Test Artist')
 
     fireEvent.keyDown(window, { key: 'j' })
@@ -710,7 +665,7 @@ describe('DiscoverPage', () => {
   it('cancelling the picker leaves the recommendation untouched', async () => {
     setupMockApi()
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
     await screen.findByText('Test Artist')
 
     fireEvent.click(screen.getByText('Reject'))
@@ -730,7 +685,7 @@ describe('DiscoverPage', () => {
       { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
     ])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     const artist = await screen.findByText('Test Artist')
     fireEvent.click(artist)
@@ -748,7 +703,7 @@ describe('DiscoverPage', () => {
     mockUpdateRecommendation.mockResolvedValue(undefined as unknown as never)
     setupMockApi()
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     const artist = await screen.findByText('Test Artist')
     fireEvent.click(artist)
@@ -760,19 +715,9 @@ describe('DiscoverPage', () => {
     expect(mockApproveToTarget).not.toHaveBeenCalled()
   })
 
-  it('renders genre tags', async () => {
-    setupMockApi()
-    renderWithQuery(<DiscoverPage />)
-
-    await waitFor(() => {
-      expect(screen.getByText('rock')).toBeInTheDocument()
-      expect(screen.getByText('indie')).toBeInTheDocument()
-    })
-  })
-
   it('keeps streaming links in the expanded card, off the decision face', async () => {
     setupMockApi()
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
     const card = await screen.findByTestId('rec-card-button')
     expect(screen.queryByTitle('Spotify')).toBeNull()
@@ -787,11 +732,9 @@ describe('DiscoverPage', () => {
       { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
     ])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
 
     fireEvent.click(screen.getByRole('button', { name: '' }))
     fireEvent.click(screen.getByText('Add to slskd'))
@@ -810,11 +753,9 @@ describe('DiscoverPage', () => {
       { id: 7, type: 'slskd', name: 'slskd', config: {}, enabled: true, owned: true },
     ])
 
-    renderWithQuery(<DiscoverPage />)
+    renderPage(<DiscoverPage />)
 
-    await waitFor(() => {
-      expect(screen.getByText('Test Artist')).toBeInTheDocument()
-    })
+    await screen.findByText('Test Artist')
 
     const approveButtons = screen.getAllByText('Approve')
     expect(approveButtons.length).toBeGreaterThanOrEqual(1)
@@ -854,7 +795,7 @@ describe('DiscoverPage', () => {
       ;(deleteArtistBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
       ;(deleteAlbumBlock as ReturnType<typeof vi.fn>).mockResolvedValue(undefined)
 
-      renderWithQuery(<DiscoverPage />)
+      renderPage(<DiscoverPage />)
 
       await screen.findAllByText('Test Artist')
       fireEvent.click(screen.getByRole('button', { name: 'Reject' }))

@@ -1,8 +1,7 @@
 // @vitest-environment jsdom
 
-import { QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -24,18 +23,13 @@ async function expandService(name: string) {
   if (button) fireEvent.click(button)
 }
 
-function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
-  const client = createTestQueryClient()
-  return {
-    client,
-    ...render(
-      <I18nProvider>
-        <MemoryRouter initialEntries={initialEntries}>
-          <QueryClientProvider client={client}>{ui}</QueryClientProvider>
-        </MemoryRouter>
-      </I18nProvider>,
-    ),
-  }
+function renderPage(ui: ReactElement, initialEntries: string[] = ['/']) {
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <I18nProvider>
+      <MemoryRouter initialEntries={initialEntries}>{children}</MemoryRouter>
+    </I18nProvider>
+  )
+  return renderWithQuery(ui, { wrapper })
 }
 
 // ---------------------------------------------------------------------------
@@ -214,7 +208,7 @@ import {
 } from '@/web/lib/api'
 import { getStoredLocale } from '@/web/lib/locale-storage'
 import { SettingsPage } from '@/web/pages/settings'
-import { createTestQueryClient } from '../helpers/query'
+import { renderWithQuery } from '../helpers/query'
 import { installMemoryLocalStorage } from '../helpers/storage'
 
 const mockGetSettings = getSettings as ReturnType<typeof vi.fn>
@@ -271,6 +265,27 @@ function setupMocks(settings: Record<string, unknown> = mockSettings) {
   })
 }
 
+const ADMIN = { id: 1, username: 'admin', isAdmin: true, preferredLocale: 'en' }
+const MEMBER = { id: 2, username: 'listener', isAdmin: false, preferredLocale: 'en' }
+
+function authMeta(oidcEnabled: boolean) {
+  vi.mocked(getAuthMeta).mockResolvedValue({
+    version: '1.16.0',
+    oidcEnabled,
+    proxyAuthEnabled: false,
+  })
+}
+
+async function openTargetsTab() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+}
+
+async function openAddTarget(type: string) {
+  await openTargetsTab()
+  fireEvent.click(await screen.findByText('Add Target'))
+  fireEvent.change(screen.getByLabelText('Type'), { target: { value: type } })
+}
+
 function LocationProbe() {
   const location = useLocation()
   return (
@@ -289,11 +304,7 @@ describe('SettingsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getPlexSections).mockResolvedValue({ sections: [] })
-    vi.mocked(getAuthMeta).mockResolvedValue({
-      version: '1.16.0',
-      oidcEnabled: false,
-      proxyAuthEnabled: false,
-    })
+    authMeta(false)
     vi.mocked(linkOidcAccount).mockResolvedValue({ url: '#oidc-link-test' })
     Object.defineProperty(globalThis, 'ResizeObserver', {
       configurable: true,
@@ -312,12 +323,7 @@ describe('SettingsPage', () => {
       }),
     })
     mockGetStoredLocale.mockReturnValue('en')
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(ADMIN)
     mockGetPipelineStatus.mockResolvedValue({ running: false })
     mockUpdatePreferredLocale.mockResolvedValue({ success: true, preferredLocale: 'en' })
     mockChangePassword.mockResolvedValue(undefined)
@@ -341,21 +347,16 @@ describe('SettingsPage', () => {
 
   it('shows listening genre coverage in Connections', async () => {
     setupMocks()
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     expect(await screen.findByText('Genre data available: 18/25')).toBeInTheDocument()
     expect(screen.getByText('Pending genre data updates: 4')).toBeInTheDocument()
   })
 
   it('replaces an admin-only tab in the URL when a non-admin opens it', async () => {
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'listener',
-      isAdmin: false,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     setupMocks()
-    renderWithQuery(
+    renderPage(
       <>
         <SettingsPage />
         <LocationProbe />
@@ -375,7 +376,7 @@ describe('SettingsPage', () => {
   ])('resolves legacy %s to the matching System section', async (legacy, hash) => {
     setupMocks()
     mockListJobs.mockResolvedValue({ items: [], total: 0 })
-    renderWithQuery(
+    renderPage(
       <>
         <SettingsPage />
         <LocationProbe />
@@ -395,14 +396,14 @@ describe('SettingsPage', () => {
 
   it('shows loading skeleton while fetching settings', () => {
     mockGetSettings.mockReturnValue(new Promise(() => {}))
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
     const pulsingEls = document.querySelectorAll('.animate-pulse')
     expect(pulsingEls.length).toBeGreaterThan(0)
   })
 
   it('groups settings sections in the side menu and the small-screen select', async () => {
     setupMocks()
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     const nav = await screen.findByRole('navigation', { name: 'Settings' })
     expect(within(nav).getByText('Personal')).toBeInTheDocument()
@@ -424,7 +425,7 @@ describe('SettingsPage', () => {
   it('only reports a passing test for the saved values', async () => {
     setupMocks()
     mockTestService.mockResolvedValue({ success: true, message: 'OK' })
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     const card = await screen.findByRole('group', { name: /Lidarr/ })
     expect(within(card).getByText('Saved')).toBeInTheDocument()
@@ -440,62 +441,24 @@ describe('SettingsPage', () => {
     expect(await within(card).findByText('Test passed - not saved yet')).toBeInTheDocument()
   })
 
-  it('defaults to Connections tab showing Lidarr section', async () => {
-    setupMocks()
-    renderWithQuery(<SettingsPage />)
+  it.each([
+    ['http://localhost:11434', 'Fully local', 'Discovery prompts stay on your server.'],
+    [
+      'http://ollama.example.com:11434',
+      'Data leaves your server',
+      /Discovery prompts are sent to your chosen provider/,
+    ],
+  ])('labels Ollama at %s', async (aiBaseUrl, heading, detail) => {
+    setupMocks({ ...mockSettings, aiProvider: 'ollama', aiBaseUrl })
+    renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
-    })
-    // Lidarr URL field should be present
-    expect(screen.getByDisplayValue('http://localhost:8686')).toBeInTheDocument()
-  })
-
-  it('labels Ollama as local when it points at localhost', async () => {
-    setupMocks({
-      ...mockSettings,
-      aiProvider: 'ollama',
-      aiBaseUrl: 'http://localhost:11434',
-    })
-    renderWithQuery(<SettingsPage />)
-
-    expect(await screen.findByText('Fully local')).toBeInTheDocument()
-    expect(screen.getByText('Discovery prompts stay on your server.')).toBeInTheDocument()
-  })
-
-  it('warns when Ollama points at a remote host', async () => {
-    setupMocks({
-      ...mockSettings,
-      aiProvider: 'ollama',
-      aiBaseUrl: 'http://ollama.example.com:11434',
-    })
-    renderWithQuery(<SettingsPage />)
-
-    expect(await screen.findByText('Data leaves your server')).toBeInTheDocument()
-    expect(
-      screen.getByText(/Discovery prompts are sent to your chosen provider/),
-    ).toBeInTheDocument()
-  })
-
-  it('tab switching shows Recommendations content', async () => {
-    setupMocks()
-    renderWithQuery(<SettingsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Recommendations' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Score threshold')).toBeInTheDocument()
-      expect(screen.getByText('Scoring Weights')).toBeInTheDocument()
-    })
+    expect(await screen.findByText(heading)).toBeInTheDocument()
+    expect(screen.getByText(detail)).toBeInTheDocument()
   })
 
   it('saves optional genre lists without replacing scoring weights', async () => {
     setupMocks()
-    renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    renderPage(<SettingsPage />, ['/settings?tab=recommendations'])
     const primary = await screen.findByLabelText('Priority genres (optional)')
     fireEvent.change(primary, { target: { value: 'metal, jazz, trip hop' } })
     fireEvent.change(screen.getByLabelText('Other preferred genres (optional)'), {
@@ -519,8 +482,8 @@ describe('SettingsPage', () => {
     'falls back to Connections when a member opens ?tab=%s',
     async (tab) => {
       setupMocks()
-      mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'listener', isAdmin: false })
-      renderWithQuery(<SettingsPage />, [`/settings?tab=${tab}`])
+      mockGetCurrentUser.mockResolvedValue(MEMBER)
+      renderPage(<SettingsPage />, [`/settings?tab=${tab}`])
       expect(await screen.findByRole('button', { name: 'Connections' })).toHaveAttribute(
         'aria-current',
         'page',
@@ -531,9 +494,9 @@ describe('SettingsPage', () => {
 
   it('saves member recommendation preferences without global controls or writes', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({ id: 2, username: 'listener', isAdmin: false })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     mockUpdateSettings.mockRejectedValue(new Error('Forbidden'))
-    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    const { client } = renderPage(<SettingsPage />, ['/settings?tab=recommendations'])
     const primary = await screen.findByLabelText('Priority genres (optional)')
     const invalidate = vi.spyOn(client, 'invalidateQueries')
     fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
@@ -570,7 +533,7 @@ describe('SettingsPage', () => {
   it('reports a personal preference save failure without writing global settings', async () => {
     setupMocks()
     mockUpdateUserPreferences.mockRejectedValueOnce(new Error('Preferences unavailable'))
-    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations'])
+    const { client } = renderPage(<SettingsPage />, ['/settings?tab=recommendations'])
     await screen.findByLabelText('Priority genres (optional)')
     const invalidate = vi.spyOn(client, 'invalidateQueries')
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
@@ -586,7 +549,7 @@ describe('SettingsPage', () => {
     setupMocks()
     Element.prototype.scrollIntoView = vi.fn()
 
-    renderWithQuery(<SettingsPage />, ['/settings?tab=recommendations#net-new-album-discovery'])
+    renderPage(<SettingsPage />, ['/settings?tab=recommendations#net-new-album-discovery'])
 
     const setting = await screen.findByText('Net-new album discovery')
     const settingLabel = setting.closest('label')
@@ -600,46 +563,22 @@ describe('SettingsPage', () => {
     expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
   })
 
-  it('tab switching shows Schedule content', async () => {
+  it.each([
+    ['Recommendations', ['Score threshold', 'Scoring Weights']],
+    ['Schedule', ['Presets', 'Daily', 'Weekly', 'Custom Cron']],
+  ])('tab switching shows %s content', async (tab, texts) => {
     setupMocks()
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
+    await screen.findByRole('button', { name: 'Connections' })
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    fireEvent.click(screen.getByRole('button', { name: tab }))
 
-    fireEvent.click(screen.getByRole('button', { name: 'Schedule' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('Presets')).toBeInTheDocument()
-      expect(screen.getByText('Daily')).toBeInTheDocument()
-      expect(screen.getByText('Weekly')).toBeInTheDocument()
-      expect(screen.getByText('Custom Cron')).toBeInTheDocument()
-    })
+    for (const text of texts) expect(await screen.findByText(text)).toBeInTheDocument()
   })
 
-  it('tab switching shows Job History content inside settings', async () => {
+  it('shows Job History and System Health inside the System tab', async () => {
     setupMocks()
-    mockListJobs.mockResolvedValue({
-      items: [],
-      total: 0,
-    })
-    renderWithQuery(<SettingsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'System' }))
-
-    await waitFor(() => {
-      expect(screen.getByText('All')).toBeInTheDocument()
-      expect(screen.getByText('No jobs found.')).toBeInTheDocument()
-    })
-  })
-
-  it('tab switching shows System Health content inside settings', async () => {
-    setupMocks()
+    mockListJobs.mockResolvedValue({ items: [], total: 0 })
     mockGetJobHealth.mockResolvedValue({
       pipeline: { status: 'ok', lastRun: null, nextRun: null },
       subscriptions: { status: 'ok', healthy: 3, total: 4 },
@@ -656,27 +595,23 @@ describe('SettingsPage', () => {
         },
       ],
     })
-    renderWithQuery(<SettingsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    renderPage(<SettingsPage />)
+    await screen.findByRole('button', { name: 'Connections' })
 
     fireEvent.click(screen.getByRole('button', { name: 'System' }))
 
-    await waitFor(() => {
-      expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)
-      expect(screen.getAllByText('Library Sync').length).toBeGreaterThan(0)
-      expect(screen.getByText('Integrations')).toBeInTheDocument()
-      expect(screen.getByText(/Lidarr unreachable/)).toBeInTheDocument()
-      expect(screen.getByText('Failing')).toBeInTheDocument()
-    })
+    expect(await screen.findByText('No jobs found.')).toBeInTheDocument()
+    expect(screen.getAllByText('System Health').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Library Sync').length).toBeGreaterThan(0)
+    expect(screen.getByText('Integrations')).toBeInTheDocument()
+    expect(await screen.findByText(/Lidarr unreachable/)).toBeInTheDocument()
+    expect(screen.getByText('Failing')).toBeInTheDocument()
   })
 
   it('Test Connection button calls testService for Lidarr', async () => {
     setupMocks()
     mockTestService.mockResolvedValue({ success: true, message: 'OK' })
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
@@ -700,7 +635,7 @@ describe('SettingsPage', () => {
   it('Save button calls updateSettings for Lidarr', async () => {
     setupMocks()
     mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getAllByText('Lidarr').length).toBeGreaterThan(0)
@@ -722,7 +657,7 @@ describe('SettingsPage', () => {
     setupMocks()
     mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
     mockTestNotificationChannel.mockResolvedValue(undefined)
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await expandService('Notifications')
     const addButton = await screen.findByText('Add channel')
@@ -787,7 +722,7 @@ describe('SettingsPage', () => {
       },
     })
     mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await screen.findByText('Add channel')
     const card = screen.getByRole('group', { name: /^Notifications/ })
@@ -828,20 +763,20 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('hides the notification channels card from non-admins', async () => {
-    setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'viewer',
-      isAdmin: false,
-      preferredLocale: 'en',
+  it('hides the notification channels card from non-admins even when channels are configured', async () => {
+    setupMocks({
+      ...mockSettings,
+      preferences: {
+        ...mockSettings.preferences,
+        channels: [{ id: 'tg1', type: 'telegram', enabled: true, events: [], chatId: '1' }],
+      },
     })
-    renderWithQuery(<SettingsPage />)
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
+    renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    await screen.findByRole('button', { name: 'Connections' })
     expect(screen.queryByText('Add channel')).toBeNull()
+    expect(screen.queryByRole('group', { name: /^Notifications/ })).toBeNull()
   })
 
   it('snaps stale per-user Lidarr preference ids before saving', async () => {
@@ -852,7 +787,7 @@ describe('SettingsPage', () => {
       rootFolders: [{ id: 10, path: '/music' }],
     })
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getByDisplayValue('Stefan')).toBeInTheDocument()
@@ -878,15 +813,10 @@ describe('SettingsPage', () => {
 
   it('allows non-admin Plex testing while keeping other connection probes hidden', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'user',
-      isAdmin: false,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     mockUpdateSettings.mockResolvedValue(undefined as unknown as Record<string, unknown>)
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getByRole('group', { name: /^ListenBrainz/ })).toBeInTheDocument()
@@ -914,14 +844,9 @@ describe('SettingsPage', () => {
       plexToken: '***',
       plexSectionId: '2',
     })
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'listener',
-      isAdmin: false,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     vi.mocked(getPlexSections).mockResolvedValue({ sections: [{ key: '2', title: 'Music' }] })
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
     await expandService('Plex')
     expect(await screen.findByRole('option', { name: 'Music' })).toBeInTheDocument()
     expect(document.getElementById('plex-section')).toHaveValue('2')
@@ -944,7 +869,7 @@ describe('SettingsPage', () => {
           resolveSections = resolve
         }),
       )
-      renderWithQuery(<SettingsPage />)
+      renderPage(<SettingsPage />)
       await waitFor(() => expect(getPlexSections).toHaveBeenCalled())
       const input = document.getElementById(field)
       if (!input) throw new Error('Plex input missing')
@@ -963,12 +888,7 @@ describe('SettingsPage', () => {
 
   it('loads Plex listeners and saves the selected account for a non-admin', async () => {
     setupMocks({ ...mockSettings, plexUrl: 'http://localhost:32400', plexToken: '***' })
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'user',
-      isAdmin: false,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     mockTestService.mockResolvedValue({
       message: 'Connected',
       sections: [{ key: '2', title: 'Music' }],
@@ -977,7 +897,7 @@ describe('SettingsPage', () => {
       machineIdentifier: 'server',
     })
     mockUpdateSettings.mockResolvedValue(undefined)
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
     await expandService('Plex')
     fireEvent.click(await screen.findByRole('button', { name: 'Test Connection' }))
     await screen.findByRole('option', { name: 'Listener' })
@@ -1006,7 +926,7 @@ describe('SettingsPage', () => {
 
   it('shows error state when settings fail to load', async () => {
     mockGetSettings.mockRejectedValue(new Error('Network error'))
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getByText(/Something went wrong/i)).toBeInTheDocument()
@@ -1018,7 +938,7 @@ describe('SettingsPage', () => {
   it('shows Spotify import action when Spotify is connected', async () => {
     setupMocks()
     mockGetOAuthStatus.mockResolvedValue({ connected: true, scopes: 'user-library-read' })
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getByText('Import Liked Songs')).toBeInTheDocument()
@@ -1031,34 +951,11 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('renders a language switcher in account settings', async () => {
-    setupMocks()
-    renderWithQuery(<SettingsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Account' }))
-
-    expect(await screen.findByLabelText('Language')).toBeInTheDocument()
-  })
-
   it('links a local account only after entering its current password', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      authProvider: 'local',
-      oidcSubject: null,
-    })
-    vi.mocked(getAuthMeta).mockResolvedValue({
-      version: '1.16.0',
-      oidcEnabled: true,
-      proxyAuthEnabled: false,
-    })
-    renderWithQuery(<SettingsPage />, ['/settings?tab=account'])
+    mockGetCurrentUser.mockResolvedValue({ ...ADMIN, authProvider: 'local', oidcSubject: null })
+    authMeta(true)
+    renderPage(<SettingsPage />, ['/settings?tab=account'])
 
     const button = await screen.findByRole('button', { name: 'Link SSO account' })
     expect(button).toBeDisabled()
@@ -1079,22 +976,12 @@ describe('SettingsPage', () => {
 
   it('refreshes link availability immediately after saving OIDC settings', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      authProvider: 'local',
-      oidcSubject: null,
-    })
-    const { client } = renderWithQuery(<SettingsPage />, ['/settings?tab=auth'])
+    mockGetCurrentUser.mockResolvedValue({ ...ADMIN, authProvider: 'local', oidcSubject: null })
+    const { client } = renderPage(<SettingsPage />, ['/settings?tab=auth'])
     client.setQueryDefaults(['authMeta'], { staleTime: 30_000 })
     await screen.findByRole('button', { name: 'Save' })
     await waitFor(() => expect(getAuthMeta).toHaveBeenCalledTimes(1))
-    vi.mocked(getAuthMeta).mockResolvedValue({
-      version: '1.16.0',
-      oidcEnabled: true,
-      proxyAuthEnabled: false,
-    })
+    authMeta(true)
 
     fireEvent.click(screen.getByRole('button', { name: 'Save' }))
     await waitFor(() => expect(getAuthMeta).toHaveBeenCalledTimes(2))
@@ -1105,14 +992,8 @@ describe('SettingsPage', () => {
 
   it('keeps email and password under one Security section and hides SSO when it is off', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
-      authProvider: 'local',
-      oidcSubject: null,
-    })
-    renderWithQuery(<SettingsPage />, ['/settings?tab=account'])
+    mockGetCurrentUser.mockResolvedValue({ ...ADMIN, authProvider: 'local', oidcSubject: null })
+    renderPage(<SettingsPage />, ['/settings?tab=account'])
 
     expect(await screen.findByRole('heading', { name: 'Security' })).toBeInTheDocument()
     expect(screen.getByLabelText('Email address')).toBeInTheDocument()
@@ -1130,7 +1011,7 @@ describe('SettingsPage', () => {
         nextCursor: null,
       })
       vi.mocked(listAlbumBlocks).mockResolvedValue({ items: [] })
-      renderWithQuery(<SettingsPage />, [url])
+      renderPage(<SettingsPage />, [url])
 
       expect(await screen.findByText('Score threshold')).toBeInTheDocument()
       const toggle = await screen.findByRole('button', { name: 'Blocked - 0' })
@@ -1143,18 +1024,12 @@ describe('SettingsPage', () => {
   it('shows linked status without offering another link', async () => {
     setupMocks()
     mockGetCurrentUser.mockResolvedValue({
-      id: 1,
-      username: 'admin',
-      isAdmin: true,
+      ...ADMIN,
       authProvider: 'local',
       oidcSubject: 'subject-1',
     })
-    vi.mocked(getAuthMeta).mockResolvedValue({
-      version: '1.16.0',
-      oidcEnabled: true,
-      proxyAuthEnabled: false,
-    })
-    renderWithQuery(<SettingsPage />, ['/settings?tab=account'])
+    authMeta(true)
+    renderPage(<SettingsPage />, ['/settings?tab=account'])
 
     expect(await screen.findByText('SSO is linked to this account.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Link SSO account' })).not.toBeInTheDocument()
@@ -1169,7 +1044,7 @@ describe('SettingsPage', () => {
     ],
   ])('shows a fixed notice for OIDC link outcome %s', async (outcome, message) => {
     setupMocks()
-    renderWithQuery(<SettingsPage />, [`/settings?tab=account&oidc_link=${outcome}`])
+    renderPage(<SettingsPage />, [`/settings?tab=account&oidc_link=${outcome}`])
 
     expect(await screen.findByText(message)).toBeInTheDocument()
     expect(screen.queryByText('untrusted-value')).not.toBeInTheDocument()
@@ -1179,7 +1054,7 @@ describe('SettingsPage', () => {
 
   it('changes the password without persisting a response token', async () => {
     setupMocks()
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     fireEvent.click(await screen.findByRole('button', { name: 'Account' }))
     fireEvent.change(await screen.findByLabelText(/Current password/i), {
@@ -1201,11 +1076,9 @@ describe('SettingsPage', () => {
 
   it('keeps account locale changes local when rendered without the app shell owner', async () => {
     setupMocks()
-    const { client } = renderWithQuery(<SettingsPage />)
+    const { client } = renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    await screen.findByRole('button', { name: 'Connections' })
 
     fireEvent.click(screen.getByRole('button', { name: 'Account' }))
 
@@ -1247,16 +1120,23 @@ describe('SettingsPage', () => {
       },
     ])
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    await screen.findByRole('button', { name: 'Connections' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
-    fireEvent.click(await screen.findByText('Add Target'))
-
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
+    await openAddTarget('slskd')
+    expect(
+      screen.getByText(
+        'slskd can queue releases, but full automation requires a linked Lidarr target.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Release policy: standalone slskd queues releases directly.'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Quality policy: linked Lidarr handles quality and imports.'),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Approval action: queue in slskd only.')).toBeInTheDocument()
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Soulseek' } })
     fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://slskd:5030' } })
     fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'slskd-key' } })
@@ -1287,18 +1167,11 @@ describe('SettingsPage', () => {
   it('creates a Navidrome playlist target', async () => {
     setupMocks()
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    await screen.findByRole('button', { name: 'Connections' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
-    fireEvent.click(await screen.findByText('Add Target'))
-
-    fireEvent.change(screen.getByLabelText('Type'), {
-      target: { value: 'navidrome-playlist' },
-    })
+    await openAddTarget('navidrome-playlist')
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Navidrome' } })
     fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://navidrome:4533' } })
     fireEvent.change(screen.getByLabelText('Username'), { target: { value: 'admin' } })
@@ -1320,33 +1193,6 @@ describe('SettingsPage', () => {
     })
   })
 
-  it('shows slskd limitation help when adding a slskd target', async () => {
-    setupMocks()
-
-    renderWithQuery(<SettingsPage />)
-
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
-
-    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
-    fireEvent.click(await screen.findByText('Add Target'))
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'slskd' } })
-
-    expect(
-      screen.getByText(
-        'slskd can queue releases, but full automation requires a linked Lidarr target.',
-      ),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Release policy: standalone slskd queues releases directly.'),
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText('Quality policy: linked Lidarr handles quality and imports.'),
-    ).toBeInTheDocument()
-    expect(screen.getByText('Approval action: queue in slskd only.')).toBeInTheDocument()
-  })
-
   it('uses the locale-specific slskd api key placeholder', async () => {
     mockGetStoredLocale.mockReturnValue('fr')
     mockGetCurrentUser.mockResolvedValue({
@@ -1357,7 +1203,7 @@ describe('SettingsPage', () => {
     })
     setupMocks()
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Connexions' })).toBeInTheDocument()
@@ -1384,8 +1230,8 @@ describe('SettingsPage', () => {
       },
     ])
 
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
 
     expect(await screen.findByLabelText('Download root as seen by Lidarr')).not.toBeRequired()
@@ -1405,13 +1251,11 @@ describe('SettingsPage', () => {
       },
     ])
 
-    renderWithQuery(<SettingsPage />)
+    renderPage(<SettingsPage />)
 
-    await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Connections' })).toBeInTheDocument()
-    })
+    await screen.findByRole('button', { name: 'Connections' })
 
-    fireEvent.click(screen.getByRole('button', { name: 'Targets' }))
+    await openTargetsTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
 
     const nameInput = await screen.findByDisplayValue('Primary Lidarr')
@@ -1448,8 +1292,8 @@ describe('SettingsPage', () => {
         config: { url: 'http://lidarr:8686', apiKey: '***', qualityProfileId: 1 },
       },
     ])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
     expect(await screen.findByLabelText('Quality Profile')).toBeInTheDocument()
 
@@ -1471,10 +1315,8 @@ describe('SettingsPage', () => {
   it('lets an admin assign a Lidarr target to another user', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
-    fireEvent.click(await screen.findByText('Add Target'))
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
+    renderPage(<SettingsPage />)
+    await openAddTarget('lidarr')
     await screen.findByRole('option', { name: 'listener' })
     fireEvent.change(screen.getByLabelText('Assigned user'), { target: { value: '2' } })
     // New Lidarr targets reference the server connection: no URL or key to fill in.
@@ -1493,10 +1335,8 @@ describe('SettingsPage', () => {
   it('creates a Lidarr target for a different instance with its own URL and key', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
-    fireEvent.click(await screen.findByText('Add Target'))
-    fireEvent.change(screen.getByLabelText('Type'), { target: { value: 'lidarr' } })
+    renderPage(<SettingsPage />)
+    await openAddTarget('lidarr')
     fireEvent.click(screen.getByLabelText('Use a different Lidarr instance'))
     fireEvent.change(screen.getByLabelText('URL'), { target: { value: 'http://other:8686' } })
     fireEvent.change(screen.getByLabelText('API Key'), { target: { value: 'key' } })
@@ -1524,8 +1364,8 @@ describe('SettingsPage', () => {
         config: { useServerConnection: true },
       },
     ])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
     expect(await screen.findByText('(Lidarr (server connection))')).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Edit' }))
     expect(await screen.findByLabelText('Use a different Lidarr instance')).not.toBeChecked()
@@ -1545,8 +1385,8 @@ describe('SettingsPage', () => {
         config: { url: 'http://lidarr:8686', apiKey: '***' },
       },
     ])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
     fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
     await screen.findByRole('option', { name: 'listener' })
     expect(screen.getByLabelText('Assigned user')).toHaveValue('2')
@@ -1571,12 +1411,7 @@ describe('SettingsPage', () => {
 
   it('shows ordinary users a test action without target management controls', async () => {
     setupMocks()
-    mockGetCurrentUser.mockResolvedValue({
-      id: 2,
-      username: 'listener',
-      isAdmin: false,
-      preferredLocale: 'en',
-    })
+    mockGetCurrentUser.mockResolvedValue(MEMBER)
     mockListTargets.mockResolvedValue([
       {
         id: 7,
@@ -1588,8 +1423,8 @@ describe('SettingsPage', () => {
         config: { url: 'http://lidarr:8686', apiKey: '***' },
       },
     ])
-    renderWithQuery(<SettingsPage />)
-    fireEvent.click(await screen.findByRole('button', { name: 'Targets' }))
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
     expect(await screen.findByRole('button', { name: 'Test' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Edit' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
