@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm'
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ReconciledAlbum } from '@/core/library/album-reconciler'
 import type { ReconciledArtist } from '@/core/library/reconciler'
-import { createLibrarySyncStore, emptyLibrarySyncCounts } from '@/core/library/store'
+import { createLibrarySyncStore } from '@/core/library/store'
 import type { Database } from '@/db'
 import {
   libraryAlbumMatchOverrides,
@@ -33,20 +33,20 @@ beforeAll(async () => {
   close = testDb.close
 })
 
-beforeEach(async () => {
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, LIDARR_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, PLEX_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, JELLYFIN_SOURCE))
+async function cleanup() {
+  for (const source of [LIDARR_SOURCE, PLEX_SOURCE, JELLYFIN_SOURCE]) {
+    await db.delete(libraryAlbums).where(eq(libraryAlbums.source, source))
+    await db.delete(libraryArtists).where(eq(libraryArtists.source, source))
+    await db.delete(librarySyncState).where(eq(librarySyncState.source, source))
+  }
   await db
     .delete(libraryAlbumMatchOverrides)
     .where(eq(libraryAlbumMatchOverrides.source, PLEX_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, LIDARR_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, PLEX_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, JELLYFIN_SOURCE))
   await db.delete(libraryMatchOverrides).where(eq(libraryMatchOverrides.source, PLEX_SOURCE))
+}
+
+beforeEach(async () => {
+  await cleanup()
   await db.delete(users).where(eq(users.username, TEST_USER.username))
   const inserted = await db.insert(users).values(TEST_USER).returning({ id: users.id })
   if (!inserted[0]) throw new Error('failed to seed user')
@@ -54,19 +54,7 @@ beforeEach(async () => {
 })
 
 afterEach(async () => {
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, LIDARR_SOURCE))
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, PLEX_SOURCE))
-  await db.delete(libraryAlbums).where(eq(libraryAlbums.source, JELLYFIN_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, LIDARR_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, PLEX_SOURCE))
-  await db.delete(libraryArtists).where(eq(libraryArtists.source, JELLYFIN_SOURCE))
-  await db
-    .delete(libraryAlbumMatchOverrides)
-    .where(eq(libraryAlbumMatchOverrides.source, PLEX_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, LIDARR_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, PLEX_SOURCE))
-  await db.delete(librarySyncState).where(eq(librarySyncState.source, JELLYFIN_SOURCE))
-  await db.delete(libraryMatchOverrides).where(eq(libraryMatchOverrides.source, PLEX_SOURCE))
+  await cleanup()
   await db.delete(users).where(eq(users.id, userId))
 })
 
@@ -112,12 +100,6 @@ function reconciledAlbum(
   }
 }
 
-describe('emptyLibrarySyncCounts', () => {
-  it('initializes lookup failures at zero', () => {
-    expect(emptyLibrarySyncCounts().unreconciledLookupFailed).toBe(0)
-  })
-})
-
 describe('LibrarySyncStore', () => {
   it('replaceLibraryArtists writes rows and reports counts', async () => {
     const store = createLibrarySyncStore(db)
@@ -147,20 +129,7 @@ describe('LibrarySyncStore', () => {
     )
   })
 
-  it('replaceLibraryArtists is truncate-and-replace per source/user', async () => {
-    const store = createLibrarySyncStore(db)
-    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
-      reconciled({ sourceArtistId: 'rk-1', name: 'Bush' }),
-    ])
-    await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
-      reconciled({ sourceArtistId: 'rk-2', name: 'Radiohead' }),
-    ])
-    const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?.sourceArtistId).toBe('rk-2')
-  })
-
-  it('replaceLibraryArtists for source A does not touch source B', async () => {
+  it('replaceLibraryArtists is truncate-and-replace per source/user and leaves other sources alone', async () => {
     const store = createLibrarySyncStore(db)
     await store.replaceLibraryArtists(userId, PLEX_SOURCE, [
       reconciled({ sourceArtistId: 'rk-1', name: 'Bush' }),
@@ -172,16 +141,24 @@ describe('LibrarySyncStore', () => {
       reconciled({ sourceArtistId: 'rk-3', name: 'Portishead' }),
     ])
     const rows = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
-    expect(rows).toHaveLength(2)
-    expect(rows.map((r) => r.source).sort()).toEqual([JELLYFIN_SOURCE, PLEX_SOURCE])
+    expect(rows.map((r) => [r.source, r.sourceArtistId]).sort()).toEqual([
+      [JELLYFIN_SOURCE, 'jf-1'],
+      [PLEX_SOURCE, 'rk-3'],
+    ])
   })
 
-  it('replaceLibrarySnapshot writes album rows and counts them', async () => {
+  it('replaceLibrarySnapshot writes album rows, counts them and preserves unreconciled reasons', async () => {
     const store = createLibrarySyncStore(db)
     const result = await store.replaceLibrarySnapshot(
       userId,
       PLEX_SOURCE,
-      [],
+      [
+        reconciled({
+          sourceArtistId: 'rk-1',
+          name: 'No Match',
+          unreconciledReason: 'no_candidate',
+        }),
+      ],
       [
         reconciledAlbum({
           sourceAlbumId: 'alb-1',
@@ -197,46 +174,15 @@ describe('LibrarySyncStore', () => {
     )
 
     expect(result.albumsSynced).toBe(1)
-    const rows = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
-    expect(rows).toHaveLength(1)
-    expect(rows[0]?.title).toBe('Dummy')
-    expect(rows[0]?.albumMbid).toBe('11111111-1111-1111-1111-111111111111')
-    expect(rows[0]?.unreconciledReason).toBe('ambiguous')
-  })
-
-  it('replaceLibrarySnapshot preserves artist and album unreconciled reasons', async () => {
-    const store = createLibrarySyncStore(db)
-    await store.replaceLibrarySnapshot(
-      userId,
-      PLEX_SOURCE,
-      [
-        reconciled({
-          sourceArtistId: 'snapshot-artist',
-          name: 'No Match',
-          unreconciledReason: 'no_candidate',
-        }),
-      ],
-      [
-        reconciledAlbum({
-          sourceAlbumId: 'snapshot-album',
-          sourceArtistId: 'snapshot-artist',
-          title: 'Ambiguous Album',
-          artistMbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-          unreconciledReason: 'ambiguous',
-        }),
-      ],
-    )
-
-    const [artist] = await db
-      .select()
-      .from(libraryArtists)
-      .where(eq(libraryArtists.sourceArtistId, 'snapshot-artist'))
-    const [album] = await db
-      .select()
-      .from(libraryAlbums)
-      .where(eq(libraryAlbums.sourceAlbumId, 'snapshot-album'))
+    const [artist] = await db.select().from(libraryArtists).where(eq(libraryArtists.userId, userId))
+    const albums = await db.select().from(libraryAlbums).where(eq(libraryAlbums.userId, userId))
     expect(artist?.unreconciledReason).toBe('no_candidate')
-    expect(album?.unreconciledReason).toBe('ambiguous')
+    expect(albums).toHaveLength(1)
+    expect(albums[0]).toMatchObject({
+      title: 'Dummy',
+      albumMbid: '11111111-1111-1111-1111-111111111111',
+      unreconciledReason: 'ambiguous',
+    })
   })
 
   it('replaceLibrarySnapshot replaces albums per source/user', async () => {
@@ -753,15 +699,48 @@ describe('LibrarySyncStore', () => {
   // Regression: check-then-write upserts could insert duplicate rows when two
   // sync cycles overlapped. Now uses INSERT ... ON CONFLICT DO UPDATE with
   // NULLS NOT DISTINCT so concurrent callers resolve to a single row.
-  it('upsertLibrarySyncState concurrent calls do not duplicate', async () => {
-    const store = createLibrarySyncStore(db)
-    await Promise.all([
-      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' }),
-      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'completed' }),
-      store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'running' }),
-    ])
-    const rows = await db.select().from(librarySyncState).where(eq(librarySyncState.userId, userId))
-    expect(rows).toHaveLength(1)
+  it.each([
+    {
+      name: 'sync state',
+      write: (store: ReturnType<typeof createLibrarySyncStore>) =>
+        ['running', 'completed', 'running'].map((lastSyncStatus) =>
+          store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus }),
+        ),
+      count: async () =>
+        (await db.select().from(librarySyncState).where(eq(librarySyncState.userId, userId)))
+          .length,
+    },
+    {
+      name: 'artist override',
+      write: (store: ReturnType<typeof createLibrarySyncStore>) =>
+        ['aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb'].map(
+          (mbid) => store.upsertOverride(userId, PLEX_SOURCE, 'artist-1', mbid),
+        ),
+      count: async () =>
+        (
+          await db
+            .select()
+            .from(libraryMatchOverrides)
+            .where(eq(libraryMatchOverrides.userId, userId))
+        ).length,
+    },
+    {
+      name: 'album override',
+      write: (store: ReturnType<typeof createLibrarySyncStore>) =>
+        ['aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb'].map(
+          (mbid) => store.upsertAlbumOverride(userId, PLEX_SOURCE, 'album-1', mbid),
+        ),
+      count: async () =>
+        (
+          await db
+            .select()
+            .from(libraryAlbumMatchOverrides)
+            .where(eq(libraryAlbumMatchOverrides.userId, userId))
+        ).length,
+    },
+  ])('concurrent $name upserts do not duplicate', async ({ write, count }) => {
+    await Promise.all(write(createLibrarySyncStore(db)))
+    expect(await count()).toBe(1)
   })
 
   // Regression: a global (userId=null) sync state must not count as the user's
@@ -776,42 +755,6 @@ describe('LibrarySyncStore', () => {
 
     await store.upsertLibrarySyncState(userId, PLEX_SOURCE, { lastSyncStatus: 'completed' })
     expect(await store.userHasOwnSyncState(userId)).toBe(true)
-  })
-
-  it('upsertOverride concurrent calls do not duplicate', async () => {
-    const store = createLibrarySyncStore(db)
-    await Promise.all([
-      store.upsertOverride(userId, PLEX_SOURCE, 'artist-1', 'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
-      store.upsertOverride(userId, PLEX_SOURCE, 'artist-1', 'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
-    ])
-    const rows = await db
-      .select()
-      .from(libraryMatchOverrides)
-      .where(eq(libraryMatchOverrides.userId, userId))
-    expect(rows).toHaveLength(1)
-  })
-
-  it('upsertAlbumOverride concurrent calls do not duplicate', async () => {
-    const store = createLibrarySyncStore(db)
-    await Promise.all([
-      store.upsertAlbumOverride(
-        userId,
-        PLEX_SOURCE,
-        'album-1',
-        'aaaa1111-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-      ),
-      store.upsertAlbumOverride(
-        userId,
-        PLEX_SOURCE,
-        'album-1',
-        'bbbb2222-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-      ),
-    ])
-    const rows = await db
-      .select()
-      .from(libraryAlbumMatchOverrides)
-      .where(eq(libraryAlbumMatchOverrides.userId, userId))
-    expect(rows).toHaveLength(1)
   })
 })
 

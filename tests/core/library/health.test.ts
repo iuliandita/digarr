@@ -4,9 +4,6 @@ import type { LidarrAlbum, LidarrArtist } from '@/core/clients/lidarr'
 import { LibraryHealthService } from '@/core/library/health'
 import type { LibraryHealthState } from '@/core/library/types'
 
-// ---------------------------------------------------------------------------
-// Mock p-queue: runs tasks immediately, no rate-limiting in tests
-// ---------------------------------------------------------------------------
 vi.mock('p-queue', () => {
   const mockAdd = vi.fn((fn: () => unknown) => Promise.resolve(fn()))
   const mockOnIdle = vi.fn(() => Promise.resolve())
@@ -18,53 +15,47 @@ vi.mock('p-queue', () => {
   return { default: MockPQueue }
 })
 
-// ---------------------------------------------------------------------------
-// Fixtures
-// ---------------------------------------------------------------------------
+const lidarrArtist = (overrides: Partial<LidarrArtist> & Pick<LidarrArtist, 'id' | 'artistName'>) =>
+  ({
+    foreignArtistId: `mbid-${overrides.id}`,
+    qualityProfileId: 1,
+    rootFolderPath: '/music',
+    monitored: true,
+    status: 'ended',
+    genres: [],
+    ...overrides,
+  }) as LidarrArtist
 
-const ARTIST_RADIOHEAD: LidarrArtist = {
+const ARTIST_RADIOHEAD = lidarrArtist({
   id: 1,
   artistName: 'Radiohead',
   foreignArtistId: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-  qualityProfileId: 1,
-  rootFolderPath: '/music',
-  monitored: true,
-  status: 'ended',
   genres: ['alternative rock', 'art rock'],
-}
-
-const ARTIST_PORTISHEAD: LidarrArtist = {
+})
+const ARTIST_PORTISHEAD = lidarrArtist({
   id: 2,
   artistName: 'Portishead',
   foreignArtistId: '8f6bd1e4-fbe1-4f50-aa9b-94c450ec0a11',
-  qualityProfileId: 1,
-  rootFolderPath: '/music',
-  monitored: true,
   status: 'continuing',
   genres: ['trip hop'],
-}
-
-const ARTIST_BJORK: LidarrArtist = {
+})
+const ARTIST_BJORK = lidarrArtist({
   id: 3,
   artistName: 'Bjork',
   foreignArtistId: '87c7bda4-9a31-4e8c-a09c-7a595dc55c40',
-  qualityProfileId: 1,
-  rootFolderPath: '/music',
   monitored: false,
   status: 'continuing',
-  genres: [],
-}
-
-const ARTIST_NO_META: LidarrArtist = {
+})
+const ARTIST_NO_META = lidarrArtist({
   id: 4,
   artistName: 'Unknown Artist',
   foreignArtistId: 'aaaa-bbbb-cccc-dddd-eeeeffffffff',
-  qualityProfileId: 1,
-  rootFolderPath: '/music',
-  monitored: true,
-  status: 'ended',
-  genres: [],
-}
+})
+
+const SPECIAL_PURPOSE_MBIDS = [
+  '89ad4ac3-39f7-470e-963a-56509c546377',
+  '125ec42a-7229-4250-afc5-e057484327fe',
+]
 
 const ALBUM_WITH_FILES: LidarrAlbum = {
   id: 10,
@@ -86,26 +77,31 @@ const ALBUM_NO_FILES: LidarrAlbum = {
   statistics: { trackCount: 11, trackFileCount: 0, percentOfTracks: 0 },
 }
 
-// ---------------------------------------------------------------------------
-// Mock factory helpers
-// ---------------------------------------------------------------------------
+const cached = (artist: LidarrArtist, overrides: Record<string, unknown> = {}) => ({
+  id: artist.id,
+  mbid: artist.foreignArtistId,
+  name: artist.artistName,
+  genres: null,
+  tags: null,
+  imageUrl: null,
+  streamingUrls: null,
+  ...overrides,
+})
 
-type MockDeps = {
-  getArtists: ReturnType<typeof vi.fn>
-  getAlbums: ReturnType<typeof vi.fn>
-  lookupArtist: ReturnType<typeof vi.fn>
-  setArtistsMonitored: ReturnType<typeof vi.fn>
-  triggerCommand: ReturnType<typeof vi.fn>
-  getRootFolders: ReturnType<typeof vi.fn>
-  cacheGetAll: ReturnType<typeof vi.fn>
-  cacheUpdateImageUrl: ReturnType<typeof vi.fn>
-  healthStateGet: ReturnType<typeof vi.fn>
-  healthStateStart: ReturnType<typeof vi.fn>
-  healthStateSave: ReturnType<typeof vi.fn>
-  healthStateFailed: ReturnType<typeof vi.fn>
+const unmonitoredTrio = [
+  { ...ARTIST_RADIOHEAD, monitored: false },
+  { ...ARTIST_PORTISHEAD, monitored: false },
+  ARTIST_BJORK,
+]
+const TRIO_IDS = [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id]
+
+type SaveInput = {
+  checks: LibraryHealthState['checks']
+  lastCompletedAt: Date
+  lastError: string | null
 }
 
-function makeMocks(): MockDeps {
+function makeMocks() {
   return {
     getArtists: vi.fn().mockResolvedValue([]),
     getAlbums: vi.fn().mockResolvedValue([]),
@@ -119,114 +115,72 @@ function makeMocks(): MockDeps {
     cacheUpdateImageUrl: vi.fn().mockResolvedValue(undefined),
     healthStateGet: vi.fn(async (): Promise<LibraryHealthState | null> => null),
     healthStateStart: vi.fn(async () => {}),
-    healthStateSave: vi.fn(async () => {}),
-    healthStateFailed: vi.fn(async () => {}),
+    healthStateSave: vi.fn(async (_input: SaveInput) => {}),
+    healthStateFailed: vi.fn(async (_error: string) => {}),
   }
 }
+type Mocks = ReturnType<typeof makeMocks>
 
-function makeService(mocks: MockDeps): LibraryHealthService {
+function makeService(mocks: Mocks): LibraryHealthService {
   return new LibraryHealthService({
     lidarrClient: {
-      getArtists: mocks.getArtists as unknown as () => Promise<LidarrArtist[]>,
-      getAlbums: mocks.getAlbums as unknown as (artistId: number) => Promise<LidarrAlbum[]>,
-      lookupArtist: mocks.lookupArtist as unknown as (term: string) => Promise<unknown[]>,
-      setArtistsMonitored: mocks.setArtistsMonitored as unknown as (
-        artistIds: number[],
-        monitored: boolean,
-      ) => Promise<LidarrArtist[]>,
-      triggerCommand: mocks.triggerCommand as unknown as (
-        name: string,
-        body?: Record<string, unknown>,
-      ) => Promise<unknown>,
-      getRootFolders: mocks.getRootFolders as unknown as () => Promise<
-        Array<{ id: number; path: string; freeSpace: number }>
-      >,
+      getArtists: mocks.getArtists,
+      getAlbums: mocks.getAlbums,
+      lookupArtist: mocks.lookupArtist,
+      setArtistsMonitored: mocks.setArtistsMonitored,
+      triggerCommand: mocks.triggerCommand,
+      getRootFolders: mocks.getRootFolders,
     },
-    artistCache: {
-      getAll: mocks.cacheGetAll as unknown as () => Promise<
-        Array<{
-          id: number
-          mbid: string
-          name: string
-          genres: string[] | null
-          tags: string[] | null
-          imageUrl: string | null
-          streamingUrls: Record<string, string> | null
-        }>
-      >,
-      updateImageUrl: mocks.cacheUpdateImageUrl as unknown as (
-        mbid: string,
-        imageUrl: string,
-      ) => Promise<void>,
-    },
+    artistCache: { getAll: mocks.cacheGetAll, updateImageUrl: mocks.cacheUpdateImageUrl },
     stateStore: {
-      get: mocks.healthStateGet as unknown as () => Promise<LibraryHealthState | null>,
-      markScanStarted: mocks.healthStateStart as unknown as () => Promise<void>,
-      save: mocks.healthStateSave as unknown as (input: {
-        checks: LibraryHealthState['checks']
-        lastCompletedAt: Date
-        lastError: string | null
-      }) => Promise<void>,
-      markScanFailed: mocks.healthStateFailed as unknown as (error: string) => Promise<void>,
+      get: mocks.healthStateGet,
+      markScanStarted: mocks.healthStateStart,
+      save: mocks.healthStateSave,
+      markScanFailed: mocks.healthStateFailed,
     },
-  })
+  } as never)
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
-
 describe('LibraryHealthService', () => {
-  let mocks: MockDeps
+  let mocks: Mocks
   let service: LibraryHealthService
 
   beforeEach(() => {
     mocks = makeMocks()
     service = makeService(mocks)
-    vi.clearAllMocks()
   })
+
+  async function scan(
+    artists: LidarrArtist[],
+    cache: Array<ReturnType<typeof cached>> = [],
+    albums?: LidarrAlbum[],
+  ) {
+    mocks.getArtists.mockResolvedValue(artists)
+    mocks.cacheGetAll.mockResolvedValue(cache)
+    if (albums) mocks.getAlbums.mockResolvedValue(albums)
+    return service.runChecks()
+  }
 
   describe('state persistence', () => {
     it('persists the computed snapshot and exposes it via getState', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 1,
-          mbid: ARTIST_RADIOHEAD.foreignArtistId,
-          name: 'Radiohead',
-          genres: ['rock'],
-          tags: null,
-          imageUrl: 'http://img',
-          streamingUrls: null,
-        },
-      ])
-
       const savedStates: LibraryHealthState[] = []
-      mocks.healthStateSave.mockImplementation(
-        async ({
+      mocks.healthStateSave.mockImplementation(async ({ checks, lastCompletedAt, lastError }) => {
+        savedStates.push({
           checks,
+          lastStartedAt: new Date('2026-04-13T10:00:00.000Z'),
           lastCompletedAt,
           lastError,
-        }: {
-          checks: LibraryHealthState['checks']
-          lastCompletedAt: Date
-          lastError: string | null
-        }) => {
-          savedStates.push({
-            checks,
-            lastStartedAt: new Date('2026-04-13T10:00:00.000Z'),
-            lastCompletedAt,
-            lastError,
-          })
-        },
-      )
+        })
+      })
       mocks.healthStateGet.mockImplementation(async () => savedStates.at(-1) ?? null)
 
-      await service.runChecks()
+      await scan(
+        [ARTIST_RADIOHEAD, ARTIST_BJORK],
+        [cached(ARTIST_RADIOHEAD, { genres: ['rock'], imageUrl: 'http://img' })],
+      )
       const state = await service.getState()
 
       expect(mocks.healthStateSave).toHaveBeenCalledTimes(1)
-      expect(state).not.toBeNull()
       expect(state?.lastStartedAt?.toISOString()).toBe('2026-04-13T10:00:00.000Z')
       expect(state?.lastCompletedAt).toBeInstanceOf(Date)
       expect(state?.lastError).toBeNull()
@@ -234,13 +188,12 @@ describe('LibraryHealthService', () => {
     })
 
     it('reports partial missing-album results when some album lookups fail', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
       mocks.getAlbums.mockImplementation(async (artistId: number) => {
         if (artistId === ARTIST_PORTISHEAD.id) throw new Error('Lidarr 503')
         return [ALBUM_NO_FILES]
       })
 
-      const results = await service.runChecks()
+      const results = await scan([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
 
       expect(results.find((check) => check.id === 'missing-albums')?.count).toBe(1)
       expect(mocks.healthStateSave).toHaveBeenCalledWith(
@@ -265,460 +218,265 @@ describe('LibraryHealthService', () => {
     })
   })
 
-  // -------------------------------------------------------------------------
-  // unmonitored check
-  // -------------------------------------------------------------------------
+  describe('checks', () => {
+    const dupe = (id: number, artistName: string) =>
+      lidarrArtist({ ...ARTIST_RADIOHEAD, id, artistName, foreignArtistId: `mbid-${id}` })
 
-  describe('unmonitored check', () => {
-    it('detects unmonitored artists', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 1,
-          mbid: ARTIST_RADIOHEAD.foreignArtistId,
-          name: 'Radiohead',
-          genres: ['rock'],
-          tags: null,
-          imageUrl: 'http://img',
-          streamingUrls: null,
-        },
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: null,
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
+    it.each([
+      {
+        name: 'unmonitored artist is flagged',
+        check: 'unmonitored',
+        artists: [ARTIST_RADIOHEAD, ARTIST_BJORK],
+        count: 1,
+        first: { artistName: 'Bjork', detail: 'Not monitored' },
+      },
+      {
+        name: 'unmonitored: all monitored is empty',
+        check: 'unmonitored',
+        artists: [ARTIST_RADIOHEAD, ARTIST_PORTISHEAD],
+        count: 0,
+      },
+      {
+        name: 'genre-gaps: null genres in both sources',
+        check: 'genre-gaps',
+        artists: [{ ...ARTIST_BJORK, genres: undefined }],
+        cache: [cached(ARTIST_BJORK)],
+        count: 1,
+        first: { detail: 'No genre tags' },
+      },
+      {
+        name: 'genre-gaps: empty genres in both sources',
+        check: 'genre-gaps',
+        artists: [ARTIST_BJORK],
+        cache: [cached(ARTIST_BJORK, { genres: [] })],
+        count: 1,
+      },
+      {
+        name: 'genre-gaps: skipped when Lidarr has genres',
+        check: 'genre-gaps',
+        artists: [ARTIST_RADIOHEAD],
+        cache: [cached(ARTIST_RADIOHEAD)],
+        count: 0,
+      },
+      {
+        name: 'genre-gaps: skipped when cache has genres',
+        check: 'genre-gaps',
+        artists: [ARTIST_BJORK],
+        cache: [cached(ARTIST_BJORK, { genres: ['electronic'] })],
+        count: 0,
+      },
+      {
+        name: 'image-gaps: cached artist without image',
+        check: 'image-gaps',
+        artists: [ARTIST_RADIOHEAD],
+        cache: [cached(ARTIST_RADIOHEAD, { genres: ['rock'] })],
+        count: 1,
+        first: { detail: 'No image' },
+      },
+      {
+        name: 'image-gaps: skipped when imageUrl exists',
+        check: 'image-gaps',
+        artists: [ARTIST_RADIOHEAD],
+        cache: [cached(ARTIST_RADIOHEAD, { imageUrl: 'https://img.example.com/1.jpg' })],
+        count: 0,
+      },
+      {
+        name: 'duplicate-artists: same name, different MBIDs grouped once',
+        check: 'duplicate-artists',
+        artists: [dupe(10, 'Radiohead'), dupe(11, 'Radiohead')],
+        count: 1,
+        first: { detail: /2 entries/ },
+      },
+      {
+        name: 'duplicate-artists: case-insensitive',
+        check: 'duplicate-artists',
+        artists: [dupe(10, 'radiohead'), dupe(11, 'RADIOHEAD')],
+        count: 1,
+      },
+      {
+        name: 'duplicate-artists: none',
+        check: 'duplicate-artists',
+        artists: [ARTIST_RADIOHEAD, ARTIST_PORTISHEAD],
+        count: 0,
+      },
+      {
+        name: 'missing-metadata: no genres and no image',
+        check: 'missing-metadata',
+        artists: [ARTIST_NO_META],
+        cache: [cached(ARTIST_NO_META)],
+        count: 1,
+        first: { detail: 'Missing: genres, image' },
+      },
+      {
+        name: 'missing-metadata: skipped when cache has image',
+        check: 'missing-metadata',
+        artists: [ARTIST_NO_META],
+        cache: [cached(ARTIST_NO_META, { imageUrl: 'http://img.example.com/no_meta.jpg' })],
+        count: 0,
+      },
+      {
+        name: 'missing-albums: monitored artist with empty monitored albums',
+        check: 'missing-albums',
+        artists: [ARTIST_PORTISHEAD],
+        albums: [ALBUM_NO_FILES],
+        count: 1,
+        first: { detail: '1 monitored album with no files' },
+      },
+      {
+        name: 'missing-albums: albums with files skipped',
+        check: 'missing-albums',
+        artists: [ARTIST_RADIOHEAD],
+        albums: [ALBUM_WITH_FILES],
+        count: 0,
+      },
+    ] as Array<{
+      name: string
+      check: string
+      artists: LidarrArtist[]
+      cache?: Array<ReturnType<typeof cached>>
+      albums?: LidarrAlbum[]
+      count: number
+      first?: { artistName?: string; detail?: string | RegExp }
+    }>)('$name', async ({ check, artists, cache, albums, count, first }) => {
+      const result = (await scan(artists, cache, albums)).find((r) => r.id === check)
 
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'unmonitored')
-
-      expect(check).toBeDefined()
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.artistName).toBe('Bjork')
-      expect(check?.items[0]?.detail).toBe('Not monitored')
+      expect(result?.count).toBe(count)
+      expect(result?.items).toHaveLength(count)
+      if (first?.artistName) expect(result?.items[0]?.artistName).toBe(first.artistName)
+      if (first?.detail) expect(result?.items[0]?.detail).toMatch(first.detail)
     })
 
-    it('returns empty when all artists are monitored', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
-      mocks.cacheGetAll.mockResolvedValue([])
+    it('skips unmonitored artists in missing-albums without fetching their albums', async () => {
+      const results = await scan([ARTIST_BJORK])
 
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'unmonitored')
-
-      expect(check?.count).toBe(0)
-      expect(check?.items).toHaveLength(0)
-    })
-  })
-
-  // -------------------------------------------------------------------------
-  // genre-gaps check
-  // -------------------------------------------------------------------------
-
-  describe('genre-gaps check', () => {
-    it('detects artists with null genres in both sources', async () => {
-      const artist = { ...ARTIST_BJORK, genres: undefined }
-      mocks.getArtists.mockResolvedValue([artist])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: null,
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'genre-gaps')
-
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.detail).toBe('No genre tags')
+      expect(results.find((r) => r.id === 'missing-albums')?.count).toBe(0)
+      expect(mocks.getAlbums).not.toHaveBeenCalled()
     })
 
-    it('detects artists with empty array genres in both sources', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK]) // genres: []
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: [],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
+    it.each(SPECIAL_PURPOSE_MBIDS)('excludes special-purpose artist %s', async (mbid) => {
+      const results = await scan(
+        [{ ...ARTIST_PORTISHEAD, foreignArtistId: mbid }],
+        [],
+        [ALBUM_NO_FILES],
+      )
 
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'genre-gaps')
-
-      expect(check?.count).toBe(1)
+      expect(results.find((r) => r.id === 'missing-albums')?.count).toBe(0)
+      expect(mocks.getAlbums).not.toHaveBeenCalled()
     })
 
-    it('skips artist if Lidarr has genres', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD]) // has genres
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 1,
-          mbid: ARTIST_RADIOHEAD.foreignArtistId,
-          name: 'Radiohead',
-          genres: null,
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
+    it('still fails when every attempted lookup fails alongside skipped artists', async () => {
+      mocks.getAlbums.mockRejectedValue(new Error('Lidarr unavailable'))
 
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'genre-gaps')
-
-      expect(check?.count).toBe(0)
-    })
-
-    it('skips artist if cache has genres', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK]) // no genres in Lidarr
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: ['electronic'],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'genre-gaps')
-
-      expect(check?.count).toBe(0)
-    })
-  })
-
-  // -------------------------------------------------------------------------
-  // image-gaps check
-  // -------------------------------------------------------------------------
-
-  describe('image-gaps check', () => {
-    it('detects cached artists with null imageUrl', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 1,
-          mbid: ARTIST_RADIOHEAD.foreignArtistId,
-          name: 'Radiohead',
-          genres: ['rock'],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'image-gaps')
-
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.detail).toBe('No image')
-    })
-
-    it('skips artists that have an imageUrl', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 1,
-          mbid: ARTIST_RADIOHEAD.foreignArtistId,
-          name: 'Radiohead',
-          genres: ['rock'],
-          tags: null,
-          imageUrl: 'https://img.example.com/1.jpg',
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'image-gaps')
-
-      expect(check?.count).toBe(0)
+      await expect(
+        scan([
+          ARTIST_PORTISHEAD,
+          { ...ARTIST_RADIOHEAD, foreignArtistId: SPECIAL_PURPOSE_MBIDS[0] as string },
+        ]),
+      ).rejects.toThrow('Album lookups failed for all 1 monitored artists')
+      expect(mocks.getAlbums).toHaveBeenCalledExactlyOnceWith(ARTIST_PORTISHEAD.id)
     })
   })
-
-  // -------------------------------------------------------------------------
-  // duplicate-artists check
-  // -------------------------------------------------------------------------
-
-  describe('duplicate-artists check', () => {
-    it('detects artists with the same name under different MBIDs', async () => {
-      const dup1: LidarrArtist = { ...ARTIST_RADIOHEAD, id: 10, foreignArtistId: 'mbid-1' }
-      const dup2: LidarrArtist = { ...ARTIST_RADIOHEAD, id: 11, foreignArtistId: 'mbid-2' }
-      mocks.getArtists.mockResolvedValue([dup1, dup2])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'duplicate-artists')
-
-      // Grouped: one item per duplicate name, not per entry
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.detail).toMatch(/2 entries/)
-    })
-
-    it('is case-insensitive', async () => {
-      const a1: LidarrArtist = {
-        ...ARTIST_RADIOHEAD,
-        id: 10,
-        artistName: 'radiohead',
-        foreignArtistId: 'mbid-1',
-      }
-      const a2: LidarrArtist = {
-        ...ARTIST_RADIOHEAD,
-        id: 11,
-        artistName: 'RADIOHEAD',
-        foreignArtistId: 'mbid-2',
-      }
-      mocks.getArtists.mockResolvedValue([a1, a2])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'duplicate-artists')
-
-      expect(check?.count).toBe(1)
-    })
-
-    it('returns empty when no duplicates', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'duplicate-artists')
-
-      expect(check?.count).toBe(0)
-    })
-  })
-
-  // -------------------------------------------------------------------------
-  // Caching behavior
-  // -------------------------------------------------------------------------
 
   describe('caching', () => {
-    it('getLastResults returns null before first runChecks', () => {
+    it('getLastResults is null before a scan and tracks the latest fresh run', async () => {
       expect(service.getLastResults()).toBeNull()
-    })
 
-    it('getLastResults returns results after runChecks', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      expect(service.getLastResults()).toBe(results)
-    })
-
-    it('runChecks always fetches fresh data', async () => {
-      mocks.getArtists.mockResolvedValue([])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      await service.runChecks()
-      await service.runChecks()
-
-      expect(mocks.getArtists).toHaveBeenCalledTimes(2)
-      expect(mocks.cacheGetAll).toHaveBeenCalledTimes(2)
-    })
-
-    it('getLastResults returns updated results after second runChecks', async () => {
       mocks.getArtists.mockResolvedValueOnce([]).mockResolvedValueOnce([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([])
-
       const first = await service.runChecks()
+      expect(service.getLastResults()).toBe(first)
       const second = await service.runChecks()
 
       expect(service.getLastResults()).toBe(second)
-      expect(service.getLastResults()).not.toBe(first)
+      expect(second).not.toBe(first)
+      expect(mocks.getArtists).toHaveBeenCalledTimes(2)
+      expect(mocks.cacheGetAll).toHaveBeenCalledTimes(2)
     })
   })
 
-  // -------------------------------------------------------------------------
-  // Fix actions
-  // -------------------------------------------------------------------------
-
   describe('fixCheck', () => {
-    beforeEach(async () => {
-      // Pre-populate cache with a mix of issues
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK, ARTIST_PORTISHEAD])
-      mocks.getAlbums.mockImplementation((artistId: number) => {
-        if (artistId === 2) return Promise.resolve([ALBUM_NO_FILES])
-        return Promise.resolve([ALBUM_WITH_FILES])
-      })
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: null,
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-        {
-          id: 2,
-          mbid: ARTIST_PORTISHEAD.foreignArtistId,
-          name: 'Portishead',
-          genres: ['trip hop'],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-      await service.runChecks()
-      vi.clearAllMocks()
-    })
-
     it('throws for duplicate-artists', async () => {
+      await scan([ARTIST_BJORK, ARTIST_PORTISHEAD])
+
       await expect(service.fixCheck('duplicate-artists')).rejects.toThrow('not fixable')
     })
 
-    it('calls triggerCommand RefreshArtist for genre-gaps', async () => {
-      // Rebuild service state with genre-gaps
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: ARTIST_BJORK.foreignArtistId,
-          name: 'Bjork',
-          genres: [],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-      await service.runChecks()
-      mocks.triggerCommand.mockResolvedValue({})
+    it.each([
+      {
+        check: 'genre-gaps',
+        artists: [ARTIST_BJORK],
+        cache: [cached(ARTIST_BJORK, { genres: [] })],
+        expectCall: (m: Mocks) =>
+          expect(m.triggerCommand).toHaveBeenCalledWith('RefreshArtist', {
+            artistId: ARTIST_BJORK.id,
+          }),
+      },
+      {
+        check: 'unmonitored',
+        artists: [ARTIST_BJORK],
+        cache: [],
+        expectCall: (m: Mocks) =>
+          expect(m.setArtistsMonitored).toHaveBeenCalledWith([ARTIST_BJORK.id], true),
+      },
+    ])(
+      'fixes $check through the matching Lidarr call',
+      async ({ check, artists, cache, expectCall }) => {
+        await scan(artists, cache)
 
-      const progress = await service.fixCheck('genre-gaps')
+        const progress = await service.fixCheck(check as 'genre-gaps' | 'unmonitored')
 
-      expect(mocks.triggerCommand).toHaveBeenCalledWith('RefreshArtist', {
-        artistId: ARTIST_BJORK.id,
-      })
-      expect(progress.completed).toBe(1)
-      expect(progress.failed).toBe(0)
-      expect(progress.status).toBe('completed')
-    })
+        expectCall(mocks)
+        expect(progress).toMatchObject({ completed: 1, failed: 0, status: 'completed' })
+      },
+    )
 
-    it('calls setArtistsMonitored true for unmonitored', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
-      mocks.setArtistsMonitored.mockResolvedValue([{ ...ARTIST_BJORK, monitored: true }])
-
-      const progress = await service.fixCheck('unmonitored')
-
-      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith([ARTIST_BJORK.id], true)
-      expect(progress.completed).toBe(1)
-      expect(progress.status).toBe('completed')
-    })
-
-    it('calls triggerCommand ArtistSearch for missing-albums', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD])
-      mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 2,
-          mbid: ARTIST_PORTISHEAD.foreignArtistId,
-          name: 'Portishead',
-          genres: ['trip hop'],
-          tags: null,
-          imageUrl: 'http://img',
-          streamingUrls: null,
-        },
-      ])
-      await service.runChecks()
-      mocks.triggerCommand.mockResolvedValue({})
+    it('queues one ArtistSearch per item for missing-albums', async () => {
+      await scan([ARTIST_PORTISHEAD, ARTIST_RADIOHEAD], [], [ALBUM_NO_FILES])
 
       const progress = await service.fixCheck('missing-albums')
 
+      expect(mocks.triggerCommand).toHaveBeenCalledTimes(2)
       expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
         artistId: ARTIST_PORTISHEAD.id,
       })
-      expect(progress.completed).toBe(1)
+      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
+        artistId: ARTIST_RADIOHEAD.id,
+      })
+      expect(progress).toMatchObject({ completed: 2, status: 'completed' })
     })
 
-    it('calls lookupArtist and updateImageUrl for image-gaps', async () => {
-      const MBID = ARTIST_BJORK.foreignArtistId
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: MBID,
-          name: 'Bjork',
-          genres: ['electronic'],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-      await service.runChecks()
-
+    it.each([
+      { name: 'stores the image found by lookup', lookup: true },
+      { name: 'completes without updating when lookup finds no image', lookup: false },
+    ])('image-gaps $name', async ({ lookup }) => {
+      const mbid = ARTIST_BJORK.foreignArtistId
       const imageUrl = 'https://fanart.tv/img/bjork-poster.jpg'
-      mocks.lookupArtist.mockResolvedValue([
-        { images: [{ coverType: 'poster', remoteUrl: imageUrl }] },
-      ])
-      mocks.cacheUpdateImageUrl.mockResolvedValue(undefined)
+      await scan([ARTIST_BJORK], [cached(ARTIST_BJORK, { genres: ['electronic'] })])
+      mocks.lookupArtist.mockResolvedValue(
+        lookup ? [{ images: [{ coverType: 'poster', remoteUrl: imageUrl }] }] : [],
+      )
 
       const progress = await service.fixCheck('image-gaps')
 
-      expect(mocks.lookupArtist).toHaveBeenCalledWith(`lidarr:${MBID}`)
-      expect(mocks.cacheUpdateImageUrl).toHaveBeenCalledWith(MBID, imageUrl)
-      expect(progress.completed).toBe(1)
-      expect(progress.status).toBe('completed')
-    })
-
-    it('does not call updateImageUrl when lookupArtist returns no image', async () => {
-      const MBID = ARTIST_BJORK.foreignArtistId
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 3,
-          mbid: MBID,
-          name: 'Bjork',
-          genres: ['electronic'],
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-      await service.runChecks()
-
-      mocks.lookupArtist.mockResolvedValue([])
-
-      const progress = await service.fixCheck('image-gaps')
-
-      expect(mocks.lookupArtist).toHaveBeenCalledWith(`lidarr:${MBID}`)
-      expect(mocks.cacheUpdateImageUrl).not.toHaveBeenCalled()
-      expect(progress.completed).toBe(1) // still "completed" - just no image found
+      expect(mocks.lookupArtist).toHaveBeenCalledWith(`lidarr:${mbid}`)
+      if (lookup) expect(mocks.cacheUpdateImageUrl).toHaveBeenCalledWith(mbid, imageUrl)
+      else expect(mocks.cacheUpdateImageUrl).not.toHaveBeenCalled()
+      expect(progress).toMatchObject({ completed: 1, status: 'completed' })
     })
 
     it('counts failures when fix throws', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
+      await scan([ARTIST_BJORK])
       mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
 
       const progress = await service.fixCheck('unmonitored')
 
-      expect(progress.failed).toBe(1)
-      expect(progress.completed).toBe(0)
-      expect(progress.status).toBe('failed')
+      expect(progress).toMatchObject({ failed: 1, completed: 0, status: 'failed' })
       expect(progress.errors[0]).toContain('Lidarr down')
     })
 
     it('refuses to fix without any scan results instead of reporting success', async () => {
-      const fresh = makeService(mocks)
-
-      await expect(fresh.fixCheck('unmonitored')).rejects.toThrow('run a library health scan')
+      await expect(makeService(mocks).fixCheck('unmonitored')).rejects.toThrow(
+        'run a library health scan',
+      )
       expect(mocks.setArtistsMonitored).not.toHaveBeenCalled()
     })
 
@@ -747,266 +505,80 @@ describe('LibraryHealthService', () => {
     })
 
     it('bulk-flips all unmonitored artists in a single setArtistsMonitored call', async () => {
-      const unmonitoredArtists = [
-        { ...ARTIST_RADIOHEAD, monitored: false },
-        { ...ARTIST_PORTISHEAD, monitored: false },
-        ARTIST_BJORK,
-      ]
-      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
-      mocks.setArtistsMonitored.mockResolvedValue(
-        unmonitoredArtists.map((a) => ({ ...a, monitored: true })),
-      )
+      await scan(unmonitoredTrio)
 
       const progress = await service.fixCheck('unmonitored')
 
       expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(1)
-      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith(
-        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
-        true,
-      )
+      expect(mocks.setArtistsMonitored).toHaveBeenCalledWith(TRIO_IDS, true)
       expect(progress).toMatchObject({ total: 3, completed: 3, failed: 0, status: 'completed' })
     })
 
-    it('falls back to per-artist calls when the bulk unmonitored call fails', async () => {
-      const unmonitoredArtists = [
-        { ...ARTIST_RADIOHEAD, monitored: false },
-        { ...ARTIST_PORTISHEAD, monitored: false },
-        ARTIST_BJORK,
-      ]
-      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
-      mocks.setArtistsMonitored.mockRejectedValue(new Error('Lidarr down'))
+    it.each([
+      {
+        name: 'falls back to per-artist calls when the bulk unmonitored call fails',
+        reject: () => Promise.reject(new Error('Lidarr down')),
+        completed: 0,
+        errors: [
+          `${ARTIST_RADIOHEAD.artistName}: Lidarr down`,
+          `${ARTIST_PORTISHEAD.artistName}: Lidarr down`,
+          `${ARTIST_BJORK.artistName}: Lidarr down`,
+        ],
+      },
+      {
+        name: 'recovers healthy artists and names the culprit when one item poisons the bulk call',
+        reject: (ids: number[]) =>
+          ids.length > 1 || ids[0] === ARTIST_PORTISHEAD.id
+            ? Promise.reject(new Error('artist not found'))
+            : Promise.resolve([]),
+        completed: 2,
+        errors: [`${ARTIST_PORTISHEAD.artistName}: artist not found`],
+      },
+    ])('$name', async ({ reject, completed, errors }) => {
+      await scan(unmonitoredTrio)
+      mocks.setArtistsMonitored.mockImplementation(reject)
 
       const progress = await service.fixCheck('unmonitored')
 
-      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
-        1,
-        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
-        true,
-      )
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
-      expect(progress).toMatchObject({ total: 3, completed: 0, failed: 3, status: 'failed' })
-      expect(progress.errors).toHaveLength(3)
-      expect(progress.errors).toEqual([
-        `${ARTIST_RADIOHEAD.artistName}: Lidarr down`,
-        `${ARTIST_PORTISHEAD.artistName}: Lidarr down`,
-        `${ARTIST_BJORK.artistName}: Lidarr down`,
+      expect(mocks.setArtistsMonitored.mock.calls).toEqual([
+        [TRIO_IDS, true],
+        [[TRIO_IDS[0]], true],
+        [[TRIO_IDS[1]], true],
+        [[TRIO_IDS[2]], true],
       ])
-    })
-
-    it('recovers healthy artists and names the culprit when one item poisons the bulk call', async () => {
-      const unmonitoredArtists = [
-        { ...ARTIST_RADIOHEAD, monitored: false },
-        { ...ARTIST_PORTISHEAD, monitored: false },
-        ARTIST_BJORK,
-      ]
-      mocks.getArtists.mockResolvedValue(unmonitoredArtists)
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
-      mocks.setArtistsMonitored.mockImplementation((ids: number[]) => {
-        if (ids.length > 1 || ids[0] === ARTIST_PORTISHEAD.id) {
-          return Promise.reject(new Error('artist not found'))
-        }
-        return Promise.resolve([])
+      expect(progress).toMatchObject({
+        total: 3,
+        completed,
+        failed: 3 - completed,
+        status: 'failed',
       })
-
-      const progress = await service.fixCheck('unmonitored')
-
-      expect(mocks.setArtistsMonitored).toHaveBeenCalledTimes(4)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(
-        1,
-        [ARTIST_RADIOHEAD.id, ARTIST_PORTISHEAD.id, ARTIST_BJORK.id],
-        true,
-      )
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(2, [ARTIST_RADIOHEAD.id], true)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(3, [ARTIST_PORTISHEAD.id], true)
-      expect(mocks.setArtistsMonitored).toHaveBeenNthCalledWith(4, [ARTIST_BJORK.id], true)
-      expect(progress).toMatchObject({ total: 3, completed: 2, failed: 1, status: 'failed' })
-      expect(progress.errors).toHaveLength(1)
-      expect(progress.errors[0]).toContain(ARTIST_PORTISHEAD.artistName)
-      expect(progress.errors[0]).toContain('artist not found')
-    })
-
-    it('still queues one triggerCommand call per item for missing-albums (non-bulk path unchanged)', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD, ARTIST_RADIOHEAD])
-      mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
-      mocks.cacheGetAll.mockResolvedValue([])
-      await service.runChecks()
-      mocks.triggerCommand.mockResolvedValue({})
-
-      const progress = await service.fixCheck('missing-albums')
-
-      expect(mocks.triggerCommand).toHaveBeenCalledTimes(2)
-      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
-        artistId: ARTIST_PORTISHEAD.id,
-      })
-      expect(mocks.triggerCommand).toHaveBeenCalledWith('ArtistSearch', {
-        artistId: ARTIST_RADIOHEAD.id,
-      })
-      expect(progress.completed).toBe(2)
-      expect(progress.status).toBe('completed')
+      expect(progress.errors).toEqual(errors)
     })
   })
 
-  // -------------------------------------------------------------------------
-  // getStats
-  // -------------------------------------------------------------------------
-
   describe('getStats', () => {
     it('returns correct counts and genre distribution', async () => {
-      mocks.getArtists.mockResolvedValue([
-        ARTIST_RADIOHEAD, // monitored, genres: [alternative rock, art rock]
-        ARTIST_PORTISHEAD, // monitored, genres: [trip hop]
-        ARTIST_BJORK, // unmonitored, genres: []
-      ])
+      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD, ARTIST_PORTISHEAD, ARTIST_BJORK])
       mocks.getRootFolders.mockResolvedValue([{ id: 1, path: '/music', freeSpace: 10_000_000_000 }])
 
       const stats = await service.getStats()
 
-      expect(stats.totalArtists).toBe(3)
-      expect(stats.monitoredArtists).toBe(2)
-      expect(stats.totalAlbums).toBe(0)
-      expect(stats.rootFolders).toHaveLength(1)
-      expect(stats.rootFolders[0]?.path).toBe('/music')
+      expect(stats).toMatchObject({ totalArtists: 3, monitoredArtists: 2, totalAlbums: 0 })
+      expect(stats.rootFolders.map((folder) => folder.path)).toEqual(['/music'])
       expect(stats.genreDistribution.some((g) => g.genre === 'alternative rock')).toBe(true)
     })
 
     it('limits genre distribution to top 30', async () => {
-      const artists: LidarrArtist[] = Array.from({ length: 35 }, (_, i) => ({
-        id: i + 1,
-        artistName: `Artist ${i}`,
-        foreignArtistId: `mbid-${i}`,
-        qualityProfileId: 1,
-        rootFolderPath: '/music',
-        monitored: true,
-        status: 'ended',
-        genres: [`genre-${i}`],
-      }))
-      mocks.getArtists.mockResolvedValue(artists)
+      mocks.getArtists.mockResolvedValue(
+        Array.from({ length: 35 }, (_, i) =>
+          lidarrArtist({ id: i + 1, artistName: `Artist ${i}`, genres: [`genre-${i}`] }),
+        ),
+      )
       mocks.getRootFolders.mockResolvedValue([])
 
       const stats = await service.getStats()
 
       expect(stats.genreDistribution).toHaveLength(30)
-    })
-  })
-
-  // -------------------------------------------------------------------------
-  // missing-metadata check
-  // -------------------------------------------------------------------------
-
-  describe('missing-metadata check', () => {
-    it('flags artists with no genres AND no image in cache', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_NO_META])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 4,
-          mbid: ARTIST_NO_META.foreignArtistId,
-          name: 'Unknown Artist',
-          genres: null,
-          tags: null,
-          imageUrl: null,
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-metadata')
-
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.detail).toBe('Missing: genres, image')
-    })
-
-    it('skips artist if cache has image even with no genres', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_NO_META])
-      mocks.cacheGetAll.mockResolvedValue([
-        {
-          id: 4,
-          mbid: ARTIST_NO_META.foreignArtistId,
-          name: 'Unknown Artist',
-          genres: null,
-          tags: null,
-          imageUrl: 'http://img.example.com/no_meta.jpg',
-          streamingUrls: null,
-        },
-      ])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-metadata')
-
-      expect(check?.count).toBe(0)
-    })
-  })
-
-  // -------------------------------------------------------------------------
-  // missing-albums check
-  // -------------------------------------------------------------------------
-
-  describe('missing-albums check', () => {
-    it('still fails when every attempted lookup fails alongside skipped artists', async () => {
-      mocks.getArtists.mockResolvedValue([
-        ARTIST_PORTISHEAD,
-        { ...ARTIST_RADIOHEAD, foreignArtistId: '89ad4ac3-39f7-470e-963a-56509c546377' },
-      ])
-      mocks.getAlbums.mockRejectedValue(new Error('Lidarr unavailable'))
-      mocks.cacheGetAll.mockResolvedValue([])
-      await expect(service.runChecks()).rejects.toThrow(
-        'Album lookups failed for all 1 monitored artists',
-      )
-      expect(mocks.getAlbums).toHaveBeenCalledExactlyOnceWith(ARTIST_PORTISHEAD.id)
-    })
-
-    it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
-      'excludes special-purpose artist %s',
-      async (mbid) => {
-        mocks.getArtists.mockResolvedValue([{ ...ARTIST_PORTISHEAD, foreignArtistId: mbid }])
-        mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
-        mocks.cacheGetAll.mockResolvedValue([])
-        const results = await service.runChecks()
-        expect(results.find((r) => r.id === 'missing-albums')?.count).toBe(0)
-        expect(mocks.getAlbums).not.toHaveBeenCalled()
-      },
-    )
-
-    it('flags monitored artists with empty monitored albums', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_PORTISHEAD])
-      mocks.getAlbums.mockResolvedValue([ALBUM_NO_FILES])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-albums')
-
-      expect(check?.count).toBe(1)
-      expect(check?.items[0]?.detail).toBe('1 monitored album with no files')
-    })
-
-    it('skips unmonitored artists', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_BJORK])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-albums')
-
-      expect(check?.count).toBe(0)
-      // getAlbums should not be called for unmonitored artists
-      expect(mocks.getAlbums).not.toHaveBeenCalled()
-    })
-
-    it('skips albums with files', async () => {
-      mocks.getArtists.mockResolvedValue([ARTIST_RADIOHEAD])
-      mocks.getAlbums.mockResolvedValue([ALBUM_WITH_FILES])
-      mocks.cacheGetAll.mockResolvedValue([])
-
-      const results = await service.runChecks()
-      const check = results.find((r) => r.id === 'missing-albums')
-
-      expect(check?.count).toBe(0)
     })
   })
 })

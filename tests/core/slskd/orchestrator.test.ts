@@ -86,28 +86,156 @@ function makeTarget(
   }
 }
 
+const DIR = 'Boards of Canada\\Music Has the Right to Children'
+const FILES = [
+  { filename: `${DIR}\\01 - Wildlife Analysis.flac`, size: 100 },
+  { filename: `${DIR}\\02 - An Eagle in Your Mind.flac`, size: 200 },
+]
+const ONE_FILE = FILES.slice(0, 1)
+const LIDARR_PATHS = [
+  '/downloads/Music Has the Right to Children/01 - Wildlife Analysis.flac',
+  '/downloads/Music Has the Right to Children/02 - An Eagle in Your Mind.flac',
+]
+
 function makeSelectedResult(overrides: Partial<Record<string, unknown>> = {}) {
+  return { username: 'peer-a', files: FILES, ...overrides }
+}
+
+const lidarrTarget = (
+  config: Record<string, unknown> = { url: 'http://lidarr.local', apiKey: 'li-key' },
+) => makeTarget({ id: 12, type: 'lidarr', config })
+const linkedTargets = () => [makeTarget(), lidarrTarget()]
+
+function slskdWith(overrides: Record<string, unknown> = {}) {
   return {
-    username: 'peer-a',
-    files: [
-      {
-        filename: 'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-        size: 100,
-      },
-      {
-        filename:
-          'Boards of Canada\\Music Has the Right to Children\\02 - An Eagle in Your Mind.flac',
-        size: 200,
-      },
-    ],
+    createSearch: vi.fn(),
+    getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
+    enqueueResult: vi.fn(),
+    getDownloads: vi.fn(async () => []),
     ...overrides,
   }
 }
 
+function downloadsFor(
+  files: Array<{ filename: string; size: number }>,
+  state = 'Completed, Succeeded',
+  extra: Record<string, unknown> = {},
+) {
+  return [
+    {
+      username: 'peer-a',
+      directories: [
+        {
+          directory: DIR,
+          fileCount: files.length,
+          files: files.map((file, index) => ({
+            id: `d-${index}`,
+            username: 'peer-a',
+            ...file,
+            state,
+            ...extra,
+          })),
+        },
+      ],
+    },
+  ]
+}
+
+const manualImportRow = (index: number) => ({
+  path: LIDARR_PATHS[index],
+  artist: { id: 77 },
+  album: { id: 808 },
+  tracks: [{ id: 1001 + index }],
+  quality: { quality: { id: 7, name: 'FLAC' } },
+  rejections: [],
+})
+
+const importCheckpoint = (expectedTrackIds: number[], checks = 0) => ({
+  commandId: 991,
+  albumId: 808,
+  expectedTrackIds,
+  checks,
+})
+
+const downloadingJob = (overrides: Parameters<typeof makeJob>[0] = {}) =>
+  makeJob({
+    state: 'downloading',
+    recommendationId: 301,
+    selectedResult: makeSelectedResult(),
+    lidarrArtistId: 77,
+    lidarrAlbumId: 808,
+    ...overrides,
+  })
+
+const importPendingJob = (
+  checkpoint = importCheckpoint([1001, 1002]),
+  albumId: number | null = 808,
+) =>
+  makeJob({
+    state: 'import_pending',
+    lidarrArtistId: 77,
+    lidarrAlbumId: albumId,
+    selectedResult: makeSelectedResult({ import: checkpoint }),
+  })
+
+async function run(deps: Record<string, unknown>) {
+  const orchestrator = createSlskdOrchestrator(deps as never)
+  await orchestrator.triggerSync()
+  return orchestrator
+}
+
+function submitScenario(updateJobState: ReturnType<typeof vi.fn>) {
+  const manualImport = vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'queued' }))
+  const deps = {
+    listPendingJobs: vi.fn(async () => [downloadingJob()]),
+    listTargets: vi.fn(async () => linkedTargets()),
+    createSlskdClient: vi.fn(() =>
+      slskdWith({ getDownloads: vi.fn(async () => downloadsFor(FILES)) }),
+    ),
+    createLidarrClient: vi.fn(() => ({
+      getWantedMissing: vi.fn(async () => []),
+      getManualImport: vi.fn(async () => [manualImportRow(0), manualImportRow(1)]),
+      getTracks: vi.fn(async () => [
+        { id: 1001, albumId: 808, hasFile: false },
+        { id: 1002, albumId: 808, hasFile: false },
+      ]),
+      manualImport,
+    })),
+    updateJobState,
+  }
+  return { manualImport, deps }
+}
+
+function expectGuardedImport(
+  manualImport: ReturnType<typeof vi.fn>,
+  updateJobState: ReturnType<typeof vi.fn>,
+) {
+  expect(manualImport).toHaveBeenCalledWith([
+    expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1001] }),
+    expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1002] }),
+  ])
+  expect(updateJobState).toHaveBeenCalledWith(
+    1,
+    'import_pending',
+    expect.objectContaining({
+      selectedResult: expect.objectContaining({ import: importCheckpoint([1001, 1002]) }),
+    }),
+  )
+}
+
+const queueCandidate = (username: string, id = username): SlskdSearchResult => ({
+  id,
+  filename: 'Boards of Canada - Music Has the Right to Children',
+  username,
+  directory: DIR,
+  directories: [DIR],
+  files: [{ filename: `${DIR}\\01.flac`, size: 1234 }],
+  size: 1234,
+})
+
 describe('createSlskdOrchestrator', () => {
   it('coalesces concurrent sync triggers into one pending-job sweep', async () => {
     let releaseListPendingJobs!: (jobs: Array<{ id: number }>) => void
-
     const listPendingJobs = vi.fn(
       () =>
         new Promise<Array<{ id: number }>>((resolve) => {
@@ -115,10 +243,7 @@ describe('createSlskdOrchestrator', () => {
         }),
     )
     const processPendingJobs = vi.fn(async () => {})
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs,
-      processPendingJobs,
-    })
+    const orchestrator = createSlskdOrchestrator({ listPendingJobs, processPendingJobs })
 
     const firstTrigger = orchestrator.triggerSync()
     const secondTrigger = orchestrator.triggerSync()
@@ -140,19 +265,18 @@ describe('createSlskdOrchestrator', () => {
       const createSlskdClient = vi.fn()
       const createLidarrClient = vi.fn()
       const updateJobState = vi.fn()
-      const orchestrator = createSlskdOrchestrator({
-        listPendingJobs: vi.fn(async () => [makeJob({ state, userId: 1 })]),
-        listTargets: vi.fn(async () => [
-          makeTarget({ userId: 2 }),
-          makeTarget({ id: 12, type: 'lidarr', userId: 2 }),
-        ]),
-        createSlskdClient,
-        createLidarrClient,
-        updateJobState,
-      } as never)
       const log = vi.spyOn(console, 'error').mockImplementation(() => {})
       try {
-        await orchestrator.triggerSync()
+        await run({
+          listPendingJobs: vi.fn(async () => [makeJob({ state, userId: 1 })]),
+          listTargets: vi.fn(async () => [
+            makeTarget({ userId: 2 }),
+            makeTarget({ id: 12, type: 'lidarr', userId: 2 }),
+          ]),
+          createSlskdClient,
+          createLidarrClient,
+          updateJobState,
+        })
         expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
           lastError: 'slskd job target is missing or its owner changed',
         })
@@ -165,20 +289,19 @@ describe('createSlskdOrchestrator', () => {
   )
 
   it('stops ingesting a linked Lidarr wanted queue after its owner changes', async () => {
-    const lidarrTarget = makeTarget({ id: 12, type: 'lidarr' })
+    const lidarr = lidarrTarget()
     const getWantedMissing = vi.fn(async () => [])
     const createLidarrClient = vi.fn(() => ({ getWantedMissing, getAlbums: vi.fn() }))
     const orchestrator = createSlskdOrchestrator({
       listPendingJobs: vi.fn(async () => []),
-      processPendingJobs: vi.fn(async () => {}),
-      listTargets: vi.fn(async () => [makeTarget(), lidarrTarget]),
+      listTargets: vi.fn(async () => [makeTarget(), lidarr]),
       createLidarrClient,
       findActiveJobByWorkKey: vi.fn(),
       createJob: vi.fn(),
     } as never)
     await orchestrator.triggerSync()
     expect(getWantedMissing).toHaveBeenCalledTimes(1)
-    lidarrTarget.userId = 2
+    lidarr.userId = 2
     createLidarrClient.mockClear()
     getWantedMissing.mockClear()
     await orchestrator.triggerSync()
@@ -187,61 +310,36 @@ describe('createSlskdOrchestrator', () => {
   })
 
   it('ingests Lidarr wanted releases for enabled linked slskd targets and dedupes active work keys', async () => {
+    const wanted = (id: number, title: string, release: string, name: string, mbid: string) => ({
+      id,
+      title,
+      foreignAlbumId: release,
+      artistId: id - 401,
+      artist: { id: id - 401, artistName: name, foreignArtistId: mbid },
+    })
     const createJob = vi.fn(async () => makeJob({ id: 9 }))
     const findActiveJobByWorkKey = vi
       .fn()
       .mockResolvedValueOnce(null)
       .mockResolvedValueOnce(makeJob({ id: 8 }))
     const listTargets = vi.fn(async () => [
-      makeTarget({
-        id: 71,
-        type: 'slskd',
-        config: { url: 'http://slskd.local', apiKey: 'sl-key', lidarrTargetId: 12 },
-      }),
-      makeTarget({
-        id: 12,
-        type: 'lidarr',
-        config: { url: 'http://lidarr.local', apiKey: 'li-key' },
-      }),
+      makeTarget({ config: { url: 'http://slskd.local', apiKey: 'sl-key', lidarrTargetId: 12 } }),
+      lidarrTarget(),
     ])
-    const lidarrClient = {
-      getWantedMissing: vi.fn(async () => [
-        {
-          id: 501,
-          title: 'Album A',
-          foreignAlbumId: 'release-a',
-          artistId: 100,
-          artist: {
-            id: 100,
-            artistName: 'Artist One',
-            foreignArtistId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-          },
-        },
-        {
-          id: 502,
-          title: 'Album B',
-          foreignAlbumId: 'release-b',
-          artistId: 101,
-          artist: {
-            id: 101,
-            artistName: 'Artist Two',
-            foreignArtistId: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-          },
-        },
-      ]),
-      getAlbums: vi.fn(async () => []),
-    }
 
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => []),
-      processPendingJobs: vi.fn(async () => {}),
       listTargets,
-      createLidarrClient: vi.fn(() => lidarrClient),
+      createLidarrClient: vi.fn(() => ({
+        getWantedMissing: vi.fn(async () => [
+          wanted(501, 'Album A', 'release-a', 'Artist One', 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'),
+          wanted(502, 'Album B', 'release-b', 'Artist Two', 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb'),
+        ]),
+        getAlbums: vi.fn(async () => []),
+      })),
       findActiveJobByWorkKey,
       createJob,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(listTargets).toHaveBeenCalledTimes(1)
     expect(findActiveJobByWorkKey).toHaveBeenCalledTimes(2)
@@ -259,60 +357,38 @@ describe('createSlskdOrchestrator', () => {
     )
   })
 
-  it('fails empty-query jobs without calling slskd', async () => {
-    const updateJobState = vi.fn(async () => makeJob())
-    const slskdClient = {
-      createSearch: vi.fn(async () => ({ id: 'must-not-run' })),
-      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-      enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
-      getDownloads: vi.fn(async () => []),
-    }
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [makeJob({ id: 8, artistName: ' ', releaseTitle: '\t' })]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
-      updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
-
-    expect(slskdClient.createSearch).not.toHaveBeenCalled()
-    expect(slskdClient.getSearchResults).not.toHaveBeenCalled()
-    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
-    expect(updateJobState).toHaveBeenCalledWith(8, 'failed', {
-      lastError: 'slskd job requires an artist name or release title',
-    })
-  })
-
   it.each([
+    { artistName: ' ', releaseTitle: '\t', expectedQuery: null },
     { artistName: 'Burial', releaseTitle: '   ', expectedQuery: 'Burial' },
     { artistName: '   ', releaseTitle: 'Untrue', expectedQuery: 'Untrue' },
   ])(
-    'searches when one query field is present',
+    'builds the search query from the non-blank fields: $expectedQuery',
     async ({ artistName, releaseTitle, expectedQuery }) => {
-      const slskdClient = {
-        createSearch: vi.fn(async () => ({ id: 'search-partial' })),
-        getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-        enqueueResult: vi.fn(async () => ({ id: 'must-not-run' })),
-        getDownloads: vi.fn(async () => []),
-      }
-      const orchestrator = createSlskdOrchestrator({
+      const slskd = slskdWith({ createSearch: vi.fn(async () => ({ id: 'search-partial' })) })
+      const updateJobState = vi.fn(async () => makeJob())
+      await run({
         listPendingJobs: vi.fn(async () => [makeJob({ artistName, releaseTitle })]),
-        processPendingJobs: vi.fn(async () => {}),
-        createSlskdClient: vi.fn(() => slskdClient),
-        updateJobState: vi.fn(async () => makeJob()),
-      } as never)
+        createSlskdClient: vi.fn(() => slskd),
+        updateJobState,
+      })
 
-      await orchestrator.triggerSync()
-
-      expect(slskdClient.createSearch).toHaveBeenCalledWith(expectedQuery)
+      if (expectedQuery === null) {
+        expect(slskd.createSearch).not.toHaveBeenCalled()
+        expect(slskd.getSearchResults).not.toHaveBeenCalled()
+        expect(slskd.enqueueResult).not.toHaveBeenCalled()
+        expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
+          lastError: 'slskd job requires an artist name or release title',
+        })
+      } else {
+        expect(slskd.createSearch).toHaveBeenCalledWith(expectedQuery)
+      }
     },
   )
 
   it('moves ambiguous matches to manual review instead of auto-queueing', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const updateRecommendationAction = vi.fn(async () => {})
-    const slskdClient = {
+    const slskd = slskdWith({
       createSearch: vi.fn(async () => ({ id: 'search-1' })),
       getSearchResults: vi.fn(
         async (): Promise<SlskdSearchResult[]> => [
@@ -320,70 +396,41 @@ describe('createSlskdOrchestrator', () => {
           { id: 'res-2', filename: 'Unknown - Maybe (alt).flac', username: 'u2', size: 1100 },
         ],
       ),
-      enqueueResult: vi.fn(async () => ({ id: 'queue-1' })),
-      getDownloads: vi.fn(async () => []),
-    }
+    })
 
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [makeJob({ recommendationId: 44 })]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() => slskd),
       updateJobState,
       updateRecommendationAction,
       selectBestCandidate: vi.fn(() => ({ decision: 'needs_review', confidence: 0.66 })),
-    } as never)
+    })
 
-    await orchestrator.triggerSync()
-
-    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
+    expect(slskd.enqueueResult).not.toHaveBeenCalled()
     expect(updateJobState).toHaveBeenCalledWith(
       1,
       'failed',
-      expect.objectContaining({
-        confidence: 0.66,
-      }),
+      expect.objectContaining({ confidence: 0.66 }),
     )
     expect(updateRecommendationAction).toHaveBeenCalledWith(44, 71, 'needs_review')
   })
 
   it('queues confident matches and persists search/queue metadata', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const candidate: SlskdSearchResult = {
-      id: 'res-99',
-      filename: 'Boards of Canada - Music Has the Right to Children',
-      username: 'peer-a',
-      directory: 'Boards of Canada\\Music Has the Right to Children',
-      directories: ['Boards of Canada\\Music Has the Right to Children'],
-      files: [
-        {
-          filename: 'Boards of Canada\\Music Has the Right to Children\\01.flac',
-          size: 1234,
-        },
-      ],
-      size: 1234,
-    }
-    const slskdClient = {
-      createSearch: vi.fn(async () => ({ id: 'search-99' })),
-      getSearchResults: vi.fn(async () => [candidate]),
-      enqueueResult: vi.fn(async () => ({
-        batch: {
-          id: 'queue-99',
-        },
-        failures: [],
-      })),
-      getDownloads: vi.fn(async () => []),
-    }
-
-    const orchestrator = createSlskdOrchestrator({
+    const candidate = queueCandidate('peer-a', 'res-99')
+    await run({
       listPendingJobs: vi.fn(async () => [makeJob({ recommendationId: 55 })]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() =>
+        slskdWith({
+          createSearch: vi.fn(async () => ({ id: 'search-99' })),
+          getSearchResults: vi.fn(async () => [candidate]),
+          enqueueResult: vi.fn(async () => ({ batch: { id: 'queue-99' }, failures: [] })),
+        }),
+      ),
       updateJobState,
       updateRecommendationAction: vi.fn(async () => {}),
       selectBestCandidate: vi.fn(() => ({ decision: 'auto_queue', candidate, confidence: 0.98 })),
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenNthCalledWith(1, 1, 'searching', {
       attempts: 1,
@@ -396,73 +443,51 @@ describe('createSlskdOrchestrator', () => {
         slskdSearchId: 'search-99',
         slskdQueueId: 'queue-99',
         confidence: 0.98,
-        selectedResult: {
-          username: 'peer-a',
-          files: candidate.files,
-        },
+        selectedResult: { username: 'peer-a', files: candidate.files },
       }),
     )
   })
 
   it('skips a peer folder that already failed and reports the attempt on failure', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const file = {
-      filename: 'Boards of Canada\\Music Has the Right to Children\\01.flac',
-      size: 10,
-    }
-    const base = {
-      filename: 'Boards of Canada - Music Has the Right to Children',
-      directories: ['Boards of Canada\\Music Has the Right to Children'],
-      files: [file],
-      size: 10,
-    }
-    const failedPeer: SlskdSearchResult = { ...base, id: 'bad', username: 'peer-bad' }
-    const goodPeer: SlskdSearchResult = { ...base, id: 'good', username: 'peer-good' }
+    const failedPeer = queueCandidate('peer-bad', 'bad')
+    const goodPeer = queueCandidate('peer-good', 'good')
     const selectBestCandidate = vi.fn(() => ({
       decision: 'auto_queue' as const,
       candidate: goodPeer,
       confidence: 1,
     }))
-    const slskdClient = {
+    const slskd = slskdWith({
       createSearch: vi.fn(async () => ({ id: 's' })),
       isSearchComplete: vi.fn(async () => true),
       getSearchResults: vi.fn(async () => [failedPeer, goodPeer]),
       enqueueResult: vi.fn(async () => ({ batch: { id: 'q' }, failures: [] })),
-      getDownloads: vi.fn(async () => []),
-    }
-    const failedReleases = [
-      { username: 'peer-bad', directory: 'Boards of Canada\\Music Has the Right to Children' },
-    ]
+    })
+    const failedReleases = [{ username: 'peer-bad', directory: DIR }]
+    const sync = () =>
+      run({
+        listPendingJobs: vi.fn(async () => [
+          makeJob({ attempts: 1, selectedResult: { failedReleases } }),
+        ]),
+        createSlskdClient: vi.fn(() => slskd),
+        updateJobState,
+        selectBestCandidate,
+      })
 
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({ attempts: 1, selectedResult: { failedReleases } }),
-      ]),
-      createSlskdClient: vi.fn(() => slskdClient),
-      updateJobState,
-      selectBestCandidate,
-    } as never)
-    await orchestrator.triggerSync()
+    await sync()
 
     expect(selectBestCandidate).toHaveBeenCalledWith(expect.anything(), [goodPeer])
     expect(updateJobState).toHaveBeenCalledWith(
       1,
       'queued',
       expect.objectContaining({
-        selectedResult: { username: 'peer-good', files: [file], failedReleases },
+        selectedResult: { username: 'peer-good', files: goodPeer.files, failedReleases },
       }),
     )
 
-    slskdClient.getSearchResults.mockResolvedValue([failedPeer])
+    slskd.getSearchResults.mockResolvedValue([failedPeer])
     updateJobState.mockClear()
-    await createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({ attempts: 1, selectedResult: { failedReleases } }),
-      ]),
-      createSlskdClient: vi.fn(() => slskdClient),
-      updateJobState,
-      selectBestCandidate,
-    } as never).triggerSync()
+    await sync()
 
     expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
       lastError: 'slskd search only found releases that already failed (attempt 2 of 4)',
@@ -471,31 +496,21 @@ describe('createSlskdOrchestrator', () => {
 
   it('keeps jobs in searching when slskd search results are not ready yet', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const slskdClient = {
-      createSearch: vi.fn(async () => ({ id: 'search-late' })),
-      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-      enqueueResult: vi.fn(async () => ({ id: 'queue-late' })),
-      getDownloads: vi.fn(async () => []),
-    }
+    const slskd = slskdWith({ createSearch: vi.fn(async () => ({ id: 'search-late' })) })
 
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [makeJob()]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() => slskd),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(
       1,
       'searching',
-      expect.objectContaining({
-        slskdSearchId: 'search-late',
-      }),
+      expect.objectContaining({ slskdSearchId: 'search-late' }),
     )
     expect(updateJobState).not.toHaveBeenCalledWith(1, 'failed', expect.anything())
-    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
+    expect(slskd.enqueueResult).not.toHaveBeenCalled()
   })
 
   it.each([
@@ -513,92 +528,49 @@ describe('createSlskdOrchestrator', () => {
     },
   ])('fails a searching job for $name', async ({ complete, updatedAt, error }) => {
     const updateJobState = vi.fn(async () => makeJob())
-    const slskdClient = {
-      createSearch: vi.fn(),
-      isSearchComplete: vi.fn(async () => complete),
-      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-      enqueueResult: vi.fn(),
-      getDownloads: vi.fn(async () => []),
-    }
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [
         makeJob({ state: 'searching', slskdSearchId: 'search-1', updatedAt }),
       ]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() => slskdWith({ isSearchComplete: vi.fn(async () => complete) })),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(1, 'failed', { lastError: error })
   })
 
   it('does not pick a candidate while the search is still running', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const slskdClient = {
-      createSearch: vi.fn(),
+    const slskd = slskdWith({
       isSearchComplete: vi.fn(async () => false),
       getSearchResults: vi.fn(
         async (): Promise<SlskdSearchResult[]> => [
           { id: 'r1', filename: 'x.flac', username: 'peer', size: 1 },
         ],
       ),
-      enqueueResult: vi.fn(),
-      getDownloads: vi.fn(async () => []),
-    }
-    const orchestrator = createSlskdOrchestrator({
+    })
+
+    await run({
       listPendingJobs: vi.fn(async () => [
         makeJob({ state: 'searching', slskdSearchId: 'search-1', updatedAt: new Date() }),
       ]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() => slskd),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).not.toHaveBeenCalled()
-    expect(slskdClient.enqueueResult).not.toHaveBeenCalled()
+    expect(slskd.enqueueResult).not.toHaveBeenCalled()
   })
 
   it('waits until every expected slskd file succeeds', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const getDownloads = vi.fn(async () => [
-      {
-        username: 'peer-a',
-        directories: [
-          {
-            directory: 'Boards of Canada\\Music Has the Right to Children',
-            fileCount: 1,
-            files: [
-              {
-                id: 'd-1',
-                username: 'peer-a',
-                filename:
-                  'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-                size: 100,
-                state: 'Completed, Succeeded',
-              },
-            ],
-          },
-        ],
-      },
-    ])
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({ state: 'downloading', selectedResult: makeSelectedResult() }),
-      ]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads,
-      })),
+    await run({
+      listPendingJobs: vi.fn(async () => [downloadingJob()]),
+      createSlskdClient: vi.fn(() =>
+        slskdWith({ getDownloads: vi.fn(async () => downloadsFor(ONE_FILE)) }),
+      ),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(1, 'downloading', expect.any(Object))
     expect(updateJobState).not.toHaveBeenCalledWith(1, 'completed', expect.anything())
@@ -607,7 +579,7 @@ describe('createSlskdOrchestrator', () => {
   it('fails legacy single-file selections without a complete manifest', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const getDownloads = vi.fn()
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [
         makeJob({
           state: 'downloading',
@@ -621,9 +593,7 @@ describe('createSlskdOrchestrator', () => {
       ]),
       createSlskdClient: vi.fn(() => ({ getDownloads })),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
       lastError: 'slskd job is missing its selected release manifest',
@@ -633,45 +603,23 @@ describe('createSlskdOrchestrator', () => {
 
   it('does not match a completed transfer from a different batch', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const selectedResult = makeSelectedResult({
-      files: [
-        {
-          filename:
-            'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-          size: 100,
-        },
-      ],
-    })
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [
-        makeJob({ state: 'downloading', slskdQueueId: 'batch-new', selectedResult }),
+        makeJob({
+          state: 'downloading',
+          slskdQueueId: 'batch-new',
+          selectedResult: makeSelectedResult({ files: ONE_FILE }),
+        }),
       ]),
-      createSlskdClient: vi.fn(() => ({
-        getDownloads: vi.fn(async () => [
-          {
-            username: 'peer-a',
-            directories: [
-              {
-                files: [
-                  {
-                    id: 'old-transfer',
-                    batchId: 'batch-old',
-                    username: 'peer-a',
-                    filename:
-                      'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-                    size: 100,
-                    state: 'Completed, Succeeded',
-                  },
-                ],
-              },
-            ],
-          },
-        ]),
-      })),
+      createSlskdClient: vi.fn(() =>
+        slskdWith({
+          getDownloads: vi.fn(async () =>
+            downloadsFor(ONE_FILE, 'Completed, Succeeded', { batchId: 'batch-old' }),
+          ),
+        }),
+      ),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(1, 'queued', expect.any(Object))
     expect(updateJobState).not.toHaveBeenCalledWith(1, 'completed', expect.anything())
@@ -681,47 +629,18 @@ describe('createSlskdOrchestrator', () => {
     'reports a terminal slskd file state: %s',
     async (state) => {
       const updateJobState = vi.fn(async () => makeJob())
-      const selectedResult = makeSelectedResult({
-        files: [
-          {
-            filename:
-              'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-            size: 100,
-          },
-        ],
-      })
-      const orchestrator = createSlskdOrchestrator({
-        listPendingJobs: vi.fn(async () => [makeJob({ state: 'downloading', selectedResult })]),
-        createSlskdClient: vi.fn(() => ({
-          createSearch: vi.fn(),
-          getSearchResults: vi.fn(),
-          enqueueResult: vi.fn(),
-          getDownloads: vi.fn(async () => [
-            {
-              username: 'peer-a',
-              directories: [
-                {
-                  directory: 'Boards of Canada\\Music Has the Right to Children',
-                  fileCount: 1,
-                  files: [
-                    {
-                      id: 'd-1',
-                      username: 'peer-a',
-                      filename:
-                        'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-                      size: 100,
-                      state,
-                    },
-                  ],
-                },
-              ],
-            },
-          ]),
-        })),
+      await run({
+        listPendingJobs: vi.fn(async () => [
+          makeJob({
+            state: 'downloading',
+            selectedResult: makeSelectedResult({ files: ONE_FILE }),
+          }),
+        ]),
+        createSlskdClient: vi.fn(() =>
+          slskdWith({ getDownloads: vi.fn(async () => downloadsFor(ONE_FILE, state)) }),
+        ),
         updateJobState,
-      } as never)
-
-      await orchestrator.triggerSync()
+      })
 
       expect(updateJobState).toHaveBeenCalledWith(
         1,
@@ -733,233 +652,32 @@ describe('createSlskdOrchestrator', () => {
 
   it('submits a guarded multi-file Lidarr ManualImport after every transfer succeeds', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const manualImport = vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'queued' }))
-    const selectedResult = makeSelectedResult()
-    const transfers = (selectedResult.files as Array<{ filename: string; size: number }>).map(
-      (file, index) => ({
-        id: `d-${index}`,
-        username: 'peer-a',
-        filename: file.filename,
-        size: file.size,
-        state: 'Completed, Succeeded',
-      }),
-    )
-    const lidarrClient = {
-      getWantedMissing: vi.fn(async () => []),
-      getManualImport: vi.fn(async () => [
-        {
-          path: '/downloads/Music Has the Right to Children/01 - Wildlife Analysis.flac',
-          artist: { id: 77 },
-          album: { id: 808 },
-          tracks: [{ id: 1001 }],
-          quality: { quality: { id: 7, name: 'FLAC' } },
-          rejections: [],
-        },
-        {
-          path: '/downloads/Music Has the Right to Children/02 - An Eagle in Your Mind.flac',
-          artist: { id: 77 },
-          album: { id: 808 },
-          tracks: [{ id: 1002 }],
-          quality: { quality: { id: 7, name: 'FLAC' } },
-          rejections: [],
-        },
-      ]),
-      getTracks: vi.fn(async () => [
-        { id: 1001, albumId: 808, hasFile: false },
-        { id: 1002, albumId: 808, hasFile: false },
-      ]),
-      manualImport,
-    }
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'downloading',
-          recommendationId: 301,
-          selectedResult,
-          lidarrArtistId: 77,
-          lidarrAlbumId: 808,
-        }),
-      ]),
-      listTargets: vi.fn(async () => [
-        makeTarget(),
-        makeTarget({
-          id: 12,
-          type: 'lidarr',
-          config: { url: 'http://lidarr.local', apiKey: 'li-key' },
-        }),
-      ]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(async () => [
-          {
-            username: 'peer-a',
-            directories: [
-              {
-                directory: 'Boards of Canada\\Music Has the Right to Children',
-                fileCount: 2,
-                files: transfers,
-              },
-            ],
-          },
-        ]),
-      })),
-      createLidarrClient: vi.fn(() => lidarrClient),
-      updateJobState,
-    } as never)
+    const { manualImport, deps } = submitScenario(updateJobState)
 
-    await orchestrator.triggerSync()
+    await run(deps)
 
-    expect(manualImport).toHaveBeenCalledWith([
-      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1001] }),
-      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1002] }),
-    ])
-    expect(updateJobState).toHaveBeenCalledWith(
-      1,
-      'import_pending',
-      expect.objectContaining({
-        selectedResult: expect.objectContaining({
-          import: {
-            commandId: 991,
-            albumId: 808,
-            expectedTrackIds: [1001, 1002],
-            checks: 0,
-          },
-        }),
-      }),
-    )
+    expectGuardedImport(manualImport, updateJobState)
   })
 
   it('retries the import checkpoint so the ManualImport command id is not lost', async () => {
     const updateJobState = vi.fn(async () => makeJob()).mockRejectedValueOnce(new Error('db blip'))
-    const manualImport = vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'queued' }))
-    const selectedResult = makeSelectedResult()
-    const transfers = (selectedResult.files as Array<{ filename: string; size: number }>).map(
-      (file, index) => ({
-        id: `d-${index}`,
-        username: 'peer-a',
-        filename: file.filename,
-        size: file.size,
-        state: 'Completed, Succeeded',
-      }),
-    )
-    const lidarrClient = {
-      getWantedMissing: vi.fn(async () => []),
-      getManualImport: vi.fn(async () => [
-        {
-          path: '/downloads/Music Has the Right to Children/01 - Wildlife Analysis.flac',
-          artist: { id: 77 },
-          album: { id: 808 },
-          tracks: [{ id: 1001 }],
-          quality: { quality: { id: 7, name: 'FLAC' } },
-          rejections: [],
-        },
-        {
-          path: '/downloads/Music Has the Right to Children/02 - An Eagle in Your Mind.flac',
-          artist: { id: 77 },
-          album: { id: 808 },
-          tracks: [{ id: 1002 }],
-          quality: { quality: { id: 7, name: 'FLAC' } },
-          rejections: [],
-        },
-      ]),
-      getTracks: vi.fn(async () => [
-        { id: 1001, albumId: 808, hasFile: false },
-        { id: 1002, albumId: 808, hasFile: false },
-      ]),
-      manualImport,
-    }
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'downloading',
-          recommendationId: 301,
-          selectedResult,
-          lidarrArtistId: 77,
-          lidarrAlbumId: 808,
-        }),
-      ]),
-      listTargets: vi.fn(async () => [
-        makeTarget(),
-        makeTarget({
-          id: 12,
-          type: 'lidarr',
-          config: { url: 'http://lidarr.local', apiKey: 'li-key' },
-        }),
-      ]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(async () => [
-          {
-            username: 'peer-a',
-            directories: [
-              {
-                directory: 'Boards of Canada\\Music Has the Right to Children',
-                fileCount: 2,
-                files: transfers,
-              },
-            ],
-          },
-        ]),
-      })),
-      createLidarrClient: vi.fn(() => lidarrClient),
-      updateJobState,
-    } as never)
+    const { manualImport, deps } = submitScenario(updateJobState)
 
-    await orchestrator.triggerSync()
+    await run(deps)
 
     expect(manualImport).toHaveBeenCalledTimes(1)
     expect(updateJobState).not.toHaveBeenCalledWith(1, 'failed', expect.anything())
     expect(updateJobState).toHaveBeenCalledTimes(2)
-    expect(manualImport).toHaveBeenCalledWith([
-      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1001] }),
-      expect.objectContaining({ artistId: 77, albumId: 808, trackIds: [1002] }),
-    ])
-    expect(updateJobState).toHaveBeenCalledWith(
-      1,
-      'import_pending',
-      expect.objectContaining({
-        selectedResult: expect.objectContaining({
-          import: {
-            commandId: 991,
-            albumId: 808,
-            expectedTrackIds: [1001, 1002],
-            checks: 0,
-          },
-        }),
-      }),
-    )
+    expectGuardedImport(manualImport, updateJobState)
   })
 
   it('does not resubmit ManualImport and only completes after every expected track hasFile', async () => {
     const updateJobState = vi.fn(async () => makeJob())
     const manualImport = vi.fn()
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'import_pending',
-          lidarrArtistId: 77,
-          lidarrAlbumId: 808,
-          selectedResult: makeSelectedResult({
-            import: {
-              commandId: 991,
-              albumId: 808,
-              expectedTrackIds: [1001, 1002],
-              checks: 0,
-            },
-          }),
-        }),
-      ]),
-      listTargets: vi.fn(async () => [makeTarget(), makeTarget({ id: 12, type: 'lidarr' })]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(),
-      })),
+    await run({
+      listPendingJobs: vi.fn(async () => [importPendingJob()]),
+      listTargets: vi.fn(async () => linkedTargets()),
+      createSlskdClient: vi.fn(() => slskdWith()),
       createLidarrClient: vi.fn(() => ({
         getCommand: vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'completed' })),
         getTracks: vi.fn(async () => [
@@ -969,9 +687,7 @@ describe('createSlskdOrchestrator', () => {
         manualImport,
       })),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(manualImport).not.toHaveBeenCalled()
     expect(updateJobState).toHaveBeenCalledWith(1, 'completed', { lastError: null })
@@ -980,28 +696,14 @@ describe('createSlskdOrchestrator', () => {
   it('fails an in-flight import when its Lidarr link is removed', async () => {
     const updateJobState = vi.fn()
     const getDownloads = vi.fn()
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'import_pending',
-          lidarrArtistId: 77,
-          selectedResult: makeSelectedResult({
-            import: {
-              commandId: 991,
-              albumId: 808,
-              expectedTrackIds: [1001, 1002],
-              checks: 0,
-            },
-          }),
-        }),
-      ]),
+    await run({
+      listPendingJobs: vi.fn(async () => [importPendingJob(undefined, null)]),
       listTargets: vi.fn(async () => [
         makeTarget({ config: { url: 'http://slskd.local', apiKey: 'secret' } }),
       ]),
       createSlskdClient: vi.fn(() => ({ getDownloads })),
       updateJobState,
-    } as never)
-    await orchestrator.triggerSync()
+    })
     expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
       lastError: 'Lidarr import cannot be verified: its checkpoint or linked target is missing',
     })
@@ -1010,38 +712,15 @@ describe('createSlskdOrchestrator', () => {
   })
 
   it('does not treat a linked download as standalone when its link is removed', async () => {
-    const selected = makeSelectedResult()
     const updateJobState = vi.fn()
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'downloading',
-          lidarrArtistId: 77,
-          selectedResult: selected,
-        }),
-      ]),
+    await run({
+      listPendingJobs: vi.fn(async () => [downloadingJob()]),
       listTargets: vi.fn(async () => [
         makeTarget({ config: { url: 'http://slskd.local', apiKey: 'secret' } }),
       ]),
-      createSlskdClient: vi.fn(() => ({
-        getDownloads: vi.fn(async () => [
-          {
-            username: selected.username,
-            directories: [
-              {
-                files: selected.files.map((file, index) => ({
-                  ...file,
-                  id: String(index),
-                  state: 'Completed, Succeeded',
-                })),
-              },
-            ],
-          },
-        ]),
-      })),
+      createSlskdClient: vi.fn(() => ({ getDownloads: vi.fn(async () => downloadsFor(FILES)) })),
       updateJobState,
-    } as never)
-    await orchestrator.triggerSync()
+    })
     expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
       lastError: 'Lidarr import cannot proceed: its linked target is missing',
     })
@@ -1050,29 +729,10 @@ describe('createSlskdOrchestrator', () => {
 
   it('keeps a completed command pending while any expected Lidarr track lacks a file', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'import_pending',
-          lidarrArtistId: 77,
-          lidarrAlbumId: 808,
-          selectedResult: makeSelectedResult({
-            import: {
-              commandId: 991,
-              albumId: 808,
-              expectedTrackIds: [1001, 1002],
-              checks: 0,
-            },
-          }),
-        }),
-      ]),
-      listTargets: vi.fn(async () => [makeTarget(), makeTarget({ id: 12, type: 'lidarr' })]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(),
-      })),
+    await run({
+      listPendingJobs: vi.fn(async () => [importPendingJob()]),
+      listTargets: vi.fn(async () => linkedTargets()),
+      createSlskdClient: vi.fn(() => slskdWith()),
       createLidarrClient: vi.fn(() => ({
         getCommand: vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'completed' })),
         getTracks: vi.fn(async () => [
@@ -1081,9 +741,7 @@ describe('createSlskdOrchestrator', () => {
         ]),
       })),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(
       1,
@@ -1097,36 +755,16 @@ describe('createSlskdOrchestrator', () => {
 
   it('bounds import polling instead of waiting forever', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    const orchestrator = createSlskdOrchestrator({
-      listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'import_pending',
-          lidarrArtistId: 77,
-          selectedResult: makeSelectedResult({
-            import: {
-              commandId: 991,
-              albumId: 808,
-              expectedTrackIds: [1001],
-              checks: 11,
-            },
-          }),
-        }),
-      ]),
-      listTargets: vi.fn(async () => [makeTarget(), makeTarget({ id: 12, type: 'lidarr' })]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(),
-      })),
+    await run({
+      listPendingJobs: vi.fn(async () => [importPendingJob(importCheckpoint([1001], 11))]),
+      listTargets: vi.fn(async () => linkedTargets()),
+      createSlskdClient: vi.fn(() => slskdWith()),
       createLidarrClient: vi.fn(() => ({
         getCommand: vi.fn(async () => ({ id: 991, name: 'ManualImport', status: 'started' })),
         getTracks: vi.fn(),
       })),
       updateJobState,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(updateJobState).toHaveBeenCalledWith(
       1,
@@ -1139,72 +777,22 @@ describe('createSlskdOrchestrator', () => {
     const updateJobState = vi.fn(async () => makeJob())
     const updateRecommendationAction = vi.fn(async () => {})
     const manualImport = vi.fn()
-    const selectedResult = makeSelectedResult({
-      files: [
-        {
-          filename:
-            'Boards of Canada\\Music Has the Right to Children\\01 - Wildlife Analysis.flac',
-          size: 100,
-        },
-      ],
-    })
-    const remoteFile = (selectedResult.files as Array<{ filename: string; size: number }>)[0]
-    if (!remoteFile) throw new Error('test release file missing')
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: vi.fn(async () => [
-        makeJob({
-          state: 'downloading',
-          recommendationId: 301,
-          selectedResult,
-          lidarrArtistId: 77,
-          lidarrAlbumId: 808,
-        }),
+        downloadingJob({ selectedResult: makeSelectedResult({ files: ONE_FILE }) }),
       ]),
-      listTargets: vi.fn(async () => [makeTarget(), makeTarget({ id: 12, type: 'lidarr' })]),
-      createSlskdClient: vi.fn(() => ({
-        createSearch: vi.fn(),
-        getSearchResults: vi.fn(),
-        enqueueResult: vi.fn(),
-        getDownloads: vi.fn(async () => [
-          {
-            username: 'peer-a',
-            directories: [
-              {
-                directory: 'Boards of Canada\\Music Has the Right to Children',
-                fileCount: 1,
-                files: [
-                  {
-                    id: 'd-1',
-                    username: 'peer-a',
-                    filename: remoteFile.filename,
-                    size: remoteFile.size,
-                    state: 'Completed, Succeeded',
-                  },
-                ],
-              },
-            ],
-          },
-        ]),
-      })),
+      listTargets: vi.fn(async () => linkedTargets()),
+      createSlskdClient: vi.fn(() =>
+        slskdWith({ getDownloads: vi.fn(async () => downloadsFor(ONE_FILE)) }),
+      ),
       createLidarrClient: vi.fn(() => ({
-        getManualImport: vi.fn(async () => [
-          {
-            path: '/downloads/Music Has the Right to Children/01 - Wildlife Analysis.flac',
-            artist: { id: 77 },
-            album: { id: 808 },
-            tracks: [{ id: 1001 }],
-            quality: { quality: { id: 7, name: 'FLAC' } },
-            rejections: [],
-          },
-        ]),
+        getManualImport: vi.fn(async () => [manualImportRow(0)]),
         getTracks: vi.fn(async () => [{ id: 1001, hasFile: true }]),
         manualImport,
       })),
       updateJobState,
       updateRecommendationAction,
-    } as never)
-
-    await orchestrator.triggerSync()
+    })
 
     expect(manualImport).not.toHaveBeenCalled()
     expect(updateJobState).toHaveBeenCalledWith(
@@ -1222,44 +810,36 @@ describe('createSlskdOrchestrator', () => {
 
   it('isolates a throwing job so the rest of the queue still processes', async () => {
     const updateJobState = vi.fn(async () => makeJob())
-    // Same targetId -> both jobs share one cached slskd client, so the single
-    // createSearch mock rejects for job 1 and resolves for job 2.
-    const slskdClient = {
+    // Same targetId -> both jobs share one cached slskd client.
+    const slskd = slskdWith({
       createSearch: vi
         .fn()
         .mockRejectedValueOnce(new Error('slskd unreachable'))
         .mockResolvedValue({ id: 'search-2' }),
-      getSearchResults: vi.fn(async (): Promise<SlskdSearchResult[]> => []),
-      enqueueResult: vi.fn(async () => ({ id: 'queue-unused' })),
-      getDownloads: vi.fn(async () => []),
-    }
+    })
 
     const orchestrator = createSlskdOrchestrator({
       listPendingJobs: vi.fn(async () => [
         makeJob({ id: 1, state: 'pending' }),
         makeJob({ id: 2, state: 'pending' }),
       ]),
-      processPendingJobs: vi.fn(async () => {}),
-      createSlskdClient: vi.fn(() => slskdClient),
+      createSlskdClient: vi.fn(() => slskd),
       updateJobState,
     } as never)
 
-    // Must not reject: the first job's error is isolated, not propagated.
     await expect(orchestrator.triggerSync()).resolves.toBeUndefined()
 
-    // Job 1 was marked failed with its error...
     expect(updateJobState).toHaveBeenCalledWith(
       1,
       'failed',
       expect.objectContaining({ lastError: expect.stringContaining('slskd unreachable') }),
     )
-    // ...and job 2 was still processed despite job 1 throwing.
     expect(updateJobState).toHaveBeenCalledWith(
       2,
       'searching',
       expect.objectContaining({ slskdSearchId: 'search-2' }),
     )
-    expect(slskdClient.createSearch).toHaveBeenCalledTimes(2)
+    expect(slskd.createSearch).toHaveBeenCalledTimes(2)
   })
 })
 
@@ -1267,22 +847,19 @@ describe('linked target preflight and failure logging', () => {
   it.each([undefined, '', '   '])(
     'fails before search or queue when the linked path is %s',
     async (path) => {
-      const createSearch = vi.fn()
-      const enqueueResult = vi.fn()
-      const getDownloads = vi.fn()
+      const slskd = slskdWith()
       const updateJobState = vi.fn()
       const updateRecommendationAction = vi.fn()
-      const orchestrator = createSlskdOrchestrator({
+      await run({
         listPendingJobs: async () => [makeJob({ recommendationId: 301 })],
         listTargets: async () => [
           makeTarget({ config: { lidarrTargetId: 12, lidarrDownloadPath: path } }),
         ],
-        createSlskdClient: () => ({ createSearch, enqueueResult, getDownloads }),
+        createSlskdClient: () => slskd,
         updateJobState,
         updateRecommendationAction,
         logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
-      } as never)
-      await orchestrator.triggerSync()
+      })
       expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
         lastError: expect.stringContaining('Settings > Targets'),
       })
@@ -1292,16 +869,16 @@ describe('linked target preflight and failure logging', () => {
         'failed',
         expect.stringContaining('lidarrDownloadPath'),
       )
-      expect(createSearch).not.toHaveBeenCalled()
-      expect(enqueueResult).not.toHaveBeenCalled()
-      expect(getDownloads).not.toHaveBeenCalled()
+      expect(slskd.createSearch).not.toHaveBeenCalled()
+      expect(slskd.enqueueResult).not.toHaveBeenCalled()
+      expect(slskd.getDownloads).not.toHaveBeenCalled()
     },
   )
 
   it('logs one redacted line without passing the Error object', async () => {
     const error = vi.fn()
     const updateJobState = vi.fn()
-    const orchestrator = createSlskdOrchestrator({
+    await run({
       listPendingJobs: async () => [makeJob()],
       createSlskdClient: () => ({
         createSearch: async () => {
@@ -1310,8 +887,7 @@ describe('linked target preflight and failure logging', () => {
       }),
       updateJobState,
       logger: { error, info: vi.fn(), warn: vi.fn() },
-    } as never)
-    await orchestrator.triggerSync()
+    })
     expect(error.mock.calls).toEqual([
       ['[slskd] Job 1 failed: connection failed apiKey=[redacted] try again'],
     ])
