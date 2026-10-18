@@ -1841,6 +1841,7 @@ export const ko = {
   'settings.channels.allowPrivateWarning':
     '사설/LAN 주소로의 전송을 허용합니다. 클라우드 메타데이터 및 링크 로컬 범위는 계속 차단됩니다.',
   'settings.channels.webhookUrl': '웹훅 URL',
+  'settings.channels.webhookSigningSecret': '서명 시크릿(선택)',
   'settings.channels.ntfyServer': '서버',
   'settings.channels.ntfyTopic': '주제',
   'settings.channels.ntfyPriority': '우선순위',

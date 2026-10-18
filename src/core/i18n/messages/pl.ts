@@ -1884,6 +1884,7 @@ export const pl = {
   'settings.channels.allowPrivateWarning':
     'Zezwala na dostarczanie do adresów prywatnych/LAN. Metadane chmury i zakresy link-local pozostają zablokowane.',
   'settings.channels.webhookUrl': 'URL webhooka',
+  'settings.channels.webhookSigningSecret': 'Sekret podpisu (opcjonalny)',
   'settings.channels.ntfyServer': 'Serwer',
   'settings.channels.ntfyTopic': 'Temat',
   'settings.channels.ntfyPriority': 'Priorytet',

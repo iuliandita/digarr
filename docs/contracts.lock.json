@@ -232,7 +232,7 @@
         "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
         "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
         "src/core/auth/oidc.ts": "824a37cb005c3d9094a5a00e4dcec2f5da9c5af9b8d614215d94a8784c9c2a68",
-        "src/core/crypto.ts": "4ed56247716d7db99581ea7135d4ef9767373aafcf6347f6a48084892e4546b2",
+        "src/core/crypto.ts": "ee435124132851a3a20065c8125429687fd8b24ab66f7ab50ec183425a6d68f4",
         "src/core/oauth.ts": "23c54d509bf27770574221d6d3b5d8ea68e9a030aaa74b1a3ace37c55abd2385",
         "src/core/provider-auth.ts": "77ad75b128a06c5f44e1b0c239f94c25ad1c7698c55637ea1e9bbf78a273200d",
         "src/core/sessions.ts": "22edb84bdcc5c09129e174ca141cc08eabf2181859c99da319cbf71a39848ad3",
@@ -264,14 +264,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7",
+      "digest": "fcc9c912843a00f910452329171cd644359824ef144e079889ffa0c8d39f4659",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/AUTHENTICATION.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Describe admin-managed policies and limits, requester-owned history, encrypted personal outcome channels, cooldown and admin retry decisions. Authentication methods keep the same policy gate and member notification isolation.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Webhook signingSecret joins the encrypted, masked channel secrets; documented in the API channel reference.",
         "breaking": "none",
         "migration": "",
-        "digest": "94e59fb32f4728c39b54ecd52ab39aed2d4ee4a1e08c6b7acd3c6171685f57f7"
+        "digest": "fcc9c912843a00f910452329171cd644359824ef144e079889ffa0c8d39f4659"
       }
     },
     "api": {
@@ -325,7 +325,7 @@
         "src/server/schemas/pipeline.ts": "12b32f38d093560568f21ddc9626fe4282d74b12ab29af4ecab8ddd405e10341",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
         "src/server/schemas/recommendations.ts": "d1b34fbcdfdc8edd459c999ae3a4ad7b4109679ba9e4a7600cae560e04ebddd6",
-        "src/server/schemas/settings.ts": "df3286ce516d8a060862319987c35a21908d77d4024261b344738455073868f5",
+        "src/server/schemas/settings.ts": "fbe229f86d765d2bb7e9bd76ba85cde79a3cdcf752e5971868d448c4bb87125b",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "c2ae54526be2ae70214b4f6e425e67989283b5565a11cc7472ba4ee28c1114d2",
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
@@ -333,14 +333,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
+      "digest": "87ad0e9a9dbd077e63756ad1f32b0e2fdf5dda4b49f79a8d59f86f2016700143",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Webhook channel schema gains an optional signingSecret, documented with its signing scheme.",
         "breaking": "none",
         "migration": "",
-        "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2"
+        "digest": "87ad0e9a9dbd077e63756ad1f32b0e2fdf5dda4b49f79a8d59f86f2016700143"
       }
     },
     "interface": {
@@ -351,24 +351,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "9d43a97a911604d0cf7634db7d0d3402aa9bc32714a015aca9fe43fffdd7e05a",
-        "src/core/i18n/messages/en.ts": "ed71c2df4fb0d1e07ddf16fa9f3ed967cf0d6edbbb6075e78f6e32a47a29c582",
-        "src/core/i18n/messages/es.ts": "17dede53a4c946b83300df777d19736378d6a1ca11c15a12da08480d3f376f3c",
-        "src/core/i18n/messages/fr.ts": "d72dbee5ded58d7ee106e87edbed96a55e18ccd2cc401cf5ce471a623d4ee848",
+        "src/core/i18n/messages/de.ts": "d051c83ac0e8df76e037cb2797a3c3fa94bb747e54c867ad84636dbcdd7b4499",
+        "src/core/i18n/messages/en.ts": "97c2bda9537bb474a3b9ac39d4232bab3cc4a6c99d17159476291cb305e14106",
+        "src/core/i18n/messages/es.ts": "2dcafaef5794766b8441faa0b864f26a17e47c3617d737dac2c68692c6bda4cb",
+        "src/core/i18n/messages/fr.ts": "96acda3d4296ac26e9bb551c268bedc6e1924d8af9adcd3cc43bb007838ea7d6",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "92782db4f268f39b963a1fe7f365cb2f55891a089067a15686223151a05d3cda",
-        "src/core/i18n/messages/ja.ts": "27b56243e17cb403842f10bb4dde59644e4b4107fb20f7e974d81717d9c6da47",
-        "src/core/i18n/messages/ko.ts": "b2803837cda5c6ee2877e036bcef81b9efe32e4863039bcc60113e756e2ba22c",
-        "src/core/i18n/messages/nl.ts": "6f71a76d3db87c0ca99bff833e4744d7be1070623d6975c9ff4058f9f9a9a403",
-        "src/core/i18n/messages/pl.ts": "6508ed0cf8476987c2c75cc4515f267e9c66751e43255ea429a47e9360d9c1dd",
-        "src/core/i18n/messages/pt-BR.ts": "efec206698e707cca0f16a90a7a07c692740d3bbab20e542161510ddd94ffc01",
-        "src/core/i18n/messages/ro.ts": "57a0fafbb5e2ea8236e392b124ec3188ac41aa936a9738f06915742577d21243",
-        "src/core/i18n/messages/ru.ts": "935448e896d989a1dcf8bded983d2514f829b125e9f4cc72b3928cc653949600",
-        "src/core/i18n/messages/source-lock.json": "e9523f30bf14da79c005b7101cab1778e58ff044c65f03f80016926f43270a80",
-        "src/core/i18n/messages/tr.ts": "58e001c28b5836739f0d272c5fefbcae6240e3c4147903a2cb847b8580980de0",
+        "src/core/i18n/messages/it.ts": "b6b00220d01f82b2841f5ef2fa02736b787d49e93160a747d6bc702b3be92058",
+        "src/core/i18n/messages/ja.ts": "346bf0d28c8e3e340deade5ea534583649d207f3cf06ff6b82d6cad474685e52",
+        "src/core/i18n/messages/ko.ts": "84dc67741766dc8da81e9108248f2fa4d1f54b56cdaacba05f4334468919242e",
+        "src/core/i18n/messages/nl.ts": "a9df703103bec1587d94e22398f58fd0593db3daff6cb623243c15ccebd2c4f3",
+        "src/core/i18n/messages/pl.ts": "a2bc473eb293235bbc2141fc2fa24b8c67a1bafe862dc66fdb12747844d81f47",
+        "src/core/i18n/messages/pt-BR.ts": "a8dfcb8d3ae8268be9fdd779a04acde4c198cefa09b3b09ec7ed6255ba1e3790",
+        "src/core/i18n/messages/ro.ts": "6f745aafe62dd133bbf0373cd72190de220533c24898962bf5b709f83600d1eb",
+        "src/core/i18n/messages/ru.ts": "1fc09731aa6206416d8503b0ce53d77a82362809c01e2bdc00a1c988c377ad2b",
+        "src/core/i18n/messages/source-lock.json": "5bee60889351150723100cf56d0a9f2ccb11d651b74acb4b07fd4a6886873408",
+        "src/core/i18n/messages/tr.ts": "a0830de5f5cbd51d5b98dc3af612e31df815212deedeac06ec7178c9ec3228c4",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "fd380d6804cf692aa548a030dafe18827bbe7a799aa2e1f415ebbe35bd56341d",
-        "src/core/i18n/messages/zh-CN.ts": "a66d7ccb50ce03385d743a97673ad4eb543aa119c64a4eaf652b79feb220f61f",
+        "src/core/i18n/messages/uk.ts": "9e8e0b17295f6cc41741ade1d603835b04c8499090de3c25116eec2ead251991",
+        "src/core/i18n/messages/zh-CN.ts": "acdedef771165c911e908687ecf61bb2b86610ed0bd81b9a5f99f216d811ca91",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -511,7 +511,7 @@
         "src/web/pages/settings/connections-tab.tsx": "bedecb4cbc8cc4dc028f09e198bd35d712cc69c8d57370d387471de6f9885765",
         "src/web/pages/settings/index.tsx": "cf82d5aa1fee27fbb1afafd6742f0131bf04b88c664fd92382bd8180901085e4",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
-        "src/web/pages/settings/notification-channels.tsx": "ea7ab37b0a4649142e64139f899f57d52061db09d671baf05443c99b434a57d6",
+        "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
         "src/web/pages/settings/recommendations-tab.tsx": "a05f52b26f1429997ab501cdf8cffa0a10dc181c04bd7e376b8478cbec2fac5b",
         "src/web/pages/settings/schedule-tab.tsx": "ceb67ec3a81b9aaf52a4d6fddbff345134b8f38fe1b9150d9360d5ff603b90dd",
         "src/web/pages/settings/settings-nav.tsx": "0c74f6177c004092f0e819001b99072b58718cc30e404e06e03be064bb0bddee",
@@ -526,14 +526,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
+      "digest": "3f3f8409021247fbc1b8a534a00d1f8d738be0a1fe0e195b4ecc84656e0e237c",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
+        "note": "Webhook channel editor gets an optional signing secret field in all 15 locales.",
         "breaking": "none",
         "migration": "",
-        "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d"
+        "digest": "3f3f8409021247fbc1b8a534a00d1f8d738be0a1fe0e195b4ecc84656e0e237c"
       }
     },
     "features": {
@@ -626,12 +626,12 @@
         "src/core/notifications/channels/apprise.ts": "e7e4f6a6f17c8b4b712c520c5382ea17196ebb27cae60f32c55be471c96255d9",
         "src/core/notifications/channels/ntfy.ts": "5c5b7747a209a1f7f557a2e2f956d908f480372269a8185223eedf91ac77a0bb",
         "src/core/notifications/channels/telegram.ts": "fa3cdab2724e026fa5528924bf7638aea01ee188232b3cad0d3cd0b9a8660221",
-        "src/core/notifications/channels/webhook.ts": "dc3d2c5b388e9132795c4f602d07b14682579e048a92b8051e06a55ad84f5af0",
+        "src/core/notifications/channels/webhook.ts": "3e39e62870cb8ac32fce7d06b799ff0d3d6843bd6b7d4f50e3edd3f0a62c997b",
         "src/core/notifications/index.ts": "eb41977d894a1f5ec162a1c675caf27fc8d29a9aa326a821040faf7820c9f67c",
         "src/core/notifications/registry.ts": "08ce7a4937bdd27366a5e34d6ea1dd3e77d0be092edcdd44aa40672653803335",
         "src/core/notifications/request-resolved.ts": "3a421407fab4ea9d9622be6e8f8a090a63f2b23fc465c7c117b86d1a2374e665",
         "src/core/notifications/transport.ts": "ccdbd6b7a7cb6b0b7f4a2eb7101e925430a620ccc5fd154660bb5c95be3137d9",
-        "src/core/notifications/types.ts": "2b715743f6d5f07e8714dda5eac220cadf0156bd26868a135807b4f954f8f8f4",
+        "src/core/notifications/types.ts": "c69da910904e133c5df709974abd5f5718f5872ff21b9ab44455cdd8648928f3",
         "src/core/pipeline/analyze.ts": "31be3e6b13626fd2b486cb208dd014209060e184dceaf524a38e2dd6fbe249ef",
         "src/core/pipeline/auto-approve.ts": "ff7320fa6e975861830907ced1b72836426aec5081bc2fab5dfad086a57e3443",
         "src/core/pipeline/cancel.ts": "6d28ad56bac72093e4558b8269cab606ba2dff0f058dc0ffdddba040666cffe1",
@@ -750,14 +750,14 @@
         "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8",
+      "digest": "e1559e1101806ecff89013dc942f1f045937351e63b58c84dbbea76155d7d4bf",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "AudioMuse name matching now uses the existing reconciler normalizer and skips names that normalize to empty; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Optional HMAC-SHA256 webhook request signing with a documented test vector; off by default.",
         "breaking": "none",
         "migration": "",
-        "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8"
+        "digest": "e1559e1101806ecff89013dc942f1f045937351e63b58c84dbbea76155d7d4bf"
       }
     },
     "deployment": {

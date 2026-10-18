@@ -1895,6 +1895,7 @@ export const ptBR = {
   'settings.channels.allowPrivateWarning':
     'Permite a entrega para endereços privados/LAN. Metadados de nuvem e faixas link-local permanecem bloqueados.',
   'settings.channels.webhookUrl': 'URL do webhook',
+  'settings.channels.webhookSigningSecret': 'Segredo de assinatura (opcional)',
   'settings.channels.ntfyServer': 'Servidor',
   'settings.channels.ntfyTopic': 'Tópico',
   'settings.channels.ntfyPriority': 'Prioridade',

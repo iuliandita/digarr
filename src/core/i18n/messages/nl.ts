@@ -1892,6 +1892,7 @@ export const nl = {
   'settings.channels.allowPrivateWarning':
     'Staat bezorging toe naar privé/LAN-adressen. Cloud-metadata en link-local-bereiken blijven geblokkeerd.',
   'settings.channels.webhookUrl': 'Webhook-URL',
+  'settings.channels.webhookSigningSecret': 'Ondertekeningsgeheim (optioneel)',
   'settings.channels.ntfyServer': 'Serveradres',
   'settings.channels.ntfyTopic': 'Onderwerp',
   'settings.channels.ntfyPriority': 'Prioriteit',

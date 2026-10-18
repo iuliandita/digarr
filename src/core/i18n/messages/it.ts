@@ -1900,6 +1900,7 @@ export const it = {
   'settings.channels.allowPrivateWarning':
     'Consente la consegna a indirizzi privati/LAN. I metadati del cloud e gli intervalli link-local restano bloccati.',
   'settings.channels.webhookUrl': 'URL del webhook',
+  'settings.channels.webhookSigningSecret': 'Segreto di firma (facoltativo)',
   'settings.channels.ntfyServer': 'Indirizzo server',
   'settings.channels.ntfyTopic': 'Argomento',
   'settings.channels.ntfyPriority': 'Priorità',

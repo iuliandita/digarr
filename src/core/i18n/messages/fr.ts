@@ -1907,6 +1907,7 @@ export const fr = {
   'settings.channels.allowPrivateWarning':
     'Autorise la livraison vers des adresses privées/LAN. Les métadonnées cloud et les plages link-local restent bloquées.',
   'settings.channels.webhookUrl': 'URL du webhook',
+  'settings.channels.webhookSigningSecret': 'Secret de signature (facultatif)',
   'settings.channels.ntfyServer': 'Serveur',
   'settings.channels.ntfyTopic': 'Sujet',
   'settings.channels.ntfyPriority': 'Priorité',

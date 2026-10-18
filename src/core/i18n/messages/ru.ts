@@ -1896,6 +1896,7 @@ export const ru = {
   'settings.channels.allowPrivateWarning':
     'Разрешает доставку на частные/LAN-адреса. Облачные метаданные и link-local диапазоны остаются заблокированными.',
   'settings.channels.webhookUrl': 'URL вебхука',
+  'settings.channels.webhookSigningSecret': 'Секрет подписи (необязательно)',
   'settings.channels.ntfyServer': 'Сервер',
   'settings.channels.ntfyTopic': 'Тема',
   'settings.channels.ntfyPriority': 'Приоритет',

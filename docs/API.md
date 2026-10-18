@@ -1254,11 +1254,11 @@ Notification channels:
   same. Each channel is one of four shapes, discriminated on `type`. Shared fields: `id` (opaque
   string, stable edit/remove key), `enabled` (boolean), `events` (subset of `["batch_complete",
   "digest"]`), and the admin-only `allowPrivateTarget` (boolean, optional).
-  - `webhook` - `{ ..., url }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON)
+  - `webhook` - `{ ..., url, signingSecret? }` (Discord payloads are formatted automatically; other endpoints must accept Digarr JSON; see [webhook signing](OPERATIONS.md#webhook-signing))
   - `ntfy` - `{ ..., server, topic, priority?, token? }` (`priority` 1-5)
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
-- Channel secrets (`telegram.botToken`, `ntfy.token`, `apprise.urls`) are returned masked as `***`;
+- Channel secrets (`telegram.botToken`, `ntfy.token`, `webhook.signingSecret`, `apprise.urls`) are returned masked as `***`;
   sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it

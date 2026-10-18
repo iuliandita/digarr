@@ -1892,6 +1892,7 @@ export const ro = {
   'settings.channels.allowPrivateWarning':
     'Permite livrarea către adrese private/LAN. Metadatele din cloud și intervalele link-local rămân blocate.',
   'settings.channels.webhookUrl': 'URL webhook',
+  'settings.channels.webhookSigningSecret': 'Secret de semnare (opțional)',
   'settings.channels.ntfyServer': 'Adresă server',
   'settings.channels.ntfyTopic': 'Subiect',
   'settings.channels.ntfyPriority': 'Prioritate',

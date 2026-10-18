@@ -1203,6 +1203,7 @@
   "settings.channels.typeNtfy": "1d8ada3e1183",
   "settings.channels.typeTelegram": "acdd1e734125",
   "settings.channels.typeWebhook": "4814f62c108d",
+  "settings.channels.webhookSigningSecret": "844ba7e6d13a",
   "settings.channels.webhookUrl": "84805a7574a8",
   "settings.configure": "6defafa2caa6",
   "settings.confirmNewPassword": "bf000421aeb3",
