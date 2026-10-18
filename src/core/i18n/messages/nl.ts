@@ -31,6 +31,12 @@ export const nl = {
   'tokens.revokeConfirm': '"{name}" intrekken? Scripts die het gebruiken verliezen direct toegang.',
   'tokens.readOnlyError': 'Dit token staat alleen GET- en HEAD-verzoeken toe.',
   'tokens.notFoundError': 'Dit token is niet gevonden.',
+  'notification.approvalFailed':
+    'De Lidarr-goedkeuring voor {0} kon niet binnen 24 uur worden voltooid: {1}',
+  'recommendation.waitingForLidarr': 'Wachten op Lidarr',
+  'recommendation.nextRetry': 'Volgende poging: {0}',
+  'settings.channels.eventApprovalFailed': 'Goedkeuring mislukt',
+
   'settings.monitorMissing': 'Ontbrekende albums',
   'settings.monitorExisting': 'Bestaande albums',
   'settings.monitorLatest': 'Nieuwste album',

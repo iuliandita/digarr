@@ -395,19 +395,23 @@ export function NotificationChannelsCard({
               <div className="space-y-1.5">
                 <span className="text-sm text-muted">{t('settings.channels.events')}</span>
                 <div className="flex flex-wrap gap-4">
-                  {(['batch_complete', 'digest'] as NotificationEvent[]).map((event) => (
-                    <label key={event} className="flex items-center gap-2 text-sm text-text">
-                      <input
-                        type="checkbox"
-                        checked={channel.events.includes(event)}
-                        onChange={() => toggleEvent(channel.id, event)}
-                        className="rounded border-border"
-                      />
-                      {event === 'batch_complete'
-                        ? t('settings.channels.eventBatch')
-                        : t('settings.channels.eventDigest')}
-                    </label>
-                  ))}
+                  {(['batch_complete', 'digest', 'approval_failed'] as NotificationEvent[]).map(
+                    (event) => (
+                      <label key={event} className="flex items-center gap-2 text-sm text-text">
+                        <input
+                          type="checkbox"
+                          checked={channel.events.includes(event)}
+                          onChange={() => toggleEvent(channel.id, event)}
+                          className="rounded border-border"
+                        />
+                        {event === 'approval_failed'
+                          ? t('settings.channels.eventApprovalFailed')
+                          : event === 'batch_complete'
+                            ? t('settings.channels.eventBatch')
+                            : t('settings.channels.eventDigest')}
+                      </label>
+                    ),
+                  )}
                 </div>
               </div>
 
