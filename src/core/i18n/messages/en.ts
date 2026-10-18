@@ -58,6 +58,11 @@ export const en = {
     'Turn on track loves to connect Last.fm. After returning, turn the switch on again to start sending - connecting alone does not enable it.',
   'writeBack.lastError': 'Last send error: {0}',
   'writeBack.loadFailed': 'Could not load your write-back settings.',
+  'notification.approvalFailed': 'Lidarr approval for {0} could not complete within 24 hours: {1}',
+  'recommendation.waitingForLidarr': 'Waiting for Lidarr',
+  'recommendation.nextRetry': 'Next retry: {0}',
+  'settings.channels.eventApprovalFailed': 'Approval failed',
+
   'settings.monitorMissing': 'Missing albums',
   'settings.monitorExisting': 'Existing albums',
   'settings.monitorLatest': 'Latest album',

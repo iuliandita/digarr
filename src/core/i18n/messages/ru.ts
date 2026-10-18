@@ -60,6 +60,11 @@ export const ru = {
     'Включи любимые треки, чтобы подключить Last.fm. После возвращения включи переключатель снова для начала отправки - само подключение её не включает.',
   'writeBack.lastError': 'Последняя ошибка отправки: {0}',
   'writeBack.loadFailed': 'Не удалось загрузить твои настройки отправки.',
+  'notification.approvalFailed': 'Не удалось завершить одобрение {0} в Lidarr за 24 часа: {1}',
+  'recommendation.waitingForLidarr': 'Ожидание Lidarr',
+  'recommendation.nextRetry': 'Следующая попытка: {0}',
+  'settings.channels.eventApprovalFailed': 'Ошибка одобрения',
+
   'settings.monitorMissing': 'Недостающие альбомы',
   'settings.monitorExisting': 'Имеющиеся альбомы',
   'settings.monitorLatest': 'Последний альбом',

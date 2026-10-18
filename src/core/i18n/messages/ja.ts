@@ -57,6 +57,11 @@ export const ja = {
     'お気に入りの曲をオンにするとLast.fmに接続します。戻ったら、送信を始めるためにもう一度オンにしてください - 接続だけでは送信は有効になりません。',
   'writeBack.lastError': '最後の送信エラー: {0}',
   'writeBack.loadFailed': '送信設定を読み込めませんでした。',
+  'notification.approvalFailed': '{0} の Lidarr への承認は24時間以内に完了しませんでした: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr を待機中',
+  'recommendation.nextRetry': '次の再試行: {0}',
+  'settings.channels.eventApprovalFailed': '承認に失敗',
+
   'settings.monitorMissing': '未取得のアルバム',
   'settings.monitorExisting': '取得済みのアルバム',
   'settings.monitorLatest': '最新のアルバム',

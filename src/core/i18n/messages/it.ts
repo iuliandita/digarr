@@ -60,6 +60,12 @@ export const it = {
     'Attiva i brani preferiti per connettere Last.fm. Al ritorno, attiva di nuovo l’interruttore per iniziare a inviare - la sola connessione non lo attiva.',
   'writeBack.lastError': 'Ultimo errore di invio: {0}',
   'writeBack.loadFailed': 'Impossibile caricare le tue impostazioni di invio.',
+  'notification.approvalFailed':
+    'L’approvazione di {0} in Lidarr non è stata completata entro 24 ore: {1}',
+  'recommendation.waitingForLidarr': 'In attesa di Lidarr',
+  'recommendation.nextRetry': 'Prossimo tentativo: {0}',
+  'settings.channels.eventApprovalFailed': 'Approvazione non riuscita',
+
   'settings.monitorMissing': 'Album mancanti',
   'settings.monitorExisting': 'Album esistenti',
   'settings.monitorLatest': 'Ultimo album',

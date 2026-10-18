@@ -60,6 +60,12 @@ export const de = {
     'Schalte Lieblingstitel ein, um Last.fm zu verbinden. Schalte sie nach deiner Rückkehr erneut ein, um das Senden zu starten - die Verbindung allein aktiviert es nicht.',
   'writeBack.lastError': 'Letzter Sendefehler: {0}',
   'writeBack.loadFailed': 'Deine Sendeeinstellungen konnten nicht geladen werden.',
+  'notification.approvalFailed':
+    'Die Lidarr-Freigabe für {0} konnte nicht innerhalb von 24 Stunden abgeschlossen werden: {1}',
+  'recommendation.waitingForLidarr': 'Warten auf Lidarr',
+  'recommendation.nextRetry': 'Nächster Versuch: {0}',
+  'settings.channels.eventApprovalFailed': 'Freigabe fehlgeschlagen',
+
   'settings.monitorMissing': 'Fehlende Alben',
   'settings.monitorExisting': 'Vorhandene Alben',
   'settings.monitorLatest': 'Neuestes Album',

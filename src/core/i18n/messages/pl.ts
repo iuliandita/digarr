@@ -60,6 +60,12 @@ export const pl = {
     'Włącz ulubione utwory, aby połączyć Last.fm. Po powrocie włącz opcję ponownie, aby zacząć wysyłanie - samo połączenie jej nie włącza.',
   'writeBack.lastError': 'Ostatni błąd wysyłania: {0}',
   'writeBack.loadFailed': 'Nie udało się wczytać twoich ustawień wysyłania.',
+  'notification.approvalFailed':
+    'Nie udało się ukończyć zatwierdzenia {0} w Lidarr w ciągu 24 godzin: {1}',
+  'recommendation.waitingForLidarr': 'Oczekiwanie na Lidarr',
+  'recommendation.nextRetry': 'Następna próba: {0}',
+  'settings.channels.eventApprovalFailed': 'Zatwierdzenie nie powiodło się',
+
   'settings.monitorMissing': 'Brakujące albumy',
   'settings.monitorExisting': 'Istniejące albumy',
   'settings.monitorLatest': 'Najnowszy album',

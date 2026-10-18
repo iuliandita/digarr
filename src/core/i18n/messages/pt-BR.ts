@@ -60,6 +60,12 @@ export const ptBR = {
     'Ativa as faixas favoritas para conectar o Last.fm. Ao voltar, ativa a opção de novo para começar a enviar - só conectar não ativa os envios.',
   'writeBack.lastError': 'Último erro de envio: {0}',
   'writeBack.loadFailed': 'Não foi possível carregar suas configurações de envio.',
+  'notification.approvalFailed':
+    'Não foi possível concluir a aprovação de {0} no Lidarr em 24 horas: {1}',
+  'recommendation.waitingForLidarr': 'Aguardando o Lidarr',
+  'recommendation.nextRetry': 'Próxima tentativa: {0}',
+  'settings.channels.eventApprovalFailed': 'Falha na aprovação',
+
   'settings.monitorMissing': 'Álbuns ausentes',
   'settings.monitorExisting': 'Álbuns existentes',
   'settings.monitorLatest': 'Álbum mais recente',

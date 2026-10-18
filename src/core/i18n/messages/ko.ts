@@ -55,6 +55,11 @@ export const ko = {
     '좋아하는 곡을 켜면 Last.fm에 연결돼요. 돌아온 후 전송을 시작하려면 스위치를 다시 켜 주세요 - 연결만으로는 전송이 켜지지 않아요.',
   'writeBack.lastError': '마지막 전송 오류: {0}',
   'writeBack.loadFailed': '전송 설정을 불러오지 못했어요.',
+  'notification.approvalFailed': '{0}의 Lidarr 승인을 24시간 이내에 완료하지 못했어요: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr 대기 중',
+  'recommendation.nextRetry': '다음 재시도: {0}',
+  'settings.channels.eventApprovalFailed': '승인 실패',
+
   'settings.monitorMissing': '누락된 앨범',
   'settings.monitorExisting': '기존 앨범',
   'settings.monitorLatest': '최신 앨범',

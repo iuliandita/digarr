@@ -61,6 +61,12 @@ export const fr = {
     'Active les coups de cœur pour connecter Last.fm. À ton retour, active à nouveau l’interrupteur pour commencer les envois - la connexion seule ne les active pas.',
   'writeBack.lastError': 'Dernière erreur d’envoi : {0}',
   'writeBack.loadFailed': 'Impossible de charger tes réglages d’envoi.',
+  'notification.approvalFailed':
+    'L’approbation de {0} dans Lidarr n’a pas pu aboutir en 24 heures : {1}',
+  'recommendation.waitingForLidarr': 'En attente de Lidarr',
+  'recommendation.nextRetry': 'Prochaine tentative : {0}',
+  'settings.channels.eventApprovalFailed': 'Échec de l’approbation',
+
   'settings.monitorMissing': 'Albums manquants',
   'settings.monitorExisting': 'Albums existants',
   'settings.monitorLatest': 'Dernier album',

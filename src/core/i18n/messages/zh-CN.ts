@@ -50,6 +50,11 @@ export const zhCN = {
     '开启喜爱曲目即可连接 Last.fm。返回后，请再次开启开关以开始发送 - 仅连接不会启用发送。',
   'writeBack.lastError': '上次发送错误：{0}',
   'writeBack.loadFailed': '无法加载你的发送设置。',
+  'notification.approvalFailed': '{0} 的 Lidarr 批准未能在 24 小时内完成：{1}',
+  'recommendation.waitingForLidarr': '正在等待 Lidarr',
+  'recommendation.nextRetry': '下次重试：{0}',
+  'settings.channels.eventApprovalFailed': '批准失败',
+
   'settings.monitorMissing': '缺失的专辑',
   'settings.monitorExisting': '已有的专辑',
   'settings.monitorLatest': '最新专辑',

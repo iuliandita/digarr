@@ -58,6 +58,11 @@ export const uk = {
     'Увімкни улюблені треки, щоб підключити Last.fm. Після повернення ввімкни перемикач знову для початку надсилання - саме підключення його не вмикає.',
   'writeBack.lastError': 'Остання помилка надсилання: {0}',
   'writeBack.loadFailed': 'Не вдалося завантажити твої налаштування надсилання.',
+  'notification.approvalFailed': 'Не вдалося завершити схвалення {0} у Lidarr за 24 години: {1}',
+  'recommendation.waitingForLidarr': 'Очікування Lidarr',
+  'recommendation.nextRetry': 'Наступна спроба: {0}',
+  'settings.channels.eventApprovalFailed': 'Помилка схвалення',
+
   'settings.monitorMissing': 'Відсутні альбоми',
   'settings.monitorExisting': 'Наявні альбоми',
   'settings.monitorLatest': 'Останній альбом',

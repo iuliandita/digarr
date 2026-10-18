@@ -143,6 +143,27 @@ describe('NotificationChannelsCard', () => {
     )
   })
 
+  it('keeps approval-failure alerts opt-in inside the expanded channel', async () => {
+    renderWithQuery(
+      <NotificationChannelsCard
+        settings={{ preferences: { channels: [channels[0]] } } as never}
+        isAdmin
+        onSaved={() => {}}
+      />,
+    )
+
+    fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    const alert = screen.getByRole('checkbox', { name: 'Approval failed' })
+    expect(alert).not.toBeChecked()
+    fireEvent.click(alert)
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(mocked.updateSettings).toHaveBeenCalled())
+    expect(mocked.updateSettings.mock.calls[0]?.[0]?.preferences).toMatchObject({
+      channels: [expect.objectContaining({ id: 'a', events: ['approval_failed'] })],
+    })
+  })
+
   it('reveals the type picker only after Add channel', () => {
     renderWithQuery(
       <NotificationChannelsCard

@@ -61,6 +61,12 @@ export const nl = {
     'Zet favoriete nummers aan om Last.fm te verbinden. Zet de schakelaar na terugkeer opnieuw aan om te beginnen met versturen - alleen verbinden schakelt dit niet in.',
   'writeBack.lastError': 'Laatste verzendfout: {0}',
   'writeBack.loadFailed': 'Je instellingen voor terugschrijven konden niet worden geladen.',
+  'notification.approvalFailed':
+    'De Lidarr-goedkeuring voor {0} kon niet binnen 24 uur worden voltooid: {1}',
+  'recommendation.waitingForLidarr': 'Wachten op Lidarr',
+  'recommendation.nextRetry': 'Volgende poging: {0}',
+  'settings.channels.eventApprovalFailed': 'Goedkeuring mislukt',
+
   'settings.monitorMissing': 'Ontbrekende albums',
   'settings.monitorExisting': 'Bestaande albums',
   'settings.monitorLatest': 'Nieuwste album',

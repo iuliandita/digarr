@@ -4,6 +4,7 @@ export const VALID_STATUSES = [
   'rejected',
   'added_to_lidarr',
   'add_failed',
+  'waiting',
   'duplicate',
   'queued',
 ] as const

@@ -59,6 +59,11 @@ export const tr = {
     'Last.fm bağlantısı için beğenilen parçaları aç. Döndüğünde göndermeye başlamak için seçeneği tekrar aç - yalnızca bağlanmak göndermeyi açmaz.',
   'writeBack.lastError': 'Son gönderim hatası: {0}',
   'writeBack.loadFailed': 'Gönderme ayarların yüklenemedi.',
+  'notification.approvalFailed': '{0} için Lidarr onayı 24 saat içinde tamamlanamadı: {1}',
+  'recommendation.waitingForLidarr': 'Lidarr bekleniyor',
+  'recommendation.nextRetry': 'Sonraki deneme: {0}',
+  'settings.channels.eventApprovalFailed': 'Onay başarısız',
+
   'settings.monitorMissing': 'Eksik albümler',
   'settings.monitorExisting': 'Mevcut albümler',
   'settings.monitorLatest': 'En son albüm',

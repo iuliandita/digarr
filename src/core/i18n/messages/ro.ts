@@ -60,6 +60,12 @@ export const ro = {
     'Activează piesele favorite ca să conectezi Last.fm. După revenire, activează din nou opțiunea ca să începi trimiterea - simpla conectare nu o activează.',
   'writeBack.lastError': 'Ultima eroare de trimitere: {0}',
   'writeBack.loadFailed': 'Nu s-au putut încărca setările tale de trimitere.',
+  'notification.approvalFailed':
+    'Aprobarea pentru {0} în Lidarr nu s-a putut finaliza în 24 de ore: {1}',
+  'recommendation.waitingForLidarr': 'În așteptare pentru Lidarr',
+  'recommendation.nextRetry': 'Următoarea încercare: {0}',
+  'settings.channels.eventApprovalFailed': 'Aprobarea a eșuat',
+
   'settings.monitorMissing': 'Albume lipsă',
   'settings.monitorExisting': 'Albume existente',
   'settings.monitorLatest': 'Cel mai recent album',
