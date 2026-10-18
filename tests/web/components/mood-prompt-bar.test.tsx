@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { MoodPromptBar } from '@/web/components/mood-prompt-bar'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -27,18 +27,18 @@ function renderBar() {
 const PLACEHOLDER = /rainy day jazz/
 
 describe('MoodPromptBar collapse (#993)', () => {
-  it('starts collapsed and expands on click with the input focused', () => {
+  it('starts collapsed and expands on click with the input focused', async () => {
     renderBar()
     expect(screen.queryByPlaceholderText(PLACEHOLDER)).toBeNull()
 
     fireEvent.click(screen.getByRole('button', { name: 'Describe a mood' }))
-    expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveFocus()
+    await waitFor(() => expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveFocus())
   })
 
-  it('expands on the / key', () => {
+  it('expands on the / key', async () => {
     renderBar()
     fireEvent.keyDown(window, { key: '/' })
-    expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveFocus()
+    await waitFor(() => expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveFocus())
   })
 
   it('ignores / while typing in another field', () => {

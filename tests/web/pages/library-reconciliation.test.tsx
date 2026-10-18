@@ -713,12 +713,12 @@ describe('LibraryReconciliationPage', () => {
     const ignore = within(artists).getByRole('button', { name: 'Ignore selected' })
     ignore.focus()
     fireEvent.click(ignore)
-    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus())
 
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }))
     await waitFor(() => expect(mockBulkIgnoreLibraryArtists).toHaveBeenCalledTimes(1))
     expect(ignore).toBeDisabled()
-    expect(artists).toHaveFocus()
+    await waitFor(() => expect(artists).toHaveFocus())
     expect(document.body).not.toHaveFocus()
 
     request.resolve()

@@ -59,13 +59,15 @@ describe('BackupSection restore confirmation', () => {
 
   it.each(['cancel', 'Escape'])(
     'discards selection on %s without uploading and allows the same file again',
-    (action) => {
+    async (action) => {
       const { input, select } = setup()
       select()
 
       expect(restoreBackupApi).not.toHaveBeenCalled()
       const dialog = screen.getByRole('dialog', { name: 'Restore backup?' })
-      expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus()
+      await waitFor(() =>
+        expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus(),
+      )
       if (action === 'cancel') {
         fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
       } else {
@@ -140,7 +142,9 @@ describe('BackupSection restore confirmation', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Encryption key mismatch' })
     expect(restoreBackupApi).toHaveBeenCalledExactlyOnceWith(file, false)
     expect(within(dialog).getByText(/settings.apiKey/)).toBeInTheDocument()
-    expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus()
+    await waitFor(() =>
+      expect(within(dialog).getByRole('button', { name: 'Cancel' })).toHaveFocus(),
+    )
 
     fireEvent.click(
       within(dialog).getByRole('button', {

@@ -215,7 +215,7 @@ describe('DiscoveryModesPage', () => {
     ).toBeInTheDocument()
     fireEvent.click(screen.getByRole('button', { name: 'Run a mode' }))
     const search = screen.getByRole('searchbox', { name: 'Search modes' })
-    expect(search).toHaveFocus()
+    await waitFor(() => expect(search).toHaveFocus())
     await screen.findByText('This mode is not implemented yet.')
     await screen.findByText('Using fallback providers for release discovery.')
     expect(screen.getByRole('button', { name: 'Labels' })).toBeDisabled()

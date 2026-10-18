@@ -408,9 +408,11 @@ describe('SettingsPage', () => {
       expect(screen.getByTestId('location')).toHaveTextContent(`?tab=system${hash}`),
     )
     expect(screen.getByRole('button', { name: 'System' })).toHaveAttribute('aria-current', 'page')
-    expect(
-      screen.getByRole('region', { name: hash === '#jobs' ? 'Job History' : 'System Health' }),
-    ).toHaveFocus()
+    await waitFor(() =>
+      expect(
+        screen.getByRole('region', { name: hash === '#jobs' ? 'Job History' : 'System Health' }),
+      ).toHaveFocus(),
+    )
   })
 
   it('uses translated navigation labels', async () => {

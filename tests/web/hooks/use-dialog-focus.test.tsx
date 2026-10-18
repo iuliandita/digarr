@@ -39,12 +39,12 @@ describe('useDialogFocus', () => {
     await waitFor(() => expect(first).toHaveFocus())
 
     fireEvent.keyDown(document, { key: 'Tab', shiftKey: true })
-    expect(last).toHaveFocus()
+    await waitFor(() => expect(last).toHaveFocus())
     fireEvent.keyDown(document, { key: 'Tab' })
-    expect(first).toHaveFocus()
+    await waitFor(() => expect(first).toHaveFocus())
 
     fireEvent.keyDown(document, { key: 'Escape' })
     expect(screen.queryByRole('dialog')).toBeNull()
-    expect(opener).toHaveFocus()
+    await waitFor(() => expect(opener).toHaveFocus())
   })
 })

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { type ComponentProps, createRef } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ConfirmDialog } from '@/web/components/confirm-dialog'
@@ -28,7 +28,7 @@ describe('ConfirmDialog', () => {
     })
   })
 
-  it('focuses cancel for destructive actions, traps Tab, cancels once, and restores focus', () => {
+  it('focuses cancel for destructive actions, traps Tab, cancels once, and restores focus', async () => {
     const trigger = document.createElement('button')
     document.body.append(trigger)
     trigger.focus()
@@ -38,26 +38,26 @@ describe('ConfirmDialog', () => {
     const cancel = screen.getByRole('button', { name: 'Cancel' })
     const confirm = screen.getByRole('button', { name: 'Confirm' })
 
-    expect(cancel).toHaveFocus()
+    await waitFor(() => expect(cancel).toHaveFocus())
     expect(cancel).toHaveClass('min-h-[44px]')
     expect(confirm).toHaveClass('min-h-[44px]')
     confirm.focus()
     fireEvent.keyDown(confirm, { key: 'Tab' })
-    expect(cancel).toHaveFocus()
+    await waitFor(() => expect(cancel).toHaveFocus())
     fireEvent.keyDown(cancel, { key: 'Tab', shiftKey: true })
-    expect(confirm).toHaveFocus()
+    await waitFor(() => expect(confirm).toHaveFocus())
     fireEvent.keyDown(dialog, { key: 'Escape' })
     expect(onCancel).toHaveBeenCalledTimes(1)
 
     unmount()
-    expect(trigger).toHaveFocus()
+    await waitFor(() => expect(trigger).toHaveFocus())
     trigger.remove()
   })
 
-  it('focuses confirm first for non-destructive actions', () => {
+  it('focuses confirm first for non-destructive actions', async () => {
     renderDialog({ destructive: false })
 
-    expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus()
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Confirm' })).toHaveFocus())
   })
 
   it('stacks full-width actions on narrow screens and wraps above the breakpoint', () => {
@@ -70,7 +70,7 @@ describe('ConfirmDialog', () => {
     expect(confirm).toHaveClass('w-full', 'sm:w-auto')
   })
 
-  it('uses the fallback when the invoking trigger is disabled and cancels only outside the panel', () => {
+  it('uses the fallback when the invoking trigger is disabled and cancels only outside the panel', async () => {
     const trigger = document.createElement('button')
     const fallback = document.createElement('section')
     fallback.tabIndex = -1
@@ -89,7 +89,7 @@ describe('ConfirmDialog', () => {
     expect(onCancel).toHaveBeenCalledTimes(1)
 
     unmount()
-    expect(fallback).toHaveFocus()
+    await waitFor(() => expect(fallback).toHaveFocus())
     trigger.remove()
     fallback.remove()
   })

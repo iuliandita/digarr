@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useMenu } from '@/web/hooks/use-menu'
 
@@ -28,36 +28,38 @@ const trigger = () => screen.getByRole('button', { name: 'Tools' })
 const item = (name: string) => screen.getByRole('menuitem', { name })
 
 describe('useMenu', () => {
-  it('opens from the keyboard on the first item and wraps with the arrow keys', () => {
+  it('opens from the keyboard on the first item and wraps with the arrow keys', async () => {
     render(<Harness />)
     fireEvent.keyDown(trigger(), { key: 'Enter' })
-    expect(item('One')).toHaveFocus()
+    await waitFor(() => expect(item('One')).toHaveFocus())
     fireEvent.keyDown(item('One'), { key: 'ArrowUp' })
-    expect(item('Three')).toHaveFocus()
+    await waitFor(() => expect(item('Three')).toHaveFocus())
     fireEvent.keyDown(item('Three'), { key: 'ArrowDown' })
-    expect(item('One')).toHaveFocus()
+    await waitFor(() => expect(item('One')).toHaveFocus())
   })
 
-  it('moves into an already open menu with ArrowDown', () => {
+  it('moves into an already open menu with ArrowDown', async () => {
     render(<Harness />)
     fireEvent.click(trigger())
     fireEvent.keyDown(trigger(), { key: 'ArrowDown' })
-    expect(item('One')).toHaveFocus()
+    await waitFor(() => expect(item('One')).toHaveFocus())
   })
 
-  it.each(['Escape', 'Tab'])('closes on %s and returns focus to the trigger', (key) => {
+  it.each(['Escape', 'Tab'])('closes on %s and returns focus to the trigger', async (key) => {
     render(<Harness />)
     fireEvent.keyDown(trigger(), { key: 'ArrowDown' })
+    await waitFor(() => expect(item('One')).toHaveFocus())
     fireEvent.keyDown(item('One'), { key })
     expect(screen.queryByRole('menu')).toBeNull()
-    expect(trigger()).toHaveFocus()
+    await waitFor(() => expect(trigger()).toHaveFocus())
   })
 
-  it('closes when the close key changes and keeps focus on the trigger', () => {
+  it('closes when the close key changes and keeps focus on the trigger', async () => {
     const { rerender } = render(<Harness closeKey="/a" />)
     fireEvent.keyDown(trigger(), { key: 'ArrowDown' })
+    await waitFor(() => expect(item('One')).toHaveFocus())
     rerender(<Harness closeKey="/b" />)
     expect(screen.queryByRole('menu')).toBeNull()
-    expect(trigger()).toHaveFocus()
+    await waitFor(() => expect(trigger()).toHaveFocus())
   })
 })

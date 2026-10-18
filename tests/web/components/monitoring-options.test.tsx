@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
@@ -87,7 +87,7 @@ describe('MonitoringOptions', () => {
     expect(screen.getAllByRole('menuitem')).toHaveLength(9)
   })
 
-  it('focuses the first menuitem when opened', () => {
+  it('focuses the first menuitem when opened', async () => {
     render(
       <I18nProvider>
         <MonitoringOptions onApprove={vi.fn()} onOpenAlbumPicker={vi.fn()} />
@@ -95,10 +95,10 @@ describe('MonitoringOptions', () => {
     )
     openMenu()
     const items = screen.getAllByRole('menuitem')
-    expect(document.activeElement).toBe(items[0])
+    await waitFor(() => expect(document.activeElement).toBe(items[0]))
   })
 
-  it('moves focus with ArrowDown/ArrowUp and wraps around', () => {
+  it('moves focus with ArrowDown/ArrowUp and wraps around', async () => {
     render(
       <I18nProvider>
         <MonitoringOptions onApprove={vi.fn()} onOpenAlbumPicker={vi.fn()} />
@@ -107,19 +107,20 @@ describe('MonitoringOptions', () => {
     openMenu()
     const menu = screen.getByRole('menu')
     const items = screen.getAllByRole('menuitem')
+    await waitFor(() => expect(items[0]).toHaveFocus())
 
     fireEvent.keyDown(menu, { key: 'ArrowDown' })
-    expect(document.activeElement).toBe(items[1])
+    await waitFor(() => expect(document.activeElement).toBe(items[1]))
 
     fireEvent.keyDown(menu, { key: 'ArrowUp' })
-    expect(document.activeElement).toBe(items[0])
+    await waitFor(() => expect(document.activeElement).toBe(items[0]))
 
     // ArrowUp from the first item wraps to the last.
     fireEvent.keyDown(menu, { key: 'ArrowUp' })
-    expect(document.activeElement).toBe(items[items.length - 1])
+    await waitFor(() => expect(document.activeElement).toBe(items[items.length - 1]))
   })
 
-  it('skips disabled items during arrow navigation', () => {
+  it('skips disabled items during arrow navigation', async () => {
     render(
       <I18nProvider>
         <MonitoringOptions
@@ -133,6 +134,7 @@ describe('MonitoringOptions', () => {
     const menu = screen.getByRole('menu')
     const items = screen.getAllByRole('menuitem')
     const popularIndex = items.findIndex((b) => (b as HTMLButtonElement).disabled)
+    await waitFor(() => expect(items[0]).toHaveFocus())
 
     // Walk down to the item just before the disabled one, then once more: focus
     // must land past it, never on the disabled item.
@@ -141,7 +143,7 @@ describe('MonitoringOptions', () => {
     expect(document.activeElement).not.toBe(items[popularIndex])
   })
 
-  it('closes on Escape and returns focus to the toggle', () => {
+  it('closes on Escape and returns focus to the toggle', async () => {
     render(
       <I18nProvider>
         <MonitoringOptions onApprove={vi.fn()} onOpenAlbumPicker={vi.fn()} />
@@ -151,6 +153,6 @@ describe('MonitoringOptions', () => {
     const menu = screen.getByRole('menu')
     fireEvent.keyDown(menu, { key: 'Escape' })
     expect(screen.queryByRole('menu')).not.toBeInTheDocument()
-    expect(document.activeElement).toBe(toggle)
+    await waitFor(() => expect(document.activeElement).toBe(toggle))
   })
 })

@@ -80,10 +80,14 @@ describe('Connections picker', () => {
     expect(within(picker).queryByRole('button', { name: 'Spotify' })).toBeNull()
     expect(within(picker).queryByRole('button', { name: 'ListenBrainz' })).toBeNull()
     expect(within(picker).getByRole('button', { name: 'Last.fm' })).toBeInTheDocument()
-    expect(screen.getByRole('searchbox', { name: 'Search connections' })).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('searchbox', { name: 'Search connections' })).toHaveFocus(),
+    )
     fireEvent.keyDown(screen.getByRole('searchbox'), { key: 'Escape' })
     expect(screen.queryByRole('region', { name: 'Add connection' })).toBeNull()
-    expect(screen.getByRole('button', { name: 'Add connection' })).toHaveFocus()
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: 'Add connection' })).toHaveFocus(),
+    )
   })
 
   it('filters live, opens the existing form, preserves a failed save, then lists and removes it', async () => {
@@ -110,7 +114,9 @@ describe('Connections picker', () => {
       lastfmApiKey: undefined,
     })
     const saved = screen.getByRole('group', { name: /^Last.fm/ })
-    expect(within(saved).getByRole('button', { expanded: false })).toHaveFocus()
+    await waitFor(() =>
+      expect(within(saved).getByRole('button', { expanded: false })).toHaveFocus(),
+    )
     const reopened = await openPicker()
     expect(within(reopened).queryByRole('button', { name: 'Last.fm' })).toBeNull()
     fireEvent.keyDown(screen.getByRole('searchbox'), { key: 'Escape' })

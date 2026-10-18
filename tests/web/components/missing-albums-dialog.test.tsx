@@ -117,6 +117,6 @@ it('loads preselected albums, excludes unchecked albums, and retries only mixed-
   await waitFor(() => expect(approveMissingAlbums).toHaveBeenNthCalledWith(2, 42, ['b']))
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
   expect(toast.success).toHaveBeenCalledWith('2 approved, 0 failed.')
-  expect(opener).toHaveFocus()
+  await waitFor(() => expect(opener).toHaveFocus())
   client.clear()
 })
