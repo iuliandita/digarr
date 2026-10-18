@@ -321,6 +321,7 @@ export function DiscoveryModeForm({
   intent = 'run',
   initialSettingsMode,
   initialSettings,
+  onSchedule,
 }: {
   mode: DiscoveryModeResponse
   onRun: (body: Record<string, unknown>) => Promise<void>
@@ -328,6 +329,7 @@ export function DiscoveryModeForm({
   intent?: DiscoveryModeIntent
   initialSettingsMode?: DiscoverySettingsMode
   initialSettings?: Record<string, unknown>
+  onSchedule?: (config: Record<string, unknown>) => void
 }) {
   const { t } = useI18n()
   const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>(
@@ -436,13 +438,31 @@ export function DiscoveryModeForm({
       <DiscoveryModeFields fields={fields} values={values} setValues={setValues} tFn={t} />
 
       {intent === 'run' && (
-        <button
-          type="submit"
-          disabled={!mode.availability.enabled || submitting}
-          className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          {submitting ? t('discoveryMode.starting') : t('discoveryMode.runDiscovery')}
-        </button>
+        <div className="flex flex-wrap gap-2">
+          <button
+            type="submit"
+            disabled={!mode.availability.enabled || submitting}
+            className="rounded-md bg-accent px-3 py-2 text-sm font-medium text-accent-fg transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {submitting ? t('discoveryMode.starting') : t('subscriptions.runNow')}
+          </button>
+          {onSchedule && (
+            <button
+              type="button"
+              disabled={!mode.availability.enabled || submitting}
+              onClick={() => {
+                if (!submission.payload) {
+                  setError(submission.error)
+                  return
+                }
+                onSchedule(submission.payload)
+              }}
+              className="rounded-md border border-border px-3 py-2 text-sm font-medium text-text hover:border-accent disabled:opacity-50"
+            >
+              {t('common.schedule')}
+            </button>
+          )}
+        </div>
       )}
     </>
   )

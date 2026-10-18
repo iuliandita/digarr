@@ -430,7 +430,7 @@ describe('Dashboard', () => {
 
     renderWithQuery(<Dashboard />)
 
-    expect(await screen.findByText('Abonnements')).toBeInTheDocument()
+    expect(await screen.findByText('Modes de découverte')).toBeInTheDocument()
     expect(screen.getByText('Configurer la découverte automatique')).toBeInTheDocument()
   })
 

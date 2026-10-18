@@ -6,6 +6,7 @@ describe('resolveTab', () => {
     [null, false, 'connections'],
     ['nonsense', true, 'connections'],
     ['targets', false, 'targets'],
+    ['schedule', false, 'schedule'],
     ['users', false, 'connections'],
     ['system-health', false, 'connections'],
     ['users', true, 'users'],

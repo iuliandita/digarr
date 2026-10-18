@@ -37,9 +37,9 @@ Since the UI refresh (captures above predate it), the Discover toolbar is one ro
 
 ![Discovery Modes](screenshots/discovery-modes.png)
 
-Discovery Modes lives on its own page at `/discover/modes`, reached from the Discovery Modes tab on Discover. The shipped modes are ListenBrainz (Artist Radio, User Radio, Tag Radio, Similar Users Quick/Deep), Release Radar, Library Gap-Fill, Similar Artist Web, Artist Relationships (MusicBrainz graph), Labels (Discogs co-label artists), Charts (Last.fm global/regional), Deezer Flow, Spotify Saved Albums, Spotify Followed Artists, TIDAL Favorite Artists, and Subsonic Starred. Modes that need a connected account stay disabled until you connect it, and each blocked card shows an explicit reason. Manual runs preflight Artist Radio seeds and record job-backed feedback instead of a blind "started" toast. A `?mode=<id>` deep link scrolls to, focuses, and highlights the requested mode card.
+The capture above predates the unified Discovery Modes page at `/discovery-modes`, reached from the Discovery Modes tab on Discover. Your modes now shows compact scheduled and recently run rows. Run a mode opens a searchable picker, where connection requirements and experimental modes appear. Picking a mode opens its Easy/Advanced form with Run now and Schedule actions. Presets and CSV/M3U/XSPF imports live in the add flow. Old `/discover/modes` and `/subscriptions` links redirect; `?mode=<id>` still opens and focuses the requested form.
 
-When Show experimental integrations is enabled, TIDAL Favorite Artists carries an "Experimental" badge on both its mode card (visible in the image above) and its Settings connect card under Your Connections. Live-account validation of connect, refresh, and populated favorite-artist results is deferred; see [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for how to report a test safely.
+The picker uses the same Show experimental integrations preference as Connections. TIDAL Favorite Artists remains experimental; live-account validation is deferred. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 
 ## Search
 
@@ -66,6 +66,8 @@ In v1.19.0, playlist details also show the latest local generation outcome, sele
 ## Subscriptions
 
 ![Subscriptions](screenshots/subscriptions.png)
+
+This historical capture shows the retired standalone page. Its schedules, history, pause/resume, bulk controls, presets, and imports now live on Discovery Modes. Settings > Schedule collects the scan, mode, playlist, library-sync, and notification-digest schedules with edit links, and holds the admin Scheduled generation switch. No screenshots were regenerated for this change.
 
 ## Library - Health
 

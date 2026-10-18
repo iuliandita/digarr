@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- Discovery Modes combines manual runs and subscriptions in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
+
 ### Added
 
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).

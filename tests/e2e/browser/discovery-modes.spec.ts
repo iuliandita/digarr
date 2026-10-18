@@ -172,7 +172,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await expect(page).toHaveURL('/discover')
   const discoverTabs = page.getByRole('navigation', { name: messages['nav.discover'] })
   await discoverTabs.getByRole('link', { name: messages['nav.discoveryModes'] }).click()
-  await expect(page).toHaveURL('/discover/modes')
+  await expect(page).toHaveURL('/discovery-modes')
   await expect(
     page.getByRole('heading', { name: messages['discover.discoveryModes'] }),
   ).toBeVisible()
@@ -186,21 +186,23 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     discoverTabs.getByRole('link', { name: messages['nav.recommendations'] }),
   ).not.toHaveAttribute('aria-current', 'page')
   await expect(
-    page.getByRole('heading', { name: messages['discoveryMode.listenbrainz.label'] }),
+    page.getByRole('heading', { name: messages['discoveryModes.yourModes'] }),
   ).toBeVisible()
   await expect(
     page.getByRole('heading', { name: messages['discoveryMode.release-radar.label'] }),
+  ).toHaveCount(0)
+  await page.getByRole('button', { name: messages['discoveryModes.runMode'] }).click()
+  const search = page.getByRole('searchbox', { name: messages['discoveryModes.searchModes'] })
+  await expect(search).toBeFocused()
+  await search.fill(messages['discoveryMode.release-radar.label'])
+  await expect(
+    page.getByRole('button', { name: messages['discoveryMode.release-radar.label'], exact: true }),
   ).toBeVisible()
   await expect(
-    page.getByRole('heading', { name: messages['discoveryMode.artist-relationships.label'] }),
-  ).toBeVisible()
-  await expect(
-    page.getByRole('heading', { name: messages['discoveryMode.similar-artist-web.label'] }),
-  ).toBeVisible()
-  await expect(
-    page.getByRole('heading', { name: messages['discoveryMode.labels.label'] }),
-  ).toBeVisible()
-  await expect(page.getByText(messages['discoveryMode.notImplementedYet'])).toHaveCount(2)
+    page.getByRole('button', { name: messages['discoveryMode.listenbrainz.label'], exact: true }),
+  ).toHaveCount(0)
+  await search.fill(messages['discoveryMode.labels.label'])
+  await expect(page.getByText(messages['discoveryMode.notImplementedYet'])).toBeVisible()
 
   await page.goto('/discover/modes?mode=release-radar')
 
@@ -210,9 +212,7 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
   await expect(releaseRadarCard).toBeVisible()
   await expect(releaseRadarCard).toBeFocused()
   await releaseRadarCard.getByLabel(messages['discoveryMode.field.releaseWindow']).fill('14')
-  await releaseRadarCard
-    .getByRole('button', { name: messages['discoveryMode.runDiscovery'] })
-    .click()
+  await releaseRadarCard.getByRole('button', { name: messages['subscriptions.runNow'] }).click()
   await expect(page.getByText(messages['discover.discoveryRunStarted'])).toBeVisible()
   expect(runRequestBody).toEqual({
     modeId: 'release-radar',
@@ -223,17 +223,40 @@ test('runs a discovery mode manually and saves one as a subscription', async ({ 
     fallbackPolicy: 'allow-fallback',
   })
 
-  await page.goto('/subscriptions')
-  await page.getByRole('button', { name: messages['subscriptions.new'] }).click()
+  await releaseRadarCard
+    .getByRole('button', { name: messages['common.schedule'], exact: true })
+    .click()
   await page.getByLabel(messages['subscriptionForm.name']).fill('Radar Weekly')
-  await page.getByLabel(messages['subscriptionForm.sourceType']).selectOption('discovery-mode')
-  await page.getByLabel(messages['subscriptionForm.discoveryMode']).selectOption('release-radar')
-  await page.getByLabel(messages['discoveryMode.field.releaseWindow']).fill('14')
-  await page.getByRole('button', { name: messages['common.create'] }).click()
+  await page.getByRole('button', { name: messages['common.create'], exact: true }).click()
 
   const subscriptionCard = page.getByTestId('subscription-card').filter({
     has: page.getByText('Radar Weekly'),
   })
   await expect(subscriptionCard.getByText('Radar Weekly')).toBeVisible()
-  await expect(subscriptionCard.getByText('release-radar').first()).toBeVisible()
+  expect(createdSubscription).toMatchObject({
+    sourceType: 'discovery-mode',
+    sourceConfig: { modeId: 'release-radar', settings: { windowDays: 14 } },
+  })
+  const expand = subscriptionCard.getByRole('button', { name: 'Radar Weekly', exact: true })
+  await expand.click()
+  await expect(expand).toHaveAttribute('aria-expanded', 'true')
+  await expect(subscriptionCard.getByLabel(messages['subscriptionForm.name'])).toHaveValue(
+    'Radar Weekly',
+  )
+
+  await page.goto('/subscriptions')
+  await expect(page).toHaveURL('/discovery-modes')
+  await expect(page.getByText('Radar Weekly')).toBeVisible()
+  await page.goto('/settings?tab=schedule')
+  await expect(
+    page.getByRole('heading', { name: messages['settings.scheduleOverview'] }),
+  ).toBeVisible()
+  await page.getByRole('link', { name: `${messages['common.edit']}: Radar Weekly` }).click()
+  await expect(page).toHaveURL(/\/discovery-modes(?:\?subscription=99)?$/)
+  await expect(page.getByLabel(messages['subscriptionForm.name'])).toHaveValue('Radar Weekly')
+
+  await page.setViewportSize({ width: 390, height: 844 })
+  await expect
+    .poll(() => page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth))
+    .toBe(true)
 })

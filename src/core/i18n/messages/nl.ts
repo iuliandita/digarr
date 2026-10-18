@@ -1,4 +1,25 @@
 export const nl = {
+  'discoveryModes.yourModes': 'Je modi',
+  'discoveryModes.runMode': 'Een modus uitvoeren',
+  'discoveryModes.searchModes': 'Modi zoeken',
+  'discoveryModes.modeResults': '{0} modi gevonden',
+  'discoveryModes.noModesFound': 'Geen modi gevonden',
+  'discoveryModes.emptyHint':
+    'Voer een modus één keer uit of plan hem in om artiesten te blijven ontdekken.',
+  'discoveryModes.presetsAndImports': 'Voorinstellingen en imports',
+  'discoveryModes.recentlyRun': 'Onlangs uitgevoerd',
+  'discoveryModes.runHistory': 'Uitvoeringsgeschiedenis',
+  'discoveryModes.paused': 'Gepauzeerd',
+  'discoveryModes.scheduled': 'Ingepland',
+  'settings.scheduleOverview': 'Geplande activiteit',
+  'settings.scheduleOverviewHelp':
+    "Bekijk de schema's voor scans, ontdekkingsmodi, afspeellijsten en samenvattingen op één plek.",
+  'settings.scanSchedule': 'Ontdekkingsscan',
+  'settings.digestSchedule': 'Meldingensamenvatting',
+  'settings.editSchedules': "Schema's voor scans en samenvattingen bewerken",
+  'settings.scheduleOverviewFailed': "Sommige schema's konden niet worden geladen.",
+  'settings.schedulePaused': 'Gepauzeerd',
+  'settings.librarySyncEvery': 'Elke {hours} uur',
   'settings.slskdSearchInterval':
     'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
   'settings.slskdPathUnavailable':
@@ -110,7 +131,6 @@ export const nl = {
   'nav.recommendations': 'Aanbevelingen',
   'nav.reconciliation': 'Afstemming',
   'nav.settings': 'Instellingen',
-  'nav.subscriptions': 'Abonnementen',
   'nav.tools': 'Hulpmiddelen',
   'playlist.generate': 'Genereren',
   'playlist.generating': 'Genereren...',
@@ -125,7 +145,6 @@ export const nl = {
   'subscriptions.title': 'Abonnementen',
   'subscriptions.new': 'Nieuw',
   'subscriptions.fromPreset': 'Vanuit een voorinstelling',
-  'subscriptions.newOptions': 'Meer manieren om een abonnement toe te voegen',
   'subscriptions.pauseAll': 'Alles pauzeren',
   'subscriptions.resumeAll': 'Alles hervatten',
   'dashboard.todaysPick': 'Aanrader van vandaag',
@@ -341,9 +360,9 @@ export const nl = {
   'dashboard.rejectedSuccess': 'Afgewezen',
   'dashboard.sentToTarget': 'Naar doel verzonden',
   'dashboard.setUpAutomaticDiscovery': 'Automatisch ontdekken instellen',
-  'dashboard.subscriptions': 'Abonnementen',
+  'dashboard.subscriptions': 'Ontdekkingsmodi',
   'dashboard.subscriptionsEmpty':
-    'Je hebt nog geen automatische detectie ingesteld. Digarr kan volgens een schema nieuwe artiesten voor je vinden.',
+    'Voer een modus uit of plan hem in bij Ontdekkingsmodi om nieuwe artiesten voor je bibliotheek te vinden.',
   'dashboard.tasteEmpty':
     'Terwijl je aanbevelingen van artiesten goedkeurt of afwijst, leert Digarr je smaak kennen en wordt hij beter in het vinden van muziek die je leuk vindt.',
   'dashboard.yourTaste': 'Jouw muzieksmaak',
@@ -363,7 +382,7 @@ export const nl = {
   'discover.clearedCount': 'Gewist',
   'discover.discoveryModes': 'Ontdekkingsmodi',
   'discover.discoveryModesDescription':
-    'Start een gerichte ontdekkingsrun met een eenvoudige preset of het volledig geavanceerde formulier.',
+    'Voer nu een ontdekkingsmodus uit of plan hem in om nieuwe artiesten te blijven vinden - allemaal op deze pagina.',
   'discover.monitoringOptions': 'Bewakingsopties',
   'discover.monitorAllDescription': 'Alle albums volgen en zoeken',
   'discover.monitorNewDescription': 'Alleen toekomstige releases volgen',
@@ -653,8 +672,6 @@ export const nl = {
   'subscriptions.likedSongs': 'Gelikte nummers',
   'subscriptions.genreWeeklyName': '{genre} wekelijks',
   'subscriptions.addToRecommendations': 'Voeg toe aan aanbevelingen',
-  'subscriptions.collapseRunHistory': 'De uitvoeringsgeschiedenis samenvouwen',
-  'subscriptions.expandRunHistory': 'Vouw de uitvoeringsgeschiedenis uit',
   'subscriptions.nextRun': 'Volgende:',
   'subscriptions.lastRun': 'Laatste:',
   'subscriptions.error': 'Fout',
@@ -672,15 +689,6 @@ export const nl = {
   'subscriptions.allPaused': 'Alle abonnementen zijn onderbroken',
   'subscriptions.updateFailed': 'Kan abonnementen niet updaten',
   'subscriptions.created': 'Abonnement aangemaakt',
-  'subscriptions.introTip':
-    'Abonnementen ontdekken automatisch nieuwe artiesten volgens een schema. Creëer een abonnement op een genre of een vergelijkbare artiest om je bibliotheek uit te breiden terwijl je slaapt.',
-  'subscriptions.emptyDescription':
-    'Importeer je favoriete artiesten om aan de slag te gaan, of stel automatische ontdekking in om nieuwe muziek te blijven vinden.',
-  'subscriptions.aiOnlyMode': 'Alleen AI-modus',
-  'subscriptions.aiOnlyDescription':
-    'Discovery draait volgens het pijplijnschema zonder externe feedabonnementen.',
-  'subscriptions.switchToPreset': 'Schakel over naar een voorinstelling',
-  'subscriptions.addFromPresets': 'Toevoegen vanuit voorinstellingen',
   'subscriptions.deleteSubscription': 'Abonnement verwijderen',
   'subscriptions.deleteSubscriptionPrompt': 'Verwijderen',
   'subscriptions.spotifyNotConnected': 'Spotify is niet gekoppeld',
@@ -908,7 +916,6 @@ export const nl = {
   'discoveryMode.easy': 'Eenvoudig',
   'discoveryMode.advanced': 'Geavanceerd',
   'discoveryMode.starting': 'Bezig met starten...',
-  'discoveryMode.runDiscovery': 'Ontdekking starten',
   'discoveryMode.dismiss': 'Sluiten',
   'discoveryMode.notAvailableBecause': 'Niet beschikbaar omdat',
   'discoveryMode.addTag': '+ Tag toevoegen',
