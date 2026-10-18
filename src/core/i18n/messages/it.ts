@@ -1475,6 +1475,7 @@ export const it = {
   'settings.plexAccountHint':
     'Verifica la connessione, seleziona il tuo ascoltatore Plex e salva. La cronologia resta separata per ogni utente Digarr.',
   'settings.slskdLidarrDownloadPath': 'Cartella download visibile a Lidarr',
+  'settings.slskdLidarrDownloadPathRequired': 'obbligatorio se colleghi Lidarr',
   'settings.slskdLidarrDownloadPathHint':
     'Per le importazioni collegate, usa la cartella dei download completati accessibile a Lidarr.',
   'settings.plexToken': 'Token Plex',

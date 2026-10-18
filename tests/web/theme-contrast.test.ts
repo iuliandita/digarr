@@ -144,6 +144,24 @@ const PAIRS: Pair[] = [
 const themeIds = COLOR_THEMES.flatMap(({ id }) => [`${id}-dark`, `${id}-light`])
 
 describe('theme contrast', () => {
+  it('brand large text reaches WCAG AA (3:1) on backgrounds and cards', () => {
+    for (const id of themeIds) {
+      const t = resolveTheme(id)
+      for (const p of [pair('brand', 'bg'), pair('brand', 'surface')]) {
+        expect(contrast(...p.color(t)), `${id}: ${p.fg} on ${p.on}`).toBeGreaterThanOrEqual(3)
+      }
+    }
+  })
+
+  it('youtarr-dark keeps its original brand red', () => {
+    const t = resolveTheme('youtarr-dark')
+    expect(t('--color-brand')).toEqual(hexToRgb('#e00000'))
+    expect(t('--color-brand')).toEqual(t('--color-accent'))
+    for (const p of [pair('brand', 'bg'), pair('brand', 'surface')]) {
+      expect(contrast(...p.color(t))).toBeGreaterThanOrEqual(3)
+    }
+  })
+
   it('every theme pair reaches WCAG AA (4.5:1)', () => {
     const failures: string[] = []
     for (const id of themeIds) {

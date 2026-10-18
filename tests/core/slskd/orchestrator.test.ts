@@ -1263,6 +1263,64 @@ describe('createSlskdOrchestrator', () => {
   })
 })
 
+describe('linked target preflight and failure logging', () => {
+  it.each([undefined, '', '   '])(
+    'fails before search or queue when the linked path is %s',
+    async (path) => {
+      const createSearch = vi.fn()
+      const enqueueResult = vi.fn()
+      const getDownloads = vi.fn()
+      const updateJobState = vi.fn()
+      const updateRecommendationAction = vi.fn()
+      const orchestrator = createSlskdOrchestrator({
+        listPendingJobs: async () => [makeJob({ recommendationId: 301 })],
+        listTargets: async () => [
+          makeTarget({ config: { lidarrTargetId: 12, lidarrDownloadPath: path } }),
+        ],
+        createSlskdClient: () => ({ createSearch, enqueueResult, getDownloads }),
+        updateJobState,
+        updateRecommendationAction,
+        logger: { error: vi.fn(), info: vi.fn(), warn: vi.fn() },
+      } as never)
+      await orchestrator.triggerSync()
+      expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
+        lastError: expect.stringContaining('Settings > Targets'),
+      })
+      expect(updateRecommendationAction).toHaveBeenCalledWith(
+        301,
+        71,
+        'failed',
+        expect.stringContaining('lidarrDownloadPath'),
+      )
+      expect(createSearch).not.toHaveBeenCalled()
+      expect(enqueueResult).not.toHaveBeenCalled()
+      expect(getDownloads).not.toHaveBeenCalled()
+    },
+  )
+
+  it('logs one redacted line without passing the Error object', async () => {
+    const error = vi.fn()
+    const updateJobState = vi.fn()
+    const orchestrator = createSlskdOrchestrator({
+      listPendingJobs: async () => [makeJob()],
+      createSlskdClient: () => ({
+        createSearch: async () => {
+          throw new Error('connection failed\napiKey=private-key\r\ntry again')
+        },
+      }),
+      updateJobState,
+      logger: { error, info: vi.fn(), warn: vi.fn() },
+    } as never)
+    await orchestrator.triggerSync()
+    expect(error.mock.calls).toEqual([
+      ['[slskd] Job 1 failed: connection failed apiKey=[redacted] try again'],
+    ])
+    expect(updateJobState).toHaveBeenCalledWith(1, 'failed', {
+      lastError: 'connection failed apiKey=[redacted] try again',
+    })
+  })
+})
+
 describe('search pacing', () => {
   afterEach(() => vi.useRealTimers())
 

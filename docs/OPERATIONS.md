@@ -178,6 +178,8 @@ Release Radar currently requires ListenBrainz, Spotify, or Last.fm for artist se
 
 ## Importing slskd downloads into Lidarr
 
+When a Lidarr target is linked, **Download root as seen by Lidarr** (`lidarrDownloadPath`) is required. Creating or updating a linked target without it returns HTTP 400. Existing saved targets still load, but their jobs fail before searching or queueing with an error in Job History. Open Settings > Targets, set the path, then retry the failed job. No migration is needed; rolling back removes this early check.
+
 For a linked slskd target, set **Download root as seen by Lidarr** to the completed-downloads folder that Lidarr can read, such as `/downloads`. Mount the same completed files into Lidarr or configure its path mapping. slskd stores each remote directory under its final folder name; multi-disc folders must be complete and unambiguous before import.
 
 Set **Minimum search gap in seconds** on each slskd target to pace search creation (default 3 seconds, clamped to 1-60 seconds). The worker spaces consecutive searches, including across overlapping ticks in this process. HTTP 409/429 leaves jobs searching without consuming an acquisition attempt; the target backs off for 10, 20, 40, then at most 60 minutes, retrying when a later 10-minute scheduler tick is due. Backoff and pacing are in memory and reset on restart. Search POSTs are never retried at the HTTP layer.

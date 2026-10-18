@@ -1343,6 +1343,7 @@ export const zhCN = {
   'settings.plexAccountHint':
     '测试连接，然后选择你的 Plex 听众并保存。每位 Digarr 用户的收听记录保持独立。',
   'settings.slskdLidarrDownloadPath': 'Lidarr 可见的下载根目录',
+  'settings.slskdLidarrDownloadPathRequired': '关联 Lidarr 时必填',
   'settings.slskdLidarrDownloadPathHint': '关联导入时，请使用 Lidarr 可读取的已完成下载根目录。',
   'settings.plexToken': 'Plex 令牌',
   'settings.plexLibrary': '音乐库',

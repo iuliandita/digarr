@@ -522,10 +522,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         >
           <div className="mx-auto flex max-w-6xl items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-4 lg:gap-6">
-              <Link
-                to="/"
-                className="text-title font-bold text-accent-text focus-ring rounded-control"
-              >
+              <Link to="/" className="text-title font-bold text-brand focus-ring rounded-control">
                 digarr
               </Link>
               <ul className="hidden items-center gap-1 md:flex">
