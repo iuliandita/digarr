@@ -739,6 +739,8 @@ export const pl = {
   'subscriptionPresets.getStarted': 'Zacznij od gotowego zestawu',
   'subscriptionPresets.intro':
     'Wybierz zestaw, aby automatycznie utworzyć harmonogramy, albo zbuduj własną konfigurację.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify nie udostępnia już swoich playlist z listami przebojów nowszym aplikacjom, więc presety Spotify Charts mogą nie działać.',
   'subscriptionPresets.casualTitle': 'Na luzie',
   'subscriptionPresets.casualDescription': 'Cotygodniowe rekomendacje z niewielką ilością szumu',
   'subscriptionPresets.deepDiverTitle': 'Głęboki nurek',

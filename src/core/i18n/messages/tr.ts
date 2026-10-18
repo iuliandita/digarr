@@ -729,6 +729,8 @@ export const tr = {
   'subscriptionPresets.getStarted': 'Bir ön ayarla başla',
   'subscriptionPresets.intro':
     'Zamanlamaları otomatik oluşturmak için bir ön ayar seç ya da kendi yapılandırmanı kur.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify artık liste çalma listelerini yeni uygulamalara sunmuyor, bu yüzden Spotify Charts ön ayarları başarısız olabilir.',
   'subscriptionPresets.casualTitle': 'Rahat',
   'subscriptionPresets.casualDescription': 'Az gürültülü haftalık öneriler',
   'subscriptionPresets.deepDiverTitle': 'Derin keşif',

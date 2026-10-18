@@ -747,6 +747,8 @@ export const de = {
   'subscriptionPresets.getStarted': 'Mit einem Preset starten',
   'subscriptionPresets.intro':
     'Wähle ein Preset, um Zeitpläne automatisch anzulegen, oder baue deine eigene Konfiguration.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify liefert seine Chart-Playlists nicht mehr an neuere Apps, daher können die Spotify-Charts-Presets fehlschlagen.',
   'subscriptionPresets.casualTitle': 'Locker',
   'subscriptionPresets.casualDescription': 'Wöchentliche Empfehlungen mit wenig Rauschen',
   'subscriptionPresets.deepDiverTitle': 'Tiefgang',

@@ -708,6 +708,8 @@ In v2.0.0, Spotify playlist imports and recurring `spotify-playlist` subscriptio
 
 **Adapter types**: `genre`, `similar`, `discovery-mode`, `spotify-liked-songs`, `spotify-playlist`, `spotify-charts`, `deezer` (with `sourceConfig.feedType` of `favorites`, `followed`, `flow`, or `playlists`; `playlistIds` supplies comma-separated IDs for `playlists`), `lastfm-tag`, `lastfm-charts`, `listenbrainz`, `csv-import`
 
+`spotify-charts` reads Spotify-owned chart playlists, which Spotify stopped serving to new and development-mode apps on 2024-11-27 ([announcement](https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api)), so it may fail for newer apps. `sourceConfig.region` must be `global`, `us`, `gb`, `de`, `fr`, `au` or `br` and `chartType` must exist for that region (`viral50` is global only); create and update return `400` otherwise, and a run no longer falls back to the global Top 50. A `403` or `404` from Spotify fails the run with an error naming this cause.
+
 Deezer subscription token-resolution failures and provider error envelopes fail the run instead of completing with zero artists. Disconnected subscriptions still record a failed attempt for their owner. Manual-run failures return `503` with `service: "deezer"`, `retryable: true` and check/reconnect guidance; this is a source failure, not an application-session `401`. Inspect the saved subscription `lastError` and Job History, then reconnect Deezer in Settings when needed before retrying. Successful empty feeds still complete with zero results and clear the previous error. Playlist feeds retain the 500-distinct-artist cap ([#774](https://github.com/iuliandita/digarr/issues/774)).
 
 **POST /api/v1/subscriptions** body:

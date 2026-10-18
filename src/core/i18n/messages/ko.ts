@@ -723,6 +723,8 @@ export const ko = {
   'subscriptions.spotifyNotConnected': 'Spotify가 연결되지 않았습니다',
   'subscriptionPresets.getStarted': '프리셋으로 시작하기',
   'subscriptionPresets.intro': '프리셋을 선택해 일정을 자동으로 만들거나 직접 구성하세요.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify는 더 이상 새로운 앱에 차트 플레이리스트를 제공하지 않으므로 Spotify Charts 프리셋이 실패할 수 있습니다.',
   'subscriptionPresets.casualTitle': '가볍게',
   'subscriptionPresets.casualDescription': '잡음이 적은 주간 추천',
   'subscriptionPresets.deepDiverTitle': '딥 다이버',

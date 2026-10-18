@@ -742,6 +742,8 @@ export const fr = {
   'subscriptionPresets.getStarted': 'Commencer avec un preset',
   'subscriptionPresets.intro':
     'Choisis un preset pour créer des programmations automatiquement ou compose ta propre configuration.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify ne fournit plus ses playlists de classements aux applications récentes, donc les préréglages Spotify Charts peuvent échouer.',
   'subscriptionPresets.casualTitle': 'Détendu',
   'subscriptionPresets.casualDescription': 'Recommandations hebdomadaires avec peu de bruit',
   'subscriptionPresets.deepDiverTitle': 'Exploration poussée',

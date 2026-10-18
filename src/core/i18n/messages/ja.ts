@@ -730,6 +730,8 @@ export const ja = {
   'subscriptionPresets.getStarted': 'プリセットから始める',
   'subscriptionPresets.intro':
     'プリセットを選んでスケジュールを自動作成するか、独自の構成を作成してください。',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify は新しいアプリにチャートのプレイリストを提供しなくなったため、Spotify Charts のプリセットは失敗する場合があります。',
   'subscriptionPresets.casualTitle': 'カジュアル',
   'subscriptionPresets.casualDescription': 'ノイズの少ない毎週のおすすめ',
   'subscriptionPresets.deepDiverTitle': 'ディープダイバー',

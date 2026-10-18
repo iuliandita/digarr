@@ -725,6 +725,8 @@ export const en = {
   'subscriptionPresets.getStarted': 'Get started with a preset',
   'subscriptionPresets.intro':
     'Choose a preset to create schedules automatically, or build a custom setup.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify no longer serves its chart playlists to newer apps, so the Spotify Charts presets may fail.',
   'subscriptionPresets.casualTitle': 'Casual',
   'subscriptionPresets.casualDescription': 'Low-noise weekly recommendations',
   'subscriptionPresets.deepDiverTitle': 'Deep Diver',

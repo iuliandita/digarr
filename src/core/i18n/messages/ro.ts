@@ -740,6 +740,8 @@ export const ro = {
   'subscriptionPresets.getStarted': 'Începe cu un preset',
   'subscriptionPresets.intro':
     'Alege un preset pentru a crea programări automat sau construiește-ți propria configurație.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify nu mai oferă playlisturile sale de topuri aplicațiilor noi, așa că presetările Spotify Charts pot eșua.',
   'subscriptionPresets.casualTitle': 'Lejer',
   'subscriptionPresets.casualDescription': 'Recomandări săptămânale cu puțin zgomot',
   'subscriptionPresets.deepDiverTitle': 'Explorare profundă',

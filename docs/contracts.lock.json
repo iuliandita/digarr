@@ -312,7 +312,7 @@
         "src/server/routes/search.ts": "8826e6ffd5d85c2e82edfffb9e3ac37235c0b9b3f56abee29f39325826202bc3",
         "src/server/routes/settings.ts": "920f41b0b78a36ba517e33fd367891d6a195e6cbb56d2f6bc5fd751c9a8c2fbd",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "496b28369a0a4ad5578e0e7bd18a1ed79a77f8ec656a80f8f578aa0562c4b50c",
+        "src/server/routes/subscriptions.ts": "1806f93c110ce6c4d0f2eec68288ae5c9fc8f980d1efe8343ff6b761f8a392cf",
         "src/server/routes/targets.ts": "b3682f7c1d2166ee234af764b65537100d1be73c66364cdec4b63c6ac4824c0d",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/routes/user-notifications.ts": "9d2889d4d02034d7e6890c5c4fef58a1b5f18f81a99edcc43ab52cb7e0d5abd7",
@@ -333,14 +333,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
+      "digest": "4087c008af1e6697710a0358269fac21e44eb3d70460236357c4905fe39af84f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Spotify Charts config validation and 403/404 error mapping documented in API docs and changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2"
+        "digest": "4087c008af1e6697710a0358269fac21e44eb3d70460236357c4905fe39af84f"
       }
     },
     "interface": {
@@ -351,24 +351,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "9d43a97a911604d0cf7634db7d0d3402aa9bc32714a015aca9fe43fffdd7e05a",
-        "src/core/i18n/messages/en.ts": "ed71c2df4fb0d1e07ddf16fa9f3ed967cf0d6edbbb6075e78f6e32a47a29c582",
-        "src/core/i18n/messages/es.ts": "17dede53a4c946b83300df777d19736378d6a1ca11c15a12da08480d3f376f3c",
-        "src/core/i18n/messages/fr.ts": "d72dbee5ded58d7ee106e87edbed96a55e18ccd2cc401cf5ce471a623d4ee848",
+        "src/core/i18n/messages/de.ts": "2c181e6c9900dcfdab3dc0faf0312582fd7988d8600a882232ad7c48cde7bbeb",
+        "src/core/i18n/messages/en.ts": "fd3212e2d25b6488a43c8f0b61984faaf69d945c3076f2e76569f219cf0b919c",
+        "src/core/i18n/messages/es.ts": "38842217ec305f6df53f45ef97ef9864875526e1e809b74849b0077f436a5585",
+        "src/core/i18n/messages/fr.ts": "04bac79be9d44bbfc407d30a10eb677431de7000e84ef2f70905d2e9d4bcab9f",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "92782db4f268f39b963a1fe7f365cb2f55891a089067a15686223151a05d3cda",
-        "src/core/i18n/messages/ja.ts": "27b56243e17cb403842f10bb4dde59644e4b4107fb20f7e974d81717d9c6da47",
-        "src/core/i18n/messages/ko.ts": "b2803837cda5c6ee2877e036bcef81b9efe32e4863039bcc60113e756e2ba22c",
-        "src/core/i18n/messages/nl.ts": "6f71a76d3db87c0ca99bff833e4744d7be1070623d6975c9ff4058f9f9a9a403",
-        "src/core/i18n/messages/pl.ts": "6508ed0cf8476987c2c75cc4515f267e9c66751e43255ea429a47e9360d9c1dd",
-        "src/core/i18n/messages/pt-BR.ts": "efec206698e707cca0f16a90a7a07c692740d3bbab20e542161510ddd94ffc01",
-        "src/core/i18n/messages/ro.ts": "57a0fafbb5e2ea8236e392b124ec3188ac41aa936a9738f06915742577d21243",
-        "src/core/i18n/messages/ru.ts": "935448e896d989a1dcf8bded983d2514f829b125e9f4cc72b3928cc653949600",
-        "src/core/i18n/messages/source-lock.json": "e9523f30bf14da79c005b7101cab1778e58ff044c65f03f80016926f43270a80",
-        "src/core/i18n/messages/tr.ts": "58e001c28b5836739f0d272c5fefbcae6240e3c4147903a2cb847b8580980de0",
+        "src/core/i18n/messages/it.ts": "0a3343d32de03d123fef0fcf403b8a5743a0759fac64bf720a60c21b93eef52d",
+        "src/core/i18n/messages/ja.ts": "9d6e0eb4144f3662fd127c74a41d5c7530d408f6e30feb6a0541997e6e1d9867",
+        "src/core/i18n/messages/ko.ts": "ebcba5f1c19e89bb2965bb8ab53bae382175b7a703d1ea0547c244d7fa3dab99",
+        "src/core/i18n/messages/nl.ts": "104f634f7ad502a374c0db6badfb9c8dc260d82e32e67ab0a7ef8473fa0eb82c",
+        "src/core/i18n/messages/pl.ts": "89e2c02bfa01d083f8dcf78415f243d8cbf1f3ce6c49f1cfd5a235b4c46929ce",
+        "src/core/i18n/messages/pt-BR.ts": "b09315cf73106708ecb4c9fa8df700869e5a91f9147e2894ff4fb2c0f36c14e6",
+        "src/core/i18n/messages/ro.ts": "f256955cbc6cc342ffd299e6426cad0933aeb0115ec620e9295216b4548802af",
+        "src/core/i18n/messages/ru.ts": "fa96da162ef31ca24f5dda0709dfdba8e34d661e1fa0249d197d4735b7a184dc",
+        "src/core/i18n/messages/source-lock.json": "2a26481ba91ef89add28f630e863c4d7c676748e405cf84d3dacfbceca303c55",
+        "src/core/i18n/messages/tr.ts": "7d185ef9f7d58da3765b39bd0bd4bdd07948afb423353cfed54650bd93a4bcf5",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "fd380d6804cf692aa548a030dafe18827bbe7a799aa2e1f415ebbe35bd56341d",
-        "src/core/i18n/messages/zh-CN.ts": "a66d7ccb50ce03385d743a97673ad4eb543aa119c64a4eaf652b79feb220f61f",
+        "src/core/i18n/messages/uk.ts": "35743af4bbed81efd1c320c5cbaa60f8c66cbc1f91ae2ca540f75823c871721f",
+        "src/core/i18n/messages/zh-CN.ts": "77674849f3cf27c198e660c97909ffe2e2e4e5c07601c4547dbfebf65722a564",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -441,7 +441,7 @@
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
         "src/web/components/streaming-links.tsx": "30d58c3c644b9cadd64cfbe1321af237c696076851e96263a6fd012a15261807",
         "src/web/components/subscription-form.tsx": "62165ec6e944a02ab6f43d775f774c6bd55a958424ab2257199580564bef01d9",
-        "src/web/components/subscription-presets.tsx": "eb9616ea1cc8d300a1e07b2dd2b2350a3149e5735d4dd47deb75cd526cfda5b8",
+        "src/web/components/subscription-presets.tsx": "3a033e7ad150601a70937d8cb9bae9612e1b9c47f2accb032d060e2918b9c93f",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
         "src/web/components/system-health-card.tsx": "4b7134b12859e41c000bc4a184818fd4195c6eabedf3fcfa4399ac22a3ec7c01",
         "src/web/components/target-utils.tsx": "39f5850e648b8a584c117f75d969611ab33b07acddb3ae5f010c36667c348a6a",
@@ -526,14 +526,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
+      "digest": "1b0ffbcf31cad702d9b7dcfc2f71690ac87b472e4520c1bfbb785dafe4186048",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Adds one translated note to the presets intro in all 15 locales; no navigation or workflow change.",
         "breaking": "none",
         "migration": "",
-        "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d"
+        "digest": "1b0ffbcf31cad702d9b7dcfc2f71690ac87b472e4520c1bfbb785dafe4186048"
       }
     },
     "features": {
@@ -712,7 +712,7 @@
         "src/core/subscriptions/adapters/lastfm-tag.ts": "b9259c82b372f025cc1f338e418d80793a8d16f64d1e1d02b2a974146f9f5126",
         "src/core/subscriptions/adapters/listenbrainz.ts": "dc799407411d0e76c53d861f04729a1b851f35e0fefd51337b631faa873205f6",
         "src/core/subscriptions/adapters/similar.ts": "f1d06dfce912da090dadd1f094659817165aec22a785d7d8aaa50a9b70d7790d",
-        "src/core/subscriptions/adapters/spotify-charts.ts": "9820a88f49b62931189d75e983f5686d9962f2cf7b1931b8ae1289926b4aa1ad",
+        "src/core/subscriptions/adapters/spotify-charts.ts": "cd09d91eeeca198394a30569237f8d630a4339cc2623bc783cccb94d39ca7b7c",
         "src/core/subscriptions/adapters/spotify-liked-songs.ts": "2153d1af62f9a9e94d75ba8f4fdab2eb045a96b66fe1a9fdf49ebd74c874227c",
         "src/core/subscriptions/adapters/spotify-playlist.ts": "e12d155118c465043d9758edadfda4c239d6b9f6483923eaf82fb6f717f16275",
         "src/core/subscriptions/adapters/spotify-shared.ts": "76a0b26cb7de95200cea81db0f49e7b431a0194bbb7b5e806579545d1ae80273",
@@ -750,14 +750,14 @@
         "src/index.ts": "4be1edbbad0cfdcace6e8976a57f3ae7a92a31257f05c5ead5ba8ef325a550f6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8",
+      "digest": "b2cec5f541e3507a04d748aa8b82ff6f3876b24d8d090f4a58301aecd58c2ced",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "AudioMuse name matching now uses the existing reconciler normalizer and skips names that normalize to empty; the Unreleased changelog entry already describes owned/blocked exclusion and dedup, which this makes accent and leading-The aware without changing settings, limits, or scoring.",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Spotify Charts config validation and 403/404 error mapping documented in API docs and changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "57b8217673344d5d0840eabb9a446880626ae4821171b93ba64287ad437f79c8"
+        "digest": "b2cec5f541e3507a04d748aa8b82ff6f3876b24d8d090f4a58301aecd58c2ced"
       }
     },
     "deployment": {

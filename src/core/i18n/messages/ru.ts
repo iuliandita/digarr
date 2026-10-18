@@ -740,6 +740,8 @@ export const ru = {
   'subscriptionPresets.getStarted': 'Начни с пресета',
   'subscriptionPresets.intro':
     'Выбери пресет, чтобы автоматически создать расписания, или собери собственную конфигурацию.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify больше не отдаёт свои чарт-плейлисты новым приложениям, поэтому пресеты Spotify Charts могут не работать.',
   'subscriptionPresets.casualTitle': 'Легкий',
   'subscriptionPresets.casualDescription': 'Еженедельные рекомендации с минимумом шума',
   'subscriptionPresets.deepDiverTitle': 'Глубокое погружение',

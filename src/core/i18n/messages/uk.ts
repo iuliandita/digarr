@@ -735,6 +735,8 @@ export const uk = {
   'subscriptionPresets.getStarted': 'Почни із пресета',
   'subscriptionPresets.intro':
     'Вибери пресет, щоб автоматично створювати розклади, або збери власну конфігурацію.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify більше не віддає свої чарт-плейлисти новим застосункам, тому пресети Spotify Charts можуть не працювати.',
   'subscriptionPresets.casualTitle': 'Легкий режим',
   'subscriptionPresets.casualDescription': 'Щотижневі рекомендації з мінімумом шуму',
   'subscriptionPresets.deepDiverTitle': 'Глибоке занурення',

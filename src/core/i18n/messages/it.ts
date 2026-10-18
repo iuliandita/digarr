@@ -743,6 +743,8 @@ export const it = {
   'subscriptionPresets.getStarted': 'Inizia da un preset',
   'subscriptionPresets.intro':
     'Scegli un preset per creare programmi automaticamente oppure costruisci una configurazione personalizzata.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify non fornisce più le sue playlist delle classifiche alle app recenti, quindi i preset di Spotify Charts potrebbero non funzionare.',
   'subscriptionPresets.casualTitle': 'Leggero',
   'subscriptionPresets.casualDescription': 'Suggerimenti settimanali con poco rumore',
   'subscriptionPresets.deepDiverTitle': 'Esplorazione profonda',

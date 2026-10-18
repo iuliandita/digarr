@@ -746,6 +746,8 @@ export const es = {
   'subscriptionPresets.getStarted': 'Empieza con un preajuste',
   'subscriptionPresets.intro':
     'Elige un preajuste para crear programaciones automáticamente o monta una configuración personalizada.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify ya no ofrece sus playlists de listas de éxitos a las apps nuevas, así que los presets de Spotify Charts pueden fallar.',
   'subscriptionPresets.casualTitle': 'Tranquilo',
   'subscriptionPresets.casualDescription': 'Recomendaciones semanales con poco ruido',
   'subscriptionPresets.deepDiverTitle': 'Explorador profundo',

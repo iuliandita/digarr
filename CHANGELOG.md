@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Changed
 
+- Spotify Charts subscriptions now reject an unknown region or a chart type the region does not have (400 on create/update, a clear error on run) instead of silently using the global Top 50. When Spotify answers 403/404, the error says it no longer serves its editorial chart playlists to newer apps (since 2024-11-27), and the setup text warns that charts may not work (#1040).
 - Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, presets that show their run time in server time, Custom cron validation, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
 
 ### Added

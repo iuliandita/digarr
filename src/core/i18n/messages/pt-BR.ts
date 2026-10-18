@@ -743,6 +743,8 @@ export const ptBR = {
   'subscriptionPresets.getStarted': 'Comece com um preset',
   'subscriptionPresets.intro':
     'Escolha um preset para criar programações automaticamente ou monte uma configuração personalizada.',
+  'subscriptionPresets.spotifyChartsNote':
+    'O Spotify não fornece mais suas playlists de paradas para apps novos, então os presets do Spotify Charts podem falhar.',
   'subscriptionPresets.casualTitle': 'Leve',
   'subscriptionPresets.casualDescription': 'Recomendações semanais com pouco ruído',
   'subscriptionPresets.deepDiverTitle': 'Mergulho profundo',

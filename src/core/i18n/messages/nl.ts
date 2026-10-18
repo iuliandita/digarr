@@ -742,6 +742,8 @@ export const nl = {
   'subscriptionPresets.getStarted': 'Begin met een voorinstelling',
   'subscriptionPresets.intro':
     "Kies een voorinstelling om automatisch schema's aan te maken of stel zelf een configuratie samen.",
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify levert zijn hitlijst-playlists niet meer aan nieuwere apps, dus de Spotify Charts-presets kunnen mislukken.',
   'subscriptionPresets.casualTitle': 'Ontspannen',
   'subscriptionPresets.casualDescription': 'Wekelijkse aanbevelingen met weinig ruis',
   'subscriptionPresets.deepDiverTitle': 'Diepgraver',

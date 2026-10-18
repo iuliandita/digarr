@@ -682,6 +682,8 @@ export const zhCN = {
   'subscriptions.spotifyNotConnected': 'Spotify 尚未连接',
   'subscriptionPresets.getStarted': '从预设开始',
   'subscriptionPresets.intro': '选择一个预设来自动创建计划，或自行搭建自定义配置。',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify 不再向较新的应用提供其榜单播放列表，因此 Spotify Charts 预设可能会失败。',
   'subscriptionPresets.casualTitle': '轻松模式',
   'subscriptionPresets.casualDescription': '低噪音的每周推荐',
   'subscriptionPresets.deepDiverTitle': '深度探索',
