@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -215,7 +218,11 @@
       "digest": "4920756c18b171d00b751902b2d2d0070a8cc600859a9f448ccf8542dd26ebaf",
       "review": {
         "outcome": "docs-updated",
-        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md"],
+        "docs": [
+          ".env.example",
+          "docs/AUTHENTICATION.md",
+          "docs/OPERATIONS.md"
+        ],
         "note": "Document optional LASTFM_SHARED_SECRET and its file variant, matching per-user API keys, encryption and public-origin prerequisites, restart and per-user consent.",
         "breaking": "none",
         "migration": "",
@@ -333,7 +340,9 @@
       "digest": "b778dcafb79d42ec7f8d88b644b6e9e3c055a08f99ad002533cd2343f50f72f5",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
+        "docs": [
+          "docs/API.md"
+        ],
         "note": "OpenAPI now covers every route operation incl. the playability endpoint; check:api-docs fails on missing operations or wrong admin markers.",
         "breaking": "none",
         "migration": "",
@@ -397,7 +406,7 @@
         "src/web/components/discovery-mode-info-box.tsx": "f3774e3eecf0b5ffe3fe10b89a73eb912e88fcc97e044698a17fc53ee549ccd6",
         "src/web/components/discovery-modes-redirect.tsx": "dfc760ce1423ed980ddad2d5d257dbf22143c2d7256c778b2dd5912ef38305f8",
         "src/web/components/discovery-modes-section.tsx": "3b8d9716d9e51b17906bacb01d97946a9914fc3a29ce3c49570b7b731c430c8b",
-        "src/web/components/error-boundary.tsx": "4824e44cae5824e3d88046cff0ec787b1c6a5ec35b91690ce04fa5f4e205c837",
+        "src/web/components/error-boundary.tsx": "1ae352ac2b2d67b2e8515714d5018ce93a02ca6001e2eab0900173fd4f9a9a92",
         "src/web/components/field.tsx": "47407ad280484d017eb808be60411ea2a0767450910013c20af87d1317ff57fa",
         "src/web/components/genre-card.tsx": "c1effa52ea1724b55e1c111a1dfaf850d059ef4d68e23c93b68a4625c84e65ad",
         "src/web/components/genre-coverage-summary.tsx": "34abb1cc072681da57263da556e5eb9e069ca23ea7a9bad438dd941230850456",
@@ -470,15 +479,16 @@
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "d3528211dc379bcd102ff03b6e29df5df2f3aa01f52149af7915ee665d2505ba",
+        "src/web/lib/api.ts": "e096eb46dbd724282a9de883173bf4f90e3df4f3ed0baa9e9ca9e154bd6896ba",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
         "src/web/lib/discovery-run-feedback.ts": "3b537a0a097352dbb6f9642077bfc5496ba037ef539c43f2f360fdc4a3bc3da6",
         "src/web/lib/format-time.ts": "24a4efbcbc7a44f9374e74659fb7a4125c843792e11c053f017f99f1861f7a4d",
         "src/web/lib/hooks.ts": "a4d196f9890e1e1bac1d3be287409cfd51fb7eed49dba09ea4ac81b85bdb94d5",
-        "src/web/lib/i18n.tsx": "f1eb86fbf89498687ecaa0b552d1cbff7ba07bc71799458c68eaca00cfc1a5db",
+        "src/web/lib/i18n.tsx": "9151571885e7cccc2a642128c854b577c44759251081f399918ab85cc3c25bcc",
         "src/web/lib/intl.ts": "35ad1cf68ea978620305ab6fd66798a99343c2697ef969e528a48ed40d8a4d10",
+        "src/web/lib/locale-catalogs.ts": "6a9f4ecb955cc4385a70cfc98e5f095b5b99e8e81bee3d28ff286bc97f32fcba",
         "src/web/lib/locale-storage.ts": "a8bf64757283878e86e66bacd695f6b12c94969d84e419a4ace6d4c57bb8ffb3",
         "src/web/lib/menu-styles.ts": "ad7e058f2750f44ff4763919eef060169878c5d12e0c02ffeb2fd8c54aa2f018",
         "src/web/lib/nav.ts": "ac7e4bc9d3f0ceeae6af87ba0603426c600f686713ed15af0bb14c8a4d8482d4",
@@ -525,14 +535,16 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "6e01440719b1d8b99ffeecc6447d1cf5ef5ba200069a43fd9a2778db15e4033d",
+      "digest": "bb04f4a2af080f0aab1ba79473908e8d57c2f0e7a03834a9ddf7587c6e6fd1a2",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Player loading state, card click scoping, dense dashboard grid, relative genre bars and decisions grid selects; covered in CHANGELOG, four new catalog keys in all locales",
+        "docs": [
+          "CHANGELOG.md"
+        ],
+        "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
         "breaking": "none",
         "migration": "",
-        "digest": "6e01440719b1d8b99ffeecc6447d1cf5ef5ba200069a43fd9a2778db15e4033d"
+        "digest": "bb04f4a2af080f0aab1ba79473908e8d57c2f0e7a03834a9ddf7587c6e6fd1a2"
       }
     },
     "features": {
@@ -752,7 +764,9 @@
       "digest": "36bd3c2111087c60df435e784d91c6a21ae35770a06bf7d26cd4448df3bc997b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
+        "docs": [
+          "docs/API.md"
+        ],
         "note": "Optional decisionsGrid on the dashboard layout preference documented next to the layout contract",
         "breaking": "none",
         "migration": "",
@@ -799,7 +813,10 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/OPERATIONS.md",
+          "CHANGELOG.md"
+        ],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",

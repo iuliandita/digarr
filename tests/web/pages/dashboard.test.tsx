@@ -8,6 +8,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { DEFAULT_DASHBOARD_LAYOUT } from '@/core/dashboard-layout'
 import { DashboardCardToggle } from '@/web/components/dashboard-card-toggle'
 import { I18nProvider } from '@/web/lib/i18n'
+import { loadMessages } from '@/web/lib/locale-catalogs'
 
 function renderWithQuery(ui: ReactElement) {
   const client = createTestQueryClient()
@@ -352,8 +353,9 @@ describe('Dashboard', () => {
     })
   })
 
-  it('formats playlist dates with the active locale helper', () => {
+  it('formats playlist dates with the active locale helper', async () => {
     localStorage.setItem('digarr-locale', 'de')
+    await loadMessages('de')
 
     renderWithQuery(
       <PlaylistCard

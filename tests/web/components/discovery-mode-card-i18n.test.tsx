@@ -4,12 +4,9 @@ import { render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
-vi.mock('@/web/lib/locale-storage', () => ({
-  detectBrowserLocale: vi.fn(() => 'it'),
-  getRequestLocale: vi.fn(() => 'it'),
-  getStoredLocale: vi.fn(() => 'it'),
-  setStoredLocale: vi.fn(),
-}))
+vi.mock('@/web/lib/locale-storage', async () =>
+  (await import('../helpers/locale')).localeStorageMock('it'),
+)
 
 import { DiscoveryModeCard } from '@/web/components/discovery-mode-card'
 

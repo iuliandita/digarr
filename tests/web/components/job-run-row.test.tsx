@@ -1,12 +1,14 @@
 // @vitest-environment jsdom
 import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { SupportedLocale } from '@/core/i18n/locales'
 import { JobRunRow } from '@/web/components/job-run-row'
 import type { JobRun } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { loadMessages } from '@/web/lib/locale-catalogs'
 
 describe('JobRunRow source results', () => {
-  it.each<[string, NonNullable<JobRun['sourceResults']>[string], string]>([
+  it.each<[SupportedLocale, NonNullable<JobRun['sourceResults']>[string], string]>([
     [
       'en',
       { status: 'skipped', reason: 'unsupported_capability' },
@@ -31,7 +33,8 @@ describe('JobRunRow source results', () => {
       { status: 'skipped', reason: 'unsupported_capability' },
       'Übersprungen - Suche nach ähnlichen Künstlern wird nicht unterstützt',
     ],
-  ])('renders %s source outcome %j', (locale, result, expected) => {
+  ])('renders %s source outcome %j', async (locale, result, expected) => {
+    await loadMessages(locale)
     Object.defineProperty(globalThis, 'localStorage', {
       configurable: true,
       value: { getItem: vi.fn(() => locale), setItem: vi.fn() },

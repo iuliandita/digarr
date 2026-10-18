@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BackupSection } from '@/web/components/admin/backup-section'
 import { ApiError, getLastAutoBackup, restoreBackupApi } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
+import { loadMessages } from '@/web/lib/locale-catalogs'
 import { createTestQueryClient } from '../helpers/query'
 import { installMemoryLocalStorage } from '../helpers/storage'
 
@@ -194,6 +195,7 @@ describe('BackupSection restore confirmation', () => {
 
   it('formats the last auto backup timestamp with the active locale', async () => {
     installMemoryLocalStorage({ 'digarr-locale': 'fr' })
+    await loadMessages('fr')
     vi.mocked(getLastAutoBackup).mockResolvedValue({
       lastAutoBackup: { filename: 'auto.json', createdAt: '2025-12-31T14:05:00.000Z' },
     })

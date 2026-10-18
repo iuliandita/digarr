@@ -8,8 +8,9 @@ import {
   useState,
 } from 'react'
 import { DEFAULT_LOCALE, type SupportedLocale } from '@/core/i18n/locales'
-import { getMessages } from '@/core/i18n/messages'
-import type { MessageKey } from '@/core/i18n/messages/types'
+import { en } from '@/core/i18n/messages/en'
+import type { MessageCatalog, MessageKey } from '@/core/i18n/messages/types'
+import { getLoadedMessages, loadMessages } from './locale-catalogs'
 import { detectBrowserLocale, getStoredLocale, setStoredLocale } from './locale-storage'
 
 type I18nValue = {
@@ -20,15 +21,46 @@ type I18nValue = {
   t: (key: MessageKey) => string
 }
 
+type ActiveCatalog = { locale: SupportedLocale; messages: MessageCatalog }
+
 export const I18nContext = createContext<I18nValue | null>(null)
 
+function loadedCatalog(locale: SupportedLocale): ActiveCatalog | null {
+  const messages = getLoadedMessages(locale)
+  return messages ? { locale, messages } : null
+}
+
 export function I18nProvider({ children }: { children: ReactNode }) {
-  const [locale, setLocaleState] = useState<SupportedLocale>(() => {
+  const [requestedLocale, setRequestedLocale] = useState<SupportedLocale>(() => {
     return getStoredLocale() ?? detectBrowserLocale()
   })
   const [pendingLocale, setPendingLocale] = useState<SupportedLocale | null>(null)
+  // A requested locale becomes active only once its catalog has loaded, so a
+  // switch keeps the current language on screen instead of flashing English.
+  const [active, setActive] = useState<ActiveCatalog | null>(() => loadedCatalog(requestedLocale))
+  const [failedLocale, setFailedLocale] = useState<SupportedLocale | null>(null)
 
-  const messages = getMessages(locale)
+  useEffect(() => {
+    if (active?.locale === requestedLocale || failedLocale === requestedLocale) return
+
+    let cancelled = false
+    loadMessages(requestedLocale).then(
+      (messages) => {
+        if (!cancelled) setActive({ locale: requestedLocale, messages })
+      },
+      () => {
+        if (cancelled) return
+        setFailedLocale(requestedLocale)
+        setActive((current) => current ?? { locale: DEFAULT_LOCALE, messages: en })
+      },
+    )
+    return () => {
+      cancelled = true
+    }
+  }, [active?.locale, failedLocale, requestedLocale])
+
+  const locale = active?.locale ?? DEFAULT_LOCALE
+  const messages = active?.messages ?? en
 
   useEffect(() => {
     document.documentElement.lang = locale
@@ -38,7 +70,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   const setLocale = useCallback((nextLocale: SupportedLocale) => {
     setPendingLocale(nextLocale)
     setStoredLocale(nextLocale)
-    setLocaleState(nextLocale)
+    setRequestedLocale(nextLocale)
   }, [])
 
   const hydrateLocale = useCallback(
@@ -51,7 +83,7 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       }
 
       setStoredLocale(nextLocale)
-      setLocaleState((currentLocale) => (currentLocale === nextLocale ? currentLocale : nextLocale))
+      setRequestedLocale(nextLocale)
     },
     [pendingLocale],
   )
@@ -62,10 +94,12 @@ export function I18nProvider({ children }: { children: ReactNode }) {
       pendingLocale,
       setLocale,
       hydrateLocale,
-      t: (key) => messages[key] ?? getMessages(DEFAULT_LOCALE)[key] ?? key,
+      t: (key) => messages[key] ?? en[key] ?? key,
     }),
     [hydrateLocale, locale, messages, pendingLocale, setLocale],
   )
+
+  if (!active) return null
 
   return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }

@@ -1,10 +1,11 @@
 import type { DiscoveryAvailabilityResult } from '../../core/discovery-modes/availability'
 import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
 import type { GenreInfo } from '../../core/genre/types'
-import { getMessages } from '../../core/i18n/messages'
+import { en } from '../../core/i18n/messages/en'
 import type { MessageKey } from '../../core/i18n/messages/types'
 import type { NotificationChannel } from '../../core/notifications/types'
 import type { PlaylistExportOutcome, PlaylistGenerationSummary } from '../../core/playlists/types'
+import { getLoadedMessages } from './locale-catalogs'
 import { getRequestLocale } from './locale-storage'
 
 export type LibraryArtist = {
@@ -87,7 +88,7 @@ function extractApiErrorMessage(status: number, data: unknown): string {
 }
 
 function translateErrorCode(code: string): string | null {
-  const messages = getMessages(getRequestLocale())
+  const messages = getLoadedMessages(getRequestLocale()) ?? en
   const value = messages[code as MessageKey]
   return typeof value === 'string' && value.length > 0 ? value : null
 }

@@ -23,6 +23,7 @@ import {
   restoreBackupApi,
   updateSettings,
 } from '@/web/lib/api'
+import { loadMessages } from '@/web/lib/locale-catalogs'
 import { setStoredLocale } from '@/web/lib/locale-storage'
 
 const fetchMock = vi.fn()
@@ -81,7 +82,7 @@ function expectCookieRequest(init: RequestInit, csrf: boolean): Headers {
   return headers
 }
 
-beforeEach(() => {
+beforeEach(async () => {
   vi.unstubAllGlobals()
   vi.restoreAllMocks()
   fetchMock.mockReset()
@@ -89,6 +90,7 @@ beforeEach(() => {
   vi.stubGlobal('localStorage', memoryStorage())
   localStorage.setItem('digarr-auth-token', 'legacy-session-token')
   setStoredLocale('de')
+  await loadMessages('de')
   Object.defineProperty(URL, 'createObjectURL', {
     configurable: true,
     value: vi.fn(() => 'blob:test'),

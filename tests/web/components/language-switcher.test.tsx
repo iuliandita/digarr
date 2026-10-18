@@ -251,7 +251,9 @@ describe('language switcher surfaces', () => {
     const switcher = await screen.findByLabelText('Language')
     chooseLanguage(switcher, 'Deutsch')
 
-    expect(switcher).toHaveAttribute('title', 'Deutsch')
+    await waitFor(() => {
+      expect(switcher).toHaveAttribute('title', 'Deutsch')
+    })
     expect(mockSetStoredLocale).toHaveBeenCalledWith('de')
     expect(mockUpdatePreferredLocale).not.toHaveBeenCalled()
   })

@@ -1,6 +1,5 @@
 import { Component, type ContextType, type ErrorInfo, type ReactNode } from 'react'
-import { DEFAULT_LOCALE } from '@/core/i18n/locales'
-import { getMessages } from '@/core/i18n/messages'
+import { en } from '@/core/i18n/messages/en'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { CHANNEL, GIT_SHA, VERSION } from '@/version'
 import { I18nContext } from '@/web/lib/i18n'
@@ -18,7 +17,7 @@ export class ErrorBoundary extends Component<Props, State> {
   state: State = { error: null }
 
   private t(key: MessageKey): string {
-    return this.context?.t(key) ?? getMessages(DEFAULT_LOCALE)[key] ?? key
+    return this.context?.t(key) ?? en[key] ?? key
   }
 
   static getDerivedStateFromError(error: Error): State {
