@@ -44,6 +44,14 @@ export const updateRecommendationSchema = z.object({
   lidarrTargetId: z.string().optional(),
   monitorOption: monitorOptionSchema.optional(),
   tags: z.array(z.number().int().positive()).max(100).optional(),
+  feedbackTrack: z
+    .object({
+      artistName: z.string().trim().min(1).max(500),
+      trackName: z.string().trim().min(1).max(500),
+      recordingMbid: z.uuid().optional(),
+    })
+    .optional(),
+  auditionTrackId: z.number().int().positive().optional(),
   selectedAlbumIds: z.array(z.string()).max(200).optional(),
   targetId: z.string().optional(),
   qualityProfileId: z.number().int().optional(),

@@ -20,6 +20,11 @@ export const it = {
   'settings.scheduleOverviewFailed': 'Impossibile caricare alcuni programmi.',
   'settings.schedulePaused': 'In pausa',
   'settings.librarySyncEvery': 'Ogni {hours} ore',
+  'oauth.error.tokenMismatch':
+    'Il token di autorizzazione non corrisponde - avvia di nuovo la connessione.',
+  'oauth.error.authorizationDenied':
+    'L’autorizzazione è stata negata - avvia di nuovo la connessione se vuoi collegarti.',
+  'jobHistory.writeBack': 'Invio a {service}',
   'tokens.mcpTitle': 'Configurazione del client MCP',
   'tokens.mcpDescription':
     'Incolla questo JSON in un client MCP che supporta server remoti e intestazioni di autorizzazione. Conservalo al sicuro - contiene il tuo token.',
@@ -57,6 +62,31 @@ export const it = {
   'tokens.revokeConfirm': 'Revocare "{name}"? Gli script che lo usano perderanno subito l’accesso.',
   'tokens.readOnlyError': 'Questo token consente solo richieste GET e HEAD.',
   'tokens.notFoundError': 'Questo token non è stato trovato.',
+  'writeBack.lastfmReconnect': 'Riconnetti Last.fm',
+  'writeBack.title': 'Invio agli scrobbler',
+  'writeBack.scope':
+    'Vengono inviate solo le approvazioni di brani precisi dalle anteprime o da Audition. Rifiuti, blocchi e approvazioni del solo artista restano locali.',
+  'writeBack.offHelp':
+    'Disattivare un interruttore ferma gli invii futuri. Non annulla ciò che è già stato inviato.',
+  'writeBack.listenbrainzLoves': 'Invia i brani preferiti a ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Invia il MBID della registrazione del brano che approvi al tuo account ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Invia le playlist generate a ListenBrainz',
+  'writeBack.playlistHelp':
+    'Consenso separato: invia il titolo della playlist, i nomi di artisti e brani e i MBID di registrazione noti come playlist privata di ListenBrainz. I brani senza MBID di registrazione vengono saltati. Vengono inviate solo le playlist che generi manualmente - le esecuzioni pianificate non le inviano mai.',
+  'writeBack.listenbrainzMissing':
+    'Aggiungi il tuo token ListenBrainz in Connessioni per attivare gli invii.',
+  'writeBack.lastfmLoves': 'Invia i brani preferiti a Last.fm',
+  'writeBack.lastfmHelp':
+    'Invia il nome dell’artista e del brano che approvi al tuo account Last.fm.',
+  'writeBack.lastfmMissing':
+    'Last.fm richiede la tua chiave API e le impostazioni server LASTFM_SHARED_SECRET e DIGARR_ENCRYPTION_KEY prima di poterti connettere.',
+  'writeBack.lastfmConnected':
+    'Last.fm è connesso. Attiva esplicitamente i brani preferiti per iniziare a inviare.',
+  'writeBack.lastfmConnect':
+    'Attiva i brani preferiti per connettere Last.fm. Al ritorno, attiva di nuovo l’interruttore per iniziare a inviare - la sola connessione non lo attiva.',
+  'writeBack.lastError': 'Ultimo errore di invio: {0}',
+  'writeBack.loadFailed': 'Impossibile caricare le tue impostazioni di invio.',
   'notification.approvalFailed':
     'L’approvazione di {0} in Lidarr non è stata completata entro 24 ore: {1}',
   'recommendation.waitingForLidarr': 'In attesa di Lidarr',

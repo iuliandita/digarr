@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Download, Pencil, Play } from 'lucide-react'
 import { useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -14,7 +14,9 @@ import {
   type PlaylistGeneration,
   type PlaylistRow,
   type PlaylistTrackRow,
+  updateRecommendation,
 } from '../lib/api'
+import { reportApprovalOutcome } from '../lib/approval'
 import { useI18n } from '../lib/i18n'
 import { formatShortDate } from '../lib/intl'
 
@@ -97,7 +99,32 @@ function DetailSkeleton() {
 
 function TrackRow({ track, index }: { track: PlaylistTrackRow; index: number }) {
   const { t } = useI18n()
+  const queryClient = useQueryClient()
+  const [approving, setApproving] = useState(false)
+  const [approved, setApproved] = useState(false)
   const source = detectSource(track)
+
+  async function handleApprove() {
+    if (!track.recommendationId || approving) return
+    setApproving(true)
+    try {
+      const result = await updateRecommendation(track.recommendationId, {
+        status: 'approved',
+        auditionTrackId: track.id,
+      })
+      if (!reportApprovalOutcome(result, t)) return
+      setApproved(true)
+      toast.success(t('discover.approved'))
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['playlists', track.playlistId] }),
+        queryClient.invalidateQueries({ queryKey: ['recommendations'] }),
+      ])
+    } catch {
+      toast.error(t('dashboard.approveFailed'))
+    } finally {
+      setApproving(false)
+    }
+  }
   const badge =
     SOURCE_BADGES[source] ??
     ({ label: source, className: 'bg-surface text-muted border border-border' } as {
@@ -116,6 +143,16 @@ function TrackRow({ track, index }: { track: PlaylistTrackRow; index: number }) 
         </p>
         <p className="text-xs text-muted truncate">{track.artistName}</p>
       </div>
+      {track.recommendationId && !approved && (
+        <button
+          type="button"
+          onClick={handleApprove}
+          disabled={approving}
+          className="shrink-0 rounded-md px-2 py-1 text-xs text-approve hover:bg-approve/10 disabled:opacity-60"
+        >
+          {t('recommendation.approve')}
+        </button>
+      )}
       <span className={`shrink-0 text-micro font-medium px-1.5 py-0.5 rounded ${badge.className}`}>
         {t(badge.label as never)}
       </span>

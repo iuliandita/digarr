@@ -501,6 +501,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
         stop: preview.stop,
         hasPreview: preview.hasPreview,
         currentMbid: preview.state.artistMbid,
+        currentTrack: preview.state.source?.track,
         playing: preview.state.playing,
         globalPlayId: preview.globalPlayId,
         volume: preview.volume,

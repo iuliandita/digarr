@@ -20,6 +20,11 @@ export const en = {
   'settings.scheduleOverviewFailed': 'Some schedules could not be loaded.',
   'settings.schedulePaused': 'Paused',
   'settings.librarySyncEvery': 'Every {hours} hours',
+  'oauth.error.tokenMismatch':
+    'The authorization token did not match - start the connection again.',
+  'oauth.error.authorizationDenied':
+    'Authorization was denied - start the connection again if you want to connect.',
+  'jobHistory.writeBack': '{service} write-back',
   'tokens.mcpTitle': 'MCP client configuration',
   'tokens.mcpDescription':
     'Paste this JSON into an MCP client that supports remote servers and authorization headers. Keep it safe - it contains your token.',
@@ -57,6 +62,29 @@ export const en = {
   'tokens.revokeConfirm': 'Revoke "{name}"? Scripts using it will lose access immediately.',
   'tokens.readOnlyError': 'This token only allows GET and HEAD requests.',
   'tokens.notFoundError': 'This token was not found.',
+  'writeBack.lastfmReconnect': 'Reconnect Last.fm',
+  'writeBack.title': 'Scrobbler write-back',
+  'writeBack.scope':
+    'Only approvals of exact tracks from previews or Audition are sent. Rejections, blocks, and artist-only approvals stay local.',
+  'writeBack.offHelp':
+    'Turning a switch off stops future sends. It does not undo anything already sent.',
+  'writeBack.listenbrainzLoves': 'Send track loves to ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Sends the recording MBID of the track you approve to your ListenBrainz account.',
+  'writeBack.listenbrainzPlaylists': 'Send generated playlists to ListenBrainz',
+  'writeBack.playlistHelp':
+    'Separate opt-in: sends the playlist title, artist/track names, and known recording MBIDs as a private ListenBrainz playlist. Tracks without recording MBIDs are skipped. Only playlists you generate manually are sent - scheduled runs never send playlists.',
+  'writeBack.listenbrainzMissing': 'Add your ListenBrainz token in Connections to enable sending.',
+  'writeBack.lastfmLoves': 'Send track loves to Last.fm',
+  'writeBack.lastfmHelp': 'Sends the artist and track name you approve to your Last.fm account.',
+  'writeBack.lastfmMissing':
+    'Last.fm needs your API key and server settings LASTFM_SHARED_SECRET and DIGARR_ENCRYPTION_KEY before you can connect.',
+  'writeBack.lastfmConnected':
+    'Last.fm is connected. Turn on track loves explicitly to start sending.',
+  'writeBack.lastfmConnect':
+    'Turn on track loves to connect Last.fm. After returning, turn the switch on again to start sending - connecting alone does not enable it.',
+  'writeBack.lastError': 'Last send error: {0}',
+  'writeBack.loadFailed': 'Could not load your write-back settings.',
   'notification.approvalFailed': 'Lidarr approval for {0} could not complete within 24 hours: {1}',
   'recommendation.waitingForLidarr': 'Waiting for Lidarr',
   'recommendation.nextRetry': 'Next retry: {0}',

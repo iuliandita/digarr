@@ -20,6 +20,10 @@ export const uk = {
   'settings.scheduleOverviewFailed': 'Не вдалося завантажити деякі розклади.',
   'settings.schedulePaused': 'Призупинено',
   'settings.librarySyncEvery': 'Кожні {hours} год.',
+  'oauth.error.tokenMismatch': 'Токен авторизації не збігається - почни підключення заново.',
+  'oauth.error.authorizationDenied':
+    'В авторизації відмовлено - почни підключення заново, якщо хочеш підключитися.',
+  'jobHistory.writeBack': 'Надсилання до {service}',
   'tokens.mcpTitle': 'Конфігурація клієнта MCP',
   'tokens.mcpDescription':
     'Встав цей JSON у клієнт MCP з підтримкою віддалених серверів і заголовків авторизації. Зберігай його безпечно - він містить твій токен.',
@@ -57,6 +61,30 @@ export const uk = {
   'tokens.revokeConfirm': 'Відкликати «{name}»? Скрипти з цим токеном одразу втратять доступ.',
   'tokens.readOnlyError': 'Цей токен дозволяє лише запити GET і HEAD.',
   'tokens.notFoundError': 'Цей токен не знайдено.',
+  'writeBack.lastfmReconnect': 'Підключити Last.fm знову',
+  'writeBack.title': 'Надсилання до скроблерів',
+  'writeBack.scope':
+    'Надсилаються лише схвалення конкретних треків із попереднього прослуховування або Audition. Відхилення, блокування та схвалення лише виконавців залишаються локальними.',
+  'writeBack.offHelp': 'Вимкнення зупиняє майбутні надсилання. Уже надіслане не скасовується.',
+  'writeBack.listenbrainzLoves': 'Надсилати улюблені треки до ListenBrainz',
+  'writeBack.listenbrainzHelp':
+    'Надсилає MBID запису схваленого тобою треку до твого облікового запису ListenBrainz.',
+  'writeBack.listenbrainzPlaylists': 'Надсилати створені плейлісти до ListenBrainz',
+  'writeBack.playlistHelp':
+    'Окрема згода: надсилає назву плейліста, імена виконавців, назви треків і відомі MBID записів у приватний плейліст ListenBrainz. Треки без MBID запису пропускаються. Надсилаються лише плейлісти, які ти створюєш вручну - запуски за розкладом ніколи їх не надсилають.',
+  'writeBack.listenbrainzMissing':
+    'Додай свій токен ListenBrainz у розділі з’єднань, щоб увімкнути надсилання.',
+  'writeBack.lastfmLoves': 'Надсилати улюблені треки до Last.fm',
+  'writeBack.lastfmHelp':
+    'Надсилає ім’я виконавця й назву схваленого тобою треку до твого облікового запису Last.fm.',
+  'writeBack.lastfmMissing':
+    'Для підключення Last.fm потрібні твій ключ API та налаштування сервера LASTFM_SHARED_SECRET і DIGARR_ENCRYPTION_KEY.',
+  'writeBack.lastfmConnected':
+    'Last.fm підключено. Увімкни улюблені треки окремо, щоб почати надсилання.',
+  'writeBack.lastfmConnect':
+    'Увімкни улюблені треки, щоб підключити Last.fm. Після повернення ввімкни перемикач знову для початку надсилання - саме підключення його не вмикає.',
+  'writeBack.lastError': 'Остання помилка надсилання: {0}',
+  'writeBack.loadFailed': 'Не вдалося завантажити твої налаштування надсилання.',
   'notification.approvalFailed': 'Не вдалося завершити схвалення {0} у Lidarr за 24 години: {1}',
   'recommendation.waitingForLidarr': 'Очікування Lidarr',
   'recommendation.nextRetry': 'Наступна спроба: {0}',
