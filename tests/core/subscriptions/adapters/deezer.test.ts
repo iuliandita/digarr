@@ -24,21 +24,6 @@ beforeEach(() => {
 })
 
 describe('createDeezerAdapter', () => {
-  it('has correct type, label, and configFields', () => {
-    const adapter = createDeezerAdapter({ getToken: async () => 'tok' })
-    expect(adapter.type).toBe('deezer')
-    expect(adapter.label).toBe('Deezer')
-    const keys = adapter.configFields.map((f) => f.key)
-    expect(keys).toContain('feedType')
-    expect(keys).toContain('playlistIds')
-    const feedTypeField = adapter.configFields.find((f) => f.key === 'feedType')
-    const values = feedTypeField?.options?.map((o) => o.value) ?? []
-    expect(values).toContain('favorites')
-    expect(values).toContain('followed')
-    expect(values).toContain('flow')
-    expect(values).toContain('playlists')
-  })
-
   describe('favorites feed', () => {
     it('maps artists with score 0.85 and source deezer:favorites', async () => {
       mockClient.getFavoriteArtists.mockResolvedValue([

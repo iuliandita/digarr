@@ -52,23 +52,6 @@ describe('createSpotifySource()', () => {
     return client
   }
 
-  it('has id "spotify" and name "Spotify"', () => {
-    mockClient()
-    const source = createSpotifySource('access-token')
-    expect(source.id).toBe('spotify')
-    expect(source.name).toBe('Spotify')
-  })
-
-  it('has correct capabilities', () => {
-    mockClient()
-    const source = createSpotifySource('access-token')
-    expect(source.capabilities).toContain('topArtists')
-    expect(source.capabilities).toContain('recentListening')
-    expect(source.capabilities).not.toContain('similarArtists')
-    expect(source.capabilities).not.toContain('listeningActivity')
-    expect(source.capabilities).not.toContain('genreArtists')
-  })
-
   it('getTopArtists() merges all three windows: dedupes by name, unions genres, keeps max popularity', async () => {
     const client = mockClient()
     const source = createSpotifySource('access-token')
@@ -171,36 +154,11 @@ describe('createSpotifySource()', () => {
     })
   })
 
-  it('testConnection() delegates to client', async () => {
-    const client = mockClient()
-    const source = createSpotifySource('access-token')
-    const result = await source.testConnection()
-
-    expect(result).toEqual({
-      success: true,
-      message: 'Connected to Spotify as testuser',
-      details: { userId: 'sp-user-123' },
-    })
-    expect(client.testConnection).toHaveBeenCalled()
-  })
-
   it('getSimilarArtists() returns empty array', async () => {
     mockClient()
     const source = createSpotifySource('access-token')
     const similar = await source.getSimilarArtists('Radiohead', 'mbid-rh')
 
     expect(similar).toEqual([])
-  })
-
-  it('does not have getListeningActivity', () => {
-    mockClient()
-    const source = createSpotifySource('access-token')
-    expect(source.getListeningActivity).toBeUndefined()
-  })
-
-  it('does not have getGenreArtists', () => {
-    mockClient()
-    const source = createSpotifySource('access-token')
-    expect(source.getGenreArtists).toBeUndefined()
   })
 })

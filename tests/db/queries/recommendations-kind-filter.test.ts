@@ -42,31 +42,13 @@ function makeChainSelectDb(rows: unknown[] = []): Database {
 }
 
 describe('listRecommendations kind filter', () => {
-  it('applies eq(recommendations.kind, "album") condition when kind="album"', async () => {
-    const db = makeChainSelectDb([])
-    await listRecommendations(db, { kind: 'album' })
-    const eqCalls = mockedEq.mock.calls.map((args) => args[1])
-    expect(eqCalls).toContain('album')
+  it.each(['album', 'artist'] as const)('applies a kind condition for kind="%s"', async (kind) => {
+    await listRecommendations(makeChainSelectDb([]), { kind })
+    expect(mockedEq.mock.calls.map((args) => args[1])).toContain(kind)
   })
 
-  it('applies eq(recommendations.kind, "artist") condition when kind="artist"', async () => {
-    const db = makeChainSelectDb([])
-    await listRecommendations(db, { kind: 'artist' })
-    const eqCalls = mockedEq.mock.calls.map((args) => args[1])
-    expect(eqCalls).toContain('artist')
-  })
-
-  it('does not apply a kind condition when kind is omitted', async () => {
-    const db = makeChainSelectDb([])
-    await listRecommendations(db, {})
-    const eqCalls = mockedEq.mock.calls.map((args) => args[1])
-    expect(eqCalls).not.toContain('album')
-    expect(eqCalls).not.toContain('artist')
-  })
-
-  it('does not apply a kind condition when kind is undefined', async () => {
-    const db = makeChainSelectDb([])
-    await listRecommendations(db, { kind: undefined })
+  it.each([{}, { kind: undefined }])('does not apply a kind condition for %j', async (params) => {
+    await listRecommendations(makeChainSelectDb([]), params)
     const eqCalls = mockedEq.mock.calls.map((args) => args[1])
     expect(eqCalls).not.toContain('album')
     expect(eqCalls).not.toContain('artist')

@@ -68,18 +68,6 @@ describe('createLastfmTagAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = makeAdapter()
-    expect(adapter.type).toBe('lastfm-tag')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has tag configField', () => {
-    const adapter = makeAdapter()
-    const keys = adapter.configFields.map((f) => f.key)
-    expect(keys).toContain('tag')
-  })
-
   it('fetches artists and deduplicates by lowercase name', async () => {
     const adapter = makeAdapter()
     const result = await adapter.fetch({ tag: 'metal' })

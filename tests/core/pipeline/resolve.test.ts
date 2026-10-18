@@ -1065,4 +1065,29 @@ describe('fetchArtistImage', () => {
 
     expect(result).toEqual({ failed: false })
   })
+
+  it('cascades to AudioDB name search when the MBID lookup is empty', async () => {
+    const audiodb = {
+      getArtistImages: vi.fn().mockResolvedValue({}),
+      searchArtistByName: vi.fn().mockResolvedValue({ url: 'adb://name' }),
+    }
+
+    const result = await fetchArtistImage('mbid-2', 'Niche Artist', audiodb as never)
+
+    expect(result.url).toBe('adb://name')
+    expect(audiodb.searchArtistByName).toHaveBeenCalledWith('Niche Artist')
+  })
+
+  it('cascades to Lidarr on an AudioDB rate limit and skips name search', async () => {
+    const audiodb = {
+      getArtistImages: vi.fn().mockRejectedValue(new RateLimitedError()),
+      searchArtistByName: vi.fn(),
+    }
+    const lidarr = makeLidarr([{ coverType: 'poster', remoteUrl: 'lidarr://x' }])
+
+    const result = await fetchArtistImage('mbid-3', 'Name', audiodb as never, lidarr as never)
+
+    expect(audiodb.searchArtistByName).not.toHaveBeenCalled()
+    expect(result.url).toBe('lidarr://x')
+  })
 })

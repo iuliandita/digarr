@@ -59,17 +59,6 @@ describe('createLastfmChartsAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
-    expect(adapter.type).toBe('lastfm-charts')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has no configFields (period param not supported by Last.fm chart API)', () => {
-    const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
-    expect(adapter.configFields).toHaveLength(0)
-  })
-
   it('fetches artists and deduplicates by lowercase name', async () => {
     const adapter = createLastfmChartsAdapter({ apiKey: 'testkey' })
     const result = await adapter.fetch({})

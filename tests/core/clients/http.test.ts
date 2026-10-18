@@ -161,16 +161,6 @@ describe('createHttpClient', () => {
   })
 
   describe('4xx errors - no retry', () => {
-    it('throws HttpError on 404', async () => {
-      const client = createHttpClient({ baseUrl, retries: 3 })
-      await expect(client.get('/notfound')).rejects.toThrow(HttpError)
-    })
-
-    it('throws HttpError on 403', async () => {
-      const client = createHttpClient({ baseUrl, retries: 3 })
-      await expect(client.get('/forbidden')).rejects.toThrow(HttpError)
-    })
-
     it('HttpError carries correct status and url', async () => {
       const client = createHttpClient({ baseUrl })
       try {
@@ -187,7 +177,7 @@ describe('createHttpClient', () => {
     it('hits the server exactly once on 4xx (no retries)', async () => {
       const before = serverHits.get('/forbidden') ?? 0
       const client = createHttpClient({ baseUrl, retries: 3 })
-      await client.get('/forbidden').catch(() => null)
+      await expect(client.get('/forbidden')).rejects.toThrow(HttpError)
       const after = serverHits.get('/forbidden') ?? 0
       expect(after - before).toBe(1)
     })
@@ -227,16 +217,11 @@ describe('createHttpClient', () => {
       expect(after - before).toBe(3) // 2 failures + 1 success
     }, 20_000)
 
-    it('throws after exhausting retries on persistent 5xx', async () => {
-      const client = createHttpClient({ baseUrl, retries: 2 })
-      await expect(client.get('/flaky/test-exhaust?fails=99')).rejects.toThrow()
-    }, 20_000)
-
     it('makes exactly retries+1 attempts before giving up', async () => {
       const path = '/flaky/test-count'
       const before = serverHits.get(path) ?? 0
       const client = createHttpClient({ baseUrl, retries: 2 })
-      await client.get(`${path}?fails=99`).catch(() => null)
+      await expect(client.get(`${path}?fails=99`)).rejects.toThrow()
       const after = serverHits.get(path) ?? 0
       // retries=2: initial attempt + 2 retries = 3 total
       expect(after - before).toBe(3)

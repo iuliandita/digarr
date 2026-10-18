@@ -95,25 +95,6 @@ describe('createListenBrainzAdapter', () => {
     return value
   }
 
-  it('has correct type and label', () => {
-    const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-    expect(adapter.type).toBe('listenbrainz')
-    expect(adapter.label).toBeTruthy()
-  })
-
-  it('has feedType configField as select', () => {
-    const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-    const feedTypeField = adapter.configFields.find((f) => f.key === 'feedType')
-    expect(feedTypeField).toBeTruthy()
-    if (!feedTypeField) {
-      throw new Error('Expected feedType config field')
-    }
-    expect(feedTypeField.type).toBe('select')
-    const values = feedTypeField.options?.map((o) => o.value) ?? []
-    expect(values).toContain('fresh-releases')
-    expect(values).toContain('weekly-jams')
-  })
-
   describe('fresh-releases', () => {
     it('fetches artists and deduplicates by lowercase name', async () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })

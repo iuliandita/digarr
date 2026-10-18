@@ -47,58 +47,37 @@ describe('store()', () => {
     expect(batchId).toBe(42)
   })
 
-  it('upserts an artist row for each scored artist', async () => {
-    const artists = [makeArtist('mbid-a'), makeArtist('mbid-b')]
-    const db = makeDb()
-
-    await store(artists, db)
-
-    expect(db.upsertArtist).toHaveBeenCalledTimes(2)
-    expect(db.upsertArtist).toHaveBeenCalledWith(expect.objectContaining({ mbid: 'mbid-a' }))
-    expect(db.upsertArtist).toHaveBeenCalledWith(expect.objectContaining({ mbid: 'mbid-b' }))
-  })
-
-  it('creates a recommendation row for each artist linked to the batch', async () => {
-    const artists = [makeArtist('mbid-a')]
+  it('upserts each artist and links a pending recommendation to the batch', async () => {
+    const artist: ScoredArtist = {
+      ...makeArtist('mbid-full'),
+      name: 'Full Artist',
+      disambiguation: 'the band',
+      imageUrl: 'https://example.com/img.jpg',
+      aiReasoning: 'Strong genre match with your library',
+    }
     const db = makeDb(7, { value: 99 })
 
-    await store(artists, db)
+    await store([artist, makeArtist('mbid-b')], db)
 
-    expect(db.insertRecommendation).toHaveBeenCalledOnce()
+    expect(db.upsertArtist).toHaveBeenCalledTimes(2)
+    expect(db.upsertArtist).toHaveBeenCalledWith({
+      mbid: 'mbid-full',
+      name: 'Full Artist',
+      disambiguation: 'the band',
+      tags: artist.tags,
+      genres: artist.genres,
+      imageUrl: 'https://example.com/img.jpg',
+      streamingUrls: artist.streamingUrls,
+    })
+    expect(db.insertRecommendation).toHaveBeenCalledTimes(2)
     expect(db.insertRecommendation).toHaveBeenCalledWith(
       expect.objectContaining({
         batchId: 7,
         artistId: 99,
-        score: artists[0]?.score,
+        score: artist.score,
         status: 'pending',
-      }),
-    )
-  })
-
-  it('passes sourceScores as sources to insertRecommendation', async () => {
-    const artist = makeArtist('mbid-a')
-    const db = makeDb()
-
-    await store([artist], db)
-
-    expect(db.insertRecommendation).toHaveBeenCalledWith(
-      expect.objectContaining({
+        kind: 'artist',
         sources: artist.sourceScores,
-      }),
-    )
-  })
-
-  it('passes aiReasoning to insertRecommendation when present', async () => {
-    const artist: ScoredArtist = {
-      ...makeArtist('mbid-ai'),
-      aiReasoning: 'Strong genre match with your library',
-    }
-    const db = makeDb()
-
-    await store([artist], db)
-
-    expect(db.insertRecommendation).toHaveBeenCalledWith(
-      expect.objectContaining({
         aiReasoning: 'Strong genre match with your library',
       }),
     )
@@ -117,15 +96,6 @@ describe('store()', () => {
 
     expect(db.insertRecommendation).toHaveBeenCalledWith(
       expect.objectContaining({ kind: 'album', recommendedReleaseGroupId: 'rg-1' }),
-    )
-  })
-
-  it('defaults kind to artist when unset', async () => {
-    const db = makeDb()
-    await store([makeArtist('mbid-default')], db)
-
-    expect(db.insertRecommendation).toHaveBeenCalledWith(
-      expect.objectContaining({ kind: 'artist' }),
     )
   })
 
@@ -195,53 +165,15 @@ describe('store()', () => {
     })
   })
 
-  it('passes subscriptionId to insertBatch', async () => {
-    const db = makeDb()
-    await store([makeArtist('mbid-sub')], db, { subscriptionId: 42 })
-    expect(db.insertBatch).toHaveBeenCalledWith(expect.objectContaining({ subscriptionId: 42 }))
-  })
+  it.each([[42], [undefined]])(
+    'passes subscriptionId %s to insertBatch',
+    async (subscriptionId) => {
+      const db = makeDb()
+      await store([makeArtist('mbid-sub')], db, subscriptionId ? { subscriptionId } : undefined)
+      expect(db.insertBatch).toHaveBeenCalledWith(expect.objectContaining({ subscriptionId }))
+    },
+  )
 
-  it('passes undefined subscriptionId when not provided', async () => {
-    const db = makeDb()
-    await store([makeArtist('mbid-nosub')], db)
-    expect(db.insertBatch).toHaveBeenCalledWith(
-      expect.objectContaining({ subscriptionId: undefined }),
-    )
-  })
-
-  it('passes all artist fields to upsertArtist', async () => {
-    const artist: ScoredArtist = {
-      mbid: 'mbid-full',
-      name: 'Full Artist',
-      disambiguation: 'the band',
-      tags: ['electronic', 'ambient'],
-      genres: ['electronic'],
-      imageUrl: 'https://example.com/img.jpg',
-      streamingUrls: { spotify: 'https://spotify.com/foo' },
-      discoveries: [],
-      score: 0.9,
-      sourceScores: {
-        consensus: 1,
-        similarity: 1,
-        genreOverlap: 1,
-        aiConfidence: 1,
-        feedbackBoost: 1,
-      },
-    }
-    const db = makeDb()
-
-    await store([artist], db)
-
-    expect(db.upsertArtist).toHaveBeenCalledWith({
-      mbid: 'mbid-full',
-      name: 'Full Artist',
-      disambiguation: 'the band',
-      tags: ['electronic', 'ambient'],
-      genres: ['electronic'],
-      imageUrl: 'https://example.com/img.jpg',
-      streamingUrls: { spotify: 'https://spotify.com/foo' },
-    })
-  })
   it.each([false, true])(
     'drains the current write unit and stops before the next artist (atomic=%s)',
     async (atomic) => {

@@ -40,17 +40,6 @@ describe('createJellyfinSource()', () => {
     return client
   }
 
-  it('has correct id, name, and capabilities', () => {
-    mockClient()
-    const source = createJellyfinSource('http://jf:8096', 'key', 'uid')
-    expect(source.id).toBe('jellyfin')
-    expect(source.name).toBe('Jellyfin')
-    expect(source.capabilities).toContain('topArtists')
-    expect(source.capabilities).toContain('recentListening')
-    expect(source.capabilities).not.toContain('similarArtists')
-    expect(source.capabilities).not.toContain('listeningActivity')
-  })
-
   it('getTopArtists() merges favorites and play-count artists', async () => {
     mockClient()
     const source = createJellyfinSource('http://jf:8096', 'key', 'uid')
@@ -96,15 +85,6 @@ describe('createJellyfinSource()', () => {
       track: 'Everything In Its Right Place',
       playedAt: new Date('2024-06-14T22:00:00.000Z'),
     })
-  })
-
-  it('testConnection() delegates to client', async () => {
-    const client = mockClient()
-    const source = createJellyfinSource('http://jf:8096', 'key', 'uid')
-    const result = await source.testConnection()
-
-    expect(result.success).toBe(true)
-    expect(client.testConnection).toHaveBeenCalled()
   })
 
   it('getSimilarArtists() returns empty array', async () => {

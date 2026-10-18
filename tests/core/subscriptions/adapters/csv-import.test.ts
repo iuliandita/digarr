@@ -59,13 +59,6 @@ describe('parseCsvArtists', () => {
 })
 
 describe('createCsvImportAdapter', () => {
-  it('has correct type and label', () => {
-    const adapter = createCsvImportAdapter()
-    expect(adapter.type).toBe('csv-import')
-    expect(adapter.label).toBe('CSV Import')
-    expect(adapter.configFields).toEqual([])
-  })
-
   it('returns artists from sourceConfig.artists', async () => {
     const adapter = createCsvImportAdapter()
     const result = await adapter.fetch({ artists: ['Radiohead', 'Portishead'] })

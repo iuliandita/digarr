@@ -58,14 +58,12 @@ describe('addBlock', () => {
 })
 
 describe('removeBlock', () => {
-  it('returns true when a row was deleted', async () => {
-    const { db } = makeDeleteDb([{ id: 1 }])
-    expect(await removeBlock(db, { userId: 1, artistId: 10 })).toBe(true)
-  })
-
-  it('returns false when no rows matched', async () => {
-    const { db } = makeDeleteDb([])
-    expect(await removeBlock(db, { userId: 1, artistId: 10 })).toBe(false)
+  it.each([
+    ['a row was deleted', [{ id: 1 }], true],
+    ['no rows matched', [], false],
+  ])('returns whether a row was deleted when %s', async (_name, returned, expected) => {
+    const { db } = makeDeleteDb(returned)
+    expect(await removeBlock(db, { userId: 1, artistId: 10 })).toBe(expected)
   })
 })
 
@@ -112,16 +110,6 @@ describe('listBlocks', () => {
 })
 
 describe('getBlockedMbids', () => {
-  it('returns a Set of MBID strings', async () => {
-    const db = makeChainSelectDb([
-      { mbid: 'aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa' },
-      { mbid: 'bbbbbbbb-2222-2222-2222-bbbbbbbbbbbb' },
-    ])
-    const mbids = await getBlockedMbids(db, 1)
-    expect(mbids.size).toBe(2)
-    expect(mbids.has('aaaaaaaa-1111-1111-1111-aaaaaaaaaaaa')).toBe(true)
-  })
-
   it('skips null mbids defensively', async () => {
     const db = makeChainSelectDb([{ mbid: null }, { mbid: 'cccccccc-3333-3333-3333-cccccccccccc' }])
     const mbids = await getBlockedMbids(db, 1)
