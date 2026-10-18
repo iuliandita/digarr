@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -218,11 +215,7 @@
       "digest": "4920756c18b171d00b751902b2d2d0070a8cc600859a9f448ccf8542dd26ebaf",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          ".env.example",
-          "docs/AUTHENTICATION.md",
-          "docs/OPERATIONS.md"
-        ],
+        "docs": [".env.example", "docs/AUTHENTICATION.md", "docs/OPERATIONS.md"],
         "note": "Document optional LASTFM_SHARED_SECRET and its file variant, matching per-user API keys, encryption and public-origin prerequisites, restart and per-user consent.",
         "breaking": "none",
         "migration": "",
@@ -340,9 +333,7 @@
       "digest": "b778dcafb79d42ec7f8d88b644b6e9e3c055a08f99ad002533cd2343f50f72f5",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md"
-        ],
+        "docs": ["docs/API.md"],
         "note": "OpenAPI now covers every route operation incl. the playability endpoint; check:api-docs fails on missing operations or wrong admin markers.",
         "breaking": "none",
         "migration": "",
@@ -538,9 +529,7 @@
       "digest": "bb04f4a2af080f0aab1ba79473908e8d57c2f0e7a03834a9ddf7587c6e6fd1a2",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Load non-English UI catalogs on demand; changelog records the download size change, render hold for a stored language, switch behaviour and English fallback. No setting, API or UI text change.",
         "breaking": "none",
         "migration": "",
@@ -764,9 +753,7 @@
       "digest": "36bd3c2111087c60df435e784d91c6a21ae35770a06bf7d26cd4448df3bc997b",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md"
-        ],
+        "docs": ["docs/API.md"],
         "note": "Optional decisionsGrid on the dashboard layout preference documented next to the layout contract",
         "breaking": "none",
         "migration": "",
@@ -813,10 +800,7 @@
       "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
         "breaking": "none",
         "migration": "",
