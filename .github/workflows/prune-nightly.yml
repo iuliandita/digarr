@@ -37,10 +37,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
-          PACKAGE: ${{ github.event.repository.name }}
+          REPO: ${{ github.repository }}
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || 'false' }}
         run: |
           set -euo pipefail
+          PACKAGE="${REPO#*/}"
           cutoff=$(date -u -d "${MAX_AGE_DAYS} days ago" +%Y-%m-%dT%H:%M:%SZ)
 
           gh api --paginate "/users/${OWNER}/packages/container/${PACKAGE}/versions?per_page=100" \

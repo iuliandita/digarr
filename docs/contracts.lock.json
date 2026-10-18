@@ -818,7 +818,7 @@
         ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
-        ".github/workflows/prune-nightly.yml": "ce77ce13fc6ddbfaccfb7d33ad882fb82c6d3f0b92c1191b5e97b47cc2a9a965",
+        ".github/workflows/prune-nightly.yml": "88b14306a97f8c7e97fbcb03cb5671e537984418bcc8ff3d1c59d9544923b2e8",
         ".github/workflows/release-readiness.yml": "8bf50801b00ba60589db3358f969b1eeb77cd2b98a743d8a2f0fc45af51017d0",
         ".github/workflows/release.yml": "8b31d8c84cd4c23450e234f78ac595ccef8bd93086be8acfd9dab0709d7db231",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
@@ -826,14 +826,14 @@
         "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "b8fe84d1920ecb9b26fd7219068415cb06c8aef84fa6497b681ea0e4aa9de7b2",
+      "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Adds a weekly cleanup of old nightly-sha image tags and pins Bun 1.4.3 in two jobs; release tags, latest and stable are never touched.",
+        "note": "Package name now comes from GITHUB_REPOSITORY; scheduled runs lack the repository event payload. No operator-facing change.",
         "breaking": "none",
         "migration": "",
-        "digest": "b8fe84d1920ecb9b26fd7219068415cb06c8aef84fa6497b681ea0e4aa9de7b2"
+        "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476"
       }
     },
     "maintenance": {
