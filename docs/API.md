@@ -1185,7 +1185,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 |--------|------|------|-------------|
 | GET | `/api/v1/jobs` | Admin | Paginated job list |
 | GET | `/api/v1/jobs/:id` | Admin | Single job detail |
-| GET | `/api/v1/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources) |
+| GET | `/api/v1/jobs/health` | Admin | System health summary (pipeline, subscriptions, playlists, library sync, sources, integrations) |
 
 **GET /api/v1/jobs** query params:
 - `type` - `pipeline`, `quick_discover`, `subscription`, `target`, `playlist`, `library_sync`
@@ -1199,6 +1199,15 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. For AudioMuse-AI, an unconfigured connection has no entry. Queried scans include `seedsQueried`, `seedsWithResults` (valid nonempty API responses before ownership filtering), and `skipReasons` counts for actual seed requests. A source with results reports `ok`, even when some seeds fail or all candidates are owned/blocked. With no results, failures use `skipped`, with a reason such as `audiomuse_unreachable`, `audiomuse_not_indexed`, or `audiomuse_artist_unknown`. Authentication and contract errors use `audiomuse_authentication_required`, `audiomuse_invalid_response`, or `audiomuse_request_failed`. Registration failures use `audiomuse_invalid_url` or `audiomuse_token_unreadable`; re-enter an unreadable saved token. Other sources retain their existing failure behavior: any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
 Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. Within that sample, `/api/v1/jobs/health` counts only `ok` and `error` attempts for each source; successful zero-artist lookups count as `ok`. Skips do not count as successes or errors, and sources with no attempts are omitted from `sources`. Zero errors yields `ok`, an error rate below 50% yields `degraded`, and 50% or more yields `failing`. Skipped runs still occupy the sample; the query does not pull in older attempts to replace them. Individual job records retain their skip reasons. v1.19.0 counts skips as failures; this is corrected in v2.0.0 ([#769](https://github.com/iuliandita/digarr/issues/769)).
+
+`integrations` lists the last success and last error per integration, derived from the past 30 days of recorded job runs; no service is probed. Each entry is `{ "kind", "name", "status", "lastSuccess", "lastError" }`:
+
+- `kind` - `target` (approval targets such as `lidarr` or `slskd`, keyed by target type), `library` (library sync sources: `lidarr`, `plex`, `jellyfin`, `emby`, `subsonic`), `source` (discovery `sourceResults` keys, including `ai` for the AI provider), `subscription` (adapter type), or `scrobbler` (ListenBrainz/Last.fm write-back)
+- `lastSuccess` - ISO timestamp of the newest completed run, `ok` source result, or `null`
+- `lastError` - `{ "at": "<ISO timestamp>", "message": "..." }` for the newest failed run or `error` source result, or `null`. Messages are secret-redacted and capped at 300 characters
+- `status` - `failing` when the last error is newer than the last success, otherwise `ok`
+
+Running, stuck, cancelled, and skipped runs and skipped source results are ignored. Integrations with no recorded attempt in the window are omitted. Playlist exports and notification channels are not listed because their outcomes are not recorded per integration.
 
 ---
 

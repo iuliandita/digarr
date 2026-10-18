@@ -932,6 +932,19 @@ export const en = {
   'systemHealth.overdue': 'overdue',
   'systemHealth.inMinutes': 'in {0}m',
   'systemHealth.inHours': 'in {0}h',
+  'systemHealth.integrations': 'Integrations',
+  'systemHealth.integrationsHint':
+    'Last success and error per integration in the past 30 days, taken from recorded jobs.',
+  'systemHealth.integrationsEmpty': 'No integration activity recorded in the past 30 days.',
+  'systemHealth.lastSuccess': 'Last success',
+  'systemHealth.lastError': 'Last error',
+  'systemHealth.integrationOk': 'Working',
+  'systemHealth.integrationFailing': 'Failing',
+  'systemHealth.kind.target': 'Target',
+  'systemHealth.kind.library': 'Library sync',
+  'systemHealth.kind.source': 'Discovery source',
+  'systemHealth.kind.subscription': 'Subscription',
+  'systemHealth.kind.scrobbler': 'Scrobble write-back',
 
   // Search Page
   'search.title': 'Search',

@@ -178,7 +178,7 @@
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
         "src/db/queries/gap-fill.ts": "614d60689b39a363cea37394d22f09dfc482486061e16131beeb2a758d589e7f",
         "src/db/queries/genres.ts": "0f143655c07c8ea6d1d006cff284025c1ab3744be0cfde25116673dafbb894ba",
-        "src/db/queries/jobs.ts": "09bbd671ab0a9440bd42e508990a075b88f1eaaa5ba3702b26cb2b544936a2cb",
+        "src/db/queries/jobs.ts": "0d7fd323acb5e1b9e86771f6edfcab4d3d5e8f2b29e3cc973015761dd51e7acd",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
         "src/db/queries/oauth-pending.ts": "2f7cde20dbaa8b63e49f66fbae0403847e91e8146e220819bdd32adc6b87f56b",
@@ -197,19 +197,14 @@
         "src/db/schema.ts": "01706b9a850861edca978323db0f3270da0b2e0c005afaa851601c0ae95c3381",
         "src/db/wait.ts": "97e291aa80a8538ed29ce4969b3ae96b942a3156b5a9e61a3d317738288fe076"
       },
-      "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96",
+      "digest": "009b140a2c87f7af439b75afc0f8dfd608d60359cc7b7dd8604b5888778db764",
       "review": {
-        "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md",
-          "docs/runbooks/encryption-key-rotation.md"
-        ],
-        "note": "Document migration 0059, indexed nullable recommendation references, retained album identity and cooldown, synthetic-row cleanup and analytics exclusions, and policy/request backup recovery. PGlite migration replay and backup round-trips are covered by integration tests; live recovery is not tested.",
-        "breaking": "Older images ignore approval policies and restore unrestricted direct approval for affected accounts.",
-        "migration": "Stop writers and verify a consistent native backup with the matching image and encryption key before upgrading. JSON backups and backend copies retain request history including null references. For exact rollback restore the pre-upgrade native backup separately and restrict member access; remote additions and delivered notifications cannot be reversed.",
-        "digest": "b9ef55a727759a5618b3f9abdf325555e26a3300bdc49b6fc938ab6148997e96"
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Adds a read-only job_runs aggregation for integration health; no schema, migration, backup, or restore change.",
+        "breaking": "none",
+        "migration": "Adds a read-only job_runs aggregation for integration health; no schema, migration, backup, or restore change.",
+        "digest": "009b140a2c87f7af439b75afc0f8dfd608d60359cc7b7dd8604b5888778db764"
       }
     },
     "configuration": {
@@ -278,7 +273,7 @@
       "files": {
         "src/server/deps.ts": "b0757dea7c1168ec33d036590967a6b31791df7a24183ad47be131caf16244d1",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
-        "src/server/helpers/openapi-doc.ts": "349b5c7e9fe5ad05ae8ae6e1057d0b9e12154199bb80eff9364c758641dea083",
+        "src/server/helpers/openapi-doc.ts": "6544a5e3b835ab32346874c7bb7d7f89a752d8d56f9c2508024776101339283a",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
@@ -333,14 +328,14 @@
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2",
+      "digest": "84a5261ca58cf43bf957179646a933fab7aaae54dd584e7ec2c9a1cf67c67102",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document queue and personal-channel endpoints, requested outcomes, request-limit and cooldown conflicts, pending failed additions, waiting approvals, mixed-status pending filtering and safe MCP request results.",
+        "docs": ["docs/API.md"],
+        "note": "Document the additive integrations array on GET /api/v1/jobs/health.",
         "breaking": "none",
         "migration": "",
-        "digest": "9678200866bd9cef049a9545759aef9eaaf4b1134c3810763ed306bc796190c2"
+        "digest": "84a5261ca58cf43bf957179646a933fab7aaae54dd584e7ec2c9a1cf67c67102"
       }
     },
     "interface": {
@@ -351,24 +346,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "9d43a97a911604d0cf7634db7d0d3402aa9bc32714a015aca9fe43fffdd7e05a",
-        "src/core/i18n/messages/en.ts": "ed71c2df4fb0d1e07ddf16fa9f3ed967cf0d6edbbb6075e78f6e32a47a29c582",
-        "src/core/i18n/messages/es.ts": "17dede53a4c946b83300df777d19736378d6a1ca11c15a12da08480d3f376f3c",
-        "src/core/i18n/messages/fr.ts": "d72dbee5ded58d7ee106e87edbed96a55e18ccd2cc401cf5ce471a623d4ee848",
+        "src/core/i18n/messages/de.ts": "63aae29875715fdca083313f967a13316d8fa6010cce9a0f08d2961350b2ea07",
+        "src/core/i18n/messages/en.ts": "3581564085d75dba9fb1446154f68a87cd7a51ef44e3121510951bb7e510d4cc",
+        "src/core/i18n/messages/es.ts": "a4512ac0023b101b1dfe1cc7882c6826a7c09649344ad05eb5a28eb24106d36b",
+        "src/core/i18n/messages/fr.ts": "92bee7adcaea18b4737473e41f8c654336b2488415deb8f539775c75dc039e80",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "92782db4f268f39b963a1fe7f365cb2f55891a089067a15686223151a05d3cda",
-        "src/core/i18n/messages/ja.ts": "27b56243e17cb403842f10bb4dde59644e4b4107fb20f7e974d81717d9c6da47",
-        "src/core/i18n/messages/ko.ts": "b2803837cda5c6ee2877e036bcef81b9efe32e4863039bcc60113e756e2ba22c",
-        "src/core/i18n/messages/nl.ts": "6f71a76d3db87c0ca99bff833e4744d7be1070623d6975c9ff4058f9f9a9a403",
-        "src/core/i18n/messages/pl.ts": "6508ed0cf8476987c2c75cc4515f267e9c66751e43255ea429a47e9360d9c1dd",
-        "src/core/i18n/messages/pt-BR.ts": "efec206698e707cca0f16a90a7a07c692740d3bbab20e542161510ddd94ffc01",
-        "src/core/i18n/messages/ro.ts": "57a0fafbb5e2ea8236e392b124ec3188ac41aa936a9738f06915742577d21243",
-        "src/core/i18n/messages/ru.ts": "935448e896d989a1dcf8bded983d2514f829b125e9f4cc72b3928cc653949600",
-        "src/core/i18n/messages/source-lock.json": "e9523f30bf14da79c005b7101cab1778e58ff044c65f03f80016926f43270a80",
-        "src/core/i18n/messages/tr.ts": "58e001c28b5836739f0d272c5fefbcae6240e3c4147903a2cb847b8580980de0",
+        "src/core/i18n/messages/it.ts": "fa59649b43a47ada4486e17ede839b5004d5933c46f547b04ddf86fcd8def123",
+        "src/core/i18n/messages/ja.ts": "c264520bcd2ebae59ce730faa2bf8b6559cef9278a3fbc9e27c8e40d309b4ca3",
+        "src/core/i18n/messages/ko.ts": "67d6146991da77f2e66ed2891528982d6886c907787c82e5345f0f8aab79d6cb",
+        "src/core/i18n/messages/nl.ts": "369eda9883a36a8cbe857a26981674f06cc37e0392c7777f5c1bb4ab1ffccd68",
+        "src/core/i18n/messages/pl.ts": "9d05e2d14638c90e15236434ea094b22cb5cf78c1f2399712531486d29b40534",
+        "src/core/i18n/messages/pt-BR.ts": "23e1b71e4638aeab3e3416427dffdfc374de0d3c60d1113b301a5044aa77de97",
+        "src/core/i18n/messages/ro.ts": "e00905aefb4d1aa481ba842b90fed9948dcaf8926a2d131f2c4de97994e36e71",
+        "src/core/i18n/messages/ru.ts": "2e217e4466f38c78b7260cfdb556491fab5c59b979c63c58c18dfe57f3bc7a6b",
+        "src/core/i18n/messages/source-lock.json": "fcc3694504afa4427c6d3e23221fc2413fbf5b2c337f2c10d587e2c888507962",
+        "src/core/i18n/messages/tr.ts": "8889d62cb9423a4ede75c22800f41b6ad946907731c723a57d9c84cf2bdaac33",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "fd380d6804cf692aa548a030dafe18827bbe7a799aa2e1f415ebbe35bd56341d",
-        "src/core/i18n/messages/zh-CN.ts": "a66d7ccb50ce03385d743a97673ad4eb543aa119c64a4eaf652b79feb220f61f",
+        "src/core/i18n/messages/uk.ts": "bc0900b280f18c0a0441e2a3b2dddf4440276a526a26b5514aef364db74dc7a3",
+        "src/core/i18n/messages/zh-CN.ts": "b539953b6c0cc538ecdb89f700ff5fbcbc22edfd0cfeaf30f0d515eb59eab8c0",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -409,6 +404,7 @@
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
         "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "2ac482eeefc2acfc8f8ec5ca8821af01bd9bb415a287ad390461c7cb8518cf71",
+        "src/web/components/integration-health-card.tsx": "8cf551afba8d8da97d9e2485b695b53a6a7664651d3fd3cf9ca3f97dcda9ecbd",
         "src/web/components/job-run-row.tsx": "0aed80604de687ec3f3c35fd99b8ce954503e535f07b0368ebe65d08a415a9c5",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
         "src/web/components/language-switcher.tsx": "69cc47bddb3c4736245b7632fba1f4d5ebe506f8214066f9cab6ed65746497ee",
@@ -471,7 +467,7 @@
         "src/web/hooks/use-spotify-embed.ts": "5447bd10f4fa3fc09f6ae6404a73899e466e94b0f39f8dec933a40337df6199c",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "2f5fc2c59ffc6b6631f9b76072d31811ca883f52cf920a9dccacb3aab14a9d13",
+        "src/web/lib/api.ts": "66e16b0ae60af4565bcd4700c5e5ab8ab28f1bfb1ce4e3e9834238b421eb5163",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
@@ -516,7 +512,7 @@
         "src/web/pages/settings/schedule-tab.tsx": "ceb67ec3a81b9aaf52a4d6fddbff345134b8f38fe1b9150d9360d5ff603b90dd",
         "src/web/pages/settings/settings-nav.tsx": "0c74f6177c004092f0e819001b99072b58718cc30e404e06e03be064bb0bddee",
         "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
-        "src/web/pages/settings/system-tab.tsx": "c4a4982336f7b2bc6ff4602a495feccd462c4b337915d464625521c9bf41f225",
+        "src/web/pages/settings/system-tab.tsx": "998b35bb655c2115b906999d5209a41dd54807532fd10b2e93cb5838e76d878e",
         "src/web/pages/settings/tabs.ts": "bea4ef7cb8d997b8d8cdc739cae8174d50ca6ebcf742dcb007d0b79eba723c71",
         "src/web/pages/settings/targets-tab.tsx": "a85ae3154db3e45ca748465f34f32f7ba1244184b40ad93be76e1e43e0ae7bb0",
         "src/web/pages/settings/types.ts": "fd701cb112b64dd6c1de1c3cf5c25fc395772dbb705f202a76326fd5d2757a71",
@@ -526,14 +522,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d",
+      "digest": "910783ecb9bbd4e035bfd3a00b6f01d16a256dc4ccd7c0a811e6b984ab07cc7e",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Schedule picker drops the raw cron line; presets now show their run time in server time, reflected in the Unreleased Discovery Modes entry. Guides do not describe the old line.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Document the Integrations list on the System settings Health section in all locales.",
         "breaking": "none",
         "migration": "",
-        "digest": "059caa89a4861970f34e5a7491052633a9dc89398defbb0aa6c3715702365a1d"
+        "digest": "910783ecb9bbd4e035bfd3a00b6f01d16a256dc4ccd7c0a811e6b984ab07cc7e"
       }
     },
     "features": {

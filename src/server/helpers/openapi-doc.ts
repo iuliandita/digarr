@@ -301,15 +301,54 @@ export const openapiDoc = {
       },
       JobHealth: {
         type: 'object',
-        required: ['pipeline', 'subscriptions', 'playlists', 'librarySync', 'sources'],
+        required: [
+          'pipeline',
+          'subscriptions',
+          'playlists',
+          'librarySync',
+          'sources',
+          'integrations',
+        ],
         properties: {
           pipeline: { type: 'object', additionalProperties: true },
           subscriptions: { type: 'object', additionalProperties: true },
           playlists: { type: 'object', additionalProperties: true },
           librarySync: { type: 'object', additionalProperties: true },
           sources: { type: 'object', additionalProperties: true },
+          integrations: {
+            type: 'array',
+            items: { $ref: '#/components/schemas/IntegrationHealth' },
+          },
         },
         additionalProperties: true,
+      },
+      IntegrationHealth: {
+        type: 'object',
+        required: ['kind', 'name', 'status', 'lastSuccess', 'lastError'],
+        properties: {
+          kind: {
+            type: 'string',
+            enum: ['target', 'library', 'source', 'subscription', 'scrobbler'],
+          },
+          name: { type: 'string' },
+          status: { type: 'string', enum: ['ok', 'failing'] },
+          lastSuccess: { type: ['string', 'null'], format: 'date-time' },
+          lastError: {
+            oneOf: [
+              { type: 'null' },
+              {
+                type: 'object',
+                required: ['at', 'message'],
+                properties: {
+                  at: { type: 'string', format: 'date-time' },
+                  message: { type: ['string', 'null'] },
+                },
+                additionalProperties: false,
+              },
+            ],
+          },
+        },
+        additionalProperties: false,
       },
       ProbeSuccess: {
         type: 'object',
