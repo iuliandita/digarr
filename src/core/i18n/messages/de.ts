@@ -1874,4 +1874,16 @@ export const de = {
   'dashboard.yourDecisions': 'Deine Entscheidungen',
   'dashboard.listening': 'Hörverlauf',
   'dashboard.topArtists': 'Top-Künstler',
+  'missingAlbums.action': 'Fehlende Alben abrufen',
+  'missingAlbums.title': 'Fehlende Studioalben',
+  'missingAlbums.description': 'Wähle die Alben aus, die du für {artist} möchtest.',
+  'missingAlbums.selected': '{selected} von {total} ausgewählt',
+  'missingAlbums.confirm': 'Ausgewählte Alben abrufen',
+  'missingAlbums.empty': 'Du hast bereits alle Studioalben.',
+  'missingAlbums.loadError': 'Fehlende Alben konnten nicht geladen werden.',
+  'missingAlbums.approveError':
+    'Die ausgewählten Alben konnten nicht freigegeben werden. Versuch es erneut.',
+  'missingAlbums.result': '{succeeded} freigegeben, {failed} fehlgeschlagen.',
+  'missingAlbums.failed': 'Fehlgeschlagen - erneut versuchen',
+  'missingAlbums.success': 'Freigegeben',
 } as const
