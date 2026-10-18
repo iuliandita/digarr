@@ -42,6 +42,16 @@ Admins can inspect Job History for failures and partial results; the Failures on
 
 This label does not stop the job or prove that it has stopped making progress. A slow, healthy run can cross the limit; check its progress before retrying.
 
+## Connections and artist images
+
+Settings > Connections lists saved server integrations and Your connections, including incomplete saved credentials. Use Add connection to search the grouped picker, select a service, and open its existing setup form. Save moves it into the list; Disconnect returns it to the picker. Missing server services appear in an extra admin group. Server rows are read-only for non-admins; their own connection forms remain editable.
+
+The admin-only Show experimental integrations switch sits at the bottom of the picker. It controls TIDAL app/personal rows, TIDAL and Bandcamp search-source choices, and experimental discovery-mode choices. It does not revoke credentials, stop scheduled jobs, or reject direct API requests. The setting defaults to off for new and upgraded installations. On first startup after upgrade, a missing preference is initialized to on only for saved TIDAL app credentials or any user's TIDAL OAuth connection. A completed legacy setup with only Bandcamp stays off; enable the toggle to reach Bandcamp search. An explicit saved choice always wins and survives restarts.
+
+Artist images holds the TheAudioDB key, Fanart.tv key, image proxy, metadata fallback URL, and Wikidata switch previously under Recommendations > Advanced. Saves keep the existing API keys and scopes: Fanart.tv and the fallback URL remain personal preferences; AudioDB, proxy, and Wikidata remain server settings. Admins edit this row; members see it read-only. A partial-save notice distinguishes a successful personal write from a failed server write. Recommendations now saves scoring, genre, discovery, and approval preferences only.
+
+This adds a boolean in the existing preferences JSON, with no schema migration. Existing backups remain readable. A normal application backup preserves the setting; an older image ignores it, and upgrading again preserves an explicit choice. No environment variables, container defaults, storage paths, or companion templates change.
+
 ## Boolean environment settings
 
 `DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `PROXY_AUTH_ENABLED`, and `SKIP_TLS_VERIFY` accept `true`, `false`, `1`, or `0`, in any letter case. Any other value stops startup with an error naming the variable. Earlier releases read every unrecognized value, including `TRUE`, as `false`; check these variables before upgrading. An empty value keeps the default.
@@ -142,7 +152,7 @@ For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`
 
 ## Connecting Plex listeners
 
-In Settings > Connections > Your connections, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
+In Settings > Connections, choose Add connection > Plex if it is not listed. In its form, enter your Plex server URL and token, test the connection, select the music library and Plex listener, and save. Each Digarr user selects their own listener on the same shared server. Digarr uses that listener's playback history for recent and frequent artists, and Plex similarity metadata for discovery when available. Lidarr and a scrobbling service are optional; existing Charts and other sources can supplement Plex.
 
 Settings reloads music-library names from your saved Plex connection. If Plex is unavailable or the selected library no longer exists, the saved section ID remains visible; loading the names does not change your selection.
 

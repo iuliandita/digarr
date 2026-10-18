@@ -17,6 +17,7 @@ export type Settings = {
   tidalClientId?: string
   tidalClientSecret?: string
   _tidalAppConfigured?: boolean
+  _notificationsConfigured?: boolean
   oidcIssuerUrl?: string
   oidcClientId?: string
   oidcClientSecret?: string

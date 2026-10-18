@@ -175,6 +175,7 @@ import {
   getDigestDeliveryPositions,
   getSettings,
   initializeDigestDeliveryPositions,
+  initializeExperimentalIntegrations,
   isSetupComplete,
   setDigestDeliveryPosition,
   updateSettings,
@@ -264,6 +265,7 @@ await runPreFlightCheck(db)
 // Idempotent; selects the migrator matching the active backend.
 await runMigrations()
 console.log('Database migrations applied')
+await initializeExperimentalIntegrations(db)
 
 const legacyEncrypted = await encryptLegacyPlaintext(db)
 if (legacyEncrypted > 0) {
@@ -1423,6 +1425,8 @@ const app = createApp({
       const storedSettings = await getSettings(db)
       return buildSearchSourceCatalog({
         hasSpotifyOAuth: Boolean(spotifyOAuth),
+        showExperimentalIntegrations:
+          storedSettings?.preferences?.showExperimentalIntegrations ?? false,
         hasTidalSearch: Boolean(storedSettings?.tidalClientId && storedSettings?.tidalClientSecret),
       })
     },

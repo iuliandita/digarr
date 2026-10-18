@@ -35,9 +35,28 @@ describe('SearchPage', () => {
     expect(sources).toHaveAttribute('aria-expanded', 'false')
     fireEvent.click(sources)
     fireEvent.click(await screen.findByRole('button', { name: 'Deezer' }))
+    expect(screen.queryByRole('button', { name: /Bandcamp|TIDAL/ })).toBeNull()
     expect(screen.getByRole('button', { name: 'Sources (1)' })).toBeInTheDocument()
 
     fireEvent.change(screen.getByRole('searchbox'), { target: { value: 'boards' } })
     await waitFor(() => expect(searchArtists).toHaveBeenLastCalledWith('boards', ['deezer']))
+  })
+  it('shows experimental sources with badges when the source catalog includes them', async () => {
+    vi.mocked(getSearchSources).mockResolvedValue({
+      sources: [
+        { id: 'tidal', label: 'TIDAL', available: true, stability: 'experimental' },
+        { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' },
+      ],
+    })
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <I18nProvider>
+          <SearchPage />
+        </I18nProvider>
+      </QueryClientProvider>,
+    )
+    fireEvent.click(screen.getByRole('button', { name: 'Sources' }))
+    expect(await screen.findByRole('button', { name: /TIDAL.*Experimental/ })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Bandcamp.*Experimental/ })).toBeInTheDocument()
   })
 })

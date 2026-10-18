@@ -636,6 +636,7 @@ export type Preferences = {
   subscriptionMode?: 'active' | 'ai-only' | null
   fanartApiKey?: string
   metadataFallbackUrl?: string
+  showExperimentalIntegrations?: boolean
   netNewAlbumDiscovery?: boolean // C: promote AI suggestedAlbum to a first-class album rec
   listenbrainzLoveEnabled?: boolean
   listenbrainzPlaylistEnabled?: boolean
@@ -672,6 +673,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   listenbrainzLoveEnabled: false,
   listenbrainzPlaylistEnabled: false,
   lastfmLoveEnabled: false,
+  showExperimentalIntegrations: false,
 }
 
 /**

@@ -78,6 +78,7 @@ export const preferencesSchema = z
     listenbrainzLoveEnabled: z.boolean().optional(),
     listenbrainzPlaylistEnabled: z.boolean().optional(),
     lastfmLoveEnabled: z.boolean().optional(),
+    showExperimentalIntegrations: z.boolean().optional(),
     primaryGenres: preferredGenreListSchema.optional(),
     secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),
