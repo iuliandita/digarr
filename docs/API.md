@@ -94,9 +94,9 @@ and bulk ignore, and settings service probes. Some mutation bodies remain generi
 |--------|------|------|-------------|
 | POST | `/api/v1/mcp` | Personal API token | Stateless Streamable HTTP MCP endpoint; no cookie, session bearer, proxy, or legacy token authentication |
 | GET | `/api/v1/mcp` | Personal API token | Returns 405; no persistent server event stream |
-| DELETE | `/api/v1/mcp` | Personal API token | Returns 405; no MCP session to terminate |
+| DELETE | `/api/v1/mcp` | Personal API token | Returns 405; no MCP session to terminate (read scope returns 403) |
 
-Tools: `list_recommendations`, `get_recommendation`, `approve_recommendation`, `reject_recommendation`, `block_recommendation`, `run_scan`, `run_discovery_mode`, `get_scan_status`, `get_job_status`, `search_artists`, and `list_playlists`. Inputs are validated with Zod. Read scope permits MCP POST messages and read tools; approve, reject, block, scan, and discovery tools require write or admin scope. Recommendations, playlists, and job status are owner-scoped. An admin-owned read/write token never gains admin privileges.
+Tools: `list_recommendations`, `get_recommendation`, `approve_recommendation`, `reject_recommendation`, `block_recommendation`, `run_scan`, `run_discovery_mode`, `get_scan_status`, `get_job_status`, `search_artists`, and `list_playlists`. Inputs are validated with Zod. POST accepts single JSON-RPC messages only (batch arrays return 400), with a 1 MiB request body limit enforced for declared and streamed bodies (413 when exceeded). Read scope permits MCP POST messages and read tools; approve, reject, block, scan, and discovery tools require write or admin scope. Recommendations, playlists, and job status are owner-scoped. An admin-owned read/write token never gains admin privileges.
 
 Unlike REST problem details, MCP tool failures return `isError: true` results and protocol failures use MCP JSON-RPC errors. HTTP authentication and rate-limit failures still use the existing problem-details responses. No session ID or server-side MCP session store is used. See the [MCP client guide](MCP.md) for configuration, tool inputs, permissions, and transport behavior.
 ---
@@ -285,8 +285,8 @@ budgets), but a run requested while one is active is **queued FIFO**, not
 rejected: the response is still 202 with `queued: true` and the caller's 1-based
 `position`. A given user is deduped (a double-click does not stack two runs).
 The queue drains automatically when the active run finishes. The queue is
-in-memory and per-process. Scan starts are limited to five per minute per user,
-shared between this route and the MCP `run_scan` tool.
+in-memory and per-process. This REST route has no additional scan-start rate limit.
+The MCP `run_scan` tool separately permits five start requests per minute per user.
 
 `POST /api/v1/pipeline/cancel` stops the in-flight run only for the user who started it or an admin, and removes only the caller's queued run; other users' queued runs keep their place. In v2.0.0, `cancelled: true` accepts a cooperative stop request; it does not report that the worker has stopped. Storage checks between complete artist/recommendation units, and automatic approval checks before new recommendations and targets. An operation already in flight finishes and records its actual result before stopping. Saved recommendations and remote additions remain; cancellation does not roll them back. An actual target or database failure remains a failure even when cancellation was requested. Interrupted storage marks its batch failed, while the pipeline job records cancellation after cleanup succeeds.
 
@@ -370,7 +370,7 @@ The parser coerces rather than rejects most fields:
 - a mode that is currently unavailable returns `400` with its reason; a pipeline already running returns `409` problem+json
 
 **POST /api/v1/discovery-modes/run** behavior:
-- Starts are limited to five per minute per user, shared with the MCP `run_discovery_mode` tool
+- This REST route has no additional start rate limit; the MCP `run_discovery_mode` tool separately permits five start requests per minute per user
 - Returns `202 { "message": "Discovery run started", "jobId": 123 }` after validation; the actual run continues in the background
 - The accepted response includes `jobId`. Admin clients can poll `/api/v1/jobs/:id`; job endpoints return `403` for non-admins. MCP clients can use `get_job_status` for a safe status projection of their own jobs. Ordinary users can refresh Discover to see stored recommendations; the bundled mode card shows the accepted-run feedback, not an unrestricted job-detail subscription
 - The server re-evaluates availability and execution context from the current user connections before starting the run

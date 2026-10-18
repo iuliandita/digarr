@@ -5,6 +5,7 @@ import { type Context, Hono } from 'hono'
 import * as z from 'zod'
 import { envConfig } from '@/config/env'
 import { REJECTION_REASONS } from '@/core/recommendations/rejection-reasons'
+import { isValidStatus } from '@/core/recommendations/statuses'
 import { getPlaylistsByUser } from '@/db/queries/playlists'
 import type { RecommendationWithArtist } from '@/db/queries/recommendations'
 import type { AppDependencies } from '@/server'
@@ -15,6 +16,16 @@ import type { HonoEnv } from '@/server/types'
 import { VERSION } from '@/version'
 import { pipelineRoutes } from './pipeline'
 import { recommendationRoutes } from './recommendations'
+
+const MAX_BODY_BYTES = 1024 * 1024
+const settingsSchema = z
+  .record(z.string().min(1).max(64), z.unknown())
+  .refine((value) => Object.keys(value).length <= 64, 'At most 64 settings are allowed')
+  .refine(
+    (value) => new TextEncoder().encode(JSON.stringify(value)).byteLength <= 16 * 1024,
+    'Settings must not exceed 16 KiB',
+  )
+type OperationsEnv = HonoEnv & { Bindings: { requestContext: Context<HonoEnv> } }
 
 const idSchema = z.number().int().positive()
 const rejectionInput = {
@@ -62,22 +73,10 @@ function projectRecommendation(rec: RecommendationWithArtist): Record<string, un
   }
 }
 
-function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono<HonoEnv>) {
+function createServer(deps: AppDependencies, c: Context<HonoEnv>, operations: Hono<OperationsEnv>) {
   const userId = c.get('userId')
   if (!userId || c.get('authMethod') !== 'api-token') throw new ToolFailure('Not authenticated')
   const server = new McpServer({ name: 'digarr', version: VERSION })
-
-  // Dispatch fixed internal handlers to keep approval and discovery behavior shared with the API.
-  const operations = new Hono<HonoEnv>()
-  operations.onError(() => new Response(null, { status: 500 }))
-  operations.use('*', async (inner, next) => {
-    inner.set('userId', userId)
-    inner.set('authMethod', 'api-token')
-    inner.set('apiTokenScope', c.get('apiTokenScope'))
-    await next()
-  })
-  operations.route('/', recommendationRoutes(deps))
-  operations.route('/', pipeline)
 
   async function dispatch(path: string, method: 'GET' | 'POST' | 'PATCH', body?: unknown) {
     const headers = new Headers()
@@ -92,7 +91,7 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono
         headers,
         body: body === undefined ? undefined : JSON.stringify(body),
       }),
-      c.env,
+      { requestContext: c },
     )
     if (!response.ok) {
       const message =
@@ -152,6 +151,14 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono
     },
     true,
     async (input) => {
+      if (
+        input.status !== undefined &&
+        !input.status.split(',').every((status) => isValidStatus(status.trim()))
+      ) {
+        throw new ToolFailure(
+          'Use a valid recommendation status or comma-separated list of statuses',
+        )
+      }
       const page = await deps.listRecommendations({ ...input, userId })
       return { items: page.items.map(projectRecommendation), total: page.total }
     },
@@ -209,6 +216,9 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono
       rejectionInput,
       false,
       async ({ id, ...options }) => {
+        if (options.reason !== 'other' && options.reasonText?.trim()) {
+          throw new ToolFailure('reasonText is only allowed when reason is other')
+        }
         const output = await dispatch(`/api/v1/recommendations/${id}`, 'PATCH', {
           ...options,
           status: 'rejected',
@@ -234,8 +244,8 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono
     {
       modeId: z.string().trim().min(1).max(100),
       settingsMode: z.string().max(64).optional(),
-      rawUserSettings: z.record(z.string(), z.unknown()).optional(),
-      normalizedSettings: z.record(z.string(), z.unknown()).optional(),
+      rawUserSettings: settingsSchema.optional(),
+      normalizedSettings: settingsSchema.optional(),
     },
     false,
     async (input) => {
@@ -337,8 +347,32 @@ function createServer(deps: AppDependencies, c: Context<HonoEnv>, pipeline: Hono
 
 export function mcpRoutes(deps: AppDependencies, pipeline = pipelineRoutes(deps)) {
   const router = new Hono<HonoEnv>()
+  const operations = new Hono<OperationsEnv>()
+  operations.onError(() => new Response(null, { status: 500 }))
+  operations.use('*', async (inner, next) => {
+    const outer = inner.env.requestContext
+    inner.set('userId', outer.get('userId'))
+    inner.set('authMethod', outer.get('authMethod'))
+    inner.set('apiTokenScope', outer.get('apiTokenScope'))
+    await next()
+  })
+  for (const path of ['/api/v1/pipeline/run', '/api/v1/discovery-modes/run']) {
+    operations.use(
+      path,
+      rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: path, getIp: () => null }),
+    )
+  }
+  operations.route('/', recommendationRoutes(deps))
+  operations.route('/', pipeline)
   router.use('/api/v1/mcp', rateLimiter({ windowMs: 60_000, max: 120, keyPrefix: 'mcp' }))
   const handle = async (c: Context<HonoEnv>) => {
+    if (!c.get('userId') || c.get('authMethod') !== 'api-token') {
+      c.header('WWW-Authenticate', 'Bearer realm="digarr"')
+      return c.json(
+        { jsonrpc: '2.0', id: null, error: { code: -32000, message: 'Not authenticated' } },
+        401,
+      )
+    }
     const origin = c.req.header('Origin')
     if (origin !== undefined && origin !== new URL(envConfig.allowedOrigin ?? c.req.url).origin) {
       return c.json(
@@ -353,14 +387,69 @@ export function mcpRoutes(deps: AppDependencies, pipeline = pipelineRoutes(deps)
         405,
       )
     }
-    const server = createServer(deps, c, pipeline)
+    const tooLarge = () =>
+      c.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: { code: -32000, message: 'Request body must not exceed 1 MiB' },
+        },
+        413,
+      )
+    const contentLength = c.req.header('Content-Length')
+    if (contentLength !== undefined && Number(contentLength) > MAX_BODY_BYTES) return tooLarge()
+    let parsedBody: unknown
+    try {
+      const reader = c.req.raw.body?.getReader()
+      const chunks: Uint8Array[] = []
+      let size = 0
+      if (reader) {
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            size += value.byteLength
+            if (size > MAX_BODY_BYTES) {
+              void reader.cancel().catch(() => {})
+              return tooLarge()
+            }
+            chunks.push(value)
+          }
+        } finally {
+          reader.releaseLock()
+        }
+      }
+      const bytes = new Uint8Array(size)
+      let offset = 0
+      for (const chunk of chunks) {
+        bytes.set(chunk, offset)
+        offset += chunk.byteLength
+      }
+      parsedBody = JSON.parse(new TextDecoder().decode(bytes))
+    } catch {
+      return c.json(
+        { jsonrpc: '2.0', id: null, error: { code: -32700, message: 'Invalid JSON' } },
+        400,
+      )
+    }
+    if (Array.isArray(parsedBody)) {
+      return c.json(
+        {
+          jsonrpc: '2.0',
+          id: null,
+          error: { code: -32600, message: 'Batch requests are not supported' },
+        },
+        400,
+      )
+    }
+    const server = createServer(deps, c, operations)
     const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: undefined,
       enableJsonResponse: true,
     })
     try {
       await server.connect(transport)
-      return await transport.handleRequest(c.req.raw)
+      return await transport.handleRequest(c.req.raw, { parsedBody })
     } catch {
       return c.json(
         { jsonrpc: '2.0', id: null, error: { code: -32603, message: 'Internal server error' } },

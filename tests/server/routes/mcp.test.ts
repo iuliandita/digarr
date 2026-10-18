@@ -21,6 +21,7 @@ import {
   recommendations,
   users,
 } from '@/db/schema'
+import { setMaintenance } from '@/server/maintenance'
 import { SESSION_COOKIE_NAME } from '@/server/middleware/session-cookie'
 import { createTestApp } from '../../helpers/test-app'
 import { makeTestDb } from '../../helpers/test-db'
@@ -209,6 +210,159 @@ describe('MCP endpoint', () => {
     },
   )
 
+  it.each([
+    { batch: [] },
+    {
+      batch: [
+        {
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name: 'run_scan', arguments: {} },
+        },
+      ],
+    },
+  ])('rejects batch arrays before any dispatch: $batch', async ({ batch }) => {
+    const response = await app.request(root, {
+      method: 'POST',
+      headers: { ...headers, Authorization: `Bearer ${token}` },
+      body: JSON.stringify(batch),
+    })
+    expect(response.status).toBe(400)
+    expect(response.headers.get('Content-Type')).toContain('application/json')
+    expect(await response.json()).toMatchObject({
+      jsonrpc: '2.0',
+      id: null,
+      error: { code: -32600 },
+    })
+    expect(deps.orchestrator.enqueue).not.toHaveBeenCalled()
+  })
+
+  it.each(['declared', 'missing', 'lying', 'multibyte'] as const)(
+    'rejects oversized bodies with %s Content-Length',
+    async (kind) => {
+      const payload = JSON.stringify({
+        jsonrpc: '2.0',
+        id: 1,
+        method: 'tools/list',
+        padding: (kind === 'multibyte' ? 'é' : 'x').repeat(1024 * 1024),
+      })
+      const bytes = new TextEncoder().encode(payload)
+      let offset = 0
+      const stream = new ReadableStream<Uint8Array>({
+        pull(controller) {
+          if (offset === bytes.length) return controller.close()
+          const end = Math.min(offset + 16384, bytes.length)
+          controller.enqueue(bytes.slice(offset, end))
+          offset = end
+        },
+      })
+      const request = new Request(`http://localhost${root}`, {
+        method: 'POST',
+        headers: {
+          ...headers,
+          Authorization: `Bearer ${token}`,
+          ...(kind === 'declared'
+            ? { 'Content-Length': String(bytes.length) }
+            : kind === 'lying'
+              ? { 'Content-Length': '1' }
+              : {}),
+        },
+        body: stream,
+        duplex: 'half',
+      } as RequestInit)
+      const response = await app.fetch(request)
+      expect(response.status).toBe(413)
+      expect(await response.json()).toMatchObject({
+        jsonrpc: '2.0',
+        id: null,
+        error: { code: -32000 },
+      })
+      expect(deps.listRecommendations).not.toHaveBeenCalled()
+    },
+  )
+
+  it('rejects a declared oversized length before reading even a small body', async () => {
+    const response = await app.request(root, {
+      method: 'POST',
+      headers: {
+        ...headers,
+        Authorization: `Bearer ${token}`,
+        'Content-Length': String(1024 * 1024 + 1),
+      },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }),
+    })
+    expect(response.status).toBe(413)
+  })
+
+  it('keeps early setup and maintenance failures as problem details', async () => {
+    vi.mocked(deps.isSetupComplete).mockResolvedValue(false)
+    const setup = await rpc('tools/list')
+    expect(setup.status).toBe(403)
+    expect(setup.headers.get('Content-Type')).toContain('application/problem+json')
+    expect(await setup.json()).toMatchObject({ status: 403, detail: 'Setup not complete' })
+    vi.mocked(deps.isSetupComplete).mockResolvedValue(true)
+    setMaintenance(true)
+    try {
+      const maintenance = await rpc('tools/list')
+      expect(maintenance.status).toBe(503)
+      expect(maintenance.headers.get('Content-Type')).toContain('application/problem+json')
+      expect(await maintenance.json()).toMatchObject({ status: 503, type: '/problems/maintenance' })
+    } finally {
+      setMaintenance(false)
+    }
+  })
+
+  it('rejects DELETE for a read-scope token before protocol handling', async () => {
+    const response = await app.request(root, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${await mint('read')}` },
+    })
+    expect(response.status).toBe(403)
+    expect(response.headers.get('Content-Type')).toContain('application/problem+json')
+  })
+
+  it.each([
+    {
+      rawUserSettings: Object.fromEntries(
+        Array.from({ length: 65 }, (_, i) => [`setting${i}`, true]),
+      ),
+    },
+    { normalizedSettings: { ['x'.repeat(65)]: true } },
+    { rawUserSettings: { value: 'x'.repeat(16384) } },
+  ])('bounds discovery settings', async (settings) => {
+    expect(
+      (await call('run_discovery_mode', { modeId: 'artist_radio', ...settings })).isError,
+    ).toBe(true)
+    expect(deps.runDiscoveryMode).not.toHaveBeenCalled()
+  })
+
+  it('gives fixed validation hints without echoing supplied inputs', async () => {
+    const rejected = await call('reject_recommendation', {
+      id: 1,
+      reason: 'wrong_style',
+      reasonText: 'private-input',
+    })
+    expect(rejected).toMatchObject({
+      isError: true,
+      content: [{ text: 'reasonText is only allowed when reason is other' }],
+    })
+    expect(deps.rejectRecommendation).not.toHaveBeenCalled()
+    const invalidStatus = await call('list_recommendations', { status: 'private-input' })
+    expect(invalidStatus).toMatchObject({
+      isError: true,
+      content: [{ text: 'Use a valid recommendation status or comma-separated list of statuses' }],
+    })
+    expect(JSON.stringify([rejected, invalidStatus])).not.toContain('private-input')
+    expect(deps.listRecommendations).not.toHaveBeenCalled()
+  })
+
+  it('isolates concurrent dispatch contexts for different users', async () => {
+    await Promise.all([call('run_scan'), call('run_scan', {}, await mint('write', 2))])
+    expect(deps.orchestrator.enqueue).toHaveBeenCalledWith(expect.objectContaining({ userId: 1 }))
+    expect(deps.orchestrator.enqueue).toHaveBeenCalledWith(expect.objectContaining({ userId: 2 }))
+  })
+
   it('returns only the token owner recommendations and includes their explanation', async () => {
     const read = await mint('read')
     const result = await call('list_recommendations', { status: 'pending', limit: 10 }, read)
@@ -313,19 +467,61 @@ describe('MCP endpoint', () => {
     expect((await getRecommendation(db, 2))?.status).toBe('pending')
   })
 
-  it('shares scan budgets with REST and keeps each user independent', async () => {
-    for (let i = 0; i < 3; i++) {
+  it('limits only MCP scans per user across tokens and IPs, leaving REST scans unrestricted', async () => {
+    for (let i = 0; i < 7; i++) {
       const response = await app.request('/api/v1/pipeline/run', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       })
       expect(response.status).toBe(202)
+      expect(response.headers.get('X-RateLimit-Limit')).not.toBe('5')
     }
-    for (let i = 0; i < 2; i++) expect((await call('run_scan')).isError).not.toBe(true)
-    expect((await call('run_scan')).isError).toBe(true)
-    expect(deps.orchestrator.enqueue).toHaveBeenCalledTimes(5)
+    for (let i = 0; i < 5; i++) expect((await call('run_scan')).isError).not.toBe(true)
+    const response = await app.request(
+      root,
+      {
+        method: 'POST',
+        headers: { ...headers, Authorization: `Bearer ${await mint()}` },
+        body: JSON.stringify({
+          jsonrpc: '2.0',
+          id: 1,
+          method: 'tools/call',
+          params: { name: 'run_scan', arguments: {} },
+        }),
+      },
+      { remoteAddress: '192.0.2.5' },
+    )
+    expect((await response.json()).result).toMatchObject({
+      isError: true,
+      content: [{ type: 'text', text: 'Too many requests' }],
+    })
+    expect(deps.orchestrator.enqueue).toHaveBeenCalledTimes(12)
     expect((await call('run_scan', {}, await mint('write', 2))).isError).not.toBe(true)
-    expect(deps.orchestrator.enqueue).toHaveBeenCalledTimes(6)
+    expect(deps.orchestrator.enqueue).toHaveBeenCalledTimes(13)
+    expect(
+      (
+        await app.request('/api/v1/pipeline/run', {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      ).status,
+    ).toBe(202)
+  })
+
+  it('limits MCP discovery dispatch without limiting REST discovery requests', async () => {
+    for (let i = 0; i < 5; i++) await call('run_discovery_mode', { modeId: 'unknown-mode' })
+    expect(JSON.stringify(await call('run_discovery_mode', { modeId: 'unknown-mode' }))).toContain(
+      'Too many requests',
+    )
+    for (let i = 0; i < 7; i++) {
+      const response = await app.request('/api/v1/discovery-modes/run', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ modeId: 'unknown-mode' }),
+      })
+      expect(response.status).toBe(400)
+      expect(response.headers.get('X-RateLimit-Limit')).not.toBe('5')
+    }
   })
 
   it('keeps scan status behind the shared admin policy and returns safe own-job status', async () => {

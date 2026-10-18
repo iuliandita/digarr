@@ -6,7 +6,6 @@ import { legacyErrorToProblem } from '@/server/helpers/problem'
 export function problemJsonErrors(): MiddlewareHandler {
   return async (c, next) => {
     await next()
-    if (c.req.path === '/api/v1/mcp') return
     const res = c.res
     if (res.status < 400) return
     if (!res.headers.get('content-type')?.startsWith('application/json')) return
@@ -17,6 +16,7 @@ export function problemJsonErrors(): MiddlewareHandler {
       return
     }
     if (!body || typeof body !== 'object' || Array.isArray(body) || !('error' in body)) return
+    if (c.req.path === '/api/v1/mcp' && 'jsonrpc' in body && body.jsonrpc === '2.0') return
     const headers = new Headers(res.headers)
     headers.set('content-type', 'application/problem+json')
     headers.delete('content-length')

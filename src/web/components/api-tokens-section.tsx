@@ -28,6 +28,7 @@ export function ApiTokensSection({ isAdmin }: { isAdmin: boolean }) {
         {
           mcpServers: {
             digarr: {
+              type: 'http',
               url: `${window.location.origin}/api/v1/mcp`,
               headers: { Authorization: `Bearer ${secret}` },
             },

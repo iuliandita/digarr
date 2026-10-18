@@ -85,6 +85,7 @@ describe('Account API tokens', () => {
     expect(JSON.parse(config)).toEqual({
       mcpServers: {
         digarr: {
+          type: 'http',
           url: `${window.location.origin}/api/v1/mcp`,
           headers: { Authorization: `Bearer ${secret}` },
         },

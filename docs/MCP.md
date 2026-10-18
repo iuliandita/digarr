@@ -12,6 +12,7 @@ For a client that accepts `mcpServers` configuration:
 {
   "mcpServers": {
     "digarr": {
+      "type": "http",
       "url": "https://digarr.example/api/v1/mcp",
       "headers": {
         "Authorization": "Bearer dga_<your-token>"
@@ -21,7 +22,7 @@ For a client that accepts `mcpServers` configuration:
 }
 ```
 
-Client configuration formats vary. Choose Streamable HTTP if your client asks for a transport. A client that supports only stdio needs a compatible remote-MCP bridge. Treat the configuration as a password: it contains your full token. Revoke the token in Account settings to disconnect the client. See [personal API tokens](AUTHENTICATION.md#personal-api-tokens) for expiry, recovery, and revocation details.
+MCP client configuration formats differ slightly; this example uses the common remote HTTP shape. Choose Streamable HTTP if your client asks for a transport. A client that supports only stdio needs a compatible remote-MCP bridge. Treat the configuration as a password: it contains your full token. Revoke the token in Account settings to disconnect the client. See [personal API tokens](AUTHENTICATION.md#personal-api-tokens) for expiry, recovery, and revocation details.
 
 Only personal API tokens in `Authorization: Bearer` authenticate this endpoint. Browser cookies, session bearer tokens, query tokens, the legacy deployment token, and trusted sign-in proxy headers do not grant MCP access. This also holds before initial setup. No token means no MCP access. Use HTTPS for remote connections.
 
@@ -45,14 +46,14 @@ A `read` token can initialize, list tools, and call read tools, even though MCP 
 
 Recommendation statuses match the [REST API](API.md#recommendations). `decades` is a comma-separated string such as `80s,90s`; a genre filter is not exposed. Rejection reasons are `already_own`, `wrong_style`, `not_interested`, `tried_didnt_like`, `not_right_now`, and `other`. Freeform `reasonText` is valid only with `other`, up to 200 characters. `not_right_now` cannot be a permanent block.
 
-Approval uses the same target delivery and persistence path as REST, including album handling, target defaults, and failure status. Failed or partially failed approval delivery sets `isError: true` and retains safe status and per-target outcomes; provider error text is omitted. Review those outcomes before retrying. A scan returns its enqueue outcome; poll `get_scan_status` for progress. A named discovery run returns a `jobId`; poll `get_job_status` for completion. Discovery mode IDs and settings match the [discovery mode API](API.md#discovery-modes).
+Approval uses the same target delivery and persistence path as REST, including album handling, target defaults, and failure status. Failed or partially failed approval delivery sets `isError: true` and retains safe status and per-target outcomes; provider error text is omitted. Review those outcomes before retrying. A scan returns its enqueue outcome; poll `get_scan_status` for progress. A named discovery run returns a `jobId`; poll `get_job_status` for completion. Discovery mode IDs and settings match the [discovery mode API](API.md#discovery-modes). Each `rawUserSettings` or `normalizedSettings` record permits at most 64 keys (1-64 characters each) and 16 KiB of JSON.
 
 ## Transport and failures
 
-The endpoint is stateless: every HTTP request authenticates the token again and creates a short-lived SDK server and transport. There is no MCP session store, session ID, resumability, or server-initiated event stream. POST uses JSON responses; clients must accept both `application/json` and `text/event-stream` as required by Streamable HTTP. GET and DELETE return `405` (a read token cannot issue DELETE and receives `403`) because there is no persistent stream or session to manage.
+The endpoint is stateless: every HTTP request authenticates the token again and creates a short-lived SDK server and transport. There is no MCP session store, session ID, resumability, or server-initiated event stream. POST accepts one JSON-RPC message per request. Batch arrays return `400`, and request bodies larger than 1 MiB return `413`, including streamed bodies without a Content-Length header. POST uses JSON responses; clients must accept both `application/json` and `text/event-stream` as required by Streamable HTTP. GET and DELETE return `405` (a read token cannot issue DELETE and receives `403`) because there is no persistent stream or session to manage.
 
 The implementation pins the official `@modelcontextprotocol/sdk` v1 package at 1.32.1. This maintenance line implements MCP through protocol version `2025-11-25`. Its Web Standard transport works with Hono and Bun without Node HTTP adapters. Newer protocol versions supported only by the separate v2 packages are outside this endpoint's contract.
 
-Authentication and rate-limit failures use the existing API HTTP status and problem-details responses: `401` for rejected credentials, `429` with `Retry-After` for an exhausted budget. Failed token authentication shares the REST limit of 20 attempts per minute per client IP. The MCP endpoint permits 120 requests per minute per client IP and user. Scan starts and named discovery starts each allow five requests per minute per user, shared with their REST entry points. Rate limits are in memory for one Digarr process. Tool validation, permission, lookup, and execution failures use MCP error results (`isError: true`) with secret-free messages. Raw provider exceptions and target credentials are not returned.
+Authentication and rate-limit failures use the existing API HTTP status and problem-details responses: `401` for rejected credentials, `429` with `Retry-After` for an exhausted budget. Failed token authentication shares the REST limit of 20 attempts per minute per client IP. The MCP endpoint permits 120 requests per minute per client IP and user. The MCP `run_scan` and `run_discovery_mode` tools each allow five start requests per minute per user. These budgets apply only to MCP calls; the REST entry points retain their existing scan queue and single-flight behavior. Rate limits are in memory for one Digarr process. Tool validation, permission, lookup, and execution failures use MCP error results (`isError: true`) with secret-free messages. Raw provider exceptions and target credentials are not returned.
 
 Requests without an `Origin` header work for remote clients. If a client sends `Origin`, it must match Digarr's configured `ALLOWED_ORIGIN`, or the request origin when no override is set. Configure the public origin correctly behind a reverse proxy; do not add cookies or disable token checks to work around a rejected client.

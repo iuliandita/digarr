@@ -33,7 +33,6 @@ import { resolveUserPreferences } from '@/server/helpers/preferences'
 import { problem } from '@/server/helpers/problem'
 import { resolveRequestLocale } from '@/server/locale'
 import { adminGuard, resolveAdmin } from '@/server/middleware/admin-guard'
-import { rateLimiter } from '@/server/middleware/rate-limit'
 import { discoveryModeRunSchema, quickDiscoverSchema } from '@/server/schemas/pipeline'
 import { zJson } from '@/server/schemas/validator'
 import { createPipelineSSEStream } from '@/server/sse'
@@ -43,15 +42,6 @@ let rescanRunning = false
 
 export function pipelineRoutes(deps: AppDependencies) {
   const router = new Hono<HonoEnv>()
-  router.use(
-    '/api/v1/pipeline/run',
-    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'scan', getIp: () => null }),
-  )
-  router.use(
-    '/api/v1/discovery-modes/run',
-    rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'discovery-mode', getIp: () => null }),
-  )
-
   // Intentionally NOT admin-gated: "Run Scan" is a core regular-user action,
   // reachable from the dashboard (TodaysPick) and discover surfaces. Any
   // authenticated user may start a run; single-flight is preserved by the
