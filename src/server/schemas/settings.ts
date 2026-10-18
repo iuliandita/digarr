@@ -25,7 +25,7 @@ const scoringWeightsSchema = z
   .strict()
 
 // Notification channels. Secret string fields (telegram botToken, ntfy token,
-// apprise urls) stay plain z.string() so the masked '***' placeholder round-trips
+// webhook signingSecret, apprise urls) stay plain z.string() so the masked '***' placeholder round-trips
 // on save; only real URLs that are never masked get .url() validation.
 const notificationEvent = z.enum([
   'batch_complete',
@@ -40,7 +40,12 @@ const channelBase = {
   allowPrivateTarget: z.boolean().optional(),
 }
 export const notificationChannel = z.discriminatedUnion('type', [
-  z.object({ ...channelBase, type: z.literal('webhook'), url: z.string().url() }),
+  z.object({
+    ...channelBase,
+    type: z.literal('webhook'),
+    url: z.string().url(),
+    signingSecret: z.string().optional(),
+  }),
   z.object({
     ...channelBase,
     type: z.literal('ntfy'),
