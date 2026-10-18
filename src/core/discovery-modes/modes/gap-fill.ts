@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import type { AlbumCoverage } from '@/core/library/album-coverage'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
 import type { GapFillArtist } from '@/db/queries/gap-fill'
@@ -82,12 +83,14 @@ export function createGapFillMode(injected?: GapFillDeps): DiscoveryModeDefiniti
       // would otherwise starve the event loop (k8s liveness probe gotcha).
       const queue = new PQueue({ concurrency: 2, interval: 200, intervalCap: 2 })
       const perArtist = await Promise.allSettled(
-        artists.map((artist) =>
-          queue.add(async (): Promise<RawDiscoveryCandidate[]> => {
-            const coverage = await deps.getCoverageForArtist(request.userId, artist.mbid)
-            return coverageToReleaseCandidates(coverage, artist.name)
-          }),
-        ),
+        artists
+          .filter((artist) => !isSpecialPurposeArtist(artist.mbid))
+          .map((artist) =>
+            queue.add(async (): Promise<RawDiscoveryCandidate[]> => {
+              const coverage = await deps.getCoverageForArtist(request.userId, artist.mbid)
+              return coverageToReleaseCandidates(coverage, artist.name)
+            }),
+          ),
       )
 
       // Failed runs cannot deliver partial candidates, so retain the whole slice for retry.
