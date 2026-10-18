@@ -1,4 +1,5 @@
-import { and, eq, inArray, isNotNull, isNull, or, sql } from 'drizzle-orm'
+import { and, eq, inArray, isNotNull, isNull, notInArray, or, sql } from 'drizzle-orm'
+import { SPECIAL_PURPOSE_ARTIST_MBIDS } from '@/core/clients/musicbrainz-special-purpose'
 import type { Database } from '@/db'
 import { libraryArtists } from '@/db/schema'
 
@@ -24,6 +25,7 @@ export async function getArtistsForGapFill(
       and(
         or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
         isNotNull(libraryArtists.mbid),
+        notInArray(sql`lower(${libraryArtists.mbid})`, [...SPECIAL_PURPOSE_ARTIST_MBIDS]),
       ),
     )
     .orderBy(sql`${libraryArtists.lastGapCheckAt} asc nulls first`)

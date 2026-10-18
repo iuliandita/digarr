@@ -18,6 +18,44 @@ function album(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
 }
 
 describe('reconcileAlbumsForArtist', () => {
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'skips special-purpose artist %s without MB calls or errors',
+    async (mbid) => {
+      const mbClient = { getReleaseGroups: vi.fn() }
+      const onMbError = vi.fn()
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      try {
+        const rows = await reconcileAlbumsForArtist(
+          mbid,
+          [
+            album({ mbid: ALBUM_MBID, releaseYear: 2007, primaryType: 'Album' }),
+            album({ sourceAlbumId: 'src-2', mbid: 'invalid' }),
+          ],
+          { mbClient, onMbError },
+        )
+        expect(rows).toHaveLength(2)
+        expect(rows[0]).toMatchObject({
+          albumMbid: ALBUM_MBID,
+          artistMbid: mbid,
+          releaseYear: 2007,
+          primaryType: 'Album',
+          matchMethod: null,
+          unreconciledReason: null,
+        })
+        expect(rows[1]).toMatchObject({
+          albumMbid: null,
+          matchMethod: null,
+          unreconciledReason: null,
+        })
+        expect(mbClient.getReleaseGroups).not.toHaveBeenCalled()
+        expect(onMbError).not.toHaveBeenCalled()
+        expect(warn).not.toHaveBeenCalled()
+      } finally {
+        warn.mockRestore()
+      }
+    },
+  )
+
   it('trusts a valid source MBID when it exists in the artist release groups', async () => {
     const mbClient = {
       getReleaseGroups: vi

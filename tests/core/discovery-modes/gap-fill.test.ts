@@ -48,6 +48,28 @@ describe('coverageToReleaseCandidates', () => {
 })
 
 describe('createGapFillMode executor', () => {
+  it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
+    'skips coverage for special-purpose artist %s and advances the rotation',
+    async (mbid) => {
+      const getCoverage = vi.fn()
+      const markChecked = vi.fn()
+      const mode = createGapFillMode({
+        getArtistsForGapFill: vi.fn().mockResolvedValue([{ id: 1, mbid, name: 'Special artist' }]),
+        markArtistsGapChecked: markChecked,
+        getCoverageForArtist: getCoverage,
+      })
+      expect(
+        await mode.executor({
+          userId: 7,
+          normalizedSettings: {},
+          providerContext: {},
+        } as DiscoveryModeRequest),
+      ).toEqual({ candidates: [] })
+      expect(getCoverage).not.toHaveBeenCalled()
+      expect(markChecked).toHaveBeenCalledWith(expect.anything(), [1])
+    },
+  )
+
   it('emits candidates for missing albums and marks artists checked', async () => {
     const getArtists = vi.fn().mockResolvedValue([
       { id: 1, mbid: 'artist-1', name: 'Radiohead' },

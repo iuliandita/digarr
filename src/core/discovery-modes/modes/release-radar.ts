@@ -1,4 +1,5 @@
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
+import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { createLastFmSource } from '@/core/plugins/lastfm'
 import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
 import { createSpotifySource } from '@/core/plugins/spotify'
@@ -125,7 +126,7 @@ export function createReleaseRadarMode(): DiscoveryModeDefinition {
       for (const artist of topArtists) {
         // Spotify top artists carry no MBID; resolve by exact name match or skip.
         const mbid = artist.mbid || (await resolveArtistMbid(musicbrainz, artist.name))
-        if (!mbid || seenMbids.has(mbid)) continue
+        if (!mbid || isSpecialPurposeArtist(mbid) || seenMbids.has(mbid)) continue
         seenMbids.add(mbid)
 
         const releaseGroups = await musicbrainz.getReleaseGroups(mbid)
