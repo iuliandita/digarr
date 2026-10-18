@@ -63,12 +63,17 @@ describe('SubscriptionForm edit payload and providers', () => {
         },
       })
 
+      fireEvent.click(screen.getByText('More options'))
+      fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Updated weekly' } })
+      fireEvent.change(screen.getByLabelText('Schedule'), { target: { value: 'custom' } })
+      fireEvent.change(screen.getByLabelText('Custom'), { target: { value: '30 7 * * 2' } })
       fireEvent.click(screen.getByRole('button', { name: 'Save' }))
 
       await waitFor(() => expect(onSubmit).toHaveBeenCalled())
       const data = onSubmit.mock.calls[0]?.[0] as SubscriptionFormData
       const parsed = updateSubscriptionSchema.safeParse(buildSubscriptionUpdate(data))
       expect(parsed.success).toBe(true)
+      expect(parsed.data).toMatchObject({ name: 'Updated weekly', cron: '30 7 * * 2' })
       expect(parsed.data?.sourceConfig).toEqual(expect.objectContaining(sourceConfig))
     },
   )
@@ -91,9 +96,10 @@ describe('SubscriptionForm edit payload and providers', () => {
     expect(screen.getByRole('button', { name: 'Discogs' })).toHaveAttribute('aria-pressed', 'true')
 
     fireEvent.click(screen.getByRole('button', { name: 'Discogs' }))
+    fireEvent.click(screen.getByText('More options'))
     fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Jazz Weekly' } })
     fireEvent.change(screen.getByLabelText('Genre'), { target: { value: 'jazz' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Schedule' }))
 
     await waitFor(() =>
       expect(onSubmit).toHaveBeenCalledWith(

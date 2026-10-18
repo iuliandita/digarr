@@ -15,6 +15,9 @@ export type SourceResult = {
   ms?: number
   error?: string
   reason?: string
+  seedsQueried?: number
+  seedsWithResults?: number
+  skipReasons?: Record<string, number>
 }
 
 export type JobRunRow = {

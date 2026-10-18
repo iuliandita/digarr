@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { DiscoverySource } from '@/core/plugins/types'
 
 // ---------------------------------------------------------------------------
 // Mock all pipeline stages
@@ -511,6 +512,230 @@ describe('PipelineOrchestrator', () => {
       )
     },
   )
+
+  function makeJobRecorder() {
+    return {
+      start: vi.fn().mockResolvedValue(7),
+      complete: vi.fn().mockResolvedValue(undefined),
+      fail: vi.fn().mockResolvedValue(undefined),
+      cancel: vi.fn().mockResolvedValue(undefined),
+      markStuck: vi.fn().mockResolvedValue(0),
+    }
+  }
+
+  it.each([
+    ['invalid URL', { url: 'invalid' }, 'invalid_url'],
+    ['blocked URL', { url: 'http://169.254.169.254' }, 'invalid_url'],
+    [
+      'unreadable token',
+      { url: 'https://audiomuse.example', skipReason: 'token_unreadable' as const },
+      'token_unreadable',
+    ],
+  ])(
+    'skips AudioMuse with %s without failing or making requests',
+    async (_name, config, reason) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch')
+      const jobRecorder = makeJobRecorder()
+      try {
+        await orchestrator.run({
+          db: makeDb(),
+          settings: { ...defaultSettings, audiomuse: config },
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        })
+        expect(fetchSpy).not.toHaveBeenCalled()
+        expect(jobRecorder.fail).not.toHaveBeenCalled()
+        expect(jobRecorder.complete).toHaveBeenCalledWith(
+          7,
+          expect.objectContaining({
+            sourceResults: expect.objectContaining({
+              audiomuse: { status: 'skipped', reason: `audiomuse_${reason}` },
+            }),
+          }),
+        )
+      } finally {
+        fetchSpy.mockRestore()
+      }
+    },
+  )
+
+  it('omits AudioMuse job results when it is unconfigured', async () => {
+    const jobRecorder = makeJobRecorder()
+    await orchestrator.run({
+      db: makeDb(),
+      settings: { ...defaultSettings, audiomuse: null },
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      jobRecorder,
+    })
+    const result = jobRecorder.complete.mock.calls[0]?.[1]
+    expect(result.sourceResults).not.toHaveProperty('audiomuse')
+  })
+
+  it.each(['unreachable', 'not_indexed', 'artist_unknown'])(
+    'records AudioMuse %s and its seed summary without failing the scan',
+    async (reason) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+        if (reason === 'unreachable') throw new Error('network failure')
+        return new Response(
+          JSON.stringify({ error_code: reason === 'not_indexed' ? 3002 : 1004 }),
+          {
+            status: 404,
+          },
+        )
+      })
+      mockDiscover.mockImplementation(
+        async (_profile, sources, _limit, _seeds, _ratio, options) => {
+          options?.onSeedCount?.(1)
+          const source = sources.listeningSources.find(
+            (source: DiscoverySource) => source.id === 'audiomuse',
+          )
+          try {
+            await source?.getSimilarArtists('Seed')
+          } catch (error) {
+            options?.onSourceFailure?.('audiomuse', (error as Error).message)
+          }
+          return discovered
+        },
+      )
+      const jobRecorder = makeJobRecorder()
+      try {
+        await orchestrator.run({
+          db: makeDb(),
+          settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        })
+        expect(jobRecorder.fail).not.toHaveBeenCalled()
+        expect(jobRecorder.complete).toHaveBeenCalledWith(
+          7,
+          expect.objectContaining({
+            sourceResults: expect.objectContaining({
+              audiomuse: {
+                status: 'skipped',
+                artists: 0,
+                reason: `audiomuse_${reason}`,
+                seedsQueried: 1,
+                seedsWithResults: 0,
+                skipReasons: { [reason]: 1 },
+              },
+            }),
+          }),
+        )
+      } finally {
+        fetchSpy.mockRestore()
+      }
+    },
+  )
+
+  it.each([false, true])(
+    'reports successful AudioMuse seed queries with aggregate skips (all owned: %s)',
+    async (allOwned) => {
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+        const seed = new URL(String(input)).searchParams.get('artist') ?? ''
+        if (Number(seed) < 5) {
+          return new Response(JSON.stringify({ error_code: 1004 }), { status: 404 })
+        }
+        return Response.json([
+          { artist: allOwned ? 'Artist 1' : `New Artist ${seed}`, divergence: 1 },
+        ])
+      })
+      mockDiscover.mockImplementation(
+        async (_profile, sources, _limit, _seeds, _ratio, options) => {
+          options?.onSeedCount?.(30)
+          const source = sources.listeningSources.find(
+            (source: DiscoverySource) => source.id === 'audiomuse',
+          )
+          const artists = []
+          for (let seed = 0; seed < 30; seed++) {
+            try {
+              artists.push(...((await source?.getSimilarArtists(String(seed))) ?? []))
+            } catch (error) {
+              options?.onSourceFailure?.('audiomuse', (error as Error).message)
+            }
+          }
+          return artists
+        },
+      )
+      const jobRecorder = makeJobRecorder()
+      try {
+        await orchestrator.run({
+          db: makeDb(),
+          settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
+          providerRegistry,
+          librarySync: { syncForUser },
+          userId: 1,
+          jobRecorder,
+        })
+        expect(jobRecorder.complete).toHaveBeenCalledWith(
+          7,
+          expect.objectContaining({
+            sourceResults: expect.objectContaining({
+              audiomuse: {
+                status: 'ok',
+                artists: allOwned ? 0 : 25,
+                seedsQueried: 30,
+                seedsWithResults: 25,
+                skipReasons: { artist_unknown: 5 },
+              },
+            }),
+          }),
+        )
+        expect(jobRecorder.fail).not.toHaveBeenCalled()
+      } finally {
+        fetchSpy.mockRestore()
+      }
+    },
+  )
+
+  it('excludes reconciled and name-only library artists and blocked names before resolution', async () => {
+    const db = {
+      ...makeDb(),
+      getBlockedArtistNames: vi.fn().mockResolvedValue(['Blocked Artist']),
+    }
+    const library = await db.getLibraryArtistsForUser()
+    db.getLibraryArtistsForUser.mockImplementation(async (_userId, options) =>
+      options?.onlyReconciled
+        ? library
+        : [...library, { ...library[0], mbid: null, name: 'Name Only Artist' }],
+    )
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json([
+        { artist: 'ARTIST 1', divergence: 0.1 },
+        { artist: 'name only artist', divergence: 0.2 },
+        { artist: 'blocked artist', divergence: 0.3 },
+        { artist: 'New Artist', divergence: 0.4 },
+      ]),
+    )
+    mockDiscover.mockImplementation(async (_profile, sources, _limit, _seeds, _ratio, options) => {
+      options?.onSeedCount?.(1)
+      const source = sources.listeningSources.find(
+        (source: DiscoverySource) => source.id === 'audiomuse',
+      )
+      return (await source?.getSimilarArtists('Seed')) ?? []
+    })
+    try {
+      await orchestrator.run({
+        db,
+        settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+      })
+      expect(mockResolve.mock.calls[0]?.[0]).toEqual([
+        { name: 'New Artist', similarityScore: 1, source: 'audiomuse' },
+      ])
+      expect(db.getLibraryArtistsForUser).toHaveBeenCalledWith(1)
+      expect(db.getBlockedArtistNames).toHaveBeenCalledWith(1)
+    } finally {
+      fetchSpy.mockRestore()
+    }
+  })
 
   it('hydrates genres, records coverage, then starts the background warmer', async () => {
     const db = {

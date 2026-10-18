@@ -4,7 +4,8 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { getRecentTracks, getTopArtists } from '@/web/lib/api'
+import { DEFAULT_DASHBOARD_LAYOUT } from '@/core/dashboard-layout'
+import { getRecentTracks, getTopArtists, getUserPreferences } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', () => ({
@@ -111,6 +112,9 @@ function mockCachedListeningRows() {
 describe('Dashboard listening empty state', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(getUserPreferences).mockResolvedValue({
+      dashboardLayout: { ...DEFAULT_DASHBOARD_LAYOUT, showEmpty: true },
+    })
     vi.mocked(getTopArtists).mockResolvedValue({
       tracks: [],
       total: 0,
@@ -206,6 +210,7 @@ describe('Dashboard listening empty state', () => {
       status: 'error',
     })
     renderWithQuery(<Dashboard />)
+    fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
     expect(
       await screen.findByText(
         'Listening history could not be loaded. Check your connections or try again.',
@@ -213,74 +218,77 @@ describe('Dashboard listening empty state', () => {
     ).toBeInTheDocument()
     expect(screen.queryByText('No recent plays')).not.toBeInTheDocument()
   })
-  it.each(['request', 'source'])('retains rows on %s failure and retries', async (failure) => {
-    mockCachedListeningRows()
-    const { client } = renderWithQuery(<Dashboard />)
-    await screen.findByText('Cached artist')
-    await screen.findByText('Cached track')
-    if (failure === 'request') {
-      vi.mocked(getTopArtists).mockRejectedValue(new Error('Refresh failed'))
-      vi.mocked(getRecentTracks).mockRejectedValue(new Error('Refresh failed'))
-    } else {
+  it.each(['request', 'source'])(
+    'retains both views on %s failure and retries',
+    async (failure) => {
+      mockCachedListeningRows()
+      const { client } = renderWithQuery(<Dashboard />)
+      await screen.findByText('Cached artist')
+      fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
+      await screen.findByText('Cached track')
+      if (failure === 'request') {
+        vi.mocked(getTopArtists).mockRejectedValue(new Error('Refresh failed'))
+        vi.mocked(getRecentTracks).mockRejectedValue(new Error('Refresh failed'))
+      } else {
+        vi.mocked(getTopArtists).mockResolvedValue({
+          tracks: [],
+          total: 0,
+          offset: 0,
+          limit: 5,
+          source: null,
+          status: 'error',
+        })
+        vi.mocked(getRecentTracks).mockResolvedValue({
+          tracks: [],
+          hasSource: true,
+          source: null,
+          status: 'error',
+        })
+      }
+      await act(async () => {
+        await Promise.all([
+          client.refetchQueries({ queryKey: ['dashboard-top-artists'] }),
+          client.refetchQueries({ queryKey: ['dashboard-recent-tracks'] }),
+        ])
+      })
+      expect(await screen.findByRole('alert')).toHaveTextContent(
+        'Listening history could not be loaded',
+      )
+      expect(screen.getByText('Cached track')).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Top artists' }))
+      expect(screen.getByText('Cached artist')).toBeInTheDocument()
+      expect(screen.getByRole('alert')).toHaveTextContent('Listening history could not be loaded')
       vi.mocked(getTopArtists).mockResolvedValue({
-        tracks: [],
-        total: 0,
+        tracks: [{ artist: 'Updated artist', track: '15 plays', source: 'listenbrainz' }],
+        total: 1,
         offset: 0,
         limit: 5,
-        source: null,
-        status: 'error',
+        source: 'listenbrainz',
+        status: 'ok',
       })
       vi.mocked(getRecentTracks).mockResolvedValue({
-        tracks: [],
+        tracks: [
+          { artist: 'Updated recent artist', track: 'Updated track', source: 'listenbrainz' },
+        ],
         hasSource: true,
-        source: null,
-        status: 'error',
+        source: 'listenbrainz',
+        status: 'ok',
       })
-    }
-    await act(async () => {
-      await Promise.all([
-        client.refetchQueries({ queryKey: ['dashboard-top-artists'] }),
-        client.refetchQueries({ queryKey: ['dashboard-recent-tracks'] }),
-      ])
-    })
-    expect(
-      await screen.findAllByText(
-        'Listening history could not be loaded. Check your connections or try again.',
-      ),
-    ).toHaveLength(2)
-    expect(screen.getByText('Cached artist')).toBeInTheDocument()
-    expect(screen.getByText('Cached track')).toBeInTheDocument()
-    vi.mocked(getTopArtists).mockResolvedValue({
-      tracks: [{ artist: 'Updated artist', track: '15 plays', source: 'listenbrainz' }],
-      total: 1,
-      offset: 0,
-      limit: 5,
-      source: 'listenbrainz',
-      status: 'ok',
-    })
-    vi.mocked(getRecentTracks).mockResolvedValue({
-      tracks: [{ artist: 'Updated recent artist', track: 'Updated track', source: 'listenbrainz' }],
-      hasSource: true,
-      source: 'listenbrainz',
-      status: 'ok',
-    })
-    for (const button of screen.getAllByRole('button', { name: 'Try again' })) {
-      fireEvent.click(button)
-    }
-    await screen.findByText('Updated artist')
-    await screen.findByText('Updated track')
-    expect(screen.queryByText('Cached artist')).not.toBeInTheDocument()
-    expect(screen.queryByText('Cached track')).not.toBeInTheDocument()
-    expect(screen.queryAllByRole('alert')).toHaveLength(0)
-  })
+      fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+      await screen.findByText('Updated artist')
+      fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
+      fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+      await screen.findByText('Updated track')
+      expect(screen.queryAllByRole('alert')).toHaveLength(0)
+    },
+  )
 
   it.each(['empty', 'not_configured'] as const)(
-    'replaces cached listening rows after a successful %s refresh',
+    'replaces both cached views after a successful %s refresh',
     async (status) => {
       mockCachedListeningRows()
       const { client } = renderWithQuery(<Dashboard />)
       await screen.findByText('Cached artist')
-      await screen.findByText('Cached track')
       vi.mocked(getTopArtists).mockResolvedValue({
         tracks: [],
         total: 0,
@@ -301,23 +309,18 @@ describe('Dashboard listening empty state', () => {
           client.refetchQueries({ queryKey: ['dashboard-recent-tracks'] }),
         ])
       })
-      await waitFor(() => {
-        expect(screen.queryByText('Cached artist')).not.toBeInTheDocument()
-        expect(screen.queryByText('Cached track')).not.toBeInTheDocument()
-      })
+      await waitFor(() => expect(screen.queryByText('Cached artist')).not.toBeInTheDocument())
+      expect(
+        screen.getByText(
+          status === 'empty'
+            ? 'No listening history for this period. Try another period.'
+            : 'Connect an account',
+        ),
+      ).toBeInTheDocument()
+      fireEvent.click(screen.getByRole('button', { name: 'Recently Played' }))
+      expect(screen.getByText('No recent plays')).toBeInTheDocument()
+      expect(screen.queryByText('Cached track')).not.toBeInTheDocument()
       expect(screen.queryAllByRole('alert')).toHaveLength(0)
-      if (status === 'empty') {
-        expect(screen.getByRole('heading', { name: 'Recently Played' })).toBeInTheDocument()
-        expect(
-          screen.getByText('No listening history for this period. Try another period.'),
-        ).toBeInTheDocument()
-        expect(screen.getByText('No recent plays')).toBeInTheDocument()
-        expect(screen.queryByText('Connect an account')).not.toBeInTheDocument()
-      } else {
-        expect(screen.getByText('Connect an account')).toBeInTheDocument()
-        expect(screen.queryByRole('heading', { name: 'Recently Played' })).not.toBeInTheDocument()
-        expect(screen.queryByText('No recent plays')).not.toBeInTheDocument()
-      }
     },
   )
 })

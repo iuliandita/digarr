@@ -57,9 +57,32 @@ function renderWithQuery(ui: ReactElement, initialEntries: string[] = ['/']) {
 vi.mock('@/web/lib/api', () => ({
   getDiscoveryModes: vi.fn(),
   runDiscoveryMode: vi.fn(),
+  getSettings: vi.fn().mockResolvedValue({ preferences: {} }),
+  getCurrentUser: vi.fn().mockResolvedValue({ id: 1, isAdmin: true }),
+  getOAuthStatus: vi.fn().mockResolvedValue({ connected: false }),
+  getSubscriptions: vi.fn().mockResolvedValue([]),
+  getSchedulerInfo: vi.fn().mockResolvedValue({ jobs: [] }),
+  listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
+  getJob: vi.fn(),
+  updateSettings: vi.fn().mockResolvedValue({}),
+  getUserPreferences: vi.fn().mockResolvedValue({}),
+  updateUserPreferences: vi.fn().mockResolvedValue({}),
+  createSubscriptionApi: vi.fn().mockResolvedValue({}),
+  updateSubscriptionApi: vi.fn(),
+  deleteSubscriptionApi: vi.fn(),
+  triggerSubscriptionRun: vi.fn(),
+  bulkToggleSubscriptions: vi.fn(),
+  getSubscriptionRuns: vi.fn().mockResolvedValue([]),
 }))
 
-import { getDiscoveryModes, runDiscoveryMode } from '@/web/lib/api'
+import {
+  getCurrentUser,
+  getDiscoveryModes,
+  getSettings,
+  listJobs,
+  runDiscoveryMode,
+  updateSettings,
+} from '@/web/lib/api'
 import { DiscoveryModesPage } from '@/web/pages/discovery-modes'
 
 const mockGetDiscoveryModes = vi.mocked(getDiscoveryModes)
@@ -68,6 +91,11 @@ const mockRunDiscoveryMode = vi.mocked(runDiscoveryMode)
 describe('DiscoveryModesPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    localStorage.clear()
+    vi.mocked(getSettings).mockResolvedValue({ preferences: {} } as never)
+    vi.mocked(getCurrentUser).mockResolvedValue({ id: 1, isAdmin: true } as never)
+    vi.mocked(listJobs).mockResolvedValue({ items: [], total: 0 })
+    Element.prototype.scrollIntoView = vi.fn()
     globalThis.ResizeObserver = class {
       observe() {}
       unobserve() {}
@@ -109,10 +137,10 @@ describe('DiscoveryModesPage', () => {
       ],
     })
 
-    renderWithQuery(<DiscoveryModesPage />, [`/discover/modes?mode=${modeId}`])
+    renderWithQuery(<DiscoveryModesPage />, [`/discovery-modes?mode=${modeId}`])
 
     const requestedHeading = await screen.findByRole('heading', { name: label })
-    const requestedCard = requestedHeading.closest('article')
+    const requestedCard = requestedHeading.closest<HTMLElement>('[id^="discovery-mode-"]')
     expect(requestedCard).not.toBeNull()
     expect(requestedCard).toHaveAttribute('id', `discovery-mode-${modeId}`)
     await waitFor(() => expect(requestedCard).toHaveFocus())
@@ -179,11 +207,24 @@ describe('DiscoveryModesPage', () => {
       'href',
       '/discover',
     )
+    expect(screen.queryByRole('heading', { name: 'Release Radar' })).toBeNull()
+    expect(
+      await screen.findByText(
+        'Nothing here yet - pick a mode to run it once or put it on a schedule.',
+      ),
+    ).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Run a mode' }))
+    const search = screen.getByRole('searchbox', { name: 'Search modes' })
+    expect(search).toHaveFocus()
     await screen.findByText('This mode is not implemented yet.')
     await screen.findByText('Using fallback providers for release discovery.')
+    expect(screen.getByRole('button', { name: 'Labels' })).toBeDisabled()
+    fireEvent.change(search, { target: { value: 'radar' } })
+    expect(screen.queryByRole('button', { name: 'Labels' })).toBeNull()
+    fireEvent.click(screen.getByRole('button', { name: 'Release Radar' }))
 
     const releaseRadarHeading = screen.getByRole('heading', { name: 'Release Radar' })
-    const releaseRadarCard = releaseRadarHeading.closest('article')
+    const releaseRadarCard = releaseRadarHeading.closest<HTMLElement>('[id^="discovery-mode-"]')
     expect(releaseRadarCard).not.toBeNull()
     if (!releaseRadarCard) throw new Error('Missing release radar card')
     const releaseRadarQueries = within(releaseRadarCard)
@@ -191,22 +232,13 @@ describe('DiscoveryModesPage', () => {
     expect(releaseRadarQueries.getByRole('spinbutton')).toBeInTheDocument()
     expect(releaseRadarQueries.queryByText('Seed artist')).not.toBeInTheDocument()
 
-    const labelsHeading = screen.getByRole('heading', { name: 'Labels' })
-    const labelsCard = labelsHeading.closest('article')
-    expect(labelsCard).not.toBeNull()
-    if (!labelsCard) throw new Error('Missing labels card')
-    const labelsQueries = within(labelsCard)
-    expect(labelsQueries.getByRole('button', { name: 'Run discovery' })).toBeDisabled()
-    fireEvent.click(labelsQueries.getByRole('button', { name: 'Run discovery' }))
-    expect(mockRunDiscoveryMode).toHaveBeenCalledTimes(0)
-
     fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Advanced' }))
 
     expect(releaseRadarQueries.getByText('Seed artist')).toBeInTheDocument()
 
     fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Easy' }))
     fireEvent.change(releaseRadarQueries.getByRole('spinbutton'), { target: { value: '14' } })
-    fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Run discovery' }))
+    fireEvent.click(releaseRadarQueries.getByRole('button', { name: 'Run now' }))
 
     await waitFor(() => {
       expect(mockRunDiscoveryMode).toHaveBeenCalledWith({
@@ -218,5 +250,80 @@ describe('DiscoveryModesPage', () => {
         fallbackPolicy: 'allow-fallback',
       })
     })
+  })
+
+  it('filters experimental modes behind the shared Connections preference', async () => {
+    mockGetDiscoveryModes.mockResolvedValue({
+      modes: [
+        {
+          id: 'tidal-favorite-artists',
+          label: 'TIDAL Favorite Artists',
+          description: 'Favorites',
+          stability: 'experimental',
+          availability: { enabled: true, fallbackUsed: false, providerPath: ['tidal'] },
+          easyFields: [],
+          advancedFields: [],
+        },
+      ],
+    })
+    renderWithQuery(<DiscoveryModesPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Run a mode' }))
+    expect(screen.queryByRole('button', { name: 'TIDAL Favorite Artists' })).toBeNull()
+    vi.mocked(getSettings).mockResolvedValue({
+      preferences: { showExperimentalIntegrations: true },
+    } as never)
+    fireEvent.click(screen.getByRole('checkbox', { name: /Show experimental integrations/ }))
+    await waitFor(() =>
+      expect(updateSettings).toHaveBeenCalledWith({
+        preferences: { showExperimentalIntegrations: true },
+      }),
+    )
+    expect(
+      await screen.findByRole('button', { name: 'TIDAL Favorite Artists' }),
+    ).toBeInTheDocument()
+  })
+
+  it('shows only the member own browser history and never requests admin job history', async () => {
+    vi.mocked(getCurrentUser).mockResolvedValue({ id: 1, isAdmin: false } as never)
+    mockGetDiscoveryModes.mockResolvedValue({
+      modes: [
+        {
+          id: 'release-radar',
+          label: 'Release Radar',
+          description: 'Fresh releases',
+          availability: { enabled: true, fallbackUsed: false, providerPath: ['lastfm'] },
+          easyFields: [],
+          advancedFields: [],
+        },
+      ],
+    })
+    localStorage.setItem(
+      'digarr:discovery-runs:1',
+      JSON.stringify([
+        {
+          id: 5,
+          userId: 1,
+          status: 'started',
+          startedAt: '2026-10-17T10:00:00Z',
+          metadata: { discoveryMode: { modeId: 'release-radar' } },
+        },
+        {
+          id: 6,
+          userId: 2,
+          status: 'failed',
+          error: 'Other user secret error',
+          startedAt: '2026-10-18T10:00:00Z',
+          metadata: { discoveryMode: { modeId: 'release-radar' } },
+        },
+      ]),
+    )
+    renderWithQuery(<DiscoveryModesPage />)
+    const row = await screen.findByRole('button', { name: /^Release Radar/ })
+    expect(row).toHaveAttribute('aria-expanded', 'false')
+    expect(screen.queryByText('Other user secret error')).toBeNull()
+    expect(listJobs).not.toHaveBeenCalled()
+    fireEvent.click(row)
+    expect(row).toHaveAttribute('aria-expanded', 'true')
+    expect(await screen.findByRole('heading', { name: 'Release Radar' })).toBeInTheDocument()
   })
 })

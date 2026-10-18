@@ -13,6 +13,15 @@ type Capability = {
 
 const INTEGRATIONS: Capability[] = [
   {
+    serviceKey: 'audiomuse',
+    serviceLabel: 'AudioMuse-AI',
+    discovery: 'settings.picker.audiomuse',
+    subscriptions: null,
+    librarySync: null,
+    playlistExport: null,
+    import_: null,
+  },
+  {
     serviceKey: 'listenbrainz',
     serviceLabel: 'ListenBrainz',
     discovery: 'integration.radioArtistTagUser',

@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import type { ReactElement } from 'react'
+import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as api from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
@@ -18,6 +19,11 @@ vi.mock('@/web/lib/api', async (importOriginal) => {
   return {
     ...actual,
     getCurrentUser: vi.fn(),
+    getAuthStatus: vi.fn(),
+    getSubscriptions: vi.fn(),
+    getPlaylists: vi.fn(),
+    getSchedulerInfo: vi.fn(),
+    getPlaylistScheduler: vi.fn(),
     getUserPreferences: vi.fn(),
     updateUserPreferences: vi.fn(),
     getLidarrApproveOptions: vi.fn(),
@@ -35,7 +41,9 @@ function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(
     <I18nProvider>
-      <QueryClientProvider client={client}>{ui}</QueryClientProvider>
+      <QueryClientProvider client={client}>
+        <MemoryRouter>{ui}</MemoryRouter>
+      </QueryClientProvider>
     </I18nProvider>,
   )
 }
@@ -43,6 +51,11 @@ function renderWithQuery(ui: ReactElement) {
 beforeEach(() => {
   vi.clearAllMocks()
   localStorage.clear()
+  mocked.getAuthStatus.mockResolvedValue({ isAdmin: true } as never)
+  mocked.getSubscriptions.mockResolvedValue([])
+  mocked.getPlaylists.mockResolvedValue([])
+  mocked.getSchedulerInfo.mockResolvedValue({ jobs: [] })
+  mocked.getPlaylistScheduler.mockResolvedValue({ enabled: false, nextRun: null, cron: null })
   mocked.getUserPreferences.mockResolvedValue({ dismissedHints: [] } as never)
   mocked.updateUserPreferences.mockResolvedValue(undefined as never)
   mocked.getCurrentUser.mockResolvedValue({ id: 1, username: 'admin', isAdmin: true } as never)
@@ -212,27 +225,107 @@ describe('NotificationChannelsCard', () => {
 })
 
 describe('ScheduleTab digest schedule', () => {
-  it('saves the digest cron from the Schedule tab', async () => {
-    const onSaved = vi.fn()
+  it.each(['0 7 * * 1', ''])(
+    'saves the digest cron %j from the Schedule tab',
+    async (digestCron) => {
+      const onSaved = vi.fn()
+      renderWithQuery(
+        <ScheduleTab
+          isAdmin
+          settings={
+            {
+              preferences: { scheduleCron: '0 0 * * *', digestCron: '0 6 * * 1' },
+              librarySyncIntervalHours: 6,
+            } as never
+          }
+          onSaved={onSaved}
+        />,
+      )
+
+      fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
+      fireEvent.change(screen.getByDisplayValue('0 6 * * 1'), { target: { value: digestCron } })
+      fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+
+      await waitFor(() => expect(mocked.updateSettings).toHaveBeenCalled())
+      const prefs = mocked.updateSettings.mock.calls[0]?.[0]?.preferences as Record<string, unknown>
+      expect(prefs.digestCron).toBe(digestCron)
+      await waitFor(() => expect(onSaved).toHaveBeenCalled())
+    },
+  )
+})
+
+describe('ScheduleTab overview', () => {
+  it('lists schedules and edit destinations without exposing global controls to members', async () => {
+    mocked.getAuthStatus.mockResolvedValue({ isAdmin: false } as never)
+    mocked.getSubscriptions.mockResolvedValue([
+      { id: 11, name: 'Weekly jazz', cron: '0 8 * * 1', enabled: true },
+      { id: 12, name: 'Paused rock', cron: '0 9 * * 2', enabled: false },
+    ] as never)
+    mocked.getSchedulerInfo.mockResolvedValue({
+      jobs: [
+        { name: 'subscription-11', expression: '0 8 * * 1', nextRun: '2026-10-19T08:00:00.000Z' },
+      ],
+    })
+    mocked.getPlaylists.mockResolvedValue([
+      { id: 21, name: 'Daily mix', schedule: '0 7 * * *' },
+      { id: 22, name: 'Manual mix', schedule: null },
+    ] as never)
+
     renderWithQuery(
       <ScheduleTab
-        settings={
-          {
-            preferences: { scheduleCron: '0 0 * * *', digestCron: '0 6 * * 1' },
-            librarySyncIntervalHours: 6,
-          } as never
-        }
-        onSaved={onSaved}
+        settings={{ preferences: { scheduleCron: '0 5 * * *', digestCron: '0 6 * * 1' } }}
+        onSaved={vi.fn()}
       />,
     )
 
-    fireEvent.click(screen.getByRole('button', { name: 'Advanced' }))
-    fireEvent.change(screen.getByDisplayValue('0 6 * * 1'), { target: { value: '0 7 * * 1' } })
-    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    expect(await screen.findByText('Weekly jazz')).toBeInTheDocument()
+    expect(screen.getByText('Paused rock')).toBeInTheDocument()
+    expect(await screen.findByText('Daily mix')).toBeInTheDocument()
+    expect(screen.getByText('Manual')).toBeInTheDocument()
+    expect(screen.getByText('0 5 * * *')).toBeInTheDocument()
+    expect(screen.getByText('0 6 * * 1')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Edit: Weekly jazz' })).toHaveAttribute(
+      'href',
+      '/discovery-modes?subscription=11',
+    )
+    expect(screen.getByRole('link', { name: 'Edit: Daily mix' })).toHaveAttribute(
+      'href',
+      '/playlists',
+    )
+    expect(screen.queryByRole('switch')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Save' })).not.toBeInTheDocument()
+    expect(mocked.updateSettings).not.toHaveBeenCalled()
+  })
 
-    await waitFor(() => expect(mocked.updateSettings).toHaveBeenCalled())
-    const prefs = mocked.updateSettings.mock.calls[0]?.[0]?.preferences as Record<string, unknown>
-    expect(prefs.digestCron).toBe('0 7 * * 1')
-    await waitFor(() => expect(onSaved).toHaveBeenCalled())
+  it('keeps the admin playlist scheduling switch in the overview', async () => {
+    renderWithQuery(
+      <ScheduleTab
+        isAdmin
+        settings={{ preferences: { playlistEnabled: false } }}
+        onSaved={vi.fn()}
+      />,
+    )
+
+    fireEvent.click(await screen.findByRole('switch', { name: 'Scheduled generation' }))
+    await waitFor(() =>
+      expect(mocked.updateSettings).toHaveBeenCalledWith({
+        preferences: { playlistEnabled: true },
+      }),
+    )
+  })
+
+  it('keeps available schedules visible when another schedule source fails', async () => {
+    mocked.getSubscriptions.mockRejectedValue(new Error('unavailable'))
+    mocked.getPlaylists.mockResolvedValue([
+      { id: 21, name: 'Daily mix', schedule: '0 7 * * *' },
+    ] as never)
+
+    renderWithQuery(
+      <ScheduleTab settings={{ preferences: { scheduleCron: '0 5 * * *' } }} onSaved={vi.fn()} />,
+    )
+
+    expect(await screen.findByRole('alert')).toBeInTheDocument()
+    expect(await screen.findByText('Daily mix')).toBeInTheDocument()
+    expect(screen.getByText('0 5 * * *')).toBeInTheDocument()
   })
 })

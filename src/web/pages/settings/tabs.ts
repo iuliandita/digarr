@@ -12,13 +12,7 @@ export const TABS = [
 
 export type Tab = (typeof TABS)[number]
 
-export const ADMIN_TABS: ReadonlySet<Tab> = new Set([
-  'schedule',
-  'auth',
-  'users',
-  'administration',
-  'system',
-])
+export const ADMIN_TABS: ReadonlySet<Tab> = new Set(['auth', 'users', 'administration', 'system'])
 
 export const TAB_GROUPS: { id: 'personal' | 'library' | 'admin'; tabs: Tab[] }[] = [
   { id: 'personal', tabs: ['account', 'recommendations'] },

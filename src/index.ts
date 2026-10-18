@@ -54,6 +54,7 @@ import { generatePlaylist, playlistGenerationFailure } from './core/playlists/ge
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler, schedulePlaylists } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
+import { getAudioMuseConfig } from './core/plugins/audiomuse'
 import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
@@ -373,6 +374,16 @@ const storeDb: StoreDb = {
   },
   getRejectedMbids: (cooldownDays, userId) => getRejectedArtistMbids(db, cooldownDays, userId),
   getBlockedMbids: (userId) => getBlockedArtistMbids(db, userId),
+  getBlockedArtistNames: async (userId) => {
+    const names: string[] = []
+    let cursor: import('./db/queries/artist-blocks').ListBlocksCursor | null = null
+    do {
+      const page = await listArtistBlocksQuery(db, { userId, limit: 200, cursor })
+      names.push(...page.items.map((artist) => artist.name))
+      cursor = page.nextCursor
+    } while (cursor)
+    return names
+  },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
   getPopularityMap: () => getPopularityMap(db),
@@ -704,6 +715,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       settings: {
         ...settings,
         preferences: mergePreferences(userPreferences),
+        audiomuse: getAudioMuseConfig(settings.preferences),
         spotifyAccessToken,
       },
       providerRegistry,

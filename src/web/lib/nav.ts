@@ -1,6 +1,5 @@
 import {
   BarChart3,
-  CalendarClock,
   Compass,
   HeartPulse,
   History,
@@ -39,16 +38,13 @@ export const PRIMARY_NAV: NavItem[] = [
     to: '/discover',
     labelKey: 'nav.discover',
     icon: Compass,
-    isActive: (location) => under('/discover')(location) || under('/genres')(location),
+    isActive: (location) =>
+      under('/discover')(location) ||
+      under('/discovery-modes')(location) ||
+      under('/genres')(location),
   },
   { to: '/search', labelKey: 'nav.search', icon: Search, isActive: under('/search') },
   { to: '/playlists', labelKey: 'nav.playlists', icon: ListMusic, isActive: under('/playlists') },
-  {
-    to: '/subscriptions',
-    labelKey: 'nav.subscriptions',
-    icon: CalendarClock,
-    isActive: under('/subscriptions'),
-  },
 ]
 
 // Admin-only; the server enforces access, this only controls what the nav offers.
@@ -76,9 +72,9 @@ export const DISCOVER_TABS: Omit<NavItem, 'icon'>[] = [
   },
   { to: '/genres', labelKey: 'nav.genres', isActive: under('/genres') },
   {
-    to: '/discover/modes',
+    to: '/discovery-modes',
     labelKey: 'nav.discoveryModes',
-    isActive: under('/discover/modes'),
+    isActive: under('/discovery-modes'),
   },
 ]
 

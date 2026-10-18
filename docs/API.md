@@ -175,6 +175,30 @@ Notes:
 - Preference values are checked with the same types and ranges as `preferences` in `PATCH /api/v1/settings`; an invalid value, such as a non-integer `rejectionCooldownDays`, returns `400` without saving anything
 - `GET /api/v1/auth/status` returns `required: true` as soon as setup is complete, even if no users exist yet, so the frontend can force registration/login instead of treating the app as public
 
+Dashboard customization (#995) uses the same per-user preferences endpoint. PATCH a complete `dashboardLayout` value; omitting this key preserves the saved layout and all other preferences are merged as usual:
+
+```json
+{
+  "dashboardLayout": {
+    "version": 1,
+    "cards": [
+      { "id": "pick", "visible": true, "size": "large" },
+      { "id": "decisions", "visible": true, "size": "medium" },
+      { "id": "listening", "visible": true, "size": "medium" },
+      { "id": "genres", "visible": true, "size": "small" },
+      { "id": "subscriptions", "visible": true, "size": "small" }
+    ],
+    "showEmpty": false
+  }
+}
+```
+
+The array order is the display order. Sizes `small`, `medium`, and `large` span 1, 2, and 3 desktop columns; all fill the phone width. The server drops unknown card IDs, keeps the first occurrence of each known ID, and inserts missing cards at their default index without changing the relative order of saved cards. Version must be `1`, visibility and `showEmpty` must be booleans, and known cards must use one of the three sizes. The array accepts at most 64 entries and IDs at most 64 characters. Invalid values return `400` without saving any part of the request.
+
+GET merges saved layouts with defaults. New accounts and accounts without a layout get the example above; malformed stored layouts fall back to it. Source-page Show on dashboard switches update the same `visible` setting. Reset to default sends the default object. Layouts live in `users.preferences`, with no database migration. The dashboard's Your decisions card uses the authenticated user's recommendation list, including rejected decisions in its All view; the activity endpoint below retains its existing broader event feed.
+
+In v2.0.0, the Recommendations settings page saves user preferences for every user and writes shared AudioDB/Wikidata settings only for admins. Personal preferences and recommendations are refreshed after the user write succeeds. If an admin's later global write fails, the notice explicitly reports that personal preferences saved; it does not imply rollback. Shared metadata controls are admin-only; personal fanart and metadata-fallback controls remain available to everyone. Server permissions are unchanged. v1.19.0 unconditionally attempts the global write, so non-admins see a false save failure and stale cached values ([#792](https://github.com/iuliandita/digarr/issues/792)). Verify saved values with `GET /api/v1/auth/me/preferences`, or use the per-user `PATCH` directly.
+
 The Recommendations settings page saves only personal recommendation preferences and refreshes them after a successful write. Image-source controls now live under Connections > Artist images: Fanart.tv and metadata fallback still use the per-user preferences API, while AudioDB, image proxy, and Wikidata still use the admin settings API. Members see the server row read-only in the UI; API permissions and preference scopes are unchanged. If the admin image save's personal write succeeds but its later server write fails, the notice reports partial success without implying rollback. Read back user values with `GET /api/v1/auth/me/preferences`.
 
 In v2.0.0, `PATCH /api/v1/auth/me/preferences` accepts `{"netNewAlbumDiscovery":true}` or `{"netNewAlbumDiscovery":false}`, and the saved boolean is returned by a fresh preferences GET. Omission preserves the saved value; other value types return `400` before writing. Admins may also set `preferences.netNewAlbumDiscovery` through `PATCH /api/v1/settings`. The default remains off, and existing per-user/global fallback rules are unchanged. v1.19.0 silently ignores the per-user key and rejects it in global preferences ([#791](https://github.com/iuliandita/digarr/issues/791)); use Release Radar or Library Gap-Fill until upgrading.
@@ -363,9 +387,9 @@ Locale notes:
 
 **GET /api/v1/discovery-modes** notes:
 - Always returns the shipped discovery-mode catalog, including modes that are visible but currently unavailable
-- In the web UI, these modes are exposed from Discover -> Discovery Modes
+- In the web UI, use Discover > Discovery Modes > Run a mode. The unified page offers Run now and Schedule; saved schedules keep the existing subscription APIs.
 - Each mode includes `availability.enabled`, `availability.fallbackUsed`, `availability.providerPath`, and an optional `availability.reason`
-- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. Clients should badge experimental modes rather than hide them. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reports.
+- Each mode also includes a `stability` field (`stable` or `experimental`), mirroring the search-source field. `tidal-favorite-artists` is `experimental`: live-account validation of TIDAL connect, token refresh, and populated favorite-artist results is deferred. The web picker shows experimental modes only when Show experimental integrations is enabled, using the same preference as Connections; visible experimental entries carry a badge. The REST catalog remains complete. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback) for safe community reports.
 - Unavailable modes stay visible for roadmap transparency, should be treated as read-only UI metadata, and are not runnable jobs
 
 **POST /api/v1/discovery-modes/run** body:
@@ -851,7 +875,7 @@ When `config` is absent or null, generation defaults to size 25 and source prior
 
 Playlist PATCH and DELETE return `204` with no body.
 
-Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. Admins can turn it on with the Scheduled generation switch on the Playlists page, or with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must have a schedule. Manual generation does not require the global switch.
+Scheduled generation requires the global `preferences.playlistEnabled` setting, which defaults to false. Admins can turn it on with the Scheduled generation switch in Settings > Schedule, or with `PATCH /api/v1/settings` and `{ "preferences": { "playlistEnabled": true } }`. Each playlist must have a schedule. Manual generation does not require the global switch.
 
 `GET /api/v1/playlists/scheduler` returns `{ nextRun, cron, enabled }`. `enabled` is the global switch, not a per-playlist flag. `nextRun` is the earliest registered next run among the current user's playlists, or null. `cron` is the single distinct nonempty schedule across that user's saved playlists, or null when there are none or several; it can be present even when scheduling is disabled.
 
@@ -1172,7 +1196,7 @@ Plex accepts artist and track IDs from bare rating keys or canonical metadata pa
 - Cancelled jobs can appear in unfiltered results, but `status=cancelled` is not accepted as a filter
 - Missing job detail returns `404` problem+json with `detail` `Job not found`
 
-Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. Any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
+Pipeline job `sourceResults` describe each source's discovery contribution. Configured listening sources without `similarArtists` report `{ "status": "skipped", "reason": "unsupported_capability" }`. Supported sources not queried because of an explicit discovery mode or an empty seed list use `explicit_run` or `no_seeds`; absent connections use `not_configured`. Successful similarity lookups use `ok` with an `artists` count, including zero. For AudioMuse-AI, an unconfigured connection has no entry. Queried scans include `seedsQueried`, `seedsWithResults` (valid nonempty API responses before ownership filtering), and `skipReasons` counts for actual seed requests. A source with results reports `ok`, even when some seeds fail or all candidates are owned/blocked. With no results, failures use `skipped`, with a reason such as `audiomuse_unreachable`, `audiomuse_not_indexed`, or `audiomuse_artist_unknown`. Authentication and contract errors use `audiomuse_authentication_required`, `audiomuse_invalid_response`, or `audiomuse_request_failed`. Registration failures use `audiomuse_invalid_url` or `audiomuse_token_unreadable`; re-enter an unreadable saved token. Other sources retain their existing failure behavior: any failed seed lookup uses `error` with the redacted upstream message, even when other seeds return candidates. Profile collection and library sync are separate operations. Existing job records retain their recorded outcomes.
 
 Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. Within that sample, `/api/v1/jobs/health` counts only `ok` and `error` attempts for each source; successful zero-artist lookups count as `ok`. Skips do not count as successes or errors, and sources with no attempts are omitted from `sources`. Zero errors yields `ok`, an error rate below 50% yields `degraded`, and 50% or more yields `failing`. Skipped runs still occupy the sample; the query does not pull in older attempts to replace them. Individual job records retain their skip reasons. v1.19.0 counts skips as failures; this is corrected in v2.0.0 ([#769](https://github.com/iuliandita/digarr/issues/769)).
 
@@ -1188,9 +1212,11 @@ Source health samples the 20 most recent pipeline/quick-discover runs with sourc
 | POST | `/api/v1/settings/test/:service` | Admin, or own Plex connection | Test service connection |
 | POST | `/api/v1/settings/test-webhook` | Admin | Send a synthetic notification to one channel |
 
-**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`
+**Testable services**: `lidarr`, `listenbrainz`, `lastfm`, `ai`, `plex`, `jellyfin`, `emby`, `subsonic`, `discogs`, `spotify`, `oidc`, `tidal`, `audiomuse`
 
 Settings notes:
+- AudioMuse-AI uses admin-only `preferences.audiomuseUrl` (empty string disables), `preferences.audiomuseToken` (optional, masked as `***`), and `preferences.audiomuseSkipTlsVerify` (boolean, default false). The token is field-encrypted with the configured encryption key; `***` preserves it and `""` clears it. Non-admin projections omit all three fields and non-admin PATCH/probes return `403`. The experimental switch controls picker visibility only. Existing JSON storage is used; no migration is required. See [setup, minimum version, privacy, and rollback](OPERATIONS.md#audiomuse-ai-audio-similarity).
+- `POST /api/v1/settings/test/audiomuse` accepts `{ "url": "https://audiomuse.example", "token": "optional-token", "skipTlsVerify": false }`. An empty object probes stored values; omitted fields use stored settings, and a masked token uses the stored decrypted token. Explicit empty token means no Bearer header; explicit empty URL returns `400`. Explicit boolean TLS choice overrides storage; other types return `400`. The probe calls the authenticated `/api/version`, returns its `app_version` as `version`, and performs no similarity lookup. Failures, including an unreadable saved token, return `502` with a bounded reason without echoing upstream bodies or tokens.
 - `preferences.showExperimentalIntegrations` is an admin-managed boolean, default false for new setups. Send `{"preferences":{"showExperimentalIntegrations":true}}` or `false` through PATCH; omission preserves the saved value. GET exposes it to every signed-in user so pickers agree. First startup initializes missing values to true for TIDAL app credentials, any user's stored TIDAL OAuth row, or completed legacy setups (Bandcamp was always enabled). Explicit false/true values are never re-derived.
 - This switch filters TIDAL/Bandcamp entries from `GET /api/v1/search/sources` and experimental entries from `GET /api/v1/discovery-modes`. It changes UI visibility only; existing connections, direct search requests, and scheduled discovery continue working.
 - `_notificationsConfigured` is a read-only boolean indicating saved notification configuration; it lets members see the read-only server row without exposing channels or secrets.
@@ -1209,7 +1235,7 @@ Settings notes:
   `403` for non-admin callers, and `502` when the upstream service probe fails
 - The `502` body's `detail` field carries the upstream failure message (secrets redacted,
   capped at 300 chars) so the caller can see e.g. which model name the provider rejected
-- Send a JSON object for probes: `{}` uses saved credentials where supported. Missing, empty, malformed, or non-object payloads return `400` problem+json with type `/problems/probe-invalid-input` before saved credentials are read. Access checks run first. Where supported, non-empty connection and credential strings override saved values. Empty strings (including URLs, API keys, tokens, usernames, passwords, provider, and model) fall back to saved values, so a successful probe may test the previous configuration rather than the empty values supplied. For Lidarr, omitted `skipTlsVerify` uses the saved value, defaulting to false when unset. Explicit `true` or `false` overrides it; other supplied types return `400` without running a probe.
+- Send a JSON object for probes: `{}` uses saved credentials where supported. Missing, empty, malformed, or non-object payloads return `400` problem+json with type `/problems/probe-invalid-input` before saved credentials are read. Access checks run first. Where supported, non-empty connection and credential strings override saved values. Except for the explicit AudioMuse token/URL clearing rules above, empty strings (including URLs, API keys, tokens, usernames, passwords, provider, and model) fall back to saved values, so a successful probe may test the previous configuration rather than the empty values supplied. For Lidarr, omitted `skipTlsVerify` uses the saved value, defaulting to false when unset. Explicit `true` or `false` overrides it; other supplied types return `400` without running a probe.
 - Probe selectors have separate clearing rules: Plex `sectionId: ""` selects automatic library detection, and `accountId: null` tests library-only access. Jellyfin/Emby `libraryId: ""` selects all libraries. Omitted selectors reuse saved values; `sectionId: null` and `libraryId: null` also reuse saved values. These probe rules differ from saving null selectors through settings PATCH.
 - The `plex` probe additionally returns the selected library and every music-type library on
   the server: `{ "sectionId": "5", "sections": [{ "key": "5", "title": "Music" }] }`. Save the

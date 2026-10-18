@@ -65,6 +65,7 @@ export interface StoreDb {
   getRejectedMbids: (cooldownDays: number, userId: number | null) => Promise<Set<string>>
 
   getBlockedMbids: (userId: number) => Promise<Set<string>>
+  getBlockedArtistNames?: (userId: number) => Promise<string[]>
 
   getFeedbackHistory: (userId?: number) => Promise<Map<string, GenreFeedback>>
 

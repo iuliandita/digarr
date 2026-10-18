@@ -59,6 +59,7 @@ const DUMMY_PASSWORD_HASH = hashPassword(
 )
 
 const ALLOWED_PREF_KEYS = new Set([
+  'dashboardLayout',
   'scoreThreshold',
   'scoringWeights',
   'rejectionCooldownDays',

@@ -5,14 +5,12 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'sonner'
 import { PlaylistCard } from '../components/playlist-card'
 import { PlaylistForm } from '../components/playlist-form'
-import { PlaylistSchedulingToggle } from '../components/playlist-scheduling-toggle'
 import { Button } from '../components/ui/button'
 import { EmptyState } from '../components/ui/empty-state'
 import { PageHeader } from '../components/ui/page-header'
 import { Skeleton } from '../components/ui/skeleton'
 import {
   createPlaylistApi,
-  getPlaylistScheduler,
   getPlaylists,
   type PlaylistInsert,
   type PlaylistRow,
@@ -56,15 +54,6 @@ export function PlaylistsPage() {
   const { data: playlists = [], isLoading } = useQuery<PlaylistRow[]>({
     queryKey: ['playlists'],
     queryFn: getPlaylists,
-  })
-
-  const { data: schedulerInfo } = useQuery<{
-    nextRun: string | null
-    cron: string | null
-    enabled: boolean
-  }>({
-    queryKey: ['playlists', 'scheduler'],
-    queryFn: getPlaylistScheduler,
   })
 
   useEffect(() => {
@@ -128,10 +117,6 @@ export function PlaylistsPage() {
           </Button>
         }
       />
-
-      {schedulerInfo && (
-        <PlaylistSchedulingToggle enabled={schedulerInfo.enabled} nextRun={schedulerInfo.nextRun} />
-      )}
 
       {/* Content */}
       {isLoading ? (
