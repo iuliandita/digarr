@@ -1,21 +1,13 @@
 // @vitest-environment node
 
-import { EventEmitter } from 'node:events'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SettingsRow } from '@/db/queries/settings'
 import type { AppDependencies } from '@/server'
+import { makeDeps as makeSharedDeps } from '../../helpers/test-app'
 
 vi.mock('@/db/queries/oauth-tokens', () => ({
   getOAuthToken: vi.fn(),
 }))
-
-function makeMockOrchestrator() {
-  const emitter = new EventEmitter()
-  return Object.assign(emitter, {
-    isRunning: false,
-    run: vi.fn(async () => ({ batchId: 1 })),
-  })
-}
 
 const USER_ID = 42
 
@@ -69,13 +61,10 @@ const mockGenreService = {
 }
 
 function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
-  return {
-    db: { execute: vi.fn(async () => []) } as unknown as AppDependencies['db'],
+  return makeSharedDeps({
     storeDb: {} as unknown as AppDependencies['storeDb'],
-    orchestrator: makeMockOrchestrator() as unknown as AppDependencies['orchestrator'],
     scheduler: mockScheduler as unknown as AppDependencies['scheduler'],
     providerRegistry: {} as unknown as AppDependencies['providerRegistry'],
-    isSetupComplete: async () => true,
     getSettings: vi.fn(
       async () =>
         ({
@@ -85,62 +74,6 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
           preferences: {},
         }) as SettingsRow,
     ),
-    updateSettings: vi.fn(async () => {}),
-    completeSetup: vi.fn(async () => ({ id: 1, setupComplete: true })),
-    getLastBatch: vi.fn(async () => null),
-    listRecommendations: vi.fn(async () => ({ items: [], total: 0 })),
-    getRecommendation: vi.fn(async () => null),
-    updateRecommendationStatus: vi.fn(async () => {}),
-    rejectRecommendation: vi.fn(async () => ({ artistId: 1, blockCreated: false })),
-    listArtistBlocks: vi.fn(async () => ({ items: [], nextCursor: null })),
-    removeArtistBlock: vi.fn(async () => true),
-    addArtistBlock: vi.fn(async () => {}),
-    listAlbumBlocks: vi.fn(async () => []),
-    removeAlbumBlock: vi.fn(async () => {}),
-    bulkUpdateStatus: vi.fn(async () => {}),
-    filterOwnedIds: vi.fn(async (ids: number[]) => ids),
-    listBatches: vi.fn(async () => []),
-    getBatch: vi.fn(async () => null),
-    getArtistById: vi.fn(async () => null),
-    restartScheduler: vi.fn(),
-    restartPlaylistScheduler: vi.fn(),
-    createUser: vi.fn(async () => ({
-      id: 1,
-      username: 'test',
-      isAdmin: false,
-      preferences: null,
-      preferredLocale: null,
-      email: null,
-      oidcSubject: null,
-      oidcIssuer: null,
-      authProvider: 'local',
-      listenbrainzUsername: null,
-      listenbrainzToken: null,
-      lastfmUsername: null,
-      lastfmApiKey: null,
-      plexUrl: null,
-      plexToken: null,
-      plexSectionId: null,
-      plexAccountId: null,
-      plexAccountName: null,
-      plexMachineIdentifier: null,
-      jellyfinUrl: null,
-      jellyfinApiKey: null,
-      jellyfinUserId: null,
-      jellyfinLibraryId: null,
-      embyUrl: null,
-      embyApiKey: null,
-      embyUserId: null,
-      embyLibraryId: null,
-      discogsToken: null,
-      discogsUsername: null,
-      subsonicUrl: null,
-      subsonicUsername: null,
-      subsonicPassword: null,
-      createdAt: new Date(),
-    })),
-    getUserByUsername: vi.fn(async () => null),
-    // Auth: return user so userId is set to USER_ID
     getUserById: vi.fn(async (id: number) =>
       id === USER_ID
         ? {
@@ -149,87 +82,15 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
             isAdmin: false,
             preferences: null,
             preferredLocale: null,
-            email: null,
-            oidcSubject: null,
-            oidcIssuer: null,
-            authProvider: 'local',
-            listenbrainzUsername: null,
-            listenbrainzToken: null,
-            lastfmUsername: null,
-            lastfmApiKey: null,
-            plexUrl: null,
-            plexToken: null,
-            plexSectionId: null,
-            plexAccountId: null,
-            plexAccountName: null,
-            plexMachineIdentifier: null,
-            jellyfinUrl: null,
-            jellyfinApiKey: null,
-            jellyfinUserId: null,
-            jellyfinLibraryId: null,
-            embyUrl: null,
-            embyApiKey: null,
-            embyUserId: null,
-            embyLibraryId: null,
-            discogsToken: null,
-            discogsUsername: null,
-            subsonicUrl: null,
-            subsonicUsername: null,
-            subsonicPassword: null,
-            createdAt: new Date(),
           }
         : null,
-    ),
+    ) as unknown as AppDependencies['getUserById'],
     getUserCount: vi.fn(async () => 0),
-    updateUserPreferredLocale: vi.fn(async () => {}),
     genreService: mockGenreService as unknown as AppDependencies['genreService'],
-    libraryHealth: {} as unknown as AppDependencies['libraryHealth'],
-    librarySync: {} as unknown as AppDependencies['librarySync'],
-    librarySyncStore: {} as unknown as AppDependencies['librarySyncStore'],
-    targetQueries: {
-      createTarget: vi.fn().mockResolvedValue({ id: 1 }),
-      getTargetsByUser: vi.fn().mockResolvedValue([]),
-      getAllTargets: vi.fn().mockResolvedValue([]),
-      getTarget: vi.fn().mockResolvedValue(null),
-      updateTarget: vi.fn().mockResolvedValue(undefined),
-      deleteTarget: vi.fn().mockResolvedValue(undefined),
-    },
-    testTargetConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-    getEnabledTargetsForUser: vi.fn().mockResolvedValue([]),
     subscriptionQueries: mockSubQueries as unknown as AppDependencies['subscriptionQueries'],
     runSubscription: vi.fn(async () => {}),
-    getOidcService: vi.fn(async () => null),
-    getUserByOidcIdentity: vi.fn(async () => null),
-    getUserByEmail: vi.fn(async () => null),
-    updateUser: vi.fn(async () => {}),
-    listUsers: vi.fn(async () => []),
-    deleteUser: vi.fn(async () => {}),
-    getFeedbackHistory: vi.fn(async () => new Map()),
-    dashboardQueries: {
-      getTopGenresForUser: vi.fn(async () => []),
-      getLatestGenreCoverage: vi.fn(async () => null),
-      getRecentActivity: vi.fn(async () => []),
-    },
-    jobRecorder: {
-      start: vi.fn().mockResolvedValue(1),
-      complete: vi.fn().mockResolvedValue(undefined),
-      fail: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue(undefined),
-      markStuck: vi.fn().mockResolvedValue(0),
-    },
-    jobQueries: {
-      listJobs: vi.fn().mockResolvedValue({ items: [], total: 0 }),
-      getJobById: vi.fn().mockResolvedValue(null),
-      getJobHealth: vi.fn().mockResolvedValue({
-        pipeline: { status: 'ok', lastRun: null, nextRun: null },
-        subscriptions: { status: 'ok', healthy: 0, total: 0 },
-        playlists: { status: 'ok', lastRun: null },
-        sources: {},
-      }),
-      getJobsForSubscription: vi.fn().mockResolvedValue([]),
-    },
     ...overrides,
-  }
+  })
 }
 
 // Helper to make authenticated requests (injects userId via session simulation)
