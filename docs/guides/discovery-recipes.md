@@ -25,7 +25,7 @@ What each route needs:
 | Search (MusicBrainz) then Add to discovery queue, or adding a mood result | The searched artist is stored with no account. Similar artists also need a Last.fm API key or an AI provider. | Only the artist you picked is stored. |
 | Scan | At least one connected listening source, library source, or AI provider | The run stops with "At least one listening source or AI provider must be configured". |
 | ListenBrainz modes (Weekly Jams, Artist Radio, Tag Radio, and others) | ListenBrainz username and token | The mode shows "Connect ListenBrainz to use this mode." |
-| Charts | Last.fm username and API key | "Connect Last.fm to use this mode." |
+| Charts | Last.fm API key | "Connect Last.fm to use this mode." |
 
 Fastest path with no accounts:
 
@@ -103,7 +103,7 @@ Tag Radio has no decade setting, so a decade tag such as `80s` only works if lis
 
 ## 4. Familiar or adventurous
 
-Scores are weighted sums of six parts, each 0 to 1 (`src/core/pipeline/score.ts`):
+Scores are weighted sums of six parts, each 0 to 1 (`src/core/pipeline/score.ts`). Album recommendations then get a small nudge of up to 0.15 either way from recency and popularity:
 
 - Consensus: how many different sources suggested the artist (4 or more is 1).
 - Similarity: average closeness to the seeds that produced it.
