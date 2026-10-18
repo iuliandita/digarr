@@ -36,6 +36,7 @@ import { jobRoutes } from './routes/jobs'
 import { libraryRoutes } from './routes/library'
 import { lidarrRoutes } from './routes/lidarr'
 import { listeningRoutes } from './routes/listening'
+import { mcpRoutes } from './routes/mcp'
 import { mediaRoutes } from './routes/media'
 import { moodRoutes } from './routes/mood'
 import { oauthRoutes } from './routes/oauth'
@@ -147,6 +148,8 @@ export function createApp(deps: AppDependencies) {
         'X-Digarr-Locale',
         'X-Digarr-CSRF',
         'X-Digarr-Auth-Mode',
+        'MCP-Protocol-Version',
+        'MCP-Session-Id',
       ],
     }),
   )
@@ -174,19 +177,17 @@ export function createApp(deps: AppDependencies) {
       },
     }),
   )
-  app.use(
-    '*',
-    proxyAuthMiddleware({
-      enabled: envConfig.proxyAuthEnabled,
-      trustedProxies:
-        envConfig.proxyAuthTrustedProxies
-          ?.split(',')
-          .map((s) => s.trim())
-          .filter(Boolean) ?? [],
-      getUserByUsername: deps.getUserByUsername,
-      createUser: deps.createUser,
-    }),
-  )
+  const proxyAuth = proxyAuthMiddleware({
+    enabled: envConfig.proxyAuthEnabled,
+    trustedProxies:
+      envConfig.proxyAuthTrustedProxies
+        ?.split(',')
+        .map((s) => s.trim())
+        .filter(Boolean) ?? [],
+    getUserByUsername: deps.getUserByUsername,
+    createUser: deps.createUser,
+  })
+  app.use('*', (c, next) => (c.req.path === '/api/v1/mcp' ? next() : proxyAuth(c, next)))
   app.use(
     '*',
     authGuard({
@@ -315,7 +316,9 @@ export function createApp(deps: AppDependencies) {
   app.route('/', healthRoutes({ db: deps.db }))
   app.route('/', setupRoutes(deps))
   app.route('/', settingsRoutes(deps))
-  app.route('/', pipelineRoutes(deps))
+  const pipeline = pipelineRoutes(deps)
+  app.route('/', mcpRoutes(deps, pipeline))
+  app.route('/', pipeline)
   app.route('/', recommendationRoutes(deps))
   app.route('/', batchRoutes(deps))
   app.use('/api/v1/admin/*', adminGuard(deps.getUserById))

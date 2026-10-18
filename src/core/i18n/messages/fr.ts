@@ -3,6 +3,13 @@ export const fr = {
   'oauth.error.authorizationDenied':
     'L’autorisation a été refusée - relance la connexion si tu veux te connecter.',
   'jobHistory.writeBack': 'Envoi vers {service}',
+  'tokens.mcpTitle': 'Configuration du client MCP',
+  'tokens.mcpDescription':
+    'Colle ce JSON dans un client MCP compatible avec les serveurs distants et les en-têtes d’autorisation. Garde-le en lieu sûr - il contient ton jeton.',
+  'tokens.mcpCopy': 'Copier la configuration',
+  'tokens.mcpCopied': 'Configuration copiée',
+  'tokens.mcpCopyFailed':
+    'Copie impossible. Sélectionne la configuration et copie-la manuellement.',
   'settings.slskdSearchInterval':
     'Intervalle minimal entre recherches en secondes (1-60, défaut 3)',
   'settings.slskdPathUnavailable':

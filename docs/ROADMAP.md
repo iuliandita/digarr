@@ -12,6 +12,7 @@ Digarr already supports artist and album recommendations, scheduled discovery, p
 
 ## Shipped highlights
 
+- Unreleased: the built-in [MCP endpoint](MCP.md) exposes owner-scoped recommendations, approvals, scans, discovery modes, and playlists using personal API tokens. Client configuration is available after token creation.
 - Album coverage paginates complete catalogs and excludes secondary release types; Gap-Fill failures retain the selected slice for retry.
 - Quick Discover seeds follow owner-scoped filters; individual, bulk, and automatic album approval retain the recommended release.
 - Saved playlists refresh their bound remote destinations, search connected local libraries, and report unmatched exports without substituting tracks.

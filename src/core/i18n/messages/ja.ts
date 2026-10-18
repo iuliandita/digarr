@@ -2,6 +2,12 @@ export const ja = {
   'oauth.error.tokenMismatch': '認証トークンが一致しません - 接続をやり直してください。',
   'oauth.error.authorizationDenied': '認証が拒否されました - 接続する場合はやり直してください。',
   'jobHistory.writeBack': '{service}への送信',
+  'tokens.mcpTitle': 'MCPクライアント設定',
+  'tokens.mcpDescription':
+    'リモートサーバーと認証ヘッダーに対応したMCPクライアントに、このJSONを貼り付けてください。トークンが含まれているため、安全に保管してください。',
+  'tokens.mcpCopy': '設定をコピー',
+  'tokens.mcpCopied': '設定をコピーしました',
+  'tokens.mcpCopyFailed': 'コピーできませんでした。設定を選択して手動でコピーしてください。',
   'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
   'settings.slskdPathUnavailable':
     'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',

@@ -3,6 +3,12 @@ export const tr = {
   'oauth.error.authorizationDenied':
     'Yetkilendirme reddedildi - bağlanmak istiyorsan bağlantıyı yeniden başlat.',
   'jobHistory.writeBack': '{service} hizmetine gönderim',
+  'tokens.mcpTitle': 'MCP istemci yapılandırması',
+  'tokens.mcpDescription':
+    'Bu JSON içeriğini uzak sunucuları ve yetkilendirme başlıklarını destekleyen bir MCP istemcisine yapıştır. Güvenli bir yerde sakla - belirtecini içeriyor.',
+  'tokens.mcpCopy': 'Yapılandırmayı kopyala',
+  'tokens.mcpCopied': 'Yapılandırma kopyalandı',
+  'tokens.mcpCopyFailed': 'Kopyalanamadı. Yapılandırmayı seç ve elle kopyala.',
   'settings.slskdSearchInterval': 'Aramalar arasındaki en kısa süre, saniye (1-60, varsayılan 3)',
   'settings.slskdPathUnavailable':
     'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',

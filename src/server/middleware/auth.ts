@@ -80,8 +80,9 @@ export function authGuard(options: {
     if (publicPath && !OPTIONAL_AUTH_PATHS.has(c.req.path)) return next()
 
     // Proxy auth already validated upstream - skip token checks
+    const personalTokenOnly = c.req.path === '/api/v1/mcp'
     const proxyAuthed = c.get('proxyAuth')
-    if (proxyAuthed) return next()
+    if (proxyAuthed && !personalTokenOnly) return next()
 
     // Extract one credential and retain its source through verification.
     // Any Authorization header suppresses query/cookie fallback, including a
@@ -92,7 +93,7 @@ export function authGuard(options: {
       if (header.startsWith('Bearer ')) {
         credential = { token: header.slice(7), source: 'bearer' }
       }
-    } else {
+    } else if (!personalTokenOnly) {
       const qp = c.req.query('token')
       if (qp && QUERY_TOKEN_PATHS.has(c.req.path)) {
         credential = { token: qp, source: 'query' }
@@ -104,6 +105,7 @@ export function authGuard(options: {
 
     // Try session token first
     if (
+      !personalTokenOnly &&
       credential?.token &&
       !(credential.source === 'bearer' && credential.token.startsWith('dga_'))
     ) {
@@ -118,6 +120,7 @@ export function authGuard(options: {
     // Fall back to legacy DIGARR_AUTH_TOKEN (read-only, first user, no admin)
     const legacyToken = envConfig.authToken
     if (
+      !personalTokenOnly &&
       legacyToken &&
       credential &&
       credential.source !== 'cookie' &&
@@ -144,7 +147,11 @@ export function authGuard(options: {
         c.set('userId', token.userId)
         c.set('authMethod', 'api-token')
         c.set('apiTokenScope', token.scope)
-        if (token.scope === 'read' && !['GET', 'HEAD'].includes(c.req.method)) {
+        if (
+          token.scope === 'read' &&
+          !['GET', 'HEAD'].includes(c.req.method) &&
+          !(personalTokenOnly && c.req.method === 'POST')
+        ) {
           c.res = problem(
             c,
             'token-read-only',
@@ -157,6 +164,12 @@ export function authGuard(options: {
           return
         }
         await next()
+      })
+    }
+
+    if (personalTokenOnly) {
+      return failedTokenLimit(c, async () => {
+        c.res = notAuthenticated(c)
       })
     }
 

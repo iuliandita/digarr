@@ -4,6 +4,12 @@ export const nl = {
   'oauth.error.authorizationDenied':
     'De autorisatie is geweigerd - start de verbinding opnieuw als je wilt verbinden.',
   'jobHistory.writeBack': 'Versturen naar {service}',
+  'tokens.mcpTitle': 'MCP-clientconfiguratie',
+  'tokens.mcpDescription':
+    'Plak deze JSON in een MCP-client die externe servers en autorisatieheaders ondersteunt. Bewaar deze veilig - je token staat erin.',
+  'tokens.mcpCopy': 'Configuratie kopiëren',
+  'tokens.mcpCopied': 'Configuratie gekopieerd',
+  'tokens.mcpCopyFailed': 'Kopiëren mislukt. Selecteer de configuratie en kopieer deze handmatig.',
   'settings.slskdSearchInterval':
     'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
   'settings.slskdPathUnavailable':

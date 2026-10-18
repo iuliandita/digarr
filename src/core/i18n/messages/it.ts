@@ -4,6 +4,12 @@ export const it = {
   'oauth.error.authorizationDenied':
     'L’autorizzazione è stata negata - avvia di nuovo la connessione se vuoi collegarti.',
   'jobHistory.writeBack': 'Invio a {service}',
+  'tokens.mcpTitle': 'Configurazione del client MCP',
+  'tokens.mcpDescription':
+    'Incolla questo JSON in un client MCP che supporta server remoti e intestazioni di autorizzazione. Conservalo al sicuro - contiene il tuo token.',
+  'tokens.mcpCopy': 'Copia configurazione',
+  'tokens.mcpCopied': 'Configurazione copiata',
+  'tokens.mcpCopyFailed': 'Copia non riuscita. Seleziona la configurazione e copiala manualmente.',
   'settings.slskdSearchInterval': 'Intervallo minimo tra ricerche in secondi (1-60, predefinito 3)',
   'settings.slskdPathUnavailable':
     'Lidarr non riesce a trovare o elencare il percorso di download. Controlla il tuo montaggio e i permessi di lettura.',
