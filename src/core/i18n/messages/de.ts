@@ -536,13 +536,11 @@ export const de = {
     'Generiere diese Playlist aus ausstehenden Künstlern, um sie vor der Genehmigung anzuhören.',
   'playlist.detailActionsHint':
     'Nach der Generierung kannst du die Titel als M3U oder XSPF herunterladen oder ein Playlist-Ziel hinzufügen, um zukünftige Durchläufe automatisch an Navidrome, Jellyfin oder Plex zu senden.',
-  'playlist.disable': 'Playlist deaktivieren',
   'playlist.download': 'Herunterladen',
   'playlist.downloadFailed': 'Download der Playlist fehlgeschlagen',
   'playlist.downloaded': 'heruntergeladen',
   'playlist.downloading': 'Herunterladen...',
   'playlist.edit': 'Playlist bearbeiten',
-  'playlist.enable': 'Playlist aktivieren',
   'playlist.generateFailed': 'Generierung konnte nicht gestartet werden',
   'playlist.generateNow': 'Jetzt generieren',
   'playlist.generatingNamed': 'Playlist-Generierung gestartet',

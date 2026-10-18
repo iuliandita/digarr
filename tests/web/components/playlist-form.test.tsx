@@ -110,4 +110,32 @@ describe('PlaylistForm targets', () => {
       ),
     )
   })
+
+  it('selects the only playlist target as text and sends no enabled flag', async () => {
+    apiMocks.listTargets.mockResolvedValue([
+      {
+        id: 1,
+        userId: 1,
+        type: 'navidrome-playlist',
+        name: 'Navidrome',
+        config: {},
+        enabled: true,
+        owned: true,
+      },
+    ])
+    const onSave = vi.fn()
+    renderForm(onSave)
+
+    expect(await screen.findByText('Navidrome')).toBeInTheDocument()
+    expect(screen.queryByRole('checkbox', { name: 'Navidrome' })).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Enabled')).not.toBeInTheDocument()
+
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Solo' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Create' }))
+
+    await waitFor(() =>
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ targetIds: [1] })),
+    )
+    expect(onSave.mock.calls[0]?.[0]).not.toHaveProperty('enabled')
+  })
 })

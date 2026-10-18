@@ -530,13 +530,11 @@ export const nl = {
     'Genereer deze afspeellijst met openstaande artiesten om ze te beluisteren voordat je ze goedkeurt.',
   'playlist.detailActionsHint':
     'Download na het genereren de nummers als M3U of XSPF, of voeg een afspeellijstdoel toe om toekomstige generaties automatisch naar Navidrome, Jellyfin of Plex te sturen.',
-  'playlist.disable': 'Afspeellijst uitschakelen',
   'playlist.download': 'Downloaden',
   'playlist.downloadFailed': 'Kan de afspeellijst niet downloaden',
   'playlist.downloaded': 'gedownload',
   'playlist.downloading': 'Downloaden...',
   'playlist.edit': 'Afspeellijst bewerken',
-  'playlist.enable': 'Afspeellijst inschakelen',
   'playlist.generateFailed': 'Kan generatie niet starten',
   'playlist.generateNow': 'Nu genereren',
   'playlist.generatingNamed': 'Genereren van afspeellijst gestart',

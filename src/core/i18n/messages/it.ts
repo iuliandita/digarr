@@ -531,13 +531,11 @@ export const it = {
     'Genera questa playlist dagli artisti in sospeso per ascoltarli prima di approvarli.',
   'playlist.detailActionsHint':
     'Dopo la generazione, scarica i brani come M3U o XSPF oppure aggiungi una destinazione playlist per inviare automaticamente le generazioni future a Navidrome, Jellyfin o Plex.',
-  'playlist.disable': 'Disattiva playlist',
   'playlist.download': 'Scarica',
   'playlist.downloadFailed': 'Impossibile scaricare la playlist',
   'playlist.downloaded': 'scaricato',
   'playlist.downloading': 'Download in corso...',
   'playlist.edit': 'Modifica playlist',
-  'playlist.enable': 'Attiva playlist',
   'playlist.generateFailed': 'Impossibile avviare la generazione',
   'playlist.generateNow': 'Genera ora',
   'playlist.generatingNamed': 'Generazione della playlist avviata',
