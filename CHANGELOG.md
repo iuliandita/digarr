@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Optional AudioMuse-AI audio-similarity source, marked Experimental in the Connections picker. Admins can save a URL, optional encrypted token, and per-connection TLS choice, then test authentication. Normal scans reuse library/listening seeds and the existing similarity weight; unreachable, unknown, or unindexed artists skip this source without failing the scan. Requires AudioMuse-AI v3.6.4 or newer. No database migration; normal backups retain the preferences and encryption key, and older versions ignore them. No live AudioMuse instance was available for validation. (#982)
+
 - Built-in Streamable HTTP MCP endpoint at `/api/v1/mcp` for recommendations, approvals, rejections, blocks, scans, discovery modes, job status, artist search, and playlists. Personal API tokens are required; read scope permits read tools only. Account settings shows a copyable client configuration after token creation in all 15 languages. No extra service or MCP session store is needed. (#979)
 - slskd targets now let you set a minimum search gap (3 seconds by default, 1-60 seconds) and keep jobs retryable with bounded backoff when slskd returns HTTP 409/429 (#971).
 - The slskd connection test checks the linked Lidarr download directory, reports missing or unlistable paths and likely incomplete folders, and shows the result in your language (#972).

@@ -1,5 +1,6 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
+import type { AudioMuseConfig } from '@/core/clients/audiomuse'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
@@ -7,6 +8,7 @@ import { createTranslator } from '@/core/i18n/translator'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
 import { normalizeAlbumTitle } from '@/core/library/normalize'
 import { dispatch } from '@/core/notifications'
+import { createAudioMuseSource, getAudioMuseConfig } from '@/core/plugins/audiomuse'
 import { createDiscogsSource } from '@/core/plugins/discogs'
 import { createEmbySource } from '@/core/plugins/emby'
 import { createJellyfinSource } from '@/core/plugins/jellyfin'
@@ -48,6 +50,7 @@ export interface PipelineSettings {
   aiBaseUrl: string | null
   preferences: Preferences | null
   skipTlsVerify?: boolean
+  audiomuse?: AudioMuseConfig | null
   spotifyAccessToken?: string | null
   audiodbApiKey?: string | null
 }
@@ -276,6 +279,10 @@ export class PipelineOrchestrator extends EventEmitter {
         registry.register(createSubsonicSource(subUrl, subUser, subPass, settings.skipTlsVerify))
       }
 
+      const audiomuse =
+        settings.audiomuse === undefined ? getAudioMuseConfig(prefs) : settings.audiomuse
+      if (audiomuse) registry.register(createAudioMuseSource(audiomuse))
+
       const aiProvider =
         providerRegistry && settings.aiProvider && settings.aiModel
           ? await providerRegistry.create(settings.aiProvider, {
@@ -465,7 +472,13 @@ export class PipelineOrchestrator extends EventEmitter {
             : deps.explicitDiscoveryMode != null
               ? { status: 'skipped', reason: 'explicit_run' }
               : failure !== undefined
-                ? { status: 'error', artists: count, error: failure }
+                ? source.id === 'audiomuse'
+                  ? {
+                      status: 'skipped',
+                      artists: count,
+                      reason: `audiomuse_${failure.replace('AudioMuse-AI: ', '')}`,
+                    }
+                  : { status: 'error', artists: count, error: failure }
                 : discoverySeedCount === 0
                   ? { status: 'skipped', reason: 'no_seeds' }
                   : { status: 'ok', artists: count }

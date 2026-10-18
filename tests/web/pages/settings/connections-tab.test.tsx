@@ -126,6 +126,51 @@ describe('Connections picker', () => {
     expect(screen.getByLabelText('Username')).toHaveValue('')
   })
 
+  it('offers AudioMuse only to admins with experimental integrations visible, then saves, tests, and disconnects', async () => {
+    mount()
+    const picker = await openPicker()
+    expect(within(picker).queryByRole('button', { name: 'AudioMuse-AI' })).toBeNull()
+    fireEvent.click(screen.getByRole('checkbox', { name: /Show experimental integrations/ }))
+    const choice = await within(picker).findByRole('button', { name: 'AudioMuse-AI' })
+    fireEvent.click(choice)
+    const form = screen.getByRole('group', { name: /^AudioMuse-AI/ })
+    expect(within(form).getByText('Experimental')).toBeInTheDocument()
+    fireEvent.change(screen.getByLabelText('URL'), {
+      target: { value: 'https://audiomuse.example' },
+    })
+    fireEvent.change(screen.getByLabelText('API token (optional)'), { target: { value: 'secret' } })
+    fireEvent.click(screen.getByLabelText('Skip TLS verification'))
+    mocked.testService.mockResolvedValueOnce({ message: 'AudioMuse-AI' })
+    fireEvent.click(within(form).getByRole('button', { name: 'Test Connection' }))
+    await waitFor(() =>
+      expect(mocked.testService).toHaveBeenCalledWith('audiomuse', {
+        url: 'https://audiomuse.example',
+        token: 'secret',
+        skipTlsVerify: true,
+      }),
+    )
+    fireEvent.click(within(form).getByRole('button', { name: 'Save' }))
+    await waitFor(() =>
+      expect(mocked.updateSettings).toHaveBeenLastCalledWith({
+        preferences: {
+          audiomuseUrl: 'https://audiomuse.example',
+          audiomuseToken: 'secret',
+          audiomuseSkipTlsVerify: true,
+        },
+      }),
+    )
+    const saved = screen.getByRole('group', { name: /^AudioMuse-AI/ })
+    await waitFor(() =>
+      expect(within(saved).getByRole('button', { expanded: false })).toBeInTheDocument(),
+    )
+    fireEvent.click(within(saved).getByRole('button', { expanded: false }))
+    fireEvent.click(within(saved).getByRole('button', { name: 'Disconnect' }))
+    await waitFor(() => expect(screen.queryByRole('group', { name: /^AudioMuse-AI/ })).toBeNull())
+    expect(mocked.updateSettings).toHaveBeenLastCalledWith({
+      preferences: { audiomuseUrl: '', audiomuseToken: '', audiomuseSkipTlsVerify: false },
+    })
+  })
+
   it('returns a disconnected OAuth service to the picker', async () => {
     mount()
     const spotify = await screen.findByRole('group', { name: /^Spotify/ })
@@ -169,6 +214,7 @@ describe('Connections picker', () => {
     const picker = await openPicker()
     expect(within(picker).queryByRole('checkbox')).toBeNull()
     expect(within(picker).queryByRole('button', { name: 'Lidarr' })).toBeNull()
+    expect(within(picker).queryByRole('button', { name: 'AudioMuse-AI' })).toBeNull()
     fireEvent.keyDown(screen.getByRole('searchbox'), { key: 'Escape' })
     const images = await screen.findByRole('group', { name: 'Artist images' })
     fireEvent.click(within(images).getByRole('button'))

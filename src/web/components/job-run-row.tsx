@@ -23,6 +23,12 @@ const SOURCE_REASON_KEYS: Record<string, MessageKey> = {
   no_seeds: 'jobHistory.sourceNoSeeds',
   explicit_run: 'jobHistory.sourceExplicitRun',
   not_configured: 'jobHistory.sourceNotConfigured',
+  audiomuse_unreachable: 'audiomuse.unreachable',
+  audiomuse_not_indexed: 'audiomuse.not_indexed',
+  audiomuse_artist_unknown: 'audiomuse.artist_unknown',
+  audiomuse_authentication_required: 'audiomuse.authentication_required',
+  audiomuse_invalid_response: 'audiomuse.invalid_response',
+  audiomuse_request_failed: 'audiomuse.request_failed',
 }
 
 const STATUS_BADGES: Record<string, { key: MessageKey; className: string }> = {

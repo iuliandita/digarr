@@ -37,6 +37,8 @@ TIDAL Favorite Artists is experimental. Authorization, refresh, and favorite-art
 
 ## Unreleased
 
+- Optional [AudioMuse-AI audio similarity](OPERATIONS.md#audiomuse-ai-audio-similarity), experimental and checked against v3.6.4 source/fixtures without a live instance. Existing metadata discovery stays independent.
+
 - Review and approve an artist's missing studio albums together, with individual album selection and visible partial failures ([#976](https://github.com/iuliandita/digarr/issues/976)).
 - Per-user scrobbler write-back sends exact-track approvals to ListenBrainz or Last.fm, with a separate ListenBrainz opt-in for manually generated playlists (scheduled runs never send) and explicit encrypted Last.fm connection consent (#977). This remains unreleased; live provider validation is separate from automated checks.
 
@@ -56,7 +58,7 @@ Delivery reports can improve while preserving track identities. Compare ranking 
 These need a feasibility and usefulness evaluation before a feature commitment.
 
 - Optional playback feedback from supported servers, with trustworthy track identity and a clear distinction between a deliberate skip and a playback failure.
-- Optional acoustic similarity through an audio-analysis companion for existing-library rediscovery. Evaluate resource limits, failure isolation, and recommendation quality; metadata-only discovery must keep working.
+- Evaluate recommendation quality and live-library behavior of the optional AudioMuse-AI source before removing its Experimental label.
 - Continuously refreshed discovery queues in existing music clients, after track identity and history-aware selection are established. Target capabilities determine feasibility.
 
 ## Future

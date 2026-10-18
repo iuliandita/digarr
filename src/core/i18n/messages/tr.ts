@@ -1,4 +1,16 @@
 export const tr = {
+  'settings.picker.audiomuse': 'İndekslenmiş kitaplığından ses benzerliği.',
+  'settings.audiomuseDescription': 'AudioMuse-AI ses analiziyle benzer sanatçılar bul.',
+  'settings.audiomuseToken': 'API belirteci (isteğe bağlı)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 veya üstü. Başlangıç sanatçılarının adlarını sunucuna gönderir. Kendinden imzalı sertifikalarda TLS doğrulamasını yalnızca güvendiğin sunucular için atla.',
+  'audiomuse.unreachable': 'AudioMuse-AI sunucusuna ulaşılamıyor.',
+  'audiomuse.not_indexed': 'AudioMuse-AI sanatçı indeksi hazır değil.',
+  'audiomuse.artist_unknown': 'Sanatçı bilinmiyor veya indekste benzer sanatçı yok.',
+  'audiomuse.authentication_required': 'AudioMuse-AI geçerli bir API belirteci gerektiriyor.',
+  'audiomuse.invalid_response': 'AudioMuse-AI beklenmeyen bir yanıt verdi.',
+  'audiomuse.request_failed': 'AudioMuse-AI isteği reddetti.',
+
   'oauth.error.tokenMismatch': 'Yetkilendirme belirteci eşleşmedi - bağlantıyı yeniden başlat.',
   'oauth.error.authorizationDenied':
     'Yetkilendirme reddedildi - bağlanmak istiyorsan bağlantıyı yeniden başlat.',
@@ -1133,7 +1145,7 @@ export const tr = {
   'settings.noConnectionsFound': 'Eşleşen bağlantı yok.',
   'settings.showExperimentalIntegrations': 'Deneysel entegrasyonları göster',
   'settings.experimentalIntegrationsHelp':
-    'Bağlantı, arama ve keşif seçicilerinde TIDAL ve Bandcamp gösterilir. Mevcut bağlantılar gizlendiğinde de çalışır.',
+    'Bağlantı, arama ve keşif seçicilerinde AudioMuse-AI, TIDAL ve Bandcamp gösterilir. Mevcut bağlantılar gizlendiğinde de çalışır.',
   'settings.picker.listening': 'Dinleme geçmişi',
   'settings.picker.streaming': 'Akış hesapları',
   'settings.picker.servers': 'Medya sunucuları',

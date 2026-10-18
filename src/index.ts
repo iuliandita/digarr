@@ -53,6 +53,7 @@ import { generatePlaylist, playlistGenerationFailure } from './core/playlists/ge
 import { buildPlaylistResolverDeps } from './core/playlists/resolver-deps'
 import { PlaylistScheduler, schedulePlaylists } from './core/playlists/scheduler'
 import { buildStrategyDeps } from './core/playlists/strategy-deps'
+import { getAudioMuseConfig } from './core/plugins/audiomuse'
 import { createDiscogsSource } from './core/plugins/discogs'
 import { createLastFmSource } from './core/plugins/lastfm'
 import { createListenBrainzSource } from './core/plugins/listenbrainz'
@@ -695,6 +696,7 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
       settings: {
         ...settings,
         preferences: mergePreferences(userPreferences),
+        audiomuse: getAudioMuseConfig(settings.preferences),
         spotifyAccessToken,
       },
       providerRegistry,

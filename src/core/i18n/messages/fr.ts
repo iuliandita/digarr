@@ -1,4 +1,17 @@
 export const fr = {
+  'settings.picker.audiomuse': 'Similarité audio de ta bibliothèque indexée.',
+  'settings.audiomuseDescription':
+    'Trouve des artistes similaires grâce à l’analyse audio d’AudioMuse-AI.',
+  'settings.audiomuseToken': 'Jeton API (facultatif)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 ou plus récent. Envoie les noms des artistes de départ à ton serveur. Ignore la vérification TLS pour un certificat autosigné uniquement si tu fais confiance au serveur.',
+  'audiomuse.unreachable': 'AudioMuse-AI est inaccessible.',
+  'audiomuse.not_indexed': 'L’index des artistes d’AudioMuse-AI n’est pas prêt.',
+  'audiomuse.artist_unknown': 'Artiste inconnu ou aucun artiste similaire dans l’index.',
+  'audiomuse.authentication_required': 'AudioMuse-AI nécessite un jeton API valide.',
+  'audiomuse.invalid_response': 'Réponse inattendue d’AudioMuse-AI.',
+  'audiomuse.request_failed': 'AudioMuse-AI a refusé la requête.',
+
   'oauth.error.tokenMismatch': 'Le jeton d’autorisation ne correspond pas - relance la connexion.',
   'oauth.error.authorizationDenied':
     'L’autorisation a été refusée - relance la connexion si tu veux te connecter.',
@@ -1154,7 +1167,7 @@ export const fr = {
   'settings.noConnectionsFound': 'Aucune connexion correspondante.',
   'settings.showExperimentalIntegrations': 'Afficher les intégrations expérimentales',
   'settings.experimentalIntegrationsHelp':
-    'Affiche TIDAL et Bandcamp dans les sélecteurs de connexions, de recherche et de découverte. Les connexions existantes continuent de fonctionner quand elles sont masquées.',
+    'Affiche AudioMuse-AI, TIDAL et Bandcamp dans les sélecteurs de connexions, de recherche et de découverte. Les connexions existantes continuent de fonctionner quand elles sont masquées.',
   'settings.picker.listening': 'Historique d’écoute',
   'settings.picker.streaming': 'Comptes de streaming',
   'settings.picker.servers': 'Serveurs multimédias',

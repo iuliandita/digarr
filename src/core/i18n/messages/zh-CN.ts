@@ -1,4 +1,16 @@
 export const zhCN = {
+  'settings.picker.audiomuse': '从已索引的曲库中查找声音相似的艺人。',
+  'settings.audiomuseDescription': '使用 AudioMuse-AI 音频分析查找相似艺人。',
+  'settings.audiomuseToken': 'API 令牌（可选）',
+  'settings.audiomuseHelp':
+    '需要 AudioMuse-AI v3.6.4 或更新版本。会向你的服务器发送种子艺人名称。仅在你信任的服务器使用自签名证书时跳过 TLS 验证。',
+  'audiomuse.unreachable': '无法连接 AudioMuse-AI。',
+  'audiomuse.not_indexed': 'AudioMuse-AI 的艺人索引尚未就绪。',
+  'audiomuse.artist_unknown': '艺人未知或索引中没有相似艺人。',
+  'audiomuse.authentication_required': 'AudioMuse-AI 需要有效的 API 令牌。',
+  'audiomuse.invalid_response': 'AudioMuse-AI 返回了意外响应。',
+  'audiomuse.request_failed': 'AudioMuse-AI 拒绝了请求。',
+
   'oauth.error.tokenMismatch': '授权令牌不匹配 - 请重新连接。',
   'oauth.error.authorizationDenied': '授权被拒绝 - 如果你想连接，请重试。',
   'jobHistory.writeBack': '发送到 {service}',
@@ -1052,7 +1064,7 @@ export const zhCN = {
   'settings.noConnectionsFound': '没有匹配的连接。',
   'settings.showExperimentalIntegrations': '显示实验性集成',
   'settings.experimentalIntegrationsHelp':
-    '在连接、搜索和音乐发现选项中显示 TIDAL 和 Bandcamp。隐藏后，已有连接仍可正常工作。',
+    '在连接、搜索和音乐发现选项中显示 AudioMuse-AI, TIDAL 和 Bandcamp。隐藏后，已有连接仍可正常工作。',
   'settings.picker.listening': '收听历史',
   'settings.picker.streaming': '流媒体账号',
   'settings.picker.servers': '媒体服务器',

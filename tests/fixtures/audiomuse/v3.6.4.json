@@ -1,0 +1,26 @@
+{
+  "version": { "app_version": "v3.6.4" },
+  "artists": [
+    { "artist": "Portishead", "artist_id": "a2e4609d839b46289b23c6ec7f1017d4", "divergence": 0.25 },
+    { "artist": "Massive Attack", "artist_id": null, "divergence": 1.5 },
+    { "artist": "Tricky", "artist_id": "n4H0MdQtvv0bFg8n5Fok4R", "divergence": 3.0 }
+  ],
+  "unknownArtist": {
+    "error_code": 1004,
+    "error_class": "Not Found",
+    "error_message": "The requested item was not found. Artist 'Radiohead' not found in index or no similar artists found.",
+    "error": "Artist 'Radiohead' not found in index or no similar artists found."
+  },
+  "notIndexed": {
+    "error_code": 3002,
+    "error_class": "Index Error",
+    "error_message": "The search index is empty. The artist similarity search service is currently unavailable.",
+    "error": "The artist similarity search service is currently unavailable."
+  },
+  "unauthorized": {
+    "error_code": 1005,
+    "error_class": "Authentication Required",
+    "error_message": "Authentication is required. Unauthorized",
+    "error": "Unauthorized"
+  }
+}

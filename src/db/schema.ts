@@ -635,6 +635,9 @@ export type Preferences = {
   dismissedHints?: string[] // for UX hints system
   subscriptionMode?: 'active' | 'ai-only' | null
   fanartApiKey?: string
+  audiomuseUrl?: string
+  audiomuseToken?: string
+  audiomuseSkipTlsVerify?: boolean
   metadataFallbackUrl?: string
   showExperimentalIntegrations?: boolean
   netNewAlbumDiscovery?: boolean // C: promote AI suggestedAlbum to a first-class album rec

@@ -1,4 +1,16 @@
 export const ko = {
+  'settings.picker.audiomuse': '색인된 라이브러리의 오디오 유사성입니다.',
+  'settings.audiomuseDescription': 'AudioMuse-AI 오디오 분석으로 비슷한 아티스트를 찾습니다.',
+  'settings.audiomuseToken': 'API 토큰 (선택 사항)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 이상이 필요합니다. 기준 아티스트 이름을 서버로 전송합니다. 자체 서명 인증서의 TLS 검증은 신뢰하는 서버에서만 건너뛰세요.',
+  'audiomuse.unreachable': 'AudioMuse-AI에 연결할 수 없습니다.',
+  'audiomuse.not_indexed': 'AudioMuse-AI 아티스트 색인이 준비되지 않았습니다.',
+  'audiomuse.artist_unknown': '알 수 없는 아티스트이거나 색인에 비슷한 아티스트가 없습니다.',
+  'audiomuse.authentication_required': 'AudioMuse-AI에 유효한 API 토큰이 필요합니다.',
+  'audiomuse.invalid_response': 'AudioMuse-AI에서 예상하지 못한 응답을 받았습니다.',
+  'audiomuse.request_failed': 'AudioMuse-AI가 요청을 거부했습니다.',
+
   'oauth.error.tokenMismatch': '인증 토큰이 일치하지 않아요 - 연결을 다시 시작하세요.',
   'oauth.error.authorizationDenied': '인증이 거부되었어요 - 연결하려면 다시 시작하세요.',
   'jobHistory.writeBack': '{service}로 전송',
@@ -1119,7 +1131,7 @@ export const ko = {
   'settings.noConnectionsFound': '일치하는 연결이 없습니다.',
   'settings.showExperimentalIntegrations': '실험적 연동 표시',
   'settings.experimentalIntegrationsHelp':
-    '연결, 검색, 음악 발견 선택기에 TIDAL과 Bandcamp를 표시합니다. 숨겨도 기존 연결은 계속 작동합니다.',
+    '연결, 검색, 음악 발견 선택기에 AudioMuse-AI, TIDAL과 Bandcamp를 표시합니다. 숨겨도 기존 연결은 계속 작동합니다.',
   'settings.picker.listening': '청취 기록',
   'settings.picker.streaming': '스트리밍 계정',
   'settings.picker.servers': '미디어 서버',

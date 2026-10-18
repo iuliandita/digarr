@@ -44,6 +44,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 | Approval and acquisition | Lidarr, slskd |
 | Playlist export | Spotify, Navidrome, Jellyfin, Emby, Plex |
 | Search | Spotify, Deezer, MusicBrainz; Bandcamp and TIDAL (both experimental) |
+| [Audio similarity](docs/OPERATIONS.md#audiomuse-ai-audio-similarity) | AudioMuse-AI (optional, experimental; v3.6.4+) |
 | AI recommendations | Anthropic, OpenAI, Gemini, Ollama, OpenAI-compatible endpoints |
 | Notifications | Webhooks, ntfy, Telegram, Apprise |
 
@@ -100,7 +101,7 @@ Use Settings for connections, scoring, schedules, preferences, and language. For
 
 ### Service apps
 
-Connections lists saved services, including incomplete setups. Add connection opens a searchable picker grouped by listening history, streaming accounts, media servers, and collections. Missing admin services are also available there. Disconnecting a service returns it to the picker. The admin-only Show experimental integrations switch at the bottom reveals TIDAL and Bandcamp in settings, search-source choices, and discovery-mode choices. New setups default to off; completed older setups retain their previously enabled Bandcamp search. Hiding a service does not disable stored connections or scheduled jobs.
+Connections lists saved services, including incomplete setups. Add connection opens a searchable picker grouped by listening history, streaming accounts, media servers, and collections. Missing admin services are also available there. Disconnecting a service returns it to the picker. The admin-only Show experimental integrations switch at the bottom reveals AudioMuse-AI, TIDAL and Bandcamp in settings, search-source choices, and discovery-mode choices. New setups default to off; completed older setups retain their previously enabled Bandcamp search. Hiding a service does not disable stored connections or scheduled jobs.
 
 <a id="connecting-spotify"></a>**Spotify** needs your own OAuth app, a Premium app owner, and up to five allowlisted Development Mode users. Search needs a connected account. Local HTTP uses `127.0.0.1`, with the same `ALLOWED_ORIGIN` and browser address. Follow [Spotify setup](docs/AUTHENTICATION.md#spotify-app-setup) before changing the quick-start origin.
 

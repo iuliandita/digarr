@@ -1,4 +1,16 @@
 export const uk = {
+  'settings.picker.audiomuse': 'Звукова схожість з твоєї проіндексованої бібліотеки.',
+  'settings.audiomuseDescription': 'Знаходь схожих виконавців завдяки аудіоаналізу AudioMuse-AI.',
+  'settings.audiomuseToken': 'Токен API (необов’язково)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 або новіша версія. Надсилає імена початкових виконавців на твій сервер. Пропускай перевірку TLS для самопідписаних сертифікатів лише на серверах, яким довіряєш.',
+  'audiomuse.unreachable': 'Не вдалося з’єднатися з AudioMuse-AI.',
+  'audiomuse.not_indexed': 'Індекс виконавців AudioMuse-AI ще не готовий.',
+  'audiomuse.artist_unknown': 'Виконавець невідомий або в індексі немає схожих виконавців.',
+  'audiomuse.authentication_required': 'AudioMuse-AI потребує дійсного токена API.',
+  'audiomuse.invalid_response': 'Неочікувана відповідь AudioMuse-AI.',
+  'audiomuse.request_failed': 'AudioMuse-AI відхилив запит.',
+
   'oauth.error.tokenMismatch': 'Токен авторизації не збігається - почни підключення заново.',
   'oauth.error.authorizationDenied':
     'В авторизації відмовлено - почни підключення заново, якщо хочеш підключитися.',
@@ -1143,7 +1155,7 @@ export const uk = {
   'settings.noConnectionsFound': 'Відповідних підключень немає.',
   'settings.showExperimentalIntegrations': 'Показувати експериментальні інтеграції',
   'settings.experimentalIntegrationsHelp':
-    'Показуй TIDAL і Bandcamp у виборі підключень, пошуку й відкриттів. Наявні підключення працюють і після приховування.',
+    'Показуй AudioMuse-AI, TIDAL і Bandcamp у виборі підключень, пошуку й відкриттів. Наявні підключення працюють і після приховування.',
   'settings.picker.listening': 'Історія прослуховувань',
   'settings.picker.streaming': 'Стримінгові облікові записи',
   'settings.picker.servers': 'Медіасервери',

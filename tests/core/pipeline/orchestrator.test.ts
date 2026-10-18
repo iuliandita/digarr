@@ -512,6 +512,75 @@ describe('PipelineOrchestrator', () => {
     },
   )
 
+  it.each(['unreachable', 'not_indexed', 'artist_unknown'])(
+    'records AudioMuse %s as skipped without failing the scan',
+    async (reason) => {
+      mockDiscover.mockImplementation(
+        async (_profile, _sources, _limit, _seeds, _ratio, options) => {
+          options?.onSeedCount?.(1)
+          options?.onSourceFailure?.('audiomuse', `AudioMuse-AI: ${reason}`)
+          return discovered
+        },
+      )
+      const jobRecorder = {
+        start: vi.fn().mockResolvedValue(7),
+        complete: vi.fn(),
+        fail: vi.fn(),
+        cancel: vi.fn(),
+        markStuck: vi.fn(),
+      }
+      await orchestrator.run({
+        db: makeDb(),
+        settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
+        providerRegistry,
+        librarySync: { syncForUser },
+        userId: 1,
+        jobRecorder,
+      })
+      expect(jobRecorder.fail).not.toHaveBeenCalled()
+      expect(jobRecorder.complete).toHaveBeenCalledWith(
+        7,
+        expect.objectContaining({
+          sourceResults: expect.objectContaining({
+            audiomuse: { status: 'skipped', artists: 0, reason: `audiomuse_${reason}` },
+          }),
+        }),
+      )
+    },
+  )
+
+  it('retains partial AudioMuse contributions while reporting a skipped source', async () => {
+    mockDiscover.mockImplementation(async (_profile, _sources, _limit, _seeds, _ratio, options) => {
+      options?.onSeedCount?.(2)
+      options?.onSourceFailure?.('audiomuse', 'AudioMuse-AI: artist_unknown')
+      return [{ name: 'New Artist', similarityScore: 0.8, source: 'audiomuse' }]
+    })
+    const jobRecorder = {
+      start: vi.fn().mockResolvedValue(7),
+      complete: vi.fn(),
+      fail: vi.fn(),
+      cancel: vi.fn(),
+      markStuck: vi.fn(),
+    }
+    await orchestrator.run({
+      db: makeDb(),
+      settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      jobRecorder,
+    })
+    expect(jobRecorder.complete).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        sourceResults: expect.objectContaining({
+          audiomuse: { status: 'skipped', artists: 1, reason: 'audiomuse_artist_unknown' },
+        }),
+      }),
+    )
+    expect(jobRecorder.fail).not.toHaveBeenCalled()
+  })
+
   it('hydrates genres, records coverage, then starts the background warmer', async () => {
     const db = {
       ...makeDb(),

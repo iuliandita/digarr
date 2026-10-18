@@ -1,4 +1,17 @@
 export const ru = {
+  'settings.picker.audiomuse': 'Звуковое сходство из твоей проиндексированной библиотеки.',
+  'settings.audiomuseDescription':
+    'Находи похожих исполнителей с помощью аудиоанализа AudioMuse-AI.',
+  'settings.audiomuseToken': 'Токен API (необязательно)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 или новее. Отправляет имена исходных исполнителей на твой сервер. Пропускай проверку TLS для самоподписанных сертификатов только на доверенных серверах.',
+  'audiomuse.unreachable': 'Не удалось подключиться к AudioMuse-AI.',
+  'audiomuse.not_indexed': 'Индекс исполнителей AudioMuse-AI ещё не готов.',
+  'audiomuse.artist_unknown': 'Исполнитель неизвестен или в индексе нет похожих исполнителей.',
+  'audiomuse.authentication_required': 'AudioMuse-AI нужен действительный токен API.',
+  'audiomuse.invalid_response': 'Неожиданный ответ AudioMuse-AI.',
+  'audiomuse.request_failed': 'AudioMuse-AI отклонил запрос.',
+
   'oauth.error.tokenMismatch': 'Токен авторизации не совпадает - начни подключение заново.',
   'oauth.error.authorizationDenied':
     'В авторизации отказано - начни подключение заново, если хочешь подключиться.',
@@ -1150,7 +1163,7 @@ export const ru = {
   'settings.noConnectionsFound': 'Подходящих подключений нет.',
   'settings.showExperimentalIntegrations': 'Показывать экспериментальные интеграции',
   'settings.experimentalIntegrationsHelp':
-    'Показывай TIDAL и Bandcamp при выборе подключений, поиска и открытий. Существующие подключения работают и после скрытия.',
+    'Показывай AudioMuse-AI, TIDAL и Bandcamp при выборе подключений, поиска и открытий. Существующие подключения работают и после скрытия.',
   'settings.picker.listening': 'История прослушиваний',
   'settings.picker.streaming': 'Стриминговые аккаунты',
   'settings.picker.servers': 'Медиасерверы',

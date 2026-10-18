@@ -265,6 +265,46 @@ describe('POST /api/v1/pipeline/run', () => {
     expect(body.position).toBe(1)
   })
 
+  it('keeps the admin AudioMuse connection when resolving personal preferences', async () => {
+    const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+    const personalPreferences = { ...DEFAULT_PREFERENCES, scoreThreshold: 0.7 }
+    const app = createApp(
+      makeDeps({
+        orchestrator,
+        getSettings: vi.fn().mockResolvedValue({
+          id: 1,
+          preferences: {
+            ...DEFAULT_PREFERENCES,
+            audiomuseUrl: 'https://audiomuse:8000',
+            audiomuseToken: 'admin-token',
+            audiomuseSkipTlsVerify: true,
+          },
+        }),
+        getUserById: vi.fn().mockResolvedValue({
+          id: 1,
+          isAdmin: false,
+          preferences: personalPreferences,
+        }),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+
+    expect(res.status).toBe(202)
+    expect(orchestrator.enqueue).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({
+          preferences: personalPreferences,
+          audiomuse: {
+            url: 'https://audiomuse:8000',
+            token: 'admin-token',
+            skipTlsVerify: true,
+          },
+        }),
+      }),
+    )
+  })
+
   it('reports duplicate (not queued) when the same user re-submits during their in-flight run', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     // Same-user re-submit: enqueue returns a no-op duplicate at position 0.

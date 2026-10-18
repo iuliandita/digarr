@@ -94,6 +94,9 @@ export const preferencesSchema = z
     dismissedHints: z.array(z.string()).optional(),
     subscriptionMode: z.enum(['active', 'ai-only']).nullable().optional(),
     fanartApiKey: z.string().optional(),
+    audiomuseUrl: z.union([z.literal(''), z.string().url().max(2048)]).optional(),
+    audiomuseToken: z.string().max(4096).optional(),
+    audiomuseSkipTlsVerify: z.boolean().optional(),
     metadataFallbackUrl: z.string().optional(),
     channels: z
       .array(notificationChannel)

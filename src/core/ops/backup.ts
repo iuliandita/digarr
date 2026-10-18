@@ -286,7 +286,7 @@ export async function createBackupSnapshot(
 // (e.g. 'preferences.fanartApiKey'). The detector only uses these labels for
 // the surfaced error message, so dotted paths are a pure string contract.
 const ENCRYPTED_FIELD_MAP: Record<string, readonly string[]> = {
-  settings: [...SENSITIVE_SETTINGS, 'preferences.fanartApiKey'],
+  settings: [...SENSITIVE_SETTINGS, 'preferences.fanartApiKey', 'preferences.audiomuseToken'],
   users: SENSITIVE_USER_CONNECTIONS,
   oauthTokens: SENSITIVE_OAUTH,
   targets: SENSITIVE_TARGET_CONFIG,

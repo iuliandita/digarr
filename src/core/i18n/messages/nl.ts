@@ -1,4 +1,17 @@
 export const nl = {
+  'settings.picker.audiomuse': 'Audiovergelijking uit je geïndexeerde bibliotheek.',
+  'settings.audiomuseDescription':
+    'Vind vergelijkbare artiesten met de audioanalyse van AudioMuse-AI.',
+  'settings.audiomuseToken': 'API-token (optioneel)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 of nieuwer. Stuurt namen van uitgangsartiesten naar je server. Sla TLS-verificatie voor zelfondertekende certificaten alleen over bij servers die je vertrouwt.',
+  'audiomuse.unreachable': 'AudioMuse-AI is niet bereikbaar.',
+  'audiomuse.not_indexed': 'De artiestenindex van AudioMuse-AI is nog niet klaar.',
+  'audiomuse.artist_unknown': 'Artiest onbekend of geen vergelijkbare artiesten in de index.',
+  'audiomuse.authentication_required': 'AudioMuse-AI vereist een geldig API-token.',
+  'audiomuse.invalid_response': 'Onverwacht antwoord van AudioMuse-AI.',
+  'audiomuse.request_failed': 'AudioMuse-AI heeft het verzoek geweigerd.',
+
   'oauth.error.tokenMismatch':
     'Het autorisatietoken komt niet overeen - start de verbinding opnieuw.',
   'oauth.error.authorizationDenied':
@@ -1148,7 +1161,7 @@ export const nl = {
   'settings.noConnectionsFound': 'Geen overeenkomende verbindingen.',
   'settings.showExperimentalIntegrations': 'Experimentele integraties tonen',
   'settings.experimentalIntegrationsHelp':
-    'Toon TIDAL en Bandcamp in de verbindings-, zoek- en ontdekkingskeuzes. Bestaande verbindingen blijven werken als ze verborgen zijn.',
+    'Toon AudioMuse-AI, TIDAL en Bandcamp in de verbindings-, zoek- en ontdekkingskeuzes. Bestaande verbindingen blijven werken als ze verborgen zijn.',
   'settings.picker.listening': 'Luistergeschiedenis',
   'settings.picker.streaming': 'Streamingaccounts',
   'settings.picker.servers': 'Mediaservers',

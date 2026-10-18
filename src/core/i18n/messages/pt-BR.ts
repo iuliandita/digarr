@@ -1,4 +1,17 @@
 export const ptBR = {
+  'settings.picker.audiomuse': 'Similaridade de áudio da tua biblioteca indexada.',
+  'settings.audiomuseDescription':
+    'Encontra artistas semelhantes com a análise de áudio do AudioMuse-AI.',
+  'settings.audiomuseToken': 'Token da API (opcional)',
+  'settings.audiomuseHelp':
+    'AudioMuse-AI v3.6.4 ou posterior. Envia nomes de artistas de referência ao teu servidor. Ignora a verificação TLS para certificados autoassinados apenas em servidores confiáveis.',
+  'audiomuse.unreachable': 'Não foi possível acessar o AudioMuse-AI.',
+  'audiomuse.not_indexed': 'O índice de artistas do AudioMuse-AI não está pronto.',
+  'audiomuse.artist_unknown': 'Artista desconhecido ou sem artistas semelhantes no índice.',
+  'audiomuse.authentication_required': 'O AudioMuse-AI precisa de um token de API válido.',
+  'audiomuse.invalid_response': 'Resposta inesperada do AudioMuse-AI.',
+  'audiomuse.request_failed': 'O AudioMuse-AI rejeitou a solicitação.',
+
   'oauth.error.tokenMismatch': 'O token de autorização não corresponde - inicie a conexão de novo.',
   'oauth.error.authorizationDenied':
     'A autorização foi negada - inicie a conexão de novo se quiser se conectar.',
@@ -1149,7 +1162,7 @@ export const ptBR = {
   'settings.noConnectionsFound': 'Nenhuma conexão correspondente.',
   'settings.showExperimentalIntegrations': 'Mostrar integrações experimentais',
   'settings.experimentalIntegrationsHelp':
-    'Mostra TIDAL e Bandcamp nos seletores de conexões, busca e descoberta. As conexões existentes continuam funcionando quando ocultas.',
+    'Mostra AudioMuse-AI, TIDAL e Bandcamp nos seletores de conexões, busca e descoberta. As conexões existentes continuam funcionando quando ocultas.',
   'settings.picker.listening': 'Histórico de escuta',
   'settings.picker.streaming': 'Contas de streaming',
   'settings.picker.servers': 'Servidores de mídia',
