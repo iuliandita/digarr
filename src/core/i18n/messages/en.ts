@@ -535,13 +535,11 @@ export const en = {
     'Generate this playlist from pending artists to listen before approving them.',
   'playlist.detailActionsHint':
     'After generation, download the tracks as M3U or XSPF, or add a playlist target to send future runs to Navidrome, Jellyfin, or Plex automatically.',
-  'playlist.disable': 'Disable playlist',
   'playlist.download': 'Download',
   'playlist.downloadFailed': 'Failed to download playlist',
   'playlist.downloaded': 'downloaded',
   'playlist.downloading': 'Downloading...',
   'playlist.edit': 'Edit playlist',
-  'playlist.enable': 'Enable playlist',
   'playlist.generateFailed': 'Failed to start generation',
   'playlist.generateNow': 'Generate now',
   'playlist.generatingNamed': 'Playlist generation started',

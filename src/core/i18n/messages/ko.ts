@@ -539,13 +539,11 @@ export const ko = {
     '대기 중인 아티스트로 이 재생목록을 생성하여 승인 전에 들어보세요.',
   'playlist.detailActionsHint':
     '생성 후 트랙을 M3U 또는 XSPF로 다운로드하거나 재생목록 대상을 추가하여 이후 생성 결과를 Navidrome, Jellyfin 또는 Plex에 자동으로 보낼 수 있습니다.',
-  'playlist.disable': '플레이리스트 비활성화',
   'playlist.download': '다운로드',
   'playlist.downloadFailed': '재생목록을 다운로드하지 못했습니다.',
   'playlist.downloaded': '다운로드됨',
   'playlist.downloading': '다운로드 중...',
   'playlist.edit': '플레이리스트 편집',
-  'playlist.enable': '플레이리스트 활성화',
   'playlist.generateFailed': '생성을 시작하지 못했습니다.',
   'playlist.generateNow': '지금 생성',
   'playlist.generatingNamed': '플레이리스트 생성을 시작했습니다',

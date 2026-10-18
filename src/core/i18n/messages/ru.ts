@@ -549,13 +549,11 @@ export const ru = {
     'Создай этот плейлист из ожидающих исполнителей, чтобы послушать их перед одобрением.',
   'playlist.detailActionsHint':
     'После создания скачай треки в формате M3U или XSPF либо добавь цель плейлиста, чтобы автоматически отправлять будущие подборки в Navidrome, Jellyfin или Plex.',
-  'playlist.disable': 'Отключить плейлист',
   'playlist.download': 'Скачать',
   'playlist.downloadFailed': 'Не удалось загрузить плейлист',
   'playlist.downloaded': 'скачал',
   'playlist.downloading': 'Загрузка...',
   'playlist.edit': 'Редактировать плейлист',
-  'playlist.enable': 'Включить плейлист',
   'playlist.generateFailed': 'Не удалось начать генерацию',
   'playlist.generateNow': 'Сгенерировать сейчас',
   'playlist.generatingNamed': 'Генерация плейлиста запущена',

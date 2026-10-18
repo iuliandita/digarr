@@ -537,13 +537,11 @@ export const tr = {
     'Bu çalma listesini bekleyen sanatçılardan oluşturup onaylamadan önce dinle.',
   'playlist.detailActionsHint':
     'Oluşturduktan sonra parçaları M3U veya XSPF olarak indir ya da sonraki oluşturma sonuçlarını otomatik olarak Navidrome, Jellyfin veya Plex hizmetlerine göndermek için bir çalma listesi hedefi ekle.',
-  'playlist.disable': 'Çalma listesini devre dışı bırak',
   'playlist.download': 'İndir',
   'playlist.downloadFailed': 'Çalma listesi indirilemedi',
   'playlist.downloaded': 'indirildi',
   'playlist.downloading': 'İndiriliyor...',
   'playlist.edit': 'Çalma listesini düzenle',
-  'playlist.enable': 'Çalma listesini etkinleştir',
   'playlist.generateFailed': 'Oluşturma başlatılamadı',
   'playlist.generateNow': 'Şimdi oluştur',
   'playlist.generatingNamed': 'Çalma listesi oluşturma başlatıldı',

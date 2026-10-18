@@ -56,7 +56,6 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
   const [size, setSize] = useState(playlist?.config?.size ?? 25)
   const [genre, setGenre] = useState(playlist?.config?.genre ?? '')
   const [mood, setMood] = useState(playlist?.config?.mood ?? '')
-  const [enabled, setEnabled] = useState(playlist?.enabled ?? true)
   const [targetIds, setTargetIds] = useState<number[]>(playlist?.targetIds ?? [])
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,6 +66,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
   const playlistTargets = targets.filter(
     (target) => target.owned && PLAYLIST_TARGET_TYPES.has(target.type),
   )
+  const singleTarget = playlistTargets.length === 1 ? playlistTargets[0] : undefined
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -104,8 +104,7 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
         strategy,
         schedule: useSchedule ? schedule : null,
         config,
-        enabled,
-        targetIds,
+        targetIds: singleTarget ? [singleTarget.id] : targetIds,
       })
     } catch (err: unknown) {
       setError(errMsg(err))
@@ -245,24 +244,12 @@ export function PlaylistForm({ playlist, onSave, onCancel }: PlaylistFormProps) 
             )}
           </div>
 
-          {/* Enabled */}
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="playlist-enabled"
-              checked={enabled}
-              onChange={(e) => setEnabled(e.target.checked)}
-              className="rounded border-border"
-            />
-            <label htmlFor="playlist-enabled" className="text-sm text-text">
-              {t('common.enabled')}
-            </label>
-          </div>
-
           {/* Targets */}
           <div className="space-y-2">
             <span className="block text-sm font-medium text-text">{t('playlistForm.targets')}</span>
-            {playlistTargets.length === 0 ? (
+            {singleTarget ? (
+              <p className="text-sm text-text">{singleTarget.name}</p>
+            ) : playlistTargets.length === 0 ? (
               <p className="text-xs text-muted">{t('settings.noTargets')}</p>
             ) : (
               <div className="space-y-1.5">
