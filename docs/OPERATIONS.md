@@ -94,6 +94,8 @@ Before upgrade, review both bootstrap variables and retain a consistent database
 
 ## Discovery modes and schedules
 
+For worked setups, seasonal and decade schedules, and familiar versus adventurous tuning, see the [discovery recipes](guides/discovery-recipes.md).
+
 Open Discover > Discovery Modes (`/discovery-modes`) for both manual and scheduled discovery. Your modes lists saved schedules and recently run modes as compact rows. Expand a saved row to edit it or review its run history; pause, resume, run, and delete controls remain beside the row. Bulk pause and resume are available when you have multiple schedules.
 
 Choose Run a mode to search the mode picker. Modes that need a connection show the reason there. The experimental toggle shares the Connections preference. Pick a mode, adjust its Easy or Advanced settings, then choose Run now or Schedule. Schedule keeps those settings inside the same mode card. Choose a schedule preset or Custom for a validated cron expression and cron preview. More options holds the prefilled name, artist limit, and scoring preset. New schedules start enabled; pause or resume them with the row switch. Expanding a saved row uses the same compact editor. Preset and import schedules remain editable, with their source shown. Presets and imports in the add flow retains CSV, M3U, XSPF, playlist, and connected-service imports, plus custom genre and similar-artist subscriptions.
