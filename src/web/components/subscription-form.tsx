@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { errMsg } from '@/core/validation'
 import type { DiscoveryModeResponse, SubscriptionUpdate } from '../lib/api'
+import { translateDiscoveryModeLabel } from '../lib/discovery-i18n'
 import { useI18n } from '../lib/i18n'
 import { CronPicker } from './cron-picker'
 import { DiscoveryModeForm } from './discovery-mode-form'
@@ -25,6 +26,7 @@ type SubscriptionFormProps = {
   mode: 'create' | 'edit'
   configuredSources: string[]
   discoveryModes?: DiscoveryModeResponse[]
+  inline?: boolean
 }
 
 type DiscoveryModeSubscriptionConfig = {
@@ -250,6 +252,7 @@ export function SubscriptionForm({
   mode,
   configuredSources,
   discoveryModes = [],
+  inline = false,
 }: SubscriptionFormProps) {
   const { t } = useI18n()
   const [name, setName] = useState(initial?.name ?? '')
@@ -409,12 +412,16 @@ export function SubscriptionForm({
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: inline wrapper shares the modal Escape handler
+    // biome-ignore lint/a11y/useAriaPropsSupportedByRole: dialog semantics apply only in modal mode
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-overlay"
-      onClick={onCancel}
+      className={
+        inline ? 'w-full' : 'fixed inset-0 z-50 flex items-center justify-center bg-overlay'
+      }
+      onClick={inline ? undefined : onCancel}
       onKeyDown={(e) => e.key === 'Escape' && onCancel()}
-      role="dialog"
-      aria-modal="true"
+      role={inline ? undefined : 'dialog'}
+      aria-modal={inline ? undefined : true}
       aria-label={
         mode === 'create' ? t('subscriptionForm.dialogCreate') : t('subscriptionForm.dialogEdit')
       }
@@ -422,7 +429,11 @@ export function SubscriptionForm({
       {/* biome-ignore lint/a11y/noStaticElementInteractions: modal content panel */}
       {/* biome-ignore lint/a11y/useKeyWithClickEvents: stop-propagation prevents backdrop dismiss */}
       <div
-        className="bg-bg border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto"
+        className={
+          inline
+            ? 'bg-bg rounded-lg w-full'
+            : 'bg-bg border border-border rounded-lg shadow-xl w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto'
+        }
         onClick={(e) => e.stopPropagation()}
       >
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
@@ -546,7 +557,7 @@ export function SubscriptionForm({
                     >
                       {discoveryModes.map((discoveryMode) => (
                         <option key={discoveryMode.id} value={discoveryMode.id}>
-                          {discoveryMode.label}
+                          {translateDiscoveryModeLabel(t, discoveryMode)}
                         </option>
                       ))}
                     </select>

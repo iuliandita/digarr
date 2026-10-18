@@ -96,7 +96,7 @@ function SubscriptionPulse({
           className="bg-surface border border-border rounded-surface"
           message={t('dashboard.subscriptionsEmpty')}
           action={
-            <Link to="/subscriptions" className="text-caption text-accent-text underline">
+            <Link to="/discovery-modes" className="text-caption text-accent-text underline">
               {t('dashboard.setUpAutomaticDiscovery')}
             </Link>
           }
@@ -110,7 +110,7 @@ function SubscriptionPulse({
       <SectionHeader
         title={t('dashboard.subscriptions')}
         linkText={t('dashboard.manage')}
-        linkTo="/subscriptions"
+        linkTo="/discovery-modes"
       />
       <div className="flex-1 bg-surface border border-border rounded-lg divide-y divide-border">
         {subs.slice(0, 5).map((sub) => {

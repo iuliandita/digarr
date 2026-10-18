@@ -1,4 +1,25 @@
 export const ru = {
+  'discoveryModes.yourModes': 'Твои режимы',
+  'discoveryModes.runMode': 'Запустить режим',
+  'discoveryModes.searchModes': 'Поиск режимов',
+  'discoveryModes.modeResults': 'Найдено режимов: {0}',
+  'discoveryModes.noModesFound': 'Режимы не найдены',
+  'discoveryModes.emptyHint':
+    'Запусти режим один раз или настрой расписание, чтобы продолжать открывать исполнителей.',
+  'discoveryModes.presetsAndImports': 'Шаблоны и импорт',
+  'discoveryModes.recentlyRun': 'Недавние запуски',
+  'discoveryModes.runHistory': 'История запусков',
+  'discoveryModes.paused': 'Приостановлено',
+  'discoveryModes.scheduled': 'По расписанию',
+  'settings.scheduleOverview': 'Запланированные задачи',
+  'settings.scheduleOverviewHelp':
+    'Просматривай расписания сканирования, режимов открытий, плейлистов и сводок в одном месте.',
+  'settings.scanSchedule': 'Сканирование для поиска музыки',
+  'settings.digestSchedule': 'Сводка уведомлений',
+  'settings.editSchedules': 'Изменить расписания сканирования и сводок',
+  'settings.scheduleOverviewFailed': 'Не удалось загрузить некоторые расписания.',
+  'settings.schedulePaused': 'Приостановлено',
+  'settings.librarySyncEvery': 'Каждые {hours} ч.',
   'settings.slskdSearchInterval':
     'Минимальный интервал между поисками в секундах (1-60, по умолчанию 3)',
   'settings.slskdPathUnavailable':
@@ -110,7 +131,6 @@ export const ru = {
   'nav.recommendations': 'Рекомендации',
   'nav.reconciliation': 'Сопоставление',
   'nav.settings': 'Настройки',
-  'nav.subscriptions': 'Подписки',
   'nav.tools': 'Инструменты',
   'playlist.generate': 'Сгенерировать',
   'playlist.generating': 'Генерация...',
@@ -125,7 +145,6 @@ export const ru = {
   'subscriptions.title': 'Подписки',
   'subscriptions.new': 'Новая',
   'subscriptions.fromPreset': 'Из шаблона',
-  'subscriptions.newOptions': 'Другие способы добавить подписку',
   'subscriptions.pauseAll': 'Поставить всё на паузу',
   'subscriptions.resumeAll': 'Возобновить всё',
   'dashboard.todaysPick': 'Рекомендация дня',
@@ -340,9 +359,9 @@ export const ru = {
   'dashboard.rejectedSuccess': 'Отклонено',
   'dashboard.sentToTarget': 'Отправлено в целевую систему',
   'dashboard.setUpAutomaticDiscovery': 'Настрой автоматическое обнаружение',
-  'dashboard.subscriptions': 'Подписки',
+  'dashboard.subscriptions': 'Режимы открытий',
   'dashboard.subscriptionsEmpty':
-    'Ты еще не настроил автоматическое обнаружение. Digarr может найти для тебя новых исполнителей по расписанию.',
+    'Запусти режим или настрой расписание в разделе «Режимы открытий», чтобы находить новых исполнителей для своей библиотеки.',
   'dashboard.tasteEmpty':
     'Когда ты одобряешь или отклоняешь рекомендации исполнителя, Digarr изучает твой вкус и становится лучше в поиске музыки, которая тебе нравится.',
   'dashboard.yourTaste': 'Твой музыкальный вкус',
@@ -362,7 +381,7 @@ export const ru = {
   'discover.clearedCount': 'Очищено',
   'discover.discoveryModes': 'Режимы открытий',
   'discover.discoveryModesDescription':
-    'Запусти целевое обнаружение с помощью простой предустановки или полной расширенной формы.',
+    'Запусти режим открытий сейчас или настрой расписание, чтобы продолжать находить новых исполнителей - всё на этой странице.',
   'discover.monitoringOptions': 'Параметры мониторинга',
   'discover.monitorAllDescription': 'Отслеживать и искать все альбомы',
   'discover.monitorNewDescription': 'Отслеживать только будущие релизы',
@@ -654,8 +673,6 @@ export const ru = {
   'subscriptions.likedSongs': 'Понравившиеся песни',
   'subscriptions.genreWeeklyName': '{genre}: еженедельно',
   'subscriptions.addToRecommendations': 'Добавить в рекомендации',
-  'subscriptions.collapseRunHistory': 'Свернуть историю запусков',
-  'subscriptions.expandRunHistory': 'Развернуть историю запусков',
   'subscriptions.nextRun': 'Далее:',
   'subscriptions.lastRun': 'Последнее:',
   'subscriptions.error': 'Ошибка',
@@ -673,15 +690,6 @@ export const ru = {
   'subscriptions.allPaused': 'Все подписки приостановлены',
   'subscriptions.updateFailed': 'Не удалось обновить подписки.',
   'subscriptions.created': 'Подписка создана',
-  'subscriptions.introTip':
-    'Подписки автоматически открывают новых исполнителей по расписанию. Создай подписку на жанр или похожего исполнителя, чтобы пополнять свою библиотеку, пока спишь.',
-  'subscriptions.emptyDescription':
-    'Импортируй своих любимых исполнителей, чтобы начать, или настрой автоматическое обнаружение, чтобы постоянно находить новую музыку.',
-  'subscriptions.aiOnlyMode': 'Режим только для ИИ',
-  'subscriptions.aiOnlyDescription':
-    'Обнаружение выполняется по расписанию конвейера без подписок на внешние каналы.',
-  'subscriptions.switchToPreset': 'Переключиться на предустановку',
-  'subscriptions.addFromPresets': 'Добавить из пресетов',
   'subscriptions.deleteSubscription': 'Удалить подписку',
   'subscriptions.deleteSubscriptionPrompt': 'Удалить',
   'subscriptions.spotifyNotConnected': 'Spotify не подключен',
@@ -912,7 +920,6 @@ export const ru = {
   'discoveryMode.easy': 'Простой',
   'discoveryMode.advanced': 'Расширенный',
   'discoveryMode.starting': 'Запуск...',
-  'discoveryMode.runDiscovery': 'Запустить поиск',
   'discoveryMode.dismiss': 'Закрыть',
   'discoveryMode.notAvailableBecause': 'Недоступно, потому что',
   'discoveryMode.addTag': '+ Добавить тег',

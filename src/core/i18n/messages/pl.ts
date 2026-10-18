@@ -1,4 +1,25 @@
 export const pl = {
+  'discoveryModes.yourModes': 'Twoje tryby',
+  'discoveryModes.runMode': 'Uruchom tryb',
+  'discoveryModes.searchModes': 'Szukaj trybów',
+  'discoveryModes.modeResults': 'Znalezione tryby: {0}',
+  'discoveryModes.noModesFound': 'Nie znaleziono trybów',
+  'discoveryModes.emptyHint':
+    'Uruchom tryb raz lub ustaw harmonogram, aby dalej odkrywać artystów.',
+  'discoveryModes.presetsAndImports': 'Ustawienia wstępne i importy',
+  'discoveryModes.recentlyRun': 'Ostatnio uruchomione',
+  'discoveryModes.runHistory': 'Historia uruchomień',
+  'discoveryModes.paused': 'Wstrzymany',
+  'discoveryModes.scheduled': 'Zaplanowany',
+  'settings.scheduleOverview': 'Zaplanowane działania',
+  'settings.scheduleOverviewHelp':
+    'Przeglądaj harmonogramy skanowania, trybów odkrywania, playlist i podsumowań w jednym miejscu.',
+  'settings.scanSchedule': 'Skanowanie odkrywania',
+  'settings.digestSchedule': 'Podsumowanie powiadomień',
+  'settings.editSchedules': 'Edytuj harmonogramy skanowania i podsumowań',
+  'settings.scheduleOverviewFailed': 'Nie udało się wczytać niektórych harmonogramów.',
+  'settings.schedulePaused': 'Wstrzymany',
+  'settings.librarySyncEvery': 'Co {hours} godz.',
   'settings.slskdSearchInterval':
     'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
   'settings.slskdPathUnavailable':
@@ -111,7 +132,6 @@ export const pl = {
   'nav.recommendations': 'Rekomendacje',
   'nav.reconciliation': 'Uzgadnianie',
   'nav.settings': 'Ustawienia',
-  'nav.subscriptions': 'Subskrypcje',
   'nav.tools': 'Narzędzia',
   'playlist.generate': 'Generuj',
   'playlist.generating': 'Generowanie...',
@@ -126,7 +146,6 @@ export const pl = {
   'subscriptions.title': 'Subskrypcje',
   'subscriptions.new': 'Nowa',
   'subscriptions.fromPreset': 'Z presetu',
-  'subscriptions.newOptions': 'Więcej sposobów dodania subskrypcji',
   'subscriptions.pauseAll': 'Wstrzymaj wszystko',
   'subscriptions.resumeAll': 'Wznów wszystko',
   'dashboard.todaysPick': 'Dzisiejsza propozycja',
@@ -341,9 +360,9 @@ export const pl = {
   'dashboard.rejectedSuccess': 'Odrzucony',
   'dashboard.sentToTarget': 'Wysłano do celu',
   'dashboard.setUpAutomaticDiscovery': 'Skonfiguruj automatyczne odkrywanie',
-  'dashboard.subscriptions': 'Subskrypcje',
+  'dashboard.subscriptions': 'Tryby odkrywania',
   'dashboard.subscriptionsEmpty':
-    'Nie skonfigurowałeś jeszcze żadnego automatycznego wykrywania. Digarr może znaleźć dla Ciebie nowych artystów zgodnie z harmonogramem.',
+    'Uruchom tryb lub ustaw harmonogram w Trybach odkrywania, aby znajdować nowych artystów do swojej biblioteki.',
   'dashboard.tasteEmpty':
     'Gdy zatwierdzasz lub odrzucasz rekomendacje wykonawców, Digarr poznaje Twój gust i coraz lepiej znajduje muzykę, która Ci się spodoba.',
   'dashboard.yourTaste': 'Twój gust muzyczny',
@@ -363,7 +382,7 @@ export const pl = {
   'discover.clearedCount': 'Wyczyszczone',
   'discover.discoveryModes': 'Tryby odkrywania',
   'discover.discoveryModesDescription':
-    'Rozpocznij ukierunkowane wykrywanie za pomocą prostego gotowego ustawienia lub w pełni zaawansowanego formularza.',
+    'Uruchom tryb odkrywania teraz lub ustaw harmonogram, aby dalej znajdować nowych artystów - wszystko na tej stronie.',
   'discover.monitoringOptions': 'Opcje monitorowania',
   'discover.monitorAllDescription': 'Monitoruj i wyszukuj wszystkie albumy',
   'discover.monitorNewDescription': 'Monitoruj tylko przyszłe wydania',
@@ -652,8 +671,6 @@ export const pl = {
   'subscriptions.likedSongs': 'Lubione utwory',
   'subscriptions.genreWeeklyName': '{genre} co tydzień',
   'subscriptions.addToRecommendations': 'Dodaj do rekomendacji',
-  'subscriptions.collapseRunHistory': 'Zwiń historię uruchomień',
-  'subscriptions.expandRunHistory': 'Rozwiń historię uruchomień',
   'subscriptions.nextRun': 'Dalej:',
   'subscriptions.lastRun': 'Ostatni:',
   'subscriptions.error': 'Błąd',
@@ -671,15 +688,6 @@ export const pl = {
   'subscriptions.allPaused': 'Wszystkie subskrypcje zostały wstrzymane',
   'subscriptions.updateFailed': 'Nie udało się zaktualizować subskrypcji',
   'subscriptions.created': 'Subskrypcja utworzona',
-  'subscriptions.introTip':
-    'Subskrypcje automatycznie odkrywają nowych artystów zgodnie z harmonogramem. Utwórz subskrypcję gatunku lub podobnego artysty, aby powiększać swoją bibliotekę, gdy śpisz.',
-  'subscriptions.emptyDescription':
-    'Zaimportuj swoich ulubionych artystów, aby rozpocząć, lub skonfiguruj automatyczne wykrywanie, aby stale znajdować nową muzykę.',
-  'subscriptions.aiOnlyMode': 'Tryb wyłącznie AI',
-  'subscriptions.aiOnlyDescription':
-    'Odkrywanie działa zgodnie z harmonogramem potoku, bez subskrypcji zewnętrznych kanałów informacyjnych.',
-  'subscriptions.switchToPreset': 'Przełącz na ustawienie wstępne',
-  'subscriptions.addFromPresets': 'Dodaj z gotowych ustawień',
   'subscriptions.deleteSubscription': 'Usuń subskrypcję',
   'subscriptions.deleteSubscriptionPrompt': 'Usuń',
   'subscriptions.spotifyNotConnected': 'Spotify nie jest połączone',
@@ -911,7 +919,6 @@ export const pl = {
   'discoveryMode.easy': 'Prosty',
   'discoveryMode.advanced': 'Zaawansowany',
   'discoveryMode.starting': 'Uruchamianie...',
-  'discoveryMode.runDiscovery': 'Uruchom odkrywanie',
   'discoveryMode.dismiss': 'Zamknij',
   'discoveryMode.notAvailableBecause': 'Niedostępne, ponieważ',
   'discoveryMode.addTag': '+ Dodaj tag',

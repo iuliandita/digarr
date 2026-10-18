@@ -348,11 +348,11 @@ describe('DiscoverPage', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
       'href',
-      '/discover/modes?mode=gap-fill',
+      '/discovery-modes?mode=gap-fill',
     )
     expect(screen.getByRole('link', { name: 'Release Radar' })).toHaveAttribute(
       'href',
-      '/discover/modes?mode=release-radar',
+      '/discovery-modes?mode=release-radar',
     )
     expect(screen.getByRole('link', { name: 'Net-new album discovery' })).toHaveAttribute(
       'href',
@@ -372,7 +372,7 @@ describe('DiscoverPage', () => {
     expect(await screen.findByText('No album recommendations in this view.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Library Gap-Fill' })).toHaveAttribute(
       'href',
-      '/discover/modes?mode=gap-fill',
+      '/discovery-modes?mode=gap-fill',
     )
     expect(screen.queryByText('No more recommendations')).not.toBeInTheDocument()
   })
