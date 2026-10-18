@@ -68,6 +68,14 @@ vi.mock('@/web/lib/api', () => ({
   deleteArtistBlock: vi.fn(),
   getWarmStatuses: vi.fn(),
   getPopularAlbums: vi.fn(),
+  getPendingPlayability: vi.fn().mockResolvedValue({
+    pendingArtists: 0,
+    withTrack: 0,
+    withoutTrack: 0,
+    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+    unknown: 0,
+    checkedAt: null,
+  }),
   getPopularAlbumsAvailability: vi
     .fn()
     .mockResolvedValue({ available: true, spotify: true, lastfm: false }),
@@ -96,6 +104,7 @@ import {
   deleteArtistBlock,
   getAuthStatus,
   getCurrentUser,
+  getPendingPlayability,
   getRecommendations,
   getUserPreferences,
   getWarmStatuses,
@@ -286,6 +295,29 @@ describe('DiscoverPage', () => {
     })
 
     expect(screen.getByText('78%')).toBeInTheDocument()
+  })
+
+  it('summarizes pending artists without a playable track by reason', async () => {
+    setupMockApi()
+    vi.mocked(getPendingPlayability).mockResolvedValueOnce({
+      pendingArtists: 5,
+      withTrack: 1,
+      withoutTrack: 3,
+      reasons: { missingSource: 1, noMatch: 2, upstreamFailure: 0 },
+      unknown: 1,
+      checkedAt: '2026-10-02T00:00:00.000Z',
+    })
+    renderWithQuery(<DiscoverPage />)
+
+    expect(
+      await screen.findByText(
+        '3 of 5 pending artists had no playable track in your latest Audition playlist runs',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('No track source set up: 1')).toBeInTheDocument()
+    expect(screen.getByText('No matching track: 2')).toBeInTheDocument()
+    expect(screen.getByText('Not checked yet: 1')).toBeInTheDocument()
+    expect(screen.queryByText(/Lookup failed/)).not.toBeInTheDocument()
   })
 
   it('keeps the recommendation workspace free of discovery mode cards', async () => {
@@ -515,10 +547,34 @@ describe('DiscoverPage', () => {
     fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
     fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
 
+    expect(mockBulkAction).not.toHaveBeenCalled()
+    const dialog = await screen.findByRole('dialog', { name: 'Approve all above 70%?' })
+    expect(dialog).toHaveTextContent('Approve 1 pending recommendations at 70% or higher?')
+    expect(dialog).toHaveTextContent('Lidarr')
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Approve 1' }))
+
     await waitFor(() => {
       // Only rec id=1 qualifies (85% >= 70%)
       expect(mockBulkAction).toHaveBeenCalledWith([1], 'approve')
     })
+  })
+
+  it('cancelling the approve-above confirmation does nothing', async () => {
+    setupMockApi([makeRec({ id: 1, score: 0.85 })])
+    renderWithQuery(<DiscoverPage />)
+    await waitFor(() => {
+      expect(screen.getAllByText('Test Artist')).toHaveLength(1)
+    })
+
+    fireEvent.click(screen.getByRole('button', { name: 'More actions' }))
+    fireEvent.click(await screen.findByRole('menuitem', { name: /approve all above/i }))
+    const dialog = await screen.findByRole('dialog', { name: 'Approve all above 70%?' })
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Cancel' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Approve all above 70%?' })).toBeNull()
+    })
+    expect(mockBulkAction).not.toHaveBeenCalled()
   })
 
   it('bulk reject below threshold opens the picker and rejects only pending below-threshold items', async () => {

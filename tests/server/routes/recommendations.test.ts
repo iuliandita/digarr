@@ -23,7 +23,10 @@ vi.mock('@/core/clients/lastfm', () => ({
   createLastFmClient: vi.fn(),
 }))
 
-vi.mock('@/db/queries/playlists', () => ({ getOwnedAuditionTrack: vi.fn(async () => null) }))
+vi.mock('@/db/queries/playlists', () => ({
+  getOwnedAuditionTrack: vi.fn(async () => null),
+  getPendingPlayability: vi.fn(),
+}))
 
 vi.mock('@/db/queries/users', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/db/queries/users')>()),
@@ -53,7 +56,7 @@ vi.mock('@/core/sessions', () => ({
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createSpotifyClient } from '@/core/clients/spotify'
-import { getOwnedAuditionTrack } from '@/db/queries/playlists'
+import { getOwnedAuditionTrack, getPendingPlayability } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 
 function makeMockOrchestrator() {
@@ -1105,6 +1108,88 @@ describe('PATCH /api/v1/recommendations/:id', () => {
 })
 
 describe('POST /api/v1/recommendations/bulk', () => {
+  describe('Idempotency-Key', () => {
+    const post = (app: ReturnType<typeof createApp>, body: unknown, key?: string) =>
+      authedRequest(app, '/api/v1/recommendations/bulk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(key !== undefined ? { 'Idempotency-Key': key } : {}),
+        },
+        body: JSON.stringify(body),
+      })
+    const body = { ids: [1, 2], action: 'reject' }
+
+    it('replays the stored response for the same key and body', async () => {
+      const deps = makeDeps({ filterOwnedIds: vi.fn(async () => [1]) })
+      const app = createApp(deps)
+      const first = await post(app, body, 'k-1')
+      const second = await post(app, body, 'k-1')
+
+      expect(first.headers.get('Idempotent-Replayed')).toBeNull()
+      expect(second.status).toBe(200)
+      expect(second.headers.get('Idempotent-Replayed')).toBe('true')
+      expect(await second.json()).toEqual(await first.json())
+      expect(deps.bulkUpdateStatus).toHaveBeenCalledTimes(1)
+    })
+
+    it('returns 422 when the key is reused with a different body', async () => {
+      const app = createApp(makeDeps())
+      await post(app, body, 'k-2')
+      const res = await post(app, { ...body, ids: [3] }, 'k-2')
+
+      expect(res.status).toBe(422)
+      expect(res.headers.get('content-type')).toContain('application/problem+json')
+    })
+
+    it('returns 409 while a request with the same key is in flight', async () => {
+      let release!: () => void
+      const gate = new Promise<void>((resolve) => {
+        release = resolve
+      })
+      const deps = makeDeps({
+        filterOwnedIds: vi.fn(async () => {
+          await gate
+          return [1]
+        }),
+      })
+      const app = createApp(deps)
+      const first = post(app, body, 'k-3')
+      await vi.waitFor(() => expect(deps.filterOwnedIds).toHaveBeenCalled())
+      const res = await post(app, body, 'k-3')
+      release()
+
+      expect(res.status).toBe(409)
+      expect((await first).status).toBe(200)
+    })
+
+    it('does not store 5xx responses', async () => {
+      const filterOwnedIds = vi.fn().mockRejectedValueOnce(new Error('boom')).mockResolvedValue([1])
+      const app = createApp(makeDeps({ filterOwnedIds }))
+      expect((await post(app, body, 'k-4')).status).toBe(500)
+      const retry = await post(app, body, 'k-4')
+
+      expect(retry.status).toBe(200)
+      expect(retry.headers.get('Idempotent-Replayed')).toBeNull()
+    })
+
+    it('rejects an invalid key', async () => {
+      const app = createApp(makeDeps())
+      expect((await post(app, body, 'has space')).status).toBe(400)
+      expect((await post(app, body, 'x'.repeat(256))).status).toBe(400)
+    })
+
+    it('runs every request when no key is sent', async () => {
+      const deps = makeDeps({ filterOwnedIds: vi.fn(async () => [1]) })
+      const app = createApp(deps)
+      await post(app, body)
+      const second = await post(app, body)
+
+      expect(second.headers.get('Idempotent-Replayed')).toBeNull()
+      expect(deps.bulkUpdateStatus).toHaveBeenCalledTimes(2)
+    })
+  })
+
   it('rejects permanent not_right_now before ownership queries or writes', async () => {
     const deps = makeDeps()
     const app = createApp(deps)
@@ -1350,6 +1435,25 @@ describe('GET /api/v1/recommendations/feedback-summary', () => {
     const app = createApp(makeDeps({ getFeedbackHistory }))
     await authedRequest(app, '/api/v1/recommendations/feedback-summary')
     expect(getFeedbackHistory).toHaveBeenCalledWith(1)
+  })
+})
+
+describe('GET /api/v1/recommendations/playability', () => {
+  it('returns the persisted playability summary for the current user', async () => {
+    const summary = {
+      pendingArtists: 3,
+      withTrack: 1,
+      withoutTrack: 1,
+      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0 },
+      unknown: 1,
+      checkedAt: '2026-10-02T00:00:00.000Z',
+    }
+    vi.mocked(getPendingPlayability).mockResolvedValueOnce(summary)
+    const deps = makeDeps()
+    const res = await authedRequest(createApp(deps), '/api/v1/recommendations/playability')
+    expect(res.status).toBe(200)
+    await expect(res.json()).resolves.toEqual(summary)
+    expect(getPendingPlayability).toHaveBeenCalledWith(deps.db, 1)
   })
 })
 

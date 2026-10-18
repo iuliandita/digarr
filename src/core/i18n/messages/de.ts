@@ -415,6 +415,10 @@ export const de = {
   'discover.undoRejected': '{name} abgelehnt',
   'discover.undoBlocked': '{name} abgelehnt und blockiert',
   'discover.approveAllAbove': 'Genehmige alles oben',
+  'discover.approveAboveTitle': 'Alle über {1} % genehmigen?',
+  'discover.approveAboveMessage':
+    '{0} ausstehende Empfehlungen ab {1} % genehmigen? Ziele wie Lidarr erhalten möglicherweise Hinzufügungen.',
+  'discover.approveAboveConfirm': '{0} genehmigen',
   'discover.approvedCount': 'Genehmigt',
   'discover.approvePartial': 'Zu {0} von {1} Zielen hinzugefügt. Fehlgeschlagen: {2}',
   'discover.approveAllFailed': 'Konnte zu keinem Ziel hinzugefügt werden. Fehlgeschlagen: {0}',
@@ -458,6 +462,12 @@ export const de = {
   'discover.rejectAllBelow': 'Alle darunter ablehnen',
   'discover.auditionAll': 'Probehören',
   'discover.nothingToAudition': 'Keine ausstehenden Empfehlungen',
+  'discover.playability.summary':
+    '{count} von {total} ausstehenden Künstlern hatten in deinen letzten Probehören-Playlist-Läufen keinen abspielbaren Titel',
+  'discover.playability.missingSource': 'Keine Titelquelle eingerichtet: {count}',
+  'discover.playability.noMatch': 'Kein passender Titel: {count}',
+  'discover.playability.upstreamFailure': 'Suche fehlgeschlagen: {count}',
+  'discover.playability.unknown': 'Noch nicht geprüft: {count}',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
     'Alle ausstehenden Empfehlungen ablehnen? Dies kann nicht rückgängig gemacht werden.',
@@ -747,6 +757,8 @@ export const de = {
   'subscriptionPresets.getStarted': 'Mit einem Preset starten',
   'subscriptionPresets.intro':
     'Wähle ein Preset, um Zeitpläne automatisch anzulegen, oder baue deine eigene Konfiguration.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify liefert seine Chart-Playlists nicht mehr an neuere Apps, daher können die Spotify-Charts-Presets fehlschlagen.',
   'subscriptionPresets.casualTitle': 'Locker',
   'subscriptionPresets.casualDescription': 'Wöchentliche Empfehlungen mit wenig Rauschen',
   'subscriptionPresets.deepDiverTitle': 'Tiefgang',
@@ -956,9 +968,26 @@ export const de = {
   'systemHealth.lastRun': 'zuletzt:',
   'systemHealth.nextRun': 'nächste:',
   'systemHealth.healthy': 'in Ordnung',
+  'systemHealth.statusOk': 'In Ordnung',
+  'systemHealth.statusDegraded': 'Eingeschränkt',
+  'systemHealth.statusError': 'Fehler',
   'systemHealth.overdue': 'überfällig',
   'systemHealth.inMinutes': 'in {0} Min.',
   'systemHealth.inHours': 'in {0} Std.',
+  'systemHealth.integrations': 'Integrationen',
+  'systemHealth.integrationsHint':
+    'Letzter Erfolg und Fehler je Integration in den letzten 30 Tagen, aus aufgezeichneten Jobs.',
+  'systemHealth.integrationsEmpty':
+    'Keine Integrationsaktivität in den letzten 30 Tagen aufgezeichnet.',
+  'systemHealth.lastSuccess': 'Letzter Erfolg',
+  'systemHealth.lastError': 'Letzter Fehler',
+  'systemHealth.integrationOk': 'Funktioniert',
+  'systemHealth.integrationFailing': 'Fehlerhaft',
+  'systemHealth.kind.target': 'Ziel',
+  'systemHealth.kind.library': 'Bibliotheksabgleich',
+  'systemHealth.kind.source': 'Entdeckungsquelle',
+  'systemHealth.kind.subscription': 'Abonnement',
+  'systemHealth.kind.scrobbler': 'Scrobble-Rückschreibung',
   'search.title': 'Suche',
   'search.subtitle': 'Künstler auf Musikplattformen finden',
   'search.placeholder': 'Künstler suchen...',
@@ -1909,6 +1938,7 @@ export const de = {
   'settings.channels.allowPrivateWarning':
     'Erlaubt die Zustellung an private/LAN-Adressen. Cloud-Metadaten und Link-Local-Bereiche bleiben blockiert.',
   'settings.channels.webhookUrl': 'Webhook-URL',
+  'settings.channels.webhookSigningSecret': 'Signaturgeheimnis (optional)',
   'settings.channels.ntfyServer': 'Serveradresse',
   'settings.channels.ntfyTopic': 'Thema',
   'settings.channels.ntfyPriority': 'Priorität',

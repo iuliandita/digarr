@@ -407,6 +407,10 @@ export const en = {
   'discover.undoRejected': 'Rejected {name}',
   'discover.undoBlocked': 'Rejected and blocked {name}',
   'discover.approveAllAbove': 'Approve All Above',
+  'discover.approveAboveTitle': 'Approve all above {1}%?',
+  'discover.approveAboveMessage':
+    'Approve {0} pending recommendations at {1}% or higher? Targets like Lidarr may receive adds.',
+  'discover.approveAboveConfirm': 'Approve {0}',
   'discover.approvedCount': 'Approved',
   'discover.approvePartial': 'Added to {0} of {1} targets. Failed: {2}',
   'discover.approveAllFailed': 'Could not add to any target. Failed: {0}',
@@ -449,6 +453,12 @@ export const en = {
   'discover.rejectAllBelow': 'Reject All Below',
   'discover.auditionAll': 'Audition',
   'discover.nothingToAudition': 'No pending recommendations',
+  'discover.playability.summary':
+    '{count} of {total} pending artists had no playable track in your latest Audition playlist runs',
+  'discover.playability.missingSource': 'No track source set up: {count}',
+  'discover.playability.noMatch': 'No matching track: {count}',
+  'discover.playability.upstreamFailure': 'Lookup failed: {count}',
+  'discover.playability.unknown': 'Not checked yet: {count}',
   'discover.rejectAllPending': 'Reject all pending',
   'discover.rejectAllPendingMessage': 'Reject all pending recommendations? This cannot be undone.',
   'discover.rejectFailed': 'Failed to reject',
@@ -725,6 +735,8 @@ export const en = {
   'subscriptionPresets.getStarted': 'Get started with a preset',
   'subscriptionPresets.intro':
     'Choose a preset to create schedules automatically, or build a custom setup.',
+  'subscriptionPresets.spotifyChartsNote':
+    'Spotify no longer serves its chart playlists to newer apps, so the Spotify Charts presets may fail.',
   'subscriptionPresets.casualTitle': 'Casual',
   'subscriptionPresets.casualDescription': 'Low-noise weekly recommendations',
   'subscriptionPresets.deepDiverTitle': 'Deep Diver',
@@ -929,9 +941,25 @@ export const en = {
   'systemHealth.lastRun': 'last:',
   'systemHealth.nextRun': 'next:',
   'systemHealth.healthy': 'healthy',
+  'systemHealth.statusOk': 'OK',
+  'systemHealth.statusDegraded': 'Degraded',
+  'systemHealth.statusError': 'Error',
   'systemHealth.overdue': 'overdue',
   'systemHealth.inMinutes': 'in {0}m',
   'systemHealth.inHours': 'in {0}h',
+  'systemHealth.integrations': 'Integrations',
+  'systemHealth.integrationsHint':
+    'Last success and error per integration in the past 30 days, taken from recorded jobs.',
+  'systemHealth.integrationsEmpty': 'No integration activity recorded in the past 30 days.',
+  'systemHealth.lastSuccess': 'Last success',
+  'systemHealth.lastError': 'Last error',
+  'systemHealth.integrationOk': 'Working',
+  'systemHealth.integrationFailing': 'Failing',
+  'systemHealth.kind.target': 'Target',
+  'systemHealth.kind.library': 'Library sync',
+  'systemHealth.kind.source': 'Discovery source',
+  'systemHealth.kind.subscription': 'Subscription',
+  'systemHealth.kind.scrobbler': 'Scrobble write-back',
 
   // Search Page
   'search.title': 'Search',
@@ -1936,6 +1964,7 @@ export const en = {
   'settings.channels.allowPrivateWarning':
     'Permits delivery to private/LAN addresses. Cloud metadata and link-local ranges stay blocked.',
   'settings.channels.webhookUrl': 'Webhook URL',
+  'settings.channels.webhookSigningSecret': 'Signing secret (optional)',
   'settings.channels.ntfyServer': 'Server',
   'settings.channels.ntfyTopic': 'Topic',
   'settings.channels.ntfyPriority': 'Priority',
