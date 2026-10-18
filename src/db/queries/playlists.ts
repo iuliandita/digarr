@@ -1,7 +1,7 @@
-import { and, asc, desc, eq, isNotNull, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull, lt, ne, notExists, or, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
-import { playlists, playlistTracks } from '@/db/schema'
+import { artists, playlists, playlistTracks } from '@/db/schema'
 import type { Cursor } from '@/server/helpers/pagination-cursor'
 
 export type PlaylistInsert = {
@@ -35,6 +35,42 @@ export type PlaylistTrackInsert = {
 }
 
 export type PlaylistTrackRow = typeof playlistTracks.$inferSelect
+
+export async function getOwnedAuditionTrack(
+  db: Database,
+  userId: number,
+  trackId: number,
+  artistMbid: string,
+) {
+  const [track] = await db
+    .select({
+      artistName: playlistTracks.artistName,
+      trackName: playlistTracks.trackName,
+      recordingMbid: playlistTracks.mbid,
+    })
+    .from(playlistTracks)
+    .innerJoin(playlists, eq(playlists.id, playlistTracks.playlistId))
+    .where(
+      and(
+        eq(playlistTracks.id, trackId),
+        eq(playlists.userId, userId),
+        eq(playlists.strategy, 'audition'),
+        notExists(
+          db
+            .select({ id: artists.id })
+            .from(artists)
+            .where(
+              and(
+                sql`lower(trim(${artists.name})) = lower(trim(${playlistTracks.artistName}))`,
+                ne(artists.mbid, artistMbid),
+              ),
+            ),
+        ),
+      ),
+    )
+    .limit(1)
+  return track ?? null
+}
 
 export async function createPlaylist(db: Database, data: PlaylistInsert): Promise<{ id: number }> {
   const [row] = await db

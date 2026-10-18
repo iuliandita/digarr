@@ -71,7 +71,8 @@ export function authGuard(options: {
     const publicPath =
       !c.req.path.startsWith('/api/v1/') ||
       PUBLIC_PATHS.has(c.req.path) ||
-      /^\/api\/v1\/auth\/oauth\/[^/]+\/callback$/.test(c.req.path)
+      /^\/api\/v1\/auth\/oauth\/[^/]+\/callback$/.test(c.req.path) ||
+      /^\/api\/v1\/auth\/oauth\/lastfm\/callback\/[^/]+$/.test(c.req.path)
 
     // Skip auth for non-API paths (static assets, SPA routes), public API paths, and OAuth callbacks
     // Only the callback path is public (browser redirect from provider, no auth header).

@@ -104,6 +104,11 @@ vi.mock('@/db/queries/settings', () => ({
 
 beforeEach(async () => {
   vi.clearAllMocks()
+  mockDb.select.mockReturnValue({
+    from: vi.fn().mockReturnValue({
+      leftJoin: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
+    }),
+  })
   const exports = vi.mocked(await import('@/db/queries/playlist-exports'))
   exports.getPlaylistExports.mockResolvedValue([])
   exports.getPlaylistExport.mockResolvedValue(null)
@@ -393,12 +398,51 @@ describe('GET /api/v1/playlists/:id', () => {
     })
   })
 
+  it.each([
+    {
+      matches: [{ artistName: 'Radiohead', artistMbid: 'artist-1', recommendationId: 12 }],
+      expected: 12,
+    },
+    {
+      matches: [{ artistName: 'Radiohead', artistMbid: 'artist-1', recommendationId: null }],
+      expected: undefined,
+    },
+    {
+      matches: [
+        { artistName: 'Radiohead', artistMbid: 'artist-1', recommendationId: 12 },
+        { artistName: 'Radiohead', artistMbid: 'artist-2', recommendationId: null },
+      ],
+      expected: undefined,
+    },
+  ])(
+    'maps Audition approvals only for an unambiguous pending artist: $expected',
+    async ({ matches, expected }) => {
+      const { getPlaylistWithTracks } = vi.mocked(await import('@/db/queries/playlists'))
+      getPlaylistWithTracks.mockResolvedValue({
+        playlist: { ...mockPlaylist, strategy: 'audition' },
+        tracks: [mockTrack],
+      } as never)
+      mockDb.select.mockReturnValue({
+        from: vi.fn().mockReturnValue({
+          leftJoin: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue(matches) }),
+        }),
+      })
+      const res = await createTestApp(makeDeps(), USER_ID).request('/api/v1/playlists/1')
+      expect(res.status).toBe(200)
+      expect(
+        ((await res.json()) as { tracks: Array<{ recommendationId?: number }> }).tracks[0]
+          ?.recommendationId,
+      ).toBe(expected)
+    },
+  )
+
   it('hides cross-user playlist with 404', async () => {
     const app = createTestApp(makeDeps(), 999) // different user
     const res = await app.request('/api/v1/playlists/1')
     expect(res.status).toBe(404)
     const { getLatestPlaylistGeneration } = vi.mocked(await import('@/db/queries/jobs'))
     expect(getLatestPlaylistGeneration).not.toHaveBeenCalled()
+    expect(mockDb.select).not.toHaveBeenCalled()
   })
 
   it('returns 404 for missing playlist', async () => {

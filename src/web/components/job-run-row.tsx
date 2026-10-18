@@ -66,6 +66,12 @@ function jobDescription(job: JobRun, t: (key: MessageKey) => string): string {
     case 'subscription':
       return String(meta.adapterType ?? t('jobHistory.subscriptionRun'))
     case 'target':
+      if (meta.writeBackService === 'listenbrainz' || meta.writeBackService === 'lastfm') {
+        return t('jobHistory.writeBack').replace(
+          '{service}',
+          meta.writeBackService === 'listenbrainz' ? 'ListenBrainz' : 'Last.fm',
+        )
+      }
       if (!meta.artistName) return t('jobHistory.targetOperation')
       return t(
         meta.action === 'addAlbum' ? 'jobHistory.targetAddAlbum' : 'jobHistory.targetAddArtist',

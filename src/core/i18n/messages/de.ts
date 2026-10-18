@@ -1,4 +1,9 @@
 export const de = {
+  'oauth.error.tokenMismatch':
+    'Das Autorisierungstoken stimmt nicht überein - starte die Verbindung erneut.',
+  'oauth.error.authorizationDenied':
+    'Die Autorisierung wurde abgelehnt - starte die Verbindung erneut, wenn du dich verbinden möchtest.',
+  'jobHistory.writeBack': 'An {service} senden',
   'tokens.mcpTitle': 'MCP-Client-Konfiguration',
   'tokens.mcpDescription':
     'Füge dieses JSON in einen MCP-Client ein, der entfernte Server und Autorisierungsheader unterstützt. Bewahre es sicher auf - es enthält dein Token.',
@@ -38,6 +43,30 @@ export const de = {
     '"{name}" widerrufen? Skripte mit diesem Token verlieren sofort den Zugriff.',
   'tokens.readOnlyError': 'Dieses Token erlaubt nur GET- und HEAD-Anfragen.',
   'tokens.notFoundError': 'Dieses Token wurde nicht gefunden.',
+  'writeBack.lastfmReconnect': 'Last.fm erneut verbinden',
+  'writeBack.title': 'An Scrobbler senden',
+  'writeBack.scope':
+    'Nur bestätigte, eindeutig bekannte Titel aus Vorschauen oder Audition werden gesendet. Ablehnungen, Sperren und reine Künstlerbestätigungen bleiben lokal.',
+  'writeBack.offHelp':
+    'Ausschalten stoppt zukünftiges Senden. Bereits Gesendetes wird nicht rückgängig gemacht.',
+  'writeBack.listenbrainzLoves': 'Lieblingstitel an ListenBrainz senden',
+  'writeBack.listenbrainzHelp':
+    'Sendet die Aufnahme-MBID des von dir bestätigten Titels an dein ListenBrainz-Konto.',
+  'writeBack.listenbrainzPlaylists': 'Erstellte Playlists an ListenBrainz senden',
+  'writeBack.playlistHelp':
+    'Eigene Zustimmung: Sendet den Playlist-Titel, Künstler- und Titelnamen sowie bekannte Aufnahme-MBIDs als private ListenBrainz-Playlist. Titel ohne Aufnahme-MBID werden übersprungen. Nur Playlists, die du manuell erstellst, werden gesendet - geplante Läufe senden nie Playlists.',
+  'writeBack.listenbrainzMissing':
+    'Füge deinen ListenBrainz-Token unter Verbindungen hinzu, um das Senden zu aktivieren.',
+  'writeBack.lastfmLoves': 'Lieblingstitel an Last.fm senden',
+  'writeBack.lastfmHelp': 'Sendet Künstler und Titelname deiner Bestätigung an dein Last.fm-Konto.',
+  'writeBack.lastfmMissing':
+    'Last.fm braucht deinen API-Schlüssel und die Servereinstellungen LASTFM_SHARED_SECRET und DIGARR_ENCRYPTION_KEY, bevor du dich verbinden kannst.',
+  'writeBack.lastfmConnected':
+    'Last.fm ist verbunden. Schalte Lieblingstitel ausdrücklich ein, um das Senden zu starten.',
+  'writeBack.lastfmConnect':
+    'Schalte Lieblingstitel ein, um Last.fm zu verbinden. Schalte sie nach deiner Rückkehr erneut ein, um das Senden zu starten - die Verbindung allein aktiviert es nicht.',
+  'writeBack.lastError': 'Letzter Sendefehler: {0}',
+  'writeBack.loadFailed': 'Deine Sendeeinstellungen konnten nicht geladen werden.',
   'notification.approvalFailed':
     'Die Lidarr-Freigabe für {0} konnte nicht innerhalb von 24 Stunden abgeschlossen werden: {1}',
   'recommendation.waitingForLidarr': 'Warten auf Lidarr',
