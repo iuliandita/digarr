@@ -353,7 +353,7 @@ For scripts and automation, open **Settings > Account > API tokens**. Create a t
 
 Send `Authorization: Bearer dga_<secret>` on API requests. Personal tokens are accepted only through that header, never through cookies or query parameters. They need no CSRF header. Browser cookies keep their existing same-origin and CSRF requirements. An explicit personal token takes precedence over sign-in proxy headers and browser cookies, so its permissions still apply behind a trusted proxy.
 
-- `read` allows only GET and HEAD, with the user's ordinary permissions.
+- `read` allows only GET and HEAD, with the user's ordinary permissions. The [MCP endpoint](MCP.md) also accepts POST for protocol messages and read tools; mutating tools remain denied.
 - `write` allows ordinary user actions, including writes, but never admin privileges, even when the owner is an admin.
 - `admin` can be created only by admins and permits admin operations only while the owner is currently an admin. Demotion removes that access on the next request; it does not turn the token into a read-only token.
 

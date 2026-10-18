@@ -115,6 +115,8 @@ In v2.0.0, Settings > Administration asks for confirmation before uploading a se
 
 The Account page offers password-confirmed SSO linking when OIDC is enabled and the local account is not linked yet. Linked accounts show their status; callback outcomes appear in a dismissible message. A Tips section brings back dismissed help tips. This capture uses a sample account with OIDC enabled.
 
+The current Account page also manages personal API tokens. After creating a token, its one-time reveal includes a copyable MCP client configuration with `type: "http"`, the endpoint URL, and the bearer header. The capture above predates these controls; closing the dialog removes the token and configuration from view.
+
 ## Settings > Connections > Your Connections
 
 ![Your Connections](screenshots/settings-your-connections.png)
