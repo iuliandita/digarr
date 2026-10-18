@@ -1437,6 +1437,15 @@ export type JobHealth = {
   playlists: { status: string; lastRun: string | null }
   librarySync?: { status: string; lastRun: string | null }
   sources: Record<string, string>
+  integrations: IntegrationHealth[]
+}
+
+export type IntegrationHealth = {
+  kind: 'target' | 'library' | 'source' | 'subscription' | 'scrobbler'
+  name: string
+  status: 'ok' | 'failing'
+  lastSuccess: string | null
+  lastError: { at: string; message: string | null } | null
 }
 
 export const getJobHealth = () => fetchApi<JobHealth>('/jobs/health')

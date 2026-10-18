@@ -137,6 +137,7 @@ Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-ima
 - [API reference](docs/API.md), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
 - [Connect an MCP client](docs/MCP.md) for recommendations, approvals, and scans
 - [Recommendation quality evaluation](docs/RECOMMENDATION-QUALITY.md)
+- [Discovery recipes](docs/guides/discovery-recipes.md) for discovery-only and existing-library setups, seasonal and decade tags, and familiar versus adventurous tuning
 - [Switching database backends](docs/guides/switching-backends.md) and [encryption-key rotation](docs/runbooks/encryption-key-rotation.md)
 - [Changelog](CHANGELOG.md), [roadmap](docs/ROADMAP.md), and [screenshots](docs/SCREENSHOTS.md)
 - [Other self-hosted music projects](docs/COMPARISON.md)

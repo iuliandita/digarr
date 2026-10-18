@@ -27,6 +27,7 @@ import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { problem } from '@/server/helpers/problem'
 import { requireSessionUser, requireUser } from '@/server/helpers/require-user'
+import { idempotency } from '@/server/middleware/idempotency'
 import {
   bulkRecommendationSchema,
   listRecommendationsQuerySchema,
@@ -612,6 +613,7 @@ function createRecommendationRoutes(
   authorizedRequest?: { userId: number; recommendationId: number },
 ) {
   const router = new Hono<HonoEnv>()
+  const bulkIdempotency = idempotency()
   const requests = deps.approvalRequests ?? approvalRequestQueries(deps.db)
 
   router.post('/api/v1/recommendations/missing-albums', zJson(missingAlbumsSchema), async (c) => {
@@ -1171,131 +1173,152 @@ function createRecommendationRoutes(
     },
   )
 
-  router.post('/api/v1/recommendations/bulk', zJson(bulkRecommendationSchema), async (c) => {
-    const {
-      ids,
-      action,
-      targetId,
-      qualityProfileId: qpOverride,
-      metadataProfileId: mpOverride,
-      rootFolderId: rfOverride,
-      reason,
-      permanent,
-    } = c.req.valid('json')
+  router.post(
+    '/api/v1/recommendations/bulk',
+    bulkIdempotency,
+    zJson(bulkRecommendationSchema),
+    async (c) => {
+      const {
+        ids,
+        action,
+        targetId,
+        qualityProfileId: qpOverride,
+        metadataProfileId: mpOverride,
+        rootFolderId: rfOverride,
+        reason,
+        permanent,
+      } = c.req.valid('json')
 
-    const userId = c.get('userId')
+      const userId = c.get('userId')
 
-    if (action === 'reject') {
-      const ownedIds = await deps.filterOwnedIds(ids, userId)
-      return withApprovalLocks(ownedIds, async () => {
-        // Fast path: no shared reason/permanent => a single bulk status update,
-        // preserving the prior reason-less behaviour.
-        if (!reason && !permanent) {
-          if (ownedIds.length > 0) {
-            await deps.bulkUpdateStatus(ownedIds, 'rejected')
+      if (action === 'reject') {
+        const ownedIds = await deps.filterOwnedIds(ids, userId)
+        return withApprovalLocks(ownedIds, async () => {
+          // Fast path: no shared reason/permanent => a single bulk status update,
+          // preserving the prior reason-less behaviour.
+          if (!reason && !permanent) {
+            if (ownedIds.length > 0) {
+              await deps.bulkUpdateStatus(ownedIds, 'rejected')
+            }
+            return c.json({ updated: ownedIds.length })
+          }
+          // Shared-reason path: route each id through rejectRecommendation so the
+          // reason is recorded and the optional permanent block is created per artist.
+          for (const id of ownedIds) {
+            await deps.rejectRecommendation({
+              recommendationId: id,
+              userId,
+              reason: reason ?? null,
+              reasonText: null,
+              permanent,
+            })
           }
           return c.json({ updated: ownedIds.length })
-        }
-        // Shared-reason path: route each id through rejectRecommendation so the
-        // reason is recorded and the optional permanent block is created per artist.
-        for (const id of ownedIds) {
-          await deps.rejectRecommendation({
-            recommendationId: id,
-            userId,
-            reason: reason ?? null,
-            reasonText: null,
-            permanent,
-          })
-        }
-        return c.json({ updated: ownedIds.length })
+        })
+      }
+
+      const approvalUser = userId ? await deps.getUserById(userId) : null
+
+      // Approve: route through targets
+      const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
+      const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
+      if (targetId && effectiveTargets.length === 0) {
+        return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
+      }
+      if (
+        targetId &&
+        !effectiveTargets.some(
+          (t) => t.capabilities?.includes('addArtist') || t.capabilities?.includes('addAlbum'),
+        )
+      ) {
+        return c.json(
+          { error: `Target does not support recommendation approval: ${targetId}` },
+          400,
+        )
+      }
+
+      const addOptions = await buildAddOptions(deps, userId, undefined, {
+        qualityProfileId: qpOverride,
+        metadataProfileId: mpOverride,
+        rootFolderId: rfOverride,
+        lidarrOptionsTargetId: resolveLidarrOptionsTargetId(effectiveTargets, { targetId }),
       })
-    }
 
-    const approvalUser = userId ? await deps.getUserById(userId) : null
+      const results: Array<{
+        id: number
+        status: string
+        error?: string
+        code?: string
+        requestId?: number
+      }> = []
 
-    // Approve: route through targets
-    const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
-    const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
-    if (targetId && effectiveTargets.length === 0) {
-      return c.json({ error: `Unknown targetId: ${targetId}` }, 400)
-    }
-    if (
-      targetId &&
-      !effectiveTargets.some(
-        (t) => t.capabilities?.includes('addArtist') || t.capabilities?.includes('addAlbum'),
-      )
-    ) {
-      return c.json({ error: `Target does not support recommendation approval: ${targetId}` }, 400)
-    }
-
-    const addOptions = await buildAddOptions(deps, userId, undefined, {
-      qualityProfileId: qpOverride,
-      metadataProfileId: mpOverride,
-      rootFolderId: rfOverride,
-      lidarrOptionsTargetId: resolveLidarrOptionsTargetId(effectiveTargets, { targetId }),
-    })
-
-    const results: Array<{
-      id: number
-      status: string
-      error?: string
-      code?: string
-      requestId?: number
-    }> = []
-
-    for (const id of ids) {
-      await withApprovalLock(id, async () => {
-        const rec = await deps.getRecommendation(id)
-        if (!rec) {
-          results.push({ id, status: 'not_found' })
-          return
-        }
-        if (!isOwned(rec, userId)) {
-          results.push({ id, status: 'not_found' })
-          return
-        }
-
-        if (userId && requiresApprovalRequest(approvalUser, rec.score)) {
-          try {
-            const request = await requests.create(userId, id, {
-              status: 'approved',
-              targetId,
-              qualityProfileId: qpOverride,
-              metadataProfileId: mpOverride,
-              rootFolderId: rfOverride,
-            })
-            results.push({ id, status: 'requested', requestId: request.id })
-          } catch (error) {
-            if (
-              !(error instanceof ApprovalRequestLimitError) &&
-              !(error instanceof ApprovalRequestCooldownError)
-            )
-              throw error
-            results.push({
-              id,
-              status:
-                error instanceof ApprovalRequestCooldownError
-                  ? 'request_cooldown'
-                  : 'request_limit_reached',
-              error: error.message,
-              code:
-                error instanceof ApprovalRequestCooldownError
-                  ? 'errors.approval.declineCooldown'
-                  : 'errors.approval.requestLimit',
-            })
+      for (const id of ids) {
+        await withApprovalLock(id, async () => {
+          const rec = await deps.getRecommendation(id)
+          if (!rec) {
+            results.push({ id, status: 'not_found' })
+            return
           }
-          return
-        }
+          if (!isOwned(rec, userId)) {
+            results.push({ id, status: 'not_found' })
+            return
+          }
 
-        const result: ApproveResult =
-          rec.kind === 'album'
-            ? rec.recommendedReleaseGroupId
-              ? await approveAlbumToTargets(
-                  {
-                    artistMbid: rec.artist.mbid,
-                    artistName: rec.artist.name,
-                    releaseGroupMbid: rec.recommendedReleaseGroupId,
-                  },
+          if (userId && requiresApprovalRequest(approvalUser, rec.score)) {
+            try {
+              const request = await requests.create(userId, id, {
+                status: 'approved',
+                targetId,
+                qualityProfileId: qpOverride,
+                metadataProfileId: mpOverride,
+                rootFolderId: rfOverride,
+              })
+              results.push({ id, status: 'requested', requestId: request.id })
+            } catch (error) {
+              if (
+                !(error instanceof ApprovalRequestLimitError) &&
+                !(error instanceof ApprovalRequestCooldownError)
+              )
+                throw error
+              results.push({
+                id,
+                status:
+                  error instanceof ApprovalRequestCooldownError
+                    ? 'request_cooldown'
+                    : 'request_limit_reached',
+                error: error.message,
+                code:
+                  error instanceof ApprovalRequestCooldownError
+                    ? 'errors.approval.declineCooldown'
+                    : 'errors.approval.requestLimit',
+              })
+            }
+            return
+          }
+
+          const result: ApproveResult =
+            rec.kind === 'album'
+              ? rec.recommendedReleaseGroupId
+                ? await approveAlbumToTargets(
+                    {
+                      artistMbid: rec.artist.mbid,
+                      artistName: rec.artist.name,
+                      releaseGroupMbid: rec.recommendedReleaseGroupId,
+                    },
+                    effectiveTargets.filter(
+                      (t) =>
+                        !['added', 'queued'].includes(
+                          (rec.targetActions?.[t.id] as TargetActionRecord)?.status ?? '',
+                        ),
+                    ),
+                    { ...addOptions, priorActions: rec.targetActions },
+                    deps.jobRecorder,
+                    userId,
+                    id,
+                  )
+                : { status: 'add_failed', targetActions: {} }
+              : await approveToTargets(
+                  { mbid: rec.artist.mbid, name: rec.artist.name },
                   effectiveTargets.filter(
                     (t) =>
                       !['added', 'queued'].includes(
@@ -1307,57 +1330,44 @@ function createRecommendationRoutes(
                   userId,
                   id,
                 )
-              : { status: 'add_failed', targetActions: {} }
-            : await approveToTargets(
-                { mbid: rec.artist.mbid, name: rec.artist.name },
-                effectiveTargets.filter(
-                  (t) =>
-                    !['added', 'queued'].includes(
-                      (rec.targetActions?.[t.id] as TargetActionRecord)?.status ?? '',
-                    ),
-                ),
-                { ...addOptions, priorActions: rec.targetActions },
-                deps.jobRecorder,
-                userId,
-                id,
-              )
 
-        const mergedActions = { ...rec.targetActions, ...result.targetActions }
-        if (Object.keys(rec.targetActions ?? {}).length > 0)
-          result.status = deriveStatusFromActions(
-            mergedActions,
-            result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined,
-          )
-        const extra: Record<string, unknown> = { targetActions: mergedActions }
-        if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
-        if (result.lidarrError) extra.lidarrError = result.lidarrError
-        await deps.updateRecommendationStatus(id, result.status, extra)
-        results.push({ id, status: result.status })
-      })
-    }
+          const mergedActions = { ...rec.targetActions, ...result.targetActions }
+          if (Object.keys(rec.targetActions ?? {}).length > 0)
+            result.status = deriveStatusFromActions(
+              mergedActions,
+              result.lidarrArtistId ?? rec.lidarrArtistId ?? undefined,
+            )
+          const extra: Record<string, unknown> = { targetActions: mergedActions }
+          if (result.lidarrArtistId) extra.lidarrArtistId = result.lidarrArtistId
+          if (result.lidarrError) extra.lidarrError = result.lidarrError
+          await deps.updateRecommendationStatus(id, result.status, extra)
+          results.push({ id, status: result.status })
+        })
+      }
 
-    if (results.length > 0 && results.every((entry) => entry.status === 'request_cooldown'))
-      return problem(
-        c,
-        'approval-request-cooldown',
-        'This request was recently declined. Try again after 24 hours.',
-        409,
-        undefined,
-        { results },
-        'errors.approval.declineCooldown',
-      )
-    if (results.length > 0 && results.every((entry) => entry.status === 'request_limit_reached'))
-      return problem(
-        c,
-        'approval-request-limit',
-        'The maximum number of open approval requests has been reached',
-        409,
-        undefined,
-        { results },
-        'errors.approval.requestLimit',
-      )
-    return c.json({ results })
-  })
+      if (results.length > 0 && results.every((entry) => entry.status === 'request_cooldown'))
+        return problem(
+          c,
+          'approval-request-cooldown',
+          'This request was recently declined. Try again after 24 hours.',
+          409,
+          undefined,
+          { results },
+          'errors.approval.declineCooldown',
+        )
+      if (results.length > 0 && results.every((entry) => entry.status === 'request_limit_reached'))
+        return problem(
+          c,
+          'approval-request-limit',
+          'The maximum number of open approval requests has been reached',
+          409,
+          undefined,
+          { results },
+          'errors.approval.requestLimit',
+        )
+      return c.json({ results })
+    },
+  )
 
   return router
 }

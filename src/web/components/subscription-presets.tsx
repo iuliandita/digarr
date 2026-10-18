@@ -221,6 +221,7 @@ export function SubscriptionPresets({ connectedServices, onComplete, onCustom }:
       <div>
         <p className="text-sm font-medium text-text">{t('subscriptionPresets.getStarted')}</p>
         <p className="text-xs text-muted mt-0.5">{t('subscriptionPresets.intro')}</p>
+        <p className="text-xs text-muted mt-0.5">{t('subscriptionPresets.spotifyChartsNote')}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {PRESETS.map((preset) => {

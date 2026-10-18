@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Database } from '@/db'
-import { getJobHealth, getLatestPlaylistGeneration, updateJobMetadata } from '@/db/queries/jobs'
+import {
+  getIntegrationHealth,
+  getJobHealth,
+  getLatestPlaylistGeneration,
+  updateJobMetadata,
+} from '@/db/queries/jobs'
 import { jobRuns, users } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
 
@@ -236,6 +241,115 @@ describe('job queries on migrated PGlite', () => {
     ])
 
     expect((await getJobHealth(db, null)).sources).toEqual({ recent: 'ok' })
+  })
+
+  it('reports last success and last error per integration from recorded runs', async () => {
+    const now = Date.now()
+    const at = (hoursAgo: number) => new Date(now - hoursAgo * 60 * 60 * 1000)
+    await db.insert(jobRuns).values([
+      {
+        type: 'target',
+        status: 'completed',
+        completedAt: at(5),
+        metadata: { targetType: 'lidarr' },
+      },
+      {
+        type: 'target',
+        status: 'failed',
+        completedAt: at(2),
+        error: 'Lidarr down: http://lidarr/api?apikey=hunter22',
+        metadata: { targetType: 'lidarr' },
+      },
+      {
+        type: 'target',
+        status: 'failed',
+        completedAt: at(3),
+        error: 'older failure',
+        metadata: { targetType: 'lidarr' },
+      },
+      {
+        type: 'target',
+        status: 'completed',
+        completedAt: at(1),
+        metadata: { targetType: 'slskd', skipped: true },
+      },
+      {
+        type: 'target',
+        status: 'completed',
+        completedAt: at(1),
+        metadata: { writeBackService: 'lastfm', operation: 'love' },
+      },
+      {
+        type: 'library_sync',
+        status: 'completed',
+        completedAt: at(4),
+        metadata: { source: 'plex' },
+      },
+      {
+        type: 'subscription',
+        status: 'failed',
+        completedAt: at(1),
+        error: 'feed gone',
+        metadata: { adapterType: 'rss' },
+      },
+      { type: 'target', status: 'running', metadata: { targetType: 'emby' } },
+      {
+        type: 'pipeline',
+        status: 'completed',
+        completedAt: at(6),
+        sourceResults: {
+          lastfm: { status: 'error', error: 'rate limited' },
+          ai: { status: 'ok', artists: 3 },
+          deezer: { status: 'skipped', reason: 'not_configured' },
+        },
+      },
+      {
+        type: 'quick_discover',
+        status: 'completed',
+        completedAt: at(1),
+        sourceResults: { lastfm: { status: 'ok', artists: 0 } },
+      },
+    ])
+
+    const integrations = await getIntegrationHealth(db)
+    const byKey = Object.fromEntries(integrations.map((i) => [`${i.kind}:${i.name}`, i]))
+
+    expect(Object.keys(byKey).sort()).toEqual([
+      'library:plex',
+      'scrobbler:lastfm',
+      'source:ai',
+      'source:lastfm',
+      'subscription:rss',
+      'target:lidarr',
+    ])
+    expect(byKey['target:lidarr']).toEqual({
+      kind: 'target',
+      name: 'lidarr',
+      status: 'failing',
+      lastSuccess: at(5).toISOString(),
+      lastError: {
+        at: at(2).toISOString(),
+        message: 'Lidarr down: http://lidarr/api?apikey=[redacted]',
+      },
+    })
+    expect(byKey['source:lastfm']).toMatchObject({
+      status: 'ok',
+      lastError: { message: 'rate limited' },
+    })
+    expect(byKey['subscription:rss']).toMatchObject({ status: 'failing', lastSuccess: null })
+    expect(byKey['library:plex']).toMatchObject({ status: 'ok', lastError: null })
+    expect((await getJobHealth(db, null)).integrations).toEqual(integrations)
+  })
+
+  it('ignores integration outcomes older than the health window', async () => {
+    await db.insert(jobRuns).values({
+      type: 'target',
+      status: 'completed',
+      startedAt: new Date(Date.now() - 31 * 24 * 60 * 60 * 1000),
+      metadata: { targetType: 'lidarr' },
+    })
+
+    expect(await getIntegrationHealth(db)).toEqual([])
   })
 
   it('merges metadata and returns only safe generation fields', async () => {
