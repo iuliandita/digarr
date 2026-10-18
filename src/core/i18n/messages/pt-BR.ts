@@ -1,4 +1,10 @@
 export const ptBR = {
+  'tokens.mcpTitle': 'Configuração do cliente MCP',
+  'tokens.mcpDescription':
+    'Cole este JSON em um cliente MCP que aceite servidores remotos e cabeçalhos de autorização. Guarde em um lugar seguro - ele contém seu token.',
+  'tokens.mcpCopy': 'Copiar configuração',
+  'tokens.mcpCopied': 'Configuração copiada',
+  'tokens.mcpCopyFailed': 'Não foi possível copiar. Selecione a configuração e copie manualmente.',
   'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
   'settings.slskdPathUnavailable':
     'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
