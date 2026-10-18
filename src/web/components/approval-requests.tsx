@@ -28,10 +28,12 @@ export function ApprovalRequests({ admin = false }: { admin?: boolean }) {
     mutationFn: ({ id, decision }: { id: number; decision: 'approve' | 'decline' }) =>
       resolveApprovalRequest(id, decision, notes[id]?.trim() || undefined),
     onSuccess: (result, variables) => {
+      const approvalSucceeded = result.approval
+        ? reportApprovalOutcome(result.approval, t)
+        : result.request.status === 'approved'
       if (
-        variables.decision === 'decline' ||
-        !result.approval ||
-        reportApprovalOutcome(result.approval, t)
+        result.request.status !== 'pending' &&
+        (variables.decision === 'decline' || approvalSucceeded)
       ) {
         toast.success(t('approvalRequests.resolved'))
       }
@@ -104,6 +106,11 @@ export function ApprovalRequests({ admin = false }: { admin?: boolean }) {
           {request.note && (
             <p className="text-sm text-text whitespace-pre-wrap">
               {t('approvalRequests.note')}: {request.note}
+            </p>
+          )}
+          {admin && request.lastError && (
+            <p className="text-sm text-reject whitespace-pre-wrap" role="alert">
+              {t('approvalRequests.error')}: {request.lastError}
             </p>
           )}
           {admin && request.status === 'pending' && (

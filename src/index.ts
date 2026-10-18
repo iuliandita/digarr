@@ -647,10 +647,15 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     throw new Error('Settings not found')
   }
 
-  const [userConnections, userPreferences] = await Promise.all([
+  const [userConnections, user] = await Promise.all([
     getUserConnections(db, userId),
-    resolveUserPreferences(db, settings.preferences, userId),
+    getUserById(db, userId),
   ])
+  const userPreferences = await resolveUserPreferences(
+    async () => user,
+    settings.preferences,
+    userId,
+  )
 
   let spotifyAccessToken: string | null = null
   try {
@@ -674,9 +679,11 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
         },
       }))
     },
-    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId),
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId, userPreferences),
     userId,
-    canApprove: async (score) => !requiresApprovalRequest(await getUserById(db, userId), score),
+    ...(user && user.approvalPolicy !== 'direct'
+      ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
+      : {}),
     updateRecommendationStatus: (
       id: number,
       status: string,
@@ -725,12 +732,15 @@ const executeDiscoveryModeRun = async (
 
 async function getEnabledTargetsForResolvedUser(
   userId: number,
+  resolvedPreferences?: Partial<import('./db/schema').Preferences> | null,
 ): Promise<import('./core/targets/types').DestinationTarget[]> {
   const rows = await getTargetsByUser(db, userId)
   const settings = await getSettings(db)
   // Server-connection defaults: the owner's preferences, falling back to global.
   const serverDefaults = mergePreferences(
-    await resolveUserPreferences(db, settings?.preferences ?? null, userId),
+    resolvedPreferences !== undefined
+      ? resolvedPreferences
+      : await resolveUserPreferences(db, settings?.preferences ?? null, userId),
   )
 
   const targets: import('./core/targets/types').DestinationTarget[] = []

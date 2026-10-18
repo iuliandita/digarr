@@ -1894,4 +1894,7 @@ export const ko = {
   'errors.approval.requestLimit': '미처리 요청 수가 한도에 도달했습니다.',
   'approvalRequests.notificationsHelp':
     '관리자가 요청을 승인하거나 거절하면 알림을 받습니다. 사용할 각 채널에서 이벤트를 활성화하세요.',
+  'errors.approval.declineCooldown': '거절된 후 같은 추천을 다시 요청하려면 24시간 기다려 주세요.',
+  'notifications.requestApprovedWaiting': '{0} 요청이 승인되었으며 Lidarr를 기다리고 있습니다.',
+  'approvalRequests.error': '승인 실패',
 } as const

@@ -1944,4 +1944,8 @@ export const nl = {
   'errors.approval.requestLimit': 'Je hebt je limiet voor open aanvragen bereikt.',
   'approvalRequests.notificationsHelp':
     'Ontvang een melding wanneer een beheerder je aanvraag goedkeurt of afwijst. Schakel de gebeurtenis in voor elk gewenst kanaal.',
+  'errors.approval.declineCooldown':
+    'Wacht na een afwijzing 24 uur voordat je dezelfde aanbeveling opnieuw aanvraagt.',
+  'notifications.requestApprovedWaiting': 'Je aanvraag voor {0} is goedgekeurd en wacht op Lidarr.',
+  'approvalRequests.error': 'Goedkeuring mislukt',
 } as const

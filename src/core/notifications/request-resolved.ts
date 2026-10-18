@@ -6,7 +6,12 @@ import { dispatch, type SenderMap } from './registry'
 
 export async function notifyRequestResolved(
   requester: { preferences: Preferences | null; preferredLocale?: string | null },
-  request: { recommendationId: number; status: 'approved' | 'declined'; artistName: string },
+  request: {
+    recommendationId: number
+    status: 'approved' | 'declined'
+    artistName: string
+    waiting?: boolean
+  },
   opts: { senders?: Partial<SenderMap> } = {},
 ) {
   const t = createTranslator(resolveSupportedLocale(requester.preferredLocale))
@@ -22,7 +27,9 @@ export async function notifyRequestResolved(
       status: request.status,
       message: t(
         request.status === 'approved'
-          ? 'notifications.requestApproved'
+          ? request.waiting
+            ? 'notifications.requestApprovedWaiting'
+            : 'notifications.requestApproved'
           : 'notifications.requestDeclined',
         request.artistName,
       ),

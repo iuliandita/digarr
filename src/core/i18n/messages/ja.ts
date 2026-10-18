@@ -1923,4 +1923,8 @@ export const ja = {
   'errors.approval.requestLimit': '未処理リクエストの上限に達しました。',
   'approvalRequests.notificationsHelp':
     '管理者がリクエストを承認または却下した際に通知を受け取れます。使用する各チャンネルでイベントを有効にしてください。',
+  'errors.approval.declineCooldown':
+    '却下後、同じおすすめを再度リクエストするには24時間お待ちください。',
+  'notifications.requestApprovedWaiting': '{0} のリクエストが承認され、Lidarr を待っています。',
+  'approvalRequests.error': '承認に失敗しました',
 } as const

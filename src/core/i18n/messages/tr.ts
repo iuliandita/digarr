@@ -1924,4 +1924,8 @@ export const tr = {
   'errors.approval.requestLimit': 'Açık istek sınırına ulaştın.',
   'approvalRequests.notificationsHelp':
     'Bir yönetici isteğini onayladığında veya reddettiğinde bildirim al. Kullanmak istediğin her kanal için bu olayı etkinleştir.',
+  'errors.approval.declineCooldown':
+    'Reddedildikten sonra aynı öneriyi tekrar istemeden önce 24 saat bekle.',
+  'notifications.requestApprovedWaiting': '{0} isteğin onaylandı ve Lidarr bekleniyor.',
+  'approvalRequests.error': 'Onay başarısız',
 } as const

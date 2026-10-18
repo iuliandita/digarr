@@ -96,8 +96,9 @@ export function pipelineRoutes(deps: AppDependencies) {
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
       userId,
-      canApprove: async (score) =>
-        !requiresApprovalRequest(userId ? await deps.getUserById(userId) : null, score),
+      ...(user && user.approvalPolicy !== 'direct'
+        ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
+        : {}),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
       warmArtist: deps.skyhookWarmer

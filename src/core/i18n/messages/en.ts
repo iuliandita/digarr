@@ -1989,4 +1989,9 @@ export const en = {
   'errors.approval.requestLimit': 'You have reached your limit of open requests.',
   'approvalRequests.notificationsHelp':
     'Get notified when an admin approves or declines your request. Enable the event for each channel you want to use.',
+  'errors.approval.declineCooldown':
+    'Wait 24 hours after a decline before requesting the same recommendation again.',
+  'notifications.requestApprovedWaiting':
+    'Your request for {0} was approved and is waiting for Lidarr.',
+  'approvalRequests.error': 'Approval failed',
 } as const

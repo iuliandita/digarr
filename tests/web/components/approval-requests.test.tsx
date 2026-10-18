@@ -33,6 +33,7 @@ const request: ApprovalRequest = {
     reasons: ['Matches your listening history.'],
   },
   status: 'pending',
+  lastError: null,
   note: null,
   createdAt: '2026-10-18T10:00:00Z',
 }
@@ -100,14 +101,31 @@ describe('ApprovalRequests', () => {
     expect(screen.queryByRole('button', { name: 'Approve' })).not.toBeInTheDocument()
   })
 
-  it('reports target failures without showing a completed decision toast', async () => {
-    vi.mocked(resolveApprovalRequest).mockResolvedValue({
-      request: { status: 'approved' },
-      approval: { status: 'add_failed' },
-    })
+  it('shows a pending approval error to admins and keeps retry and decline actions', async () => {
+    vi.mocked(listApprovalRequests).mockResolvedValue([
+      { ...request, lastError: 'Lidarr connection refused' },
+    ])
     mount(true)
-    fireEvent.click(await screen.findByRole('button', { name: 'Approve' }))
-    await waitFor(() => expect(toast.error).toHaveBeenCalled())
-    expect(toast.success).not.toHaveBeenCalled()
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Approval failed: Lidarr connection refused',
+    )
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Decline' })).toBeEnabled()
   })
+
+  it.each(['pending', 'approved'] as const)(
+    'reports target failures for a %s request without showing a completed decision toast',
+    async (status) => {
+      vi.mocked(resolveApprovalRequest).mockResolvedValue({
+        request: { status },
+        approval: { status: 'add_failed' },
+      })
+      mount(true)
+      fireEvent.click(await screen.findByRole('button', { name: 'Approve' }))
+      await waitFor(() => expect(toast.error).toHaveBeenCalled())
+      expect(toast.success).not.toHaveBeenCalled()
+      expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled()
+      expect(screen.getByRole('button', { name: 'Decline' })).toBeEnabled()
+    },
+  )
 })

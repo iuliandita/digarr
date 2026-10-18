@@ -1962,4 +1962,9 @@ export const de = {
   'errors.approval.requestLimit': 'Du hast dein Limit für offene Anfragen erreicht.',
   'approvalRequests.notificationsHelp':
     'Lass dich benachrichtigen, wenn ein Admin deine Anfrage freigibt oder ablehnt. Aktiviere das Ereignis für jeden gewünschten Kanal.',
+  'errors.approval.declineCooldown':
+    'Warte nach einer Ablehnung 24 Stunden, bevor du dieselbe Empfehlung erneut anfragst.',
+  'notifications.requestApprovedWaiting':
+    'Deine Anfrage für {0} wurde freigegeben und wartet auf Lidarr.',
+  'approvalRequests.error': 'Freigabe fehlgeschlagen',
 } as const

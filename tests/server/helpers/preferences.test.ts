@@ -33,10 +33,12 @@ function lookup(preferences: Partial<Preferences>) {
 }
 
 describe('discovery preference resolution', () => {
-  it('retains global discovery settings and batch channels for a user with only personal notification channels', async () => {
+  it('retains global discovery settings without shared batch channels for a member with only personal channels', async () => {
     const personalPrefs = { channels: [personalChannel] }
     const resolved = await resolveUserPreferences(lookup(personalPrefs), globalPrefs, 1)
-    expect(resolved).toBe(globalPrefs)
+    const { channels: _channels, ...discovery } = globalPrefs
+    expect(resolved).toEqual(discovery)
+    expect(resolved).not.toHaveProperty('channels')
     expect(personalPrefs.channels).toEqual([personalChannel])
     const webhook = vi.fn(async () => ({ ok: true }))
     await dispatch(
@@ -51,11 +53,10 @@ describe('discovery preference resolution', () => {
       },
       { senders: { webhook } },
     )
-    expect(webhook).toHaveBeenCalledOnce()
-    expect(webhook).toHaveBeenCalledWith(globalChannel, expect.any(Object))
+    expect(webhook).not.toHaveBeenCalled()
   })
 
-  it('preserves existing discovery overrides while using shared channels for scan notifications', async () => {
+  it('preserves member discovery overrides without shared scan channels', async () => {
     const preferences = {
       scoreThreshold: 0.7,
       netNewAlbumDiscovery: true,
@@ -65,10 +66,14 @@ describe('discovery preference resolution', () => {
     expect(resolved).toEqual({
       scoreThreshold: 0.7,
       netNewAlbumDiscovery: true,
-      channels: [globalChannel],
     })
     expect(resolved).not.toHaveProperty('scheduleCron')
     expect(preferences.channels).toEqual([personalChannel])
+  })
+
+  it('keeps shared scan channels for administrators', async () => {
+    const admin = async () => ({ isAdmin: true, preferences: null }) as UserPublic
+    expect(await resolveUserPreferences(admin, globalPrefs, 1)).toBe(globalPrefs)
   })
 
   it('never substitutes personal channels when shared channels are absent', async () => {

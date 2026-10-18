@@ -325,15 +325,16 @@ export const approvalRequests = pgTable(
   {
     id: integer('id').primaryKey().generatedByDefaultAsIdentity(),
     token: uuid('token').notNull().defaultRandom().unique(),
-    recommendationId: integer('recommendation_id')
-      .notNull()
-      .references(() => recommendations.id, { onDelete: 'cascade' }),
+    recommendationId: integer('recommendation_id').references(() => recommendations.id, {
+      onDelete: 'set null',
+    }),
     userId: integer('user_id')
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     status: text('status').$type<ApprovalRequestStatus>().notNull().default('pending'),
     options: jsonb('options').$type<Record<string, unknown>>().notNull(),
     note: text('note'),
+    lastError: text('last_error'),
     decidedBy: integer('decided_by').references(() => users.id, { onDelete: 'set null' }),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     decidedAt: timestamp('decided_at', { withTimezone: true }),
@@ -342,6 +343,7 @@ export const approvalRequests = pgTable(
     pendingUnique: uniqueIndex('approval_requests_pending_unique_idx')
       .on(table.recommendationId, table.userId)
       .where(sql`${table.status} = 'pending'`),
+    recommendationIdx: index('approval_requests_recommendation_idx').on(table.recommendationId),
     userIdx: index('approval_requests_user_idx').on(table.userId),
     decidedByIdx: index('approval_requests_decided_by_idx').on(table.decidedBy),
     statusCreatedIdx: index('approval_requests_status_created_idx').on(

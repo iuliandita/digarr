@@ -1959,4 +1959,8 @@ export const fr = {
   'errors.approval.requestLimit': 'Tu as atteint ta limite de demandes ouvertes.',
   'approvalRequests.notificationsHelp':
     'Reçois une notification quand un administrateur valide ou refuse ta demande. Active cet événement pour chaque canal souhaité.',
+  'errors.approval.declineCooldown':
+    'Attends 24 heures après un refus avant de redemander la même recommandation.',
+  'notifications.requestApprovedWaiting': 'Ta demande pour {0} a été validée et attend Lidarr.',
+  'approvalRequests.error': 'Échec de la validation',
 } as const

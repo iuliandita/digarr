@@ -1936,4 +1936,9 @@ export const pl = {
   'errors.approval.requestLimit': 'Osiągnięto limit otwartych próśb.',
   'approvalRequests.notificationsHelp':
     'Otrzymuj powiadomienia, gdy administrator zatwierdzi lub odrzuci twoją prośbę. Włącz to zdarzenie dla każdego wybranego kanału.',
+  'errors.approval.declineCooldown':
+    'Po odrzuceniu odczekaj 24 godziny, zanim ponownie wyślesz prośbę o tę samą rekomendację.',
+  'notifications.requestApprovedWaiting':
+    'Twoja prośba dotycząca {0} została zatwierdzona i oczekuje na Lidarr.',
+  'approvalRequests.error': 'Zatwierdzanie nie powiodło się',
 } as const

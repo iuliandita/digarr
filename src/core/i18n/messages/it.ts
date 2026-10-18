@@ -1953,4 +1953,9 @@ export const it = {
   'errors.approval.requestLimit': 'Hai raggiunto il limite di richieste aperte.',
   'approvalRequests.notificationsHelp':
     'Ricevi una notifica quando un amministratore approva o rifiuta la tua richiesta. Attiva questo evento per ogni canale che vuoi usare.',
+  'errors.approval.declineCooldown':
+    'Aspetta 24 ore dopo un rifiuto prima di richiedere di nuovo lo stesso suggerimento.',
+  'notifications.requestApprovedWaiting':
+    'La tua richiesta per {0} è stata approvata ed è in attesa di Lidarr.',
+  'approvalRequests.error': 'Approvazione non riuscita',
 } as const

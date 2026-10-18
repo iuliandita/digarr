@@ -172,7 +172,11 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
       const adds = target()
       if (entry === 'mcp') {
         const result = await call('approve_recommendation', { id: 2 }, credential)
-        expect(data(result)).toMatchObject({ status: 'requested' })
+        expect(data(result)).toMatchObject({
+          status: 'requested',
+          requestId: expect.any(Number),
+          message: expect.stringContaining('administrator'),
+        })
       } else if (entry === 'missing-albums') {
         deps.albumCoverage = {
           getCoverageForArtist: vi.fn(async () => ({
@@ -248,6 +252,128 @@ describe('approval policy enforcement and queue on migrated PGlite', () => {
       expect(kind === 'album' ? adds.addAlbum : adds.addArtist).toHaveBeenCalledTimes(1)
       expect((await getRecommendation(db, 2))?.targetActions).toHaveProperty('requester-target')
       expect(notify).toHaveBeenCalledOnce()
+    },
+  )
+
+  it.each(['retry', 'decline'] as const)(
+    'keeps failed target attempts pending without notifying and permits %s',
+    async (nextAction) => {
+      const credential = await requestUser()
+      const adds = target()
+      adds.addArtist.mockResolvedValueOnce({
+        success: false,
+        targetType: 'lidarr',
+        targetId: 8,
+        error: 'Invalid profile',
+      } as never)
+      const notify = vi.fn(async () => {})
+      deps.notifyApprovalRequestResolved = notify
+      const queued = await app.request(
+        '/api/v1/recommendations/2',
+        json(credential, { status: 'approved' }, 'PATCH'),
+      )
+      const { requestId } = await queued.json()
+      const admin = await mint('admin')
+      const failed = await app.request(
+        `/api/v1/approval-requests/${requestId}/approve`,
+        json(admin, {}),
+      )
+      expect(failed.status).toBe(200)
+      expect(await failed.json()).toMatchObject({
+        request: { status: 'pending', lastError: 'Invalid profile' },
+        approval: { status: 'add_failed' },
+      })
+      expect(notify).not.toHaveBeenCalled()
+      const retried = await app.request(
+        `/api/v1/approval-requests/${requestId}/${nextAction === 'retry' ? 'approve' : 'decline'}`,
+        json(admin, {}),
+      )
+      expect(retried.status).toBe(200)
+      expect(await retried.json()).toMatchObject({
+        request: { status: nextAction === 'retry' ? 'approved' : 'declined', lastError: null },
+        ...(nextAction === 'retry' ? { approval: { status: 'added_to_lidarr' } } : {}),
+      })
+      expect(adds.addArtist).toHaveBeenCalledTimes(nextAction === 'retry' ? 2 : 1)
+      expect(notify).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('localizes the stored fallback error for a failed non-Lidarr target', async () => {
+    const credential = await requestUser()
+    vi.mocked(deps.getEnabledTargetsForUser).mockResolvedValue([
+      {
+        id: 'failed-target',
+        type: 'slskd',
+        name: 'Download',
+        capabilities: ['addArtist'],
+        addArtist: async () => ({ success: false, targetType: 'slskd', targetId: 8 }),
+        testConnection: vi.fn(),
+      },
+    ] as never)
+    const queued = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved' }, 'PATCH'),
+    )
+    const { requestId } = await queued.json()
+    const request = json(await mint('admin'), {})
+    const response = await app.request(`/api/v1/approval-requests/${requestId}/approve`, {
+      ...request,
+      headers: { ...request.headers, 'X-Digarr-Locale': 'de' },
+    })
+    expect(await response.json()).toMatchObject({
+      request: { status: 'pending', lastError: 'Freigabe fehlgeschlagen' },
+      approval: { status: 'add_failed' },
+    })
+  })
+
+  it('approves temporary target failures as waiting', async () => {
+    const credential = await requestUser()
+    const adds = target()
+    adds.addArtist.mockResolvedValueOnce({
+      success: false,
+      targetType: 'lidarr',
+      targetId: 8,
+      error: 'HTTP 503: Service Unavailable',
+    } as never)
+    const queued = await app.request(
+      '/api/v1/recommendations/2',
+      json(credential, { status: 'approved' }, 'PATCH'),
+    )
+    const { requestId } = await queued.json()
+    const response = await app.request(
+      `/api/v1/approval-requests/${requestId}/approve`,
+      json(await mint('admin'), {}),
+    )
+    expect(response.status).toBe(200)
+    expect(await response.json()).toMatchObject({
+      request: { status: 'approved' },
+      approval: { status: 'waiting' },
+    })
+  })
+
+  it('returns a distinct safe MCP error for the request limit', async () => {
+    const credential = await requestUser()
+    await db.update(users).set({ maxOpenRequests: 0 }).where(eq(users.id, 2))
+    const response = await call('approve_recommendation', { id: 2 }, credential)
+    expect(response.isError).toBe(true)
+    expect(response.content[0].text).toBe(
+      'The maximum number of open approval requests has been reached',
+    )
+  })
+
+  it.each(['direct', 'request_only'] as const)(
+    'loads the %s user policy once for 500 bulk approvals',
+    async (approvalPolicy) => {
+      const credential = await mint('write', 2)
+      await db.update(users).set({ approvalPolicy }).where(eq(users.id, 2))
+      const lookup = vi.fn(deps.getUserById)
+      deps.getUserById = lookup
+      const response = await app.request(
+        '/api/v1/recommendations/bulk',
+        json(credential, { ids: Array.from({ length: 500 }, () => 2), action: 'approve' }),
+      )
+      expect(response.status).toBe(200)
+      expect(lookup).toHaveBeenCalledOnce()
     },
   )
 

@@ -16,7 +16,11 @@ import {
 } from '@/core/targets/lidarr-retry'
 import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
 import { conciseErrMsg } from '@/core/validation'
-import { ApprovalRequestLimitError, approvalRequestQueries } from '@/db/queries/approval-requests'
+import {
+  ApprovalRequestCooldownError,
+  ApprovalRequestLimitError,
+  approvalRequestQueries,
+} from '@/db/queries/approval-requests'
 import { getOwnedAuditionTrack } from '@/db/queries/playlists'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
@@ -647,15 +651,33 @@ function createRecommendationRoutes(
             targetActions: {},
           })
         } catch (error) {
-          if (!(error instanceof ApprovalRequestLimitError)) throw error
+          await requests.cleanupAlbumRecommendation(auth.userId, id)
+          if (
+            !(error instanceof ApprovalRequestLimitError) &&
+            !(error instanceof ApprovalRequestCooldownError)
+          )
+            throw error
           results.push({
             albumMbid,
-            status: 'request_limit_reached',
+            status:
+              error instanceof ApprovalRequestCooldownError
+                ? 'request_cooldown'
+                : 'request_limit_reached',
             success: false,
             targetActions: {},
           })
         }
       }
+      if (results.every((entry) => entry.status === 'request_cooldown'))
+        return problem(
+          c,
+          'approval-request-cooldown',
+          'This request was recently declined. Try again after 24 hours.',
+          409,
+          undefined,
+          { results },
+          'errors.approval.declineCooldown',
+        )
       if (results.every((entry) => entry.status === 'request_limit_reached'))
         return problem(
           c,
@@ -888,6 +910,16 @@ function createRecommendationRoutes(
               202,
             )
           } catch (error) {
+            if (error instanceof ApprovalRequestCooldownError)
+              return problem(
+                c,
+                'approval-request-cooldown',
+                error.message,
+                409,
+                undefined,
+                undefined,
+                'errors.approval.declineCooldown',
+              )
             if (error instanceof ApprovalRequestLimitError)
               return problem(
                 c,
@@ -1173,6 +1205,8 @@ function createRecommendationRoutes(
       })
     }
 
+    const approvalUser = userId ? await deps.getUserById(userId) : null
+
     // Approve: route through targets
     const targets = userId ? await deps.getEnabledTargetsForUser(userId) : []
     const effectiveTargets = targetId ? targets.filter((t) => t.id === targetId) : targets
@@ -1215,7 +1249,7 @@ function createRecommendationRoutes(
           return
         }
 
-        if (userId && requiresApprovalRequest(await deps.getUserById(userId), rec.score)) {
+        if (userId && requiresApprovalRequest(approvalUser, rec.score)) {
           try {
             const request = await requests.create(userId, id, {
               status: 'approved',
@@ -1226,12 +1260,22 @@ function createRecommendationRoutes(
             })
             results.push({ id, status: 'requested', requestId: request.id })
           } catch (error) {
-            if (!(error instanceof ApprovalRequestLimitError)) throw error
+            if (
+              !(error instanceof ApprovalRequestLimitError) &&
+              !(error instanceof ApprovalRequestCooldownError)
+            )
+              throw error
             results.push({
               id,
-              status: 'request_limit_reached',
+              status:
+                error instanceof ApprovalRequestCooldownError
+                  ? 'request_cooldown'
+                  : 'request_limit_reached',
               error: error.message,
-              code: 'errors.approval.requestLimit',
+              code:
+                error instanceof ApprovalRequestCooldownError
+                  ? 'errors.approval.declineCooldown'
+                  : 'errors.approval.requestLimit',
             })
           }
           return
@@ -1286,6 +1330,16 @@ function createRecommendationRoutes(
       })
     }
 
+    if (results.length > 0 && results.every((entry) => entry.status === 'request_cooldown'))
+      return problem(
+        c,
+        'approval-request-cooldown',
+        'This request was recently declined. Try again after 24 hours.',
+        409,
+        undefined,
+        { results },
+        'errors.approval.declineCooldown',
+      )
     if (results.length > 0 && results.every((entry) => entry.status === 'request_limit_reached'))
       return problem(
         c,

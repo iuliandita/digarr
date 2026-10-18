@@ -1793,4 +1793,7 @@ export const zhCN = {
   'errors.approval.requestLimit': '你已达到待处理请求数上限。',
   'approvalRequests.notificationsHelp':
     '当管理员批准或拒绝你的请求时接收通知。请为每个要使用的渠道启用该事件。',
+  'errors.approval.declineCooldown': '请求被拒绝后，请等待 24 小时再请求同一条推荐。',
+  'notifications.requestApprovedWaiting': '你的 {0} 请求已获批准，正在等待 Lidarr。',
+  'approvalRequests.error': '批准失败',
 } as const

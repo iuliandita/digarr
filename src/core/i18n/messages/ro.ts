@@ -1945,4 +1945,9 @@ export const ro = {
   'errors.approval.requestLimit': 'Ai atins limita de cereri deschise.',
   'approvalRequests.notificationsHelp':
     'Primește notificări când un administrator îți aprobă sau respinge cererea. Activează evenimentul pentru fiecare canal dorit.',
+  'errors.approval.declineCooldown':
+    'Așteaptă 24 de ore după o respingere înainte să ceri din nou aceeași recomandare.',
+  'notifications.requestApprovedWaiting':
+    'Cererea ta pentru {0} a fost aprobată și așteaptă Lidarr.',
+  'approvalRequests.error': 'Aprobarea a eșuat',
 } as const

@@ -811,6 +811,7 @@ export type ApprovalRequest = {
     reasons: string[]
   }
   status: 'pending' | 'approved' | 'declined'
+  lastError: string | null
   note: string | null
   createdAt: string
 }

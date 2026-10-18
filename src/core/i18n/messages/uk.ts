@@ -1937,4 +1937,8 @@ export const uk = {
   'errors.approval.requestLimit': 'Ти досяг ліміту відкритих запитів.',
   'approvalRequests.notificationsHelp':
     'Отримуй сповіщення, коли адміністратор схвалює або відхиляє твій запит. Увімкни подію для кожного потрібного каналу.',
+  'errors.approval.declineCooldown':
+    'Після відмови зачекай 24 години, перш ніж знову надсилати запит на ту саму рекомендацію.',
+  'notifications.requestApprovedWaiting': 'Твій запит на {0} схвалено й очікує на Lidarr.',
+  'approvalRequests.error': 'Не вдалося схвалити',
 } as const

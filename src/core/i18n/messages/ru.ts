@@ -1948,4 +1948,8 @@ export const ru = {
   'errors.approval.requestLimit': 'Ты достиг лимита открытых запросов.',
   'approvalRequests.notificationsHelp':
     'Получай уведомления, когда администратор одобряет или отклоняет твой запрос. Включи событие для каждого нужного канала.',
+  'errors.approval.declineCooldown':
+    'После отказа подожди 24 часа, прежде чем снова отправлять запрос на ту же рекомендацию.',
+  'notifications.requestApprovedWaiting': 'Твой запрос на {0} одобрен и ожидает Lidarr.',
+  'approvalRequests.error': 'Не удалось одобрить',
 } as const

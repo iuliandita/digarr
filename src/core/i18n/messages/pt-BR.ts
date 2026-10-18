@@ -1947,4 +1947,9 @@ export const ptBR = {
   'errors.approval.requestLimit': 'Você atingiu o limite de pedidos abertos.',
   'approvalRequests.notificationsHelp':
     'Receba avisos quando um administrador aprovar ou recusar seu pedido. Ative o evento em cada canal que quiser usar.',
+  'errors.approval.declineCooldown':
+    'Espere 24 horas após uma recusa antes de pedir a mesma recomendação novamente.',
+  'notifications.requestApprovedWaiting':
+    'Seu pedido de {0} foi aprovado e está aguardando o Lidarr.',
+  'approvalRequests.error': 'Falha na aprovação',
 } as const

@@ -43,6 +43,18 @@ describe('request resolution notifications', () => {
     expect(webhook.mock.calls[0]?.[1]?.message).not.toContain('approved')
   })
 
+  it('explains that an approved request is waiting for the target', async () => {
+    const webhook = vi.fn(async (_channel: NotificationChannel, _payload: WebhookPayload) => ({
+      ok: true,
+    }))
+    await notifyRequestResolved(
+      { preferences: mergePreferences({ channels: [channel('requester', ['request_resolved'])] }) },
+      { recommendationId: 42, status: 'approved', waiting: true, artistName: 'Artist' },
+      { senders: { webhook } },
+    )
+    expect(webhook.mock.calls[0]?.[1]?.message).toMatch(/approved.*waiting/i)
+  })
+
   it('does not fall back to global channels for a requester without channels', async () => {
     const webhook = vi.fn(async (_channel: NotificationChannel, _payload: WebhookPayload) => ({
       ok: true,

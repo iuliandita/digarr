@@ -255,6 +255,31 @@ describe('POST /api/v1/pipeline/run', () => {
     expect(body.message).toBe('Pipeline started')
   })
 
+  it.each(['direct', 'auto_approve'] as const)(
+    'captures %s policy once for a 1000-item run',
+    async (approvalPolicy) => {
+      const orchestrator = makeMockOrchestrator(false) as unknown as AppDependencies['orchestrator']
+      const getUserById = vi.fn(async () => ({
+        id: 1,
+        approvalPolicy,
+        approvalThreshold: 0.8,
+        isAdmin: false,
+        preferences: null,
+      })) as unknown as AppDependencies['getUserById']
+      const app = createApp(makeDeps({ orchestrator, getUserById }))
+      const response = await authedRequest(app, '/api/v1/pipeline/run', { method: 'POST' })
+      expect(response.status).toBe(202)
+      const run = vi.mocked(orchestrator.enqueue).mock.calls[0]?.[0]
+      const canApprove = run?.autoApproveDeps?.canApprove
+      if (approvalPolicy === 'direct') expect(canApprove).toBeUndefined()
+      else {
+        for (let i = 0; i < 1000; i++) expect(await canApprove?.(0.9)).toBe(true)
+        expect(await canApprove?.(0.7)).toBe(false)
+      }
+      expect(getUserById).toHaveBeenCalledOnce()
+    },
+  )
+
   it('queues the run (202) when a pipeline is already running', async () => {
     const orchestrator = makeMockOrchestrator(true) as unknown as AppDependencies['orchestrator']
     const app = createApp(makeDeps({ orchestrator }))

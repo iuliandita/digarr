@@ -5,6 +5,24 @@ import { describe, expect, it, vi } from 'vitest'
 import { createBackup, restoreBackup } from '@/core/ops/backup'
 import type { OpsDb } from '@/core/ops/types'
 import type { Database } from '@/db'
+import {
+  getBatchesWithCounts,
+  getOverviewStats,
+  getSourceEffectiveness,
+} from '@/db/queries/analytics'
+import {
+  APPROVAL_REQUEST_DECLINE_COOLDOWN_MS,
+  ApprovalRequestCooldownError,
+  ApprovalRequestExecutionError,
+  ApprovalRequestLimitError,
+  approvalRequestQueries,
+} from '@/db/queries/approval-requests'
+import { getTopGenresForUser } from '@/db/queries/dashboard'
+import {
+  getGenreFeedbackHistory,
+  listRecommendations,
+  updateRecommendationStatus,
+} from '@/db/queries/recommendations'
 import { createUser, updateUser } from '@/db/queries/users'
 import * as schema from '@/db/schema'
 import { makeTestDb } from '../helpers/test-db'
@@ -126,6 +144,126 @@ describe('approval request persistence', () => {
         maxOpenRequests: null,
         approvalThreshold: null,
       })
+    } finally {
+      await close()
+    }
+  })
+
+  it('deletes declined album scaffolding, retains history through backup, and enforces cooldown', async () => {
+    const { db, close, user, admin, rec } = await fixture()
+    const database = db as unknown as Database
+    const queries = approvalRequestQueries(database)
+    try {
+      const id = await queries.ensureAlbumRecommendation(user.id, rec.artistId, 'album-rg', 'Album')
+      const request = await queries.create(user.id, id, {})
+      const decision = await queries.decide(request.id, admin.id, 'declined', 'No', async () => {})
+      expect(decision.request.recommendationId).toBeNull()
+      expect(
+        await db.select().from(schema.recommendations).where(eq(schema.recommendations.id, id)),
+      ).toEqual([])
+      expect(await db.select().from(schema.recommendationBatches)).toHaveLength(1)
+      expect((await queries.list(user.id))[0]?.recommendation).toMatchObject({
+        artistName: 'Artist',
+        albumTitle: 'Album',
+      })
+      const backup = await createBackup(database as unknown as OpsDb)
+      await restoreBackup(database as unknown as OpsDb, JSON.parse(JSON.stringify(backup)), {
+        force: true,
+      })
+      expect((await queries.list(user.id))[0]?.recommendationId).toBeNull()
+      const retryId = await queries.ensureAlbumRecommendation(
+        user.id,
+        rec.artistId,
+        'album-rg',
+        'Album',
+      )
+      await expect(queries.create(user.id, retryId, {})).rejects.toBeInstanceOf(
+        ApprovalRequestCooldownError,
+      )
+      await queries.cleanupAlbumRecommendation(user.id, retryId)
+      await db
+        .update(schema.approvalRequests)
+        .set({ decidedAt: new Date(Date.now() - APPROVAL_REQUEST_DECLINE_COOLDOWN_MS - 1000) })
+        .where(eq(schema.approvalRequests.id, request.id))
+      const laterId = await queries.ensureAlbumRecommendation(
+        user.id,
+        rec.artistId,
+        'album-rg',
+        'Album',
+      )
+      expect((await queries.create(user.id, laterId, {})).status).toBe('pending')
+    } finally {
+      await close()
+    }
+  })
+
+  it('cleans failed creations and excludes synthetic approvals from scores, feedback, and taste', async () => {
+    const { db, close, user, admin, rec } = await fixture()
+    const database = db as unknown as Database
+    const queries = approvalRequestQueries(database)
+    try {
+      await db.update(schema.users).set({ maxOpenRequests: 0 }).where(eq(schema.users.id, user.id))
+      const id = await queries.ensureAlbumRecommendation(user.id, rec.artistId, 'album-rg', 'Album')
+      await expect(queries.create(user.id, id, {})).rejects.toBeInstanceOf(
+        ApprovalRequestLimitError,
+      )
+      await queries.cleanupAlbumRecommendation(user.id, id)
+      expect(await db.select().from(schema.recommendationBatches)).toHaveLength(1)
+      await db.update(schema.users).set({ maxOpenRequests: 2 }).where(eq(schema.users.id, user.id))
+      await db
+        .update(schema.artists)
+        .set({ genres: ['rock'] })
+        .where(eq(schema.artists.id, rec.artistId))
+      const approvedId = await queries.ensureAlbumRecommendation(
+        user.id,
+        rec.artistId,
+        'album-rg',
+        'Album',
+      )
+      const request = await queries.create(user.id, approvedId, {})
+      const failed = await queries.decide(request.id, admin.id, 'approved', null, async () => {
+        throw new ApprovalRequestExecutionError('Unavailable')
+      })
+      expect(failed).toMatchObject({
+        changed: false,
+        request: { status: 'pending', lastError: 'Unavailable' },
+      })
+      const succeeded = await queries.decide(request.id, admin.id, 'approved', null, async () => {
+        await updateRecommendationStatus(database, approvedId, 'added_to_lidarr', {
+          targetActions: { target: { status: 'added' } },
+        })
+      })
+      expect(succeeded.request.lastError).toBeNull()
+      expect(
+        (await listRecommendations(database, { status: 'pending' })).items.map((row) => row.id),
+      ).toEqual([rec.id])
+      expect(
+        (await listRecommendations(database, { status: 'added_to_lidarr' })).items.map(
+          (row) => row.id,
+        ),
+      ).toEqual([approvedId])
+      expect(await getOverviewStats(database)).toMatchObject({ totalRecs: 1, totalBatches: 1 })
+      expect(await getSourceEffectiveness(database)).toEqual([])
+      expect(await getGenreFeedbackHistory(database, user.id)).toEqual(new Map())
+      expect(await getTopGenresForUser(database, user.id)).toEqual([])
+      expect(await getBatchesWithCounts(database)).toHaveLength(1)
+    } finally {
+      await close()
+    }
+  })
+
+  it('hides pending requests from mixed-status lists and matching batch pending counts', async () => {
+    const { db, close, user, rec } = await fixture()
+    const database = db as unknown as Database
+    try {
+      await approvalRequestQueries(database).create(user.id, rec.id, {})
+      for (const status of ['pending', ' pending , approved ']) {
+        expect(await listRecommendations(database, { userId: user.id, status })).toMatchObject({
+          items: [],
+          total: 0,
+        })
+      }
+      expect((await getBatchesWithCounts(database))[0]?.pending).toBe(0)
     } finally {
       await close()
     }
