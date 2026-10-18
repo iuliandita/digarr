@@ -1104,8 +1104,31 @@ export const fr = {
   'settings.groups.personal': 'Personnel',
   'settings.groups.library': 'Bibliothèque et services',
   'settings.groups.admin': 'Administration',
-  'settings.globalSettings': 'Paramètres globaux',
+  'settings.globalSettings': 'Serveur (admin)',
   'settings.adminOnly': 'Seuls les administrateurs peuvent modifier les paramètres globaux.',
+  'settings.addConnection': 'Ajouter une connexion',
+  'settings.searchConnections': 'Rechercher des connexions',
+  'settings.connectionResults': '{0} connexions trouvées',
+  'settings.noConnectionsFound': 'Aucune connexion correspondante.',
+  'settings.showExperimentalIntegrations': 'Afficher les intégrations expérimentales',
+  'settings.experimentalIntegrationsHelp':
+    'Affiche TIDAL et Bandcamp dans les sélecteurs de connexions, de recherche et de découverte. Les connexions existantes continuent de fonctionner quand elles sont masquées.',
+  'settings.picker.listening': 'Historique d’écoute',
+  'settings.picker.streaming': 'Comptes de streaming',
+  'settings.picker.servers': 'Serveurs multimédias',
+  'settings.picker.collections': 'Collections musicales',
+  'settings.picker.listenbrainz': 'Artistes favoris, écoutes récentes et découverte par radio.',
+  'settings.picker.lastfm': 'Artistes favoris et écoutes récentes. Active Release Radar.',
+  'settings.picker.spotify': 'Artistes suivis, albums enregistrés, import et export de playlists.',
+  'settings.picker.deezer': 'Flow, favoris, artistes suivis et playlists.',
+  'settings.picker.tidal': 'Tes artistes favoris comme base de tes goûts.',
+  'settings.picker.jellyfin': 'Synchronisation de bibliothèque et export de playlists.',
+  'settings.picker.media':
+    'Historique de lecture, synchronisation de bibliothèque et export de playlists.',
+  'settings.picker.subsonic': 'Favoris, synchronisation de bibliothèque et export de playlists.',
+  'settings.picker.discogs': 'Ta collection et ta liste de souhaits comme base de tes goûts.',
+  'settings.artistImagesPartiallySaved':
+    'Préférences d’images enregistrées, mais les réglages d’images du serveur n’ont pas pu être enregistrés.',
   'settings.yourConnections': 'Tes connexions',
   'settings.yourConnectionsDescription': "Sources d'écoute personnelles liées à ton compte.",
   'settings.testConnection': 'Tester la connexion',
@@ -1254,7 +1277,7 @@ export const fr = {
   'settings.libraryDiscoveryHelp':
     "Quelle proportion de la découverte est basée sur ta bibliothèque Lidarr par rapport à l'historique d'écoute. Des valeurs plus élevées trouvent des artistes similaires à ce que tu possèdes déjà. Des valeurs plus basses s'appuient davantage sur ListenBrainz/Last.fm.",
   'settings.librarySeedRatio': "Ratio d'amorçage depuis la bibliothèque",
-  'settings.imageSources': "Sources d'images",
+  'settings.imageSources': 'Images d’artistes',
   'settings.imageSourcesHelp':
     "Les images d'artistes proviennent en priorité de TheAudioDB, avec Lidarr/SkyHook, fanart.tv et musicinfo.pro comme repli.",
   'settings.audiodb.apiKey': 'Clé API premium TheAudioDB (facultative)',
@@ -1262,7 +1285,6 @@ export const fr = {
   'settings.audiodb.proxyImages': 'Acheminer les images via Digarr',
   'settings.audiodb.proxyHint':
     "Masque ton IP du CDN TheAudioDB en routant les requêtes d'images via ce serveur.",
-  'settings.wikidata.title': 'Enrichissement Wikidata',
   'settings.wikidata.enabled':
     "Afficher la biographie et les liens externes de l'artiste sur les cartes de recommandation",
   'artist.noDescription': 'Aucune description disponible.',
@@ -1293,8 +1315,6 @@ export const fr = {
     "Utilisé quand le serveur de métadonnées de Lidarr est indisponible. Par défaut api.musicinfo.pro. Remplace par l'URL de ta propre instance si tu l'héberges toi-même.",
   'settings.recommendationsSaved': 'Paramètres de recommandations enregistrés',
   'settings.recommendationsFailed': "Échec de l'enregistrement des paramètres",
-  'settings.recommendationsPartiallySaved':
-    'Les préférences personnelles ont été enregistrées, mais les paramètres globaux des métadonnées n’ont pas pu être enregistrés.',
   'settings.scheduleTip':
     'Choisis un préréglage ou saisis une expression cron pour lancer la découverte automatiquement. Quotidien ou hebdomadaire convient à la plupart des bibliothèques.',
   'settings.librarySyncInterval': 'Sync bibliothèque',

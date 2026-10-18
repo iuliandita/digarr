@@ -86,6 +86,15 @@ const specs: PageSpec[] = [
   { path: '/library?tab=reconciliation', file: 'library-reconciliation.png', theme: 'dark' },
   { path: '/analytics', file: 'analytics.png', theme: 'dark' },
   { path: '/settings', file: 'settings.png', theme: 'dark' },
+  {
+    path: '/settings',
+    file: 'settings-connections-picker.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.getByRole('button', { name: 'Add connection', exact: true }).click()
+      await page.getByRole('searchbox', { name: 'Search connections' }).waitFor()
+    },
+  },
   { path: '/settings?tab=account', file: 'settings-account.png', theme: 'dark' },
   {
     path: '/settings?tab=blocked',

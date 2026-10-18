@@ -54,7 +54,9 @@ export function SearchPage() {
   })
 
   const sourceState = new Map(sourceData?.sources.map((source) => [source.id, source]))
-  const renderedSources = SOURCE_ORDER.map((id) => {
+  const renderedSources = SOURCE_ORDER.filter((id) =>
+    sourceData ? sourceState.has(id) : id !== 'tidal' && id !== 'bandcamp',
+  ).map((id) => {
     const known = sourceState.get(id)
     const style = SOURCE_STYLES[id]
     return {

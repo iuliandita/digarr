@@ -1101,8 +1101,30 @@ export const ro = {
   'settings.groups.personal': 'Personal',
   'settings.groups.library': 'Bibliotecă și servicii',
   'settings.groups.admin': 'Administrare',
-  'settings.globalSettings': 'Setări globale',
+  'settings.globalSettings': 'Server (administrator)',
   'settings.adminOnly': 'Doar administratorii pot modifica setările globale.',
+  'settings.addConnection': 'Adaugă conexiune',
+  'settings.searchConnections': 'Caută conexiuni',
+  'settings.connectionResults': '{0} conexiuni găsite',
+  'settings.noConnectionsFound': 'Nicio conexiune potrivită.',
+  'settings.showExperimentalIntegrations': 'Arată integrările experimentale',
+  'settings.experimentalIntegrationsHelp':
+    'Arată TIDAL și Bandcamp în selectoarele de conexiuni, căutare și descoperire. Conexiunile existente funcționează și când sunt ascunse.',
+  'settings.picker.listening': 'Istoric de ascultare',
+  'settings.picker.streaming': 'Conturi de streaming',
+  'settings.picker.servers': 'Servere media',
+  'settings.picker.collections': 'Colecții',
+  'settings.picker.listenbrainz': 'Artiști de top, ascultări recente și descoperire prin radio.',
+  'settings.picker.lastfm': 'Artiști de top și ascultări recente. Activează Release Radar.',
+  'settings.picker.spotify': 'Artiști urmăriți, albume salvate, import și export de playlisturi.',
+  'settings.picker.deezer': 'Flow, favorite, artiști urmăriți și playlisturi.',
+  'settings.picker.tidal': 'Artiști favoriți ca bază pentru gusturile tale.',
+  'settings.picker.jellyfin': 'Sincronizarea bibliotecii și export de playlisturi.',
+  'settings.picker.media': 'Istoric de redare, sincronizarea bibliotecii și export de playlisturi.',
+  'settings.picker.subsonic': 'Favorite, sincronizarea bibliotecii și export de playlisturi.',
+  'settings.picker.discogs': 'Colecția și lista ta de dorințe ca bază pentru gusturi.',
+  'settings.artistImagesPartiallySaved':
+    'Preferințele de imagini au fost salvate, dar setările de imagini ale serverului nu s-au salvat.',
   'settings.yourConnections': 'Conexiunile tale',
   'settings.yourConnectionsDescription': 'Surse de ascultare personale legate de contul tău.',
   'settings.testConnection': 'Testează conexiunea',
@@ -1251,7 +1273,7 @@ export const ro = {
   'settings.libraryDiscoveryHelp':
     'Cât din descoperire provine din biblioteca Lidarr față de istoricul de ascultare. Valori mai mari găsesc artiști similari cu ce deții deja. Valori mai mici se bazează mai mult pe datele ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Raport de alimentare din bibliotecă',
-  'settings.imageSources': 'Surse de imagini',
+  'settings.imageSources': 'Imagini ale artiștilor',
   'settings.imageSourcesHelp':
     'Imaginile artiștilor provin în primul rând de la TheAudioDB; Lidarr/SkyHook, fanart.tv și musicinfo.pro servesc ca rezerve.',
   'settings.audiodb.apiKey': 'Cheie API premium TheAudioDB (opțional)',
@@ -1259,7 +1281,6 @@ export const ro = {
   'settings.audiodb.proxyImages': 'Redirecționează imaginile prin Digarr',
   'settings.audiodb.proxyHint':
     'Ascunde IP-ul tău de la CDN-ul TheAudioDB prin rutarea cererilor de imagini prin acest server.',
-  'settings.wikidata.title': 'Îmbogățire din Wikidata',
   'settings.wikidata.enabled':
     'Afișează biografia și linkurile externe ale artistului pe cardurile de recomandare',
   'artist.noDescription': 'Nicio descriere disponibilă.',
@@ -1290,8 +1311,6 @@ export const ro = {
     'Folosit când serverul de metadate Lidarr nu este disponibil. Implicit api.musicinfo.pro. Setează URL-ul propriei instanțe dacă o găzduiești singur.',
   'settings.recommendationsSaved': 'Setările de recomandări salvate',
   'settings.recommendationsFailed': 'Imposibil de salvat setările',
-  'settings.recommendationsPartiallySaved':
-    'Preferințele personale au fost salvate, dar setările globale pentru metadate nu au putut fi salvate.',
   'settings.scheduleTip':
     'Alege o presetare sau introdu o expresie cron pentru a rula descoperirea automat. Zilnic sau săptămânal se potrivește majorității bibliotecilor.',
   'settings.librarySyncInterval': 'Sincronizare bibliotecă',

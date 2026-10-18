@@ -9,12 +9,13 @@ export type SearchSourceDescriptor = {
 type SearchSourceCatalogOptions = {
   hasSpotifyOAuth: boolean
   hasTidalSearch: boolean
+  showExperimentalIntegrations?: boolean
 }
 
 export function buildSearchSourceCatalog(
   options: SearchSourceCatalogOptions,
 ): SearchSourceDescriptor[] {
-  return [
+  const sources: SearchSourceDescriptor[] = [
     {
       id: 'spotify',
       label: 'Spotify',
@@ -33,4 +34,7 @@ export function buildSearchSourceCatalog(
     },
     { id: 'bandcamp', label: 'Bandcamp', available: true, stability: 'experimental' },
   ]
+  return sources.filter(
+    (source) => options.showExperimentalIntegrations || source.stability !== 'experimental',
+  )
 }

@@ -1103,8 +1103,33 @@ export const es = {
   'settings.groups.personal': 'Personal',
   'settings.groups.library': 'Biblioteca y servicios',
   'settings.groups.admin': 'Administración',
-  'settings.globalSettings': 'Ajustes globales',
+  'settings.globalSettings': 'Servidor (admin)',
   'settings.adminOnly': 'Solo los administradores pueden modificar los ajustes globales.',
+  'settings.addConnection': 'Añadir conexión',
+  'settings.searchConnections': 'Buscar conexiones',
+  'settings.connectionResults': '{0} conexiones encontradas',
+  'settings.noConnectionsFound': 'No hay conexiones que coincidan.',
+  'settings.showExperimentalIntegrations': 'Mostrar integraciones experimentales',
+  'settings.experimentalIntegrationsHelp':
+    'Muestra TIDAL y Bandcamp en los selectores de conexiones, búsqueda y descubrimiento. Las conexiones existentes siguen funcionando aunque estén ocultas.',
+  'settings.picker.listening': 'Historial de escucha',
+  'settings.picker.streaming': 'Cuentas de streaming',
+  'settings.picker.servers': 'Servidores multimedia',
+  'settings.picker.collections': 'Colecciones',
+  'settings.picker.listenbrainz':
+    'Artistas principales, escuchas recientes y descubrimiento por radio.',
+  'settings.picker.lastfm': 'Artistas principales y escuchas recientes. Activa Release Radar.',
+  'settings.picker.spotify':
+    'Artistas seguidos, álbumes guardados, importación y exportación de playlists.',
+  'settings.picker.deezer': 'Flow, favoritos, artistas seguidos y playlists.',
+  'settings.picker.tidal': 'Artistas favoritos como base para tus gustos.',
+  'settings.picker.jellyfin': 'Sincronización de biblioteca y exportación de playlists.',
+  'settings.picker.media':
+    'Historial de escucha, sincronización de biblioteca y exportación de playlists.',
+  'settings.picker.subsonic': 'Favoritos, sincronización de biblioteca y exportación de playlists.',
+  'settings.picker.discogs': 'Tu colección y lista de deseos como base para tus gustos.',
+  'settings.artistImagesPartiallySaved':
+    'Se guardaron las preferencias de imágenes, pero fallaron los ajustes de imágenes del servidor.',
   'settings.yourConnections': 'Tus conexiones',
   'settings.yourConnectionsDescription': 'Fuentes de escucha personales vinculadas a tu cuenta.',
   'settings.testConnection': 'Probar conexión',
@@ -1253,7 +1278,7 @@ export const es = {
   'settings.libraryDiscoveryHelp':
     'Cuánto del descubrimiento se basa en tu biblioteca de Lidarr frente al historial de escucha. Valores más altos encuentran artistas similares a lo que ya tienes. Valores más bajos dependen más de los datos de ListenBrainz/Last.fm.',
   'settings.librarySeedRatio': 'Proporción de semilla de biblioteca',
-  'settings.imageSources': 'Fuentes de imágenes',
+  'settings.imageSources': 'Imágenes de artistas',
   'settings.imageSourcesHelp':
     'Las imágenes de artistas se obtienen primero de TheAudioDB; Lidarr/SkyHook, fanart.tv y musicinfo.pro actúan como respaldos.',
   'settings.audiodb.apiKey': 'Clave API premium de TheAudioDB (opcional)',
@@ -1261,7 +1286,6 @@ export const es = {
   'settings.audiodb.proxyImages': 'Servir imágenes a través de Digarr',
   'settings.audiodb.proxyHint':
     'Oculta tu IP del CDN de TheAudioDB enrutando las peticiones de imágenes por este servidor.',
-  'settings.wikidata.title': 'Enriquecimiento desde Wikidata',
   'settings.wikidata.enabled':
     'Mostrar biografía y enlaces externos del artista en las tarjetas de recomendación',
   'artist.noDescription': 'No hay descripción disponible.',
@@ -1292,8 +1316,6 @@ export const es = {
     'Se usa cuando el servidor de metadatos de Lidarr no está disponible. Por defecto es api.musicinfo.pro. Indica la URL de tu propia instancia de hearring-aid si la alojas tú mismo.',
   'settings.recommendationsSaved': 'Ajustes de recomendaciones guardados',
   'settings.recommendationsFailed': 'Error al guardar los ajustes',
-  'settings.recommendationsPartiallySaved':
-    'Se guardaron las preferencias personales, pero no se pudieron guardar los ajustes globales de metadatos.',
   'settings.scheduleTip':
     'Elige un ajuste predefinido o escribe una expresión cron para ejecutar el descubrimiento automáticamente. Diario o semanal sirve para la mayoría de las bibliotecas.',
   'settings.librarySyncInterval': 'Sincronización de biblioteca',

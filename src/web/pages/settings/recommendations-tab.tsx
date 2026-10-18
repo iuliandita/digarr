@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
 import { DEFAULT_PREFERENCES, type Preferences } from '@/db/schema'
-import { setAudiodbProxyFlag } from '../../components/artist-thumb'
 import { BlockedAlbumsTab } from '../../components/blocked-albums-tab'
 import { BlockedArtistsTab } from '../../components/blocked-artists-tab'
 import { Field } from '../../components/field'
@@ -12,17 +11,14 @@ import { Button } from '../../components/ui/button'
 import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import {
-  getSettings,
   getUserPreferences,
   listAlbumBlocks,
   listArtistBlocks,
-  updateSettings,
   updateUserPreferences,
 } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
 import { prefersReducedMotion } from '../../lib/utils'
 import { SliderField } from './shared'
-import type { Settings } from './types'
 
 const BLOCKED_COUNT_KEY = ['blocked-count']
 
@@ -76,48 +72,26 @@ function BlockedSection() {
   )
 }
 
-export function RecommendationsTab({ isAdmin }: { isAdmin: boolean }) {
+export function RecommendationsTab() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
   const { data: prefs, isLoading: prefsLoading } = useQuery({
     queryKey: ['user-preferences'],
     queryFn: getUserPreferences,
   })
-  const { data: settings } = useQuery({
-    queryKey: ['settings'],
-    queryFn: getSettings,
-  })
-
-  useEffect(() => {
-    if (!settings) return
-    const proxy = (settings as { audiodbProxyImages?: boolean }).audiodbProxyImages
-    if (typeof proxy === 'boolean') setAudiodbProxyFlag(proxy)
-  }, [settings])
-
   if (prefsLoading || !prefs) {
     return <div className="text-sm text-muted">{t('settings.loadingPreferences')}</div>
   }
 
-  return (
-    <RecommendationsTabInner
-      prefs={prefs}
-      settings={(settings ?? {}) as Settings}
-      queryClient={queryClient}
-      isAdmin={isAdmin}
-    />
-  )
+  return <RecommendationsTabInner prefs={prefs} queryClient={queryClient} />
 }
 
 function RecommendationsTabInner({
   prefs,
-  settings,
   queryClient,
-  isAdmin,
 }: {
   prefs: Record<string, unknown>
-  settings: Settings
   queryClient: ReturnType<typeof useQueryClient>
-  isAdmin: boolean
 }) {
   const { t } = useI18n()
   const { hash } = useLocation()
@@ -159,19 +133,6 @@ function RecommendationsTabInner({
   const [netNewAlbumDiscovery, setNetNewAlbumDiscovery] = useState(
     (prefs.netNewAlbumDiscovery as boolean) ?? false,
   )
-  const [fanartApiKey, setFanartApiKey] = useState(String(prefs.fanartApiKey ?? ''))
-  const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
-    String(prefs.metadataFallbackUrl ?? ''),
-  )
-  const [audiodbApiKey, setAudiodbApiKey] = useState(
-    settings.audiodbApiKey === '***' ? '' : (settings.audiodbApiKey ?? ''),
-  )
-  const [audiodbProxyImages, setAudiodbProxyImages] = useState<boolean>(
-    Boolean(settings.audiodbProxyImages),
-  )
-  const [wikidataEnabled, setWikidataEnabled] = useState<boolean>(
-    settings.wikidataEnabled !== false,
-  )
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -191,7 +152,6 @@ function RecommendationsTabInner({
 
   async function handleSave() {
     setSaving(true)
-    let personalPreferencesSaved = false
     try {
       await updateUserPreferences({
         scoreThreshold,
@@ -226,30 +186,12 @@ function RecommendationsTabInner({
           | 'first'
           | 'none',
         netNewAlbumDiscovery,
-        fanartApiKey: fanartApiKey === '***' ? undefined : fanartApiKey || undefined,
-        metadataFallbackUrl: metadataFallbackUrl || undefined,
       })
-      personalPreferencesSaved = true
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       queryClient.invalidateQueries({ queryKey: ['recommendations'] })
-      if (isAdmin) {
-        await updateSettings({
-          audiodbApiKey: audiodbApiKey === '***' ? undefined : audiodbApiKey || null,
-          audiodbProxyImages,
-          wikidataEnabled,
-        })
-        setAudiodbProxyFlag(audiodbProxyImages)
-        queryClient.invalidateQueries({ queryKey: ['settings'] })
-      }
       toast.success(t('settings.recommendationsSaved'))
     } catch {
-      toast.error(
-        t(
-          personalPreferencesSaved
-            ? 'settings.recommendationsPartiallySaved'
-            : 'settings.recommendationsFailed',
-        ),
-      )
+      toast.error(t('settings.recommendationsFailed'))
     } finally {
       setSaving(false)
     }
@@ -472,71 +414,6 @@ function RecommendationsTabInner({
             </label>
             <p className="text-xs text-muted">{t('settings.netNewAlbumDiscoveryHelp')}</p>
           </section>
-
-          <section className="space-y-4">
-            <h3 className="text-xs font-semibold text-muted">{t('settings.imageSources')}</h3>
-            <p className="text-xs text-muted">{t('settings.imageSourcesHelp')}</p>
-            {isAdmin && (
-              <>
-                <Field label={t('settings.audiodb.apiKey')} id="audiodb-api-key">
-                  <Input
-                    id="audiodb-api-key"
-                    type="password"
-                    value={audiodbApiKey}
-                    onChange={(e) => setAudiodbApiKey(e.target.value)}
-                    placeholder={t('settings.audiodb.apiKeyPlaceholder')}
-                  />
-                </Field>
-                <label className="flex items-start gap-2">
-                  <input
-                    type="checkbox"
-                    checked={audiodbProxyImages}
-                    onChange={(e) => setAudiodbProxyImages(e.target.checked)}
-                    className="mt-1"
-                  />
-                  <span className="text-sm">
-                    {t('settings.audiodb.proxyImages')}
-                    <span className="block text-micro text-muted">
-                      {t('settings.audiodb.proxyHint')}
-                    </span>
-                  </span>
-                </label>
-              </>
-            )}
-            <Field label={t('settings.fieldFanartApiKey')} id="fanart-api-key">
-              <Input
-                id="fanart-api-key"
-                type="password"
-                value={fanartApiKey}
-                onChange={(e) => setFanartApiKey(e.target.value)}
-                placeholder={t('settings.fieldFanartApiKey')}
-              />
-            </Field>
-            <Field label={t('settings.fieldMetadataFallbackUrl')} id="metadata-fallback-url">
-              <Input
-                id="metadata-fallback-url"
-                value={metadataFallbackUrl}
-                onChange={(e) => setMetadataFallbackUrl(e.target.value)}
-                placeholder="https://api.musicinfo.pro"
-              />
-            </Field>
-            <p className="text-micro text-muted">{t('settings.metadataFallbackHelp')}</p>
-          </section>
-
-          {isAdmin && (
-            <section className="space-y-4">
-              <h3 className="text-xs font-semibold text-muted">{t('settings.wikidata.title')}</h3>
-              <label className="flex items-start gap-2">
-                <input
-                  type="checkbox"
-                  checked={wikidataEnabled}
-                  onChange={(e) => setWikidataEnabled(e.target.checked)}
-                  className="mt-1"
-                />
-                <span className="text-sm">{t('settings.wikidata.enabled')}</span>
-              </label>
-            </section>
-          )}
         </div>
       </Disclosure>
 

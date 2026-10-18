@@ -1076,8 +1076,30 @@ export const ko = {
   'settings.groups.personal': '개인',
   'settings.groups.library': '라이브러리 및 서비스',
   'settings.groups.admin': '관리',
-  'settings.globalSettings': '전역 설정',
+  'settings.globalSettings': '서버 (관리자)',
   'settings.adminOnly': '전역 설정은 관리자만 수정할 수 있습니다.',
+  'settings.addConnection': '연결 추가',
+  'settings.searchConnections': '연결 검색',
+  'settings.connectionResults': '연결 {0}개를 찾았습니다',
+  'settings.noConnectionsFound': '일치하는 연결이 없습니다.',
+  'settings.showExperimentalIntegrations': '실험적 연동 표시',
+  'settings.experimentalIntegrationsHelp':
+    '연결, 검색, 음악 발견 선택기에 TIDAL과 Bandcamp를 표시합니다. 숨겨도 기존 연결은 계속 작동합니다.',
+  'settings.picker.listening': '청취 기록',
+  'settings.picker.streaming': '스트리밍 계정',
+  'settings.picker.servers': '미디어 서버',
+  'settings.picker.collections': '컬렉션',
+  'settings.picker.listenbrainz': '인기 아티스트, 최근 청취 및 라디오를 통한 음악 발견.',
+  'settings.picker.lastfm': '인기 아티스트 및 최근 재생. Release Radar를 활성화합니다.',
+  'settings.picker.spotify': '팔로우한 아티스트, 저장한 앨범, 플레이리스트 가져오기 및 내보내기.',
+  'settings.picker.deezer': 'Flow, 즐겨찾기, 팔로우한 아티스트, 플레이리스트.',
+  'settings.picker.tidal': '좋아하는 아티스트를 취향의 기준으로 사용합니다.',
+  'settings.picker.jellyfin': '라이브러리 동기화 및 플레이리스트 내보내기.',
+  'settings.picker.media': '재생 기록, 라이브러리 동기화, 플레이리스트 내보내기.',
+  'settings.picker.subsonic': '즐겨찾기, 라이브러리 동기화, 플레이리스트 내보내기.',
+  'settings.picker.discogs': '컬렉션과 위시리스트를 취향의 기준으로 사용합니다.',
+  'settings.artistImagesPartiallySaved':
+    '이미지 환경설정은 저장했지만 서버 이미지 설정을 저장하지 못했습니다.',
   'settings.yourConnections': '내 연결',
   'settings.yourConnectionsDescription': '계정에 연결된 개인 청취 소스입니다.',
   'settings.testConnection': '연결 테스트',
@@ -1218,7 +1240,7 @@ export const ko = {
   'settings.libraryDiscoveryHelp':
     '탐색에서 청취 기록 대비 기존 Lidarr 라이브러리를 시드로 사용하는 비율. 높을수록 이미 보유한 음악과 유사한 아티스트를 발견합니다. 낮을수록 ListenBrainz/Last.fm 데이터에 더 의존합니다.',
   'settings.librarySeedRatio': '라이브러리 시드 비율',
-  'settings.imageSources': '이미지 소스',
+  'settings.imageSources': '아티스트 이미지',
   'settings.imageSourcesHelp':
     '아티스트 이미지는 우선 TheAudioDB에서 가져오며, Lidarr/SkyHook, fanart.tv, musicinfo.pro는 대체 소스로 사용됩니다.',
   'settings.audiodb.apiKey': 'TheAudioDB 프리미엄 API 키 (선택 사항)',
@@ -1226,7 +1248,6 @@ export const ko = {
   'settings.audiodb.proxyImages': '이미지를 Digarr로 프록시',
   'settings.audiodb.proxyHint':
     '이 서버를 통해 이미지 요청을 라우팅하여 TheAudioDB CDN에서 IP 주소를 숨깁니다.',
-  'settings.wikidata.title': 'Wikidata 보강',
   'settings.wikidata.enabled': '추천 카드에 아티스트 소개와 외부 링크 표시',
   'artist.noDescription': '이용 가능한 설명이 없습니다.',
   'artist.externalLinks.wikipedia': 'Wikipedia',
@@ -1255,8 +1276,6 @@ export const ko = {
     'Lidarr 메타데이터 서버가 다운될 때 사용됩니다. 기본값은 api.musicinfo.pro. 셀프 호스팅 시 자체 인스턴스 URL을 설정하세요.',
   'settings.recommendationsSaved': '추천 설정이 저장되었습니다',
   'settings.recommendationsFailed': '설정 저장에 실패했습니다',
-  'settings.recommendationsPartiallySaved':
-    '개인 설정은 저장되었지만 전역 메타데이터 설정을 저장하지 못했습니다.',
   'settings.scheduleTip':
     '프리셋을 고르거나 cron 표현식을 입력해 디스커버리를 자동으로 실행하세요. 대부분의 라이브러리는 매일 또는 매주면 충분합니다.',
   'settings.librarySyncInterval': '라이브러리 동기화',
