@@ -261,6 +261,7 @@ export interface DiscoveryDeps {
 // ---- Playlist / search (already externalised) ----
 
 export interface OptionalRouteDeps {
+  scrobblerWriteBack?: import('@/core/scrobbler-write-back').ScrobblerWriteBack
   playlistDeps?: PlaylistDeps
   search?: SearchDeps
 }

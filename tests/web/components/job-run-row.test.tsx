@@ -80,3 +80,37 @@ describe('JobRunRow readability', () => {
     expect(screen.queryByText('!')).toBeNull()
   })
 })
+
+describe('JobRunRow write-back labels', () => {
+  it.each([
+    ['listenbrainz', 'love', 'ListenBrainz'],
+    ['listenbrainz', 'playlist', 'ListenBrainz'],
+    ['lastfm', 'love', 'Last.fm'],
+  ])('names %s for a %s operation', (writeBackService, operation, service) => {
+    Object.defineProperty(globalThis, 'localStorage', {
+      configurable: true,
+      value: { getItem: vi.fn(() => 'en'), setItem: vi.fn() },
+    })
+    const job: JobRun = {
+      id: 3,
+      type: 'target',
+      status: 'completed',
+      userId: 1,
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      durationMs: 0,
+      error: null,
+      metadata: { writeBackService, operation },
+      sourceResults: null,
+      subscriptionId: null,
+      batchId: null,
+    }
+    render(
+      <I18nProvider>
+        <JobRunRow job={job} />
+      </I18nProvider>,
+    )
+    expect(screen.getByText(`${service} write-back`)).toBeInTheDocument()
+    expect(screen.queryByText('Target operation')).toBeNull()
+  })
+})

@@ -47,6 +47,7 @@ describe('resolvePreviewSource', () => {
     )
     expect(result).not.toBeNull()
     expect(result?.type).toBe('spotify-embed')
+    expect(result?.track).toBeUndefined()
     expect(result?.embedUrl).toContain('autoPlay=true')
   })
 
@@ -68,7 +69,49 @@ describe('resolvePreviewSource', () => {
     )
     expect(result).not.toBeNull()
     expect(result?.type).toBe('youtube-embed')
+    expect(result?.track).toBeUndefined()
     expect(result?.embedUrl).toContain('autoplay=1')
+  })
+
+  it.each([
+    [{ name: '  RADIOHEAD  ' }, 'Creep', { artistName: '  RADIOHEAD  ', trackName: 'Creep' }],
+    [{ name: 'Radiohead Tribute' }, 'Creep', undefined],
+    [{ name: 'Radiohead' }, '   ', undefined],
+    [{ name: 'Radiohead' }, undefined, undefined],
+    [undefined, 'Creep', undefined],
+    [{ name: 123 }, 'Creep', undefined],
+    [{ name: 'Radiohead' }, 123, undefined],
+  ])(
+    'plays the first Deezer result and attaches only exact track metadata: %j / %j',
+    async (artist, title, track) => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({
+          ok: true,
+          json: async () => ({ data: [{ preview: 'https://cdn.example/p.mp3', artist, title }] }),
+        }),
+      )
+      expect(await resolvePreviewSource({ deezer: 'url' }, 'Radiohead')).toEqual({
+        type: 'deezer-audio',
+        url: 'https://cdn.example/p.mp3',
+        embedUrl: 'https://cdn.example/p.mp3',
+        ...(track ? { track } : {}),
+      })
+      expect(fetch).toHaveBeenCalledExactlyOnceWith(
+        'https://api.deezer.com/search?q=artist:"Radiohead"&limit=1',
+      )
+    },
+  )
+
+  it('preserves the original Deezer artist query encoding', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [] }) }),
+    )
+    expect(await resolvePreviewSource({ deezer: 'url' }, 'Boards of Canada')).toBeNull()
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(
+      'https://api.deezer.com/search?q=artist:"Boards%20of%20Canada"&limit=1',
+    )
   })
 
   it('returns null for invalid Spotify URL with no fallbacks', async () => {
@@ -111,9 +154,20 @@ class FakeAudio {
 function stubDeezerFetch() {
   vi.stubGlobal(
     'fetch',
-    vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({ data: [{ preview: 'https://cdn.example/p.mp3' }] }),
+    vi.fn(async (url: string) => {
+      const artistName = new URL(url).searchParams.get('q')?.slice(8, -1) ?? ''
+      return {
+        ok: true,
+        json: async () => ({
+          data: [
+            {
+              preview: 'https://cdn.example/p.mp3',
+              title: 'Creep',
+              artist: { id: 1, name: artistName },
+            },
+          ],
+        }),
+      }
     }),
   )
 }
@@ -220,6 +274,10 @@ describe('usePreview play outcomes', () => {
       outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
     })
     expect(outcome).toBe('started')
+    expect(result.current.state.source?.track).toEqual({
+      artistName: 'Radiohead',
+      trackName: 'Creep',
+    })
 
     await act(async () => {
       outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })

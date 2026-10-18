@@ -59,6 +59,10 @@ import { createListenBrainzSource } from './core/plugins/listenbrainz'
 import { SourceRegistry } from './core/plugins/registry'
 import { isConnectedToken, resolveProviderToken } from './core/provider-auth'
 import { createDefaultRegistry } from './core/providers/registry'
+import {
+  createScrobblerWriteBack,
+  type PlaylistGenerationTrigger,
+} from './core/scrobbler-write-back'
 import { buildSearchSourceCatalog } from './core/search/catalog'
 import { enrichSearchResultsWithImages } from './core/search/enrich'
 import type { SearchSource } from './core/search/multi-source'
@@ -393,6 +397,14 @@ const storeDb: StoreDb = {
 }
 
 jobRecorder = createJobRecorder(db)
+const scrobblerWriteBack = createScrobblerWriteBack({
+  getPreferences: async (userId) => (await getUserById(db, userId))?.preferences,
+  getConnections: (userId) => getUserConnections(db, userId),
+  getLastFmSession: (userId) => getOAuthToken(db, userId, 'lastfm'),
+  recorder: jobRecorder,
+  lastfmSharedSecret: () => envConfig.lastfmSharedSecret,
+  encryptionEnabled: isEncryptionEnabled,
+})
 // Mark stuck jobs at startup
 jobRecorder.markStuck().catch((err) => console.error('[startup] Stuck detection failed:', err))
 // Reset any library_sync_state rows left in 'running' from a previous crash/restart.
@@ -1002,11 +1014,19 @@ async function runSubscriptionById(subscriptionId: number): Promise<void> {
   )
 }
 
-async function executePlaylistGeneration(playlistId: number): Promise<void> {
-  return trackInFlight(withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId)))
+async function executePlaylistGeneration(
+  playlistId: number,
+  trigger: PlaylistGenerationTrigger,
+): Promise<void> {
+  return trackInFlight(
+    withPlaylistLock(playlistId, () => generatePlaylistContents(playlistId, trigger)),
+  )
 }
 
-async function generatePlaylistContents(playlistId: number): Promise<void> {
+async function generatePlaylistContents(
+  playlistId: number,
+  trigger: PlaylistGenerationTrigger,
+): Promise<void> {
   let jobId: number | null = null
 
   const result = await getPlaylistWithTracks(db, playlistId)
@@ -1068,6 +1088,15 @@ async function generatePlaylistContents(playlistId: number): Promise<void> {
       trackCount: generation.tracks.length,
     })
 
+    void trackInFlight(
+      scrobblerWriteBack.generatedPlaylist(
+        playlist.userId,
+        playlist.name,
+        generation.tracks,
+        trigger,
+      ),
+    )
+
     if (playlist.targetIds.length > 0 && playlist.userId != null) {
       const userId = playlist.userId
       const settings = await getSettings(db)
@@ -1128,7 +1157,7 @@ async function restartPlaylistScheduler(): Promise<void> {
   schedulePlaylists(playlistScheduler, {
     enabled,
     playlists: enabled ? await getScheduledPlaylists(db) : [],
-    generate: executePlaylistGeneration,
+    generate: (playlistId) => executePlaylistGeneration(playlistId, 'scheduled'),
   })
 }
 
@@ -1330,10 +1359,16 @@ const app = createApp({
     getJobsForSubscription: (subId, limit) => jobQueries.getJobsForSubscription(db, subId, limit),
   },
   getEnabledTargetsForUser: (userId) => getEnabledTargetsForResolvedUser(userId),
+  scrobblerWriteBack: {
+    approvedTrack: (userId, track) =>
+      trackInFlight(scrobblerWriteBack.approvedTrack(userId, track)),
+    generatedPlaylist: (userId, title, tracks, trigger) =>
+      trackInFlight(scrobblerWriteBack.generatedPlaylist(userId, title, tracks, trigger)),
+  },
   playlistDeps: {
     db,
     playlistScheduler,
-    runPlaylistGeneration: (playlistId) => executePlaylistGeneration(playlistId),
+    runPlaylistGeneration: (playlistId) => executePlaylistGeneration(playlistId, 'manual'),
     restartPlaylistScheduler,
   },
   search: {
@@ -1644,7 +1679,9 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     if (inFlightJobs.size > 0) {
       console.log(`Waiting for ${inFlightJobs.size} subscription/playlist run(s) to finish...`)
       await Promise.race([
-        Promise.allSettled([...inFlightJobs]),
+        (async () => {
+          while (inFlightJobs.size > 0) await Promise.allSettled([...inFlightJobs])
+        })(),
         new Promise((resolve) => setTimeout(resolve, 25_000)),
       ])
     }

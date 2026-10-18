@@ -35,7 +35,17 @@ const wrapper = ({ children }: { children: ReactNode }) =>
 
 const deezerResponse = {
   ok: true,
-  json: async () => ({ data: [{ preview: 'https://cdn.example/p.mp3' }] }),
+  json: async () => ({
+    data: [
+      {
+        id: 1,
+        name: 'Radiohead',
+        preview: 'https://cdn.example/p.mp3',
+        title: 'Creep',
+        artist: { id: 1, name: 'Radiohead' },
+      },
+    ],
+  }),
 }
 
 describe('usePreview unmount', () => {
