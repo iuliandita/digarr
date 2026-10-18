@@ -544,13 +544,11 @@ export const ja = {
     '保留中のアーティストからこのプレイリストを生成し、承認する前に試聴できます。',
   'playlist.detailActionsHint':
     '生成後は曲を M3U または XSPF としてダウンロードするか、プレイリストの送信先を追加して今後の生成結果を Navidrome、Jellyfin、Plex に自動送信できます。',
-  'playlist.disable': 'プレイリストを無効化',
   'playlist.download': 'ダウンロード',
   'playlist.downloadFailed': 'プレイリストのダウンロードに失敗しました',
   'playlist.downloaded': 'ダウンロードされた',
   'playlist.downloading': 'ダウンロード中...',
   'playlist.edit': 'プレイリストを編集',
-  'playlist.enable': 'プレイリストを有効化',
   'playlist.generateFailed': '生成の開始に失敗しました',
   'playlist.generateNow': '今すぐ生成',
   'playlist.generatingNamed': 'プレイリスト生成を開始しました',

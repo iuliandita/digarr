@@ -547,13 +547,11 @@ export const ro = {
     'Generează această listă de redare din artiștii în așteptare pentru a-i asculta înainte de aprobare.',
   'playlist.detailActionsHint':
     'După generare, descarcă piesele ca M3U sau XSPF ori adaugă o destinație pentru lista de redare ca să trimiți automat generările viitoare către Navidrome, Jellyfin sau Plex.',
-  'playlist.disable': 'Dezactivează playlistul',
   'playlist.download': 'Descarcă',
   'playlist.downloadFailed': 'Nu s-a putut descărca lista de redare',
   'playlist.downloaded': 'descărcat',
   'playlist.downloading': 'Se descarcă...',
   'playlist.edit': 'Editează playlistul',
-  'playlist.enable': 'Activează playlistul',
   'playlist.generateFailed': 'Nu s-a putut începe generarea',
   'playlist.generateNow': 'Generează acum',
   'playlist.generatingNamed': 'Generarea playlistului a început',

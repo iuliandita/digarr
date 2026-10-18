@@ -549,13 +549,11 @@ export const es = {
     'Genera esta lista de reproducción con artistas pendientes para escucharlos antes de aprobarlos.',
   'playlist.detailActionsHint':
     'Tras la generación, descarga las pistas como M3U o XSPF, o añade un destino de lista de reproducción para enviar las futuras ejecuciones a Navidrome, Jellyfin o Plex automáticamente.',
-  'playlist.disable': 'Desactivar lista',
   'playlist.download': 'Descargar',
   'playlist.downloadFailed': 'No se pudo descargar la lista de reproducción',
   'playlist.downloaded': 'descargado',
   'playlist.downloading': 'Descargando...',
   'playlist.edit': 'Editar lista',
-  'playlist.enable': 'Activar lista',
   'playlist.generateFailed': 'No se pudo iniciar la generación',
   'playlist.generateNow': 'Generar ahora',
   'playlist.generatingNamed': 'Generación de la lista iniciada',

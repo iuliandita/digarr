@@ -544,13 +544,11 @@ export const uk = {
     'Створи цей список відтворення з виконавців в очікуванні, щоб послухати їх перед схваленням.',
   'playlist.detailActionsHint':
     'Після створення завантаж композиції у форматі M3U або XSPF чи додай ціль списку відтворення, щоб автоматично надсилати майбутні добірки до Navidrome, Jellyfin або Plex.',
-  'playlist.disable': 'Вимкнути плейлист',
   'playlist.download': 'Завантажити',
   'playlist.downloadFailed': 'Не вдалося завантажити список відтворення',
   'playlist.downloaded': 'завантажено',
   'playlist.downloading': 'Завантаження...',
   'playlist.edit': 'Редагувати плейлист',
-  'playlist.enable': 'Увімкнути плейлист',
   'playlist.generateFailed': 'Не вдалося почати генерацію',
   'playlist.generateNow': 'Згенерувати зараз',
   'playlist.generatingNamed': 'Генерацію плейлиста розпочато',

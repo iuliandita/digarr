@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, lt, or } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull, lt, or } from 'drizzle-orm'
 import type { Database } from '@/db'
 import type { PlaylistConfig, PlaylistStrategy } from '@/db/schema'
 import { playlists, playlistTracks } from '@/db/schema'
@@ -75,8 +75,8 @@ export async function getPlaylistsByUser(
   return opts.limit ? base.limit(opts.limit) : base
 }
 
-export async function getEnabledPlaylists(db: Database): Promise<PlaylistRow[]> {
-  return db.select().from(playlists).where(eq(playlists.enabled, true))
+export async function getScheduledPlaylists(db: Database): Promise<PlaylistRow[]> {
+  return db.select().from(playlists).where(isNotNull(playlists.schedule))
 }
 
 export async function getPlaylistWithTracks(

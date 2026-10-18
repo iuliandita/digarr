@@ -502,13 +502,11 @@ export const zhCN = {
   'playlist.detailAuditionHint': '根据待处理的艺人生成此播放列表，以便在批准前试听。',
   'playlist.detailActionsHint':
     '生成后，可以将曲目下载为 M3U 或 XSPF，或添加播放列表目标，将今后的生成结果自动发送到 Navidrome、Jellyfin 或 Plex。',
-  'playlist.disable': '禁用播放列表',
   'playlist.download': '下载',
   'playlist.downloadFailed': '下载播放列表失败',
   'playlist.downloaded': '下载的',
   'playlist.downloading': '正在下载...',
   'playlist.edit': '编辑播放列表',
-  'playlist.enable': '启用播放列表',
   'playlist.generateFailed': '启动生成失败',
   'playlist.generateNow': '立即生成',
   'playlist.generatingNamed': '已开始生成播放列表',
