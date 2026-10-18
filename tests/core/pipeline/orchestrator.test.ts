@@ -1,93 +1,33 @@
 // @vitest-environment node
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { SourceResult } from '@/core/jobs/types'
+import type { PipelineDeps } from '@/core/pipeline/orchestrator'
 import type { DiscoverySource } from '@/core/plugins/types'
-
-// ---------------------------------------------------------------------------
-// Mock all pipeline stages
-// ---------------------------------------------------------------------------
+import type { UserConnections } from '@/db/queries/users'
 
 vi.mock('@/core/notifications', () => ({ dispatch: vi.fn().mockResolvedValue(undefined) }))
-
-vi.mock('@/core/pipeline/analyze', () => ({
-  analyze: vi.fn(),
-}))
-
-vi.mock('@/core/pipeline/discover', () => ({
-  discover: vi.fn(),
-}))
-
-vi.mock('@/core/pipeline/resolve', () => ({
-  resolve: vi.fn(),
-}))
-
-vi.mock('@/core/pipeline/score', () => ({
-  score: vi.fn(),
-}))
-
-vi.mock('@/core/pipeline/filter', () => ({
-  filter: vi.fn(),
-}))
-
-vi.mock('@/core/pipeline/store', () => ({
-  store: vi.fn(),
-}))
-
+vi.mock('@/core/pipeline/analyze', () => ({ analyze: vi.fn() }))
+vi.mock('@/core/pipeline/discover', () => ({ discover: vi.fn() }))
+vi.mock('@/core/pipeline/resolve', () => ({ resolve: vi.fn() }))
+vi.mock('@/core/pipeline/score', () => ({ score: vi.fn() }))
+vi.mock('@/core/pipeline/filter', () => ({ filter: vi.fn() }))
+vi.mock('@/core/pipeline/store', () => ({ store: vi.fn() }))
 vi.mock('@/core/pipeline/genre-backfill', () => ({
   hydrateArtistGenres: vi.fn(),
   warmArtistGenres: vi.fn(),
 }))
-
-// ---------------------------------------------------------------------------
-// Mock client/plugin factories
-// ---------------------------------------------------------------------------
-
-vi.mock('@/core/clients/lidarr', () => ({
-  createLidarrClient: vi.fn(() => ({ getArtists: vi.fn() })),
-}))
-
-vi.mock('@/core/plugins/listenbrainz', () => ({
-  createListenBrainzSource: vi.fn(() => ({
-    id: 'listenbrainz',
-    name: 'ListenBrainz',
-    getTopArtists: vi.fn(),
-    getSimilarArtists: vi.fn(),
-    testConnection: vi.fn(),
-    getListeningActivity: vi.fn(),
-  })),
-}))
-
-vi.mock('@/core/plugins/lastfm', () => ({
-  createLastFmSource: vi.fn(() => ({
-    id: 'lastfm',
-    name: 'Last.fm',
-    getTopArtists: vi.fn(),
-    getSimilarArtists: vi.fn(),
-    testConnection: vi.fn(),
-  })),
-}))
-
-vi.mock('@/core/clients/musicbrainz', () => ({
-  createMusicBrainzClient: vi.fn(() => ({
-    lookupArtist: vi.fn(),
-    searchArtist: vi.fn(),
-    extractStreamingUrls: vi.fn(),
-  })),
-}))
-
+vi.mock('@/core/clients/lidarr', () => ({ createLidarrClient: vi.fn() }))
+vi.mock('@/core/plugins/listenbrainz', () => ({ createListenBrainzSource: vi.fn() }))
+vi.mock('@/core/plugins/lastfm', () => ({ createLastFmSource: vi.fn() }))
+vi.mock('@/core/clients/musicbrainz', () => ({ createMusicBrainzClient: vi.fn() }))
 vi.mock('@/core/providers/registry', () => ({
   AiProviderRegistry: vi.fn(),
   createDefaultRegistry: vi.fn(),
 }))
 
-// ---------------------------------------------------------------------------
-// Imports (after mocks)
-// ---------------------------------------------------------------------------
-
 const { PipelineOrchestrator } = await import('@/core/pipeline/orchestrator')
 const { PipelineCancelledError } = await import('@/core/pipeline/cancel')
-type SyncForUser = NonNullable<
-  import('@/core/pipeline/orchestrator').PipelineDeps['librarySync']
->['syncForUser']
+type SyncForUser = NonNullable<PipelineDeps['librarySync']>['syncForUser']
 const { dispatch } = await import('@/core/notifications')
 const { analyze } = await import('@/core/pipeline/analyze')
 const { discover } = await import('@/core/pipeline/discover')
@@ -96,10 +36,10 @@ const { score } = await import('@/core/pipeline/score')
 const { filter } = await import('@/core/pipeline/filter')
 const { store } = await import('@/core/pipeline/store')
 const { hydrateArtistGenres, warmArtistGenres } = await import('@/core/pipeline/genre-backfill')
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
+const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
+const { createLastFmSource } = await import('@/core/plugins/lastfm')
+const { createLidarrClient } = await import('@/core/clients/lidarr')
+const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
 
 const defaultSettings = {
   lidarrUrl: 'http://lidarr:8686',
@@ -137,16 +77,24 @@ const defaultSettings = {
 }
 
 function makeProviderRegistry() {
-  const mock = {
-    create: vi.fn().mockResolvedValue({
-      getRecommendations: vi.fn(),
-      testConnection: vi.fn(),
-    }),
+  return {
+    create: vi.fn().mockResolvedValue({ getRecommendations: vi.fn(), testConnection: vi.fn() }),
     register: vi.fn(),
     has: vi.fn().mockReturnValue(true),
     availableIds: vi.fn().mockReturnValue(['anthropic', 'openai', 'ollama']),
+  } as unknown as import('@/core/providers/registry').AiProviderRegistry
+}
+
+function libraryArtist(name: string, genres: string[], mbid: string | null = 'mbid-1') {
+  return {
+    mbid,
+    name,
+    source: 'lidarr',
+    sourceArtistId: '1',
+    genres,
+    matchMethod: 'mbid',
+    matchConfidence: 1.0,
   }
-  return mock as unknown as import('@/core/providers/registry').AiProviderRegistry
 }
 
 function makeDb() {
@@ -160,37 +108,45 @@ function makeDb() {
     getRejectedMbids: vi.fn().mockResolvedValue(new Set()),
     getBlockedMbids: vi.fn().mockResolvedValue(new Set()),
     getFeedbackHistory: vi.fn().mockResolvedValue(new Map()),
-    getLibraryArtistsForUser: vi.fn().mockResolvedValue([
-      {
-        mbid: 'mbid-1',
-        name: 'Artist 1',
-        source: 'lidarr',
-        sourceArtistId: '1',
-        genres: ['rock', 'electronic'],
-        matchMethod: 'mbid',
-        matchConfidence: 1.0,
-      },
-    ]),
+    getLibraryArtistsForUser: vi
+      .fn()
+      .mockResolvedValue([libraryArtist('Artist 1', ['rock', 'electronic'])]),
     userHasOwnSyncState: vi.fn().mockResolvedValue(true),
-    // Extra methods the orchestrator needs for stale batch cleanup
     updateBatch: vi.fn().mockResolvedValue(undefined),
   }
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-// ---------------------------------------------------------------------------
+function makeJobRecorder(id = 7) {
+  return {
+    start: vi.fn().mockResolvedValue(id),
+    complete: vi.fn().mockResolvedValue(undefined),
+    fail: vi.fn().mockResolvedValue(undefined),
+    cancel: vi.fn().mockResolvedValue(undefined),
+    markStuck: vi.fn().mockResolvedValue(0),
+  }
+}
+
+function expectSourceResult(
+  jobRecorder: ReturnType<typeof makeJobRecorder>,
+  key: string,
+  value: unknown,
+) {
+  expect(jobRecorder.complete).toHaveBeenCalledWith(
+    expect.any(Number),
+    expect.objectContaining({ sourceResults: expect.objectContaining({ [key]: value }) }),
+  )
+}
 
 describe('PipelineOrchestrator', () => {
   let orchestrator: InstanceType<typeof PipelineOrchestrator>
-  let mockAnalyze: ReturnType<typeof vi.fn>
-  let mockDiscover: ReturnType<typeof vi.fn>
-  let mockResolve: ReturnType<typeof vi.fn>
-  let mockScore: ReturnType<typeof vi.fn>
-  let mockFilter: ReturnType<typeof vi.fn>
-  let mockStore: ReturnType<typeof vi.fn>
-  let mockHydrateArtistGenres: ReturnType<typeof vi.fn>
-  let mockWarmArtistGenres: ReturnType<typeof vi.fn>
+  const mockAnalyze = vi.mocked(analyze)
+  const mockDiscover = vi.mocked(discover)
+  const mockResolve = vi.mocked(resolve)
+  const mockScore = vi.mocked(score)
+  const mockFilter = vi.mocked(filter)
+  const mockStore = vi.mocked(store)
+  const mockHydrateArtistGenres = vi.mocked(hydrateArtistGenres)
+  const mockWarmArtistGenres = vi.mocked(warmArtistGenres)
   let providerRegistry: ReturnType<typeof makeProviderRegistry>
   let syncForUser: SyncForUser
 
@@ -198,7 +154,7 @@ describe('PipelineOrchestrator', () => {
     topArtists: [
       { name: 'Artist 1', mbid: 'mbid-1', playCount: 100, source: 'listenbrainz' as const },
     ],
-    topGenres: [],
+    topGenres: [] as Array<{ name: string; weight: number }>,
     listeningPatterns: { totalListens: 100, recentTrend: 'stable' as const },
   }
   const discovered = [{ name: 'New Artist', similarityScore: 0.8, source: 'listenbrainz' as const }]
@@ -214,23 +170,60 @@ describe('PipelineOrchestrator', () => {
   ]
   // biome-ignore lint/style/noNonNullAssertion: test fixture is always defined
   const scored = [{ ...resolved[0]!, score: 0.7, sourceScores: { consensus: 0.25 } }]
-  const filtered = scored
 
-  function setupPipelineMocks() {
-    mockAnalyze = vi.mocked(analyze)
-    mockDiscover = vi.mocked(discover)
-    mockResolve = vi.mocked(resolve)
-    mockScore = vi.mocked(score)
-    mockFilter = vi.mocked(filter)
-    mockStore = vi.mocked(store)
-    mockHydrateArtistGenres = vi.mocked(hydrateArtistGenres)
-    mockWarmArtistGenres = vi.mocked(warmArtistGenres)
+  function makeDeps(overrides: Partial<PipelineDeps> = {}): PipelineDeps {
+    return {
+      db: makeDb(),
+      settings: defaultSettings,
+      providerRegistry,
+      librarySync: { syncForUser },
+      userId: 1,
+      ...overrides,
+    } as PipelineDeps
+  }
+  const run = (overrides: Partial<PipelineDeps> = {}) => orchestrator.run(makeDeps(overrides))
+  const enqueue = (overrides: Partial<PipelineDeps> = {}) =>
+    orchestrator.enqueue(makeDeps(overrides))
+
+  function holdAnalyze() {
+    let release!: () => void
+    let reject!: () => void
+    mockAnalyze.mockReturnValueOnce(
+      new Promise<typeof tasteProfile>((res, rej) => {
+        release = () => res(tasteProfile)
+        reject = () => rej(new Error('run A exploded'))
+      }),
+    )
+    return { release, reject }
+  }
+
+  function discoverThroughAudiomuse(seeds: string[]) {
+    mockDiscover.mockImplementation(async (_profile, sources, _limit, _seeds, _ratio, options) => {
+      options?.onSeedCount?.(seeds.length)
+      const source = sources.listeningSources?.find((s: DiscoverySource) => s.id === 'audiomuse')
+      const artists = []
+      for (const seed of seeds) {
+        try {
+          artists.push(...((await source?.getSimilarArtists(seed)) ?? []))
+        } catch (error) {
+          options?.onSourceFailure?.('audiomuse', (error as Error).message)
+        }
+      }
+      return artists
+    })
+  }
+
+  beforeEach(() => {
+    orchestrator = new PipelineOrchestrator()
+    providerRegistry = makeProviderRegistry()
+    syncForUser = vi.fn(async () => ({ userId: 1, results: [] })) as SyncForUser
+    vi.clearAllMocks()
 
     mockAnalyze.mockResolvedValue(tasteProfile)
     mockDiscover.mockResolvedValue(discovered)
     mockResolve.mockResolvedValue(resolved)
     mockScore.mockReturnValue(scored)
-    mockFilter.mockReturnValue(filtered)
+    mockFilter.mockReturnValue(scored)
     mockStore.mockResolvedValue(42)
     mockHydrateArtistGenres.mockResolvedValue({
       artists: tasteProfile.topArtists,
@@ -242,17 +235,7 @@ describe('PipelineOrchestrator', () => {
       failed: 0,
       skippedAmbiguous: 0,
     })
-  }
-
-  async function setupClientMocks() {
-    const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
-    const { createLastFmSource } = await import('@/core/plugins/lastfm')
-    const { createLidarrClient } = await import('@/core/clients/lidarr')
-    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
-
-    vi.mocked(createLidarrClient).mockReturnValue({ getArtists: vi.fn() } as unknown as ReturnType<
-      typeof createLidarrClient
-    >)
+    vi.mocked(createLidarrClient).mockReturnValue({ getArtists: vi.fn() } as never)
     vi.mocked(createListenBrainzSource).mockReturnValue({
       id: 'listenbrainz',
       name: 'ListenBrainz',
@@ -274,467 +257,252 @@ describe('PipelineOrchestrator', () => {
       lookupArtist: vi.fn(),
       searchArtist: vi.fn(),
       extractStreamingUrls: vi.fn(),
-    } as unknown as ReturnType<typeof createMusicBrainzClient>)
-  }
-
-  beforeEach(async () => {
-    orchestrator = new PipelineOrchestrator()
-    providerRegistry = makeProviderRegistry()
-    syncForUser = vi.fn(async () => ({ userId: 1, results: [] })) as SyncForUser
-    vi.clearAllMocks()
-    setupPipelineMocks()
-    await setupClientMocks()
+    } as never)
   })
 
-  it.each([1, 2])('runs all pipeline stages in order for user %s', async (userId) => {
-    const db = makeDb()
-    const order: string[] = []
+  it.each([1, 2])(
+    'runs every stage in order for user %s, syncing and reading the reconciled library',
+    async (userId) => {
+      const db = makeDb()
+      const order: string[] = []
+      const stages: string[] = []
+      for (const [name, mock, value] of [
+        ['analyze', mockAnalyze, tasteProfile],
+        ['discover', mockDiscover, discovered],
+        ['resolve', mockResolve, resolved],
+        ['score', mockScore, scored],
+        ['filter', mockFilter, scored],
+        ['store', mockStore, 42],
+      ] as const) {
+        ;(mock as unknown as ReturnType<typeof vi.fn>).mockImplementation(() => {
+          order.push(name)
+          return value
+        })
+      }
+      orchestrator.on('progress', (event: { stage: string }) => stages.push(event.stage))
+      expect(orchestrator.isRunning).toBe(false)
 
-    mockAnalyze.mockImplementation(async () => {
-      order.push('analyze')
-      return tasteProfile
-    })
-    mockDiscover.mockImplementation(async () => {
-      order.push('discover')
-      return discovered
-    })
-    mockResolve.mockImplementation(async () => {
-      order.push('resolve')
-      return resolved
-    })
-    mockScore.mockImplementation(() => {
-      order.push('score')
-      return scored
-    })
-    mockFilter.mockImplementation(() => {
-      order.push('filter')
-      return filtered
-    })
-    mockStore.mockImplementation(async () => {
-      order.push('store')
-      return 42
-    })
+      const result = await run({ db, userId })
 
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId,
-    })
-
-    expect(order).toEqual(['analyze', 'discover', 'resolve', 'score', 'filter', 'store'])
-    expect(db.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(90, userId)
-  })
+      expect(result).toEqual({ batchId: 42 })
+      expect(order).toEqual(['analyze', 'discover', 'resolve', 'score', 'filter', 'store'])
+      expect(stages).toEqual(expect.arrayContaining([...order, 'collect', 'complete']))
+      expect(db.getRejectedMbids).toHaveBeenCalledExactlyOnceWith(90, userId)
+      expect(syncForUser).toHaveBeenCalledWith(userId, expect.anything())
+      expect(db.getLibraryArtistsForUser).toHaveBeenCalledWith(userId, { onlyReconciled: true })
+      expect(orchestrator.isRunning).toBe(false)
+    },
+  )
 
   it('passes response and prompt locales from pipeline deps into AI discovery', async () => {
-    const db = makeDb()
+    await run({ responseLocale: 'fr', promptLocale: 'es' })
 
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
+    expect(mockDiscover.mock.calls[0]?.[0]).toMatchObject({
+      ...tasteProfile,
       responseLocale: 'fr',
       promptLocale: 'es',
     })
-
-    expect(mockDiscover).toHaveBeenCalledWith(
-      expect.objectContaining({
-        ...tasteProfile,
-        responseLocale: 'fr',
-        promptLocale: 'es',
-      }),
-      expect.anything(),
-      expect.any(Number),
-      expect.anything(),
-      expect.any(Number),
-      expect.anything(),
-    )
-  })
-
-  it('emits progress events for each stage', async () => {
-    const db = makeDb()
-    const stages: string[] = []
-
-    orchestrator.on('progress', (event: { stage: string }) => {
-      stages.push(event.stage)
-    })
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    expect(stages).toContain('collect')
-    expect(stages).toContain('analyze')
-    expect(stages).toContain('discover')
-    expect(stages).toContain('resolve')
-    expect(stages).toContain('score')
-    expect(stages).toContain('filter')
-    expect(stages).toContain('store')
-    expect(stages).toContain('complete')
   })
 
   it('surfaces AI source failure in job sourceResults and progress', async () => {
-    const db = makeDb()
     const aiError = 'client error 404: models/gemini-x is not found for API version v1beta'
-    mockDiscover.mockImplementation(
-      async (
-        _profile: unknown,
-        _sources: unknown,
-        _limit: unknown,
-        _seeds: unknown,
-        _ratio: unknown,
-        options?: { onSourceFailure?: (sourceId: string, error: string) => void },
-      ) => {
-        options?.onSourceFailure?.('ai', aiError)
-        return discovered
-      },
-    )
-    const jobRecorder = {
-      start: vi.fn().mockResolvedValue(7),
-      complete: vi.fn().mockResolvedValue(undefined),
-      fail: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue(undefined),
-      markStuck: vi.fn().mockResolvedValue(0),
-    }
+    mockDiscover.mockImplementation(async (_p, _s, _l, _seeds, _r, options) => {
+      options?.onSourceFailure?.('ai', aiError)
+      return discovered
+    })
+    const jobRecorder = makeJobRecorder()
     const messages: string[] = []
     orchestrator.on('progress', (event: { message?: string }) => {
       if (event.message) messages.push(event.message)
     })
 
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-      jobRecorder,
-    })
+    await run({ jobRecorder })
 
-    expect(jobRecorder.complete).toHaveBeenCalledWith(
-      7,
-      expect.objectContaining({
-        sourceResults: expect.objectContaining({
-          ai: { status: 'error', error: aiError },
-        }),
-      }),
-    )
+    expectSourceResult(jobRecorder, 'ai', { status: 'error', error: aiError })
     expect(messages.some((m) => m.includes(aiError))).toBe(true)
   })
 
-  it.each<
+  it.each<[string, boolean, number, string | undefined, typeof discovered, SourceResult, boolean?]>(
     [
-      string,
-      boolean,
-      number,
-      string | undefined,
-      typeof discovered,
-      import('@/core/jobs/types').SourceResult,
-      boolean?,
-    ]
-  >([
-    [
-      'unsupported',
-      false,
-      1,
-      undefined,
-      discovered,
-      { status: 'skipped', reason: 'unsupported_capability' },
+      [
+        'unsupported',
+        false,
+        1,
+        undefined,
+        discovered,
+        { status: 'skipped', reason: 'unsupported_capability' },
+      ],
+      ['empty', true, 1, undefined, [], { status: 'ok', artists: 0 }],
+      [
+        'failed',
+        true,
+        1,
+        'upstream unavailable',
+        [],
+        { status: 'error', artists: 0, error: 'upstream unavailable' },
+      ],
+      [
+        'partially failed',
+        true,
+        1,
+        'upstream unavailable',
+        discovered,
+        { status: 'error', artists: 1, error: 'upstream unavailable' },
+      ],
+      ['no seeds', true, 0, undefined, [], { status: 'skipped', reason: 'no_seeds' }],
+      ['explicit run', true, 0, undefined, [], { status: 'skipped', reason: 'explicit_run' }, true],
     ],
-    ['empty', true, 1, undefined, [], { status: 'ok', artists: 0 }],
-    [
-      'failed',
-      true,
-      1,
-      'upstream unavailable',
-      [],
-      { status: 'error', artists: 0, error: 'upstream unavailable' },
-    ],
-    [
-      'partially failed',
-      true,
-      1,
-      'upstream unavailable',
-      discovered,
-      { status: 'error', artists: 1, error: 'upstream unavailable' },
-    ],
-    ['no seeds', true, 0, undefined, [], { status: 'skipped', reason: 'no_seeds' }],
-    ['explicit run', true, 0, undefined, [], { status: 'skipped', reason: 'explicit_run' }, true],
-  ])(
+  )(
     'records a %s listening source outcome',
     async (_name, supported, seedCount, error, artists, expected, explicitRun) => {
-      const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
       const source = vi.mocked(createListenBrainzSource)('user', 'token')
       source.capabilities = supported ? ['topArtists', 'similarArtists'] : ['topArtists']
       vi.mocked(createListenBrainzSource).mockReturnValue(source)
-      mockDiscover.mockImplementation(
-        async (_profile, _sources, _limit, _seeds, _ratio, options) => {
-          options?.onSeedCount?.(seedCount)
-          if (error) options?.onSourceFailure?.('listenbrainz', error)
-          return artists
-        },
-      )
-      const jobRecorder = {
-        start: vi.fn().mockResolvedValue(7),
-        complete: vi.fn().mockResolvedValue(undefined),
-        fail: vi.fn().mockResolvedValue(undefined),
-        cancel: vi.fn().mockResolvedValue(undefined),
-        markStuck: vi.fn().mockResolvedValue(0),
-      }
+      mockDiscover.mockImplementation(async (_p, _s, _l, _seeds, _r, options) => {
+        options?.onSeedCount?.(seedCount)
+        if (error) options?.onSourceFailure?.('listenbrainz', error)
+        return artists
+      })
+      const jobRecorder = makeJobRecorder()
 
-      await orchestrator.run({
-        db: makeDb(),
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
+      await run({
         jobRecorder,
         userConnections: {
           listenbrainzUsername: 'user',
           listenbrainzToken: 'token',
-        } as import('@/db/queries/users').UserConnections,
+        } as UserConnections,
         explicitDiscoveryMode: explicitRun
           ? { modeId: 'test', settingsMode: 'easy', providerPath: [] }
           : undefined,
       })
 
-      expect(jobRecorder.complete).toHaveBeenCalledWith(
-        7,
-        expect.objectContaining({
-          sourceResults: expect.objectContaining({ listenbrainz: expected }),
-        }),
-      )
+      expectSourceResult(jobRecorder, 'listenbrainz', expected)
     },
   )
 
-  function makeJobRecorder() {
-    return {
-      start: vi.fn().mockResolvedValue(7),
-      complete: vi.fn().mockResolvedValue(undefined),
-      fail: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue(undefined),
-      markStuck: vi.fn().mockResolvedValue(0),
-    }
-  }
+  describe('AudioMuse', () => {
+    const audiomuse = { url: 'https://audiomuse.example' }
 
-  it.each([
-    ['invalid URL', { url: 'invalid' }, 'invalid_url'],
-    ['blocked URL', { url: 'http://169.254.169.254' }, 'invalid_url'],
-    [
-      'unreadable token',
-      { url: 'https://audiomuse.example', skipReason: 'token_unreadable' as const },
-      'token_unreadable',
-    ],
-  ])(
-    'skips AudioMuse with %s without failing or making requests',
-    async (_name, config, reason) => {
+    it.each([
+      ['invalid URL', { url: 'invalid' }, 'invalid_url'],
+      ['blocked URL', { url: 'http://169.254.169.254' }, 'invalid_url'],
+      [
+        'unreadable token',
+        { ...audiomuse, skipReason: 'token_unreadable' as const },
+        'token_unreadable',
+      ],
+    ])('skips with %s without failing or making requests', async (_name, config, reason) => {
       const fetchSpy = vi.spyOn(globalThis, 'fetch')
       const jobRecorder = makeJobRecorder()
       try {
-        await orchestrator.run({
-          db: makeDb(),
-          settings: { ...defaultSettings, audiomuse: config },
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
-        })
+        await run({ settings: { ...defaultSettings, audiomuse: config }, jobRecorder })
         expect(fetchSpy).not.toHaveBeenCalled()
         expect(jobRecorder.fail).not.toHaveBeenCalled()
-        expect(jobRecorder.complete).toHaveBeenCalledWith(
-          7,
-          expect.objectContaining({
-            sourceResults: expect.objectContaining({
-              audiomuse: { status: 'skipped', reason: `audiomuse_${reason}` },
-            }),
-          }),
-        )
-      } finally {
-        fetchSpy.mockRestore()
-      }
-    },
-  )
-
-  it('omits AudioMuse job results when it is unconfigured', async () => {
-    const jobRecorder = makeJobRecorder()
-    await orchestrator.run({
-      db: makeDb(),
-      settings: { ...defaultSettings, audiomuse: null },
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-      jobRecorder,
-    })
-    const result = jobRecorder.complete.mock.calls[0]?.[1]
-    expect(result.sourceResults).not.toHaveProperty('audiomuse')
-  })
-
-  it.each(['unreachable', 'not_indexed', 'artist_unknown'])(
-    'records AudioMuse %s and its seed summary without failing the scan',
-    async (reason) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
-        if (reason === 'unreachable') throw new Error('network failure')
-        return new Response(
-          JSON.stringify({ error_code: reason === 'not_indexed' ? 3002 : 1004 }),
-          {
-            status: 404,
-          },
-        )
-      })
-      mockDiscover.mockImplementation(
-        async (_profile, sources, _limit, _seeds, _ratio, options) => {
-          options?.onSeedCount?.(1)
-          const source = sources.listeningSources.find(
-            (source: DiscoverySource) => source.id === 'audiomuse',
-          )
-          try {
-            await source?.getSimilarArtists('Seed')
-          } catch (error) {
-            options?.onSourceFailure?.('audiomuse', (error as Error).message)
-          }
-          return discovered
-        },
-      )
-      const jobRecorder = makeJobRecorder()
-      try {
-        await orchestrator.run({
-          db: makeDb(),
-          settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
+        expectSourceResult(jobRecorder, 'audiomuse', {
+          status: 'skipped',
+          reason: `audiomuse_${reason}`,
         })
-        expect(jobRecorder.fail).not.toHaveBeenCalled()
-        expect(jobRecorder.complete).toHaveBeenCalledWith(
-          7,
-          expect.objectContaining({
-            sourceResults: expect.objectContaining({
-              audiomuse: {
-                status: 'skipped',
-                artists: 0,
-                reason: `audiomuse_${reason}`,
-                seedsQueried: 1,
-                seedsWithResults: 0,
-                skipReasons: { [reason]: 1 },
-              },
-            }),
-          }),
-        )
       } finally {
         fetchSpy.mockRestore()
       }
-    },
-  )
+    })
 
-  it.each([false, true])(
-    'reports successful AudioMuse seed queries with aggregate skips (all owned: %s)',
-    async (allOwned) => {
-      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
-        const seed = new URL(String(input)).searchParams.get('artist') ?? ''
-        if (Number(seed) < 5) {
-          return new Response(JSON.stringify({ error_code: 1004 }), { status: 404 })
+    it('omits job results when unconfigured', async () => {
+      const jobRecorder = makeJobRecorder()
+      await run({ settings: { ...defaultSettings, audiomuse: null }, jobRecorder })
+      expect(jobRecorder.complete.mock.calls[0]?.[1].sourceResults).not.toHaveProperty('audiomuse')
+    })
+
+    it.each(['unreachable', 'not_indexed', 'artist_unknown'])(
+      'records %s and its seed summary without failing the scan',
+      async (reason) => {
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => {
+          if (reason === 'unreachable') throw new Error('network failure')
+          return new Response(
+            JSON.stringify({ error_code: reason === 'not_indexed' ? 3002 : 1004 }),
+            { status: 404 },
+          )
+        })
+        discoverThroughAudiomuse(['Seed'])
+        const jobRecorder = makeJobRecorder()
+        try {
+          await run({ settings: { ...defaultSettings, audiomuse }, jobRecorder })
+          expect(jobRecorder.fail).not.toHaveBeenCalled()
+          expectSourceResult(jobRecorder, 'audiomuse', {
+            status: 'skipped',
+            artists: 0,
+            reason: `audiomuse_${reason}`,
+            seedsQueried: 1,
+            seedsWithResults: 0,
+            skipReasons: { [reason]: 1 },
+          })
+        } finally {
+          fetchSpy.mockRestore()
         }
-        return Response.json([
-          { artist: allOwned ? 'Artist 1' : `New Artist ${seed}`, divergence: 1 },
-        ])
-      })
-      mockDiscover.mockImplementation(
-        async (_profile, sources, _limit, _seeds, _ratio, options) => {
-          options?.onSeedCount?.(30)
-          const source = sources.listeningSources.find(
-            (source: DiscoverySource) => source.id === 'audiomuse',
-          )
-          const artists = []
-          for (let seed = 0; seed < 30; seed++) {
-            try {
-              artists.push(...((await source?.getSimilarArtists(String(seed))) ?? []))
-            } catch (error) {
-              options?.onSourceFailure?.('audiomuse', (error as Error).message)
-            }
+      },
+    )
+
+    it.each([false, true])(
+      'reports successful seed queries with aggregate skips (all owned: %s)',
+      async (allOwned) => {
+        const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+          const seed = new URL(String(input)).searchParams.get('artist') ?? ''
+          if (Number(seed) < 5) {
+            return new Response(JSON.stringify({ error_code: 1004 }), { status: 404 })
           }
-          return artists
-        },
-      )
-      const jobRecorder = makeJobRecorder()
-      try {
-        await orchestrator.run({
-          db: makeDb(),
-          settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
+          return Response.json([
+            { artist: allOwned ? 'Artist 1' : `New Artist ${seed}`, divergence: 1 },
+          ])
         })
-        expect(jobRecorder.complete).toHaveBeenCalledWith(
-          7,
-          expect.objectContaining({
-            sourceResults: expect.objectContaining({
-              audiomuse: {
-                status: 'ok',
-                artists: allOwned ? 0 : 25,
-                seedsQueried: 30,
-                seedsWithResults: 25,
-                skipReasons: { artist_unknown: 5 },
-              },
-            }),
-          }),
-        )
-        expect(jobRecorder.fail).not.toHaveBeenCalled()
+        discoverThroughAudiomuse(Array.from({ length: 30 }, (_, i) => String(i)))
+        const jobRecorder = makeJobRecorder()
+        try {
+          await run({ settings: { ...defaultSettings, audiomuse }, jobRecorder })
+          expectSourceResult(jobRecorder, 'audiomuse', {
+            status: 'ok',
+            artists: allOwned ? 0 : 25,
+            seedsQueried: 30,
+            seedsWithResults: 25,
+            skipReasons: { artist_unknown: 5 },
+          })
+          expect(jobRecorder.fail).not.toHaveBeenCalled()
+        } finally {
+          fetchSpy.mockRestore()
+        }
+      },
+    )
+
+    it('excludes reconciled and name-only library artists and blocked names before resolution', async () => {
+      const db = {
+        ...makeDb(),
+        getBlockedArtistNames: vi.fn().mockResolvedValue(['Blocked Artist']),
+      }
+      const library = [libraryArtist('Artist 1', ['rock'])]
+      db.getLibraryArtistsForUser.mockImplementation(async (_userId, options) =>
+        options?.onlyReconciled
+          ? library
+          : [...library, libraryArtist('Name Only Artist', ['rock'], null)],
+      )
+      const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+        Response.json([
+          { artist: 'ARTIST 1', divergence: 0.1 },
+          { artist: 'name only artist', divergence: 0.2 },
+          { artist: 'blocked artist', divergence: 0.3 },
+          { artist: 'New Artist', divergence: 0.4 },
+        ]),
+      )
+      discoverThroughAudiomuse(['Seed'])
+      try {
+        await run({ db, settings: { ...defaultSettings, audiomuse } })
+        expect(mockResolve.mock.calls[0]?.[0]).toEqual([
+          { name: 'New Artist', similarityScore: 1, source: 'audiomuse' },
+        ])
+        expect(db.getLibraryArtistsForUser).toHaveBeenCalledWith(1)
+        expect(db.getBlockedArtistNames).toHaveBeenCalledWith(1)
       } finally {
         fetchSpy.mockRestore()
       }
-    },
-  )
-
-  it('excludes reconciled and name-only library artists and blocked names before resolution', async () => {
-    const db = {
-      ...makeDb(),
-      getBlockedArtistNames: vi.fn().mockResolvedValue(['Blocked Artist']),
-    }
-    const library = await db.getLibraryArtistsForUser()
-    db.getLibraryArtistsForUser.mockImplementation(async (_userId, options) =>
-      options?.onlyReconciled
-        ? library
-        : [...library, { ...library[0], mbid: null, name: 'Name Only Artist' }],
-    )
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      Response.json([
-        { artist: 'ARTIST 1', divergence: 0.1 },
-        { artist: 'name only artist', divergence: 0.2 },
-        { artist: 'blocked artist', divergence: 0.3 },
-        { artist: 'New Artist', divergence: 0.4 },
-      ]),
-    )
-    mockDiscover.mockImplementation(async (_profile, sources, _limit, _seeds, _ratio, options) => {
-      options?.onSeedCount?.(1)
-      const source = sources.listeningSources.find(
-        (source: DiscoverySource) => source.id === 'audiomuse',
-      )
-      return (await source?.getSimilarArtists('Seed')) ?? []
     })
-    try {
-      await orchestrator.run({
-        db,
-        settings: { ...defaultSettings, audiomuse: { url: 'https://audiomuse.example' } },
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      })
-      expect(mockResolve.mock.calls[0]?.[0]).toEqual([
-        { name: 'New Artist', similarityScore: 1, source: 'audiomuse' },
-      ])
-      expect(db.getLibraryArtistsForUser).toHaveBeenCalledWith(1)
-      expect(db.getBlockedArtistNames).toHaveBeenCalledWith(1)
-    } finally {
-      fetchSpy.mockRestore()
-    }
   })
 
   it('hydrates genres, records coverage, then starts the background warmer', async () => {
@@ -746,14 +514,12 @@ describe('PipelineOrchestrator', () => {
       upsertArtistGenreAlias: vi.fn().mockResolvedValue(undefined),
     }
     const coverage = { coveredArtists: 1, pendingArtists: 1, totalArtists: 2 }
-    const hydratedArtists = [
-      {
-        ...tasteProfile.topArtists[0],
-        genres: ['post-rock'],
-        genreSource: 'artist-cache' as const,
-      },
-    ]
-    mockHydrateArtistGenres.mockResolvedValue({ artists: hydratedArtists, coverage })
+    mockHydrateArtistGenres.mockResolvedValue({
+      artists: [
+        { ...tasteProfile.topArtists[0], genres: ['post-rock'], genreSource: 'artist-cache' },
+      ],
+      coverage,
+    } as never)
     mockAnalyze.mockImplementation(async (_sources, options) => {
       const hydrated = await options?.genreHydrator?.(tasteProfile.topArtists)
       return {
@@ -762,22 +528,9 @@ describe('PipelineOrchestrator', () => {
         genreCoverage: hydrated?.coverage,
       }
     })
-    const jobRecorder = {
-      start: vi.fn().mockResolvedValue(9),
-      complete: vi.fn().mockResolvedValue(undefined),
-      fail: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue(undefined),
-      markStuck: vi.fn().mockResolvedValue(0),
-    }
+    const jobRecorder = makeJobRecorder(9)
 
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-      jobRecorder,
-    })
+    await run({ db, jobRecorder })
 
     expect(mockHydrateArtistGenres).toHaveBeenCalledWith(
       tasteProfile.topArtists,
@@ -789,9 +542,7 @@ describe('PipelineOrchestrator', () => {
     )
     expect(jobRecorder.complete).toHaveBeenCalledWith(
       9,
-      expect.objectContaining({
-        metadata: expect.objectContaining({ genreCoverage: coverage }),
-      }),
+      expect.objectContaining({ metadata: expect.objectContaining({ genreCoverage: coverage }) }),
     )
     await vi.waitFor(() => expect(mockWarmArtistGenres).toHaveBeenCalledOnce())
     expect(jobRecorder.complete.mock.invocationCallOrder[0]).toBeLessThan(
@@ -799,27 +550,11 @@ describe('PipelineOrchestrator', () => {
     )
   })
 
-  it('returns batchId on success', async () => {
-    const db = makeDb()
-    const result = await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-    expect(result).toEqual({ batchId: 42 })
-  })
-
   it('passes subscriptionId to store for discovery-mode subscription runs', async () => {
     const db = makeDb()
 
-    await orchestrator.run({
+    await run({
       db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
       subscriptionId: 77,
       explicitDiscoveryMode: {
         modeId: 'labels',
@@ -836,334 +571,137 @@ describe('PipelineOrchestrator', () => {
     )
   })
 
-  it('emits error event and rethrows on stage failure', async () => {
-    const db = makeDb()
+  it('passes netNewAlbumDiscovery into resolve()', async () => {
+    await run({
+      settings: {
+        ...defaultSettings,
+        preferences: { ...defaultSettings.preferences, netNewAlbumDiscovery: true },
+      },
+    })
+    expect(mockResolve.mock.calls.at(-1)?.[8]).toBe(true)
+  })
+
+  it('emits the error event, rethrows, and releases the running flag on stage failure', async () => {
     const boom = new Error('analyze exploded')
     mockAnalyze.mockRejectedValue(boom)
-
     const errors: unknown[] = []
     orchestrator.on('error', (err: unknown) => errors.push(err))
 
-    await expect(
-      orchestrator.run({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      }),
-    ).rejects.toThrow('analyze exploded')
-    expect(errors).toHaveLength(1)
-    expect(errors[0]).toBe(boom)
-  })
-
-  it('resets isRunning to false after error', async () => {
-    const db = makeDb()
-    mockAnalyze.mockRejectedValue(new Error('oops'))
-    orchestrator.on('error', () => {}) // prevent unhandled
-
-    await orchestrator
-      .run({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      })
-      .catch(() => {})
+    await expect(run()).rejects.toThrow('analyze exploded')
+    expect(errors).toEqual([boom])
     expect(orchestrator.isRunning).toBe(false)
   })
 
   it('rejects concurrent runs while pipeline is running', async () => {
-    const db = makeDb()
+    const held = holdAnalyze()
+    const firstRun = run()
 
-    // Make analyze hang so the first run stays in-flight
-    let resolveAnalyze!: () => void
-    mockAnalyze.mockReturnValue(
-      new Promise<typeof tasteProfile>((res) => {
-        resolveAnalyze = () => res(tasteProfile)
-      }),
-    )
+    await expect(run()).rejects.toThrow('Pipeline already running')
 
-    const firstRun = orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    await expect(
-      orchestrator.run({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      }),
-    ).rejects.toThrow('Pipeline already running')
-
-    // Clean up the dangling promise
-    resolveAnalyze()
+    held.release()
     await firstRun.catch(() => {})
   })
 
-  it('isRunning is false before any run', () => {
-    expect(orchestrator.isRunning).toBe(false)
+  // drainQueue() must stay in `finally`: a failed run that never releases the
+  // queue wedges every queued run.
+  it.each([
+    ['succeeds', 2],
+    ['fails', 1],
+  ])(
+    'queues and dedupes runs behind an in-flight one and drains when it %s',
+    async (outcome, stores) => {
+      orchestrator.on('error', () => {})
+      const held = holdAnalyze()
+
+      expect(enqueue()).toEqual({ status: 'started', position: 0 })
+      expect(orchestrator.isRunning).toBe(true)
+      expect(enqueue({ userId: 2 })).toEqual({ status: 'queued', position: 1 })
+      expect(orchestrator.queuePositionFor(2)).toBe(1)
+      expect(enqueue({ userId: 2 }).status).toBe('duplicate')
+      expect(orchestrator.queueLength).toBe(1)
+
+      if (outcome === 'fails') held.reject()
+      else held.release()
+
+      await vi.waitFor(() => expect(orchestrator.queueLength).toBe(0))
+      await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
+      expect(mockAnalyze).toHaveBeenCalledTimes(2)
+      expect(mockStore).toHaveBeenCalledTimes(stores)
+    },
+  )
+
+  it.each([
+    [
+      'ListenBrainz',
+      { listenbrainzUsername: null, listenbrainzToken: null },
+      createListenBrainzSource,
+    ],
+    ['Last.fm', { lastfmUsername: null, lastfmApiKey: null }, createLastFmSource],
+  ])('skips %s when its username is unset', async (_name, settings, factory) => {
+    await run({ settings: { ...defaultSettings, ...settings } })
+    expect(vi.mocked(factory)).not.toHaveBeenCalled()
   })
 
-  it('isRunning is false after successful run', async () => {
-    const db = makeDb()
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-    expect(orchestrator.isRunning).toBe(false)
-  })
-
-  it('enqueue starts immediately when idle', async () => {
-    const db = makeDb()
-    const result = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-    expect(result).toEqual({ status: 'started', position: 0 })
-    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
-  })
-
-  it('queues a second run behind an in-flight one and drains on completion', async () => {
-    const db = makeDb()
-
-    // Hang the first run so it stays in flight while we enqueue more.
-    let resolveAnalyze!: () => void
-    mockAnalyze.mockReturnValue(
-      new Promise<typeof tasteProfile>((res) => {
-        resolveAnalyze = () => res(tasteProfile)
-      }),
-    )
-
-    const first = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-    expect(first.status).toBe('started')
-    expect(orchestrator.isRunning).toBe(true)
-
-    const second = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 2,
-    })
-    expect(second).toEqual({ status: 'queued', position: 1 })
-    expect(orchestrator.queueLength).toBe(1)
-    expect(orchestrator.queuePositionFor(2)).toBe(1)
-
-    // Same user again while busy is deduped, not stacked.
-    const dupe = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 2,
-    })
-    expect(dupe.status).toBe('duplicate')
-    expect(orchestrator.queueLength).toBe(1)
-
-    // Finishing the first run drains the queue and starts the second.
-    resolveAnalyze()
-    await vi.waitFor(() => expect(orchestrator.queueLength).toBe(0))
-    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
-  })
-
-  it('drains the queue and starts the next run even when the in-flight run FAILS', async () => {
-    // Regression guard: drainQueue() must stay in the `finally` block. If it ever
-    // moves into the success branch, a failed run would never release the queue
-    // and the orchestrator would wedge -- every queued run stuck forever.
-    const db = makeDb()
-    orchestrator.on('error', () => {}) // swallow A's failure
-
-    let rejectFirst!: () => void
-    const firstAnalyze = new Promise<typeof tasteProfile>((_res, rej) => {
-      rejectFirst = () => rej(new Error('run A exploded'))
-    })
-    // Run A's analyze hangs then rejects; run B's analyze (every later call) succeeds.
-    mockAnalyze.mockReturnValueOnce(firstAnalyze).mockReturnValue(Promise.resolve(tasteProfile))
-
-    const first = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-    expect(first.status).toBe('started')
-
-    const second = orchestrator.enqueue({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 2,
-    })
-    expect(second).toEqual({ status: 'queued', position: 1 })
-    expect(orchestrator.queueLength).toBe(1)
-
-    // Fail the in-flight run A. The queue must still drain and run B.
-    rejectFirst()
-
-    await vi.waitFor(() => expect(orchestrator.queueLength).toBe(0))
-    await vi.waitFor(() => expect(orchestrator.isRunning).toBe(false))
-    // B actually started (analyze called for A then B) and completed (store ran once).
-    expect(mockAnalyze).toHaveBeenCalledTimes(2)
-    expect(mockStore).toHaveBeenCalledTimes(1)
-  })
-
-  it('skips LB source when listenbrainzUsername is null', async () => {
-    const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
-    const db = makeDb()
-    const settings = { ...defaultSettings, listenbrainzUsername: null, listenbrainzToken: null }
-
-    await orchestrator.run({
-      db,
-      settings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
+  it.each<[string, ReturnType<typeof libraryArtist>[], string[], string[]]>([
+    [
+      'deduplicated library genres',
+      [
+        libraryArtist('Artist 1', ['rock', 'electronic']),
+        libraryArtist('Artist 2', ['electronic', 'jazz'], 'mbid-2'),
+      ],
+      [],
+      ['electronic', 'jazz', 'rock'],
+    ],
+    [
+      'library genres over listening genres',
+      [libraryArtist('Library Artist', ['rock', 'metal'])],
+      ['electronic', 'ambient'],
+      ['metal', 'rock'],
+    ],
+    [
+      'listening genres with an empty library',
+      [],
+      ['electronic', 'ambient'],
+      ['ambient', 'electronic'],
+    ],
+    ['nothing when both are empty', [], [], []],
+  ])('scores against %s', async (_name, library, topGenres, expected) => {
+    const db = { ...makeDb(), getLibraryArtistsForUser: vi.fn().mockResolvedValue(library) }
+    mockAnalyze.mockResolvedValue({
+      ...tasteProfile,
+      topGenres: topGenres.map((name) => ({ name, weight: 1 })),
     })
 
-    expect(vi.mocked(createListenBrainzSource)).not.toHaveBeenCalled()
-  })
+    await run({ db })
 
-  it('passes deduplicated library genres to score()', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue([
-        {
-          mbid: 'mbid-1',
-          name: 'Artist 1',
-          source: 'lidarr',
-          sourceArtistId: '1',
-          genres: ['rock', 'electronic'],
-          matchMethod: 'mbid',
-          matchConfidence: 1.0,
-        },
-        {
-          mbid: 'mbid-2',
-          name: 'Artist 2',
-          source: 'plex',
-          sourceArtistId: '2',
-          genres: ['electronic', 'jazz'],
-          matchMethod: 'name_exact',
-          matchConfidence: 0.7,
-        },
-      ]),
-    }
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    // score() is the 5th stage - check its second argument (libraryGenres)
-    const scoreCall = mockScore.mock.calls[0]
-    const passedGenres = scoreCall?.[1] as string[]
-    expect(passedGenres).toBeDefined()
-    expect(passedGenres.sort()).toEqual(['electronic', 'jazz', 'rock'])
-  })
-
-  it('skips LFM source when lastfmUsername is null', async () => {
-    const { createLastFmSource } = await import('@/core/plugins/lastfm')
-    const db = makeDb()
-    const settings = { ...defaultSettings, lastfmUsername: null, lastfmApiKey: null }
-
-    await orchestrator.run({
-      db,
-      settings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    expect(vi.mocked(createLastFmSource)).not.toHaveBeenCalled()
+    expect([...(mockScore.mock.calls[0]?.[1] ?? [])].sort()).toEqual(expected)
   })
 
   it('succeeds without Lidarr when a listening source is configured', async () => {
-    const db = makeDb()
-    const settings = {
-      ...defaultSettings,
-      lidarrUrl: null,
-      lidarrApiKey: null,
-    }
-
-    const result = await orchestrator.run({
-      db,
-      settings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
+    const result = await run({
+      settings: { ...defaultSettings, lidarrUrl: null, lidarrApiKey: null },
     })
 
     expect(result).toEqual({ batchId: 42 })
-    const { createLidarrClient } = await import('@/core/clients/lidarr')
     expect(vi.mocked(createLidarrClient)).not.toHaveBeenCalled()
     expect(syncForUser).toHaveBeenCalledWith(1, expect.anything())
   })
 
   it('completes from listening sources and records AI as skipped when no provider is set (#887)', async () => {
-    const db = makeDb()
-    const jobRecorder = {
-      start: vi.fn().mockResolvedValue(7),
-      complete: vi.fn().mockResolvedValue(undefined),
-      fail: vi.fn().mockResolvedValue(undefined),
-      cancel: vi.fn().mockResolvedValue(undefined),
-      markStuck: vi.fn().mockResolvedValue(0),
-    }
+    const jobRecorder = makeJobRecorder()
 
-    const result = await orchestrator.run({
-      db,
+    const result = await run({
       settings: { ...defaultSettings, aiProvider: null, aiApiKey: null, aiModel: null },
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
       jobRecorder,
     })
 
     expect(result).toEqual({ batchId: 42 })
-    expect(mockDiscover).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({ ai: null }),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-      expect.anything(),
-    )
+    expect(mockDiscover.mock.calls[0]?.[1]).toMatchObject({ ai: null })
     expect(jobRecorder.fail).not.toHaveBeenCalled()
-    expect(jobRecorder.complete).toHaveBeenCalledWith(
-      7,
-      expect.objectContaining({
-        sourceResults: expect.objectContaining({
-          ai: { status: 'skipped', reason: 'not_configured' },
-        }),
-      }),
-    )
+    expectSourceResult(jobRecorder, 'ai', { status: 'skipped', reason: 'not_configured' })
   })
 
   it('throws when neither Lidarr nor listening sources nor AI are configured', async () => {
-    const db = makeDb()
     const settings = {
       ...defaultSettings,
       lidarrUrl: null,
@@ -1177,364 +715,157 @@ describe('PipelineOrchestrator', () => {
       aiModel: null,
     }
 
-    await expect(
-      orchestrator.run({
-        db,
-        settings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      }),
-    ).rejects.toThrow('At least one listening source or AI provider must be configured')
+    await expect(run({ settings })).rejects.toThrow(
+      'At least one listening source or AI provider must be configured',
+    )
   })
 
   it('requires librarySync, userId, and library StoreDb methods', async () => {
-    const db = makeDb()
-
     await expect(
       orchestrator.run({
-        db,
+        db: makeDb(),
         settings: defaultSettings,
         providerRegistry,
-      } as unknown as import('@/core/pipeline/orchestrator').PipelineDeps),
+      } as unknown as PipelineDeps),
     ).rejects.toThrow(
       'Pipeline orchestrator requires librarySync, userId, and library StoreDb methods',
     )
   })
 
-  it('uses sync orchestrator when librarySync dep is provided', async () => {
-    const db = makeDb()
-    const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
-      ...db,
-      getLibraryArtistsForUser: vi.fn(async () => [
-        {
-          mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711',
-          name: 'Radiohead',
-          source: 'lidarr',
-          sourceArtistId: '1',
-          genres: ['rock'],
-          matchMethod: 'mbid',
-          matchConfidence: 1.0,
-        },
-      ]),
-      userHasOwnSyncState: vi.fn(async () => true),
-    }
-    const syncForUser = vi.fn(async () => ({ userId: 1, results: [] })) as SyncForUser
-
-    await orchestrator.run({
-      db: dbWithLibrary,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    expect(syncForUser).toHaveBeenCalledWith(1, expect.anything())
-    expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalledWith(1, { onlyReconciled: true })
-  })
-
-  // A release-radar album for an artist already in the library must survive the
-  // artist-existence filter (which would otherwise drop every tracked-artist
-  // album) and reach store(); the same album is dropped once its release group
-  // is already recommended. Both partitions run for real inside orchestrator.run
-  // -- only filter() and store() are mocked, and album-kind candidates bypass
-  // filter() entirely, so the assertion point is what store() receives.
-  const trackedArtistLibrary = [
-    {
-      mbid: 'tracked-artist',
-      name: 'Radiohead',
-      source: 'lidarr',
-      sourceArtistId: '1',
-      genres: ['rock'],
-      matchMethod: 'mbid',
-      matchConfidence: 1.0,
-    },
-  ]
-
-  const albumScored = [
-    {
-      mbid: 'tracked-artist',
-      name: 'Radiohead',
-      tags: [],
-      genres: [],
-      streamingUrls: {},
-      discoveries: [{ name: 'Radiohead', similarityScore: 0.8, source: 'release-radar' }],
-      score: 0.9,
-      sourceScores: { recency: 0.95 },
-      kind: 'album' as const,
-      releaseGroupMbid: 'rg-new',
-      releaseDate: '2026-06-01',
-      suggestedAlbum: { releaseGroupId: 'rg-new', title: 'New One' },
-    },
-  ]
-
-  it('stores a release-radar album for an artist already in the library', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
-      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
-      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set<string>()),
-      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
-    }
-    mockScore.mockReturnValue(albumScored as never)
-    // Pass-through the (mocked) artist filter so what reaches store() reflects
-    // the orchestrator's real album partition, not the default fixture.
-    mockFilter.mockImplementation((artists) => artists as never)
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    expect(mockStore).toHaveBeenCalledWith(
-      expect.arrayContaining([
-        expect.objectContaining({
-          kind: 'album',
-          releaseGroupMbid: 'rg-new',
-          suggestedAlbum: expect.objectContaining({ releaseGroupId: 'rg-new' }),
-        }),
-      ]),
-      db,
-      expect.anything(),
-    )
-
-    // Load-bearing: prove the orchestrator routed the album down the bypass
-    // branch instead of through filter(). The artist-existence filter is called
-    // unconditionally (with an empty array here), so it must never see the
-    // album candidate. If Task 6's partition were reverted, the album would
-    // flow into filter() and this assertion would fail.
-    expect(mockFilter).toHaveBeenCalled()
-    const artistKindArg = mockFilter.mock.calls[0]?.[0] ?? []
-    expect(artistKindArg).not.toContainEqual(
-      expect.objectContaining({ releaseGroupMbid: 'rg-new' }),
-    )
-  })
-
-  it('drops a release-radar album whose release group is already recommended', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
-      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
-      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set(['rg-new'])),
-      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
-    }
-    mockScore.mockReturnValue(albumScored as never)
-    mockFilter.mockImplementation((artists) => artists as never)
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    // Album dropped by dedup, no artist-kind candidates survive -> store gets [].
-    expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
-  })
-
-  it('drops a release-radar album already owned in the synced library', async () => {
-    const getOwnedAlbumKeys = vi.fn().mockResolvedValue({
-      releaseGroupMbids: new Set(['rg-new']),
-      artistTitleKeys: new Set<string>(),
-    })
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue(trackedArtistLibrary),
-      getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
-      getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set<string>()),
-      getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
-      getOwnedAlbumKeys,
-    }
-    mockScore.mockReturnValue(albumScored as never)
-    mockFilter.mockImplementation((artists) => artists as never)
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    expect(getOwnedAlbumKeys).toHaveBeenCalledWith(1)
-    expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
-  })
-
   it('fire-and-forgets first library sync when user has no prior sync state', async () => {
-    const db = makeDb()
-    const dbWithLibrary: import('@/core/pipeline/store').StoreDb = {
-      ...db,
+    const db = {
+      ...makeDb(),
       getLibraryArtistsForUser: vi.fn(async () => []),
-      userHasOwnSyncState: vi.fn(async () => false), // first sync ever
+      userHasOwnSyncState: vi.fn(async () => false),
     }
-    // Never resolves - simulates a slow first sync without leaking a timer
-    // past the end of the test.
-    const syncForUser = vi.fn(() => new Promise(() => {})) as SyncForUser
+    const pendingSync = vi.fn(() => new Promise(() => {})) as SyncForUser
 
-    const result = await orchestrator.run({
-      db: dbWithLibrary,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
+    const result = await run({ db, librarySync: { syncForUser: pendingSync } })
 
-    // Pipeline must complete WITHOUT waiting for the slow first sync
     expect(result).toEqual({ batchId: 42 })
-    expect(syncForUser).toHaveBeenCalled()
-    // It should still read from the (empty) cache
-    expect(dbWithLibrary.getLibraryArtistsForUser).toHaveBeenCalled()
+    expect(pendingSync).toHaveBeenCalled()
+    expect(db.getLibraryArtistsForUser).toHaveBeenCalled()
   })
 
-  it('passes netNewAlbumDiscovery into resolve()', async () => {
-    const db = makeDb()
-    const settings = {
-      ...defaultSettings,
-      preferences: {
-        ...defaultSettings.preferences,
-        netNewAlbumDiscovery: true,
+  // Album-kind candidates bypass filter(), so what store() receives reflects the
+  // orchestrator's real album partition and dedupe.
+  describe('release-radar albums for a tracked artist', () => {
+    const albumScored = [
+      {
+        mbid: 'tracked-artist',
+        name: 'Radiohead',
+        tags: [],
+        genres: [],
+        streamingUrls: {},
+        discoveries: [{ name: 'Radiohead', similarityScore: 0.8, source: 'release-radar' }],
+        score: 0.9,
+        sourceScores: { recency: 0.95 },
+        kind: 'album' as const,
+        releaseGroupMbid: 'rg-new',
+        releaseDate: '2026-06-01',
+        suggestedAlbum: { releaseGroupId: 'rg-new', title: 'New One' },
       },
+    ]
+
+    function albumDb(overrides: Record<string, unknown> = {}) {
+      return {
+        ...makeDb(),
+        getLibraryArtistsForUser: vi
+          .fn()
+          .mockResolvedValue([libraryArtist('Radiohead', ['rock'], 'tracked-artist')]),
+        getExistingRecommendationMbids: vi.fn().mockResolvedValue(new Set<string>()),
+        getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set<string>()),
+        getBlockedAlbumKeys: vi.fn().mockResolvedValue(new Set<string>()),
+        ...overrides,
+      }
     }
 
-    await orchestrator.run({
-      db,
-      settings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
+    beforeEach(() => {
+      mockScore.mockReturnValue(albumScored as never)
+      mockFilter.mockImplementation((artists) => artists as never)
     })
 
-    const call = mockResolve.mock.calls.at(-1)
-    expect(call?.[8]).toBe(true)
-  })
+    it('stores the album without routing it through the artist filter', async () => {
+      const db = albumDb()
 
-  it('uses libraryGenres as the reference set when library artists are present (library-install parity)', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue([
-        {
-          mbid: 'mbid-1',
-          name: 'Library Artist',
-          source: 'lidarr',
-          sourceArtistId: '1',
-          genres: ['rock', 'metal'],
-          matchMethod: 'mbid',
-          matchConfidence: 1.0,
-        },
-      ]),
-    }
-    // Taste profile with genres from listening sources
-    mockAnalyze.mockResolvedValue({
-      ...tasteProfile,
-      topGenres: [
-        { name: 'electronic', weight: 1.0 },
-        { name: 'ambient', weight: 0.5 },
+      await run({ db })
+
+      expect(mockStore).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            kind: 'album',
+            releaseGroupMbid: 'rg-new',
+            suggestedAlbum: expect.objectContaining({ releaseGroupId: 'rg-new' }),
+          }),
+        ],
+        db,
+        expect.anything(),
+      )
+      expect(mockFilter).toHaveBeenCalled()
+      expect(mockFilter.mock.calls[0]?.[0] ?? []).not.toContainEqual(
+        expect.objectContaining({ releaseGroupMbid: 'rg-new' }),
+      )
+    })
+
+    it.each([
+      [
+        'its release group is already recommended',
+        () => ({
+          getExistingAlbumReleaseGroupMbids: vi.fn().mockResolvedValue(new Set(['rg-new'])),
+        }),
       ],
-    })
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    const scoreCall = mockScore.mock.calls[0]
-    const referenceGenres = scoreCall?.[1] as string[]
-    // Library present: must use libraryGenres, NOT listening-derived genres
-    expect(referenceGenres.sort()).toEqual(['metal', 'rock'])
-    expect(referenceGenres).not.toContain('electronic')
-  })
-
-  it('uses listening-derived topGenres as the reference set when library is empty (discovery-only mode)', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue([]),
-    }
-    // Taste profile carries genres from Spotify
-    mockAnalyze.mockResolvedValue({
-      ...tasteProfile,
-      topGenres: [
-        { name: 'electronic', weight: 1.0 },
-        { name: 'ambient', weight: 0.5 },
+      [
+        'it is already owned in the synced library',
+        () => ({
+          getOwnedAlbumKeys: vi.fn().mockResolvedValue({
+            releaseGroupMbids: new Set(['rg-new']),
+            artistTitleKeys: new Set<string>(),
+          }),
+        }),
       ],
+    ])('drops the album when %s', async (_name, overrides) => {
+      const extra = overrides()
+      const db = albumDb(extra)
+
+      await run({ db })
+
+      expect(mockStore).toHaveBeenCalledWith([], db, expect.anything())
+      if ('getOwnedAlbumKeys' in extra) expect(extra.getOwnedAlbumKeys).toHaveBeenCalledWith(1)
     })
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    const scoreCall = mockScore.mock.calls[0]
-    const referenceGenres = scoreCall?.[1] as string[]
-    // No library: must fall back to listening-derived genre names
-    expect(referenceGenres.sort()).toEqual(['ambient', 'electronic'])
-  })
-
-  it('passes empty reference genres when both library and listening genres are absent', async () => {
-    const db = {
-      ...makeDb(),
-      getLibraryArtistsForUser: vi.fn().mockResolvedValue([]),
-    }
-    // Taste profile with no genres (no Spotify or sources without genre data)
-    mockAnalyze.mockResolvedValue({
-      ...tasteProfile,
-      topGenres: [],
-    })
-
-    await orchestrator.run({
-      db,
-      settings: defaultSettings,
-      providerRegistry,
-      librarySync: { syncForUser },
-      userId: 1,
-    })
-
-    const scoreCall = mockScore.mock.calls[0]
-    const referenceGenres = scoreCall?.[1] as string[]
-    expect(referenceGenres).toEqual([])
   })
 
   describe('cancel', () => {
-    it('stops the in-flight run at the next checkpoint and records cancellation', async () => {
-      const db = makeDb()
-      const jobRecorder = {
-        start: vi.fn().mockResolvedValue(11),
-        complete: vi.fn().mockResolvedValue(undefined),
-        fail: vi.fn().mockResolvedValue(undefined),
-        cancel: vi.fn().mockResolvedValue(undefined),
-        markStuck: vi.fn().mockResolvedValue(0),
+    function held() {
+      let release!: () => void
+      let enter!: () => void
+      const entered = new Promise<void>((r) => {
+        enter = r
+      })
+      const gate = new Promise<void>((r) => {
+        release = r
+      })
+      return {
+        entered,
+        release,
+        wait: async () => {
+          enter()
+          await gate
+        },
       }
+    }
+
+    it('stops the in-flight run at the next checkpoint and records cancellation', async () => {
+      const jobRecorder = makeJobRecorder(11)
       const stages: string[] = []
       orchestrator.on('progress', (e: { stage?: string }) => {
         if (e.stage) stages.push(e.stage)
       })
-
-      // Request cancellation from inside discover; the checkpoint before the
-      // resolve stage then aborts the run.
       mockDiscover.mockImplementation(async () => {
         orchestrator.cancel(1)
         return discovered
       })
 
-      await expect(
-        orchestrator.run({
-          db,
-          settings: defaultSettings,
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
-        }),
-      ).rejects.toBeInstanceOf(PipelineCancelledError)
+      await expect(run({ jobRecorder })).rejects.toBeInstanceOf(PipelineCancelledError)
 
       expect(mockResolve).not.toHaveBeenCalled()
       expect(mockStore).not.toHaveBeenCalled()
@@ -1545,34 +876,14 @@ describe('PipelineOrchestrator', () => {
     })
 
     it('drops only the caller queued runs and refuses to stop another user run', async () => {
-      const db = makeDb()
-      // Hold the first run in discover until we release it, so a second run can
-      // queue behind it before we cancel.
-      let release: () => void = () => {}
-      const held = new Promise<void>((r) => {
-        release = r
-      })
+      const discoverGate = held()
       mockDiscover.mockImplementation(async () => {
-        await held
+        await discoverGate.wait()
         return discovered
       })
 
-      orchestrator.enqueue({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
-
-      const second = orchestrator.enqueue({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 2,
-      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
-      expect(second.status).toBe('queued')
+      enqueue()
+      expect(enqueue({ userId: 2 }).status).toBe('queued')
       expect(orchestrator.queueLength).toBe(1)
 
       expect(orchestrator.cancel(3)).toEqual({ cancelled: false, dequeued: 0, forbidden: true })
@@ -1580,13 +891,7 @@ describe('PipelineOrchestrator', () => {
       expect(orchestrator.queueLength).toBe(0)
       expect(orchestrator.isRunning).toBe(true)
 
-      orchestrator.enqueue({
-        db,
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 2,
-      } as unknown as Parameters<typeof orchestrator.enqueue>[0])
+      enqueue({ userId: 2 })
       expect(orchestrator.cancel(3, { canStopOthers: true })).toEqual({
         cancelled: true,
         dequeued: 0,
@@ -1596,8 +901,7 @@ describe('PipelineOrchestrator', () => {
 
       const owners: unknown[] = []
       orchestrator.on('progress', (e: { userId?: number }) => owners.push(e.userId))
-      release()
-      // The aborted run settles, then user 2's queued run starts.
+      discoverGate.release()
       await vi.waitFor(() => expect(owners).toContain(2))
       expect(orchestrator.queueLength).toBe(0)
     })
@@ -1605,62 +909,30 @@ describe('PipelineOrchestrator', () => {
     it('keeps ownership beyond the old grace period until store and cancel bookkeeping settle', async () => {
       vi.useFakeTimers()
       try {
-        let releaseStore!: () => void
-        let enterStore!: () => void
-        let releaseCancel!: () => void
-        let enterCancel!: () => void
-        const stored = new Promise<void>((r) => {
-          enterStore = r
-        })
-        const heldStore = new Promise<void>((r) => {
-          releaseStore = r
-        })
-        const cancelling = new Promise<void>((r) => {
-          enterCancel = r
-        })
-        const heldCancel = new Promise<void>((r) => {
-          releaseCancel = r
-        })
+        const storeGate = held()
+        const cancelGate = held()
         mockStore.mockImplementationOnce(async () => {
-          enterStore()
-          await heldStore
+          await storeGate.wait()
           return 42
         })
-        const jobRecorder = {
-          start: vi.fn().mockResolvedValue(11),
-          complete: vi.fn(),
-          fail: vi.fn(),
-          cancel: vi.fn(async () => {
-            enterCancel()
-            await heldCancel
-          }),
-          markStuck: vi.fn(),
-        }
+        const jobRecorder = { ...makeJobRecorder(11), cancel: vi.fn(cancelGate.wait) }
         const terminal = vi.fn()
         orchestrator.on('progress', (e) => {
           if (e.stage === 'complete' || e.stage === 'cancelled') terminal(e, orchestrator.isRunning)
         })
-        const deps = {
-          db: makeDb(),
-          settings: defaultSettings,
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
-        }
-        const run = orchestrator.run(deps)
-        const rejection = expect(run).rejects.toBeInstanceOf(PipelineCancelledError)
-        await stored
+        const pending = run({ jobRecorder })
+        const rejection = expect(pending).rejects.toBeInstanceOf(PipelineCancelledError)
+        await storeGate.entered
         expect(orchestrator.cancel(1)).toMatchObject({ cancelled: true })
         await vi.advanceTimersByTimeAsync(16_000)
         expect(orchestrator.isRunning).toBe(true)
         expect(terminal).not.toHaveBeenCalled()
-        await expect(orchestrator.run({ ...deps, userId: 2 })).rejects.toThrow('already running')
-        releaseStore()
-        await cancelling
+        await expect(run({ jobRecorder, userId: 2 })).rejects.toThrow('already running')
+        storeGate.release()
+        await cancelGate.entered
         expect(orchestrator.isRunning).toBe(true)
         expect(terminal).not.toHaveBeenCalled()
-        releaseCancel()
+        cancelGate.release()
         await rejection
         expect(jobRecorder.complete).not.toHaveBeenCalled()
         expect(dispatch).not.toHaveBeenCalled()
@@ -1674,42 +946,19 @@ describe('PipelineOrchestrator', () => {
     })
 
     it('declines cancellation after committing completion and waits for job bookkeeping', async () => {
-      let release!: () => void
-      let enter!: () => void
-      const entered = new Promise<void>((r) => {
-        enter = r
-      })
-      const held = new Promise<void>((r) => {
-        release = r
-      })
-      const jobRecorder = {
-        start: vi.fn().mockResolvedValue(11),
-        complete: vi.fn(async () => {
-          enter()
-          await held
-        }),
-        fail: vi.fn(),
-        cancel: vi.fn(),
-        markStuck: vi.fn(),
-      }
+      const completeGate = held()
+      const jobRecorder = { ...makeJobRecorder(11), complete: vi.fn(completeGate.wait) }
       const terminal = vi.fn()
       orchestrator.on('progress', (e) => {
         if (e.stage === 'complete') terminal(e, orchestrator.isRunning)
       })
-      const run = orchestrator.run({
-        db: makeDb(),
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-        jobRecorder,
-      })
-      await entered
+      const pending = run({ jobRecorder })
+      await completeGate.entered
       expect(orchestrator.cancel(1)).toMatchObject({ cancelled: false })
       expect(orchestrator.isRunning).toBe(true)
       expect(terminal).not.toHaveBeenCalled()
-      release()
-      await run
+      completeGate.release()
+      await pending
       expect(jobRecorder.cancel).not.toHaveBeenCalled()
       expect(terminal).toHaveBeenCalledExactlyOnceWith(
         expect.objectContaining({ userId: 1 }),
@@ -1720,11 +969,8 @@ describe('PipelineOrchestrator', () => {
     it('reports failed cancellation bookkeeping as an error without a cancelled terminal', async () => {
       const cleanupError = new Error('cancel database failed')
       const jobRecorder = {
-        start: vi.fn().mockResolvedValue(11),
-        complete: vi.fn(),
-        fail: vi.fn().mockResolvedValue(undefined),
+        ...makeJobRecorder(11),
         cancel: vi.fn().mockRejectedValue(cleanupError),
-        markStuck: vi.fn(),
       }
       mockDiscover.mockImplementationOnce(async () => {
         orchestrator.cancel(1)
@@ -1736,16 +982,7 @@ describe('PipelineOrchestrator', () => {
       orchestrator.on('progress', (e) => {
         if (e.stage === 'cancelled') terminal(e)
       })
-      await expect(
-        orchestrator.run({
-          db: makeDb(),
-          settings: defaultSettings,
-          providerRegistry,
-          librarySync: { syncForUser },
-          userId: 1,
-          jobRecorder,
-        }),
-      ).rejects.toBeInstanceOf(AggregateError)
+      await expect(run({ jobRecorder })).rejects.toBeInstanceOf(AggregateError)
       expect(errors).toHaveBeenCalledWith(
         expect.objectContaining({ errors: expect.arrayContaining([cleanupError]) }),
       )
@@ -1755,40 +992,25 @@ describe('PipelineOrchestrator', () => {
 
     it('preserves a synchronously started run when a terminal listener starts new work', async () => {
       let nextRun: Promise<{ batchId: number }> | undefined
-      let release!: () => void
-      let enter!: () => void
-      const entered = new Promise<void>((r) => {
-        enter = r
-      })
-      const held = new Promise<void>((r) => {
-        release = r
-      })
+      const storeGate = held()
       mockStore.mockResolvedValueOnce(42).mockImplementationOnce(async () => {
-        enter()
-        await held
+        await storeGate.wait()
         return 43
       })
-      const deps = {
-        db: makeDb(),
-        settings: defaultSettings,
-        providerRegistry,
-        librarySync: { syncForUser },
-        userId: 1,
-      }
       orchestrator.once('progress', () => {})
       const listener = (e: { stage: string; userId: number }) => {
         if (e.stage !== 'complete') return
         orchestrator.off('progress', listener)
         expect(e.userId).toBe(1)
         expect(orchestrator.isRunning).toBe(false)
-        nextRun = orchestrator.run({ ...deps, userId: 2 })
+        nextRun = run({ userId: 2 })
       }
       orchestrator.on('progress', listener)
-      await orchestrator.run(deps)
-      await entered
+      await run()
+      await storeGate.entered
       expect(orchestrator.currentUserId).toBe(2)
       expect(orchestrator.isRunning).toBe(true)
-      release()
+      storeGate.release()
       await nextRun
     })
 

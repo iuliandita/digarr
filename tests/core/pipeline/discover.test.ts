@@ -14,61 +14,106 @@ const profile: TasteProfile = {
   listeningPatterns: { totalListens: 1000, recentTrend: 'stable' },
 }
 
-function makeLb(): DiscoverySource {
+function makeSource(
+  id: 'listenbrainz' | 'lastfm',
+  similar: Array<{ name: string; mbid?: string; similarityScore: number }>,
+): DiscoverySource {
   return {
-    id: 'listenbrainz',
-    name: 'ListenBrainz',
-    capabilities: ['topArtists', 'similarArtists', 'listeningActivity'],
+    id,
+    name: id,
+    capabilities: ['topArtists', 'similarArtists'],
     getTopArtists: vi.fn().mockResolvedValue([]),
-    getSimilarArtists: vi.fn().mockResolvedValue([
-      { name: 'Thom Yorke', similarityScore: 0.9, source: 'listenbrainz' },
-      { name: 'Massive Attack', similarityScore: 0.7, source: 'listenbrainz' },
-    ]),
+    getSimilarArtists: vi.fn().mockResolvedValue(similar.map((a) => ({ ...a, source: id }))),
     testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
   }
 }
 
-function makeLfm(): DiscoverySource {
-  return {
-    id: 'lastfm',
-    name: 'Last.fm',
-    capabilities: ['topArtists', 'similarArtists', 'genreArtists'],
-    getTopArtists: vi.fn().mockResolvedValue([]),
-    getSimilarArtists: vi.fn().mockResolvedValue([
-      { name: 'Bjork', mbid: 'mbid-bj', similarityScore: 0.85, source: 'lastfm' },
-      { name: 'Tricky', mbid: 'mbid-tr', similarityScore: 0.75, source: 'lastfm' },
-    ]),
-    testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-  }
-}
+const makeLb = () =>
+  makeSource('listenbrainz', [
+    { name: 'Thom Yorke', similarityScore: 0.9 },
+    { name: 'Massive Attack', similarityScore: 0.7 },
+  ])
+const makeLfm = () =>
+  makeSource('lastfm', [
+    { name: 'Bjork', mbid: 'mbid-bj', similarityScore: 0.85 },
+    { name: 'Tricky', mbid: 'mbid-tr', similarityScore: 0.75 },
+  ])
 
 function makeAi() {
   return {
     getRecommendations: vi.fn().mockResolvedValue([
-      {
-        artistName: 'Burial',
-        reasoning: 'Similar dark electronic sound',
-        confidence: 0.88,
-        genres: ['electronic'],
-      },
-      {
-        artistName: 'Four Tet',
-        reasoning: 'Experimental electronic',
-        confidence: 0.72,
-        genres: ['electronic'],
-      },
+      { artistName: 'Burial', reasoning: 'Dark electronic', confidence: 0.88, genres: [] },
+      { artistName: 'Four Tet', reasoning: 'Experimental', confidence: 0.72, genres: [] },
     ]),
   }
 }
 
-describe('discover()', () => {
-  it('does not invoke sources without the similarArtists capability', async () => {
-    const source: DiscoverySource = { ...makeLb(), capabilities: ['topArtists'] }
-    const results = await discover(profile, { listeningSources: [source] }, 10)
+const similarCalls = (source: DiscoverySource) => vi.mocked(source.getSimilarArtists).mock.calls
 
-    expect(source.getSimilarArtists).not.toHaveBeenCalled()
-    expect(results).toEqual([])
+describe('discover()', () => {
+  it('collects similar artists from every listening source plus one AI call, tagged by source', async () => {
+    const ai = makeAi()
+    const results = await discover(profile, { listeningSources: [makeLb(), makeLfm()], ai }, 10)
+
+    expect(Object.fromEntries(results.map((r) => [r.name, r.source]))).toEqual({
+      'Thom Yorke': 'listenbrainz',
+      'Massive Attack': 'listenbrainz',
+      Bjork: 'lastfm',
+      Tricky: 'lastfm',
+      Burial: 'ai',
+      'Four Tet': 'ai',
+    })
+    expect(ai.getRecommendations).toHaveBeenCalledTimes(1)
   })
+
+  it('returns nothing without sources and never queries a source lacking similarArtists', async () => {
+    const source: DiscoverySource = { ...makeLb(), capabilities: ['topArtists'] }
+    expect(await discover(profile, {}, 10)).toEqual([])
+    expect(await discover(profile, { listeningSources: [source] }, 10)).toEqual([])
+    expect(source.getSimilarArtists).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    {
+      failing: 'listenbrainz',
+      error: 'request failed: ?api_key=abc123secret',
+      warning: '[discover] source listenbrainz failed',
+      survivors: ['lastfm', 'ai'],
+    },
+    {
+      failing: 'ai',
+      error: 'AI request failed: ?api_key=abc123secret',
+      warning: '[discover] AI source failed',
+      survivors: ['listenbrainz', 'lastfm'],
+    },
+  ])(
+    'isolates a $failing failure and reports it redacted',
+    async ({ failing, error, warning, survivors }) => {
+      const lb = makeLb()
+      const ai = makeAi()
+      if (failing === 'ai') ai.getRecommendations.mockRejectedValue(new Error(error))
+      else vi.mocked(lb.getSimilarArtists).mockRejectedValue(new Error(error))
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const onSourceFailure = vi.fn()
+
+      const results = await discover(
+        profile,
+        { listeningSources: [lb, makeLfm()], ai },
+        10,
+        undefined,
+        0,
+        { onSourceFailure },
+      )
+
+      expect([...new Set(results.map((r) => r.source))].sort()).toEqual(survivors.sort())
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining(warning))
+      expect(onSourceFailure).toHaveBeenCalledExactlyOnceWith(
+        failing,
+        error.replace('abc123secret', '[redacted]'),
+      )
+      warn.mockRestore()
+    },
+  )
 
   it('reports a redacted failure even when another seed contributes artists', async () => {
     const source = makeLb()
@@ -85,6 +130,12 @@ describe('discover()', () => {
       'listenbrainz',
       'upstream failed: ?api_key=[redacted]',
     )
+  })
+
+  it('caps similar-artist lookups at topArtistsLimit', async () => {
+    const lb = makeLb()
+    await discover(profile, { listeningSources: [lb] }, 1)
+    expect(similarCalls(lb)).toEqual([['Radiohead', 'mbid-rh']])
   })
 
   it('reports the actual seed count after library seed selection', async () => {
@@ -122,10 +173,7 @@ describe('discover()', () => {
         random.mockReturnValueOnce(draws[0]).mockReturnValueOnce(draws[1])
         vi.mocked(source.getSimilarArtists).mockClear()
         await discover(weightedProfile, { listeningSources: [source], ai }, 2)
-        expect(vi.mocked(source.getSimilarArtists).mock.calls.map(([name]) => name)).toEqual([
-          'Strong',
-          selected,
-        ])
+        expect(similarCalls(source).map(([name]) => name)).toEqual(['Strong', selected])
       }
       expect(weightedProfile).toEqual(original)
       expect(ai.getRecommendations).toHaveBeenCalledTimes(3)
@@ -156,7 +204,7 @@ describe('discover()', () => {
         { listeningSources: [source] },
         4,
       )
-      expect(vi.mocked(source.getSimilarArtists).mock.calls.map(([name]) => name)).toEqual([
+      expect(similarCalls(source).map(([name]) => name)).toEqual([
         'Radiohead',
         'Portishead',
         'Invalid 0',
@@ -175,7 +223,7 @@ describe('discover()', () => {
       { name: 'Strong', mbid: 'strong' },
       { name: 'Echo' },
       { name: 'Echo', mbid: 'echo-one' },
-      { name: 'Caf\u00e9' },
+      { name: 'Café' },
       { name: 'The Echo' },
       { name: 'Echo', mbid: 'echo-two' },
       { name: 'Tail', mbid: 'tail' },
@@ -184,7 +232,7 @@ describe('discover()', () => {
       { name: 'Strong', mbid: 'strong' },
       { name: '  ECHO  ', mbid: '' },
       { name: 'Echo', mbid: 'echo-one' },
-      { name: '  CAFE\u0301  ', mbid: 'cafe' },
+      { name: '  CAFÉ  ', mbid: 'cafe' },
       { name: 'Echo', mbid: 'echo-two' },
       { name: 'Echo duplicate', mbid: 'echo-two' },
     ]
@@ -202,12 +250,11 @@ describe('discover()', () => {
         0.4,
         { onSeedCount },
       )
-      expect(source.getSimilarArtists).toHaveBeenCalledTimes(7)
-      expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+      expect(similarCalls(source)).toEqual([
         ['Strong', 'strong'],
         ['Echo', undefined],
         ['Echo', 'echo-one'],
-        ['Caf\u00e9', 'cafe'],
+        ['Café', 'cafe'],
         ['Echo', 'echo-two'],
         ['The Echo', undefined],
         ['Tail', 'tail'],
@@ -245,7 +292,7 @@ describe('discover()', () => {
         ratio,
         { onSeedCount },
       )
-      expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+      expect(similarCalls(source)).toEqual([
         ['Radiohead', 'mbid-rh'],
         ['Other', undefined],
       ])
@@ -266,7 +313,7 @@ describe('discover()', () => {
       1,
       { onSeedCount },
     )
-    expect(vi.mocked(source.getSimilarArtists).mock.calls).toEqual([
+    expect(similarCalls(source)).toEqual([
       ['Radiohead', 'mbid-rh'],
       ['Portishead', 'mbid-ph'],
     ])
@@ -291,6 +338,14 @@ describe('discover()', () => {
   }
 
   it.each<[string, string, string[], boolean]>([
+    ['Sonic Youth Junior', 'A UK drum and bass artist', ['Sonic Youth'], false],
+    [
+      'Digital Underground',
+      'Known for their experimental art rock sound similar to Velvet Underground with droning guitars.',
+      ['The Velvet Underground'],
+      false,
+    ],
+    ['Airborne Toxic Event', 'Indie rock band from Los Angeles.', ['Air'], true],
     ['Portishead', 'Portishead has textures comparable to Radiohead.', ['Radiohead'], true],
     ['Four Tet', 'Four Tet offers an electronic contrast to Radiohead.', ['Radiohead'], true],
     ['Four Tet', 'Electronic textures for fans of Radiohead.', ['Radiohead'], true],
@@ -411,10 +466,10 @@ describe('discover()', () => {
     ['Digital Underground', 'VELVET\n  UNDERGROUND sounds.', ['Velvet Underground'], false],
     ['Digital (Underground)', 'Velvet (Underground) sounds.', ['Velvet (Underground)'], false],
     ['Digital (Underground)', 'Velvet Underground sounds.', ['Velvet (Underground)'], true],
-    ['Digital Université', 'Velvet Universite\u0301 sounds.', ['Velvet Université'], false],
+    ['Digital Université', 'Velvet Université sounds.', ['Velvet Université'], false],
     [
       'Digital Université',
-      'Digital Universite\u0301 differs from Velvet Université.',
+      'Digital Université differs from Velvet Université.',
       ['Velvet Université'],
       true,
     ],
@@ -430,337 +485,13 @@ describe('discover()', () => {
       ['Velvet Underground Ensemble'],
       true,
     ],
-  ])('bounds reasoning identity checks for %s: %s', async (name, reasoning, seeds, retained) => {
-    expect(await aiNames(name, reasoning, seeds)).toEqual(retained ? [name] : [])
-  })
-
-  it('collects similar artists from LB source', async () => {
-    const lb = makeLb()
-    const results = await discover(profile, { listeningSources: [lb] }, 10)
-
-    const names = results.map((r) => r.name)
-    expect(names).toContain('Thom Yorke')
-    expect(names).toContain('Massive Attack')
-  })
-
-  it('collects similar artists from Last.fm source', async () => {
-    const lfm = makeLfm()
-    const results = await discover(profile, { listeningSources: [lfm] }, 10)
-
-    const names = results.map((r) => r.name)
-    expect(names).toContain('Bjork')
-    expect(names).toContain('Tricky')
-  })
-
-  it('includes AI recommendations', async () => {
-    const ai = makeAi()
-    const results = await discover(profile, { ai }, 10)
-
-    const names = results.map((r) => r.name)
-    expect(names).toContain('Burial')
-    expect(names).toContain('Four Tet')
-  })
-
-  it('tags results with correct source', async () => {
-    const lb = makeLb()
-    const lfm = makeLfm()
-    const ai = makeAi()
-    const results = await discover(profile, { listeningSources: [lb, lfm], ai }, 10)
-
-    const lbResults = results.filter((r) => r.source === 'listenbrainz')
-    const lfmResults = results.filter((r) => r.source === 'lastfm')
-    const aiResults = results.filter((r) => r.source === 'ai')
-
-    expect(lbResults.length).toBeGreaterThan(0)
-    expect(lfmResults.length).toBeGreaterThan(0)
-    expect(aiResults.length).toBeGreaterThan(0)
-  })
-
-  it('isolates LB source failure - other sources still return results', async () => {
-    const lb: DiscoverySource = {
-      id: 'listenbrainz',
-      name: 'ListenBrainz',
-      capabilities: ['topArtists', 'similarArtists', 'listeningActivity'],
-      getTopArtists: vi.fn().mockResolvedValue([]),
-      getSimilarArtists: vi.fn().mockRejectedValue(new Error('LB down')),
-      testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-    }
-    const lfm = makeLfm()
-    const ai = makeAi()
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const onSourceFailure = vi.fn()
-
-    const results = await discover(profile, { listeningSources: [lb, lfm], ai }, 10, undefined, 0, {
-      onSourceFailure,
-    })
-
-    // Should still get Last.fm and AI results
-    expect(results.filter((r) => r.source === 'lastfm').length).toBeGreaterThan(0)
-    expect(results.filter((r) => r.source === 'ai').length).toBeGreaterThan(0)
-    // But no LB results
-    expect(results.filter((r) => r.source === 'listenbrainz').length).toBe(0)
-    // The swallowed failure must be observable, not silent
-    expect(warn).toHaveBeenCalledWith(
-      expect.stringContaining('[discover] source listenbrainz failed'),
-    )
-    expect(onSourceFailure).toHaveBeenCalledWith('listenbrainz', 'LB down')
-    warn.mockRestore()
-  })
-
-  it('redacts credential-shaped substrings from a source failure before it reaches onSourceFailure', async () => {
-    const lb: DiscoverySource = {
-      id: 'listenbrainz',
-      name: 'ListenBrainz',
-      capabilities: ['topArtists', 'similarArtists', 'listeningActivity'],
-      getTopArtists: vi.fn().mockResolvedValue([]),
-      getSimilarArtists: vi
-        .fn()
-        .mockRejectedValue(new Error('request failed: ?api_key=abc123secret')),
-      testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-    }
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const onSourceFailure = vi.fn()
-
-    await discover(profile, { listeningSources: [lb] }, 10, undefined, 0, { onSourceFailure })
-
-    const [, lastError] = onSourceFailure.mock.calls[0] ?? []
-    expect(lastError).toContain('[redacted]')
-    expect(lastError).not.toContain('abc123secret')
-    warn.mockRestore()
-  })
-
-  it('isolates AI source failure - other sources still return results', async () => {
-    const lb = makeLb()
-    const ai = { getRecommendations: vi.fn().mockRejectedValue(new Error('AI down')) }
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const onSourceFailure = vi.fn()
-
-    const results = await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0, {
-      onSourceFailure,
-    })
-
-    expect(results.filter((r) => r.source === 'listenbrainz').length).toBeGreaterThan(0)
-    expect(results.filter((r) => r.source === 'ai').length).toBe(0)
-    expect(warn).toHaveBeenCalledWith(expect.stringContaining('[discover] AI source failed'))
-    expect(onSourceFailure).toHaveBeenCalledWith('ai', 'AI down')
-    warn.mockRestore()
-  })
-
-  it('redacts credential-shaped substrings from an AI source failure before it reaches onSourceFailure', async () => {
-    const lb = makeLb()
-    const ai = {
-      getRecommendations: vi
-        .fn()
-        .mockRejectedValue(new Error('AI request failed: ?api_key=abc123secret')),
-    }
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const onSourceFailure = vi.fn()
-
-    await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0, { onSourceFailure })
-
-    const aiCall = onSourceFailure.mock.calls.find((call) => call[0] === 'ai')
-    expect(aiCall).toBeDefined()
-    const lastError = aiCall?.[1]
-    expect(lastError).toContain('[redacted]')
-    expect(lastError).not.toContain('abc123secret')
-    warn.mockRestore()
-  })
-
-  it('respects topArtistsLimit - skips artists beyond the limit', async () => {
-    const lb = makeLb()
-    // Limit to 1 artist, so only Radiohead's similar artists should be fetched
-    await discover(profile, { listeningSources: [lb] }, 1)
-
-    // getSimilarArtists should only be called once (for Radiohead)
-    expect(lb.getSimilarArtists).toHaveBeenCalledTimes(1)
-    expect(lb.getSimilarArtists).toHaveBeenCalledWith('Radiohead', 'mbid-rh')
-  })
-
-  it('skips LB similar artists for artists without MBID', async () => {
-    const profileNoMbid: TasteProfile = {
-      ...profile,
-      topArtists: [{ name: 'Unknown Artist', playCount: 100, source: 'listenbrainz' }],
-    }
-    // LB source returns empty when no MBID is provided (the plugin handles this)
-    const lb: DiscoverySource = {
-      id: 'listenbrainz',
-      name: 'ListenBrainz',
-      capabilities: ['topArtists', 'similarArtists', 'listeningActivity'],
-      getTopArtists: vi.fn().mockResolvedValue([]),
-      getSimilarArtists: vi.fn().mockResolvedValue([]),
-      testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
-    }
-    const results = await discover(profileNoMbid, { listeningSources: [lb] }, 10)
-
-    // The source's getSimilarArtists is still called (it decides what to do with no MBID)
-    expect(lb.getSimilarArtists).toHaveBeenCalledWith('Unknown Artist', undefined)
-    expect(results).toEqual([])
-  })
-
-  it('returns empty array with no sources configured', async () => {
-    const results = await discover(profile, {}, 10)
-    expect(results).toEqual([])
-  })
-
-  it('makes exactly one AI call regardless of artist count', async () => {
-    const ai = makeAi()
-    await discover(profile, { ai }, 10)
-    expect(ai.getRecommendations).toHaveBeenCalledTimes(1)
-  })
-
-  it('filters AI recs with names similar to top artists (substring match)', async () => {
-    const confusedProfile: TasteProfile = {
-      ...profile,
-      topArtists: [
-        { name: 'Sonic Youth', mbid: 'mbid-sy', playCount: 800, source: 'listenbrainz' },
-      ],
-    }
-    const ai = {
-      getRecommendations: vi.fn().mockResolvedValue([
-        {
-          artistName: 'Sonic Youth Junior',
-          reasoning: 'A UK drum and bass artist',
-          confidence: 0.8,
-          genres: ['drum and bass'],
-        },
-        {
-          artistName: 'Burial',
-          reasoning: 'Dark electronic producer',
-          confidence: 0.9,
-          genres: ['electronic'],
-        },
-      ]),
-    }
-
-    const results = await discover(confusedProfile, { ai }, 10)
-    const names = results.map((r) => r.name)
-
-    expect(names).not.toContain('Sonic Youth Junior')
-    expect(names).toContain('Burial')
-  })
-
-  it('filters colliding AI names when reasoning describes only the seed artist', async () => {
-    const confusedProfile: TasteProfile = {
-      ...profile,
-      topArtists: [
-        {
-          name: 'The Velvet Underground',
-          mbid: 'mbid-vu',
-          playCount: 600,
-          source: 'listenbrainz',
-        },
-      ],
-    }
-    const ai = {
-      getRecommendations: vi.fn().mockResolvedValue([
-        {
-          artistName: 'Digital Underground',
-          reasoning:
-            'Known for their experimental art rock sound similar to Velvet Underground with droning guitars.',
-          confidence: 0.85,
-          genres: ['hip-hop'],
-        },
-        {
-          artistName: 'Grouper',
-          reasoning: 'Ambient folk artist with hazy soundscapes.',
-          confidence: 0.9,
-          genres: ['ambient'],
-        },
-      ]),
-    }
-
-    const results = await discover(confusedProfile, { ai }, 10)
-    const names = results.map((r) => r.name)
-
-    expect(names).not.toContain('Digital Underground')
-    expect(names).toContain('Grouper')
-  })
-
-  it('does not filter AI recs that legitimately share short name fragments', async () => {
-    const narrowProfile: TasteProfile = {
-      ...profile,
-      topArtists: [{ name: 'Air', mbid: 'mbid-air', playCount: 400, source: 'listenbrainz' }],
-    }
-    const ai = {
-      getRecommendations: vi.fn().mockResolvedValue([
-        {
-          artistName: 'Airborne Toxic Event',
-          reasoning: 'Indie rock band from Los Angeles.',
-          confidence: 0.75,
-          genres: ['indie rock'],
-        },
-      ]),
-    }
-
-    const results = await discover(narrowProfile, { ai }, 10)
-    // "Air" is only 3 chars - below the 4-char threshold, so no false positive
-    expect(results.map((r) => r.name)).toContain('Airborne Toxic Event')
-  })
-
-  it('returns mapped and deduped discovery-mode candidates before querying sources', async () => {
-    const lb = makeLb()
-    const explicitCandidates: DiscoveryCandidate[] = [
-      {
-        candidateType: 'artist',
-        name: 'Stereolab',
-        mbid: 'mbid-st',
-        provenanceMode: 'labels',
-        provenanceProvider: 'discogs',
-        confidenceHint: 0.9,
-        fallbackUsed: false,
-      },
-      {
-        candidateType: 'artist',
-        name: 'Stereolab',
-        mbid: 'mbid-st',
-        provenanceMode: 'labels',
-        provenanceProvider: 'discogs',
-        confidenceHint: 0.7,
-        fallbackUsed: false,
-      },
-    ]
-
-    const results = await discover(profile, { listeningSources: [lb] }, 10, undefined, 0.3, {
-      explicitCandidates,
-      explicitRun: true,
-    })
-
-    expect(results).toEqual([
-      {
-        name: 'Stereolab',
-        mbid: 'mbid-st',
-        similarityScore: 0.9,
-        source: 'labels',
-      },
-    ])
-    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
-  })
-
-  it('returns an empty result for explicit discovery runs with zero candidates', async () => {
-    const lb = makeLb()
-    const ai = {
-      getRecommendations: vi.fn().mockResolvedValue([
-        {
-          artistName: 'Should Not Be Used',
-          reasoning: 'legacy path',
-          confidence: 0.7,
-          genres: [],
-        },
-      ]),
-    }
-
-    const results = await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0.3, {
-      explicitCandidates: [],
-      explicitRun: true,
-    })
-
-    expect(results).toEqual([])
-    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
-    expect(ai.getRecommendations).not.toHaveBeenCalled()
-  })
+  ])(
+    'bounds AI name/reasoning identity checks for %s: %s',
+    async (name, reasoning, seeds, kept) => {
+      expect(await aiNames(name, reasoning, seeds)).toEqual(kept ? [name] : [])
+    },
+  )
 })
-
-const emptyProfile = { topArtists: [], topGenres: [] } as never
 
 function albumCandidate(rg: string): DiscoveredArtist {
   return {
@@ -774,29 +505,52 @@ function albumCandidate(rg: string): DiscoveredArtist {
   }
 }
 
-describe('discover explicit-run dedup', () => {
-  it('keeps multiple album-kind candidates that share an artist', async () => {
-    const out = await discover(
-      emptyProfile,
-      { listeningSources: [], musicbrainz: null as never, ai: null },
-      30,
-      undefined,
-      0.3,
-      { explicitRun: true, explicitCandidates: [albumCandidate('rg-a'), albumCandidate('rg-b')] },
-    )
-    expect(out).toHaveLength(2)
-    expect(out.map((d) => d.releaseGroupMbid).sort()).toEqual(['rg-a', 'rg-b'])
+describe('discover() explicit runs', () => {
+  it('maps and dedupes discovery-mode candidates without querying sources', async () => {
+    const lb = makeLb()
+    const base: DiscoveryCandidate = {
+      candidateType: 'artist',
+      name: 'Stereolab',
+      mbid: 'mbid-st',
+      provenanceMode: 'labels',
+      provenanceProvider: 'discogs',
+      confidenceHint: 0.9,
+      fallbackUsed: false,
+    }
+
+    const results = await discover(profile, { listeningSources: [lb] }, 10, undefined, 0.3, {
+      explicitCandidates: [base, { ...base, confidenceHint: 0.7 }],
+      explicitRun: true,
+    })
+
+    expect(results).toEqual([
+      { name: 'Stereolab', mbid: 'mbid-st', similarityScore: 0.9, source: 'labels' },
+    ])
+    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
   })
 
-  it('still collapses duplicate release groups for one artist', async () => {
-    const out = await discover(
-      emptyProfile,
-      { listeningSources: [], musicbrainz: null as never, ai: null },
-      30,
-      undefined,
-      0.3,
-      { explicitRun: true, explicitCandidates: [albumCandidate('rg-a'), albumCandidate('rg-a')] },
-    )
-    expect(out).toHaveLength(1)
+  it('returns nothing for zero candidates without calling sources or AI', async () => {
+    const lb = makeLb()
+    const ai = makeAi()
+
+    const results = await discover(profile, { listeningSources: [lb], ai }, 10, undefined, 0.3, {
+      explicitCandidates: [],
+      explicitRun: true,
+    })
+
+    expect(results).toEqual([])
+    expect(lb.getSimilarArtists).not.toHaveBeenCalled()
+    expect(ai.getRecommendations).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['keeps distinct release groups for one artist', ['rg-a', 'rg-b'], ['rg-a', 'rg-b']],
+    ['collapses a duplicate release group', ['rg-a', 'rg-a'], ['rg-a']],
+  ])('%s', async (_name, groups, expected) => {
+    const out = await discover(profile, { listeningSources: [], ai: null }, 30, undefined, 0.3, {
+      explicitRun: true,
+      explicitCandidates: groups.map(albumCandidate),
+    })
+    expect(out.map((d) => d.releaseGroupMbid).sort()).toEqual(expected)
   })
 })
