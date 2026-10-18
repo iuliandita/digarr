@@ -18,20 +18,8 @@ export type AdapterResult = {
   artists: DiscoveredArtist[]
 }
 
-export type AdapterConfigField = {
-  key: string
-  label: string
-  type: 'text' | 'password' | 'number' | 'select'
-  required?: boolean
-  placeholder?: string
-  options?: Array<{ value: string; label: string }>
-  helpText?: string
-}
-
 export interface SubscriptionAdapter {
   type: string
-  label: string
-  configFields: AdapterConfigField[]
   fetch(config: Record<string, unknown>, options?: { limit?: number }): Promise<AdapterResult>
 }
 

@@ -17,7 +17,7 @@ import {
   SLSKD_MAX_AUTO_RETRIES,
   type SlskdFailedRelease,
 } from '@/core/slskd/shared'
-import { redactSecrets } from '@/core/validation'
+import { errMsg, redactSecrets } from '@/core/validation'
 
 type SlskdPendingJobBase = { id: number }
 type SlskdActiveJobState = 'pending' | 'searching' | 'queued' | 'downloading' | 'import_pending'
@@ -623,7 +623,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
         break
       } catch (err: unknown) {
         if (attempt >= CHECKPOINT_ATTEMPTS) {
-          const reason = err instanceof Error ? err.message : String(err)
+          const reason = errMsg(err)
           throw new Error(
             `Lidarr ManualImport command ${commandId} was started but its checkpoint could not be saved: ${reason}`,
           )
@@ -686,9 +686,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
           await processTransferJob(job, slskd, targets)
         }
       } catch (err: unknown) {
-        const message = redactSecrets(err instanceof Error ? err.message : String(err))
-          .replace(/\s+/g, ' ')
-          .trim()
+        const message = redactSecrets(errMsg(err)).replace(/\s+/g, ' ').trim()
         logger.error(`[slskd] Job ${job.id} failed: ${message}`)
         try {
           await failJob(job, message)

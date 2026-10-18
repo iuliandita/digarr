@@ -980,7 +980,6 @@ export const en = {
   'search.noResultsFor': 'No artists found for',
 
   // Discovery Mode Card
-  'discoveryMode.available': 'Available',
   'discoveryMode.unavailable': 'Unavailable',
 
   // Discovery Mode Form
@@ -988,7 +987,6 @@ export const en = {
   'discoveryMode.advanced': 'Advanced',
   'discoveryMode.starting': 'Starting...',
   'discoveryMode.dismiss': 'Dismiss',
-  'discoveryMode.notAvailableBecause': 'Not available because',
   'discoveryMode.addTag': '+ Add tag',
   'discoveryMode.removeTag': 'Remove tag',
   'discoveryMode.commaSeparatedValues': 'Enter comma-separated values',

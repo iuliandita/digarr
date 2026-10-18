@@ -49,21 +49,9 @@ import {
   updateRecommendation,
 } from '../lib/api'
 import { reportApprovalOutcome } from '../lib/approval'
+import { scanStartedMessage } from '../lib/discovery-run-feedback'
+import { formatRelativeTime } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
-
-function formatRelativeTime(locale: string, dateStr: string | Date): string {
-  const diffMs = new Date(dateStr).getTime() - Date.now()
-  const diffMinutes = Math.round(diffMs / 60_000)
-  const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' })
-
-  if (Math.abs(diffMinutes) < 1) return formatter.format(0, 'second')
-  if (Math.abs(diffMinutes) < 60) return formatter.format(diffMinutes, 'minute')
-
-  const diffHours = Math.round(diffMinutes / 60)
-  if (Math.abs(diffHours) < 24) return formatter.format(diffHours, 'hour')
-
-  return formatter.format(Math.round(diffHours / 24), 'day')
-}
 
 function SectionHeader({ title, linkTo }: { title: string; linkTo: string }) {
   return (
@@ -732,15 +720,7 @@ export function Dashboard() {
   }
   const runScan = () => {
     void triggerPipeline()
-      .then((res) =>
-        toast.success(
-          res.status === 'duplicate'
-            ? t('discover.scanAlreadyRunning')
-            : res.queued
-              ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-              : t('discover.scanStarted'),
-        ),
-      )
+      .then((res) => toast.success(scanStartedMessage(t, res)))
       .catch(() => toast.error(t('discover.scanStartFailed')))
   }
   const content: Record<DashboardCardId, ReactNode> = {

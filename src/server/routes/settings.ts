@@ -20,6 +20,7 @@ import { isConnectedToken } from '@/core/provider-auth'
 import { redactSecrets } from '@/core/providers/retry'
 import { usesServerConnection } from '@/core/targets/lidarr-connection'
 import { validateAiBaseUrl } from '@/core/url-safety'
+import { errMsg } from '@/core/validation'
 import { getUserConnections, type UserConnections, updateUserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -281,9 +282,7 @@ export function settingsRoutes(deps: AppDependencies) {
       const sections = await client.getMusicSections()
       return c.json({ sections: sections.map(({ key, title }) => ({ key, title })) })
     } catch (error: unknown) {
-      const message = (error instanceof Error ? error.message : String(error))
-        .split(connections.plexToken)
-        .join('[redacted]')
+      const message = errMsg(error).split(connections.plexToken).join('[redacted]')
       return probeResult(
         c,
         { success: false, message },
@@ -499,10 +498,7 @@ export function settingsRoutes(deps: AppDependencies) {
           userUpdate.plexAccountName = account.name
           userUpdate.plexMachineIdentifier = identity.machineIdentifier
         } catch (error: unknown) {
-          const detail = redactSecrets(error instanceof Error ? error.message : String(error))
-            .replace(/\s+/g, ' ')
-            .trim()
-            .slice(0, 300)
+          const detail = redactSecrets(errMsg(error)).replace(/\s+/g, ' ').trim().slice(0, 300)
           return problem(
             c,
             'invalid-plex-account',

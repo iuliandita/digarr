@@ -1,4 +1,5 @@
 import { BlockedTargetError, type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
+import { sleep } from '@/core/sleep'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
 const SENSITIVE_QUERY_KEYS = new Set([
@@ -231,10 +232,6 @@ function parseRetryAfterMs(raw: string | null): number | null {
     ms = Math.max(0, date - Date.now())
   }
   return Math.min(ms, MAX_RETRY_AFTER_MS)
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 async function readResponseText(res: Response): Promise<string> {

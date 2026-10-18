@@ -1,29 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import type { Database } from '@/db'
 import type { GenreInsert } from '@/db/queries/genres'
-import { getGenreBySlug, getRootGenres, searchGenres, upsertGenre } from '@/db/queries/genres'
-
-type GenreRow = {
-  id: number
-  name: string
-  slug: string
-  source: string
-  parentGenreId: number | null
-  artistCount: number | null
-  cachedAt: Date | null
-}
-
-function makeGenreRow(data: GenreInsert, id = 1): GenreRow {
-  return {
-    id,
-    name: data.name,
-    slug: data.slug,
-    source: data.source,
-    parentGenreId: data.parentGenreId ?? null,
-    artistCount: data.artistCount ?? 0,
-    cachedAt: data.cachedAt ?? null,
-  }
-}
+import { getGenreBySlug, searchGenres, upsertGenre } from '@/db/queries/genres'
 
 describe('upsertGenre', () => {
   it('throws when no row returned', async () => {
@@ -69,22 +47,5 @@ describe('searchGenres', () => {
 
     await searchGenres(db, 'rock', limit)
     expect(chain.limit).toHaveBeenCalledWith(expected)
-  })
-})
-
-describe('getRootGenres', () => {
-  it('returns genres with no parent', async () => {
-    const rows: GenreRow[] = [
-      makeGenreRow({ name: 'Rock', slug: 'rock', source: 'musicbrainz' }, 1),
-    ]
-    const chain = {
-      from: vi.fn().mockReturnThis(),
-      where: vi.fn().mockResolvedValue(rows),
-    }
-    const db = { select: vi.fn().mockReturnValue(chain) } as unknown as Database
-
-    const result = await getRootGenres(db)
-    expect(result).toHaveLength(1)
-    expect(chain.where).toHaveBeenCalledOnce()
   })
 })

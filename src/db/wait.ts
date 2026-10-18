@@ -1,4 +1,6 @@
 import type { Pool } from 'pg'
+import { sleep } from '@/core/sleep'
+import { errMsg } from '@/core/validation'
 
 const STARTUP_RETRY_INITIAL_MS = 1_000
 const STARTUP_RETRY_MAX_MS = 30_000
@@ -42,10 +44,6 @@ export function isRetryableConnectionError(err: unknown): boolean {
   return RETRYABLE_PG_CODES.has(code) || RETRYABLE_NET_CODES.has(code)
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms))
-}
-
 export type WaitForDatabaseOptions = {
   /** Initial backoff delay in ms, doubled each attempt up to maxDelayMs. */
   initialDelayMs?: number
@@ -86,7 +84,7 @@ export async function waitForDatabase(
     } catch (err: unknown) {
       if (!isRetryableConnectionError(err)) throw err
       const code = (err as { code?: string }).code ?? 'n/a'
-      const msg = err instanceof Error ? err.message : String(err)
+      const msg = errMsg(err)
       console.warn(
         `[db] startup connect attempt ${attempt} failed (code=${code}): ${msg}; retrying in ${delay}ms`,
       )

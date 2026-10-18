@@ -1006,8 +1006,6 @@ async function runSubscriptionById(subscriptionId: number): Promise<void> {
     subscriptionConfig,
     (adapter ?? {
       type: DISCOVERY_MODE_SUBSCRIPTION_TYPE,
-      label: 'Discovery Mode',
-      configFields: [],
       fetch: async () => ({ artists: [] }),
     }) as import('./core/subscriptions/types').SubscriptionAdapter,
     {

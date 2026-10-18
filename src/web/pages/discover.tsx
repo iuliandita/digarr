@@ -61,6 +61,7 @@ import {
   updateRecommendation,
 } from '../lib/api'
 import { reportApprovalOutcome } from '../lib/approval'
+import { scanStartedMessage } from '../lib/discovery-run-feedback'
 import { useI18n } from '../lib/i18n'
 import { usePreviewContext } from '../lib/preview-context'
 
@@ -210,15 +211,7 @@ function EmptyState({ filter, kind }: { filter: FilterTab; kind: KindFilter }) {
             type="button"
             onClick={() =>
               triggerPipeline()
-                .then((res) =>
-                  toast.success(
-                    res.status === 'duplicate'
-                      ? t('discover.scanAlreadyRunning')
-                      : res.queued
-                        ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                        : t('discover.scanStarted'),
-                  ),
-                )
+                .then((res) => toast.success(scanStartedMessage(t, res)))
                 .catch((err) => {
                   const msg =
                     typeof err === 'object' && err !== null && 'message' in err

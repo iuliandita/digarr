@@ -3,6 +3,7 @@ import type { DiscoveryCandidate } from '@/core/discovery-modes/types'
 import type { DiscoverySource } from '@/core/plugins/types'
 import { redactSecrets } from '@/core/providers/retry'
 import type { AiRecommendation, DiscoveredArtist, TasteProfile } from '@/core/types'
+import { errMsg } from '@/core/validation'
 
 const ARTICLES = /^(the|a|an)\s+/i
 
@@ -252,7 +253,7 @@ export async function discover(
           const prev = sourceFailures.get(source.id)
           sourceFailures.set(source.id, {
             count: (prev?.count ?? 0) + 1,
-            lastError: redactSecrets(err instanceof Error ? err.message : String(err)),
+            lastError: redactSecrets(errMsg(err)),
           })
         }
       }
@@ -287,7 +288,7 @@ export async function discover(
         })
       }
     } catch (err) {
-      const detail = redactSecrets(err instanceof Error ? err.message : String(err))
+      const detail = redactSecrets(errMsg(err))
       console.warn(`[discover] AI source failed: ${detail}`)
       options.onSourceFailure?.('ai', detail)
     }

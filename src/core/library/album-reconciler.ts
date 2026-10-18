@@ -1,6 +1,6 @@
 import { type createMusicBrainzClient, parseYear } from '@/core/clients/musicbrainz'
 import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
-import { isValidMbid } from '@/core/validation'
+import { errMsg, isValidMbid } from '@/core/validation'
 import { normalizeAlbumTitle } from './normalize'
 import type { LibraryAlbum } from './sources/types'
 import type { UnreconciledReason } from './types'
@@ -95,7 +95,7 @@ export async function reconcileAlbumsForArtist(
     releaseGroupLookupFailed = true
     deps.onMbError?.(err)
     console.warn(
-      `[library-reconcile] MB getReleaseGroups failed for artist ${artistMbid}; albums left unreconciled: ${err instanceof Error ? err.message : String(err)}`,
+      `[library-reconcile] MB getReleaseGroups failed for artist ${artistMbid}; albums left unreconciled: ${errMsg(err)}`,
     )
     releaseGroups = []
   }

@@ -1,4 +1,15 @@
-import { getJob, type JobRun } from './api'
+import type { MessageKey } from '@/core/i18n/messages/types'
+import { sleep } from '@/core/sleep'
+import { getJob, type JobRun, type triggerPipeline } from './api'
+
+export function scanStartedMessage(
+  t: (key: MessageKey) => string,
+  res: Awaited<ReturnType<typeof triggerPipeline>>,
+): string {
+  if (res.status === 'duplicate') return t('discover.scanAlreadyRunning')
+  if (res.queued) return t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
+  return t('discover.scanStarted')
+}
 
 type WaitForDiscoveryRunCompletionOptions = {
   getJob?: (id: number) => Promise<JobRun>
@@ -6,10 +17,6 @@ type WaitForDiscoveryRunCompletionOptions = {
   maxAttempts?: number
   onCompleted?: (job: JobRun) => void
   onFailed?: (job: JobRun) => void
-}
-
-function sleep(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 export async function waitForDiscoveryRunCompletion(

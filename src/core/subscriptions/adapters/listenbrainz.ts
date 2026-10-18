@@ -3,29 +3,7 @@ import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
 import { deduplicateByName } from '@/core/subscriptions/dedup'
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'feedType',
-    label: 'Feed Type',
-    type: 'select',
-    required: true,
-    options: [
-      { value: 'fresh-releases', label: 'Fresh Releases' },
-      { value: 'weekly-jams', label: 'Weekly Jams' },
-      { value: 'artist-radio', label: 'Artist Radio' },
-
-      { value: 'similar-users', label: 'Similar Users' },
-      { value: 'tag-radio', label: 'Tag Radio' },
-    ],
-    helpText: 'Which ListenBrainz feed to pull artists from.',
-  },
-]
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 
 type FreshRelease = {
   artist_credit_name?: string
@@ -64,9 +42,6 @@ export function createListenBrainzAdapter(deps: {
 }): SubscriptionAdapter {
   return {
     type: 'listenbrainz',
-    label: 'ListenBrainz',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },
@@ -107,8 +82,7 @@ async function fetchFeed(
   return { artists: [] }
 }
 
-async function fetchFreshReleases(token: string): Promise<AdapterResult> {
-  const url = `${LB_BASE}/explore/fresh-releases?days=14`
+async function fetchListenBrainz(url: string, token: string, feed: string): Promise<Response> {
   const controller = new AbortController()
   const timer = setTimeout(() => controller.abort(), 10_000)
   let res: Response
@@ -120,11 +94,18 @@ async function fetchFreshReleases(token: string): Promise<AdapterResult> {
   } finally {
     clearTimeout(timer)
   }
-
   if (!res.ok) {
-    throw new Error(`ListenBrainz fresh-releases fetch failed: ${res.status} ${res.statusText}`)
+    throw new Error(`ListenBrainz ${feed} fetch failed: ${res.status} ${res.statusText}`)
   }
+  return res
+}
 
+async function fetchFreshReleases(token: string): Promise<AdapterResult> {
+  const res = await fetchListenBrainz(
+    `${LB_BASE}/explore/fresh-releases?days=14`,
+    token,
+    'fresh-releases',
+  )
   const data = (await res.json()) as FreshReleasesPayload
   const releases = (data.payload?.releases ?? []).flatMap((r) =>
     r.artist_credit_name ? [{ name: r.artist_credit_name }] : [],
@@ -230,23 +211,11 @@ async function fetchTagRadio(
 }
 
 async function fetchWeeklyJams(username: string, token: string): Promise<AdapterResult> {
-  const url = `${LB_BASE}/user/${encodeURIComponent(username)}/playlists`
-  const controller = new AbortController()
-  const timer = setTimeout(() => controller.abort(), 10_000)
-  let res: Response
-  try {
-    res = await fetch(url, {
-      headers: { Authorization: `Token ${token}` },
-      signal: controller.signal,
-    })
-  } finally {
-    clearTimeout(timer)
-  }
-
-  if (!res.ok) {
-    throw new Error(`ListenBrainz weekly-jams fetch failed: ${res.status} ${res.statusText}`)
-  }
-
+  const res = await fetchListenBrainz(
+    `${LB_BASE}/user/${encodeURIComponent(username)}/playlists`,
+    token,
+    'weekly-jams',
+  )
   const data = (await res.json()) as UserPlaylistsResponse
   const playlists = data.playlists ?? []
 

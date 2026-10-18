@@ -37,6 +37,7 @@ import {
   triggerPipeline,
   updatePreferredLocale,
 } from './lib/api'
+import { scanStartedMessage } from './lib/discovery-run-feedback'
 import { useI18n } from './lib/i18n'
 import { MENU_CLASS, MENU_ITEM_CLASS } from './lib/menu-styles'
 import { isSettingsActive, type NavItem, PRIMARY_NAV, TOOLS_NAV } from './lib/nav'
@@ -563,15 +564,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
                 disabled={!!pipelineRunning}
                 onClick={() =>
                   triggerPipeline()
-                    .then((res) =>
-                      toast.success(
-                        res.status === 'duplicate'
-                          ? t('discover.scanAlreadyRunning')
-                          : res.queued
-                            ? t('discover.scanQueued').replace('{0}', String(res.position ?? 0))
-                            : t('discover.scanStarted'),
-                      ),
-                    )
+                    .then((res) => toast.success(scanStartedMessage(t, res)))
                     .catch((err) => {
                       toast.error(errMsg(err))
                     })

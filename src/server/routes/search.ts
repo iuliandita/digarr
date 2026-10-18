@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import type { SearchSourceDescriptor } from '@/core/search/catalog'
 import type { MergedSearchResult } from '@/core/search/multi-source'
+import { errMsg } from '@/core/validation'
 import { parseOptionalClampedInt } from '@/server/helpers/parse-int-clamp'
 import type { HonoEnv } from '@/server/types'
 
@@ -37,7 +38,7 @@ export function searchRoutes(deps: SearchDeps) {
       const results = await deps.search(query, { limit, sources: sourcesParam, userId })
       return c.json({ results })
     } catch (err: unknown) {
-      console.error('[search] failed:', err instanceof Error ? err.message : String(err))
+      console.error('[search] failed:', errMsg(err))
       return c.json({ error: 'Search failed' }, 500)
     }
   })

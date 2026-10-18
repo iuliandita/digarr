@@ -124,7 +124,6 @@ vi.mock('@/web/lib/api', () => ({
   getPlaylistScheduler: vi.fn().mockResolvedValue({ enabled: false, nextRun: null }),
   getSchedulerInfo: vi.fn().mockResolvedValue({ jobs: [] }),
   getDashboardTaste: vi.fn().mockResolvedValue([]),
-  getDashboardActivity: vi.fn().mockResolvedValue([]),
   getJobHealth: vi.fn().mockResolvedValue({
     pipeline: { status: 'ok', lastRun: null, nextRun: null },
     subscriptions: { status: 'ok', healthy: 0, total: 0 },

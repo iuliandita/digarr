@@ -81,8 +81,6 @@ function makeDeps(overrides: Partial<SubscriptionRunDeps> = {}): SubscriptionRun
 function makeAdapter(overrides: Partial<SubscriptionAdapter> = {}): SubscriptionAdapter {
   return {
     type: 'test',
-    label: 'Test',
-    configFields: [],
     fetch: vi.fn().mockResolvedValue({ artists: [] }),
     ...overrides,
   }

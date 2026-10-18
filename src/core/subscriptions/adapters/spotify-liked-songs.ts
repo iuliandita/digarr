@@ -21,9 +21,6 @@ export function createSpotifyLikedSongsAdapter(deps: {
 
   return {
     type: 'spotify-liked-songs',
-    label: 'Spotify Liked Songs',
-    configFields: [],
-
     async fetch(
       _config: Record<string, unknown>,
       options?: { limit?: number },

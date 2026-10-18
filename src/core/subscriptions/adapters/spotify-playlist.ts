@@ -1,21 +1,6 @@
-import type {
-  AdapterConfigField,
-  AdapterResult,
-  SubscriptionAdapter,
-} from '@/core/subscriptions/types'
+import type { AdapterResult, SubscriptionAdapter } from '@/core/subscriptions/types'
 import type { DiscoveredArtist } from '@/core/types'
 import { extractArtistsFromPlaylist, type SpotifyTrackItem } from './spotify-shared'
-
-const CONFIG_FIELDS: AdapterConfigField[] = [
-  {
-    key: 'playlistId',
-    label: 'Playlist ID or URL',
-    type: 'text',
-    required: true,
-    placeholder: 'e.g. 37i9dQZEVXbMDoHDwVN2tF or open.spotify.com/playlist/...',
-    helpText: 'Spotify playlist URL, URI, or bare ID.',
-  },
-]
 
 const PAGE_SIZE = 50
 const MAX_PAGES = 20
@@ -120,9 +105,6 @@ export function createSpotifyPlaylistAdapter(deps: {
 
   return {
     type: 'spotify-playlist',
-    label: 'Spotify Playlist',
-    configFields: CONFIG_FIELDS,
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

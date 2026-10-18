@@ -5,6 +5,7 @@ import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
+import { errMsg } from '@/core/validation'
 import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
 import { effectiveIsAdmin } from '@/server/middleware/admin-guard'
@@ -97,7 +98,7 @@ export function createApp(deps: AppDependencies) {
         err.message || undefined,
       )
     }
-    const msg = err instanceof Error ? err.message : String(err)
+    const msg = errMsg(err)
     console.error('[server] unhandled error:', msg, err instanceof Error ? err.stack : '')
     return problem(c, 'internal-error', 'Internal Server Error', 500)
   })

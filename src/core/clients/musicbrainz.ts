@@ -1,6 +1,7 @@
 import PQueue from 'p-queue'
 import { envConfig } from '@/config/env'
 import { sleep } from '@/core/sleep'
+import { errMsg } from '@/core/validation'
 import { VERSION } from '@/version'
 
 const BASE_URL = envConfig.musicbrainzUrl
@@ -216,7 +217,7 @@ export function createMusicBrainzClient() {
         }
         const backoff = BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250
         console.warn(
-          `[musicbrainz] ${err instanceof Error ? err.message : String(err)} for ${path} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${Math.round(backoff)}ms`,
+          `[musicbrainz] ${errMsg(err)} for ${path} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${Math.round(backoff)}ms`,
         )
         await sleep(backoff)
         lastErr = err

@@ -11,6 +11,7 @@
 import PQueue from 'p-queue'
 import { guardedFetch } from '@/core/net/guarded-fetch'
 import type { ServiceTestResult } from '@/core/types'
+import { errMsg } from '@/core/validation'
 
 const DEFAULT_BASE_URL = 'https://bandcamp.com'
 const MAX_BODY_BYTES = 2 * 1024 * 1024
@@ -254,7 +255,7 @@ export function createBandcampClient(config?: { baseUrl?: string }) {
     } catch (err: unknown) {
       return {
         success: false,
-        message: err instanceof Error ? err.message : String(err),
+        message: errMsg(err),
       }
     }
   }

@@ -3,6 +3,7 @@ import { createLastFmSource } from '@/core/plugins/lastfm'
 import { createListenBrainzSource } from '@/core/plugins/listenbrainz'
 import type { DiscoverySource } from '@/core/plugins/types'
 import { createSimilarAdapter } from '@/core/subscriptions/adapters/similar'
+import { errMsg } from '@/core/validation'
 import type { DiscoveryModeDefinition } from '../types'
 import { getDiscoveryModeConnections, getNormalizedLimit, getProviderPath } from './runtime'
 
@@ -80,7 +81,7 @@ export function createSimilarArtistWebMode(): DiscoveryModeDefinition {
         { limit },
       )
       if (calls > 0 && failures === calls) {
-        const detail = lastError instanceof Error ? lastError.message : String(lastError)
+        const detail = errMsg(lastError)
         throw new Error(`All similar-artist lookups failed: ${detail}`)
       }
 

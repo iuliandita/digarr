@@ -135,6 +135,26 @@ export function scopedArtistsPath(
   return `/Artists?${params.toString()}`
 }
 
+export function artistListPath(
+  userId: string,
+  libraryId: string | null,
+  order: { SortBy: string; SortOrder: string },
+  limit: number,
+  favoritesOnly = false,
+): string {
+  const favorite: Record<string, string> = favoritesOnly ? { IsFavorite: 'true' } : {}
+  const tail = { Fields: 'UserData,Genres,ProviderIds', Limit: String(limit) }
+  if (libraryId) return scopedArtistsPath(userId, libraryId, { ...order, ...favorite, ...tail })
+  const params = new URLSearchParams({
+    ...order,
+    IncludeItemTypes: 'MusicArtist',
+    Recursive: 'true',
+    ...favorite,
+    ...tail,
+  })
+  return `/Users/${userId}/Items?${params.toString()}`
+}
+
 function providerId(item: RawItem, key: string): string | undefined {
   return (item.ProviderIds as Record<string, string> | undefined)?.[key]
 }

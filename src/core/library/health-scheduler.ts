@@ -1,5 +1,6 @@
 import { Cron } from 'croner'
 import { isMaintenance } from '@/core/ops/maintenance'
+import { buildCronPattern } from './scheduler'
 
 export type LibraryHealthSchedulerDeps = {
   intervalHours: number
@@ -8,12 +9,6 @@ export type LibraryHealthSchedulerDeps = {
   }
   // Scheduled scans are Lidarr-only; discovery-only installs skip them instead of failing every tick.
   isConfigured: () => Promise<boolean>
-}
-
-function buildCronPattern(intervalHours: number): string {
-  if (intervalHours < 1) return '*/5 * * * *'
-  const hours = Math.min(23, Math.round(intervalHours))
-  return `0 */${hours} * * *`
 }
 
 export function startLibraryHealthScheduler(deps: LibraryHealthSchedulerDeps): Cron {

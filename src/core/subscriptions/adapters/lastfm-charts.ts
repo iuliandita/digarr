@@ -17,9 +17,6 @@ type LastfmChartsResponse = {
 export function createLastfmChartsAdapter(deps: { apiKey: string }): SubscriptionAdapter {
   return {
     type: 'lastfm-charts',
-    label: 'Last.fm Charts',
-    configFields: [],
-
     async fetch(
       _config: Record<string, unknown>,
       options?: { limit?: number },

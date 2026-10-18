@@ -1,7 +1,7 @@
 import type { ExportableRecommendation } from './types'
 import { getStreamingUrl } from './types'
 
-function escapeXml(s: string): string {
+export function escapeXml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

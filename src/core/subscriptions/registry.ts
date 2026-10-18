@@ -12,12 +12,4 @@ export class AdapterRegistry {
   get(type: string): SubscriptionAdapter | undefined {
     return this.adapters.get(type)
   }
-
-  getAll(): SubscriptionAdapter[] {
-    return Array.from(this.adapters.values())
-  }
-
-  getTypes(): string[] {
-    return Array.from(this.adapters.keys())
-  }
 }

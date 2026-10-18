@@ -2,6 +2,7 @@ import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 import {
+  artistListPath,
   type MediaBrowserArtist,
   type MediaBrowserLibrary,
   type MediaBrowserLibraryAlbum,
@@ -97,27 +98,14 @@ export function createJellyfinClient(
 
   async function getTopArtists(limit = 50): Promise<JellyfinArtist[]> {
     const userId = await getUserId()
-    let res: JellyfinItemsResponse
-    if (configuredLibraryId) {
-      res = await get<JellyfinItemsResponse>(
-        scopedArtistsPath(userId, configuredLibraryId, {
-          SortBy: 'PlayCount',
-          SortOrder: 'Descending',
-          Fields: 'UserData,Genres,ProviderIds',
-          Limit: String(limit),
-        }),
-      )
-    } else {
-      const params = new URLSearchParams({
-        SortBy: 'PlayCount',
-        SortOrder: 'Descending',
-        IncludeItemTypes: 'MusicArtist',
-        Recursive: 'true',
-        Fields: 'UserData,Genres,ProviderIds',
-        Limit: String(limit),
-      })
-      res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
-    }
+    const res = await get<JellyfinItemsResponse>(
+      artistListPath(
+        userId,
+        configuredLibraryId,
+        { SortBy: 'PlayCount', SortOrder: 'Descending' },
+        limit,
+      ),
+    )
 
     return res.Items.filter((item) => {
       const userData = item.UserData as { PlayCount?: number } | undefined
@@ -155,29 +143,15 @@ export function createJellyfinClient(
 
   async function getFavoriteArtists(limit = 50): Promise<JellyfinArtist[]> {
     const userId = await getUserId()
-    let res: JellyfinItemsResponse
-    if (configuredLibraryId) {
-      res = await get<JellyfinItemsResponse>(
-        scopedArtistsPath(userId, configuredLibraryId, {
-          SortBy: 'SortName',
-          SortOrder: 'Ascending',
-          IsFavorite: 'true',
-          Fields: 'UserData,Genres,ProviderIds',
-          Limit: String(limit),
-        }),
-      )
-    } else {
-      const params = new URLSearchParams({
-        SortBy: 'SortName',
-        SortOrder: 'Ascending',
-        IncludeItemTypes: 'MusicArtist',
-        Recursive: 'true',
-        IsFavorite: 'true',
-        Fields: 'UserData,Genres,ProviderIds',
-        Limit: String(limit),
-      })
-      res = await get<JellyfinItemsResponse>(`/Users/${userId}/Items?${params.toString()}`)
-    }
+    const res = await get<JellyfinItemsResponse>(
+      artistListPath(
+        userId,
+        configuredLibraryId,
+        { SortBy: 'SortName', SortOrder: 'Ascending' },
+        limit,
+        true,
+      ),
+    )
 
     return res.Items.map((item) => mapArtist(item, true))
   }

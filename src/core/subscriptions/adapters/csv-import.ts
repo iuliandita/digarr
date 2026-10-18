@@ -49,9 +49,6 @@ export function parseCsvArtists(csv: string, maxArtists = 500): string[] {
 export function createCsvImportAdapter(): SubscriptionAdapter {
   return {
     type: 'csv-import',
-    label: 'CSV Import',
-    configFields: [],
-
     async fetch(
       config: Record<string, unknown>,
       options?: { limit?: number },

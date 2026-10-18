@@ -1,6 +1,6 @@
 import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
-import { isValidMbid } from '@/core/validation'
+import { errMsg, isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
 import { normalizeArtistName } from './normalize'
 import type { LibraryArtist } from './sources/types'
@@ -10,10 +10,6 @@ type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
   'searchArtist' | 'getReleaseGroups'
 >
-
-function mbErrorMessage(err: unknown): string {
-  return err instanceof Error ? err.message : String(err)
-}
 
 function bumpMbFailed(counts: LibrarySyncCounts): void {
   counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
@@ -198,9 +194,7 @@ export async function reconcileArtist(
     mbResult = await ctx.mbClient.searchArtist(nameNormalized)
   } catch (err) {
     bumpMbFailed(ctx.counts)
-    console.warn(
-      `[library-reconcile] MB searchArtist failed for "${artist.name}": ${mbErrorMessage(err)}`,
-    )
+    console.warn(`[library-reconcile] MB searchArtist failed for "${artist.name}": ${errMsg(err)}`)
     return lookupFailedRow(artist, nameNormalized, ctx)
   }
   // A primary-name match outranks alias matches, so an alias shared with
@@ -250,7 +244,7 @@ export async function reconcileArtist(
         } catch (err) {
           bumpMbFailed(ctx.counts)
           console.warn(
-            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}": ${mbErrorMessage(err)}`,
+            `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}": ${errMsg(err)}`,
           )
           return { candidate: c, overlap: 0, lookupFailed: true }
         }
