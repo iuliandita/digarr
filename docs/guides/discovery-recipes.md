@@ -79,6 +79,7 @@ There is no seasonal preset. The presets under New > From a preset (Casual, Deep
 A schedule is a mode or a genre feed run on a cron. Two ways to build a tag schedule:
 
 - Tag Radio (needs ListenBrainz). Run a mode > Tag Radio, add tags with weights (for example `summer` weight 2, `surf rock` weight 1), then Schedule instead of Run now. Advanced adds Recordings to fetch (default 25; larger values are slower because of MusicBrainz rate limiting), and Popularity min and max (0 to 100) to keep results away from the most or least played. Each Tag Radio recommendation also remembers the radio track that earned the artist a place. Discover shows it as "Recommended track", and Audition plays that recording instead of a different song by the artist. If no exact match is found, the track is reported as unresolved.
+- Weekly Jams (needs ListenBrainz). Run a mode > ListenBrainz > Weekly Jams. Digarr reads the newest "Weekly Jams" playlist ListenBrainz generated for you (Mondays), not your own playlists. Each artist keeps the track ListenBrainz picked, shown as "Recommended track". If ListenBrainz has not generated one yet, the run finds nothing.
 - Genre schedule (needs Last.fm or Discogs). New > Source Type Genre, enter a tag such as `christmas` or `synthwave`, and pick the providers that can look up genres.
 
 Scheduling:

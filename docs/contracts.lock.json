@@ -592,7 +592,7 @@
         "src/core/discovery-modes/modes/deezer-flow.ts": "0eee1d434256cf9bf4ab9fadb166045a66cbd6d0222f6ed3bf9b4f98c8a8ff7e",
         "src/core/discovery-modes/modes/gap-fill.ts": "b3a32e0bfd823f63912fccb9cc801cd97db52945890412bfbba78ed579e30201",
         "src/core/discovery-modes/modes/labels.ts": "a9ebf278f6d1b72a975b605db0d4714365c8fb74a4e5201aeb99ecd44a16ac14",
-        "src/core/discovery-modes/modes/listenbrainz.ts": "2e53637cec87a0aa034374ae60295b1ef2974d86147aec969ca601496270a518",
+        "src/core/discovery-modes/modes/listenbrainz.ts": "632e3d13c5d5edfd4fab20cde20b50deefa8a837842d517fe758e80bb2030d84",
         "src/core/discovery-modes/modes/release-radar.ts": "8c50cdbf589dc0b592337bad73639617cc71ba522f922f25c254014d3f132755",
         "src/core/discovery-modes/modes/runtime.ts": "b2f52eeb674e0fda51e4e52978310c8917367e650d0882af20db409f9e8faf25",
         "src/core/discovery-modes/modes/similar-artist-web.ts": "866b8090cbc461e444360f8f220c93168a0f6283b38b5d3a022175d3119e2624",
@@ -722,7 +722,7 @@
         "src/core/subscriptions/adapters/genre.ts": "bdf75eacb7bfbe012e6a369d58e0ad6ccd8aea3d469fdcbb1149820d9c8334bb",
         "src/core/subscriptions/adapters/lastfm-charts.ts": "48deaa64c7e1bc5b4206048611763771e150eb0141d681e881e7bffea0679bd2",
         "src/core/subscriptions/adapters/lastfm-tag.ts": "1ccd33922c25b097c05ed06870f3c1c5716476639d71a3a9866f0da814d106d7",
-        "src/core/subscriptions/adapters/listenbrainz.ts": "110121d6c56cf0a33aba9bebb6919ae20f5f069e0054a40f4809cf461cbfca05",
+        "src/core/subscriptions/adapters/listenbrainz.ts": "af92a992a102021b88360fa8f4bc5ebafb03f31161bb86269d6a426fbd2137f5",
         "src/core/subscriptions/adapters/similar.ts": "c7d82ca5a438eef6076263bbc79123e1a471bd0599a9f0f52116dafd95353254",
         "src/core/subscriptions/adapters/spotify-charts.ts": "87c31cb69bc82212529b6a1c40e50922535c54e9a20683cdebee71b89f48ced5",
         "src/core/subscriptions/adapters/spotify-liked-songs.ts": "f1835f48a2800b292f271d8c7127d2e487e8c57b6d672f6e2c62a970925ab1a2",
@@ -731,8 +731,8 @@
         "src/core/subscriptions/connections.ts": "a7a26cbba2e3ab823140a71c9bc4a40cf8a698014b5f9a78f1322ed60833b59e",
         "src/core/subscriptions/dedup.ts": "f23afd2e0b4385a7e0c416ce23ae89125d16de848623fafc12eda91b2610c849",
         "src/core/subscriptions/registry.ts": "e62daa124bf30b318ad7c99e73c240809fa59fed8929a106f515549c0351d224",
-        "src/core/subscriptions/runner.ts": "d0533e808cd69ae8548318095bc31a83a6d56aea56aaf457a6369e519f0452ea",
-        "src/core/subscriptions/types.ts": "05e47b95327590fd88f4307c6eb27ddb4eb89fc6ee0f7429073544ed512a3c5e",
+        "src/core/subscriptions/runner.ts": "4cc0fa24b06745e2d3ca8163266f8780e5bc7c4bbb1e2df4385034e1e87a5eee",
+        "src/core/subscriptions/types.ts": "0c1ab4bdd6393d0dad54fcef802a10087384478545061cd470de1b3d11d83863",
         "src/core/targets/action-status.ts": "cfa09e111312ce4d47bda3679e6328f18efbea6262ade6037bcdf34d80d99ccb",
         "src/core/targets/emby-playlist.ts": "517b800456ce079a87380f8cb38817ef3bf54aa0f6d55f6e30ea089ef6551401",
         "src/core/targets/export-csv.ts": "82989e24a5e576108395166c090e79073b6297682da82e2b474d331b792300f1",
@@ -763,14 +763,14 @@
         "src/index.ts": "96e86b1665ddddc967789b30bd2ee034a80cea14cb0e0108e0329ba782253cca",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "030a75a15a2d48723c59bf37726ceb3c59dc3c3ce9762df726962c69ddc5deb3",
+      "digest": "951e4e10e20e3e49e859d65baccc86df88faf81ca1248218add2b000f0f44a67",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md"],
         "note": "Recently played matching now adds both the submitted additional_info recording MBID and the ListenBrainz mbid_mapping recording MBID to the played set, so a stale or redirected submitted MBID no longer hides a play; ARCHITECTURE filter section updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "030a75a15a2d48723c59bf37726ceb3c59dc3c3ce9762df726962c69ddc5deb3"
+        "digest": "951e4e10e20e3e49e859d65baccc86df88faf81ca1248218add2b000f0f44a67"
       }
     },
     "deployment": {

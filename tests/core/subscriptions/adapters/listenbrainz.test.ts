@@ -19,30 +19,96 @@ const freshReleasesFixture = {
   },
 }
 
-const weeklyJamsFixture = {
+const NEW_JAMS = '80d61d95-61b0-4a22-8556-443c0fb26078'
+const OLD_JAMS = '11111111-2222-4333-8444-555555555555'
+const EXPLORATION = 'c99f9e8d-77ab-446e-bf95-248bbc0ab535'
+
+const jspfTrack = (creator: string, title: string, artistMbid: string, recordingMbid: string) => ({
+  creator,
+  title,
+  identifier: [`https://musicbrainz.org/recording/${recordingMbid}`],
+  extension: {
+    'https://musicbrainz.org/doc/jspf#track': {
+      additional_metadata: {
+        artists: [{ artist_credit_name: creator, artist_mbid: artistMbid, join_phrase: '' }],
+      },
+      artist_identifiers: [`https://musicbrainz.org/artist/${artistMbid}`],
+    },
+  },
+})
+
+const createdForEntry = (mbid: string, title: string, date: string) => ({
+  playlist: {
+    title,
+    date,
+    identifier: `https://listenbrainz.org/playlist/${mbid}`,
+    track: [], // the list endpoints never include tracks
+  },
+})
+
+// Oldest first on purpose: the newest Weekly Jams must win by date, not list order.
+const createdForFixture = {
+  playlist_count: 3,
   playlists: [
-    {
-      playlist: {
-        title: 'Exploration Playlist for testuser - 2024-01-01',
-        track: [
-          { creator: 'Jam Artist A', title: 'Song 1' },
-          { creator: 'Jam Artist B', title: 'Song 2' },
-        ],
-      },
-    },
-    {
-      playlist: {
-        title: 'Weekly Jams for testuser - 2024-01-01',
-        track: [
-          { creator: 'Jam Artist X', title: 'Track 1' },
-          { creator: 'Jam Artist Y', title: 'Track 2' },
-          { creator: 'jam artist x', title: 'Track 3' }, // duplicate
-          { creator: 'Jam Artist Z', title: 'Track 4' },
-          { title: 'Track 5' }, // missing creator
-        ],
-      },
-    },
+    createdForEntry(
+      OLD_JAMS,
+      'Weekly Jams for testuser, week of 2026-09-28 Mon',
+      '2026-09-28T05:00:00+00:00',
+    ),
+    createdForEntry(
+      EXPLORATION,
+      'Weekly Exploration for testuser, week of 2026-10-05 Mon',
+      '2026-10-05T05:49:10+00:00',
+    ),
+    createdForEntry(
+      NEW_JAMS,
+      'Weekly Jams for testuser, week of 2026-10-05 Mon',
+      '2026-10-05T05:43:41+00:00',
+    ),
   ],
+}
+
+const playlistFixtures: Record<string, unknown> = {
+  [NEW_JAMS]: {
+    playlist: {
+      title: 'Weekly Jams for testuser, week of 2026-10-05 Mon',
+      track: [
+        jspfTrack(
+          'Jam Artist X',
+          'Track 1',
+          'aaaaaaaa-0000-4000-8000-000000000001',
+          'bbbbbbbb-0000-4000-8000-000000000001',
+        ),
+        jspfTrack(
+          'Jam Artist Y',
+          'Track 2',
+          'aaaaaaaa-0000-4000-8000-000000000002',
+          'bbbbbbbb-0000-4000-8000-000000000002',
+        ),
+        jspfTrack(
+          'jam artist x',
+          'Track 3',
+          'aaaaaaaa-0000-4000-8000-000000000001',
+          'bbbbbbbb-0000-4000-8000-000000000003',
+        ),
+        { creator: 'Name Only', title: 'Track 4' },
+        { title: 'Track 5' }, // missing creator
+      ],
+    },
+  },
+  [OLD_JAMS]: {
+    playlist: {
+      title: 'old',
+      track: [
+        jspfTrack(
+          'Stale Artist',
+          'Old',
+          'aaaaaaaa-0000-4000-8000-000000000009',
+          'bbbbbbbb-0000-4000-8000-000000000009',
+        ),
+      ],
+    },
+  },
 }
 
 const originalFetch = global.fetch
@@ -57,9 +123,16 @@ beforeAll(async () => {
       return
     }
 
-    if (url.includes('/playlists')) {
+    if (url.includes('/playlists/createdfor')) {
       res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(JSON.stringify(weeklyJamsFixture))
+      res.end(JSON.stringify(createdForFixture))
+      return
+    }
+
+    const playlistId = /\/playlist\/([0-9a-f-]+)/.exec(url)?.[1]
+    if (playlistId && playlistFixtures[playlistId]) {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(JSON.stringify(playlistFixtures[playlistId]))
       return
     }
 
@@ -125,40 +198,72 @@ describe('createListenBrainzAdapter', () => {
   })
 
   describe('weekly-jams', () => {
-    it('extracts artists from the Weekly Jams playlist', async () => {
+    it('fetches tracks of the newest Weekly Jams from created-for playlists', async () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'weekly-jams' })
 
-      // X, Y, Z - duplicate of X filtered, missing creator skipped
-      expect(result.artists).toHaveLength(3)
-      const names = result.artists.map((a) => a.name)
-      expect(names).toContain('Jam Artist X')
-      expect(names).toContain('Jam Artist Y')
-      expect(names).toContain('Jam Artist Z')
+      // newest playlist wins over list order and Weekly Exploration is ignored;
+      // the duplicate artist and the track without a creator are dropped
+      expect(result.artists.map((a) => a.name)).toEqual([
+        'Jam Artist X',
+        'Jam Artist Y',
+        'Name Only',
+      ])
+      expect(result.artists[0]).toMatchObject({
+        mbid: 'aaaaaaaa-0000-4000-8000-000000000001',
+        source: 'listenbrainz:weekly-jams',
+        similarityScore: 0.6,
+      })
+      expect(result.artists[2]?.mbid).toBeUndefined()
     })
 
-    it('sets correct source tag', async () => {
+    it('carries the recording MBID and title only when the artist MBID is known', async () => {
       const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
       const result = await adapter.fetch({ feedType: 'weekly-jams' })
-      const firstArtist = requireArtist(result.artists[0], 'Expected first weekly-jams artist')
-      expect(firstArtist.source).toBe('listenbrainz:weekly-jams')
+
+      expect(result.artists[0]).toMatchObject({
+        recordingMbid: 'bbbbbbbb-0000-4000-8000-000000000001',
+        recordingTitle: 'Track 1',
+      })
+      expect(result.artists[2]?.recordingMbid).toBeUndefined()
     })
 
-    it('ignores non-Weekly-Jams playlists', async () => {
-      const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-      const result = await adapter.fetch({ feedType: 'weekly-jams' })
+    it('returns empty with a message when no Weekly Jams playlist exists', async () => {
+      const noJamsServer = http.createServer((_req, res) => {
+        res.writeHead(200, { 'Content-Type': 'application/json' })
+        res.end(
+          JSON.stringify({
+            playlists: [
+              createdForEntry(
+                EXPLORATION,
+                'Weekly Exploration for testuser',
+                '2026-10-05T05:49:10+00:00',
+              ),
+            ],
+          }),
+        )
+      })
+      await new Promise<void>((r) => noJamsServer.listen(0, '127.0.0.1', r))
+      const noJamsBase = `http://127.0.0.1:${(noJamsServer.address() as AddressInfo).port}`
 
-      // Should NOT contain artists from the Exploration playlist
-      const names = result.artists.map((a) => a.name)
-      expect(names).not.toContain('Jam Artist A')
-      expect(names).not.toContain('Jam Artist B')
-    })
+      const savedFetch = global.fetch
+      global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input)
+        if (url.includes('api.listenbrainz.org')) {
+          const parsed = new URL(url)
+          return originalFetch(`${noJamsBase}${parsed.pathname}${parsed.search}`, init)
+        }
+        return originalFetch(input, init)
+      }) as typeof fetch
 
-    it('sets similarityScore 0.6', async () => {
-      const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-      const result = await adapter.fetch({ feedType: 'weekly-jams' })
-      for (const artist of result.artists) {
-        expect(artist.similarityScore).toBe(0.6)
+      try {
+        const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
+        const result = await adapter.fetch({ feedType: 'weekly-jams' })
+        expect(result.artists).toHaveLength(0)
+        expect(result.message).toMatch(/Weekly Jams/)
+      } finally {
+        global.fetch = savedFetch
+        noJamsServer.close()
       }
     })
   })
@@ -194,44 +299,6 @@ describe('createListenBrainzAdapter', () => {
 
     global.fetch = savedFetch
     emptyServer.close()
-  })
-
-  it('returns empty when no Weekly Jams playlist found', async () => {
-    const noJamsServer = http.createServer((_req, res) => {
-      res.writeHead(200, { 'Content-Type': 'application/json' })
-      res.end(
-        JSON.stringify({
-          playlists: [
-            {
-              playlist: {
-                title: 'Some Other Playlist',
-                track: [{ creator: 'Some Artist', title: 'Track' }],
-              },
-            },
-          ],
-        }),
-      )
-    })
-    await new Promise<void>((r) => noJamsServer.listen(0, '127.0.0.1', r))
-    const noJamsAddr = noJamsServer.address() as AddressInfo
-    const noJamsBase = `http://127.0.0.1:${noJamsAddr.port}`
-
-    const savedFetch = global.fetch
-    global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
-      const url = String(input)
-      if (url.includes('api.listenbrainz.org')) {
-        const parsed = new URL(url)
-        return originalFetch(`${noJamsBase}${parsed.pathname}${parsed.search}`, init)
-      }
-      return originalFetch(input, init)
-    }) as typeof fetch
-
-    const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
-    const result = await adapter.fetch({ feedType: 'weekly-jams' })
-    expect(result.artists).toHaveLength(0)
-
-    global.fetch = savedFetch
-    noJamsServer.close()
   })
 
   it('applies the per-run limit option', async () => {

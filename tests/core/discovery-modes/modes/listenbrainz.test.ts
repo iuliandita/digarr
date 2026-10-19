@@ -39,7 +39,14 @@ describe('createListenBrainzMode', () => {
     })
     adapterFetch.mockResolvedValue({
       artists: [
-        { name: 'Stereolab', similarityScore: 0.61, source: 'listenbrainz:weekly-jams' },
+        {
+          name: 'Stereolab',
+          mbid: 'aaaaaaaa-0000-4000-8000-000000000001',
+          recordingMbid: 'bbbbbbbb-0000-4000-8000-000000000001',
+          recordingTitle: 'Lo Boob Oscillator',
+          similarityScore: 0.61,
+          source: 'listenbrainz:weekly-jams',
+        },
         { name: 'Broadcast', similarityScore: 0.57, source: 'listenbrainz:weekly-jams' },
       ],
     })
@@ -64,6 +71,9 @@ describe('createListenBrainzMode', () => {
       expect.objectContaining({
         candidateType: 'artist',
         name: 'Stereolab',
+        mbid: 'aaaaaaaa-0000-4000-8000-000000000001',
+        recordingMbid: 'bbbbbbbb-0000-4000-8000-000000000001',
+        recordingTitle: 'Lo Boob Oscillator',
         provenanceProvider: 'listenbrainz:weekly-jams',
         confidenceHint: 0.61,
         fallbackUsed: false,
