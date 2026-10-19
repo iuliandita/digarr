@@ -17,6 +17,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).
 - Library Sources "Sync now" and "Sync all" no longer hit a 504 behind a reverse proxy: the sync runs in the background, the request returns 202 at once, and the card shows running, then the final counts or error. A sync that is already running returns 409 (#1127).
 - Library Gap-Fill no longer fails every run with `function lower(uuid) does not exist`, and a failed job no longer shows the raw SQL and query params in its error; it says a database error happened and the details stay in the server log (#1117).

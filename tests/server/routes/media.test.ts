@@ -104,6 +104,24 @@ describe('GET /api/v1/media/image-proxy', () => {
     expect(res.status).toBe(400)
   })
 
+  it('proxies r2.theaudiodb.com images', async () => {
+    const fetchMock = vi.fn(
+      async () => new Response('img', { status: 200, headers: { 'content-type': 'image/jpeg' } }),
+    )
+    vi.stubGlobal('fetch', fetchMock)
+    try {
+      const app = createApp(makeDeps({}, { audiodbProxyImages: true }))
+      const res = await authedReq(
+        app,
+        '/api/v1/media/image-proxy?src=https://r2.theaudiodb.com/images/media/artist/thumb/x.jpg',
+      )
+      expect(res.status).toBe(200)
+      expect(res.headers.get('content-type')).toBe('image/jpeg')
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
   it('rejects private IP target', async () => {
     const app = createApp(makeDeps({}, { audiodbProxyImages: true }))
     const res = await authedReq(app, '/api/v1/media/image-proxy?src=http://169.254.169.254/meta')

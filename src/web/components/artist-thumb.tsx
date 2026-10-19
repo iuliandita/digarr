@@ -1,7 +1,12 @@
 import { useState } from 'react'
 import { cn, hueFromName } from '../lib/utils'
 
-const AUDIODB_HOSTS = new Set(['img.theaudiodb.com', 'theaudiodb.com', 'www.theaudiodb.com'])
+const AUDIODB_HOSTS = new Set([
+  'img.theaudiodb.com',
+  'r2.theaudiodb.com',
+  'theaudiodb.com',
+  'www.theaudiodb.com',
+])
 const PROXY_FLAG_KEY = 'digarr:audiodbProxyImages'
 
 export function setAudiodbProxyFlag(enabled: boolean): void {

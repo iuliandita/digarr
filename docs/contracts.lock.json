@@ -306,7 +306,7 @@
         "src/server/routes/listening-images.ts": "872e674cc8a9bb4cd5b1eb60160dd096e6abd6379cb85d464e484f7a6b2c36b5",
         "src/server/routes/listening.ts": "07cc8c4f308bfaa175ca088db30b961219c729d0386f6df55732f40fded1eeb8",
         "src/server/routes/mcp.ts": "b55788e04b4afbcbe727e3226a3c5891354b8fabdf1ee2f848c4e962edce024b",
-        "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
+        "src/server/routes/media.ts": "900304a477a47ea0433eed2b4cd846c1fe0fe458484eed680eecd30a4f50284e",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
@@ -336,14 +336,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "d5e6d05f606e4aea2286762fc29ed8e04afb468cfaffbb345d21edad897689aa",
+      "digest": "ba7541450b1768d4367ad09d35be48290a4d70af9ccdfca88a784558623773d5",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
-        "note": "POST /library/sync now returns 202 {status:started} and runs detached; 404 for unconfigured source, 409 when already running; documented in API.md and OpenAPI",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Image proxy host allowlist gains r2.theaudiodb.com; endpoint contract and responses unchanged",
         "breaking": "none",
         "migration": "",
-        "digest": "d5e6d05f606e4aea2286762fc29ed8e04afb468cfaffbb345d21edad897689aa"
+        "digest": "ba7541450b1768d4367ad09d35be48290a4d70af9ccdfca88a784558623773d5"
       }
     },
     "interface": {
@@ -386,7 +386,7 @@
         "src/web/components/approval-requests.tsx": "1d9cd3344284a58603ce5f76dc0de40cee14179882ed2a1b0d626812d5f6d4f8",
         "src/web/components/approve-dialog.tsx": "6ed99631ddb300113876292dd984751dea1fc18d4b6bbd7acb4d38009ecb9522",
         "src/web/components/artist-enrichment-panel.tsx": "6bb679742243d5e8990ea02bbb638534845a9e02d116481ef62fca79be304a10",
-        "src/web/components/artist-thumb.tsx": "00ef215d126d91fe362ac5920529d3cf282cbb9a60efa72530b03e9a20da16ed",
+        "src/web/components/artist-thumb.tsx": "47092c0eb81a911eed655d701af1ff8eb3e29c8442975e5489d2e4d942f63a8a",
         "src/web/components/auth-gate.tsx": "4629a97c0e27c1491cb1172254c1ea844170f65faff949099800701459274f69",
         "src/web/components/blocked-albums-tab.tsx": "b7183b82387212253a5659a29073860fa8ce0debe45a7961ee7258bfef87f6d3",
         "src/web/components/blocked-artists-tab.tsx": "745f164a66ede7570250801c9140d00cd2b5394987009021e64aed41d076de26",
@@ -533,14 +533,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "3bf0bfd1bad8204dbcaaac86eb16b7c93d2e50e25f6c4805e4894105f8a1131c",
+      "digest": "e1fda78678f9a4c5e0dac477b4113d1dca79becfe4f67c8bdcf66fda741d46fc",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Library Sources card disables buttons and shows Syncing... while a source runs and polls until done; new strings in all 15 locales; changelog entry added",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "ArtistThumb routes r2.theaudiodb.com images through the existing proxy when enabled; no visible UI change",
         "breaking": "none",
         "migration": "",
-        "digest": "3bf0bfd1bad8204dbcaaac86eb16b7c93d2e50e25f6c4805e4894105f8a1131c"
+        "digest": "e1fda78678f9a4c5e0dac477b4113d1dca79becfe4f67c8bdcf66fda741d46fc"
       }
     },
     "features": {
