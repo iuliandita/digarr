@@ -256,6 +256,18 @@ export function createLidarrTarget(
       return unaddable
     },
 
+    async lookupAlbumTypes(releaseGroupMbid) {
+      if (!configured) return null
+      const album = await client.lookupAlbum(releaseGroupMbid)
+      return album ? lookupToReleaseGroupTypes(album) : null
+    },
+
+    albumProfileMessage(releaseGroupMbid) {
+      return configured
+        ? profileMismatch(releaseGroupMbid, config.metadataProfileId)
+        : Promise.resolve(null)
+    },
+
     async testConnection() {
       if (!configured) return { success: false, message: NOT_CONFIGURED }
       return client.testConnection()

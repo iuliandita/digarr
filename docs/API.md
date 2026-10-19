@@ -443,7 +443,7 @@ v1.19.0 has no `other` field and labels every non-approved acted-on row as `reje
 **GET /api/v1/recommendations/playability** returns `{ pendingArtists, withTrack, withoutTrack, reasons: { missingSource, noMatch, upstreamFailure }, unknown, checkedAt }`. It counts distinct artists with a pending recommendation, using each artist's newest outcome from the caller's last 20 Audition playlist runs (failed runs included). `missingSource` means no track source was configured for that run, `noMatch` means the configured sources found no track, and `upstreamFailure` means a source lookup failed. Artists no run has resolved count as `unknown`, never as missing a track. A MusicBrainz title without a playable source counts as `withTrack`, matching the playlist outcome. `checkedAt` is the newest run that classified a pending artist, or `null`. No schema change; the endpoint reads existing job history.
 
 **GET /api/v1/recommendations** query params:
-- `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `waiting`, `duplicate`, `queued` (comma-separated)
+- `status` - `pending`, `approved`, `rejected`, `added_to_lidarr`, `add_failed`, `waiting`, `duplicate`, `queued`, `unaddable` (comma-separated)
 - `kind` - `artist` or `album`; omitted or unrecognized values return both. Backs the Discover kind filter (Albums is `?kind=album`)
 - `batchId` - filter by batch
 - `sort` - `score_desc` (default), `score_asc`, `created_desc`, `acted_on_desc`, `taste`

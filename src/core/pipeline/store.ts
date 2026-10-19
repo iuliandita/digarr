@@ -20,6 +20,11 @@ export interface StoreDb {
   getOwnedAlbumKeys?: (
     userId: number,
   ) => Promise<import('@/db/queries/library-albums').OwnedAlbumKeys>
+  listPendingAlbumRecommendations?: (
+    userId: number,
+    limit: number,
+  ) => Promise<import('@/db/queries/recommendations').PendingAlbumRecommendation[]>
+  markRecommendationUnaddable?: (id: number, lidarrError: string | null) => Promise<boolean>
   getArtistGenreCacheByMbids?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByMbids']
   getArtistGenreCacheByAliases?: import('./genre-backfill').GenreBackfillDb['getArtistGenreCacheByAliases']
   upsertArtistGenres?: import('./genre-backfill').GenreBackfillDb['upsertArtistGenres']

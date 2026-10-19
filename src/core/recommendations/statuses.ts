@@ -7,6 +7,7 @@ export const VALID_STATUSES = [
   'waiting',
   'duplicate',
   'queued',
+  'unaddable',
 ] as const
 
 export type ValidStatus = (typeof VALID_STATUSES)[number]

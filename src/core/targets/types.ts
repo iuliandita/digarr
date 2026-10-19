@@ -92,6 +92,12 @@ export interface DestinationTarget {
     albums: Array<{ artistMbid: string; releaseGroupMbid: string; types: ReleaseGroupTypes }>,
   ): Promise<Set<string>>
 
+  /** Release-group types as this target's Lidarr reports them; null when unknown. */
+  lookupAlbumTypes?(releaseGroupMbid: string): Promise<ReleaseGroupTypes | null>
+
+  /** Why the metadata profile rejects an album, or null when it is allowed or unknown. */
+  albumProfileMessage?(releaseGroupMbid: string): Promise<string | null>
+
   openPlaylistExportSession?(items: PlaylistItem[]): Promise<PlaylistExportSession>
 
   testConnection(): Promise<ServiceTestResult>

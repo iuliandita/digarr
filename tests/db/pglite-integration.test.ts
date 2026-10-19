@@ -10,7 +10,9 @@ import { targetAction } from '@/core/targets/lidarr-retry'
 import { applyPgliteStatementTimeout } from '@/db/backend'
 import {
   getRecommendation,
+  listPendingAlbumRecommendations,
   listWaitingApprovals,
+  markRecommendationUnaddable,
   updateRecommendationStatus,
 } from '@/db/queries/recommendations'
 import * as schema from '@/db/schema'
@@ -164,4 +166,40 @@ it('persists waiting approval options and discovers them without a schema migrat
   await db.delete(schema.recommendations).where(eq(schema.recommendations.id, rec.id))
   await db.delete(schema.recommendationBatches).where(eq(schema.recommendationBatches.id, batch.id))
   await db.delete(schema.artists).where(eq(schema.artists.id, artist.id))
+})
+
+it("lists only the user's pending album recommendations and guards the unaddable update", async () => {
+  const [user] = await db
+    .insert(schema.users)
+    .values({ username: 'sweep-user', passwordHash: 'x' })
+    .returning()
+  const [artist] = await db
+    .insert(schema.artists)
+    .values({ mbid: '22345678-1234-1234-1234-123456789abc', name: 'Sweep artist' })
+    .returning()
+  const [batch] = await db.insert(schema.recommendationBatches).values({}).returning()
+  if (!user || !artist || !batch) throw new Error('missing fixture')
+  const base = { artistId: artist.id, batchId: batch.id, score: 0.9, userId: user.id }
+  const rows = await db
+    .insert(schema.recommendations)
+    .values([
+      { ...base, kind: 'album', recommendedReleaseGroupId: 'rg-pending' },
+      { ...base, kind: 'album', recommendedReleaseGroupId: 'rg-acted', status: 'approved' },
+      { ...base, kind: 'artist' },
+      { ...base, kind: 'album' },
+    ])
+    .returning()
+  const [target] = rows
+  if (!target) throw new Error('missing recommendation')
+
+  const listed = await listPendingAlbumRecommendations(db as never, user.id, 200)
+  expect(listed).toEqual([
+    { id: target.id, artistMbid: artist.mbid, releaseGroupMbid: 'rg-pending' },
+  ])
+
+  expect(await markRecommendationUnaddable(db as never, target.id, 'blocked')).toBe(true)
+  expect(await markRecommendationUnaddable(db as never, target.id, 'again')).toBe(false)
+  const updated = await getRecommendation(db as never, target.id)
+  expect(updated).toMatchObject({ status: 'unaddable', lidarrError: 'blocked' })
+  expect(updated?.actedOnAt).toBeInstanceOf(Date)
 })

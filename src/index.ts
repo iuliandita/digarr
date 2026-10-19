@@ -170,9 +170,11 @@ import {
   getRecommendation,
   getRejectedArtistMbids,
   insertRecommendation,
+  listPendingAlbumRecommendations,
   listRecommendations,
   listRecommendationsForExport,
   listWaitingApprovals,
+  markRecommendationUnaddable,
   rejectRecommendation,
   updateRecommendationStatus,
 } from './db/queries/recommendations'
@@ -337,6 +339,10 @@ const storeDb: StoreDb = {
     getExistingAlbumReleaseGroupMbids(db, userId, options),
   getBlockedAlbumKeys: (userId) => getBlockedAlbumKeys(db, userId),
   getOwnedAlbumKeys: (userId) => getOwnedAlbumKeys(db, userId),
+  listPendingAlbumRecommendations: (userId, limit) =>
+    listPendingAlbumRecommendations(db, userId, limit),
+  markRecommendationUnaddable: (id, lidarrError) =>
+    markRecommendationUnaddable(db, id, lidarrError),
   getArtistGenreCacheByMbids: (mbids) => getArtistGenreCacheByMbids(db, mbids),
   getArtistGenreCacheByAliases: (aliases) => getArtistGenreCacheByAliases(db, aliases),
   upsertArtistGenres: (data) => upsertArtistGenres(db, data),

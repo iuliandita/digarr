@@ -375,7 +375,16 @@ default metadata profile. Unknown types, target lookup failures and users withou
 a Lidarr target keep every candidate. Release status is not known at pipeline time,
 so only the add path checks it. When an album add cannot find the release group,
 the target looks it up through Lidarr and reports which type the profile blocks;
-that failure is not retried. Existing pending recommendations are not rescanned (#1108).
+that failure is not retried (#1108).
+
+At the end of each successful run, `dismissUnaddableAlbums` sweeps that user's
+pending album recommendations (at most 200 per run, lookups four at a time, none
+with an open approval request). It reads each release group's types through the
+Lidarr target, applies the same every-target rule, and moves rejected rows to the
+`unaddable` status with the profile message in `lidarr_error`. The status appears
+on no Discover tab, is not a rejection (no cooldown or feedback learning), and
+still blocks re-recommending that release group. Unknown types and lookup or
+target errors keep the row pending; a sweep failure never fails the run (#1113).
 
 ### Album empty-state routing
 

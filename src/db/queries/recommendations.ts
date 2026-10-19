@@ -829,3 +829,57 @@ export async function countRecommendationsByTab(
     rejected: row?.rejected ?? 0,
   }
 }
+
+export type PendingAlbumRecommendation = {
+  id: number
+  artistMbid: string
+  releaseGroupMbid: string
+}
+
+/** Pending album recommendations with a release group and no open approval request. */
+export async function listPendingAlbumRecommendations(
+  db: Database,
+  userId: number,
+  limit: number,
+): Promise<PendingAlbumRecommendation[]> {
+  const rows = await db
+    .select({
+      id: recommendations.id,
+      artistMbid: artists.mbid,
+      releaseGroupMbid: recommendations.recommendedReleaseGroupId,
+    })
+    .from(recommendations)
+    .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    .where(
+      and(
+        eq(recommendations.userId, userId),
+        eq(recommendations.status, 'pending'),
+        eq(recommendations.kind, 'album'),
+        sql`${recommendations.recommendedReleaseGroupId} is not null`,
+        sql`NOT EXISTS (
+          SELECT 1 FROM ${approvalRequests}
+          WHERE ${approvalRequests.recommendationId} = ${recommendations.id}
+            AND ${approvalRequests.status} = 'pending'
+        )`,
+      ),
+    )
+    .orderBy(asc(recommendations.id))
+    .limit(limit)
+  return rows.flatMap((row) =>
+    row.releaseGroupMbid ? [{ ...row, releaseGroupMbid: row.releaseGroupMbid }] : [],
+  )
+}
+
+/** Moves a still-pending recommendation to `unaddable`; false when it was acted on meanwhile. */
+export async function markRecommendationUnaddable(
+  db: Database,
+  id: number,
+  lidarrError: string | null,
+): Promise<boolean> {
+  const rows = await db
+    .update(recommendations)
+    .set({ status: 'unaddable', actedOnAt: new Date(), lidarrError })
+    .where(and(eq(recommendations.id, id), eq(recommendations.status, 'pending')))
+    .returning({ id: recommendations.id })
+  return rows.length > 0
+}

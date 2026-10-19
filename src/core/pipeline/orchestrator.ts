@@ -29,6 +29,7 @@ import { analyze } from './analyze'
 import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { PipelineCancelledError } from './cancel'
 import { discover } from './discover'
+import { dismissUnaddableAlbums } from './dismiss-unaddable-albums'
 import { enrichGenres } from './enrich'
 import { filter } from './filter'
 import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
@@ -695,6 +696,20 @@ export class PipelineOrchestrator extends EventEmitter {
       }
 
       ckpt()
+      try {
+        const dismissed = await dismissUnaddableAlbums(
+          db,
+          deps.userId,
+          deps.getEnabledTargets ?? deps.autoApproveDeps?.getEnabledTargets,
+        )
+        if (dismissed > 0) {
+          console.log(
+            `[pipeline] dismissed ${dismissed} pending album(s) the metadata profile rejects`,
+          )
+        }
+      } catch (err) {
+        console.warn(`[pipeline] unaddable album sweep failed: ${errMsg(err)}`)
+      }
       this.completionCommitted = true
 
       if (jobId != null && deps.jobRecorder) {
