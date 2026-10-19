@@ -178,7 +178,7 @@
         "src/db/queries/artists.ts": "113aaf2c7158127ffb0e563ef5ee7722fdcc980910db9f9152b359fbc7a57e9c",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
-        "src/db/queries/gap-fill.ts": "614d60689b39a363cea37394d22f09dfc482486061e16131beeb2a758d589e7f",
+        "src/db/queries/gap-fill.ts": "2e5aae971156d2c14842552496b76541184489140ae51b7854208bfaaf9abf6a",
         "src/db/queries/genres.ts": "623e351944c65a8b03ac3361cbe49f073a424f791fd4170719db6f78afa8c934",
         "src/db/queries/jobs.ts": "4a69d8cea2bb8d22913ea730e982053b8e92ec23506ff74fcacc80358f78171e",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
@@ -199,14 +199,14 @@
         "src/db/schema.ts": "e729ed83307cdf724b056e1ea31765bdbec1625610d1e61b6e0e13566f3665ca",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a",
+      "digest": "3b5bf97348f4e775bbfbb9f3bcf1f1b2d29f1e62a674340b1af50c5a3e10199d",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Pre-migration auto-backup now streams each table in keyset pages to the temp file as compact JSON inside one read-only repeatable-read transaction; same top-level structure and keys, and restore code is unchanged.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
         "breaking": "none",
-        "migration": "No schema migration. Upgrading changes only how the pre-migration snapshot is written. Old pretty-printed and new compact backup files both restore through the same endpoint, and an image rollback still restores either format. Keep taking a native database backup before upgrades as documented.",
-        "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a"
+        "migration": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
+        "digest": "3b5bf97348f4e775bbfbb9f3bcf1f1b2d29f1e62a674340b1af50c5a3e10199d"
       }
     },
     "configuration": {
@@ -605,7 +605,7 @@
         "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
+        "src/core/jobs/recorder.ts": "d2b28419f5e7a4046320075d71120bfa1d16b6a18dcf9ab0d6de947744eabe67",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -756,14 +756,14 @@
         "src/index.ts": "0fde65395444c0047974eb5344715dae03d75b9e6ba544c122ce55ce7937ee71",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990",
+      "digest": "bf18d8fbac3fff47fbb423a051ad896e31b9eb595dafeaef80caee8ec02c3bfa",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Album candidates are filtered by the Lidarr metadata profile and the add error names the blocked type; documented the rule, fallbacks and the unscanned existing recommendations. Rebased over the delayed boot sync, which is unrelated.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Job failure recording replaces raw drizzle query text with a short database error message; the full error goes to the server log. Changelog Fixed entry added.",
         "breaking": "none",
         "migration": "",
-        "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990"
+        "digest": "bf18d8fbac3fff47fbb423a051ad896e31b9eb595dafeaef80caee8ec02c3bfa"
       }
     },
     "deployment": {

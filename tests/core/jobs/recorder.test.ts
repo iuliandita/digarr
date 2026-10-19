@@ -143,6 +143,20 @@ describe('createJobRecorder', () => {
   })
 
   describe('fail()', () => {
+    it('replaces raw drizzle query text with a short message and logs the original', async () => {
+      const db = makeDb()
+      const recorder = createJobRecorder(db as never)
+      const spy = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const raw = 'Failed query: select "id" from "library_artists" where x\nparams: a,b'
+
+      await recorder.fail(5, raw)
+
+      const set = db._mocks.updateSet.mock.calls[0]?.[0] as { error: string }
+      expect(set.error).toBe('Database error - see server logs for details')
+      expect(spy).toHaveBeenCalledWith(expect.stringContaining('job 5'), raw)
+      spy.mockRestore()
+    })
+
     it('updates status to failed with error message', async () => {
       const db = makeDb()
       const recorder = createJobRecorder(db as never)

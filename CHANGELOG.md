@@ -12,6 +12,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Library Gap-Fill no longer fails every run with `function lower(uuid) does not exist`, and a failed job no longer shows the raw SQL and query params in its error; it says a database error happened and the details stay in the server log (#1117).
 - Adding artists from mood search results no longer fails after five clicks: adds are queued, wait out the server rate limit or a running scan, and show a Queued state; real failures now say why (#1109).
 - With a Lidarr target, album recommendations skip release types the Lidarr metadata profile filters out (for example compilations under a studio-only profile), and an album add that still fails for that reason says which type the profile blocks instead of "album not found in Lidarr" (#1108).
 - The pre-migration auto-backup streams each table to disk in pages instead of building the whole database in memory first, so upgrades on large libraries no longer risk running out of memory before the server starts. Snapshots are now compact JSON (about 30% smaller) and restore exactly as before (#1092).

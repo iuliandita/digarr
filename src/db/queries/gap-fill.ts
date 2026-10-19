@@ -25,7 +25,7 @@ export async function getArtistsForGapFill(
       and(
         or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
         isNotNull(libraryArtists.mbid),
-        notInArray(sql`lower(${libraryArtists.mbid})`, [...SPECIAL_PURPOSE_ARTIST_MBIDS]),
+        notInArray(libraryArtists.mbid, [...SPECIAL_PURPOSE_ARTIST_MBIDS]),
       ),
     )
     .orderBy(sql`${libraryArtists.lastGapCheckAt} asc nulls first`)
