@@ -977,6 +977,7 @@ export const nl = {
     'Geen integratieactiviteit vastgelegd in de afgelopen 30 dagen.',
   'systemHealth.lastSuccess': 'Laatste succes',
   'systemHealth.lastError': 'Laatste fout',
+  'systemHealth.itemFailures': '{0} fouten per item (niet als storing geteld)',
   'systemHealth.integrationOk': 'Werkt',
   'systemHealth.integrationFailing': 'Mislukt',
   'systemHealth.kind.target': 'Doel',
@@ -1956,6 +1957,10 @@ export const nl = {
   'settings.channels.saved': 'Meldingen opgeslagen',
   'settings.channels.saveFailed': 'Meldingen konden niet worden opgeslagen',
   'settings.channels.secretKeepPlaceholder': 'Laat leeg om de opgeslagen waarde te behouden',
+  'settings.channels.secretSaved': 'Opgeslagen',
+  'settings.channels.secretRemove': 'Verwijderen',
+  'settings.channels.secretRemovePending': 'Wordt verwijderd bij het opslaan',
+  'settings.channels.secretUndo': 'Ongedaan maken',
   'settings.primaryGenres': 'Voorkeursgenres (optioneel)',
   'settings.secondaryGenres': 'Andere voorkeursgenres (optioneel)',
   'settings.genrePriorityHelp':

@@ -82,6 +82,15 @@ const CHANNEL_SECRET_FIELDS: Record<ChannelType, readonly string[]> = {
   apprise: ['urls'],
 }
 
+// Optional secrets can be cleared (sent as ''). botToken and urls are required by the
+// backend schema (min 1), so an empty value would be rejected; they only offer replace.
+const CLEARABLE_SECRET_FIELDS: Record<ChannelType, readonly string[]> = {
+  webhook: ['signingSecret'],
+  ntfy: ['token'],
+  telegram: [],
+  apprise: [],
+}
+
 function secretKey(channelId: string, field: string): string {
   return `${channelId}:${field}`
 }
@@ -112,13 +121,16 @@ function computeHadSecret(channels: NotificationChannel[]): Record<string, boole
 // had a stored secret round-trips as '***' (backend restores the stored ciphertext);
 // a non-empty input sends the new plaintext; a blank input on a brand-new channel
 // stays blank. This avoids appending to the '***' placeholder (apprise multiline).
+// A secret marked for removal stays '' so the backend clears it.
 function applyStoredSecrets(
   channel: NotificationChannel,
   hadSecret: Record<string, boolean>,
+  cleared: ReadonlySet<string>,
 ): NotificationChannel {
   const copy = { ...channel } as Record<string, unknown>
   for (const f of CHANNEL_SECRET_FIELDS[channel.type]) {
-    if (copy[f] === '' && hadSecret[secretKey(channel.id, f)]) copy[f] = '***'
+    const key = secretKey(channel.id, f)
+    if (copy[f] === '' && hadSecret[key] && !cleared.has(key)) copy[f] = '***'
   }
   return copy as NotificationChannel
 }
@@ -127,17 +139,45 @@ function ChannelFields({
   channel,
   onPatch,
   hadSecret,
+  cleared,
+  onToggleClear,
   t,
 }: {
   channel: NotificationChannel
   onPatch: (patch: Record<string, unknown>) => void
   hadSecret: Record<string, boolean>
+  cleared: ReadonlySet<string>
+  onToggleClear: (field: string, clear: boolean) => void
   t: (key: MessageKey) => string
 }) {
+  const isCleared = (field: string) => cleared.has(secretKey(channel.id, field))
   const keepPlaceholder = (field: string) =>
     hadSecret[secretKey(channel.id, field)]
-      ? t('settings.channels.secretKeepPlaceholder')
+      ? t(
+          isCleared(field)
+            ? 'settings.channels.secretRemovePending'
+            : 'settings.channels.secretKeepPlaceholder',
+        )
       : undefined
+  const secretStatus = (field: string, value: string) => {
+    if (!hadSecret[secretKey(channel.id, field)] || value) return null
+    const clearable = (CLEARABLE_SECRET_FIELDS[channel.type] as readonly string[]).includes(field)
+    const pending = isCleared(field)
+    return (
+      <div className="flex items-center justify-between gap-2 text-xs text-muted">
+        <span>
+          {pending
+            ? t('settings.channels.secretRemovePending')
+            : t('settings.channels.secretSaved')}
+        </span>
+        {clearable && (
+          <Button size="sm" variant="ghost" onClick={() => onToggleClear(field, !pending)}>
+            {pending ? t('settings.channels.secretUndo') : t('settings.channels.secretRemove')}
+          </Button>
+        )}
+      </div>
+    )
+  }
   switch (channel.type) {
     case 'webhook':
       return (
@@ -159,6 +199,7 @@ function ChannelFields({
               value={channel.signingSecret ?? ''}
               onChange={(e) => onPatch({ signingSecret: e.target.value })}
             />
+            {secretStatus('signingSecret', channel.signingSecret ?? '')}
           </Field>
         </div>
       )
@@ -189,6 +230,7 @@ function ChannelFields({
               value={channel.token ?? ''}
               onChange={(e) => onPatch({ token: e.target.value })}
             />
+            {secretStatus('token', channel.token ?? '')}
           </Field>
         </div>
       )
@@ -203,6 +245,7 @@ function ChannelFields({
               value={channel.botToken}
               onChange={(e) => onPatch({ botToken: e.target.value })}
             />
+            {secretStatus('botToken', channel.botToken)}
           </Field>
           <Field label={t('settings.channels.telegramChatId')} id={`ch-${channel.id}-chat`}>
             <Input
@@ -233,6 +276,7 @@ function ChannelFields({
               value={channel.urls}
               onChange={(e) => onPatch({ urls: e.target.value })}
             />
+            {secretStatus('urls', channel.urls)}
           </Field>
           <p className="text-xs text-muted">{t('settings.channels.appriseUrlsHelp')}</p>
         </div>
@@ -259,9 +303,10 @@ export function NotificationChannelsCard({
   const [channels, setChannels] = useState<NotificationChannel[]>(() =>
     stripSecrets((settings.preferences?.channels ?? []) as NotificationChannel[]),
   )
-  const [hadSecret] = useState<Record<string, boolean>>(() =>
+  const [hadSecret, setHadSecret] = useState<Record<string, boolean>>(() =>
     computeHadSecret((settings.preferences?.channels ?? []) as NotificationChannel[]),
   )
+  const [cleared, setCleared] = useState<ReadonlySet<string>>(() => new Set())
   const [addOpen, setAddOpen] = useState(false)
   const [addType, setAddType] = useState<ChannelType>('webhook')
   const [openIds, setOpenIds] = useState<Set<string>>(() => new Set())
@@ -272,6 +317,16 @@ export function NotificationChannelsCard({
     setChannels((prev) =>
       prev.map((c) => (c.id === id ? ({ ...c, ...patch } as NotificationChannel) : c)),
     )
+  }
+
+  function toggleClear(channelId: string, field: string, clear: boolean) {
+    setCleared((prev) => {
+      const next = new Set(prev)
+      const key = secretKey(channelId, field)
+      if (clear) next.add(key)
+      else next.delete(key)
+      return next
+    })
   }
 
   function setChannelOpen(id: string, open: boolean) {
@@ -307,7 +362,7 @@ export function NotificationChannelsCard({
       if (personal) {
         await updatePersonalNotificationChannels(
           channels.map((channel) => ({
-            ...applyStoredSecrets(channel, hadSecret),
+            ...applyStoredSecrets(channel, hadSecret, cleared),
             allowPrivateTarget: false,
           })),
         )
@@ -315,9 +370,17 @@ export function NotificationChannelsCard({
         await updateSettings({
           preferences: {
             ...(settings.preferences ?? {}),
-            channels: channels.map((c) => applyStoredSecrets(c, hadSecret)),
+            channels: channels.map((c) => applyStoredSecrets(c, hadSecret, cleared)),
           },
         })
+      if (cleared.size > 0) {
+        setHadSecret((prev) => {
+          const next = { ...prev }
+          for (const key of cleared) delete next[key]
+          return next
+        })
+        setCleared(new Set())
+      }
       toast.success(t('settings.channels.saved'))
       onSaved()
     } catch {
@@ -330,7 +393,7 @@ export function NotificationChannelsCard({
   async function handleTest(channel: NotificationChannel) {
     setTestingId(channel.id)
     try {
-      await testNotificationChannel(applyStoredSecrets(channel, hadSecret))
+      await testNotificationChannel(applyStoredSecrets(channel, hadSecret, cleared))
       toast.success(t('settings.channels.testOk'))
     } catch (err) {
       let detail = ''
@@ -418,6 +481,8 @@ export function NotificationChannelsCard({
                 channel={channel}
                 t={t}
                 hadSecret={hadSecret}
+                cleared={cleared}
+                onToggleClear={(field, clear) => toggleClear(channel.id, field, clear)}
                 onPatch={(patch) => patchChannel(channel.id, patch)}
               />
 

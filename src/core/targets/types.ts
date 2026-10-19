@@ -119,3 +119,9 @@ export function getStreamingUrl(rec: ExportableRecommendation): string {
     `https://musicbrainz.org/artist/${rec.artistMbid}`
   )
 }
+
+/** DB row id of a target; destination ids are `<type>-<row id>`. */
+export function targetDbId(destinationId: string): number | undefined {
+  const id = Number(destinationId.slice(destinationId.lastIndexOf('-') + 1))
+  return Number.isSafeInteger(id) ? id : undefined
+}

@@ -9,6 +9,7 @@ import {
   restoreMaskedChannelSecrets,
 } from '@/core/crypto'
 import type { NotificationChannel } from '@/core/notifications/types'
+import { notificationChannel } from '@/server/schemas/settings'
 
 const TEST_KEY = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef'
 
@@ -200,6 +201,41 @@ describe('restoreMaskedChannelSecrets', () => {
     expect((out as { botToken: string }).botToken).toBe('fresh-plaintext')
     expect((input[0] as { botToken: string }).botToken).toBe('fresh-plaintext')
     expect(out).not.toBe(input[0])
+  })
+})
+
+describe('clearing optional channel secrets', () => {
+  it.each([
+    { type: 'webhook', url: 'https://x.test/hook', field: 'signingSecret' },
+    { type: 'ntfy', server: 'https://n.test', topic: 'x', field: 'token' },
+  ])(
+    "keeps an explicit '' for a $type secret instead of restoring the stored one",
+    ({ field, ...rest }) => {
+      initEncryption(TEST_KEY)
+      const fields = { [field]: '' }
+      const stored = {
+        id: 'c',
+        enabled: true,
+        events: ['digest'],
+        ...rest,
+        ...fields,
+      } as NotificationChannel
+      const prev = new Map<string, NotificationChannel>([
+        ['c', { ...stored, signingSecret: 'old', token: 'old' } as unknown as NotificationChannel],
+      ])
+      const [out] = encryptChannelSecrets(restoreMaskedChannelSecrets([stored], prev))
+      expect(out).toMatchObject(fields)
+      expect(maskChannelSecrets([out as NotificationChannel])[0]).toMatchObject(fields)
+    },
+  )
+
+  it.each([
+    { type: 'telegram', botToken: '', chatId: '1' },
+    { type: 'apprise', endpoint: 'https://a.test/notify', urls: '' },
+  ])('rejects clearing the required secret of a $type channel', (fields) => {
+    expect(
+      notificationChannel.safeParse({ id: 'c', enabled: true, events: [], ...fields }).success,
+    ).toBe(false)
   })
 })
 

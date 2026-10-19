@@ -4,7 +4,7 @@ import {
   isTemporaryLidarrFailure,
   targetAction,
 } from '@/core/targets/lidarr-retry'
-import type { DestinationTarget, TargetAddOptions } from '@/core/targets/types'
+import { type DestinationTarget, type TargetAddOptions, targetDbId } from '@/core/targets/types'
 import { errMsg } from '@/core/validation'
 import type { StatusUpdateExtra } from '@/db/queries/recommendations'
 import { checkPipelineCancelled } from './cancel'
@@ -113,6 +113,7 @@ export async function autoApprove(
       if (signal?.aborted) break
       const metadata = {
         targetType: target.type,
+        targetId: targetDbId(target.id),
         artistName: rec.artist.name,
         mbid: rec.artist.mbid,
         action: isAlbum ? 'addAlbum' : 'add',

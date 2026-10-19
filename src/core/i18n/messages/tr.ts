@@ -963,6 +963,7 @@ export const tr = {
   'systemHealth.integrationsEmpty': 'Son 30 günde kaydedilmiş entegrasyon etkinliği yok.',
   'systemHealth.lastSuccess': 'Son başarı',
   'systemHealth.lastError': 'Son hata',
+  'systemHealth.itemFailures': '{0} öğe düzeyinde hata (kesinti sayılmaz)',
   'systemHealth.integrationOk': 'Çalışıyor',
   'systemHealth.integrationFailing': 'Başarısız',
   'systemHealth.kind.target': 'Hedef',
@@ -1935,6 +1936,10 @@ export const tr = {
   'settings.channels.saved': 'Bildirimler kaydedildi',
   'settings.channels.saveFailed': 'Bildirimler kaydedilemedi',
   'settings.channels.secretKeepPlaceholder': 'Kayıtlı değeri korumak için boş bırak',
+  'settings.channels.secretSaved': 'Kaydedildi',
+  'settings.channels.secretRemove': 'Kaldır',
+  'settings.channels.secretRemovePending': 'Kaydettiğinde kaldırılacak',
+  'settings.channels.secretUndo': 'Geri al',
   'settings.primaryGenres': 'Öncelikli türler (isteğe bağlı)',
   'settings.secondaryGenres': 'Diğer sevilen türler (isteğe bağlı)',
   'settings.genrePriorityHelp':

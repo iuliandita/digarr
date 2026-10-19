@@ -182,7 +182,7 @@
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
         "src/db/queries/gap-fill.ts": "2e5aae971156d2c14842552496b76541184489140ae51b7854208bfaaf9abf6a",
         "src/db/queries/genres.ts": "623e351944c65a8b03ac3361cbe49f073a424f791fd4170719db6f78afa8c934",
-        "src/db/queries/jobs.ts": "347596ec59de0d95f630f9c4aef6a8e2385af299e50cfcf0e932889faf247a47",
+        "src/db/queries/jobs.ts": "88b3d71b463afec4a24e4f5476fc5ccf6606863c6a0b2211ec392e057be5cdff",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
         "src/db/queries/oauth-pending.ts": "2f7cde20dbaa8b63e49f66fbae0403847e91e8146e220819bdd32adc6b87f56b",
@@ -201,14 +201,14 @@
         "src/db/schema.ts": "43f7f4fde4a8ea42c2656fa664ae4efb011e75fadb2c55c4149a226fb496ec5f",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "658e9e1652d3d81dcc862df846824eb4f5c7444f6a4bb42ab3909ca406a75e07",
+      "digest": "ba40f7e7bb413e884033096cea1dbb7cb2b922afb0ad66de86182ebb77fea25d",
       "review": {
         "outcome": "no-impact",
         "docs": [],
         "note": "Query-only change: saved playlist outcomes in job metadata may carry an optional titleOnly flag that older outcomes lack and readers default to false; no schema, migration, backup or restore change, and rolling back simply ignores the flag.",
         "breaking": "none",
         "migration": "Query-only change: saved playlist outcomes in job metadata may carry an optional titleOnly flag that older outcomes lack and readers default to false; no schema, migration, backup or restore change, and rolling back simply ignores the flag.",
-        "digest": "658e9e1652d3d81dcc862df846824eb4f5c7444f6a4bb42ab3909ca406a75e07"
+        "digest": "ba40f7e7bb413e884033096cea1dbb7cb2b922afb0ad66de86182ebb77fea25d"
       }
     },
     "configuration": {
@@ -278,7 +278,7 @@
       "files": {
         "src/server/deps.ts": "4c1d190afdb922d6af349b48acfea57094dfb733fe73be048e5923f00c459acb",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
-        "src/server/helpers/openapi-doc.ts": "b512509ccb06b92fe1a9117da7d5f981c76766e921deb7f5ef6df9229f99be3d",
+        "src/server/helpers/openapi-doc.ts": "43abc92350f0ad9bb6299ba24c2850336737cc2e7f64685a80d007efe9f09aed",
         "src/server/helpers/openapi-routes.ts": "6aed05bb39f49a9a9eb224617b746f7c02b4d7f6e49db2584d5baf08d3e9775c",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
@@ -310,7 +310,7 @@
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "c05e1c4ef64673890858208a1784ea5ab98f42d0dd7a25ec07ea13193e2363fc",
+        "src/server/routes/recommendations.ts": "7959fe01eb1d9d32d43bcc7b23f372343acfe956583457cbff91b3d935cc2d60",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
         "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -336,14 +336,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "ba7541450b1768d4367ad09d35be48290a4d70af9ccdfca88a784558623773d5",
+      "digest": "a54e0c967dc1d9310b3757505e66a9b52b0969f4bea1b27bdbaa23b3aa034f2d",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Image proxy host allowlist gains r2.theaudiodb.com; endpoint contract and responses unchanged",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Integration health entries gain id, label, owner and itemFailures and group per instance; documented in the Jobs section with the failure classification and OpenAPI schema.",
         "breaking": "none",
         "migration": "",
-        "digest": "ba7541450b1768d4367ad09d35be48290a4d70af9ccdfca88a784558623773d5"
+        "digest": "a54e0c967dc1d9310b3757505e66a9b52b0969f4bea1b27bdbaa23b3aa034f2d"
       }
     },
     "interface": {
@@ -354,24 +354,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "a004ed427c2749c23e6bc3248eaf67882e7e723e682909d0396627650f5ccca0",
-        "src/core/i18n/messages/en.ts": "dc9a04bfe75963a687481c8818f3d2191ac4fc3da2cbc22fdde9773bb144e2f8",
-        "src/core/i18n/messages/es.ts": "65178ba4ef4691c88b9c33faaf1e9b68a167db6f13452b975eec9dc2781fcd20",
-        "src/core/i18n/messages/fr.ts": "6c39a397188124fd1648a270dcfbe8fb3cf7daa9dbb06e4630cf0fba24da285f",
+        "src/core/i18n/messages/de.ts": "ccf0717b835497a42ef45953e374e9f8df56ec6a8c5bef627e1fab3ae7945b0e",
+        "src/core/i18n/messages/en.ts": "1ab1381956b9c8fcabd0bd1f01e183ac0a8a9cb279137ac693a05067b4972877",
+        "src/core/i18n/messages/es.ts": "1ae27ace7c4b680d36c342998ae2bbff4de443beedcb9a8fcd4629ee7112f90f",
+        "src/core/i18n/messages/fr.ts": "7d044e6e0fc674edd1260a0e8cfc03acf00b09be2189ddea8ed9f119e6bd1ff5",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "c1ba459e3d24d3f7e06bc0742463386c3d1441612da92b0f446fbe720a786aed",
-        "src/core/i18n/messages/ja.ts": "0c8db442c0c441c846bc18fa6086197e8316f87cbfeabd678ebc0fdbd0f28bb9",
-        "src/core/i18n/messages/ko.ts": "4553878dbe4a05a4e8ec3eff77caae055f8312601af02d13e7e83b4ae774365d",
-        "src/core/i18n/messages/nl.ts": "e9342e2e28410e0497579b21de9c7498ca2b78a5b54aee2de5805bb09b7f617b",
-        "src/core/i18n/messages/pl.ts": "95194c1cf20493ace3e7b36129af926f66054ae47b0d1e339c408a4ab677b858",
-        "src/core/i18n/messages/pt-BR.ts": "3d5e4be87cfcec8e3b8f556fe8a39c82e3d7b312fded524b0ed4a47fedf26443",
-        "src/core/i18n/messages/ro.ts": "4cdf7cf2bbb0d71f2b9d3b6682a9e7df437905940ccb77e7ef291427c77accbb",
-        "src/core/i18n/messages/ru.ts": "4d30ba98c7b8124e5090c0e399a6380c56e2fd0e57b5dc1adc0b8caa86ffd988",
-        "src/core/i18n/messages/source-lock.json": "573e2ddf8c3b0b1eb2de0775ef9fcd214ef47a6730a77804110d48373127b2ed",
-        "src/core/i18n/messages/tr.ts": "9b788b7d1259f22b9273cbb3b20af7f307ffeb72a6f877ff124dcead51768f7b",
+        "src/core/i18n/messages/it.ts": "c027975510b85465c6bb0057690035cf1ddb8806cbbcd2b2c67280baebc76ca2",
+        "src/core/i18n/messages/ja.ts": "3c035680d523f5b98bafb51f3ac1dd052d1358c7637d3d50601eabd23dab1291",
+        "src/core/i18n/messages/ko.ts": "bf5852699a43f174e9da789550fa70714f708a54ac19533de01a45a94f783a14",
+        "src/core/i18n/messages/nl.ts": "49601cf5572671d5174866894dc752aa7e798571b89001d5bf21c624c91f81e4",
+        "src/core/i18n/messages/pl.ts": "32d90ccfb1db5b94d91327be5d96097d08d6a4f73ace1f4964867713892c9ded",
+        "src/core/i18n/messages/pt-BR.ts": "a093dc2ae46a03a43f0e99f6db159135f0c3d873b92ac450cbb633c2f9670d23",
+        "src/core/i18n/messages/ro.ts": "cb319a48dfd840cf92a7a808ee9431f7d8bbe6f8652cb7b36c3293356a565bed",
+        "src/core/i18n/messages/ru.ts": "b6a418acfd2091f5a57b49df2440bbaa593c804b7ee43c119b3c414fbd544681",
+        "src/core/i18n/messages/source-lock.json": "76e0edecb4b2be42f18c672c963ab1e192008e31a4e73034387af0d6b0bca23e",
+        "src/core/i18n/messages/tr.ts": "17f8616594581e7110be1f2f8005b59e9f5b151fe9ca3b1655b49d150260e0cd",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "1f18d7c33677399065e096a19bb16cb98b1a49fe76bb2975bc9650138b5df84d",
-        "src/core/i18n/messages/zh-CN.ts": "49e7f16897bc88a4992f7845db051d26999e72505946499e28d1a7554a3e05e3",
+        "src/core/i18n/messages/uk.ts": "3839ed9133eb59e52a5988425169a0499ebfc5dc216f1e324a6c207e0be68758",
+        "src/core/i18n/messages/zh-CN.ts": "05260739365623fafbc37379ef65e31a6632e8598b122b95e6ee40d6c00bdd0a",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -410,7 +410,7 @@
         "src/web/components/hint.tsx": "a96def275f02d1c67d4f46f589075cd5492c6f999c1b1f3a47048e412c8d9939",
         "src/web/components/import-artists.tsx": "e17cfc4f24c54f2d53b83a37dca71c21f1b0370c6489b1b9317882e922d31538",
         "src/web/components/integration-capabilities.tsx": "2ac482eeefc2acfc8f8ec5ca8821af01bd9bb415a287ad390461c7cb8518cf71",
-        "src/web/components/integration-health-card.tsx": "8cf551afba8d8da97d9e2485b695b53a6a7664651d3fd3cf9ca3f97dcda9ecbd",
+        "src/web/components/integration-health-card.tsx": "f3291fe3ae8dea72d876c1ee54c008ece0a89d3662ae46c5169a6017d1fba422",
         "src/web/components/job-run-row.tsx": "5ef8651583619a94ba9287eae188eebf4e92058068210787b2c3adb63fd9af17",
         "src/web/components/keyboard-shortcuts.tsx": "a4513986274813c3b937a4e00f9ddc10126c787301609029027b60b90647cdcd",
         "src/web/components/language-switcher.tsx": "69cc47bddb3c4736245b7632fba1f4d5ebe506f8214066f9cab6ed65746497ee",
@@ -475,7 +475,7 @@
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "a49275c7431324a17a1d43bcfbb87ed18efc1d35bdc3b19d7565f7bc8004efcd",
+        "src/web/lib/api.ts": "1092447cc0018cf87763f8546825d14db8f13922e73e0bffcd9cef5f4e96468f",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
         "src/web/lib/discover-cache.ts": "33b98aaeed8fdd7f9e53fbfe9ee5b23779920483bcf10481048c11a2ad7f4a2e",
@@ -518,7 +518,7 @@
         "src/web/pages/settings/connections-tab.tsx": "f2143a0186b6ee2ef566c1faf075c11c847982db28f47b216de2174b1f0c2881",
         "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
-        "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
+        "src/web/pages/settings/notification-channels.tsx": "d386e4a9170830bb9bee123a22bcf8269192728799ce7011a9a96b8b4bc46634",
         "src/web/pages/settings/recommendations-tab.tsx": "a05f52b26f1429997ab501cdf8cffa0a10dc181c04bd7e376b8478cbec2fac5b",
         "src/web/pages/settings/schedule-tab.tsx": "ceb67ec3a81b9aaf52a4d6fddbff345134b8f38fe1b9150d9360d5ff603b90dd",
         "src/web/pages/settings/settings-nav.tsx": "0c74f6177c004092f0e819001b99072b58718cc30e404e06e03be064bb0bddee",
@@ -533,14 +533,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "334e9ab8f4dd90889776dd3bebc2de4ae5d0fab9bd3e3883fb68a3098faf8ea3",
+      "digest": "7ac436c74affb220bd504c3f6b06b8970b2ba6d23b58e036bfa4a10e559e5e19",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "Playability summary gains one title-only reason line (new string in all 15 locales, source lock stamped) and the browser Deezer preview lookup uses a plain search filtered to the exact artist; no layout change, so screenshots are unaffected. Changelog covers both.",
         "breaking": "none",
         "migration": "",
-        "digest": "334e9ab8f4dd90889776dd3bebc2de4ae5d0fab9bd3e3883fb68a3098faf8ea3"
+        "digest": "7ac436c74affb220bd504c3f6b06b8970b2ba6d23b58e036bfa4a10e559e5e19"
       }
     },
     "features": {
@@ -607,8 +607,9 @@
         "src/core/genre/service.ts": "b7d025944b6b1a019417b275af7d6b2989a1c94ff65f576c1fec0875bb58f40b",
         "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
+        "src/core/jobs/failure-scope.ts": "f327aa8a1c4024b9cbe222aaa87e193cbd9caae3f7ac7372c80475b7aaae0a4e",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "d2b28419f5e7a4046320075d71120bfa1d16b6a18dcf9ab0d6de947744eabe67",
+        "src/core/jobs/recorder.ts": "8e502c3e57ac2b96516843e5431f7d6bb220982f30a1c92bbfc6dafd552542ec",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -642,7 +643,7 @@
         "src/core/notifications/types.ts": "c69da910904e133c5df709974abd5f5718f5872ff21b9ab44455cdd8648928f3",
         "src/core/pipeline/album-profile-filter.ts": "2eb6c8e8bb2a4826b9ffddf2723e5c21718122762ec950529f551eae0d7d9921",
         "src/core/pipeline/analyze.ts": "4105aa7d0824325c71b9c51b2f401eff15f628db2e4b5dfe0a1c0dc5c1b96ce6",
-        "src/core/pipeline/auto-approve.ts": "9fbc967924d2044cff4adb6d101d8df40bb0bc2ee35a96d0fa46b34c8fab8d7f",
+        "src/core/pipeline/auto-approve.ts": "38f1afa9a16b2d2a5ac3ac9e527bf23de59f7901b884fb519b79b26a3b340a70",
         "src/core/pipeline/cancel.ts": "6d28ad56bac72093e4558b8269cab606ba2dff0f058dc0ffdddba040666cffe1",
         "src/core/pipeline/discover.ts": "1a26a7e67eb80aa0dadcafa50c43b9fde04b18cdeda67e59730eedbbcc33eac0",
         "src/core/pipeline/enrich.ts": "3744493e0cbad7c12aa697af3f9b8b429506e8a57566f1b3bbc0ad509ba318ff",
@@ -739,7 +740,7 @@
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
         "src/core/targets/lidarr-connection.ts": "f60cd7104c3fca9ef32158c2c621d560c8c909d326b405fca870ef9962e0b26a",
         "src/core/targets/lidarr-metadata-profile.ts": "29ad747d5a4e47e36ebc7820478d8dc3f46ce5bcf91d34cce910a74cce06910e",
-        "src/core/targets/lidarr-retry-worker.ts": "b29e31a595ead1d61a1bd6f7e06af27e2bd713fb85f77f32ea809c9dd0e514b4",
+        "src/core/targets/lidarr-retry-worker.ts": "2ac3c0e6a964425b66e245c2c386313dee5f97c41b6f6a42cff7d6b9be5f05f1",
         "src/core/targets/lidarr-retry.ts": "ef0ee66e79d450e24752108b9d66182a20e2b2be82c5778172ea31958403b4a1",
         "src/core/targets/lidarr.ts": "9d529d7c03726586896a72358ce1b33adb0ea7d941cc767772f2b5d64e3c6a07",
         "src/core/targets/navidrome-playlist.ts": "c47babd1f819028a7aca55c1fee436ebd481e23d8d76c8fd4ecc6888e0fd05f3",
@@ -751,7 +752,7 @@
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "c24911a892b10d90874ce2b63c8982455966b991c33415637e7aea4a12aaf048",
         "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
-        "src/core/targets/types.ts": "02669332082348a5981750d4636f76a2de5af01a61c3a67b99eba94aa75744e1",
+        "src/core/targets/types.ts": "167235be31598751b7c02c6a5c5eef5c5f8f90a870b40eb617ed0792dc69053c",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "db17455dd508e5d71fb981353b2cc494d8574ad0495418d04c0d51103524af17",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
@@ -759,14 +760,14 @@
         "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "2594d41d2c1d2257519803b19c91e7407971c03ff802dbb48a5e7adb37129f13",
+      "digest": "b693228acab9c31e9813b1fc3fc0b7c7eb871c48bb658d3790d5613e75c02c40",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/API.md", "docs/ARCHITECTURE.md"],
         "note": "Deezer playlist resolution now uses artist search plus top tracks (or a plain exact-artist track search) because artist: queries return nothing; MusicBrainz fallback skips non-song titles; outcomes can carry titleOnly. Documented in API.md, ARCHITECTURE.md and the changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "2594d41d2c1d2257519803b19c91e7407971c03ff802dbb48a5e7adb37129f13"
+        "digest": "b693228acab9c31e9813b1fc3fc0b7c7eb871c48bb658d3790d5613e75c02c40"
       }
     },
     "deployment": {

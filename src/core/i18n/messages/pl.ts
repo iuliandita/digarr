@@ -977,6 +977,7 @@ export const pl = {
   'systemHealth.integrationsEmpty': 'Brak zapisanej aktywności integracji z ostatnich 30 dni.',
   'systemHealth.lastSuccess': 'Ostatni sukces',
   'systemHealth.lastError': 'Ostatni błąd',
+  'systemHealth.itemFailures': '{0} błędów pojedynczych elementów (nie liczone jako awaria)',
   'systemHealth.integrationOk': 'Działa',
   'systemHealth.integrationFailing': 'Błędy',
   'systemHealth.kind.target': 'Cel',
@@ -1947,6 +1948,10 @@ export const pl = {
   'settings.channels.saved': 'Zapisano powiadomienia',
   'settings.channels.saveFailed': 'Nie udało się zapisać powiadomień',
   'settings.channels.secretKeepPlaceholder': 'Pozostaw puste, aby zachować zapisaną wartość',
+  'settings.channels.secretSaved': 'Zapisano',
+  'settings.channels.secretRemove': 'Usuń',
+  'settings.channels.secretRemovePending': 'Zostanie usunięte po zapisaniu',
+  'settings.channels.secretUndo': 'Cofnij',
   'settings.primaryGenres': 'Gatunki priorytetowe (opcjonalnie)',
   'settings.secondaryGenres': 'Inne ulubione gatunki (opcjonalnie)',
   'settings.genrePriorityHelp':

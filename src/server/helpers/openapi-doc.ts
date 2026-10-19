@@ -325,8 +325,32 @@ const baseDoc = {
       },
       IntegrationHealth: {
         type: 'object',
-        required: ['kind', 'name', 'status', 'lastSuccess', 'lastError'],
+        required: [
+          'id',
+          'kind',
+          'name',
+          'label',
+          'owner',
+          'status',
+          'lastSuccess',
+          'lastError',
+          'itemFailures',
+        ],
         properties: {
+          id: { type: 'string' },
+          label: { type: ['string', 'null'] },
+          owner: {
+            oneOf: [
+              { type: 'null' },
+              {
+                type: 'object',
+                required: ['id', 'username'],
+                properties: { id: { type: 'integer' }, username: { type: 'string' } },
+                additionalProperties: false,
+              },
+            ],
+          },
+          itemFailures: { type: 'integer', minimum: 0 },
           kind: {
             type: 'string',
             enum: ['target', 'library', 'source', 'subscription', 'scrobbler'],

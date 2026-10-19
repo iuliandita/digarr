@@ -959,6 +959,7 @@ export const en = {
   'systemHealth.integrationsEmpty': 'No integration activity recorded in the past 30 days.',
   'systemHealth.lastSuccess': 'Last success',
   'systemHealth.lastError': 'Last error',
+  'systemHealth.itemFailures': '{0} per-item failures (not counted as outages)',
   'systemHealth.integrationOk': 'Working',
   'systemHealth.integrationFailing': 'Failing',
   'systemHealth.kind.target': 'Target',
@@ -1998,6 +1999,10 @@ export const en = {
   'settings.channels.saved': 'Notifications saved',
   'settings.channels.saveFailed': 'Failed to save notifications',
   'settings.channels.secretKeepPlaceholder': 'Leave blank to keep the saved value',
+  'settings.channels.secretSaved': 'Saved',
+  'settings.channels.secretRemove': 'Remove',
+  'settings.channels.secretRemovePending': 'Will be removed when you save',
+  'settings.channels.secretUndo': 'Undo',
   'settings.primaryGenres': 'Priority genres (optional)',
   'settings.secondaryGenres': 'Other preferred genres (optional)',
   'settings.genrePriorityHelp':
