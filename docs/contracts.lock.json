@@ -331,17 +331,17 @@
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
-        "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
+        "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925",
+      "digest": "e7d13995bfb780f8546c515537e4e2e6ec0a4cca935abf8b546bf10111d70c28",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document bounded reconciliation pages, projected review rows, stable job ordering, compact summaries, and the existing full-detail endpoint.",
-        "breaking": "Reconciliation clients must request successive pages and stop using removed internal fields; job clients need the detail endpoint for complete metadata and source diagnostics.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Static /assets responses now send Access-Control-Allow-Origin star for the sandboxed Spotify bridge; no route, schema, or API contract changes.",
+        "breaking": "none",
         "migration": "",
-        "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925"
+        "digest": "e7d13995bfb780f8546c515537e4e2e6ec0a4cca935abf8b546bf10111d70c28"
       }
     },
     "interface": {
@@ -830,16 +830,16 @@
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
-        "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
+        "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755",
+      "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Only the server build script gains whitespace and syntax minification; version, scripts and pins are unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Vite output filenames use 10-char hashes once to bust immutable-cached assets; no release pins, channels, or version surfaces change.",
         "breaking": "none",
         "migration": "",
-        "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755"
+        "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391"
       }
     },
     "maintenance": {

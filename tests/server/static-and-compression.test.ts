@@ -4,6 +4,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { Hono } from 'hono'
+import { cors } from 'hono/cors'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createSession } from '@/core/sessions'
 import { setupGuard } from '@/server/middleware/setup-guard'
@@ -42,6 +43,38 @@ describe('static caching headers', () => {
     const res = await app.request('/assets/missing-deadbeef.js')
     expect(res.headers.get('cache-control')).toBe('no-cache')
   })
+})
+
+describe('static asset CORS', () => {
+  let root: string
+  let app: Hono
+
+  beforeAll(() => {
+    root = mkdtempSync(join(tmpdir(), 'digarr-web-'))
+    mkdirSync(join(root, 'assets'))
+    writeFileSync(join(root, 'assets', 'bridge-abc123.js'), 'console.log(1)')
+    writeFileSync(join(root, 'index.html'), '<!doctype html><html></html>')
+    app = new Hono()
+    app.use('*', cors({ origin: 'https://digarr.example' }))
+    mountStatic(app, root)
+  })
+
+  afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+  it('lets the opaque-origin bridge sandbox load hashed assets', async () => {
+    const res = await app.request('/assets/bridge-abc123.js', { headers: { origin: 'null' } })
+    expect(res.status).toBe(200)
+    expect(res.headers.get('access-control-allow-origin')).toBe('*')
+    expect(res.headers.get('access-control-allow-credentials')).toBeNull()
+  })
+
+  it.each(['/assets/missing-deadbeef.js', '/'])(
+    'does not open %s to every origin',
+    async (path) => {
+      const res = await app.request(path, { headers: { origin: 'null' } })
+      expect(res.headers.get('access-control-allow-origin')).not.toBe('*')
+    },
+  )
 })
 
 describe('JSON compression', () => {

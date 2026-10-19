@@ -22,6 +22,12 @@ export default defineConfig({
         app: path.resolve(__dirname, 'index.html'),
         spotifyBridge: path.resolve(__dirname, 'spotify-embed-bridge.html'),
       },
+      output: {
+        // 10-char hashes (default 8) force new URLs once, so browsers drop immutable copies cached without CORS headers (#1119).
+        entryFileNames: 'assets/[name]-[hash:10].js',
+        chunkFileNames: 'assets/[name]-[hash:10].js',
+        assetFileNames: 'assets/[name]-[hash:10][extname]',
+      },
     },
   },
   server: {

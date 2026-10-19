@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - Adding artists from mood search results no longer fails after five clicks: adds are queued, wait out the server rate limit or a running scan, and show a Queued state; real failures now say why (#1109).
+- The Spotify player bridge no longer gets blocked by CORS in production: built `/assets/` files now send `Access-Control-Allow-Origin: *` so the sandboxed iframe can load its scripts, and asset filenames use longer hashes once so browsers drop copies cached without the header (#1119).
 - With a Lidarr target, album recommendations skip release types the Lidarr metadata profile filters out (for example compilations under a studio-only profile), and an album add that still fails for that reason says which type the profile blocks instead of "album not found in Lidarr" (#1108).
 - The pre-migration auto-backup streams each table to disk in pages instead of building the whole database in memory first, so upgrades on large libraries no longer risk running out of memory before the server starts. Snapshots are now compact JSON (about 30% smaller) and restore exactly as before (#1092).
 - Genre counts, library reconciliation pages, and Job History use less database work and transfer less data; migration 0060 adds a backward-compatible job ordering index (#1096).
