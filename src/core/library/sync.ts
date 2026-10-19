@@ -274,6 +274,24 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
   }
 
   return {
+    isRunning(userId: number | null, sourceId: string): boolean {
+      return inFlight.has(`${userId ?? 'global'}:${sourceId}`)
+    },
+
+    /** Which scope (per-user first, then global) has `sourceId` configured, or null. */
+    async resolveSourceScope(
+      userId: number,
+      sourceId: string,
+    ): Promise<{ userId: number | null } | null> {
+      if ((await deps.buildPerUserSources(userId)).some((s) => s.id === sourceId)) {
+        return { userId }
+      }
+      if ((await deps.buildGlobalSources()).some((s) => s.id === sourceId)) {
+        return { userId: null }
+      }
+      return null
+    },
+
     async syncGlobal(options?: SyncOptions): Promise<SyncSummary> {
       const sources = await deps.buildGlobalSources()
       const results = await runSourcesIsolated(sources, null, options)

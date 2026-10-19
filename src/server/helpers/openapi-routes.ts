@@ -1212,8 +1212,17 @@ export const routeCatalog: RouteSpec[] = [
     auth: 'admin',
     summary: 'Run a manual library sync',
     ...body(librarySyncSchema),
-    ok: accepted('Sync started.'),
-    errors: { '502': 'Source sync failed.' },
+    ok: accepted('Sync started in the background; poll GET /api/v1/library/sources for progress.', {
+      type: 'object',
+      properties: {
+        source: { type: 'string' },
+        status: { type: 'string', enum: ['started'] },
+      },
+    }),
+    errors: {
+      '404': 'Requested source is not configured.',
+      '409': 'A sync is already running.',
+    },
   },
   {
     method: 'get',

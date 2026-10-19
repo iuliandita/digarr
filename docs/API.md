@@ -1044,10 +1044,11 @@ Notes:
 
 **POST /api/v1/library/sync** notes:
 - Rate limited: 5/min
-- Empty body runs global source sync plus a forced sync for the current user and returns `202`
-- `{ "source": "lidarr" }` runs a single source and returns `200` on completion, `202` if still running, or `502` on sync failure
-- If the requested source is not configured for the current user, Digarr retries it as a global source
-- A source album-fetch failure marks the source sync and its job failed and preserves the previous source snapshot. A single-source request returns `502`; for all-source or scheduled runs, inspect the source status and Job History. This differs from MusicBrainz reconciliation failures, which are counted within an otherwise completed sync.
+- The sync runs in the background and the request returns `202` straight away with `{ "status": "started" }` (plus `source` for a single-source request). A Lidarr sync can take minutes, so poll `GET /api/v1/library/sources` for `lastSyncStatus` (`running`, `completed`, `failed`), `lastSyncCounts`, and `lastSyncError`
+- Empty body runs global source sync plus a forced sync for the current user
+- `{ "source": "lidarr" }` runs a single source. If it is not configured for the current user, Digarr uses the global source of that name; if neither exists the request returns `404`
+- If that source (or a previous sync-all) is still running, the request returns `409` with code `errors.library.syncAlreadyRunning` and starts nothing
+- A source album-fetch failure marks the source sync and its job failed and preserves the previous source snapshot. The failure shows in `lastSyncError` and Job History, not in the POST response. This differs from MusicBrainz reconciliation failures, which are counted within an otherwise completed sync.
 
 **POST /api/v1/library/sync** body:
 ```json

@@ -7,6 +7,8 @@ function makeMockOrchestrator(): SyncOrchestrator {
   return {
     syncGlobal: vi.fn(async () => ({ userId: null, results: [] })),
     syncForUser: vi.fn(async () => ({ userId: 1, results: [] })),
+    isRunning: vi.fn(() => false),
+    resolveSourceScope: vi.fn(async () => null),
     syncSpecificSource: vi.fn(async () => ({
       source: 's',
       status: 'completed' as const,
