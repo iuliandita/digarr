@@ -3,6 +3,13 @@ import type { Database } from '@/db'
 import { jobRuns } from '@/db/schema'
 import type { CompleteJobParams, JobRecorder, StartJobParams } from './types'
 
+// drizzle error text embeds the full SQL and every bound param; never persist or show it.
+const DB_ERROR_MESSAGE = 'Database error - see server logs for details'
+
+export function sanitizeJobError(error: string): string {
+  return /^Failed query:/i.test(error.trimStart()) ? DB_ERROR_MESSAGE : error
+}
+
 const STUCK_THRESHOLDS_MS: Record<string, number> = {
   pipeline: 10 * 60 * 1000,
   quick_discover: 5 * 60 * 1000,
@@ -53,8 +60,12 @@ export function createJobRecorder(db: Database): JobRecorder {
 
     async fail(jobId: number, error: string): Promise<void> {
       const MAX_ERROR_LENGTH = 2048
+      const safeError = sanitizeJobError(error)
+      if (safeError !== error) console.error(`[jobs] job ${jobId} failed:`, error)
       const truncatedError =
-        error.length > MAX_ERROR_LENGTH ? `${error.slice(0, MAX_ERROR_LENGTH)}...` : error
+        safeError.length > MAX_ERROR_LENGTH
+          ? `${safeError.slice(0, MAX_ERROR_LENGTH)}...`
+          : safeError
       const now = new Date()
       await db
         .update(jobRuns)

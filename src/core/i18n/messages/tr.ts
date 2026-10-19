@@ -1214,6 +1214,9 @@ export const tr = {
   'settings.lidarrDescription': 'Müzik kütüphane yöneticisi - sanatçı eklemek için gerekli.',
   'settings.lidarrPublicUrlHelp':
     "Lidarr sanatçı sayfalarına bağlanmak için tarayıcıdan erişilebilir URL. API URL'si tarayıcıdan zaten ulaşılabiliyorsa boş bırak.",
+  'settings.lidarrRequireFiles': 'Yalnızca dosyası olan albümleri say',
+  'settings.lidarrRequireFilesHelp':
+    "Lidarr'ın takip ettiği ama henüz indirmediği albümler sahip olunan olarak sayılmaz. Bir sonraki kitaplık eşitlemesinde geçerli olur.",
   'settings.aiTip':
     'Sanatçı öneren yapay zekâ sağlayıcısını seç. Ollama veya OpenAI uyumlu herhangi bir sunucu yerelde çalışabilir; barındırılan sağlayıcılar API anahtarı ister.',
   'settings.aiDescription': 'Müzik önerileri oluşturur.',

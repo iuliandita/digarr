@@ -1237,6 +1237,9 @@ export const es = {
   'settings.lidarrDescription': 'Gestor de biblioteca musical - necesario para añadir artistas.',
   'settings.lidarrPublicUrlHelp':
     'URL accesible desde el navegador para enlazar a las páginas de artistas de Lidarr. Déjala vacía si la URL de la API ya es accesible desde tu navegador.',
+  'settings.lidarrRequireFiles': 'Contar solo álbumes con archivos',
+  'settings.lidarrRequireFilesHelp':
+    'Los álbumes que Lidarr sigue pero aún no ha descargado no cuentan como propios. Se aplica en la próxima sincronización de la biblioteca.',
   'settings.aiTip':
     'Elige el proveedor de IA que sugiere artistas. Ollama o cualquier servidor compatible con OpenAI puede ejecutarse en local; los proveedores alojados necesitan una clave de API.',
   'settings.aiDescription': 'Genera recomendaciones musicales.',

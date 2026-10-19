@@ -688,6 +688,7 @@ export type Preferences = {
   channels?: NotificationChannel[]
   digestCron?: string // cron string for the periodic digest webhook; absent/empty = disabled
   lidarrPublicUrl?: string // browser-accessible Lidarr URL (may differ from API URL)
+  lidarrRequireFiles?: boolean // library sync counts only Lidarr albums with files; absent = true
   autoApproveEnabled?: boolean
   autoApproveThreshold?: number // 0-1: minimum score to auto-approve
   autoApproveMonitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none'

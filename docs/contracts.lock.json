@@ -178,7 +178,7 @@
         "src/db/queries/artists.ts": "113aaf2c7158127ffb0e563ef5ee7722fdcc980910db9f9152b359fbc7a57e9c",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
-        "src/db/queries/gap-fill.ts": "614d60689b39a363cea37394d22f09dfc482486061e16131beeb2a758d589e7f",
+        "src/db/queries/gap-fill.ts": "2e5aae971156d2c14842552496b76541184489140ae51b7854208bfaaf9abf6a",
         "src/db/queries/genres.ts": "623e351944c65a8b03ac3361cbe49f073a424f791fd4170719db6f78afa8c934",
         "src/db/queries/jobs.ts": "4a69d8cea2bb8d22913ea730e982053b8e92ec23506ff74fcacc80358f78171e",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
@@ -196,17 +196,17 @@
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "f5ce2a210b6c7c2b957166a03799bf5f8295abc2920d675a09556fb048e44218",
-        "src/db/schema.ts": "e729ed83307cdf724b056e1ea31765bdbec1625610d1e61b6e0e13566f3665ca",
+        "src/db/schema.ts": "e9f39316c61d47d3d44fc2570831921b88b538b6119836752c75e1b47aae6cf1",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a",
+      "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Pre-migration auto-backup now streams each table in keyset pages to the temp file as compact JSON inside one read-only repeatable-read transaction; same top-level structure and keys, and restore code is unchanged.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
         "breaking": "none",
-        "migration": "No schema migration. Upgrading changes only how the pre-migration snapshot is written. Old pretty-printed and new compact backup files both restore through the same endpoint, and an image rollback still restores either format. Keep taking a native database backup before upgrades as documented.",
-        "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a"
+        "migration": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
+        "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9"
       }
     },
     "configuration": {
@@ -325,23 +325,23 @@
         "src/server/schemas/pipeline.ts": "12b32f38d093560568f21ddc9626fe4282d74b12ab29af4ecab8ddd405e10341",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
         "src/server/schemas/recommendations.ts": "d1b34fbcdfdc8edd459c999ae3a4ad7b4109679ba9e4a7600cae560e04ebddd6",
-        "src/server/schemas/settings.ts": "fbe229f86d765d2bb7e9bd76ba85cde79a3cdcf752e5971868d448c4bb87125b",
+        "src/server/schemas/settings.ts": "92132ecf0bc6d62c1b34ec2aa8fc7a6ff6a47d35062812fcedf0ffaeef45d72d",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "c2ae54526be2ae70214b4f6e425e67989283b5565a11cc7472ba4ee28c1114d2",
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
-        "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
+        "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925",
+      "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document bounded reconciliation pages, projected review rows, stable job ordering, compact summaries, and the existing full-detail endpoint.",
-        "breaking": "Reconciliation clients must request successive pages and stop using removed internal fields; job clients need the detail endpoint for complete metadata and source diagnostics.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Static /assets responses now send Access-Control-Allow-Origin star for the sandboxed Spotify bridge; no route, schema, or API contract changes.",
+        "breaking": "none",
         "migration": "",
-        "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925"
+        "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af"
       }
     },
     "interface": {
@@ -352,24 +352,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "812a5f1c18d77efc34567249da818b5bc21a0886bc1254bd0d6fc9a1db7c3a17",
-        "src/core/i18n/messages/en.ts": "ae8c1e7eed966020bc2803f5867e4bcc5ffa94f16d936855c79d29152b3326a9",
-        "src/core/i18n/messages/es.ts": "c488b8920faa45529c598939aee94c4c64be1f9259dbf6ec7dc7dc69fe800dfc",
-        "src/core/i18n/messages/fr.ts": "8fbeb0a104b4c5faa24ad0609e6564653450890d4a91a6993038baf9d7e3c686",
+        "src/core/i18n/messages/de.ts": "3b6e8102429426bb76879ff523e32d0aa5f4a0f7df8d1612b7b5625fb9cd85f9",
+        "src/core/i18n/messages/en.ts": "4187afa298fa0c0629077cdfc9cdf41936d68c2a3f93e303ff413f8c7ad50682",
+        "src/core/i18n/messages/es.ts": "8985f4bd5a00aea44989cf48f5daf707cbd0e9912431cb407f30c08d1855669a",
+        "src/core/i18n/messages/fr.ts": "3edcb3d662ec37ad9c3c50bd390c77e5e18429f441fa61b2c111ba79f1410a11",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "31a1bd4f63ff1c885a56c6a67b7554d30ffa5152c248552902a16d57f522adae",
-        "src/core/i18n/messages/ja.ts": "3fcb5ef8f46997f9681ef4b0f84864d43cce896026be08c7e86117df326a568b",
-        "src/core/i18n/messages/ko.ts": "beec92d5d759f15c935871958d23175a0b6e1e88658cd709feb989a34f686ecb",
-        "src/core/i18n/messages/nl.ts": "23278aa5ad8ea6503c150121dd755fa833d16e8302a9a1436cf460ec4421d580",
-        "src/core/i18n/messages/pl.ts": "44f4bbb47a23c4bb719b48e6415cb30d9c5c376f676ce652afe84221596a18d0",
-        "src/core/i18n/messages/pt-BR.ts": "2a2a854e0a2ae971d607ba6b5b1283d98fa0a43bc807d169eab9506d325d1eb1",
-        "src/core/i18n/messages/ro.ts": "18cbcf68767bd6dc0fb59bc20d2657b18fbb8e7bcce78acc4465c733d083a304",
-        "src/core/i18n/messages/ru.ts": "c316c2e241cd77944d308a06f2fcb82a913b23caf3bf47d4b6e7493b91f5f180",
-        "src/core/i18n/messages/source-lock.json": "340cb2844fe139e90c89c5e9c329fc2ccb1a80b0983fe21eb97407b035e859e6",
-        "src/core/i18n/messages/tr.ts": "2175efe42b06a8effdad423d29f7b76464c679b55545ba7015d2322672ff4bdd",
+        "src/core/i18n/messages/it.ts": "b9d92a4a1ed05ba0f33a0954fcfaffbbfcb8534445e30a6866f5f2b11a48289c",
+        "src/core/i18n/messages/ja.ts": "450d161b7846e0ac7f939455c4b69aa1bc3090788455b7c72f928ef55d400fc4",
+        "src/core/i18n/messages/ko.ts": "eef2f4e0be12c6c9a7dd417b12c9e58f20f5a5542288f7336853fa4063c82b64",
+        "src/core/i18n/messages/nl.ts": "d211347278feb9cb12809a53b7a5ace5b8c93c4547089740bf653e6e0b70657a",
+        "src/core/i18n/messages/pl.ts": "e16b63901570aa2183b58d608c21a7a03c29079010c48b5f943be0b2cd41fe69",
+        "src/core/i18n/messages/pt-BR.ts": "62e6ff2f3cb1b282aa052a8b8f60035270b2b426ab1fb9ed13f8daecbd9ba73e",
+        "src/core/i18n/messages/ro.ts": "3fc865a9ce6d123d1f35d3651244a8dbed3b815f8cef8562306663f8077d82a8",
+        "src/core/i18n/messages/ru.ts": "fc9c58169f0e02d36b1ea4908de056816974e14f4c6c3ffce7622fc3c7935bbd",
+        "src/core/i18n/messages/source-lock.json": "51ac119c6af8c3b39c9cb216e7846afd72b79cfdd8c7fe9a23f9d94524af729b",
+        "src/core/i18n/messages/tr.ts": "46ce2758342a6d85154ae93c90b4d9f44bf014160a51ae19f7be7637263edd50",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "5b0eb4c3dc8b0e4fc44e2dfe929f57dd7ec80489c951956170ac0e0dcc9b554d",
-        "src/core/i18n/messages/zh-CN.ts": "3c4de9c342c3c97eb5e3714ae28c6635d94e576e7f37bb1606e54bf9dec9d51f",
+        "src/core/i18n/messages/uk.ts": "dac51cf961b461aad87265408f53d69cfb47b562bb1adad89ba67016a408f197",
+        "src/core/i18n/messages/zh-CN.ts": "61584f33874bb127e9d4b925fda7b4bcc6e05f1d29749b08c2bdb9f69864df2d",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -512,7 +512,7 @@
         "src/web/pages/settings/artist-images-card.tsx": "b7ecf89daa643e133a1630b236efa5d43ff60b365d8307f7bab8f46e86d6ff61",
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
         "src/web/pages/settings/connection-picker.tsx": "49360515b4df1d7ffb5b9b6c0affd640727cdcddcf4c364098b6a8f01a782e4e",
-        "src/web/pages/settings/connections-tab.tsx": "6d0c1bea1a8588a5c3b98d8b697faedaff08e480138f4b5d505e16400dd6322e",
+        "src/web/pages/settings/connections-tab.tsx": "6ba57284ca4a9e46b6ec9faa00d08ff33f12fad151cedaf115fcd07e2cab812b",
         "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
         "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
@@ -530,14 +530,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "007205e22c6d869ef02a7fd24fd89878fc4765f0fceb4f892ac1e787b42c3226",
+      "digest": "366980ff287ecad180ad02f76557d0798ea051adb376c9c371e47d40c577d68c",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "Follow-up to the compact Easy/Advanced toggle: it now also shows for advanced-only modes (empty easy fields) and hides only when advanced fields are absent or identical to easy; no guide text changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "007205e22c6d869ef02a7fd24fd89878fc4765f0fceb4f892ac1e787b42c3226"
+        "digest": "366980ff287ecad180ad02f76557d0798ea051adb376c9c371e47d40c577d68c"
       }
     },
     "features": {
@@ -605,7 +605,7 @@
         "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
+        "src/core/jobs/recorder.ts": "d2b28419f5e7a4046320075d71120bfa1d16b6a18dcf9ab0d6de947744eabe67",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -619,7 +619,7 @@
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
         "src/core/library/sources/jellyfin-family.ts": "32697d4cc5aca0d8ad123619ad5aea4c4ab258bc6e503f5b6daf60bc9b9c5d05",
         "src/core/library/sources/jellyfin.ts": "3b4cc00e211f7eee7db5e7ac85783377e0b8f00da61b988cc1288064d8835b0e",
-        "src/core/library/sources/lidarr.ts": "3d74de8044a4a23a5d142080d1778f59eb8a3d9d610eef1667bd6e43b8b2ecdb",
+        "src/core/library/sources/lidarr.ts": "f7651bd31f150e1b9ad8ad66cd0b049c8aa874a3419ec14a1338a12e091dbd5c",
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
@@ -753,17 +753,17 @@
         "src/core/types.ts": "db17455dd508e5d71fb981353b2cc494d8574ad0495418d04c0d51103524af17",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "0fde65395444c0047974eb5344715dae03d75b9e6ba544c122ce55ce7937ee71",
+        "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990",
+      "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Album candidates are filtered by the Lidarr metadata profile and the add error names the blocked type; documented the rule, fallbacks and the unscanned existing recommendations. Rebased over the delayed boot sync, which is unrelated.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Job failure recording replaces raw drizzle query text with a short database error message; the full error goes to the server log. Changelog Fixed entry added.",
         "breaking": "none",
         "migration": "",
-        "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990"
+        "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483"
       }
     },
     "deployment": {
@@ -830,16 +830,16 @@
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
-        "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
+        "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755",
+      "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Only the server build script gains whitespace and syntax minification; version, scripts and pins are unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Vite output filenames use 10-char hashes once to bust immutable-cached assets; no release pins, channels, or version surfaces change.",
         "breaking": "none",
         "migration": "",
-        "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755"
+        "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391"
       }
     },
     "maintenance": {

@@ -1230,6 +1230,9 @@ export const ro = {
     'Manager de bibliotecă muzicală - necesar pentru adăugarea artiștilor.',
   'settings.lidarrPublicUrlHelp':
     'URL accesibil din browser pentru legarea la paginile de artiști din Lidarr. Lasă gol dacă URL-ul API este deja accesibil din browserul tău.',
+  'settings.lidarrRequireFiles': 'Numără doar albumele cu fișiere',
+  'settings.lidarrRequireFilesHelp':
+    'Albumele pe care Lidarr le urmărește, dar nu le-a descărcat încă, nu se numără ca fiind deținute. Se aplică la următoarea sincronizare a bibliotecii.',
   'settings.aiTip':
     'Alege furnizorul AI care sugerează artiști. Ollama sau orice server compatibil OpenAI poate rula local; furnizorii găzduiți au nevoie de o cheie API.',
   'settings.aiDescription': 'Generează recomandări muzicale.',

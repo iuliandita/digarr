@@ -1240,6 +1240,9 @@ export const de = {
     'Musikbibliotheksmanager - erforderlich zum Hinzufügen von Künstlern.',
   'settings.lidarrPublicUrlHelp':
     'Im Browser erreichbare URL für Links zu Lidarr-Künstlerseiten. Leer lassen, wenn die API-URL bereits über den Browser erreichbar ist.',
+  'settings.lidarrRequireFiles': 'Nur Alben mit Dateien zählen',
+  'settings.lidarrRequireFilesHelp':
+    'Alben, die Lidarr verfolgt, aber noch nicht heruntergeladen hat, zählen nicht als vorhanden. Gilt ab der nächsten Bibliothekssynchronisierung.',
   'settings.aiTip':
     'Wähle den KI-Anbieter, der Künstler vorschlägt. Ollama oder jeder OpenAI-kompatible Server kann lokal laufen; gehostete Anbieter brauchen einen API-Schlüssel.',
   'settings.aiDescription': 'Erstellt Musikempfehlungen.',

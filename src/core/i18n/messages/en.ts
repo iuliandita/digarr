@@ -1218,6 +1218,9 @@ export const en = {
   'settings.lidarrDescription': 'Music library manager - required for adding artists.',
   'settings.lidarrPublicUrlHelp':
     'Browser-accessible URL for linking to Lidarr artist pages. Leave empty if the API URL is already reachable from your browser.',
+  'settings.lidarrRequireFiles': 'Only count albums with files',
+  'settings.lidarrRequireFilesHelp':
+    "Albums Lidarr tracks but hasn't downloaded won't count as owned. Applies on the next library sync.",
   'settings.aiTip':
     'Choose the AI provider that suggests artists. Ollama or any OpenAI-compatible server can run locally; hosted providers need an API key.',
   'settings.aiDescription': 'Generates music recommendations.',
