@@ -62,7 +62,8 @@ WORKDIR /app
 # Non-root user (bun base image ships with bun:bun at UID/GID 1000)
 
 COPY --from=deps-prod /app/package.json /app/bun.lock ./
-COPY --from=deps-prod /app/node_modules ./node_modules
+# Everything except PGlite is inlined by the bun build (see the build script's --external).
+COPY --from=deps-prod /app/node_modules/@electric-sql/pglite ./node_modules/@electric-sql/pglite
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/drizzle ./drizzle
 COPY deploy/docker/healthcheck.sh /app/healthcheck.sh
