@@ -80,7 +80,6 @@ export const de = {
   'tokens.readOnlyError': 'Dieses Token erlaubt nur GET- und HEAD-Anfragen.',
   'tokens.notFoundError': 'Dieses Token wurde nicht gefunden.',
   'writeBack.lastfmReconnect': 'Last.fm erneut verbinden',
-  'writeBack.title': 'An Scrobbler senden',
   'writeBack.scope':
     'Nur bestätigte, eindeutig bekannte Titel aus Vorschauen oder Audition werden gesendet. Ablehnungen, Sperren und reine Künstlerbestätigungen bleiben lokal.',
   'writeBack.offHelp':

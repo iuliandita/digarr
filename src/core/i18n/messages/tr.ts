@@ -79,7 +79,6 @@ export const tr = {
   'tokens.readOnlyError': 'Bu belirteç yalnızca GET ve HEAD isteklerine izin verir.',
   'tokens.notFoundError': 'Bu belirteç bulunamadı.',
   'writeBack.lastfmReconnect': 'Last.fm hizmetine yeniden bağlan',
-  'writeBack.title': 'Scrobbler hizmetlerine gönderme',
   'writeBack.scope':
     'Yalnızca önizlemelerden veya Audition üzerinden belirli parçalar için verdiğin onaylar gönderilir. Retler, engellemeler ve yalnızca sanatçı onayları yerel kalır.',
   'writeBack.offHelp':

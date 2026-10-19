@@ -80,7 +80,6 @@ export const pl = {
   'tokens.readOnlyError': 'Ten token zezwala tylko na żądania GET i HEAD.',
   'tokens.notFoundError': 'Nie znaleziono tego tokena.',
   'writeBack.lastfmReconnect': 'Połącz ponownie Last.fm',
-  'writeBack.title': 'Wysyłanie do scrobblerów',
   'writeBack.scope':
     'Wysyłane są tylko zatwierdzenia konkretnych utworów z podglądów lub Audition. Odrzucenia, blokady i zatwierdzenia samych wykonawców pozostają lokalne.',
   'writeBack.offHelp':

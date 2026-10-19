@@ -77,7 +77,6 @@ export const ja = {
   'tokens.readOnlyError': 'このトークンではGETとHEADリクエストのみ使用できます。',
   'tokens.notFoundError': 'このトークンが見つかりません。',
   'writeBack.lastfmReconnect': 'Last.fmに再接続',
-  'writeBack.title': 'スクリブラーへの送信',
   'writeBack.scope':
     'プレビューやAuditionで正確な曲を承認した場合のみ送信されます。拒否、ブロック、アーティストのみの承認はローカルに保存されます。',
   'writeBack.offHelp':

@@ -486,7 +486,7 @@ The input must be the automatic pre-migration backup, use backup version 1, and 
 
 ## Scrobbler write-back
 
-Write-back is off by default. In **Settings > Account**, each user controls ListenBrainz track loves, ListenBrainz generated playlists, and Last.fm track loves independently. Saving a connection alone does not consent to sending feedback.
+Write-back is off by default. In **Settings > Connections**, each user controls ListenBrainz track loves and generated playlists on the ListenBrainz card, and Last.fm track loves on the Last.fm card, independently. Saving a connection alone does not consent to sending feedback.
 
 Only successful approvals of exact tracks from previews or Audition send loves. ListenBrainz receives the recording MBID; Last.fm receives the artist and track title. A track without a recording MBID cannot send a ListenBrainz love. Artist-only approvals, rejects, and blocks stay local. Turning a switch off stops future sends and does not remove remote loves or playlists already sent. Generated playlists need the separate ListenBrainz playlist switch and are sent only when you generate them manually. Scheduled regenerations never send playlists. This sends the playlist title, artist/track names, and known recording MBIDs as a private ListenBrainz playlist. Tracks without recording MBIDs are skipped; no usable recordings produces a visible failure. Provider failures appear in Account settings and do not turn a local approval into a failure. A stale or ambiguous Audition track reference sends nothing and the approval still succeeds.
 

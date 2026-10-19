@@ -78,7 +78,6 @@ export const it = {
   'tokens.readOnlyError': 'Questo token consente solo richieste GET e HEAD.',
   'tokens.notFoundError': 'Questo token non è stato trovato.',
   'writeBack.lastfmReconnect': 'Riconnetti Last.fm',
-  'writeBack.title': 'Invio agli scrobbler',
   'writeBack.scope':
     'Vengono inviate solo le approvazioni di brani precisi dalle anteprime o da Audition. Rifiuti, blocchi e approvazioni del solo artista restano locali.',
   'writeBack.offHelp':

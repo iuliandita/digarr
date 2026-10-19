@@ -81,7 +81,6 @@ export const fr = {
   'tokens.readOnlyError': 'Ce jeton autorise uniquement les requêtes GET et HEAD.',
   'tokens.notFoundError': 'Ce jeton est introuvable.',
   'writeBack.lastfmReconnect': 'Reconnecter Last.fm',
-  'writeBack.title': 'Envoi vers les scrobblers',
   'writeBack.scope':
     'Seules les validations de morceaux précis depuis les extraits ou Audition sont envoyées. Les rejets, blocages et validations portant uniquement sur un artiste restent locaux.',
   'writeBack.offHelp':

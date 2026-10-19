@@ -50,7 +50,7 @@ AI suggestions and MusicBrainz matches can be wrong, so check the artist and rel
 
 A connection's capabilities differ by service. Release Radar requires ListenBrainz, Spotify, or Last.fm. Spotify Saved Albums and Followed Artists, Deezer Flow, and Subsonic Starred have focused discovery modes.
 
-In **Settings > Account**, you can opt in separately to ListenBrainz track loves, ListenBrainz playlists from manual generation, and Last.fm track loves. Scheduled playlist regenerations never send to ListenBrainz. Only exact-track approvals from previews or Audition send loves; rejects and artist-only approvals stay local. Last.fm requires an encrypted per-user connection. See [scrobbler setup and privacy](docs/AUTHENTICATION.md#scrobbler-write-back).
+In **Settings > Connections**, on the ListenBrainz and Last.fm cards, you can opt in separately to ListenBrainz track loves, ListenBrainz playlists from manual generation, and Last.fm track loves. Scheduled playlist regenerations never send to ListenBrainz. Only exact-track approvals from previews or Audition send loves; rejects and artist-only approvals stay local. Last.fm requires an encrypted per-user connection. See [scrobbler setup and privacy](docs/AUTHENTICATION.md#scrobbler-write-back).
 
 ### Privacy and credentials
 

@@ -280,7 +280,7 @@ export function oauthRoutes(deps: AppDependencies) {
     const code = c.req.query(provider === 'lastfm' ? 'token' : 'code')
     const state = provider === 'lastfm' ? c.req.param('state') : c.req.query('state')
     const error = c.req.query('error') ?? c.req.query('error_reason')
-    const settingsPath = provider === 'lastfm' ? '/settings?tab=account&' : '/settings?'
+    const settingsPath = '/settings?'
 
     if (error) {
       return c.redirect(

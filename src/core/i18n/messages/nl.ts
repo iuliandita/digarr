@@ -80,7 +80,6 @@ export const nl = {
   'tokens.readOnlyError': 'Dit token staat alleen GET- en HEAD-verzoeken toe.',
   'tokens.notFoundError': 'Dit token is niet gevonden.',
   'writeBack.lastfmReconnect': 'Last.fm opnieuw verbinden',
-  'writeBack.title': 'Terugschrijven naar scrobblers',
   'writeBack.scope':
     'Alleen goedkeuringen van exacte nummers uit previews of Audition worden verstuurd. Afwijzingen, blokkades en goedkeuringen van alleen artiesten blijven lokaal.',
   'writeBack.offHelp':

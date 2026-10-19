@@ -77,7 +77,6 @@ export const ko = {
   'tokens.readOnlyError': '이 토큰은 GET 및 HEAD 요청만 허용해요.',
   'tokens.notFoundError': '이 토큰을 찾을 수 없어요.',
   'writeBack.lastfmReconnect': 'Last.fm에 다시 연결',
-  'writeBack.title': '스크로블러로 보내기',
   'writeBack.scope':
     '미리 듣기나 Audition에서 정확한 곡을 승인한 경우에만 보내요. 거절, 차단, 아티스트만 승인은 로컬에 남아요.',
   'writeBack.offHelp': '스위치를 끄면 이후 전송이 중단돼요. 이미 보낸 내용은 취소되지 않아요.',

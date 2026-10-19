@@ -129,7 +129,7 @@ describe('Last.fm authorization', () => {
       new Response('{"session":{"key":"session-key"}}'),
     )
     const response = await callback(guarded)
-    expect(response.headers.get('location')).toBe('/settings?tab=account&oauth_success=lastfm')
+    expect(response.headers.get('location')).toBe('/settings?oauth_success=lastfm')
     expect(consumePendingOAuth).toHaveBeenCalledWith(expect.anything(), 'lastfm', STATE)
     expect(response.headers.get('set-cookie')).toContain('Path=/api/v1/auth/oauth/lastfm/callback')
   })
@@ -154,7 +154,7 @@ describe('Last.fm authorization', () => {
             : failure === 'forged-token'
               ? 'token_mismatch'
               : 'browser_mismatch'
-      expect(response.headers.get('location')).toBe(`/settings?tab=account&oauth_error=${error}`)
+      expect(response.headers.get('location')).toBe(`/settings?oauth_error=${error}`)
       expect(fetch).not.toHaveBeenCalled()
     },
   )
@@ -166,7 +166,7 @@ describe('Last.fm authorization', () => {
       .mockResolvedValue(new Response('{"session":{"key":"session-key"}}'))
     const context = app(false)
     const response = await callback(context.app)
-    expect(response.headers.get('location')).toBe('/settings?tab=account&oauth_success=lastfm')
+    expect(response.headers.get('location')).toBe('/settings?oauth_success=lastfm')
     expect(context.stored()).toEqual(
       expect.objectContaining({
         provider: 'lastfm',
