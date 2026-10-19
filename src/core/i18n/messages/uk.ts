@@ -1948,6 +1948,10 @@ export const uk = {
   'settings.channels.saved': 'Сповіщення збережено',
   'settings.channels.saveFailed': 'Не вдалося зберегти сповіщення',
   'settings.channels.secretKeepPlaceholder': 'Залиш порожнім, щоб зберегти збережене значення',
+  'settings.channels.secretSaved': 'Збережено',
+  'settings.channels.secretRemove': 'Видалити',
+  'settings.channels.secretRemovePending': 'Буде видалено після збереження',
+  'settings.channels.secretUndo': 'Скасувати',
   'settings.primaryGenres': 'Пріоритетні жанри (необов’язково)',
   'settings.secondaryGenres': 'Інші улюблені жанри (необов’язково)',
   'settings.genrePriorityHelp':

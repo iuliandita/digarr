@@ -1904,6 +1904,10 @@ export const ko = {
   'settings.channels.saved': '알림이 저장되었습니다',
   'settings.channels.saveFailed': '알림을 저장하지 못했습니다',
   'settings.channels.secretKeepPlaceholder': '저장된 값을 유지하려면 비워 두세요',
+  'settings.channels.secretSaved': '저장됨',
+  'settings.channels.secretRemove': '제거',
+  'settings.channels.secretRemovePending': '저장하면 제거됩니다',
+  'settings.channels.secretUndo': '실행 취소',
   'settings.primaryGenres': '우선 장르 (선택 사항)',
   'settings.secondaryGenres': '기타 선호 장르 (선택 사항)',
   'settings.genrePriorityHelp':

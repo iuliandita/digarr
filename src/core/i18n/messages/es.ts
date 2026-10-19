@@ -1969,6 +1969,10 @@ export const es = {
   'settings.channels.saved': 'Notificaciones guardadas',
   'settings.channels.saveFailed': 'No se pudieron guardar las notificaciones',
   'settings.channels.secretKeepPlaceholder': 'Déjalo en blanco para conservar el valor guardado',
+  'settings.channels.secretSaved': 'Guardado',
+  'settings.channels.secretRemove': 'Quitar',
+  'settings.channels.secretRemovePending': 'Se quitará al guardar',
+  'settings.channels.secretUndo': 'Deshacer',
   'settings.primaryGenres': 'Géneros prioritarios (opcional)',
   'settings.secondaryGenres': 'Otros géneros preferidos (opcional)',
   'settings.genrePriorityHelp':

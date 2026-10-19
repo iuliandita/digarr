@@ -1964,6 +1964,10 @@ export const it = {
   'settings.channels.saved': 'Notifiche salvate',
   'settings.channels.saveFailed': 'Impossibile salvare le notifiche',
   'settings.channels.secretKeepPlaceholder': 'Lascia vuoto per mantenere il valore salvato',
+  'settings.channels.secretSaved': 'Salvato',
+  'settings.channels.secretRemove': 'Rimuovi',
+  'settings.channels.secretRemovePending': 'Verrà rimosso al salvataggio',
+  'settings.channels.secretUndo': 'Annulla',
   'settings.primaryGenres': 'Generi prioritari (facoltativo)',
   'settings.secondaryGenres': 'Altri generi preferiti (facoltativo)',
   'settings.genrePriorityHelp':

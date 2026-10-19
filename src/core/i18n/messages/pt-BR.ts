@@ -1959,6 +1959,10 @@ export const ptBR = {
   'settings.channels.saved': 'Notificações salvas',
   'settings.channels.saveFailed': 'Falha ao salvar notificações',
   'settings.channels.secretKeepPlaceholder': 'Deixe em branco para manter o valor salvo',
+  'settings.channels.secretSaved': 'Salvo',
+  'settings.channels.secretRemove': 'Remover',
+  'settings.channels.secretRemovePending': 'Será removido ao salvar',
+  'settings.channels.secretUndo': 'Desfazer',
   'settings.primaryGenres': 'Gêneros prioritários (opcional)',
   'settings.secondaryGenres': 'Outros gêneros preferidos (opcional)',
   'settings.genrePriorityHelp':

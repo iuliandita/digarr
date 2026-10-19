@@ -1932,6 +1932,10 @@ export const ja = {
   'settings.channels.saved': '通知を保存しました',
   'settings.channels.saveFailed': '通知の保存に失敗しました',
   'settings.channels.secretKeepPlaceholder': '保存された値を維持するには空欄のままにします',
+  'settings.channels.secretSaved': '保存済み',
+  'settings.channels.secretRemove': '削除',
+  'settings.channels.secretRemovePending': '保存時に削除されます',
+  'settings.channels.secretUndo': '元に戻す',
   'settings.primaryGenres': '優先ジャンル（任意）',
   'settings.secondaryGenres': 'その他の好きなジャンル（任意）',
   'settings.genrePriorityHelp':

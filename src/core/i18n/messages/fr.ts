@@ -1971,6 +1971,10 @@ export const fr = {
   'settings.channels.saved': 'Notifications enregistrées',
   'settings.channels.saveFailed': "Échec de l'enregistrement des notifications",
   'settings.channels.secretKeepPlaceholder': 'Laisse vide pour conserver la valeur enregistrée',
+  'settings.channels.secretSaved': 'Enregistré',
+  'settings.channels.secretRemove': 'Retirer',
+  'settings.channels.secretRemovePending': "Sera retiré à l'enregistrement",
+  'settings.channels.secretUndo': 'Annuler',
   'settings.primaryGenres': 'Genres prioritaires (facultatif)',
   'settings.secondaryGenres': 'Autres genres préférés (facultatif)',
   'settings.genrePriorityHelp':
