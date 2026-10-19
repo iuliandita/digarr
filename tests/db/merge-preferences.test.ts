@@ -16,6 +16,13 @@ describe('mergePreferences', () => {
       })
     },
   )
+  it.each([
+    [{}, { enabled: false, windowDays: 30 }],
+    [{ excludeRecentlyPlayed: { enabled: true } }, { enabled: true, windowDays: 30 }],
+  ])('merges excludeRecentlyPlayed defaults for %j', (raw, expected) => {
+    expect(mergePreferences(partialInput(raw)).excludeRecentlyPlayed).toEqual(expected)
+  })
+
   it('returns defaults when input is null', () => {
     expect(mergePreferences(null)).toEqual(DEFAULT_PREFERENCES)
   })

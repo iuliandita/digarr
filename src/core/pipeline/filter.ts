@@ -40,3 +40,19 @@ export function filter(
     return true
   })
 }
+
+/**
+ * Drop candidates whose suggested recording is a known recent play. Candidates
+ * without a recording MBID are kept: an unknown track is never treated as unheard.
+ */
+export function excludeRecentlyPlayed<T extends Pick<ScoredArtist, 'suggestedRecording'>>(
+  candidates: T[],
+  playedRecordingMbids: Set<string>,
+): { kept: T[]; excluded: number } {
+  if (playedRecordingMbids.size === 0) return { kept: candidates, excluded: 0 }
+  const kept = candidates.filter((c) => {
+    const mbid = c.suggestedRecording?.mbid
+    return !mbid || !playedRecordingMbids.has(mbid)
+  })
+  return { kept, excluded: candidates.length - kept.length }
+}

@@ -222,13 +222,18 @@ export async function runSubscription(
       }
     }
 
-    const { artists } = await adapter.fetch(subscription.sourceConfig, {
+    const { artists, message } = await adapter.fetch(subscription.sourceConfig, {
       limit: subscription.maxArtistsPerRun ?? undefined,
     })
 
     if (artists.length === 0) {
       await jobRecorder.complete(jobId, {
-        metadata: { adapterType: subscription.sourceType, artistsFound: 0, artistsNew: 0 },
+        metadata: {
+          adapterType: subscription.sourceType,
+          artistsFound: 0,
+          artistsNew: 0,
+          ...(message ? { message } : {}),
+        },
       })
       await queries.updateSubscription(subscription.id, {
         lastRunAt: new Date(),

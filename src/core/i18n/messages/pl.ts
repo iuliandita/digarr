@@ -1345,6 +1345,10 @@ export const pl = {
   'settings.autoApproveDescription':
     'Automatycznie dodawaj wysoko oceniane rekomendacje do celów po każdym skanowaniu. Działa tylko po skonfigurowaniu celów.',
   'settings.enableAutoApprove': 'Włącz automatyczne zatwierdzanie',
+  'settings.excludeRecentlyPlayed': 'Pomijaj nagrania odtwarzane niedawno',
+  'settings.excludeRecentlyPlayedHelp':
+    'Czyta twoje odsłuchania z ListenBrainz z wybranego okresu. Pomijane są tylko rekomendacje powiązane z konkretnym nagraniem i tylko wtedy, gdy to nagranie jest w twojej historii. Blokady i okresy karencji działają jak wcześniej.',
+  'settings.excludeRecentlyPlayedWindow': 'Okres niedawnych odsłuchań (dni)',
   'settings.netNewAlbumDiscovery': 'Odkrywanie zupełnie nowych albumów',
   'settings.netNewAlbumDiscoveryHelp':
     'Po włączeniu AI może polecić konkretny album nowego wykonawcy zamiast samego wykonawcy.',
@@ -1626,6 +1630,14 @@ export const pl = {
   'jobHistory.sourceNoSeeds': 'Brak artystów wyjściowych',
   'jobHistory.sourceExplicitRun': 'To uruchomienie używa wskazanych kandydatów',
   'jobHistory.sourceNotConfigured': 'Źródło nie jest skonfigurowane',
+  'jobHistory.recentlyPlayed':
+    'Niedawno odtwarzane ({days} dni): odczytano {listens} odsłuchań, pominięto {excluded} - {status}',
+  'jobHistory.recentlyPlayedOk': 'historia kompletna',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz nie jest połączony, nic nie pominięto',
+  'jobHistory.recentlyPlayedCapped':
+    'historia przycięta, starsze odsłuchania nie zostały sprawdzone',
+  'jobHistory.recentlyPlayedPartial':
+    'odczyt historii przerwany, sprawdzono tylko odczytane dotąd odsłuchania',
   'jobHistory.metadataLabel': 'Metadane:',
   'jobHistory.artists': 'artystów',
   'recommendation.ownStudioAlbums': 'Posiadasz {0}/{1} albumów studyjnych',
@@ -1876,6 +1888,8 @@ export const pl = {
   'pipeline.message.profiled': 'Sprofilowano {0} ulubionych artystów, {1} gatunków',
   'pipeline.message.findingSimilar': 'Wyszukiwanie podobnych artystów ze wszystkich źródeł...',
   'pipeline.message.aiSourceFailed': 'Dostawca AI zawiódł: {0} - kontynuacja bez sugestii AI',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Pominięto {0} niedawno odtwarzanych nagrań i zostało tylko {1} rekomendacji - filtr pozostaje włączony, skróć okres, jeśli chcesz więcej',
   'pipeline.message.discovered': 'Znaleziono {0} potencjalnych artystów',
   'pipeline.message.resolving': 'Rozwiązywanie {0} artystów przez MusicBrainz...',
   'pipeline.message.scoring': 'Ocenianie {0} rozwiązanych artystów...',

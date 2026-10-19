@@ -1353,6 +1353,10 @@ export const ro = {
   'settings.autoApproveDescription':
     'Adaugă automat recomandările cu cel mai mare punctaj la destinațiile tale după fiecare scanare. Funcționează doar când sunt configurate destinații.',
   'settings.enableAutoApprove': 'Activează aprobarea automată',
+  'settings.excludeRecentlyPlayed': 'Sari peste înregistrările ascultate recent',
+  'settings.excludeRecentlyPlayedHelp':
+    'Citește ascultările tale din ListenBrainz din perioada aleasă. Sunt sărite doar recomandările legate de o înregistrare anume și doar când acea înregistrare e în istoricul tău. Blocările și perioadele de așteptare funcționează ca înainte.',
+  'settings.excludeRecentlyPlayedWindow': 'Perioada ascultărilor recente (zile)',
   'settings.netNewAlbumDiscovery': 'Descoperirea albumelor noi',
   'settings.netNewAlbumDiscoveryHelp':
     'Când este activat, AI poate recomanda un album anume al unui artist nou, nu doar artistul.',
@@ -1632,6 +1636,13 @@ export const ro = {
   'jobHistory.sourceNoSeeds': 'Nu există artiști de referință',
   'jobHistory.sourceExplicitRun': 'Această rulare folosește candidați expliciți',
   'jobHistory.sourceNotConfigured': 'Sursa nu este configurată',
+  'jobHistory.recentlyPlayed':
+    'Ascultate recent ({days} zile): {listens} ascultări citite, {excluded} sărite - {status}',
+  'jobHistory.recentlyPlayedOk': 'istoric complet',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz nu e conectat, nu s-a sărit nimic',
+  'jobHistory.recentlyPlayedCapped': 'istoric limitat, ascultările mai vechi nu au fost verificate',
+  'jobHistory.recentlyPlayedPartial':
+    'citirea istoricului a eșuat pe parcurs, au fost verificate doar ascultările citite până atunci',
   'jobHistory.metadataLabel': 'Metadate:',
   'jobHistory.artists': 'artiști',
   'recommendation.ownStudioAlbums': 'Deții {0}/{1} albume de studio',
@@ -1886,6 +1897,8 @@ export const ro = {
   'pipeline.message.profiled': 'Profilați {0} artiști de top, {1} genuri',
   'pipeline.message.findingSimilar': 'Se caută artiști similari din toate sursele...',
   'pipeline.message.aiSourceFailed': 'Furnizorul AI a eșuat: {0} - se continuă fără sugestii AI',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Am sărit {0} înregistrări ascultate recent și au rămas doar {1} recomandări - filtrul rămâne activ, scurtează perioada dacă vrei mai multe',
   'pipeline.message.discovered': 'S-au descoperit {0} artiști candidați',
   'pipeline.message.resolving': 'Se rezolvă {0} artiști prin MusicBrainz...',
   'pipeline.message.scoring': 'Se punctează {0} artiști rezolvați...',

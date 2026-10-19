@@ -1237,6 +1237,10 @@ export const zhCN = {
   'settings.autoApproveDescription':
     '每次扫描后自动将高分推荐添加到你的目标中。仅在配置了目标时运行。',
   'settings.enableAutoApprove': '启用自动批准',
+  'settings.excludeRecentlyPlayed': '跳过最近播放过的录音',
+  'settings.excludeRecentlyPlayedHelp':
+    '读取该时间段内你的 ListenBrainz 收听记录。只有关联到具体录音、且该录音出现在你的历史中的推荐才会被跳过。屏蔽和冷却期照常生效。',
+  'settings.excludeRecentlyPlayedWindow': '最近播放时间段 (天)',
   'settings.netNewAlbumDiscovery': '全新专辑发现',
   'settings.netNewAlbumDiscoveryHelp': '开启后，AI 可以推荐新晋艺人的特定专辑，而不仅仅是艺人。',
   'settings.minimumScore': '最低评分',
@@ -1494,6 +1498,12 @@ export const zhCN = {
   'jobHistory.sourceNoSeeds': '没有可用的起始艺术家',
   'jobHistory.sourceExplicitRun': '本次运行使用指定候选',
   'jobHistory.sourceNotConfigured': '来源未配置',
+  'jobHistory.recentlyPlayed':
+    '最近播放 ({days} 天)：读取了 {listens} 条收听记录，跳过 {excluded} 条 - {status}',
+  'jobHistory.recentlyPlayedOk': '历史完整',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz 未连接，未跳过任何内容',
+  'jobHistory.recentlyPlayedCapped': '历史达到上限，未检查更早的收听记录',
+  'jobHistory.recentlyPlayedPartial': '历史读取中途失败，仅检查了已读取的收听记录',
   'jobHistory.metadataLabel': '元数据:',
   'jobHistory.artists': '位艺术家',
   'recommendation.ownStudioAlbums': '您拥有 {0}/{1} 张录音室专辑',
@@ -1731,6 +1741,8 @@ export const zhCN = {
   'pipeline.message.profiled': '已分析 {0} 位顶级艺术家、{1} 个流派',
   'pipeline.message.findingSimilar': '正在从所有来源查找相似艺术家...',
   'pipeline.message.aiSourceFailed': 'AI 提供商失败：{0} - 将在没有 AI 建议的情况下继续',
+  'pipeline.message.recentlyPlayedTooFew':
+    '已跳过 {0} 个最近播放过的录音，只剩 {1} 条推荐 - 过滤器保持开启，如需更多请缩短时间段',
   'pipeline.message.discovered': '发现 {0} 位候选艺术家',
   'pipeline.message.resolving': '正在通过 MusicBrainz 解析 {0} 位艺术家...',
   'pipeline.message.scoring': '正在为 {0} 位已解析艺术家评分...',

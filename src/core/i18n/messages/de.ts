@@ -1360,6 +1360,10 @@ export const de = {
   'settings.autoApproveDescription':
     'Hochbewertete Empfehlungen nach jedem Scan automatisch zu deinen Zielen hinzufügen. Läuft nur, wenn Ziele konfiguriert sind.',
   'settings.enableAutoApprove': 'Auto-Genehmigung aktivieren',
+  'settings.excludeRecentlyPlayed': 'Kürzlich gehörte Aufnahmen überspringen',
+  'settings.excludeRecentlyPlayedHelp':
+    'Liest deine ListenBrainz-Wiedergaben für den Zeitraum. Übersprungen werden nur Empfehlungen, die an eine bestimmte Aufnahme gebunden sind, und nur wenn diese Aufnahme in deinem Verlauf steht. Sperren und Abklingzeiten funktionieren wie bisher.',
+  'settings.excludeRecentlyPlayedWindow': 'Zeitraum für kürzlich Gehörtes (Tage)',
   'settings.netNewAlbumDiscovery': 'Entdeckung brandneuer Alben',
   'settings.netNewAlbumDiscoveryHelp':
     'Wenn aktiviert, kann die KI ein bestimmtes Album eines neuen Künstlers empfehlen, statt nur den Künstler.',
@@ -1644,6 +1648,13 @@ export const de = {
   'jobHistory.sourceNoSeeds': 'Keine Ausgangskünstler verfügbar',
   'jobHistory.sourceExplicitRun': 'Dieser Lauf verwendet vorgegebene Kandidaten',
   'jobHistory.sourceNotConfigured': 'Quelle ist nicht konfiguriert',
+  'jobHistory.recentlyPlayed':
+    'Kürzlich gehört ({days} Tage): {listens} Wiedergaben gelesen, {excluded} übersprungen - {status}',
+  'jobHistory.recentlyPlayedOk': 'Verlauf vollständig',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz nicht verbunden, nichts übersprungen',
+  'jobHistory.recentlyPlayedCapped': 'Verlauf gekappt, ältere Wiedergaben nicht geprüft',
+  'jobHistory.recentlyPlayedPartial':
+    'Verlauf nur teilweise gelesen, nur bisher gelesene Wiedergaben geprüft',
   'jobHistory.metadataLabel': 'Metadaten:',
   'jobHistory.artists': 'Künstler',
   'recommendation.ownStudioAlbums': 'Du besitzt {0}/{1} Studioalben',
@@ -1901,6 +1912,8 @@ export const de = {
   'pipeline.message.findingSimilar': 'Ähnliche Künstler aus allen Quellen werden gesucht...',
   'pipeline.message.aiSourceFailed':
     'KI-Anbieter fehlgeschlagen: {0} - Fortsetzung ohne KI-Vorschläge',
+  'pipeline.message.recentlyPlayedTooFew':
+    '{0} kürzlich gehörte Aufnahmen übersprungen, nur noch {1} Empfehlungen übrig - der Filter bleibt aktiv, verkürze den Zeitraum, wenn du mehr willst',
   'pipeline.message.discovered': '{0} Künstler-Kandidaten entdeckt',
   'pipeline.message.resolving': '{0} Künstler werden über MusicBrainz aufgelöst...',
   'pipeline.message.scoring': '{0} aufgelöste Künstler werden bewertet...',

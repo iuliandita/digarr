@@ -13,13 +13,17 @@ vi.mock('@/core/pipeline/resolve', async (importOriginal) => ({
   resolve: vi.fn(),
 }))
 vi.mock('@/core/pipeline/score', () => ({ score: vi.fn() }))
-vi.mock('@/core/pipeline/filter', () => ({ filter: vi.fn() }))
+vi.mock('@/core/pipeline/filter', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/core/pipeline/filter')>()),
+  filter: vi.fn(),
+}))
 vi.mock('@/core/pipeline/store', () => ({ store: vi.fn() }))
 vi.mock('@/core/pipeline/genre-backfill', () => ({
   hydrateArtistGenres: vi.fn(),
   warmArtistGenres: vi.fn(),
 }))
 vi.mock('@/core/clients/lidarr', () => ({ createLidarrClient: vi.fn() }))
+vi.mock('@/core/clients/listenbrainz', () => ({ createListenBrainzClient: vi.fn() }))
 vi.mock('@/core/plugins/listenbrainz', () => ({ createListenBrainzSource: vi.fn() }))
 vi.mock('@/core/plugins/lastfm', () => ({ createLastFmSource: vi.fn() }))
 vi.mock('@/core/clients/musicbrainz', () => ({ createMusicBrainzClient: vi.fn() }))
@@ -42,6 +46,7 @@ const { hydrateArtistGenres, warmArtistGenres } = await import('@/core/pipeline/
 const { createListenBrainzSource } = await import('@/core/plugins/listenbrainz')
 const { createLastFmSource } = await import('@/core/plugins/lastfm')
 const { createLidarrClient } = await import('@/core/clients/lidarr')
+const { createListenBrainzClient } = await import('@/core/clients/listenbrainz')
 const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
 
 const defaultSettings = {
@@ -296,6 +301,58 @@ describe('PipelineOrchestrator', () => {
       expect(orchestrator.isRunning).toBe(false)
     },
   )
+
+  it('excludes a recently played recording and warns instead of relaxing the filter', async () => {
+    const played = {
+      ...(scored[0] as (typeof scored)[number]),
+      suggestedRecording: { mbid: 'rec-played', title: 'Song' },
+    }
+    mockFilter.mockReturnValue([played])
+    const getListens = vi
+      .fn()
+      .mockResolvedValueOnce([
+        {
+          artist: 'New Artist',
+          track: 'Song',
+          listenedAt: Math.floor(Date.now() / 1000) - 60,
+          recordingMbid: 'rec-played',
+        },
+      ])
+      .mockResolvedValueOnce([])
+    vi.mocked(createListenBrainzClient).mockReturnValue({ getListens } as never)
+    const jobRecorder = makeJobRecorder()
+    const messages: Array<{ stage: string; message: string }> = []
+    orchestrator.on('progress', (event: { stage: string; message: string }) => messages.push(event))
+
+    await run({
+      jobRecorder,
+      settings: {
+        ...defaultSettings,
+        preferences: {
+          ...defaultSettings.preferences,
+          excludeRecentlyPlayed: { enabled: true, windowDays: 30 },
+        },
+      } as never,
+      userConnections: { listenbrainzUsername: 'lbuser', listenbrainzToken: 'lb-token' } as never,
+    })
+
+    expect(createListenBrainzClient).toHaveBeenCalledWith('lbuser', 'lb-token')
+    expect(mockStore.mock.calls[0]?.[0]).toEqual([])
+    expect(messages).toContainEqual(
+      expect.objectContaining({
+        stage: 'filter',
+        message: expect.stringContaining('Skipped 1 recently played recordings'),
+      }),
+    )
+    expect(jobRecorder.complete).toHaveBeenCalledWith(
+      7,
+      expect.objectContaining({
+        metadata: expect.objectContaining({
+          recentlyPlayed: { status: 'ok', windowDays: 30, listensRead: 1, excluded: 1 },
+        }),
+      }),
+    )
+  })
 
   it('passes response and prompt locales from pipeline deps into AI discovery', async () => {
     await run({ responseLocale: 'fr', promptLocale: 'es' })

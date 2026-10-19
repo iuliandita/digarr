@@ -1348,6 +1348,10 @@ export const nl = {
   'settings.autoApproveDescription':
     'Aanbevelingen met hoge score automatisch toevoegen aan je doelen na elke scan. Werkt alleen als er doelen zijn geconfigureerd.',
   'settings.enableAutoApprove': 'Automatisch goedkeuren inschakelen',
+  'settings.excludeRecentlyPlayed': 'Opnames die ik onlangs heb afgespeeld overslaan',
+  'settings.excludeRecentlyPlayedHelp':
+    'Leest je ListenBrainz-luisterbeurten voor de periode. Alleen aanbevelingen die aan een specifieke opname gekoppeld zijn worden overgeslagen, en alleen als die opname in je geschiedenis staat. Blokkades en wachttijden werken zoals voorheen.',
+  'settings.excludeRecentlyPlayedWindow': 'Periode voor onlangs afgespeeld (dagen)',
   'settings.netNewAlbumDiscovery': 'Ontdekking van nieuwe albums',
   'settings.netNewAlbumDiscoveryHelp':
     'Indien ingeschakeld kan de AI een specifiek album van een nieuwe artiest aanbevelen in plaats van alleen de artiest.',
@@ -1631,6 +1635,14 @@ export const nl = {
   'jobHistory.sourceNoSeeds': 'Geen startartiesten beschikbaar',
   'jobHistory.sourceExplicitRun': 'Deze uitvoering gebruikt opgegeven kandidaten',
   'jobHistory.sourceNotConfigured': 'Bron is niet ingesteld',
+  'jobHistory.recentlyPlayed':
+    'Onlangs afgespeeld ({days} dagen): {listens} luisterbeurten gelezen, {excluded} overgeslagen - {status}',
+  'jobHistory.recentlyPlayedOk': 'geschiedenis volledig',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz niet gekoppeld, niets overgeslagen',
+  'jobHistory.recentlyPlayedCapped':
+    'geschiedenis afgekapt, oudere luisterbeurten niet gecontroleerd',
+  'jobHistory.recentlyPlayedPartial':
+    'geschiedenis halverwege niet gelezen, alleen de tot dan gelezen luisterbeurten gecontroleerd',
   'jobHistory.metadataLabel': 'Metagegevens:',
   'jobHistory.artists': 'artiesten',
   'recommendation.ownStudioAlbums': 'Je bezit {0}/{1} studioalbums',
@@ -1885,6 +1897,8 @@ export const nl = {
   'pipeline.message.profiled': 'Geprofileerd: {0} topartiesten, {1} genres',
   'pipeline.message.findingSimilar': 'Vergelijkbare artiesten zoeken uit alle bronnen...',
   'pipeline.message.aiSourceFailed': 'AI-provider mislukt: {0} - doorgaan zonder AI-suggesties',
+  'pipeline.message.recentlyPlayedTooFew':
+    '{0} onlangs afgespeelde opnames overgeslagen en er zijn nog maar {1} aanbevelingen over - het filter blijft aan, verkort de periode als je meer wilt',
   'pipeline.message.discovered': '{0} kandidaat-artiesten ontdekt',
   'pipeline.message.resolving': '{0} artiesten ophalen via MusicBrainz...',
   'pipeline.message.scoring': '{0} opgehaalde artiesten worden gescoord...',

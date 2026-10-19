@@ -1358,6 +1358,10 @@ export const fr = {
   'settings.autoApproveDescription':
     'Ajouté automatiquement les recommandations les mieux notées à tes destinations après chaque scan. Ne fonctionne que si des destinations sont configurées.',
   'settings.enableAutoApprove': "Activer l'approbation automatique",
+  'settings.excludeRecentlyPlayed': 'Ignorer les enregistrements écoutés récemment',
+  'settings.excludeRecentlyPlayedHelp':
+    'Lit tes écoutes ListenBrainz sur la période. Seules les recommandations liées à un enregistrement précis sont ignorées, et seulement si cet enregistrement figure dans ton historique. Les blocages et délais de rejet fonctionnent comme avant.',
+  'settings.excludeRecentlyPlayedWindow': 'Période des écoutes récentes (jours)',
   'settings.netNewAlbumDiscovery': 'Découverte de nouveaux albums',
   'settings.netNewAlbumDiscoveryHelp':
     "Lorsque cette option est activée, l’IA peut recommander un album précis d'un nouvel artiste plutôt que seulement l’artiste.",
@@ -1639,6 +1643,13 @@ export const fr = {
   'jobHistory.sourceNoSeeds': 'Aucun artiste de référence disponible',
   'jobHistory.sourceExplicitRun': 'Cette exécution utilise des candidats explicites',
   'jobHistory.sourceNotConfigured': "La source n'est pas configurée",
+  'jobHistory.recentlyPlayed':
+    'Écouté récemment ({days} jours) : {listens} écoutes lues, {excluded} ignorées - {status}',
+  'jobHistory.recentlyPlayedOk': 'historique complet',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz non connecté, rien ignoré',
+  'jobHistory.recentlyPlayedCapped': 'historique plafonné, écoutes plus anciennes non vérifiées',
+  'jobHistory.recentlyPlayedPartial':
+    "lecture de l'historique interrompue, seules les écoutes déjà lues ont été vérifiées",
   'jobHistory.metadataLabel': 'Métadonnées :',
   'jobHistory.artists': 'artistes',
   'recommendation.ownStudioAlbums': 'Tu possèdes {0}/{1} albums studio',
@@ -1899,6 +1910,8 @@ export const fr = {
   'pipeline.message.findingSimilar': "Recherche d'artistes similaires depuis toutes les sources...",
   'pipeline.message.aiSourceFailed':
     'Le fournisseur IA a échoué : {0} - poursuite sans suggestions IA',
+  'pipeline.message.recentlyPlayedTooFew':
+    '{0} enregistrements écoutés récemment ignorés, il ne reste que {1} recommandations - le filtre reste actif, raccourcis la période si tu en veux plus',
   'pipeline.message.discovered': '{0} artistes candidats découverts',
   'pipeline.message.resolving': 'Résolution de {0} artistes via MusicBrainz...',
   'pipeline.message.scoring': 'Notation de {0} artistes résolus...',

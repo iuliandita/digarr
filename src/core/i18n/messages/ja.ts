@@ -1330,6 +1330,10 @@ export const ja = {
   'settings.autoApproveDescription':
     '各スキャン後に高スコアのおすすめを自動でターゲットに追加します。ターゲットが設定されている場合のみ実行されます。',
   'settings.enableAutoApprove': '自動承認を有効にする',
+  'settings.excludeRecentlyPlayed': '最近再生した録音をスキップ',
+  'settings.excludeRecentlyPlayedHelp':
+    '期間内の ListenBrainz の再生履歴を読み込みます。特定の録音に紐づくおすすめだけが、その録音が履歴にある場合にのみスキップされます。ブロックとクールダウンはこれまでどおり機能します。',
+  'settings.excludeRecentlyPlayedWindow': '最近の再生の期間 (日)',
   'settings.netNewAlbumDiscovery': '新規アルバムの発見',
   'settings.netNewAlbumDiscoveryHelp':
     'オンにすると、AIはアーティストだけでなく、新しいアーティストの特定のアルバムを提案できます。',
@@ -1608,6 +1612,13 @@ export const ja = {
   'jobHistory.sourceNoSeeds': '検索の起点となるアーティストがありません',
   'jobHistory.sourceExplicitRun': 'この実行では指定された候補を使用します',
   'jobHistory.sourceNotConfigured': 'ソースが設定されていません',
+  'jobHistory.recentlyPlayed':
+    '最近の再生 ({days} 日): {listens} 件の再生を読み込み、{excluded} 件をスキップ - {status}',
+  'jobHistory.recentlyPlayedOk': '履歴は完全です',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz が未接続のため、何もスキップしていません',
+  'jobHistory.recentlyPlayedCapped': '履歴が上限に達したため、古い再生は確認していません',
+  'jobHistory.recentlyPlayedPartial':
+    '履歴の読み込みが途中で失敗したため、読み込めた分だけ確認しました',
   'jobHistory.metadataLabel': 'メタデータ:',
   'jobHistory.artists': 'アーティスト',
   'recommendation.ownStudioAlbums': 'スタジオアルバム {0}/{1} を所有',
@@ -1861,6 +1872,8 @@ export const ja = {
   'pipeline.message.profiled': '上位アーティスト{0}名、ジャンル{1}件をプロファイリング',
   'pipeline.message.findingSimilar': 'すべてのソースから類似アーティストを検索中...',
   'pipeline.message.aiSourceFailed': 'AIプロバイダーが失敗しました: {0} - AI提案なしで続行します',
+  'pipeline.message.recentlyPlayedTooFew':
+    '最近再生した録音を {0} 件スキップし、残ったおすすめは {1} 件だけです - フィルターは有効のままです。もっと必要な場合は期間を短くしてください',
   'pipeline.message.discovered': '{0}名の候補アーティストを発見',
   'pipeline.message.resolving': 'MusicBrainz経由で{0}名のアーティストを解決中...',
   'pipeline.message.scoring': '解決済みの{0}名のアーティストをスコアリング中...',

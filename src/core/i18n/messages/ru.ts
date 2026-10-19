@@ -1356,6 +1356,10 @@ export const ru = {
   'settings.autoApproveDescription':
     'Автоматически добавлять высокооцененные рекомендации в назначения после каждого сканирования. Работает только если настроены назначения.',
   'settings.enableAutoApprove': 'Включить автоодобрение',
+  'settings.excludeRecentlyPlayed': 'Пропускать недавно прослушанные записи',
+  'settings.excludeRecentlyPlayedHelp':
+    'Читает твои прослушивания в ListenBrainz за выбранный период. Пропускаются только рекомендации, привязанные к конкретной записи, и только если эта запись есть в твоей истории. Блокировки и периоды ожидания работают как раньше.',
+  'settings.excludeRecentlyPlayedWindow': 'Период недавних прослушиваний (дней)',
   'settings.netNewAlbumDiscovery': 'Поиск новых альбомов',
   'settings.netNewAlbumDiscoveryHelp':
     'Когда включено, ИИ может рекомендовать конкретный альбом нового исполнителя, а не только исполнителя.',
@@ -1635,6 +1639,14 @@ export const ru = {
   'jobHistory.sourceNoSeeds': 'Нет исполнителей для начального поиска',
   'jobHistory.sourceExplicitRun': 'Этот запуск использует заданных кандидатов',
   'jobHistory.sourceNotConfigured': 'Источник не настроен',
+  'jobHistory.recentlyPlayed':
+    'Недавно прослушанное ({days} дн.): прочитано прослушиваний: {listens}, пропущено: {excluded} - {status}',
+  'jobHistory.recentlyPlayedOk': 'история полная',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz не подключён, ничего не пропущено',
+  'jobHistory.recentlyPlayedCapped':
+    'история обрезана по лимиту, старые прослушивания не проверены',
+  'jobHistory.recentlyPlayedPartial':
+    'чтение истории прервалось, проверены только уже прочитанные прослушивания',
   'jobHistory.metadataLabel': 'Метаданные:',
   'jobHistory.artists': 'исполнителей',
   'recommendation.ownStudioAlbums': 'У тебя {0}/{1} студийных альбомов',
@@ -1888,6 +1900,8 @@ export const ru = {
   'pipeline.message.profiled': 'Профилировано {0} топ-исполнителей, {1} жанров',
   'pipeline.message.findingSimilar': 'Поиск похожих исполнителей по всем источникам...',
   'pipeline.message.aiSourceFailed': 'Сбой поставщика ИИ: {0} - продолжаем без предложений ИИ',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Пропущено недавно прослушанных записей: {0}, осталось рекомендаций: {1} - фильтр остаётся включённым, сократи период, если хочешь больше',
   'pipeline.message.discovered': 'Найдено {0} кандидатов',
   'pipeline.message.resolving': 'Сопоставление {0} исполнителей через MusicBrainz...',
   'pipeline.message.scoring': 'Оценка {0} сопоставленных исполнителей...',

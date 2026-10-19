@@ -32,6 +32,8 @@ export type RecentListen = {
   listenedAt: number
   artistMbid?: string
   recordingMbid?: string
+  /** LB's own mapping; can differ from a stale or redirected MBID the scrobbler submitted. */
+  mappedRecordingMbid?: string
   releaseName?: string
 }
 
@@ -72,6 +74,10 @@ type LbListensResponse = {
         additional_info?: {
           artist_mbids?: string[]
           recording_mbid?: string
+        }
+        mbid_mapping?: {
+          recording_mbid?: string
+          artist_mbids?: string[]
         }
       }
     }>
@@ -207,18 +213,25 @@ export function createListenBrainzClient(username: string, token: string) {
     }
   }
 
-  async function getListens(count = 20): Promise<RecentListen[]> {
+  async function getListens(count = 20, options: { maxTs?: number } = {}): Promise<RecentListen[]> {
+    const params = new URLSearchParams({ count: String(count) })
+    if (options.maxTs != null) params.set('max_ts', String(options.maxTs))
     const res = await http.get<LbListensResponse>(
-      `/1/user/${encodeURIComponent(username)}/listens?count=${count}`,
+      `/1/user/${encodeURIComponent(username)}/listens?${params.toString()}`,
     )
-    return res.payload.listens.map((l) => ({
-      artist: l.track_metadata.artist_name,
-      track: l.track_metadata.track_name,
-      listenedAt: l.listened_at,
-      artistMbid: l.track_metadata.additional_info?.artist_mbids?.[0],
-      recordingMbid: l.track_metadata.additional_info?.recording_mbid,
-      releaseName: l.track_metadata.release_name,
-    }))
+    return res.payload.listens.map((l) => {
+      const info = l.track_metadata.additional_info
+      const mapping = l.track_metadata.mbid_mapping
+      return {
+        artist: l.track_metadata.artist_name,
+        track: l.track_metadata.track_name,
+        listenedAt: l.listened_at,
+        artistMbid: info?.artist_mbids?.[0] ?? mapping?.artist_mbids?.[0],
+        recordingMbid: info?.recording_mbid ?? mapping?.recording_mbid,
+        mappedRecordingMbid: mapping?.recording_mbid,
+        releaseName: l.track_metadata.release_name,
+      }
+    })
   }
 
   async function getListenCount(): Promise<number> {

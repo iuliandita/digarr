@@ -1331,6 +1331,10 @@ export const tr = {
   'settings.autoApproveDescription':
     'Her taramadan sonra yüksek puanlı önerileri hedeflerine otomatik ekle. Yalnızca hedefler yapılandırıldığında çalışır.',
   'settings.enableAutoApprove': 'Otomatik onayı etkinleştir',
+  'settings.excludeRecentlyPlayed': 'Yakın zamanda çaldığım kayıtları atla',
+  'settings.excludeRecentlyPlayedHelp':
+    'Dönem içindeki ListenBrainz dinlemelerini okur. Yalnızca belirli bir kayda bağlı öneriler, o kayıt geçmişindeyse atlanır. Engellemeler ve bekleme süreleri eskisi gibi çalışır.',
+  'settings.excludeRecentlyPlayedWindow': 'Yakın zamanda çalınanlar dönemi (gün)',
   'settings.netNewAlbumDiscovery': 'Yepyeni albüm keşfi',
   'settings.netNewAlbumDiscoveryHelp':
     'Açıkken yapay zeka, yalnızca sanatçıyı değil, yeni bir sanatçının belirli bir albümünü önerebilir.',
@@ -1609,6 +1613,13 @@ export const tr = {
   'jobHistory.sourceNoSeeds': 'Başlangıç sanatçısı yok',
   'jobHistory.sourceExplicitRun': 'Bu çalıştırma belirli adayları kullanır',
   'jobHistory.sourceNotConfigured': 'Kaynak yapılandırılmamış',
+  'jobHistory.recentlyPlayed':
+    'Yakın zamanda çalınanlar ({days} gün): {listens} dinleme okundu, {excluded} atlandı - {status}',
+  'jobHistory.recentlyPlayedOk': 'geçmiş tam',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz bağlı değil, hiçbir şey atlanmadı',
+  'jobHistory.recentlyPlayedCapped': 'geçmiş sınıra takıldı, eski dinlemeler kontrol edilmedi',
+  'jobHistory.recentlyPlayedPartial':
+    'geçmiş okuma yarıda kaldı, yalnızca o ana kadar okunan dinlemeler kontrol edildi',
   'jobHistory.metadataLabel': 'Meta veri:',
   'jobHistory.artists': 'sanatçı',
   'recommendation.ownStudioAlbums': '{0}/{1} stüdyo albüme sahipsin',
@@ -1863,6 +1874,8 @@ export const tr = {
   'pipeline.message.findingSimilar': 'Tüm kaynaklardan benzer sanatçılar aranıyor...',
   'pipeline.message.aiSourceFailed':
     'Yapay zeka sağlayıcısı başarısız oldu: {0} - yapay zeka önerileri olmadan devam ediliyor',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Yakın zamanda çalınan {0} kayıt atlandı ve yalnızca {1} öneri kaldı - filtre açık kalıyor, daha fazlasını istiyorsan dönemi kısalt',
   'pipeline.message.discovered': '{0} aday sanatçı bulundu',
   'pipeline.message.resolving': '{0} sanatçı MusicBrainz üzerinden çözülüyor...',
   'pipeline.message.scoring': 'Çözülen {0} sanatçı puanlanıyor...',

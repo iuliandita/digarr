@@ -87,6 +87,10 @@ export const preferencesSchema = z
     topArtistsLimit: z.number().int().min(1).optional(),
     librarySeedRatio: z.number().min(0).max(1).optional(),
     netNewAlbumDiscovery: z.boolean().optional(),
+    excludeRecentlyPlayed: z
+      .object({ enabled: z.boolean(), windowDays: z.number().int().min(1).max(365) })
+      .strict()
+      .optional(),
     listenbrainzLoveEnabled: z.boolean().optional(),
     spotifyAutoloadDashboard: z.boolean().optional(),
     listenbrainzPlaylistEnabled: z.boolean().optional(),

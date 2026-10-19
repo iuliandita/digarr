@@ -710,7 +710,12 @@ export type Preferences = {
   listenbrainzPlaylistEnabled?: boolean
   lastfmLoveEnabled?: boolean
   spotifyAutoloadDashboard?: boolean
+  excludeRecentlyPlayed?: ExcludeRecentlyPlayed
 }
+
+export type ExcludeRecentlyPlayed = { enabled: boolean; windowDays: number }
+
+const DEFAULT_EXCLUDE_RECENTLY_PLAYED: ExcludeRecentlyPlayed = { enabled: false, windowDays: 30 }
 
 export type ScoringWeights = Preferences['scoringWeights']
 
@@ -745,6 +750,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   lastfmLoveEnabled: false,
   spotifyAutoloadDashboard: false,
   showExperimentalIntegrations: false,
+  excludeRecentlyPlayed: DEFAULT_EXCLUDE_RECENTLY_PLAYED,
 }
 
 /**
@@ -761,6 +767,10 @@ export function mergePreferences(raw: Partial<Preferences> | null | undefined): 
     scoringWeights: {
       ...DEFAULT_PREFERENCES.scoringWeights,
       ...partial.scoringWeights,
+    },
+    excludeRecentlyPlayed: {
+      ...DEFAULT_EXCLUDE_RECENTLY_PLAYED,
+      ...partial.excludeRecentlyPlayed,
     },
   }
   if ((!merged.channels || merged.channels.length === 0) && merged.webhookUrl) {
