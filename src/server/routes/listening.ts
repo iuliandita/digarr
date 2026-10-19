@@ -2,12 +2,12 @@ import { Hono } from 'hono'
 import { createEmbyClient } from '@/core/clients/emby'
 import { createJellyfinClient } from '@/core/clients/jellyfin'
 import { createLastFmClient, type LastFmPeriod } from '@/core/clients/lastfm'
-import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient, type ListenBrainzRange } from '@/core/clients/listenbrainz'
 import { createPlexClient } from '@/core/clients/plex'
 import { getUserConnections, type UserConnections } from '@/db/queries/users'
 import type { AppDependencies } from '@/server'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
+import { enrichImages } from '@/server/routes/listening-images'
 import type { HonoEnv } from '@/server/types'
 
 type TopArtistEntry = {
@@ -101,57 +101,6 @@ function plexRangeStart(range: TopRange, now = new Date()): number | undefined {
     start.setMonth(0, 1)
   }
   return Math.floor(start.getTime() / 1000)
-}
-
-async function enrichImages(
-  entries: Array<{ artist: string; mbid?: string; imageUrl?: string }>,
-  deps: {
-    lidarrUrl: string | null
-    lidarrApiKey: string | null
-    skipTlsVerify: boolean
-  },
-): Promise<void> {
-  if (
-    !deps.lidarrUrl ||
-    !deps.lidarrApiKey ||
-    deps.lidarrApiKey === '***' ||
-    !entries.some((e) => !e.imageUrl)
-  ) {
-    return
-  }
-  try {
-    const lidarr = createLidarrClient(deps.lidarrUrl, deps.lidarrApiKey, deps.skipTlsVerify)
-    const seen = new Set<string>()
-    const imageCache = new Map<string, string>()
-
-    for (const entry of entries) {
-      if (entry.imageUrl || seen.has(entry.artist)) continue
-      seen.add(entry.artist)
-      try {
-        const term = entry.mbid ? `lidarr:${entry.mbid}` : entry.artist
-        const results = await lidarr.lookupArtist(term)
-        const result = results[0] as Record<string, unknown> | undefined
-        const images = (result?.images ?? []) as Array<{
-          coverType: string
-          remoteUrl?: string
-        }>
-        const img =
-          images.find((i) => i.coverType === 'poster' && i.remoteUrl) ??
-          images.find((i) => i.remoteUrl)
-        if (img?.remoteUrl) imageCache.set(entry.artist, img.remoteUrl)
-      } catch {
-        // skip this artist, keep going
-      }
-    }
-
-    for (const entry of entries) {
-      if (!entry.imageUrl && imageCache.has(entry.artist)) {
-        entry.imageUrl = imageCache.get(entry.artist)
-      }
-    }
-  } catch {
-    // silently fail
-  }
 }
 
 export function listeningRoutes(deps: AppDependencies) {
@@ -284,7 +233,7 @@ export function listeningRoutes(deps: AppDependencies) {
       }
     }
 
-    await enrichImages(tracks, {
+    await enrichImages(deps.db, tracks, {
       lidarrUrl: settings.lidarrUrl,
       lidarrApiKey: settings.lidarrApiKey,
       skipTlsVerify: settings.skipTlsVerify ?? false,
@@ -451,7 +400,7 @@ export function listeningRoutes(deps: AppDependencies) {
       }
     }
 
-    await enrichImages(tracks, {
+    await enrichImages(deps.db, tracks, {
       lidarrUrl: settings.lidarrUrl,
       lidarrApiKey: settings.lidarrApiKey,
       skipTlsVerify: settings.skipTlsVerify ?? false,

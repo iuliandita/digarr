@@ -62,6 +62,33 @@ describe('GET /api/v1/jobs', () => {
     expect(body.total).toBe(1)
   })
 
+  it('serializes compact summaries while keeping complete diagnostics on detail', async () => {
+    const summary = {
+      id: 7,
+      type: 'playlist',
+      status: 'completed',
+      metadata: { playlistName: 'Favorites', trackCount: 20 },
+      sourceResults: { test: { status: 'ok' } },
+    }
+    const detail = {
+      ...summary,
+      metadata: {
+        ...summary.metadata,
+        playlistResolution: { outcomes: [{ artistName: 'Included' }] },
+      },
+      sourceResults: { test: { status: 'ok', artists: 1, ms: 50 } },
+    }
+    const deps = makeMockDeps()
+    deps.jobQueries.listJobs.mockResolvedValue({ items: [summary], total: 1 })
+    deps.jobQueries.getJobById.mockResolvedValue(detail as never)
+    const app = createApp(deps)
+    expect(await (await app.request('/api/v1/jobs?limit=1&offset=0')).json()).toEqual({
+      items: [summary],
+      total: 1,
+    })
+    expect(await (await app.request('/api/v1/jobs/7')).json()).toEqual(detail)
+  })
+
   it('passes filter params to listJobs', async () => {
     const deps = makeMockDeps()
     const app = createApp(deps)

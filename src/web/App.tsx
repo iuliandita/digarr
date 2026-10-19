@@ -10,7 +10,7 @@ import {
   User,
   Wrench,
 } from 'lucide-react'
-import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from 'react'
 import { BrowserRouter, Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { Toaster, toast } from 'sonner'
 import { getLocaleLabel, normalizeLocale, type SupportedLocale } from '@/core/i18n/locales'
@@ -55,9 +55,8 @@ import {
   setStoredMode,
 } from './lib/theme'
 import { cn } from './lib/utils'
-// Eager: dashboard is the default landing surface and setup gates the entire app
+// Eager: dashboard is the default landing surface
 import { Dashboard } from './pages/dashboard'
-import { SetupWizard } from './pages/setup'
 
 // Lazy: secondary routes split into per-page bundles to shrink first paint
 const AnalyticsPage = lazy(() =>
@@ -84,6 +83,7 @@ const SearchPage = lazy(() => import('./pages/search').then((m) => ({ default: m
 const SettingsPage = lazy(() =>
   import('./pages/settings').then((m) => ({ default: m.SettingsPage })),
 )
+const SetupWizard = lazy(() => import('./pages/setup').then((m) => ({ default: m.SetupWizard })))
 const UserManagementPage = lazy(() =>
   import('./pages/user-management').then((m) => ({ default: m.UserManagementPage })),
 )
@@ -495,21 +495,35 @@ function AppShell({ children }: { children: React.ReactNode }) {
     setMenuOpen(false)
   }, [location.pathname, location.search])
 
+  const previewContextValue = useMemo(
+    () => ({
+      play: preview.play,
+      stop: preview.stop,
+      hasPreview: preview.hasPreview,
+      currentMbid: preview.state.artistMbid,
+      currentTrack: preview.state.source?.track,
+      playing: preview.state.playing,
+      globalPlayId: preview.globalPlayId,
+      volume: preview.volume,
+      setVolume: preview.setVolume,
+      audition,
+    }),
+    [
+      preview.play,
+      preview.stop,
+      preview.hasPreview,
+      preview.state.artistMbid,
+      preview.state.source?.track,
+      preview.state.playing,
+      preview.globalPlayId,
+      preview.volume,
+      preview.setVolume,
+      audition,
+    ],
+  )
+
   return (
-    <PreviewContext.Provider
-      value={{
-        play: preview.play,
-        stop: preview.stop,
-        hasPreview: preview.hasPreview,
-        currentMbid: preview.state.artistMbid,
-        currentTrack: preview.state.source?.track,
-        playing: preview.state.playing,
-        globalPlayId: preview.globalPlayId,
-        volume: preview.volume,
-        setVolume: preview.setVolume,
-        audition,
-      }}
-    >
+    <PreviewContext.Provider value={previewContextValue}>
       <div className="min-h-screen bg-bg">
         <a
           href="#main-content"
@@ -697,7 +711,9 @@ function InnerApp() {
   if (!setupComplete) {
     return (
       <>
-        <SetupWizard onComplete={() => setSetupComplete(true)} />
+        <Suspense fallback={null}>
+          <SetupWizard onComplete={() => setSetupComplete(true)} />
+        </Suspense>
         <Toaster
           theme="system"
           offset={{ bottom: 'calc(var(--bottom-stack) + 1.5rem)' }}

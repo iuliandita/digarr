@@ -6,6 +6,23 @@ and supports a PostgreSQL server via `DATABASE_URL` or the `DB_HOST` / `DB_USER`
 Settings lets admins copy the application restore registry between the two backends in one
 operation, without touching or modifying the source.
 
+## Job history ordering index
+
+Migration 0060 adds `job_runs_started_at_id_idx` on `(started_at DESC, id DESC)`
+with `IF NOT EXISTS` on both PostgreSQL and PGlite. It is additive and backward
+compatible: no rows or columns change, and the previous application can use the
+same database. Allow disk space and startup time for building the history index.
+Take a complete database backup before upgrading, then let startup migrations
+finish before serving requests. Backend copies continue to migrate the destination
+before restoring rows, so the index is created there too.
+
+Rollback can use the previous image while leaving the index in place. If a full
+restore is needed, stop the application and restore the complete pre-upgrade
+backup with the previous image using the recovery procedure in this guide.
+No live restore is claimed for this change. API clients must account for the
+paginated reconciliation lists and summary job metadata described in
+[the API reference](../API.md).
+
 ## When to use this
 
 - **Managed or larger database**: embedded PGlite is single-writer and shares

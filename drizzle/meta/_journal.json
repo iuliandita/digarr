@@ -421,6 +421,13 @@
       "when": 1792286725579,
       "tag": "0059_certain_centennial",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1792357821769,
+      "tag": "0060_damp_grim_reaper",
+      "breakpoints": true
     }
   ]
 }

@@ -446,40 +446,18 @@ const baseDoc = {
       },
       LibraryUnreconciledArtistRow: {
         type: 'object',
-        required: [
-          'id',
-          'userId',
-          'source',
-          'sourceArtistId',
-          'name',
-          'nameNormalized',
-          'mbid',
-          'matchMethod',
-          'matchConfidence',
-          'unreconciledReason',
-          'genres',
-          'syncedAt',
-          'lastGapCheckAt',
-        ],
+        required: ['id', 'source', 'sourceArtistId', 'name', 'unreconciledReason'],
         properties: {
           id: { type: 'integer' },
-          userId: { type: ['integer', 'null'] },
           source: { type: 'string' },
           sourceArtistId: { type: 'string' },
           name: { type: 'string' },
-          nameNormalized: { type: 'string' },
-          mbid: { type: ['string', 'null'] },
-          matchMethod: { type: ['string', 'null'] },
-          matchConfidence: { type: ['number', 'null'] },
           unreconciledReason: {
             oneOf: [
               { type: 'string', enum: ['no_candidate', 'ambiguous', 'lookup_failed'] },
               { type: 'null' },
             ],
           },
-          genres: { type: ['array', 'null'], items: { type: 'string' } },
-          syncedAt: { type: 'string', format: 'date-time' },
-          lastGapCheckAt: { type: ['string', 'null'], format: 'date-time' },
         },
         additionalProperties: false,
       },
@@ -487,49 +465,34 @@ const baseDoc = {
         type: 'object',
         required: [
           'id',
-          'userId',
           'source',
-          'sourceArtistId',
           'sourceAlbumId',
           'title',
-          'titleNormalized',
-          'albumMbid',
-          'artistMbid',
           'primaryType',
           'releaseYear',
-          'matchMethod',
-          'matchConfidence',
           'unreconciledReason',
-          'syncedAt',
         ],
         properties: {
           id: { type: 'integer' },
-          userId: { type: ['integer', 'null'] },
           source: { type: 'string' },
-          sourceArtistId: { type: 'string' },
           sourceAlbumId: { type: 'string' },
           title: { type: 'string' },
-          titleNormalized: { type: 'string' },
-          albumMbid: { type: ['string', 'null'] },
-          artistMbid: { type: ['string', 'null'] },
           primaryType: { type: ['string', 'null'] },
           releaseYear: { type: ['integer', 'null'] },
-          matchMethod: { type: ['string', 'null'] },
-          matchConfidence: { type: ['number', 'null'] },
           unreconciledReason: {
             oneOf: [
               { type: 'string', enum: ['no_candidate', 'ambiguous', 'lookup_failed'] },
               { type: 'null' },
             ],
           },
-          syncedAt: { type: 'string', format: 'date-time' },
         },
         additionalProperties: false,
       },
       LibraryUnreconciledArtistList: {
         type: 'object',
-        required: ['items'],
+        required: ['items', 'total'],
         properties: {
+          total: { type: 'integer' },
           items: {
             type: 'array',
             items: { $ref: '#/components/schemas/LibraryUnreconciledArtistRow' },
@@ -539,8 +502,9 @@ const baseDoc = {
       },
       LibraryUnreconciledAlbumList: {
         type: 'object',
-        required: ['items'],
+        required: ['items', 'total'],
         properties: {
+          total: { type: 'integer' },
           items: {
             type: 'array',
             items: { $ref: '#/components/schemas/LibraryUnreconciledAlbumRow' },
@@ -953,7 +917,11 @@ const baseDoc = {
           { name: 'offset', in: 'query', schema: { type: 'integer', minimum: 0 } },
         ],
         responses: {
-          '200': { description: 'Job page.', ...jsonSchema('#/components/schemas/JobList') },
+          '200': {
+            description:
+              'Job summary page ordered by startedAt DESC, id DESC. Metadata contains description/counter fields only; sourceResults contain statuses only. Fetch job detail for full diagnostics.',
+            ...jsonSchema('#/components/schemas/JobList'),
+          },
           '400': validationResponse,
           '401': unauthenticatedResponse,
           '403': forbiddenResponse,
@@ -1001,7 +969,20 @@ const baseDoc = {
         summary: 'List unreconciled library artists',
         description: 'Admin only.',
         security: authSecurity,
+        parameters: [
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', minimum: 1, maximum: 500, default: 20 },
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            schema: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 },
+          },
+        ],
         responses: {
+          '400': validationResponse,
           '200': {
             description: 'Unreconciled artist rows.',
             ...jsonSchema('#/components/schemas/LibraryUnreconciledArtistList'),
@@ -1018,7 +999,20 @@ const baseDoc = {
         summary: 'List unreconciled library albums',
         description: 'Admin only.',
         security: authSecurity,
+        parameters: [
+          {
+            name: 'limit',
+            in: 'query',
+            schema: { type: 'integer', minimum: 1, maximum: 500, default: 20 },
+          },
+          {
+            name: 'offset',
+            in: 'query',
+            schema: { type: 'integer', minimum: 0, maximum: Number.MAX_SAFE_INTEGER, default: 0 },
+          },
+        ],
         responses: {
+          '400': validationResponse,
           '200': {
             description: 'Unreconciled album rows.',
             ...jsonSchema('#/components/schemas/LibraryUnreconciledAlbumList'),

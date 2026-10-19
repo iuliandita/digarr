@@ -54,8 +54,8 @@ function makeStore(): LibrarySyncStore {
     userHasAnySyncState: vi.fn(async () => false),
     userHasOwnSyncState: vi.fn(async () => false),
     listSyncStateForUser: vi.fn(async () => []),
-    listUnreconciledForUser: vi.fn(async () => []),
-    listUnreconciledAlbumsForUser: vi.fn(async () => []),
+    listUnreconciledForUser: vi.fn(async () => ({ items: [], total: 0 })),
+    listUnreconciledAlbumsForUser: vi.fn(async () => ({ items: [], total: 0 })),
     listOwnedAlbumsForArtist: vi.fn(async () => []),
   }
 }

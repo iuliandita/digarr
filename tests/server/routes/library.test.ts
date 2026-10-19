@@ -109,8 +109,8 @@ function makeMockLibrarySyncStore() {
     userHasAnySyncState: vi.fn(async () => false),
     userHasOwnSyncState: vi.fn(async () => false),
     listSyncStateForUser: vi.fn(async () => []),
-    listUnreconciledForUser: vi.fn(async () => []),
-    listUnreconciledAlbumsForUser: vi.fn(async () => []),
+    listUnreconciledForUser: vi.fn(async () => ({ items: [], total: 0 })),
+    listUnreconciledAlbumsForUser: vi.fn(async () => ({ items: [], total: 0 })),
     listOwnedAlbumsForArtist: vi.fn(async () => []),
     upsertAlbumOverride: vi.fn(async () => {}),
     bulkIgnoreAlbums: vi.fn(async () => {}),
@@ -631,6 +631,29 @@ describe('POST /api/v1/library/sync', () => {
   })
 })
 
+describe.each(['/api/v1/library/unreconciled', '/api/v1/library/unreconciled-albums'])(
+  '%s pagination',
+  (path) => {
+    it('passes the bounded page and returns its total', async () => {
+      const { app, librarySyncStore } = makeSyncApp()
+      const response = await authedRequest(app, `${path}?limit=20&offset=40`)
+      expect(response.status).toBe(200)
+      expect(await response.json()).toEqual({ items: [], total: 0 })
+      const query = path.endsWith('-albums')
+        ? librarySyncStore.listUnreconciledAlbumsForUser
+        : librarySyncStore.listUnreconciledForUser
+      expect(query).toHaveBeenCalledWith(42, { limit: 20, offset: 40 })
+    })
+    it.each(['limit=0', 'limit=501', 'offset=-1', 'offset=1.5'])(
+      'rejects invalid %s',
+      async (query) => {
+        const { app } = makeSyncApp()
+        expect((await authedRequest(app, `${path}?${query}`)).status).toBe(400)
+      },
+    )
+  },
+)
+
 describe('GET /api/v1/library/unreconciled', () => {
   it('returns unreconciled rows for the authed user', async () => {
     const mockItems = [
@@ -649,7 +672,7 @@ describe('GET /api/v1/library/unreconciled', () => {
       },
     ]
     const { app, librarySyncStore } = makeSyncApp(undefined, {
-      listUnreconciledForUser: vi.fn(async () => mockItems),
+      listUnreconciledForUser: vi.fn(async () => ({ items: mockItems, total: mockItems.length })),
     })
     const res = await authedRequest(app, '/api/v1/library/unreconciled')
     expect(res.status).toBe(200)
@@ -678,7 +701,7 @@ describe('GET /api/v1/library/unreconciled', () => {
       lastGapCheckAt: null,
     }
     const { app } = makeSyncApp(undefined, {
-      listUnreconciledForUser: vi.fn(async () => [item]),
+      listUnreconciledForUser: vi.fn(async () => ({ items: [item], total: 1 })),
     })
 
     const res = await authedRequest(app, '/api/v1/library/unreconciled')
@@ -686,6 +709,7 @@ describe('GET /api/v1/library/unreconciled', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+      total: 1,
     })
   })
 })
@@ -873,7 +897,10 @@ describe('GET /api/v1/library/unreconciled-albums', () => {
       },
     ]
     const { app, librarySyncStore } = makeSyncApp(undefined, {
-      listUnreconciledAlbumsForUser: vi.fn(async () => mockItems),
+      listUnreconciledAlbumsForUser: vi.fn(async () => ({
+        items: mockItems,
+        total: mockItems.length,
+      })),
     })
 
     const res = await authedRequest(app, '/api/v1/library/unreconciled-albums')
@@ -907,7 +934,7 @@ describe('GET /api/v1/library/unreconciled-albums', () => {
       syncedAt: new Date('2026-07-22T10:00:00.000Z'),
     }
     const { app } = makeSyncApp(undefined, {
-      listUnreconciledAlbumsForUser: vi.fn(async () => [item]),
+      listUnreconciledAlbumsForUser: vi.fn(async () => ({ items: [item], total: 1 })),
     })
 
     const res = await authedRequest(app, '/api/v1/library/unreconciled-albums')
@@ -915,6 +942,7 @@ describe('GET /api/v1/library/unreconciled-albums', () => {
     expect(res.status).toBe(200)
     await expect(res.json()).resolves.toEqual({
       items: [{ ...item, unreconciledReason: null, syncedAt: item.syncedAt.toISOString() }],
+      total: 1,
     })
   })
 })
