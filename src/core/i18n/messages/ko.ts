@@ -454,6 +454,7 @@ export const ko = {
   'discover.playability.missingSource': '곡 소스가 설정되지 않음: {count}',
   'discover.playability.noMatch': '일치하는 곡 없음: {count}',
   'discover.playability.upstreamFailure': '검색 실패: {count}',
+  'discover.playability.titleOnly': '제목만 있고 재생할 수 없음: {count}',
   'discover.playability.unknown': '아직 확인되지 않음: {count}',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
@@ -955,6 +956,7 @@ export const ko = {
   'systemHealth.integrationsEmpty': '최근 30일간 기록된 연동 활동이 없습니다.',
   'systemHealth.lastSuccess': '마지막 성공',
   'systemHealth.lastError': '마지막 오류',
+  'systemHealth.itemFailures': '개별 항목 실패 {0}건 (장애로 집계되지 않음)',
   'systemHealth.integrationOk': '정상',
   'systemHealth.integrationFailing': '실패 중',
   'systemHealth.kind.target': '대상',
@@ -1904,6 +1906,10 @@ export const ko = {
   'settings.channels.saved': '알림이 저장되었습니다',
   'settings.channels.saveFailed': '알림을 저장하지 못했습니다',
   'settings.channels.secretKeepPlaceholder': '저장된 값을 유지하려면 비워 두세요',
+  'settings.channels.secretSaved': '저장됨',
+  'settings.channels.secretRemove': '제거',
+  'settings.channels.secretRemovePending': '저장하면 제거됩니다',
+  'settings.channels.secretUndo': '실행 취소',
   'settings.primaryGenres': '우선 장르 (선택 사항)',
   'settings.secondaryGenres': '기타 선호 장르 (선택 사항)',
   'settings.genrePriorityHelp':

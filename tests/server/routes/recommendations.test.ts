@@ -1334,7 +1334,7 @@ describe('GET /api/v1/recommendations/playability', () => {
       pendingArtists: 3,
       withTrack: 1,
       withoutTrack: 1,
-      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0 },
+      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0, titleOnly: 0 },
       unknown: 1,
       checkedAt: '2026-10-02T00:00:00.000Z',
     }

@@ -469,6 +469,7 @@ export const es = {
   'discover.playability.missingSource': 'Sin fuente de pistas configurada: {count}',
   'discover.playability.noMatch': 'Sin pista coincidente: {count}',
   'discover.playability.upstreamFailure': 'Falló la búsqueda: {count}',
+  'discover.playability.titleOnly': 'Solo el título, nada que reproducir: {count}',
   'discover.playability.unknown': 'Aún sin comprobar: {count}',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
@@ -983,6 +984,7 @@ export const es = {
     'No hay actividad de integraciones registrada en los últimos 30 días.',
   'systemHealth.lastSuccess': 'Último éxito',
   'systemHealth.lastError': 'Último error',
+  'systemHealth.itemFailures': '{0} fallos por elemento (no cuentan como caída)',
   'systemHealth.integrationOk': 'Funciona',
   'systemHealth.integrationFailing': 'Con fallos',
   'systemHealth.kind.target': 'Destino',
@@ -1969,6 +1971,10 @@ export const es = {
   'settings.channels.saved': 'Notificaciones guardadas',
   'settings.channels.saveFailed': 'No se pudieron guardar las notificaciones',
   'settings.channels.secretKeepPlaceholder': 'Déjalo en blanco para conservar el valor guardado',
+  'settings.channels.secretSaved': 'Guardado',
+  'settings.channels.secretRemove': 'Quitar',
+  'settings.channels.secretRemovePending': 'Se quitará al guardar',
+  'settings.channels.secretUndo': 'Deshacer',
   'settings.primaryGenres': 'Géneros prioritarios (opcional)',
   'settings.secondaryGenres': 'Otros géneros preferidos (opcional)',
   'settings.genrePriorityHelp':

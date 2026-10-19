@@ -1049,7 +1049,7 @@ export type PendingPlayability = {
   pendingArtists: number
   withTrack: number
   withoutTrack: number
-  reasons: { missingSource: number; noMatch: number; upstreamFailure: number }
+  reasons: { missingSource: number; noMatch: number; upstreamFailure: number; titleOnly: number }
   unknown: number
   checkedAt: string | null
 }
@@ -1422,6 +1422,10 @@ export type JobHealth = {
 }
 
 export type IntegrationHealth = {
+  id: string
+  label: string | null
+  owner: { id: number; username: string } | null
+  itemFailures: number
   kind: 'target' | 'library' | 'source' | 'subscription' | 'scrobbler'
   name: string
   status: 'ok' | 'failing'

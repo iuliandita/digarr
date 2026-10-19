@@ -450,7 +450,7 @@ three points, allowing multiple albums per artist to survive a single run:
   Anthropic and OpenAI providers use vendor SDK transports, so these policies are not universal. Read-only shared-client calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
-- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
+- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected. Deezer rejects field-qualified searches (`artist:"x"` returns nothing), so Deezer resolution is artist search, then `/artist/{id}/top` when exactly one exact-name artist exists, else a plain track search filtered to that name. An outcome whose tracks are all MusicBrainz titles carries `titleOnly` and is not counted as playable in the pending playability summary.
 
   Production resolver credentials come only from the playlist owner's saved
   library connections. Jellyfin, Emby, and Subsonic use the saved operator TLS

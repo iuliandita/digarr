@@ -3,7 +3,14 @@ import type { JobRunRow, JobType, SourceResult } from '@/core/jobs/types'
 import type { PlaylistExportOutcome, PlaylistGenerationSummary } from '@/core/playlists/types'
 import { redactSecrets } from '@/core/validation'
 import type { Database } from '@/db'
-import { type JobMetadata, jobRuns, recommendations } from '@/db/schema'
+import {
+  type JobMetadata,
+  jobRuns,
+  recommendations,
+  subscriptions,
+  targets,
+  users,
+} from '@/db/schema'
 
 export type ListJobsFilters = {
   type?: JobType
@@ -168,7 +175,8 @@ export function playlistResolution(value: unknown): PlaylistGenerationSummary | 
   for (const value of outcomes) {
     if (!value || typeof value !== 'object') return null
     const outcome = value as Record<string, unknown>
-    const { artistName, artistMbid, status, resolvedTrackCount, includedTrackCount } = outcome
+    const { artistName, artistMbid, status, resolvedTrackCount, includedTrackCount, titleOnly } =
+      outcome
     if (
       typeof artistName !== 'string' ||
       (artistMbid !== undefined && typeof artistMbid !== 'string') ||
@@ -187,6 +195,7 @@ export function playlistResolution(value: unknown): PlaylistGenerationSummary | 
       status,
       resolvedTrackCount,
       includedTrackCount,
+      ...(titleOnly === true ? { titleOnly } : {}),
     })
   }
   return {
@@ -234,11 +243,15 @@ export async function getLatestPlaylistGeneration(
 export type IntegrationKind = 'target' | 'library' | 'source' | 'subscription' | 'scrobbler'
 
 export type IntegrationHealth = {
+  id: string
   kind: IntegrationKind
   name: string
+  label: string | null
+  owner: { id: number; username: string } | null
   status: 'ok' | 'failing'
   lastSuccess: string | null
   lastError: { at: string; message: string | null } | null
+  itemFailures: number
 }
 
 export const INTEGRATION_HEALTH_WINDOW_DAYS = 30
@@ -251,37 +264,96 @@ function toIso(value: unknown): string | null {
 }
 
 // Derived only from recorded job_runs outcomes; never probes the services.
+// One row per concrete instance (target, subscription, per-user connection); `outage` events
+// flip a row to failing, other failures only add to itemFailures (see classifyFailure).
 export async function getIntegrationHealth(db: Database): Promise<IntegrationHealth[]> {
   const since = new Date(Date.now() - INTEGRATION_HEALTH_WINDOW_DAYS * 24 * 60 * 60 * 1000)
   const result = await db.execute(sql`
     WITH events AS (
       SELECT
-        CASE
-          WHEN type = 'target' AND metadata->>'writeBackService' IS NOT NULL THEN 'scrobbler'
-          WHEN type = 'target' THEN 'target'
-          WHEN type = 'library_sync' THEN 'library'
-          ELSE 'subscription'
-        END AS kind,
-        CASE
-          WHEN type = 'target' THEN coalesce(metadata->>'writeBackService', metadata->>'targetType')
-          WHEN type = 'library_sync' THEN metadata->>'source'
-          ELSE metadata->>'adapterType'
-        END AS name,
-        status = 'completed' AS ok,
-        error,
-        coalesce(completed_at, started_at) AS at
-      FROM ${jobRuns}
-      WHERE type IN ('target', 'library_sync', 'subscription')
-        AND status IN ('completed', 'failed')
-        AND started_at >= ${since}
-        AND coalesce(metadata->>'skipped', '') <> 'true'
+        'target' AS kind,
+        'target:' || t.id AS instance,
+        t.type AS name,
+        t.name AS label,
+        t.user_id AS owner_id,
+        j.status = 'completed' AS ok,
+        j.status = 'failed' AND j.metadata->>'failureScope' = 'integration' AS outage,
+        j.error,
+        coalesce(j.completed_at, j.started_at) AS at
+      FROM ${jobRuns} j
+      JOIN ${targets} t
+        ON t.id = CASE WHEN j.metadata->>'targetId' ~ '^[0-9]{1,9}$'
+          THEN (j.metadata->>'targetId')::integer END
+      WHERE j.type = 'target'
+        AND j.metadata->>'writeBackService' IS NULL
+        AND j.status IN ('completed', 'failed')
+        AND j.started_at >= ${since}
+        AND coalesce(j.metadata->>'skipped', '') <> 'true'
       UNION ALL
       SELECT
-        'source' AS kind,
-        s.key AS name,
-        s.value->>'status' = 'ok' AS ok,
-        s.value->>'error' AS error,
-        coalesce(j.completed_at, j.started_at) AS at
+        'scrobbler',
+        'scrobbler:' || u.id || ':' || (j.metadata->>'writeBackService'),
+        j.metadata->>'writeBackService',
+        NULL,
+        u.id,
+        j.status = 'completed',
+        j.status = 'failed' AND j.metadata->>'failureScope' IS DISTINCT FROM 'item',
+        j.error,
+        coalesce(j.completed_at, j.started_at)
+      FROM ${jobRuns} j
+      JOIN ${users} u
+        ON u.id = j.user_id
+        AND CASE WHEN j.metadata->>'writeBackService' = 'listenbrainz'
+          THEN u.listenbrainz_token IS NOT NULL ELSE u.lastfm_api_key IS NOT NULL END
+      WHERE j.type = 'target'
+        AND j.metadata->>'writeBackService' IS NOT NULL
+        AND j.status IN ('completed', 'failed')
+        AND j.started_at >= ${since}
+        AND coalesce(j.metadata->>'skipped', '') <> 'true'
+      UNION ALL
+      SELECT
+        'library',
+        'library:' || coalesce(j.user_id, 0) || ':' || (j.metadata->>'source'),
+        j.metadata->>'source',
+        NULL,
+        j.user_id,
+        j.status = 'completed',
+        j.status = 'failed' AND j.metadata->>'failureScope' IS DISTINCT FROM 'item',
+        j.error,
+        coalesce(j.completed_at, j.started_at)
+      FROM ${jobRuns} j
+      WHERE j.type = 'library_sync'
+        AND j.status IN ('completed', 'failed')
+        AND j.started_at >= ${since}
+        AND coalesce(j.metadata->>'skipped', '') <> 'true'
+      UNION ALL
+      SELECT
+        'subscription',
+        'subscription:' || sub.id,
+        j.metadata->>'adapterType',
+        sub.name,
+        sub.user_id,
+        j.status = 'completed',
+        j.status = 'failed' AND j.metadata->>'failureScope' IS DISTINCT FROM 'item',
+        j.error,
+        coalesce(j.completed_at, j.started_at)
+      FROM ${jobRuns} j
+      JOIN ${subscriptions} sub ON sub.id = j.subscription_id
+      WHERE j.type = 'subscription'
+        AND j.status IN ('completed', 'failed')
+        AND j.started_at >= ${since}
+        AND coalesce(j.metadata->>'skipped', '') <> 'true'
+      UNION ALL
+      SELECT
+        'source',
+        'source:' || coalesce(j.user_id, 0) || ':' || s.key,
+        s.key,
+        NULL,
+        j.user_id,
+        s.value->>'status' = 'ok',
+        s.value->>'status' = 'error',
+        s.value->>'error',
+        coalesce(j.completed_at, j.started_at)
       FROM ${jobRuns} j
       CROSS JOIN LATERAL jsonb_each(
         CASE WHEN jsonb_typeof(j.source_results) = 'object' THEN j.source_results ELSE '{}'::jsonb END
@@ -291,23 +363,34 @@ export async function getIntegrationHealth(db: Database): Promise<IntegrationHea
         AND s.value->>'status' IN ('ok', 'error')
     )
     SELECT
-      kind,
-      name,
-      max(at) FILTER (WHERE ok) AS last_success,
-      max(at) FILTER (WHERE NOT ok) AS last_error_at,
-      (array_agg(error ORDER BY at DESC) FILTER (WHERE NOT ok))[1] AS last_error
-    FROM events
-    WHERE name IS NOT NULL AND name <> ''
-    GROUP BY kind, name
-    ORDER BY kind, name
+      e.kind,
+      e.instance,
+      e.name,
+      e.label,
+      e.owner_id,
+      u.username AS owner_username,
+      max(e.at) FILTER (WHERE e.ok) AS last_success,
+      max(e.at) FILTER (WHERE e.outage) AS last_error_at,
+      (array_agg(e.error ORDER BY e.at DESC) FILTER (WHERE e.outage))[1] AS last_error,
+      count(*) FILTER (WHERE NOT e.ok AND NOT e.outage)::integer AS item_failures
+    FROM events e
+    LEFT JOIN ${users} u ON u.id = e.owner_id
+    WHERE e.name IS NOT NULL AND e.name <> ''
+    GROUP BY e.kind, e.instance, e.name, e.label, e.owner_id, u.username
+    ORDER BY e.kind, e.name, e.label NULLS FIRST, u.username NULLS FIRST, e.instance
   `)
 
   const rows = result.rows as Array<{
     kind: IntegrationKind
+    instance: string
     name: string
+    label: string | null
+    owner_id: number | null
+    owner_username: string | null
     last_success: unknown
     last_error_at: unknown
     last_error: string | null
+    item_failures: number
   }>
   return rows.map((row) => {
     const lastSuccess = toIso(row.last_success)
@@ -316,11 +399,18 @@ export async function getIntegrationHealth(db: Database): Promise<IntegrationHea
       ? redactSecrets(row.last_error).slice(0, INTEGRATION_ERROR_MAX_LENGTH)
       : null
     return {
+      id: row.instance,
       kind: row.kind,
       name: row.name,
+      label: row.label,
+      owner:
+        row.owner_id != null && row.owner_username != null
+          ? { id: row.owner_id, username: row.owner_username }
+          : null,
       status: lastErrorAt && (!lastSuccess || lastErrorAt > lastSuccess) ? 'failing' : 'ok',
       lastSuccess,
       lastError: lastErrorAt ? { at: lastErrorAt, message } : null,
+      itemFailures: Number(row.item_failures),
     }
   })
 }

@@ -6,6 +6,8 @@ export type PlaylistArtistOutcome = {
   status: 'resolved' | 'unmatched' | 'unavailable' | 'error' | 'limited'
   resolvedTrackCount: number
   includedTrackCount: number
+  /** True when every resolved track is a bare MusicBrainz title with nothing to play. */
+  titleOnly?: true
 }
 
 export type PlaylistGenerationSummary = {
@@ -63,6 +65,8 @@ export type MBRecording = {
 export type TrackResolverDeps = {
   spotifySearch?: (query: string, limit?: number) => Promise<SpotifySearchResult[]>
   deezerSearch?: (query: string, limit?: number) => Promise<DeezerTrackSearchResult[]>
+  deezerArtists?: (query: string, limit?: number) => Promise<{ id: number; name: string }[]>
+  deezerArtistTopTracks?: (artistId: number, limit?: number) => Promise<DeezerTrackSearchResult[]>
   jellyfinSearch?: (artist: string) => Promise<LocalTrack[]>
   embySearch?: (artist: string) => Promise<LocalTrack[]>
   navidromeSearch?: (artist: string) => Promise<LocalTrack[]>

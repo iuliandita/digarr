@@ -464,6 +464,7 @@ export const ru = {
   'discover.playability.missingSource': 'Источник треков не настроен: {count}',
   'discover.playability.noMatch': 'Подходящий трек не найден: {count}',
   'discover.playability.upstreamFailure': 'Ошибка поиска: {count}',
+  'discover.playability.titleOnly': 'Только название, воспроизводить нечего: {count}',
   'discover.playability.unknown': 'Ещё не проверено: {count}',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
@@ -977,6 +978,7 @@ export const ru = {
   'systemHealth.integrationsEmpty': 'За последние 30 дней активности интеграций не записано.',
   'systemHealth.lastSuccess': 'Последний успех',
   'systemHealth.lastError': 'Последняя ошибка',
+  'systemHealth.itemFailures': '{0} сбоев отдельных элементов (не считаются отказом)',
   'systemHealth.integrationOk': 'Работает',
   'systemHealth.integrationFailing': 'Сбои',
   'systemHealth.kind.target': 'Цель',
@@ -1959,6 +1961,10 @@ export const ru = {
   'settings.channels.saved': 'Уведомления сохранены',
   'settings.channels.saveFailed': 'Не удалось сохранить уведомления',
   'settings.channels.secretKeepPlaceholder': 'Оставь пустым, чтобы сохранить сохранённое значение',
+  'settings.channels.secretSaved': 'Сохранено',
+  'settings.channels.secretRemove': 'Удалить',
+  'settings.channels.secretRemovePending': 'Будет удалено при сохранении',
+  'settings.channels.secretUndo': 'Отменить',
   'settings.primaryGenres': 'Приоритетные жанры (необязательно)',
   'settings.secondaryGenres': 'Другие любимые жанры (необязательно)',
   'settings.genrePriorityHelp':

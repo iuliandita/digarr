@@ -71,14 +71,11 @@ describe('resolvePreviewSource', () => {
 
   it.each([
     [{ name: '  RADIOHEAD  ' }, 'Creep', { artistName: '  RADIOHEAD  ', trackName: 'Creep' }],
-    [{ name: 'Radiohead Tribute' }, 'Creep', undefined],
     [{ name: 'Radiohead' }, '   ', undefined],
     [{ name: 'Radiohead' }, undefined, undefined],
-    [undefined, 'Creep', undefined],
-    [{ name: 123 }, 'Creep', undefined],
     [{ name: 'Radiohead' }, 123, undefined],
   ])(
-    'plays the first Deezer result and attaches only exact track metadata: %j / %j',
+    'plays the exact-artist Deezer result and attaches only valid track metadata: %j / %j',
     async (artist, title, track) => {
       vi.stubGlobal(
         'fetch',
@@ -94,19 +91,42 @@ describe('resolvePreviewSource', () => {
         ...(track ? { track } : {}),
       })
       expect(fetch).toHaveBeenCalledExactlyOnceWith(
-        'https://api.deezer.com/search?q=artist:"Radiohead"&limit=1',
+        'https://api.deezer.com/search?q=Radiohead&limit=25',
       )
     },
   )
 
-  it('preserves the original Deezer artist query encoding', async () => {
+  it('skips other artists in a plain Deezer search and never uses a non-exact match', async () => {
+    const hit = (name: string, preview: string) => ({
+      preview,
+      title: 'Song',
+      artist: { name },
+    })
     vi.stubGlobal(
       'fetch',
-      vi.fn().mockResolvedValue({ ok: true, json: async () => ({ data: [] }) }),
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          data: [
+            hit('Radiohead Tribute', 'https://cdn.example/x.mp3'),
+            hit('Radiohead', 'https://cdn.example/r.mp3'),
+          ],
+        }),
+      }),
+    )
+    expect((await resolvePreviewSource({ deezer: 'url' }, 'Radiohead'))?.url).toBe(
+      'https://cdn.example/r.mp3',
+    )
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ data: [hit('Radiohead Tribute', 'https://cdn.example/x.mp3')] }),
+      }),
     )
     expect(await resolvePreviewSource({ deezer: 'url' }, 'Boards of Canada')).toBeNull()
     expect(fetch).toHaveBeenCalledExactlyOnceWith(
-      'https://api.deezer.com/search?q=artist:"Boards%20of%20Canada"&limit=1',
+      'https://api.deezer.com/search?q=Boards%20of%20Canada&limit=25',
     )
   })
 
@@ -151,7 +171,7 @@ function stubDeezerFetch() {
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string) => {
-      const artistName = new URL(url).searchParams.get('q')?.slice(8, -1) ?? ''
+      const artistName = new URL(url).searchParams.get('q') ?? ''
       return {
         ok: true,
         json: async () => ({
@@ -360,11 +380,19 @@ describe('usePreview play outcomes', () => {
   })
 
   it.each<
-    [Record<string, string> | null, { data: Array<{ preview?: string }> } | undefined, string]
+    [
+      Record<string, string> | null,
+      { data: Array<{ preview?: string; artist?: { name: string } }> } | undefined,
+      string,
+    ]
   >([
     [null, undefined, 'missing-links'],
     [{ deezer: 'https://deezer.com/artist/1' }, { data: [] }, 'no-match'],
-    [{ deezer: 'https://deezer.com/artist/1' }, { data: [{}] }, 'no-audio'],
+    [
+      { deezer: 'https://deezer.com/artist/1' },
+      { data: [{ artist: { name: 'Artist' } }] },
+      'no-audio',
+    ],
     [{ deezer: 'https://deezer.com/artist/1' }, undefined, 'lookup-failed'],
   ])('reports coarse resolution failure %s', async (links, data, reason) => {
     if (data)

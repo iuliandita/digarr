@@ -37,7 +37,7 @@ export function IntegrationHealthCard() {
         <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
           {integrations.map((item) => (
             <li
-              key={`${item.kind}:${item.name}`}
+              key={item.id}
               className="flex flex-col gap-1 px-4 py-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4"
             >
               <span className="flex items-center gap-2 text-sm text-text">
@@ -48,8 +48,11 @@ export function IntegrationHealthCard() {
                   }`}
                 />
                 <span>
-                  {item.name}
+                  {item.label ? `${item.label} (${item.name})` : item.name}
                   <span className="ml-2 text-xs text-muted">{t(KIND_LABELS[item.kind])}</span>
+                  {item.owner && (
+                    <span className="ml-2 text-xs text-muted">{item.owner.username}</span>
+                  )}
                 </span>
                 <span className="sr-only">
                   {t(
@@ -64,6 +67,11 @@ export function IntegrationHealthCard() {
                   {t('systemHealth.lastSuccess')}:{' '}
                   {formatRelativeTime(locale, item.lastSuccess, t('common.never'))}
                 </span>
+                {item.itemFailures > 0 && (
+                  <span className="block">
+                    {t('systemHealth.itemFailures').replace('{0}', String(item.itemFailures))}
+                  </span>
+                )}
                 {item.lastError && (
                   <span className="block break-words">
                     {t('systemHealth.lastError')}: {formatRelativeTime(locale, item.lastError.at)}

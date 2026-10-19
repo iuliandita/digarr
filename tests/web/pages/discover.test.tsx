@@ -73,7 +73,7 @@ vi.mock('@/web/lib/api', () => ({
     pendingArtists: 0,
     withTrack: 0,
     withoutTrack: 0,
-    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0, titleOnly: 0 },
     unknown: 0,
     checkedAt: null,
   }),
@@ -350,7 +350,7 @@ describe('DiscoverPage', () => {
       pendingArtists: 5,
       withTrack: 1,
       withoutTrack: 3,
-      reasons: { missingSource: 1, noMatch: 2, upstreamFailure: 0 },
+      reasons: { missingSource: 1, noMatch: 1, upstreamFailure: 0, titleOnly: 1 },
       unknown: 1,
       checkedAt: '2026-10-02T00:00:00.000Z',
     })
@@ -362,7 +362,8 @@ describe('DiscoverPage', () => {
       ),
     ).toBeInTheDocument()
     expect(screen.getByText('No track source set up: 1')).toBeInTheDocument()
-    expect(screen.getByText('No matching track: 2')).toBeInTheDocument()
+    expect(screen.getByText('No matching track: 1')).toBeInTheDocument()
+    expect(screen.getByText('Title only, nothing to play: 1')).toBeInTheDocument()
     expect(screen.getByText('Not checked yet: 1')).toBeInTheDocument()
     expect(screen.queryByText(/Lookup failed/)).not.toBeInTheDocument()
   })

@@ -34,7 +34,11 @@ vi.mock('@/core/clients/musicbrainz', () => ({
   createMusicBrainzClient: () => ({ getRecordings: mocks.recordings }),
 }))
 vi.mock('@/core/clients/deezer', () => ({
-  createDeezerClient: () => ({ searchTracks: mocks.deezer }),
+  createDeezerClient: () => ({
+    searchTracks: mocks.deezer,
+    searchArtists: vi.fn(),
+    getArtistTopTrackResults: vi.fn(),
+  }),
 }))
 vi.mock('@/core/clients/spotify', () => ({ createSpotifyClient: mocks.spotify }))
 
@@ -55,7 +59,12 @@ describe('production playlist resolver dependencies', () => {
     expect(mocks.connections).not.toHaveBeenCalled()
     expect(mocks.settings).not.toHaveBeenCalled()
     expect(mocks.oauth).not.toHaveBeenCalled()
-    expect(Object.keys(deps).sort()).toEqual(['deezerSearch', 'musicbrainzRecordings'])
+    expect(Object.keys(deps).sort()).toEqual([
+      'deezerArtistTopTracks',
+      'deezerArtists',
+      'deezerSearch',
+      'musicbrainzRecordings',
+    ])
     await expect(deps.musicbrainzRecordings?.('artist-mbid')).resolves.toEqual([
       { id: 'recording', title: 'Creep' },
     ])
@@ -137,6 +146,8 @@ describe('production playlist resolver dependencies', () => {
     mocks.token.mockResolvedValueOnce('first-token').mockResolvedValueOnce('second-token')
     const deps = await buildPlaylistResolverDeps(db, 42)
     expect(Object.keys(deps).sort()).toEqual([
+      'deezerArtistTopTracks',
+      'deezerArtists',
       'deezerSearch',
       'musicbrainzRecordings',
       'spotifySearch',

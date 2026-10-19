@@ -370,16 +370,53 @@ describe('resolveTracksForArtist()', () => {
       })
     })
 
-    it('passes Deezer artist query syntax to deezerSearch', async () => {
-      const deezerSearch = vi.fn().mockResolvedValue(DEEZER_RESULTS)
-      const deps: TrackResolverDeps = { deezerSearch }
+    it('resolves the one exact-name artist and takes its top tracks', async () => {
+      const deezerArtists = vi.fn().mockResolvedValue([
+        { id: 7, name: 'radiohead' },
+        { id: 8, name: 'Radiohead Tribute' },
+      ])
+      const deezerArtistTopTracks = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+      const deezerSearch = vi.fn()
 
-      await resolveTracksForArtist('Radiohead', ARTIST_MBID, deps, {
-        ...DEFAULT_CONFIG,
-        sourcePriority: ['deezer'],
-      })
+      const result = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        ARTIST_MBID,
+        { deezerArtists, deezerArtistTopTracks, deezerSearch },
+        { tracksPerArtist: 2, sourcePriority: ['deezer'] },
+      )
 
-      expect(deezerSearch).toHaveBeenCalledWith('artist:"Radiohead"', 3)
+      expect(deezerArtistTopTracks).toHaveBeenCalledWith(7, 2)
+      expect(deezerSearch).not.toHaveBeenCalled()
+      expect(result.tracks.map((t) => [t.deezerId, t.source])).toEqual([
+        ['dz-1', 'deezer'],
+        ['dz-2', 'deezer'],
+      ])
+      expect(result.outcome.titleOnly).toBeUndefined()
+    })
+
+    it('falls back to a plain exact-artist track search when the artist name is ambiguous', async () => {
+      const deezerArtists = vi.fn().mockResolvedValue([
+        { id: 7, name: 'Radiohead' },
+        { id: 9, name: 'Radiohead' },
+      ])
+      const deezerArtistTopTracks = vi.fn()
+      const deezerSearch = vi
+        .fn()
+        .mockResolvedValue([
+          { id: 'cover', name: 'Creep', artists: ['Radiohead Tribute'], rank: 999999 },
+          ...DEEZER_RESULTS.slice(0, 2),
+        ])
+
+      const tracks = await resolveTracksForArtist(
+        'Radiohead',
+        ARTIST_MBID,
+        { deezerArtists, deezerArtistTopTracks, deezerSearch },
+        { tracksPerArtist: 3, sourcePriority: ['deezer'] },
+      )
+
+      expect(deezerArtistTopTracks).not.toHaveBeenCalled()
+      expect(deezerSearch).toHaveBeenCalledWith('Radiohead', 25)
+      expect(tracks.map((t) => t.deezerId)).toEqual(['dz-1', 'dz-2'])
     })
 
     it('sorts Deezer results by rank descending', async () => {
@@ -411,6 +448,49 @@ describe('resolveTracksForArtist()', () => {
         mbid: 'mb-rec-1',
         source: 'musicbrainz',
       })
+    })
+
+    it('flags a MusicBrainz-only resolution as title-only', async () => {
+      const result = await resolveTracksForArtistDetailed(
+        'Radiohead',
+        ARTIST_MBID,
+        { musicbrainzRecordings: vi.fn().mockResolvedValue(MB_RECORDINGS) },
+        DEFAULT_CONFIG,
+      )
+      expect(result.outcome).toMatchObject({ status: 'resolved', titleOnly: true })
+    })
+
+    it.each([
+      '[untitled]',
+      'Peel Session (1997-03-02)',
+      'Radio Broadcast Fragment',
+      'Rehearsal Take',
+      'Creep (demo)',
+      'Live at the BBC',
+      'Interview',
+    ])('skips the non-track title %j when real songs exist', async (title) => {
+      const tracks = await resolveTracksForArtist(
+        'Radiohead',
+        ARTIST_MBID,
+        {
+          musicbrainzRecordings: vi.fn().mockResolvedValue([
+            { id: 'bad', title },
+            { id: 'good', title: 'Demolition' },
+          ]),
+        },
+        { tracksPerArtist: 1, sourcePriority: [] },
+      )
+      expect(tracks.map((t) => t.mbid)).toEqual(['good'])
+    })
+
+    it('keeps the first recording when every title looks like a non-track', async () => {
+      const tracks = await resolveTracksForArtist(
+        'Radiohead',
+        ARTIST_MBID,
+        { musicbrainzRecordings: vi.fn().mockResolvedValue([{ id: 'a', title: '[untitled]' }]) },
+        { tracksPerArtist: 1, sourcePriority: [] },
+      )
+      expect(tracks.map((t) => t.mbid)).toEqual(['a'])
     })
 
     it('does not call musicbrainzRecordings when local resolves', async () => {
@@ -597,7 +677,7 @@ describe('resolvePlaylistTracks()', () => {
     const deezerSearch = vi
       .fn()
       .mockImplementation(async (query: string) =>
-        DEEZER_RESULTS.map((track) => ({ ...track, artists: [query.slice(8, -1)] })),
+        DEEZER_RESULTS.map((track) => ({ ...track, artists: [query] })),
       )
     const deps: TrackResolverDeps = { deezerSearch }
     const config: TrackResolverConfig = { tracksPerArtist: 2, sourcePriority: ['deezer'] }
@@ -611,8 +691,8 @@ describe('resolvePlaylistTracks()', () => {
 
     expect(tracks).toHaveLength(4)
     expect(deezerSearch).toHaveBeenCalledTimes(2)
-    expect(deezerSearch).toHaveBeenCalledWith('artist:"Radiohead"', 2)
-    expect(deezerSearch).toHaveBeenCalledWith('artist:"Portishead"', 2)
+    expect(deezerSearch).toHaveBeenCalledWith('Radiohead', 25)
+    expect(deezerSearch).toHaveBeenCalledWith('Portishead', 25)
   })
 
   it('returns tracks in artist order (not interleaved)', async () => {

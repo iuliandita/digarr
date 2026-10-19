@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
 import { QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -177,6 +177,38 @@ describe('NotificationChannelsCard', () => {
     expect(mocked.updateSettings.mock.calls[0]?.[0]?.preferences).toMatchObject({
       channels: [expect.objectContaining({ id: 'a', events: ['approval_failed'] })],
     })
+  })
+
+  it('sends "" for a saved optional secret marked for removal and offers no removal for a required one', async () => {
+    const saved = [
+      { ...channels[0], signingSecret: '***' },
+      { ...channels[1], enabled: true },
+    ]
+    renderWithQuery(
+      <NotificationChannelsCard
+        settings={{ preferences: { channels: saved } } as never}
+        isAdmin
+        onSaved={() => {}}
+      />,
+    )
+    fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    fireEvent.click(screen.getByRole('button', { name: /42/ }))
+    const sign = screen.getByLabelText('Signing secret (optional)').parentElement as HTMLElement
+    const bot = screen.getByLabelText('Bot token').parentElement as HTMLElement
+    expect(within(bot).getByText('Saved')).toBeInTheDocument()
+    expect(within(bot).queryByRole('button', { name: 'Remove' })).not.toBeInTheDocument()
+    fireEvent.click(within(sign).getByRole('button', { name: 'Remove' }))
+    expect(screen.getByText('Will be removed when you save')).toBeInTheDocument()
+    fireEvent.click(screen.getByRole('button', { name: 'Save' }))
+    await waitFor(() => expect(mocked.updateSettings).toHaveBeenCalled())
+    const sent = mocked.updateSettings.mock.calls.at(-1)?.[0] as {
+      preferences: { channels: unknown[] }
+    }
+    expect(sent.preferences.channels).toEqual([
+      expect.objectContaining({ id: 'a', signingSecret: '' }),
+      expect.objectContaining({ id: 'b', botToken: '***' }),
+    ])
   })
 
   it('lets a non-admin opt in to personal request outcomes without global controls', async () => {

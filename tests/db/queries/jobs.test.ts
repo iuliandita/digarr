@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { eq } from 'drizzle-orm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import type { Database } from '@/db'
 import {
@@ -7,7 +8,7 @@ import {
   getLatestPlaylistGeneration,
   updateJobMetadata,
 } from '@/db/queries/jobs'
-import { jobRuns, users } from '@/db/schema'
+import { jobRuns, subscriptions, targets, users } from '@/db/schema'
 import { makeTestDb } from '../../helpers/test-db'
 
 /*
@@ -97,6 +98,8 @@ describe('job queries on migrated PGlite', () => {
   })
   beforeEach(async () => {
     await db.delete(jobRuns)
+    await db.delete(targets)
+    await db.delete(subscriptions)
   })
 
   it('omits sources with only skipped results for every skip reason', async () => {
@@ -243,102 +246,156 @@ describe('job queries on migrated PGlite', () => {
     expect((await getJobHealth(db, null)).sources).toEqual({ recent: 'ok' })
   })
 
-  it('reports last success and last error per integration from recorded runs', async () => {
+  it('reports health per integration instance and keeps per-item failures out of failing', async () => {
     const now = Date.now()
     const at = (hoursAgo: number) => new Date(now - hoursAgo * 60 * 60 * 1000)
+    const [broken, healthy] = await db
+      .insert(targets)
+      .values([
+        { type: 'lidarr', name: 'Owner Lidarr', userId: ownerId },
+        { type: 'lidarr', name: 'Other Lidarr', userId: otherId },
+      ])
+      .returning({ id: targets.id })
+    const [feed] = await db
+      .insert(subscriptions)
+      .values({
+        name: 'Owner feed',
+        userId: ownerId,
+        sourceType: 'rss',
+        sourceProvider: 'rss',
+        sourceConfig: {},
+        cron: '0 * * * *',
+      })
+      .returning({ id: subscriptions.id })
+    if (!broken || !healthy || !feed) throw new Error('Missing fixtures')
     await db.insert(jobRuns).values([
       {
         type: 'target',
         status: 'completed',
         completedAt: at(5),
-        metadata: { targetType: 'lidarr' },
+        metadata: { targetType: 'lidarr', targetId: broken.id },
       },
       {
         type: 'target',
         status: 'failed',
         completedAt: at(2),
         error: 'Lidarr down: http://lidarr/api?apikey=hunter22',
-        metadata: { targetType: 'lidarr' },
+        metadata: { targetType: 'lidarr', targetId: broken.id, failureScope: 'integration' },
+      },
+      {
+        type: 'target',
+        status: 'completed',
+        completedAt: at(3),
+        metadata: { targetType: 'lidarr', targetId: healthy.id },
       },
       {
         type: 'target',
         status: 'failed',
-        completedAt: at(3),
-        error: 'older failure',
-        metadata: { targetType: 'lidarr' },
-      },
-      {
-        type: 'target',
-        status: 'completed',
         completedAt: at(1),
-        metadata: { targetType: 'slskd', skipped: true },
-      },
-      {
-        type: 'target',
-        status: 'completed',
-        completedAt: at(1),
-        metadata: { writeBackService: 'lastfm', operation: 'love' },
-      },
-      {
-        type: 'library_sync',
-        status: 'completed',
-        completedAt: at(4),
-        metadata: { source: 'plex' },
+        error: 'Lidarr is not configured',
+        metadata: { targetType: 'lidarr', targetId: healthy.id, failureScope: 'item' },
       },
       {
         type: 'subscription',
         status: 'failed',
         completedAt: at(1),
+        userId: ownerId,
+        subscriptionId: feed.id,
         error: 'feed gone',
         metadata: { adapterType: 'rss' },
       },
-      { type: 'target', status: 'running', metadata: { targetType: 'emby' } },
+      {
+        type: 'library_sync',
+        status: 'completed',
+        completedAt: at(4),
+        userId: otherId,
+        metadata: { source: 'plex' },
+      },
       {
         type: 'pipeline',
         status: 'completed',
         completedAt: at(6),
-        sourceResults: {
-          lastfm: { status: 'error', error: 'rate limited' },
-          ai: { status: 'ok', artists: 3 },
-          deezer: { status: 'skipped', reason: 'not_configured' },
-        },
+        userId: ownerId,
+        sourceResults: { lastfm: { status: 'error', error: 'rate limited' } },
       },
       {
         type: 'quick_discover',
         status: 'completed',
         completedAt: at(1),
+        userId: otherId,
         sourceResults: { lastfm: { status: 'ok', artists: 0 } },
       },
     ])
 
     const integrations = await getIntegrationHealth(db)
-    const byKey = Object.fromEntries(integrations.map((i) => [`${i.kind}:${i.name}`, i]))
+    const byId = Object.fromEntries(integrations.map((i) => [i.id, i]))
 
-    expect(Object.keys(byKey).sort()).toEqual([
-      'library:plex',
-      'scrobbler:lastfm',
-      'source:ai',
-      'source:lastfm',
-      'subscription:rss',
-      'target:lidarr',
-    ])
-    expect(byKey['target:lidarr']).toEqual({
+    expect(integrations).toHaveLength(6)
+    expect(byId[`target:${broken.id}`]).toEqual({
+      id: `target:${broken.id}`,
       kind: 'target',
       name: 'lidarr',
+      label: 'Owner Lidarr',
+      owner: { id: ownerId, username: 'playlist-owner' },
       status: 'failing',
       lastSuccess: at(5).toISOString(),
       lastError: {
         at: at(2).toISOString(),
         message: 'Lidarr down: http://lidarr/api?apikey=[redacted]',
       },
+      itemFailures: 0,
     })
-    expect(byKey['source:lastfm']).toMatchObject({
+    expect(byId[`target:${healthy.id}`]).toMatchObject({
+      label: 'Other Lidarr',
+      owner: { username: 'playlist-other' },
       status: 'ok',
-      lastError: { message: 'rate limited' },
+      lastError: null,
+      itemFailures: 1,
     })
-    expect(byKey['subscription:rss']).toMatchObject({ status: 'failing', lastSuccess: null })
-    expect(byKey['library:plex']).toMatchObject({ status: 'ok', lastError: null })
+    expect(byId[`subscription:${feed.id}`]).toMatchObject({
+      label: 'Owner feed',
+      status: 'failing',
+      lastSuccess: null,
+    })
+    expect(byId[`source:${ownerId}:lastfm`]).toMatchObject({ status: 'failing' })
+    expect(byId[`source:${otherId}:lastfm`]).toMatchObject({ status: 'ok' })
+    expect(byId[`library:${otherId}:plex`]).toMatchObject({ status: 'ok', lastError: null })
     expect((await getJobHealth(db, null)).integrations).toEqual(integrations)
+  })
+
+  it('drops rows for targets, subscriptions and scrobbler connections that no longer exist', async () => {
+    const [gone] = await db
+      .insert(targets)
+      .values({ type: 'lidarr', name: 'Gone', userId: ownerId })
+      .returning({ id: targets.id })
+    if (!gone) throw new Error('Missing target')
+    await db.insert(jobRuns).values([
+      {
+        type: 'target',
+        status: 'failed',
+        error: 'fetch failed',
+        metadata: { targetType: 'lidarr', targetId: gone.id, failureScope: 'integration' },
+      },
+      { type: 'target', status: 'failed', error: 'old row', metadata: { targetType: 'lidarr' } },
+      {
+        type: 'subscription',
+        status: 'failed',
+        error: 'feed gone',
+        subscriptionId: null,
+        metadata: { adapterType: 'rss' },
+      },
+      {
+        type: 'target',
+        status: 'failed',
+        userId: ownerId,
+        error: 'timeout',
+        metadata: { writeBackService: 'lastfm', operation: 'love' },
+      },
+    ])
+    expect(await getIntegrationHealth(db)).toHaveLength(1)
+
+    await db.delete(targets).where(eq(targets.id, gone.id))
+    expect(await getIntegrationHealth(db)).toEqual([])
   })
 
   it('ignores integration outcomes older than the health window', async () => {

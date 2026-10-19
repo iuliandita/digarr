@@ -462,6 +462,7 @@ export const uk = {
   'discover.playability.missingSource': 'Джерело треків не налаштовано: {count}',
   'discover.playability.noMatch': 'Відповідного треку немає: {count}',
   'discover.playability.upstreamFailure': 'Помилка пошуку: {count}',
+  'discover.playability.titleOnly': 'Лише назва, нічого відтворювати: {count}',
   'discover.playability.unknown': 'Ще не перевірено: {count}',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':
@@ -970,6 +971,7 @@ export const uk = {
   'systemHealth.integrationsEmpty': 'За останні 30 днів активності інтеграцій не записано.',
   'systemHealth.lastSuccess': 'Останній успіх',
   'systemHealth.lastError': 'Остання помилка',
+  'systemHealth.itemFailures': '{0} збоїв окремих елементів (не вважаються відмовою)',
   'systemHealth.integrationOk': 'Працює',
   'systemHealth.integrationFailing': 'Збої',
   'systemHealth.kind.target': 'Ціль',
@@ -1948,6 +1950,10 @@ export const uk = {
   'settings.channels.saved': 'Сповіщення збережено',
   'settings.channels.saveFailed': 'Не вдалося зберегти сповіщення',
   'settings.channels.secretKeepPlaceholder': 'Залиш порожнім, щоб зберегти збережене значення',
+  'settings.channels.secretSaved': 'Збережено',
+  'settings.channels.secretRemove': 'Видалити',
+  'settings.channels.secretRemovePending': 'Буде видалено після збереження',
+  'settings.channels.secretUndo': 'Скасувати',
   'settings.primaryGenres': 'Пріоритетні жанри (необов’язково)',
   'settings.secondaryGenres': 'Інші улюблені жанри (необов’язково)',
   'settings.genrePriorityHelp':

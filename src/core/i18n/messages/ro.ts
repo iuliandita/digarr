@@ -465,6 +465,7 @@ export const ro = {
   'discover.playability.missingSource': 'Nicio sursă de piese configurată: {count}',
   'discover.playability.noMatch': 'Nicio piesă potrivită: {count}',
   'discover.playability.upstreamFailure': 'Căutarea a eșuat: {count}',
+  'discover.playability.titleOnly': 'Doar titlul, nimic de redat: {count}',
   'discover.playability.unknown': 'Neverificat încă: {count}',
   'discover.rejectAllPending': 'Respinge toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':
@@ -977,6 +978,8 @@ export const ro = {
     'Nicio activitate de integrare înregistrată în ultimele 30 de zile.',
   'systemHealth.lastSuccess': 'Ultimul succes',
   'systemHealth.lastError': 'Ultima eroare',
+  'systemHealth.itemFailures':
+    '{0} eșecuri pe elemente individuale (nu sunt numărate ca întrerupere)',
   'systemHealth.integrationOk': 'Funcționează',
   'systemHealth.integrationFailing': 'Eșuează',
   'systemHealth.kind.target': 'Destinație',
@@ -1956,6 +1959,10 @@ export const ro = {
   'settings.channels.saved': 'Notificări salvate',
   'settings.channels.saveFailed': 'Salvarea notificărilor a eșuat',
   'settings.channels.secretKeepPlaceholder': 'Lasă necompletat pentru a păstra valoarea salvată',
+  'settings.channels.secretSaved': 'Salvat',
+  'settings.channels.secretRemove': 'Elimină',
+  'settings.channels.secretRemovePending': 'Va fi eliminat la salvare',
+  'settings.channels.secretUndo': 'Anulează',
   'settings.primaryGenres': 'Genuri prioritare (opțional)',
   'settings.secondaryGenres': 'Alte genuri preferate (opțional)',
   'settings.genrePriorityHelp':
