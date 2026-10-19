@@ -98,4 +98,33 @@ describe('LibrarySourcesPanel', () => {
 
     expect(await screen.findByText(/9 unreconciled/i)).toBeInTheDocument()
   })
+
+  it('shows a running source as syncing and disables the sync buttons', async () => {
+    const { getLibrarySources } = await import('@/web/lib/api')
+    vi.mocked(getLibrarySources).mockResolvedValueOnce({
+      sources: [
+        {
+          id: 1,
+          userId: 1,
+          source: 'lidarr',
+          lastSyncStartedAt: new Date().toISOString(),
+          lastSyncCompletedAt: null,
+          lastSyncStatus: 'running',
+          lastSyncError: null,
+          lastSyncCounts: null,
+        },
+      ],
+    })
+
+    render(
+      <I18nProvider>
+        <QueryClientProvider client={createTestQueryClient()}>
+          <LibrarySourcesPanel />
+        </QueryClientProvider>
+      </I18nProvider>,
+    )
+
+    expect(await screen.findByRole('button', { name: /syncing/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /sync all/i })).toBeDisabled()
+  })
 })

@@ -84,6 +84,8 @@ function makeMockLibrarySync() {
   return {
     syncGlobal: vi.fn(async () => ({ userId: null, results: [] })),
     syncForUser: vi.fn(async () => ({ userId: 1, results: [] })),
+    resolveSourceScope: vi.fn(async (userId: number) => ({ userId })),
+    isRunning: vi.fn(() => false),
     syncSpecificSource: vi.fn(async () => ({
       source: 'plex',
       status: 'completed' as const,
@@ -556,69 +558,102 @@ describe('GET /api/v1/library/sources', () => {
 })
 
 describe('POST /api/v1/library/sync', () => {
-  it('POST /api/v1/library/sync runs global before user sync and returns the user summary', async () => {
+  const resolveUser = vi.fn(async (userId: number) => ({ userId }))
+
+  it('returns 202 for Sync all before the sync finishes, global before user', async () => {
     const order: string[] = []
-    let resolved = false
-    const syncForUser = vi.fn(async () => {
-      order.push('user')
-      // Async boundary (setImmediate) instead of a wall-clock sleep; the
-      // assertion only cares that the route awaited the user sync.
-      await new Promise<void>((r) => setImmediate(r))
-      resolved = true
-      return { userId: 1, results: [] }
-    })
+    let releaseGlobal: () => void = () => {}
     const syncGlobal = vi.fn(async () => {
       order.push('global')
+      await new Promise<void>((r) => {
+        releaseGlobal = r
+      })
       return { userId: null, results: [] }
+    })
+    const syncForUser = vi.fn(async () => {
+      order.push('user')
+      return { userId: 1, results: [] }
     })
     const { app } = makeSyncApp({ syncForUser, syncGlobal })
 
     const res = await authedRequest(app, '/api/v1/library/sync', json({}))
 
-    expect(resolved).toBe(true) // proves the route awaited
     expect(res.status).toBe(202)
-    const body = await res.json()
-    expect(body.userId).toBe(1)
-    expect(body.results).toEqual([])
+    expect(await res.json()).toEqual({ status: 'started' })
+    expect(syncForUser).not.toHaveBeenCalled()
+
+    // A second Sync all while the first is running is rejected.
+    const dup = await authedRequest(app, '/api/v1/library/sync', json({}))
+    expect(dup.status).toBe(409)
+    expect((await dup.json()).code).toBe('errors.library.syncAlreadyRunning')
+    expect(syncGlobal).toHaveBeenCalledTimes(1)
+
+    releaseGlobal()
+    await vi.waitFor(() => expect(syncForUser).toHaveBeenCalledWith(42, { force: true }))
     expect(order).toEqual(['global', 'user'])
-    expect(syncForUser).toHaveBeenCalledWith(42, { force: true })
-    expect(syncGlobal).toHaveBeenCalledWith({ force: true })
   })
 
-  it('fires syncSpecificSource when source provided', async () => {
-    const { app, librarySync } = makeSyncApp()
-    const res = await authedRequest(app, '/api/v1/library/sync', json({ source: 'plex' }))
-    expect(res.status).toBe(200)
-    expect(librarySync.syncSpecificSource as ReturnType<typeof vi.fn>).toHaveBeenCalledWith(
-      42,
-      'plex',
-      { force: true },
+  it('starts a single source in the background under the resolved scope', async () => {
+    let release: () => void = () => {}
+    const syncSpecificSource = vi.fn(
+      () =>
+        new Promise<unknown>((r) => {
+          release = () => r({ source: 'plex', status: 'completed', counts: zeroCounts() })
+        }),
     )
-  })
-
-  it('retries syncSpecificSource with userId=null when source not configured', async () => {
-    const syncSpecificSource = vi
-      .fn()
-      .mockResolvedValueOnce({
-        source: 'plex',
-        status: 'failed',
-        error: "Source 'plex' not configured",
-      })
-      .mockResolvedValueOnce({
-        source: 'plex',
-        status: 'completed',
-        counts: zeroCounts(),
-      })
-    const { app } = makeSyncApp({ syncSpecificSource })
+    const resolveSourceScope = vi.fn(async () => ({ userId: null }))
+    const { app } = makeSyncApp({ syncSpecificSource, resolveSourceScope, isRunning: () => false })
 
     const res = await authedRequest(app, '/api/v1/library/sync', json({ source: 'plex' }))
 
-    expect(res.status).toBe(200)
-    const body = await res.json()
-    expect(body.status).toBe('completed')
-    expect(syncSpecificSource).toHaveBeenCalledTimes(2)
-    expect(syncSpecificSource).toHaveBeenNthCalledWith(1, 42, 'plex', { force: true })
-    expect(syncSpecificSource).toHaveBeenNthCalledWith(2, null, 'plex', { force: true })
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ source: 'plex', status: 'started' })
+    expect(resolveSourceScope).toHaveBeenCalledWith(42, 'plex')
+    expect(syncSpecificSource).toHaveBeenCalledWith(null, 'plex', { force: true })
+    release()
+  })
+
+  it('returns 404 when the source is not configured and 409 when it is already running', async () => {
+    const syncSpecificSource = vi.fn()
+    const notConfigured = makeSyncApp({
+      syncSpecificSource,
+      resolveSourceScope: vi.fn(async () => null),
+    })
+    const missing = await authedRequest(
+      notConfigured.app,
+      '/api/v1/library/sync',
+      json({ source: 'plex' }),
+    )
+    expect(missing.status).toBe(404)
+
+    const running = makeSyncApp({
+      syncSpecificSource,
+      resolveSourceScope: resolveUser,
+      isRunning: () => true,
+    })
+    const dup = await authedRequest(running.app, '/api/v1/library/sync', json({ source: 'plex' }))
+    expect(dup.status).toBe(409)
+    expect(syncSpecificSource).not.toHaveBeenCalled()
+  })
+
+  it('catches a background failure instead of leaking an unhandled rejection', async () => {
+    const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const syncSpecificSource = vi.fn(async () => {
+      throw new Error('boom')
+    })
+    const { app } = makeSyncApp({
+      syncSpecificSource,
+      resolveSourceScope: resolveUser,
+      isRunning: () => false,
+    })
+
+    const res = await authedRequest(app, '/api/v1/library/sync', json({ source: 'plex' }))
+
+    expect(res.status).toBe(202)
+    await vi.waitFor(() =>
+      expect(errorSpy).toHaveBeenCalledWith('[library/sync] plex error:', 'boom'),
+    )
+    errorSpy.mockRestore()
   })
 
   it('POST /api/v1/library/overrides returns 400 (not 500) when body is JSON null', async () => {

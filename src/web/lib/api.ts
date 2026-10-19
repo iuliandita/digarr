@@ -712,14 +712,6 @@ export type LibraryUnreconciledRow = {
   name: string
   unreconciledReason: LibraryUnreconciledReason | null
 }
-export type LibrarySourceSyncResult =
-  | { source: string; status: 'completed'; counts: LibrarySyncCounts }
-  | { source: string; status: 'skipped_fresh'; counts: LibrarySyncCounts | null }
-  | { source: string; status: 'failed'; error: string }
-export type LibrarySyncSummary = {
-  userId: number | null
-  results: LibrarySourceSyncResult[]
-}
 export type LibraryOverrideInput = {
   source: string
   sourceArtistId: string
@@ -758,10 +750,9 @@ export type LibraryAlbumOverrideInput = {
 }
 export const getLibrarySources = () =>
   fetchApi<{ sources: LibrarySyncSourceRow[] }>('/library/sources')
-// Returns LibrarySourceSyncResult when source is given, LibrarySyncSummary when not.
-// Caller can distinguish by presence of `results` (summary) vs `status` (single result).
+// 202: the sync runs in the background; progress is read from getLibrarySources().
 export const triggerLibrarySync = (source?: string) =>
-  fetchApi<LibrarySourceSyncResult | LibrarySyncSummary>('/library/sync', {
+  fetchApi<{ source?: string; status: 'started' }>('/library/sync', {
     method: 'POST',
     body: JSON.stringify(source ? { source } : {}),
   })

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { toast } from 'sonner'
 import { getLibrarySources, triggerLibrarySync } from '../lib/api'
 import { useI18n } from '../lib/i18n'
@@ -29,16 +29,24 @@ export function LibrarySourcesPanel() {
     return t('librarySources.hoursAgo').replace('{0}', String(Math.floor(ms / 3600_000)))
   }
 
+  // The server flips a source to 'running' a moment after the 202, so keep polling briefly
+  // even when the first refetch still shows the old status.
+  const pollUntil = useRef(0)
+
   const sourcesQuery = useQuery({
     queryKey: ['library', 'sources'],
     queryFn: getLibrarySources,
     refetchInterval: (query) =>
-      query.state.data?.sources?.some((s) => s.lastSyncStatus === 'running') ? 5000 : false,
+      query.state.data?.sources?.some((s) => s.lastSyncStatus === 'running') ||
+      Date.now() < pollUntil.current
+        ? 3000
+        : false,
   })
 
   const syncMutation = useMutation({
     mutationFn: triggerLibrarySync,
     onSuccess: () => {
+      pollUntil.current = Date.now() + 15_000
       toast.success(t('librarySources.syncStarted'))
       queryClient.invalidateQueries({ queryKey: ['library', 'sources'] })
     },
@@ -55,6 +63,8 @@ export function LibrarySourcesPanel() {
   const sourcePending = (sourceId: string) => isSyncing && pendingTarget === sourceId
 
   const sources = sourcesQuery.data?.sources ?? []
+  const anyRunning = sources.some((s) => s.lastSyncStatus === 'running')
+  const busy = isSyncing || anyRunning
 
   return (
     <div className="space-y-4">
@@ -66,11 +76,11 @@ export function LibrarySourcesPanel() {
             setPendingTarget(null)
             syncMutation.mutate(undefined)
           }}
-          disabled={isSyncing}
+          disabled={busy}
         >
           <RefreshCw
             size={14}
-            className={allPending ? 'animate-spin' : undefined}
+            className={allPending || anyRunning ? 'animate-spin' : undefined}
             aria-hidden="true"
           />
           {t('librarySources.syncAll')}
@@ -115,14 +125,20 @@ export function LibrarySourcesPanel() {
                       setPendingTarget(row.source)
                       syncMutation.mutate(row.source)
                     }}
-                    disabled={isSyncing}
+                    disabled={busy}
                     className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-50 transition-opacity shrink-0"
                   >
                     <RefreshCw
                       size={12}
-                      className={sourcePending(row.source) ? 'animate-spin' : undefined}
+                      className={
+                        sourcePending(row.source) || row.lastSyncStatus === 'running'
+                          ? 'animate-spin'
+                          : undefined
+                      }
                     />
-                    {t('librarySources.syncNow')}
+                    {row.lastSyncStatus === 'running'
+                      ? t('librarySources.syncing')
+                      : t('librarySources.syncNow')}
                   </button>
                 </div>
 

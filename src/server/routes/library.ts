@@ -7,6 +7,7 @@ import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/libra
 import type { HealthCheckId, UnreconciledReason } from '@/core/library/types'
 import { errMsg, isValidMbid, logAndSanitize } from '@/core/validation'
 import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
+import { problem } from '@/server/helpers/problem'
 import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import {
@@ -147,26 +148,63 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
 
   // POST /api/v1/library/sync - manual "Sync now", rate-limited 5/min
   app.use('/api/v1/library/sync', rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'libsync' }))
+  // Sync-all has no single in-flight key, so the route tracks it to reject a second click.
+  let syncAllRunning = false
   app.post('/api/v1/library/sync', zJson(librarySyncSchema), async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
     const { source } = c.req.valid('json')
-    if (source) {
-      let result = await deps.librarySync.syncSpecificSource(auth.userId, source, { force: true })
-      // Per-user source not configured - retry as a global source. This is safe today because
-      // (a) the route is admin-gated and (b) per-user/global source IDs do not overlap. If a
-      // future source becomes both per-user AND global, restrict this fallback to known-global
-      // IDs to avoid letting per-user calls trigger global syncs they shouldn't reach.
-      if (result.status === 'failed' && result.error.includes(SOURCE_NOT_CONFIGURED_ERROR)) {
-        result = await deps.librarySync.syncSpecificSource(null, source, { force: true })
-      }
-      const status = result.status === 'completed' ? 200 : result.status === 'failed' ? 502 : 202
-      return c.json(result, status)
-    } else {
-      await deps.librarySync.syncGlobal({ force: true })
-      const summary = await deps.librarySync.syncForUser(auth.userId, { force: true })
-      return c.json(summary, 202)
+    const alreadyRunning = () =>
+      problem(
+        c,
+        'library-sync-already-running',
+        'A library sync is already in progress',
+        409,
+        undefined,
+        undefined,
+        'errors.library.syncAlreadyRunning',
+      )
+    // A Lidarr sync can run for minutes, longer than reverse-proxy timeouts, so run it detached.
+    // Progress and failures land in library_sync_state and Job History.
+    const runDetached = (label: string, run: () => Promise<unknown>, done?: () => void) => {
+      run()
+        .catch((err: unknown) => {
+          console.error(`[library/sync] ${label} error:`, errMsg(err))
+        })
+        .finally(done)
     }
+
+    if (source) {
+      // Per-user source first, then global. A source configured in neither is reported now.
+      const scope = await deps.librarySync.resolveSourceScope(auth.userId, source)
+      if (!scope) {
+        return problem(
+          c,
+          'library-source-not-configured',
+          `Source '${source}' ${SOURCE_NOT_CONFIGURED_ERROR}`,
+          404,
+        )
+      }
+      if (deps.librarySync.isRunning(scope.userId, source)) return alreadyRunning()
+      runDetached(source, () =>
+        deps.librarySync.syncSpecificSource(scope.userId, source, { force: true }),
+      )
+      return c.json({ source, status: 'started' as const }, 202)
+    }
+
+    if (syncAllRunning) return alreadyRunning()
+    syncAllRunning = true
+    runDetached(
+      'all',
+      async () => {
+        await deps.librarySync.syncGlobal({ force: true })
+        await deps.librarySync.syncForUser(auth.userId, { force: true })
+      },
+      () => {
+        syncAllRunning = false
+      },
+    )
+    return c.json({ status: 'started' as const }, 202)
   })
 
   // GET /api/v1/library/unreconciled - rows where mbid IS NULL for current user + global
