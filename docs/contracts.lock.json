@@ -189,7 +189,7 @@
         "src/db/queries/jobs.ts": "88b3d71b463afec4a24e4f5476fc5ccf6606863c6a0b2211ec392e057be5cdff",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
-        "src/db/queries/musicbrainz-cache.ts": "6d47c3b0dd3b1b10fd32e9e2919e6b33e1dbbe8e67269e75d95b624d16a4033d",
+        "src/db/queries/musicbrainz-cache.ts": "c26a5c1bc7cae5463fcca0d70913171925236fcfea33a9b4961f9a0afc5098c4",
         "src/db/queries/oauth-pending.ts": "2f7cde20dbaa8b63e49f66fbae0403847e91e8146e220819bdd32adc6b87f56b",
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
@@ -206,14 +206,14 @@
         "src/db/schema.ts": "38c7f6a9905587994d777f35a8a27174a0d280d6a8ea0626594660055ea25761",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "f8b4ff2011629d4c2953651c3bbc981b835ea8087c4a8e48ab3183740a06e01b",
+      "digest": "0d474b36c8e387685ce873b6c22b05df1bbb0c0609662e7203a7fc94a05e1ba9",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; JSON backups and backend copies exclude it and it is safe to truncate. Validated on isolated in-memory PGlite (re-run plus cache hit from a fresh client); no live PostgreSQL run.",
+        "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; reads now also return expires_at so memory refills never outlive the row. JSON backups and backend copies exclude the table and it is safe to truncate. Validated on isolated in-memory PGlite (re-run, restart hit, expiry); no live PostgreSQL run.",
         "breaking": "none",
         "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
-        "digest": "f8b4ff2011629d4c2953651c3bbc981b835ea8087c4a8e48ab3183740a06e01b"
+        "digest": "0d474b36c8e387685ce873b6c22b05df1bbb0c0609662e7203a7fc94a05e1ba9"
       }
     },
     "configuration": {
@@ -569,13 +569,13 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz-cache.ts": "bf8eb298fd667d99b5bfeceddaa45bb0bdb91731127b1b29c12300cf4fad21ee",
+        "src/core/clients/musicbrainz-cache.ts": "a0addb7bbee88ac44add1b45ca69a8cc3c18d273dcce4d96a19a0e9dc290e6bf",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "120ce60a84195d2fe62ad924525bda6beb76b908f0a9a3f6a3b53692d200740a",
+        "src/core/clients/musicbrainz.ts": "ef0e3945c7e6a4e7b0408daa4ef90f640b49de4ea15fdd2d277dd6f38b484ca5",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
-        "src/core/clients/release-group-cache.ts": "9aff724de4359a80b80a412a2e4faaa76e8f69f4a24015a97a5ee62e8f31df40",
+        "src/core/clients/release-group-cache.ts": "5c8fc1cc9b64dbea272bab41a355838f02289ba1ed50b30861f2a533a1d1b47c",
         "src/core/clients/scrobbler-write-back.ts": "7ef373927545b67ca1eec769314168ed770560238296251f5bf5c860e074cb84",
         "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
@@ -634,7 +634,7 @@
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "cdaa1921a8e72b0c57420a03ca019b87b5b1adcc3ffcae05a1cbf3833e41abfc",
-        "src/core/library/sync.ts": "5b4b961931d2f89be7613abe4a9f3c10ee164c0b7ffa4f0e1fdc853bc72a35a0",
+        "src/core/library/sync.ts": "3f3c9040f9fcb92a457ef4cdfe8ac48ac13da7bad13bcefd3966649f36db967a",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
         "src/core/net/guarded-fetch.ts": "517d7075fc57ed03c0173c10b6ba68c7253721c9d514e6ab90df9704540d6611",
@@ -766,14 +766,14 @@
         "src/index.ts": "2c26341fb4a31f015b25a9ccec50ca700191a068f0b23a5c74668acaaaea10b6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "af01de027e92dbe3f056dd7052d5c2a4fd9cac89d497046d0f30579c202065da",
+      "digest": "64e856b399a33261bee7f8173c7e9de89c03fbb7360bb254153b23309a0dfe11",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md"],
-        "note": "MusicBrainz client gains a persistent L2 response cache behind the in-memory release-group cache and interactive/background queue priority; library sync uses background priority. Documented TTLs, priority and exclusion in ARCHITECTURE and the changelog; no API or UI change.",
+        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
+        "note": "Release-group persistent TTL is 24h and memory refills inherit the DB expiry, so release groups are never staler than before; artist-search TTL 3 days; forced library sync bypasses cached searches and release groups and writes fresh results to both layers. TTL text updated in ARCHITECTURE, OPERATIONS and the changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "af01de027e92dbe3f056dd7052d5c2a4fd9cac89d497046d0f30579c202065da"
+        "digest": "64e856b399a33261bee7f8173c7e9de89c03fbb7360bb254153b23309a0dfe11"
       }
     },
     "deployment": {

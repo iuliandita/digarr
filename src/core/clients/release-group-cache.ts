@@ -1,6 +1,7 @@
 import type { MBReleaseGroup } from './musicbrainz'
 
-type Catalog = { groups: MBReleaseGroup[]; cacheable: boolean }
+// expiresAt caps the entry when the catalog came from an older persistent copy.
+type Catalog = { groups: MBReleaseGroup[]; cacheable: boolean; expiresAt?: number }
 
 export function createReleaseGroupCache({
   now = Date.now,
@@ -14,7 +15,24 @@ export function createReleaseGroupCache({
   const entries = new Map<string, { groups: MBReleaseGroup[]; expiresAt: number }>()
   const inFlight = new Map<string, Promise<MBReleaseGroup[]>>()
 
+  function store(artistMbid: string, groups: MBReleaseGroup[], expiresAt?: number) {
+    if (maxEntries <= 0) return
+    entries.delete(artistMbid)
+    entries.set(artistMbid, {
+      groups: structuredClone(groups),
+      expiresAt: Math.min(now() + ttlMs, expiresAt ?? Number.POSITIVE_INFINITY),
+    })
+    while (entries.size > maxEntries) {
+      const oldest = entries.keys().next().value
+      if (oldest !== undefined) entries.delete(oldest)
+    }
+  }
+
   return {
+    set(artistMbid: string, groups: MBReleaseGroup[]): void {
+      store(artistMbid, groups)
+    },
+
     async get(artistMbid: string, load: () => Promise<Catalog>): Promise<MBReleaseGroup[]> {
       const entry = entries.get(artistMbid)
       if (entry) {
@@ -27,14 +45,8 @@ export function createReleaseGroupCache({
       let pending = inFlight.get(artistMbid)
       if (!pending) {
         pending = load()
-          .then(({ groups, cacheable }) => {
-            if (cacheable && maxEntries > 0) {
-              entries.set(artistMbid, { groups: structuredClone(groups), expiresAt: now() + ttlMs })
-              while (entries.size > maxEntries) {
-                const oldest = entries.keys().next().value
-                if (oldest !== undefined) entries.delete(oldest)
-              }
-            }
+          .then(({ groups, cacheable, expiresAt }) => {
+            if (cacheable) store(artistMbid, groups, expiresAt)
             return groups
           })
           .finally(() => {

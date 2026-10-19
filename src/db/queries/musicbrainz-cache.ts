@@ -23,13 +23,18 @@ export function createMusicBrainzCacheStore(
   return {
     async get(key) {
       const [row] = await db
-        .select({ status: musicbrainzCache.status, body: musicbrainzCache.body })
+        .select({
+          status: musicbrainzCache.status,
+          body: musicbrainzCache.body,
+          expiresAt: musicbrainzCache.expiresAt,
+        })
         .from(musicbrainzCache)
         .where(and(eq(musicbrainzCache.key, key), gt(musicbrainzCache.expiresAt, new Date(now()))))
         .limit(1)
       if (!row) return null
-      if (row.status === 404) return { status: 404, body: null }
-      if (row.status === 200) return { status: 200, body: row.body }
+      const expiresAt = row.expiresAt.getTime()
+      if (row.status === 404) return { status: 404, body: null, expiresAt }
+      if (row.status === 200) return { status: 200, body: row.body, expiresAt }
       return null
     },
 

@@ -170,7 +170,7 @@ describe('createSyncOrchestrator', () => {
 
   it('skips sources with fresh sync state unless force=true', async () => {
     const a = source('a')
-    a.listArtists = vi.fn(async () => [])
+    a.listArtists = vi.fn(async () => [{ sourceArtistId: '1', name: 'Nobody Known' }])
     store.getLibrarySyncState = vi.fn(async () => ({
       userId: 1,
       source: 'a',
@@ -195,6 +195,8 @@ describe('createSyncOrchestrator', () => {
     const forced = await sync.syncForUser(1, { force: true })
     expect(forced.results[0]?.status).toBe('completed')
     expect(a.listArtists).toHaveBeenCalled()
+    // A forced sync must not answer artist searches from the MusicBrainz cache.
+    expect(mbClient.searchArtist).toHaveBeenCalledWith('nobody known', { bypassCache: true })
   })
 
   it.each([

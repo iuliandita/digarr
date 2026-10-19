@@ -55,9 +55,9 @@ afterEach(async () => {
 })
 
 // A new client with an empty in-memory release-group cache stands in for a pod restart.
-function freshClient() {
+function freshClient(releaseGroupCache = createReleaseGroupCache({ now: () => clock })) {
   return createMusicBrainzClient({
-    releaseGroupCache: createReleaseGroupCache(),
+    releaseGroupCache,
     cacheStore: createMusicBrainzCacheStore(testDb.db as never, { now: () => clock }),
   })
 }
@@ -88,7 +88,7 @@ describe('persistent MusicBrainz cache (PGlite)', () => {
     await lookupAll(freshClient())
     clock += 8 * DAY
     await lookupAll(freshClient())
-    // Release groups expire after 7 days; artist and recordings last 30.
+    // Release groups expire after a day; artist and recordings last 30.
     expect(upstream).toHaveBeenCalledTimes(4)
 
     clock += 30 * DAY
@@ -98,6 +98,49 @@ describe('persistent MusicBrainz cache (PGlite)', () => {
     clock += 60 * DAY
     await createMusicBrainzCacheStore(testDb.db as never, { now: () => clock }).prune()
     expect(await testDb.db.select().from(musicbrainzCache)).toEqual([])
+  })
+
+  it('keeps release groups no staler than 24h, even when memory is refilled from the DB', async () => {
+    await freshClient().getReleaseGroups(MBID)
+    clock += 20 * 60 * 60 * 1000
+    const restarted = freshClient()
+    await restarted.getReleaseGroups(MBID)
+    expect(upstream).toHaveBeenCalledTimes(1)
+
+    // The memory entry filled at hour 20 expires with the DB row at hour 24, not hour 44.
+    clock += 5 * 60 * 60 * 1000
+    await restarted.getReleaseGroups(MBID)
+    expect(upstream).toHaveBeenCalledTimes(2)
+  })
+
+  it('a forced refresh skips cached reads and writes the fresh result to both layers', async () => {
+    const memory = createReleaseGroupCache({ now: () => clock })
+    const client = freshClient(memory)
+    await client.searchArtist('radiohead')
+    await client.getReleaseGroups(MBID)
+    expect(upstream).toHaveBeenCalledTimes(2)
+
+    upstream.mockImplementation(async (url: string) =>
+      url.includes('/release-group?')
+        ? json({
+            'release-groups': [
+              { id: 'rg-2', title: 'Two', 'primary-type': 'Album', 'secondary-types': [] },
+            ],
+            'release-group-count': 1,
+            'release-group-offset': 0,
+          })
+        : json({ artists: [{ id: MBID, name: 'Radiohead', score: 100 }] }),
+    )
+    await client.searchArtist('radiohead', { bypassCache: true })
+    await client.getReleaseGroups(MBID, undefined, { bypassCache: true })
+    expect(upstream).toHaveBeenCalledTimes(4)
+
+    // Same memory cache and a restarted client both see the post-refresh data without fetching.
+    expect((await client.getReleaseGroups(MBID)).map((g) => g.id)).toEqual(['rg-2'])
+    const restarted = freshClient()
+    expect((await restarted.searchArtist('radiohead')).artists).toHaveLength(1)
+    expect((await restarted.getReleaseGroups(MBID)).map((g) => g.id)).toEqual(['rg-2'])
+    expect(upstream).toHaveBeenCalledTimes(4)
   })
 
   it('never caches transient failures but remembers a 404 for a day', async () => {

@@ -6,6 +6,7 @@ import { VERSION } from '@/version'
 import {
   getMusicBrainzCacheStore,
   type MusicBrainzCacheEntry,
+  type MusicBrainzCacheHit,
   type MusicBrainzCacheKind,
   type MusicBrainzCacheStore,
 } from './musicbrainz-cache'
@@ -185,7 +186,7 @@ export function createMusicBrainzClient(
   const store = () => options.cacheStore ?? getMusicBrainzCacheStore()
 
   // The persistent cache is an optimisation; a DB hiccup must not fail a lookup.
-  async function readCache(key: string): Promise<MusicBrainzCacheEntry | null> {
+  async function readCache(key: string): Promise<MusicBrainzCacheHit | null> {
     try {
       return await store().get(key)
     } catch (err) {
@@ -206,8 +207,12 @@ export function createMusicBrainzClient(
     }
   }
 
-  async function cachedRequest<T>(kind: MusicBrainzCacheKind, path: string): Promise<T> {
-    const hit = await readCache(path)
+  async function cachedRequest<T>(
+    kind: MusicBrainzCacheKind,
+    path: string,
+    { bypassCache = false }: { bypassCache?: boolean } = {},
+  ): Promise<T> {
+    const hit = bypassCache ? null : await readCache(path)
     if (hit?.status === 404) throw new MusicBrainzHttpError(404, path)
     if (hit) return hit.body as T
     try {
@@ -304,9 +309,13 @@ export function createMusicBrainzClient(
     return cachedRequest<MBArtist>('artist-relations', `/artist/${mbid}?${params}`)
   }
 
-  function searchArtist(query: string): Promise<MBSearchResult> {
+  // bypassCache (forced library sync) skips the read but still stores the fresh result.
+  function searchArtist(
+    query: string,
+    options: { bypassCache?: boolean } = {},
+  ): Promise<MBSearchResult> {
     const params = new URLSearchParams({ query, fmt: 'json' })
-    return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`)
+    return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`, options)
   }
 
   async function getReleaseGroups(
@@ -315,14 +324,15 @@ export function createMusicBrainzClient(
     options: { bypassCache?: boolean } = {},
   ): Promise<MBReleaseGroup[]> {
     if (
-      options.bypassCache ||
       types.some(
         (type) => !DEFAULT_RELEASE_TYPES.includes(type as (typeof DEFAULT_RELEASE_TYPES)[number]),
       )
     ) {
       return (await fetchReleaseGroups(artistMbid, types)).groups
     }
-    const groups = await cache.get(artistMbid, () => loadReleaseGroupCatalog(artistMbid))
+    const groups = options.bypassCache
+      ? await refreshReleaseGroupCatalog(artistMbid)
+      : await cache.get(artistMbid, () => loadReleaseGroupCatalog(artistMbid))
     return types === DEFAULT_RELEASE_TYPES ||
       DEFAULT_RELEASE_TYPES.every((type) => types.includes(type))
       ? groups
@@ -333,16 +343,28 @@ export function createMusicBrainzClient(
 
   async function loadReleaseGroupCatalog(
     artistMbid: string,
-  ): Promise<{ groups: MBReleaseGroup[]; cacheable: boolean }> {
+  ): Promise<{ groups: MBReleaseGroup[]; cacheable: boolean; expiresAt?: number }> {
     const key = `release-groups:${artistMbid}`
     const hit = await readCache(key)
     if (hit?.status === 200 && Array.isArray(hit.body)) {
-      return { groups: hit.body as MBReleaseGroup[], cacheable: true }
+      return { groups: hit.body as MBReleaseGroup[], cacheable: true, expiresAt: hit.expiresAt }
     }
     const catalog = await fetchReleaseGroups(artistMbid, DEFAULT_RELEASE_TYPES)
     if (catalog.cacheable)
       await writeCache(key, 'release-groups', { status: 200, body: catalog.groups })
     return catalog
+  }
+
+  async function refreshReleaseGroupCatalog(artistMbid: string): Promise<MBReleaseGroup[]> {
+    const catalog = await fetchReleaseGroups(artistMbid, DEFAULT_RELEASE_TYPES)
+    if (catalog.cacheable) {
+      await writeCache(`release-groups:${artistMbid}`, 'release-groups', {
+        status: 200,
+        body: catalog.groups,
+      })
+      cache.set(artistMbid, catalog.groups)
+    }
+    return catalog.groups
   }
 
   async function fetchReleaseGroups(
