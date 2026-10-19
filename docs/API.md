@@ -200,6 +200,8 @@ The Recommendations settings page saves only personal recommendation preferences
 
 In v2.0.0, `PATCH /api/v1/auth/me/preferences` accepts `{"netNewAlbumDiscovery":true}` or `{"netNewAlbumDiscovery":false}`, and the saved boolean is returned by a fresh preferences GET. Omission preserves the saved value; other value types return `400` before writing. Admins may also set `preferences.netNewAlbumDiscovery` through `PATCH /api/v1/settings`. The default remains off, and existing per-user/global fallback rules are unchanged. v1.19.0 silently ignores the per-user key and rejects it in global preferences ([#791](https://github.com/iuliandita/digarr/issues/791)); use Release Radar or Library Gap-Fill until upgrading.
 
+Admins can set the boolean `preferences.lidarrRequireFiles` through `PATCH /api/v1/settings` (Settings > Connections > Lidarr, "Only count albums with files"). Absent means `true`: library sync stores only Lidarr albums with at least one track file, so albums Lidarr tracks but has not downloaded are not owned. Albums whose statistics are missing are kept, and artists are unaffected. `false` stores every tracked album. The change applies on the next library sync; no migration is added.
+
 Preference updates merge top-level keys only. A supplied `scoringWeights` object replaces the saved object; omitted weights fall back to defaults rather than retaining saved values. Send the complete intended `scoringWeights` object when changing weights.
 
 ### Scrobbler write-back

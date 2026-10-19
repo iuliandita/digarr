@@ -95,6 +95,7 @@ export const preferencesSchema = z
     secondaryGenres: preferredGenreListSchema.optional(),
     webhookUrl: z.string().optional(),
     lidarrPublicUrl: z.string().optional(),
+    lidarrRequireFiles: z.boolean().optional(),
     autoApproveEnabled: z.boolean().optional(),
     autoApproveThreshold: z.number().min(0).max(1).optional(),
     autoApproveMonitorOption: z

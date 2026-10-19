@@ -1196,6 +1196,9 @@ export const ko = {
   'settings.lidarrDescription': '음악 라이브러리 관리자 - 아티스트 추가에 필요합니다.',
   'settings.lidarrPublicUrlHelp':
     'Lidarr 아티스트 페이지 링크에 사용할 브라우저 접근 가능 URL. API URL이 이미 브라우저에서 접근 가능하면 비워두세요.',
+  'settings.lidarrRequireFiles': '파일이 있는 앨범만 집계',
+  'settings.lidarrRequireFilesHelp':
+    'Lidarr가 추적 중이지만 아직 다운로드하지 않은 앨범은 보유한 것으로 집계되지 않습니다. 다음 라이브러리 동기화부터 적용됩니다.',
   'settings.aiTip':
     '아티스트를 추천할 AI 제공자를 선택하세요. Ollama나 OpenAI 호환 서버는 로컬에서 실행할 수 있고, 호스팅 제공자는 API 키가 필요합니다.',
   'settings.aiDescription': '음악 추천을 생성합니다.',

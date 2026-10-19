@@ -1229,6 +1229,9 @@ export const nl = {
     'Muziekbibliotheekmanager - vereist voor het toevoegen van artiesten.',
   'settings.lidarrPublicUrlHelp':
     "Via browser bereikbare URL voor links naar Lidarr-artiestenpagina's. Leeg laten als de API-URL al via de browser bereikbaar is.",
+  'settings.lidarrRequireFiles': 'Alleen albums met bestanden tellen',
+  'settings.lidarrRequireFilesHelp':
+    'Albums die Lidarr volgt maar nog niet heeft gedownload tellen niet als bezit. Geldt vanaf de volgende bibliotheeksynchronisatie.',
   'settings.aiTip':
     'Kies de AI-provider die artiesten voorstelt. Ollama of elke OpenAI-compatibele server kan lokaal draaien; gehoste providers hebben een API-sleutel nodig.',
   'settings.aiDescription': 'Genereert muziekaanbevelingen.',
