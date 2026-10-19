@@ -92,6 +92,7 @@
         "drizzle/0058_playlist_enabled_retire.sql": "46d0eacb545b3ab6ee25aebebf4bdc4f86b995a99d15e4acf8780466f338f1a8",
         "drizzle/0059_certain_centennial.sql": "ef9af9c700d9b9c14a0c20b7b9464ca52b12c87693d64a8773fdbca8f4ebd6aa",
         "drizzle/0060_damp_grim_reaper.sql": "49202023b2d5a70185bc566c6fc87497e506357a1f712432d2ce31a0e1d2af3b",
+        "drizzle/0061_artist_image_https.sql": "e9f0fb6c4dc1510b661ce181528ff4cadf158552ff655025b53352f3292336bb",
         "drizzle/meta/0000_snapshot.json": "0288497d803f09f4ad1304b866b91ab25785865951841152291b11e6642230c2",
         "drizzle/meta/0001_snapshot.json": "2d057997cde52ff489663572db9d8c8a905017420e37fc808444e0fd2e23057d",
         "drizzle/meta/0002_snapshot.json": "1b11da03bfc729f4c3a59fed6765ed2e7fff3e602dc1738e176062cff922a4b9",
@@ -149,7 +150,8 @@
         "drizzle/meta/0058_snapshot.json": "58f702f293195424c81e3e58acad9cd7df3f8209b6e1a5afb209ae9de904bc94",
         "drizzle/meta/0059_snapshot.json": "f856cdb77c84f57c97444f7541eac43f8ee13b27ccd5310690565dfcd3516c05",
         "drizzle/meta/0060_snapshot.json": "ca7914721ad1e36fb9912faff7f8907477f1233897e96449ed9b745729f53064",
-        "drizzle/meta/_journal.json": "32d4d0e36a0e28417ac68b9f4751d2bf129e006d4c968a370482ff1fd50ae1d5",
+        "drizzle/meta/0061_snapshot.json": "2379d4a4e7c452ed5c6b7f6f998a5667d10b26a643268596a401c97ed1295557",
+        "drizzle/meta/_journal.json": "0fec8faf6fb64439a8b6c79d87443fe8c14a08129bb65f0eecd7437b24ce0bb4",
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "45e964db2a6d7b623df8151d6ea256c83d6e0d6eb2984fd5c2409acdf1868980",
         "scripts/rotation-sites.ts": "6b25ef3f836cdc7a333fd493a09ae4bd770bded277ba164f01decbd3bf68d882",
@@ -199,14 +201,14 @@
         "src/db/schema.ts": "43f7f4fde4a8ea42c2656fa664ae4efb011e75fadb2c55c4149a226fb496ec5f",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "152b3fa604e7835a55bebbd2f21c6cf207e15910ada358d15cfd70a456dde050",
+      "digest": "a2e351442be2c090fbc2b81086e4520b54c71d887d8b532dc0642c9b54eb3d91",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Adds the optional spotifyAutoloadDashboard boolean to the Preferences type and defaults; it lives in the existing preferences JSON, so there is no migration or restore change.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "note": "Data-only migration 0061 rewrites http:// to https:// in artists.image_url and logo_url for fanart.tv and theaudiodb hosts; idempotent UPDATE, no schema change, tested on PGlite.",
         "breaking": "none",
-        "migration": "Upgrade needs no migration: the optional key lives in the existing preferences JSON. Rollback to an older version ignores it and only loses the saved toggle; no extra backup step is needed.",
-        "digest": "152b3fa604e7835a55bebbd2f21c6cf207e15910ada358d15cfd70a456dde050"
+        "migration": "Take a normal backup before upgrading; rollback needs no step because https URLs work on older images, and restoring a pre-upgrade backup only restores the old http values.",
+        "digest": "a2e351442be2c090fbc2b81086e4520b54c71d887d8b532dc0642c9b54eb3d91"
       }
     },
     "configuration": {
@@ -546,16 +548,16 @@
         "src/core/albums/popular.ts": "7031aba588fd166665df4d142308060b4e86b19ab1773b4d9f2a744d46e2ded6",
         "src/core/approvals/policy.ts": "df0179f13037054a6c8042ef16249b1a588016ff2e5665a9428ac38c51ab0eb9",
         "src/core/artists/external-links.ts": "9b96691aa96e4b6c948a73cef895a985b74768150c89f6174d5d545231c539fb",
-        "src/core/clients/audiodb.ts": "10b86b61f5f56c69f4237bec29b6ae8fbe519003b14a0a552ee634498ed48da4",
+        "src/core/clients/audiodb.ts": "fbc94fd431033224a093ef0d79691a9187339ee9ee992eb46d89caa065f9c801",
         "src/core/clients/audiomuse.ts": "6f436671d49438fb08a4ee052915bdcffce3f5bd759a1cbecbb391fa208ea1ec",
         "src/core/clients/bandcamp.ts": "7ca5e968ea34da9199108b0feff8d33d90752a721752fa9b5f6855bfb8e08729",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "ffb5fa1496adab307d189301383fd53113f1148dbf6165e512e4ec9b81c65321",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "f550c15da83f7d8148ab24167d40da8fe68e174714b95bc1885eb93eafcc2135",
-        "src/core/clients/fanart.ts": "b4004a97c141c359dfa5eb66b5a14603d48dc45c2e4226fbda6e5a43248e9398",
+        "src/core/clients/fanart.ts": "d01e3b7138cdcc7b29c19e6f670678fbdca818c3b7eb63f75300da6849c5d1c1",
         "src/core/clients/http.ts": "faa040881c59be5928dfc644bb223bea325221a08645cb5860730d6f660c3207",
-        "src/core/clients/image-utils.ts": "1e0011834f45972524cb98920ac986b38fcef09a3f9dde356ba04529d0ffcbe7",
+        "src/core/clients/image-utils.ts": "a9642430c70a7df1a693f5f542dbd1e22e8891303a0ff5434469bc28a5a65278",
         "src/core/clients/jellyfin.ts": "4d718b3ffa61c06001ad901fc7a4dfad294fe5198a1fc7a7c3e43786b19696ba",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
         "src/core/clients/lidarr.ts": "90a22d92a4bd32421a8c84f5effaf04e152c9c8ba34b62a27fb968f5092bdb73",
@@ -757,14 +759,14 @@
         "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483",
+      "digest": "22310d678206abfdbb41b3a7c4aced2cd606da307cdb7b99100756e049583312",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Job failure recording replaces raw drizzle query text with a short database error message; the full error goes to the server log. Changelog Fixed entry added.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Image URL normalization at provider ingest for fanart.tv and theaudiodb; no setting, API, or UI change, and the migration and upgrade note are documented under the data-recovery domain.",
         "breaking": "none",
         "migration": "",
-        "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483"
+        "digest": "22310d678206abfdbb41b3a7c4aced2cd606da307cdb7b99100756e049583312"
       }
     },
     "deployment": {

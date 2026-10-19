@@ -69,6 +69,10 @@ Artist images holds the TheAudioDB key, Fanart.tv key, image proxy, metadata fal
 
 This adds a boolean in the existing preferences JSON, with no schema migration. Existing backups remain readable. A normal application backup preserves the setting; an older image ignores it, and upgrading again preserves an explicit choice. No environment variables, container defaults, storage paths, or companion templates change.
 
+### Artist image URLs over https
+
+Artist images and logos from fanart.tv and TheAudioDB are now stored and served as `https://`, so browsers stop logging mixed-content warnings. Migration 0061 rewrites existing `artists.image_url` and `artists.logo_url` values that start with `http://` for `assets.fanart.tv` and `theaudiodb.com` hosts (`www`, `r2`, `img`); other hosts, including self-hosted sources, are left alone. It is a plain `UPDATE`, safe to re-run, and PostgreSQL and PGlite apply it at startup. Take a normal backup before upgrading. Rollback needs no special step: both hosts serve the same paths over https, so the rewritten URLs keep working on older images, and restoring a pre-upgrade backup only brings back the `http://` values.
+
 ## AudioMuse-AI audio similarity
 
 AudioMuse-AI is an optional, experimental discovery source. Minimum supported version: **AudioMuse-AI v3.6.4**. Its API is unversioned; the adapter and synthetic response fixtures were checked against [v3.6.4](https://github.com/NeptuneHub/AudioMuse-AI/tree/v3.6.4) (commit `3564511de3c0b8d537afb1ff3aa11f06ec064af0`). No live AudioMuse-AI instance was available for validation.

@@ -1,5 +1,5 @@
 import { createHttpClient } from './http'
-import type { ImageResult } from './image-utils'
+import { type ImageResult, toHttpsImageUrl } from './image-utils'
 
 type FanartResponse = {
   artistthumb?: Array<{ url: string; likes: string }>
@@ -26,7 +26,7 @@ export function createFanartClient(apiKey: string, baseUrl = 'https://webservice
       const hdLogo = data.hdmusiclogo?.[0]?.url
       const logo = data.musiclogo?.[0]?.url
       const logoUrl = hdLogo ?? logo
-      return { url, logoUrl }
+      return { url: toHttpsImageUrl(url), logoUrl: toHttpsImageUrl(logoUrl) }
     },
   }
 }

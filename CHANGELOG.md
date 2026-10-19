@@ -17,6 +17,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).
 - Library Gap-Fill no longer fails every run with `function lower(uuid) does not exist`, and a failed job no longer shows the raw SQL and query params in its error; it says a database error happened and the details stay in the server log (#1117).
 - Library sync no longer counts Lidarr albums that have no files as owned: they were hiding album recommendations and inflating coverage and Library Sources counts. A new "Only count albums with files" setting under Connections > Lidarr is on by default and applies on the next sync (#1115).
 - Adding artists from mood search results no longer fails after five clicks: adds are queued, wait out the server rate limit or a running scan, and show a Queued state; real failures now say why (#1109).

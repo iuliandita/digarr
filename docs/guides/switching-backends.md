@@ -6,6 +6,18 @@ and supports a PostgreSQL server via `DATABASE_URL` or the `DB_HOST` / `DB_USER`
 Settings lets admins copy the application restore registry between the two backends in one
 operation, without touching or modifying the source.
 
+## Artist image https migration
+
+Migration 0061 rewrites `http://` prefixes to `https://` in `artists.image_url` and
+`artists.logo_url` for `assets.fanart.tv` and `theaudiodb.com` hosts only. It is a
+plain `UPDATE` that is safe to re-run on both PostgreSQL and PGlite, and no schema
+changes. Take a complete database backup before upgrading as usual. The previous
+image can use the same database, because both hosts serve the same paths over
+https. A full restore of a pre-upgrade backup only brings the old `http://` values
+back. Backend copies migrate the destination first, and restoring an older JSON
+backup can reintroduce `http://` URLs until the next image refresh. No live restore
+is claimed for this change.
+
 ## Job history ordering index
 
 Migration 0060 adds `job_runs_started_at_id_idx` on `(started_at DESC, id DESC)`

@@ -428,6 +428,13 @@
       "when": 1792357821769,
       "tag": "0060_damp_grim_reaper",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1792406357820,
+      "tag": "0061_artist_image_https",
+      "breakpoints": true
     }
   ]
 }

@@ -43,6 +43,16 @@ beforeAll(async () => {
       )
       return
     }
+    if (url.includes('/music/mbid-http-images')) {
+      res.writeHead(200, { 'Content-Type': 'application/json' })
+      res.end(
+        JSON.stringify({
+          artistthumb: [{ url: 'http://assets.fanart.tv/fanart/1.jpg', likes: '5' }],
+          hdmusiclogo: [{ url: 'http://assets.fanart.tv/fanart/logo.png', likes: '3' }],
+        }),
+      )
+      return
+    }
     if (url.includes('/music/mbid-no-images')) {
       res.writeHead(200, { 'Content-Type': 'application/json' })
       res.end(JSON.stringify({}))
@@ -73,6 +83,13 @@ describe('createFanartClient', () => {
     const result = await client.getArtistImages('mbid-with-images')
     expect(result.url).toBe('https://fanart.tv/thumb/1.jpg')
     expect(result.logoUrl).toBe('https://fanart.tv/logo/1.png')
+  })
+
+  it('upgrades http fanart.tv asset URLs to https', async () => {
+    const client = createFanartClient('test-key', baseUrl)
+    const result = await client.getArtistImages('mbid-http-images')
+    expect(result.url).toBe('https://assets.fanart.tv/fanart/1.jpg')
+    expect(result.logoUrl).toBe('https://assets.fanart.tv/fanart/logo.png')
   })
 
   it('returns undefined URLs for an artist with no images', async () => {

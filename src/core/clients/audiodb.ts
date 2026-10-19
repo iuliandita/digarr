@@ -1,5 +1,5 @@
 import { createHttpClient } from './http'
-import type { ImageResult } from './image-utils'
+import { type ImageResult, toHttpsImageUrl } from './image-utils'
 
 export class RateLimitedError extends Error {
   constructor() {
@@ -32,7 +32,7 @@ function pickImages(artist: AudiodbArtist | undefined): ImageResult {
   if (!artist) return {}
   const url = artist.strArtistThumb || artist.strArtistFanart || artist.strArtistBanner || undefined
   const logoUrl = artist.strArtistLogo || undefined
-  return { url, logoUrl }
+  return { url: toHttpsImageUrl(url), logoUrl: toHttpsImageUrl(logoUrl) }
 }
 
 export type AudiodbClient = ReturnType<typeof createAudiodbClient>
