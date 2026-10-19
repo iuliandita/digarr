@@ -158,7 +158,8 @@ describe('scrobbler write-back cards', () => {
     renderSettings()
     const alerts = await screen.findAllByRole('alert')
     expect(alerts[0]).toHaveTextContent('Could not load your write-back settings.')
-    fireEvent.click(screen.getAllByRole('button', { name: 'Try again' })[0])
+    const [retry] = screen.getAllByRole('button', { name: 'Try again' })
+    fireEvent.click(retry as HTMLElement)
     await waitFor(() =>
       expect(screen.getByRole('checkbox', { name: 'Send track loves to Last.fm' })).toBeEnabled(),
     )
