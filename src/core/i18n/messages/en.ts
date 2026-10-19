@@ -958,6 +958,7 @@ export const en = {
   'systemHealth.integrationsEmpty': 'No integration activity recorded in the past 30 days.',
   'systemHealth.lastSuccess': 'Last success',
   'systemHealth.lastError': 'Last error',
+  'systemHealth.itemFailures': '{0} per-item failures (not counted as outages)',
   'systemHealth.integrationOk': 'Working',
   'systemHealth.integrationFailing': 'Failing',
   'systemHealth.kind.target': 'Target',

@@ -980,6 +980,7 @@ export const it = {
     'Nessuna attività di integrazione registrata negli ultimi 30 giorni.',
   'systemHealth.lastSuccess': 'Ultimo successo',
   'systemHealth.lastError': 'Ultimo errore',
+  'systemHealth.itemFailures': '{0} errori sui singoli elementi (non contati come interruzione)',
   'systemHealth.integrationOk': 'Funziona',
   'systemHealth.integrationFailing': 'In errore',
   'systemHealth.kind.target': 'Destinazione',

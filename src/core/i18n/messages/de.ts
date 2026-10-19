@@ -986,6 +986,7 @@ export const de = {
     'Keine Integrationsaktivität in den letzten 30 Tagen aufgezeichnet.',
   'systemHealth.lastSuccess': 'Letzter Erfolg',
   'systemHealth.lastError': 'Letzter Fehler',
+  'systemHealth.itemFailures': '{0} Fehler bei einzelnen Elementen (nicht als Ausfall gezählt)',
   'systemHealth.integrationOk': 'Funktioniert',
   'systemHealth.integrationFailing': 'Fehlerhaft',
   'systemHealth.kind.target': 'Ziel',

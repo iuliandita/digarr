@@ -979,6 +979,7 @@ export const ptBR = {
     'Nenhuma atividade de integração registrada nos últimos 30 dias.',
   'systemHealth.lastSuccess': 'Último sucesso',
   'systemHealth.lastError': 'Último erro',
+  'systemHealth.itemFailures': '{0} falhas por item (não contam como queda)',
   'systemHealth.integrationOk': 'Funcionando',
   'systemHealth.integrationFailing': 'Com falha',
   'systemHealth.kind.target': 'Destino',

@@ -962,6 +962,7 @@ export const tr = {
   'systemHealth.integrationsEmpty': 'Son 30 günde kaydedilmiş entegrasyon etkinliği yok.',
   'systemHealth.lastSuccess': 'Son başarı',
   'systemHealth.lastError': 'Son hata',
+  'systemHealth.itemFailures': '{0} öğe düzeyinde hata (kesinti sayılmaz)',
   'systemHealth.integrationOk': 'Çalışıyor',
   'systemHealth.integrationFailing': 'Başarısız',
   'systemHealth.kind.target': 'Hedef',

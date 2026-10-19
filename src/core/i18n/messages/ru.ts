@@ -976,6 +976,7 @@ export const ru = {
   'systemHealth.integrationsEmpty': 'За последние 30 дней активности интеграций не записано.',
   'systemHealth.lastSuccess': 'Последний успех',
   'systemHealth.lastError': 'Последняя ошибка',
+  'systemHealth.itemFailures': '{0} сбоев отдельных элементов (не считаются отказом)',
   'systemHealth.integrationOk': 'Работает',
   'systemHealth.integrationFailing': 'Сбои',
   'systemHealth.kind.target': 'Цель',

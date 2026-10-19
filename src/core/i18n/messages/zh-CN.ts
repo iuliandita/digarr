@@ -903,6 +903,7 @@ export const zhCN = {
   'systemHealth.integrationsEmpty': '过去 30 天内没有记录到集成活动。',
   'systemHealth.lastSuccess': '最近成功',
   'systemHealth.lastError': '最近错误',
+  'systemHealth.itemFailures': '{0} 次单项失败 (不计为故障)',
   'systemHealth.integrationOk': '正常',
   'systemHealth.integrationFailing': '失败',
   'systemHealth.kind.target': '目标',

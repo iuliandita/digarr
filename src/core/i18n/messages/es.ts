@@ -982,6 +982,7 @@ export const es = {
     'No hay actividad de integraciones registrada en los últimos 30 días.',
   'systemHealth.lastSuccess': 'Último éxito',
   'systemHealth.lastError': 'Último error',
+  'systemHealth.itemFailures': '{0} fallos por elemento (no cuentan como caída)',
   'systemHealth.integrationOk': 'Funciona',
   'systemHealth.integrationFailing': 'Con fallos',
   'systemHealth.kind.target': 'Destino',

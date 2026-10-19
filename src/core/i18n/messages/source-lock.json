@@ -1688,6 +1688,7 @@
   "systemHealth.integrations": "090512d93fcc",
   "systemHealth.integrationsEmpty": "d6b9b94a7f08",
   "systemHealth.integrationsHint": "7881062cfd7d",
+  "systemHealth.itemFailures": "584072c4f810",
   "systemHealth.kind.library": "4725a982bb70",
   "systemHealth.kind.scrobbler": "03fc425c3222",
   "systemHealth.kind.source": "f533df1c0cc3",

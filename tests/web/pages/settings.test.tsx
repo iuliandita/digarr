@@ -606,11 +606,15 @@ describe('SettingsPage', () => {
       sources: { spotify: 'ok', lastfm: 'degraded' },
       integrations: [
         {
+          id: 'target:1',
           kind: 'target',
           name: 'lidarr',
+          label: 'Home Lidarr',
+          owner: { id: 2, username: 'alice' },
           status: 'failing',
           lastSuccess: null,
           lastError: { at: new Date().toISOString(), message: 'Lidarr unreachable' },
+          itemFailures: 2,
         },
       ],
     })
@@ -625,6 +629,9 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Integrations')).toBeInTheDocument()
     expect(await screen.findByText(/Lidarr unreachable/)).toBeInTheDocument()
     expect(screen.getByText('Failing')).toBeInTheDocument()
+    expect(screen.getByText('alice')).toBeInTheDocument()
+    expect(screen.getByText(/Home Lidarr \(lidarr\)/)).toBeInTheDocument()
+    expect(screen.getByText(/2 per-item failures/)).toBeInTheDocument()
   })
 
   it('Test Connection button calls testService for Lidarr', async () => {

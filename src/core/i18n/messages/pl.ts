@@ -976,6 +976,7 @@ export const pl = {
   'systemHealth.integrationsEmpty': 'Brak zapisanej aktywności integracji z ostatnich 30 dni.',
   'systemHealth.lastSuccess': 'Ostatni sukces',
   'systemHealth.lastError': 'Ostatni błąd',
+  'systemHealth.itemFailures': '{0} błędów pojedynczych elementów (nie liczone jako awaria)',
   'systemHealth.integrationOk': 'Działa',
   'systemHealth.integrationFailing': 'Błędy',
   'systemHealth.kind.target': 'Cel',

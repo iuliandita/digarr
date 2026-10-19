@@ -976,6 +976,7 @@ export const nl = {
     'Geen integratieactiviteit vastgelegd in de afgelopen 30 dagen.',
   'systemHealth.lastSuccess': 'Laatste succes',
   'systemHealth.lastError': 'Laatste fout',
+  'systemHealth.itemFailures': '{0} fouten per item (niet als storing geteld)',
   'systemHealth.integrationOk': 'Werkt',
   'systemHealth.integrationFailing': 'Mislukt',
   'systemHealth.kind.target': 'Doel',

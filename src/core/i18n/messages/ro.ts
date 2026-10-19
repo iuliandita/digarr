@@ -976,6 +976,8 @@ export const ro = {
     'Nicio activitate de integrare înregistrată în ultimele 30 de zile.',
   'systemHealth.lastSuccess': 'Ultimul succes',
   'systemHealth.lastError': 'Ultima eroare',
+  'systemHealth.itemFailures':
+    '{0} eșecuri pe elemente individuale (nu sunt numărate ca întrerupere)',
   'systemHealth.integrationOk': 'Funcționează',
   'systemHealth.integrationFailing': 'Eșuează',
   'systemHealth.kind.target': 'Destinație',

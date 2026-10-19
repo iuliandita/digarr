@@ -961,6 +961,7 @@ export const ja = {
   'systemHealth.integrationsEmpty': '過去30日間に記録された連携のアクティビティはありません。',
   'systemHealth.lastSuccess': '最終成功',
   'systemHealth.lastError': '最終エラー',
+  'systemHealth.itemFailures': '個別アイテムの失敗 {0} 件 (障害には含まれません)',
   'systemHealth.integrationOk': '正常',
   'systemHealth.integrationFailing': '失敗中',
   'systemHealth.kind.target': '送信先',

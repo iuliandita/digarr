@@ -969,6 +969,7 @@ export const uk = {
   'systemHealth.integrationsEmpty': 'За останні 30 днів активності інтеграцій не записано.',
   'systemHealth.lastSuccess': 'Останній успіх',
   'systemHealth.lastError': 'Остання помилка',
+  'systemHealth.itemFailures': '{0} збоїв окремих елементів (не вважаються відмовою)',
   'systemHealth.integrationOk': 'Працює',
   'systemHealth.integrationFailing': 'Збої',
   'systemHealth.kind.target': 'Ціль',

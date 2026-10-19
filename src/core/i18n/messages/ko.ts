@@ -954,6 +954,7 @@ export const ko = {
   'systemHealth.integrationsEmpty': '최근 30일간 기록된 연동 활동이 없습니다.',
   'systemHealth.lastSuccess': '마지막 성공',
   'systemHealth.lastError': '마지막 오류',
+  'systemHealth.itemFailures': '개별 항목 실패 {0}건 (장애로 집계되지 않음)',
   'systemHealth.integrationOk': '정상',
   'systemHealth.integrationFailing': '실패 중',
   'systemHealth.kind.target': '대상',
