@@ -1813,6 +1813,8 @@ export const ptBR = {
   'streaming.spotifyEmbedTitle': 'Prévia do Spotify',
   'streaming.spotifyLoad': 'Carregar player do Spotify',
   'streaming.spotifyLoadHint': 'Nada é solicitado ao Spotify até você clicar.',
+  'streaming.spotifyAutoloadOption': 'Carregar automaticamente no painel',
+  'streaming.spotifyAutoloadOff': 'Não carregar automaticamente',
   'discover.moodAddedSuccess': '"{0}" adicionado; descobrindo artistas similares',
   'discover.moodAddFailed': 'Falha ao adicionar "{0}"',
   'discover.moodAddQueued': 'Na fila',

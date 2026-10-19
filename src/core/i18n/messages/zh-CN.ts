@@ -1663,6 +1663,8 @@ export const zhCN = {
   'streaming.spotifyEmbedTitle': 'Spotify 预览',
   'streaming.spotifyLoad': '加载 Spotify 播放器',
   'streaming.spotifyLoadHint': '点击之前不会向 Spotify 发送任何请求。',
+  'streaming.spotifyAutoloadOption': '在仪表板上自动加载',
+  'streaming.spotifyAutoloadOff': '不自动加载',
   'discover.moodAddedSuccess': '已添加"{0}",正在寻找相似艺术家',
   'discover.moodAddFailed': '添加"{0}"失败',
   'discover.moodAddQueued': '排队中',

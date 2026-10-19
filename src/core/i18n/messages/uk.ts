@@ -1804,6 +1804,8 @@ export const uk = {
   'streaming.spotifyEmbedTitle': 'Попередній перегляд Spotify',
   'streaming.spotifyLoad': 'Завантажити плеєр Spotify',
   'streaming.spotifyLoadHint': 'Доки ти не натиснеш, запитів до Spotify немає.',
+  'streaming.spotifyAutoloadOption': 'Завантажувати автоматично на панелі',
+  'streaming.spotifyAutoloadOff': 'Не завантажувати автоматично',
   'discover.moodAddedSuccess': '«{0}» додано; шукаємо схожих виконавців',
   'discover.moodAddFailed': 'Не вдалося додати «{0}»',
   'discover.moodAddQueued': 'У черзі',

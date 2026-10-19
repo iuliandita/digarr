@@ -4,6 +4,7 @@ import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
+import { useSpotifyAutoload } from '../hooks/use-spotify-autoload'
 import { getAlbums } from '../lib/api'
 import { useI18n } from '../lib/i18n'
 import { hueFromName } from '../lib/utils'
@@ -57,6 +58,7 @@ export function TodaysPick({
   onOpenAlbumPicker,
 }: TodaysPickProps) {
   const { t } = useI18n()
+  const spotifyAutoload = useSpotifyAutoload()
   const [imgError, setImgError] = useState(false)
   const [coverError, setCoverError] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -230,7 +232,14 @@ export function TodaysPick({
             </p>
           )}
 
-          <StreamingLinks streamingUrls={artist.streamingUrls ?? null} artistName={artist.name} />
+          <StreamingLinks
+            streamingUrls={artist.streamingUrls ?? null}
+            artistName={artist.name}
+            spotifyAutoload={{
+              enabled: spotifyAutoload.enabled,
+              onChange: spotifyAutoload.setEnabled,
+            }}
+          />
 
           <Link
             to="/discover"

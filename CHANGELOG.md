@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- Today's Pick on the dashboard can load the Spotify player automatically. It stays click-to-load by default; tick "Load automatically on the dashboard" under the load button to opt in, and use "Don't load automatically" under the player to turn it off. Other places that embed Spotify are unchanged (#1125).
+
 ### Changed
 
 - Settings tabs and the setup wizard load on demand, so the main web bundle is smaller (the Settings chunk went from 217 kB to 9 kB), and the audio preview context no longer re-renders every consumer on each app update (#1098).

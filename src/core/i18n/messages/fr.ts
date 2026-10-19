@@ -1823,6 +1823,8 @@ export const fr = {
   'streaming.spotifyEmbedTitle': 'Aperçu Spotify',
   'streaming.spotifyLoad': 'Charger le lecteur Spotify',
   'streaming.spotifyLoadHint': "Rien n'est demandé à Spotify avant que tu cliques.",
+  'streaming.spotifyAutoloadOption': 'Charger automatiquement sur le tableau de bord',
+  'streaming.spotifyAutoloadOff': 'Ne pas charger automatiquement',
   'discover.moodAddedSuccess': "« {0} » ajouté, recherche d'artistes similaires en cours",
   'discover.moodAddFailed': "Impossible d'ajouter « {0} »",
   'discover.moodAddQueued': 'En file',

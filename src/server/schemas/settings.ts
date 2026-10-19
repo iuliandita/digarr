@@ -88,6 +88,7 @@ export const preferencesSchema = z
     librarySeedRatio: z.number().min(0).max(1).optional(),
     netNewAlbumDiscovery: z.boolean().optional(),
     listenbrainzLoveEnabled: z.boolean().optional(),
+    spotifyAutoloadDashboard: z.boolean().optional(),
     listenbrainzPlaylistEnabled: z.boolean().optional(),
     lastfmLoveEnabled: z.boolean().optional(),
     showExperimentalIntegrations: z.boolean().optional(),

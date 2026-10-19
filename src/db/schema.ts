@@ -707,6 +707,7 @@ export type Preferences = {
   listenbrainzLoveEnabled?: boolean
   listenbrainzPlaylistEnabled?: boolean
   lastfmLoveEnabled?: boolean
+  spotifyAutoloadDashboard?: boolean
 }
 
 export type ScoringWeights = Preferences['scoringWeights']
@@ -740,6 +741,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   listenbrainzLoveEnabled: false,
   listenbrainzPlaylistEnabled: false,
   lastfmLoveEnabled: false,
+  spotifyAutoloadDashboard: false,
   showExperimentalIntegrations: false,
 }
 

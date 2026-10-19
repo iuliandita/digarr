@@ -1827,6 +1827,8 @@ export const de = {
   'streaming.spotifyEmbedTitle': 'Spotify-Vorschau',
   'streaming.spotifyLoad': 'Spotify-Player laden',
   'streaming.spotifyLoadHint': 'Spotify wird erst nach deinem Klick kontaktiert.',
+  'streaming.spotifyAutoloadOption': 'Auf dem Dashboard automatisch laden',
+  'streaming.spotifyAutoloadOff': 'Nicht automatisch laden',
   'discover.moodAddedSuccess': '„{0}" hinzugefügt, ähnliche Künstler werden entdeckt',
   'discover.moodAddFailed': '„{0}" konnte nicht hinzugefügt werden',
   'discover.moodAddQueued': 'In Warteschlange',

@@ -1818,6 +1818,8 @@ export const it = {
   'streaming.spotifyEmbedTitle': 'Anteprima Spotify',
   'streaming.spotifyLoad': 'Carica il player di Spotify',
   'streaming.spotifyLoadHint': 'Nessuna richiesta a Spotify finché non clicchi.',
+  'streaming.spotifyAutoloadOption': 'Carica automaticamente nella dashboard',
+  'streaming.spotifyAutoloadOff': 'Non caricare automaticamente',
   'discover.moodAddedSuccess': '«{0}» aggiunto, ricerca di artisti simili in corso',
   'discover.moodAddFailed': 'Impossibile aggiungere «{0}»',
   'discover.moodAddQueued': 'In coda',

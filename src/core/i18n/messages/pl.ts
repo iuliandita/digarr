@@ -1803,6 +1803,8 @@ export const pl = {
   'streaming.spotifyEmbedTitle': 'Podgląd Spotify',
   'streaming.spotifyLoad': 'Załaduj odtwarzacz Spotify',
   'streaming.spotifyLoadHint': 'Nic nie jest pobierane ze Spotify, dopóki nie klikniesz.',
+  'streaming.spotifyAutoloadOption': 'Wczytuj automatycznie na pulpicie',
+  'streaming.spotifyAutoloadOff': 'Nie wczytuj automatycznie',
   'discover.moodAddedSuccess': 'Dodano „{0}" i wyszukiwane są podobni artyści',
   'discover.moodAddFailed': 'Nie udało się dodać „{0}"',
   'discover.moodAddQueued': 'W kolejce',

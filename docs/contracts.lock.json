@@ -196,17 +196,17 @@
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "f5ce2a210b6c7c2b957166a03799bf5f8295abc2920d675a09556fb048e44218",
-        "src/db/schema.ts": "e9f39316c61d47d3d44fc2570831921b88b538b6119836752c75e1b47aae6cf1",
+        "src/db/schema.ts": "43f7f4fde4a8ea42c2656fa664ae4efb011e75fadb2c55c4149a226fb496ec5f",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9",
+      "digest": "152b3fa604e7835a55bebbd2f21c6cf207e15910ada358d15cfd70a456dde050",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
+        "note": "Adds the optional spotifyAutoloadDashboard boolean to the Preferences type and defaults; it lives in the existing preferences JSON, so there is no migration or restore change.",
         "breaking": "none",
-        "migration": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
-        "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9"
+        "migration": "Upgrade needs no migration: the optional key lives in the existing preferences JSON. Rollback to an older version ignores it and only loses the saved toggle; no extra backup step is needed.",
+        "digest": "152b3fa604e7835a55bebbd2f21c6cf207e15910ada358d15cfd70a456dde050"
       }
     },
     "configuration": {
@@ -249,7 +249,7 @@
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "01f0bada266b354aecbac172986940affee6d92d8769de03db20eec02bd9b4ba",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
-        "src/server/routes/auth.ts": "855369731419d7658ceb7ac9d2f9ee186749397168869fe5576c565a1b1bcef7",
+        "src/server/routes/auth.ts": "32afa17cf755ac961f70b03a044a91318b738ff8b3b703d8a8adada3a3b4512f",
         "src/server/routes/oauth-callbacks.ts": "9afe6d6d34017118f84c679dfa82e2ce2ad529bd04a17833ab01aa0ba83ba4e9",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "bb6b0c70a3360a9fdfc29758ef16d058290c9256a5613eda64591ac870252d4b",
@@ -262,14 +262,14 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423",
+      "digest": "02ea7c16dcb50f0d4fac7dfc471c78c84af521142636f6a979990f5376f1c601",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "The setup guard remembers a true setup-complete result in memory and the logger skips static file paths; which requests are allowed or rejected is unchanged.",
+        "note": "Allows the per-user spotifyAutoloadDashboard key through the existing own-preferences PATCH whitelist; no auth, session, or permission behavior changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423"
+        "digest": "02ea7c16dcb50f0d4fac7dfc471c78c84af521142636f6a979990f5376f1c601"
       }
     },
     "api": {
@@ -325,7 +325,7 @@
         "src/server/schemas/pipeline.ts": "12b32f38d093560568f21ddc9626fe4282d74b12ab29af4ecab8ddd405e10341",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
         "src/server/schemas/recommendations.ts": "d1b34fbcdfdc8edd459c999ae3a4ad7b4109679ba9e4a7600cae560e04ebddd6",
-        "src/server/schemas/settings.ts": "92132ecf0bc6d62c1b34ec2aa8fc7a6ff6a47d35062812fcedf0ffaeef45d72d",
+        "src/server/schemas/settings.ts": "4e2906471980ae2d1218c1116113314a68cb9c738c824b2c9ffe72fcca89bcc7",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "c2ae54526be2ae70214b4f6e425e67989283b5565a11cc7472ba4ee28c1114d2",
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
@@ -334,14 +334,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af",
+      "digest": "af83325282dcb8b243d22cd3cc26b6fc94e442c32bcfcd88602a6db8bcb7b9d9",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Static /assets responses now send Access-Control-Allow-Origin star for the sandboxed Spotify bridge; no route, schema, or API contract changes.",
+        "docs": ["CHANGELOG.md", "docs/API.md"],
+        "note": "Documents the new optional spotifyAutoloadDashboard boolean on PATCH /auth/me/preferences, default false, and adds a changelog entry.",
         "breaking": "none",
         "migration": "",
-        "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af"
+        "digest": "af83325282dcb8b243d22cd3cc26b6fc94e442c32bcfcd88602a6db8bcb7b9d9"
       }
     },
     "interface": {
@@ -352,24 +352,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "3b6e8102429426bb76879ff523e32d0aa5f4a0f7df8d1612b7b5625fb9cd85f9",
-        "src/core/i18n/messages/en.ts": "4187afa298fa0c0629077cdfc9cdf41936d68c2a3f93e303ff413f8c7ad50682",
-        "src/core/i18n/messages/es.ts": "8985f4bd5a00aea44989cf48f5daf707cbd0e9912431cb407f30c08d1855669a",
-        "src/core/i18n/messages/fr.ts": "3edcb3d662ec37ad9c3c50bd390c77e5e18429f441fa61b2c111ba79f1410a11",
+        "src/core/i18n/messages/de.ts": "dcac268794a5e2428cbeb7cb5d3ac4fa6d568a5dc14b9e19f48428d7e2e50068",
+        "src/core/i18n/messages/en.ts": "49958f3397a52f2987400fe4387f92b9809180805d5b624d0352f5be64e4107c",
+        "src/core/i18n/messages/es.ts": "5aefe29ee3d83b2dda20893a08a2d077f548da0380f100b2116f7d6ce15cc7c6",
+        "src/core/i18n/messages/fr.ts": "609f005be2e25086c5e2b502de672644b126d09db7e8d725867e7721e80a083b",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "b9d92a4a1ed05ba0f33a0954fcfaffbbfcb8534445e30a6866f5f2b11a48289c",
-        "src/core/i18n/messages/ja.ts": "450d161b7846e0ac7f939455c4b69aa1bc3090788455b7c72f928ef55d400fc4",
-        "src/core/i18n/messages/ko.ts": "eef2f4e0be12c6c9a7dd417b12c9e58f20f5a5542288f7336853fa4063c82b64",
-        "src/core/i18n/messages/nl.ts": "d211347278feb9cb12809a53b7a5ace5b8c93c4547089740bf653e6e0b70657a",
-        "src/core/i18n/messages/pl.ts": "e16b63901570aa2183b58d608c21a7a03c29079010c48b5f943be0b2cd41fe69",
-        "src/core/i18n/messages/pt-BR.ts": "62e6ff2f3cb1b282aa052a8b8f60035270b2b426ab1fb9ed13f8daecbd9ba73e",
-        "src/core/i18n/messages/ro.ts": "3fc865a9ce6d123d1f35d3651244a8dbed3b815f8cef8562306663f8077d82a8",
-        "src/core/i18n/messages/ru.ts": "fc9c58169f0e02d36b1ea4908de056816974e14f4c6c3ffce7622fc3c7935bbd",
-        "src/core/i18n/messages/source-lock.json": "51ac119c6af8c3b39c9cb216e7846afd72b79cfdd8c7fe9a23f9d94524af729b",
-        "src/core/i18n/messages/tr.ts": "46ce2758342a6d85154ae93c90b4d9f44bf014160a51ae19f7be7637263edd50",
+        "src/core/i18n/messages/it.ts": "e520596b4ec2129840e82c96c4bd08570ce36223f3e35551d7406b80e640dd42",
+        "src/core/i18n/messages/ja.ts": "f92a0a7e3225785de8f1a70fb16978a624705a42b0b5b9835ec06bb773e6f3b9",
+        "src/core/i18n/messages/ko.ts": "fa52ae4a4058678359209162913b8d63a8a288ff739c201032bcd53358886086",
+        "src/core/i18n/messages/nl.ts": "405c3a9e1056bb8a0bcbf63b4a6e939dd0c77642b8b98bcbce914b52c285d2c9",
+        "src/core/i18n/messages/pl.ts": "41d60e63826b21d3b70f7a80ffacd6f45af5cbbf06cca9dbc5154482bd1700c7",
+        "src/core/i18n/messages/pt-BR.ts": "5d7f039cb9adcb4f69fc4d1cb239a51c4a41c88217d52005645cf185c0f28fb5",
+        "src/core/i18n/messages/ro.ts": "190de0d248c93324e6a5cba9092dfab976ba7f1539a820204cf29c1bb5a910ed",
+        "src/core/i18n/messages/ru.ts": "773b266c18b175a8b808a2fc62a4a9e4e303e943753e1bd93192212f0c02bdf3",
+        "src/core/i18n/messages/source-lock.json": "0f39388835361073d292bc94e07d16f58d6e16e131344de3461f34829fc935c3",
+        "src/core/i18n/messages/tr.ts": "c7f8779bedf7306ad221552a325d154fd4200276a262a5745a76a8ff69d66915",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "dac51cf961b461aad87265408f53d69cfb47b562bb1adad89ba67016a408f197",
-        "src/core/i18n/messages/zh-CN.ts": "61584f33874bb127e9d4b925fda7b4bcc6e05f1d29749b08c2bdb9f69864df2d",
+        "src/core/i18n/messages/uk.ts": "cf4b28a3d5e2d4fc7afda6375db8914635d427f0d2adcd09256e92db5a973fbd",
+        "src/core/i18n/messages/zh-CN.ts": "f64a9136319e37076f59ac8e9d707f9617d8575f25bbd5ac9c2965e0e478d1e9",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -440,13 +440,13 @@
         "src/web/components/service-card.tsx": "3794ef7b29c4acc4521de23bd960af497d10aef280181182176e619c921156ad",
         "src/web/components/service-icons.tsx": "992cb94a89d6f75f346d346861f68330be2a69e2e26bc68a1e470273ba346aa4",
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
-        "src/web/components/streaming-links.tsx": "30d58c3c644b9cadd64cfbe1321af237c696076851e96263a6fd012a15261807",
+        "src/web/components/streaming-links.tsx": "f37c4ba234d8c8469da5903dae984c670ebdbb03630ecb55e025b9a18f111278",
         "src/web/components/subscription-form.tsx": "62165ec6e944a02ab6f43d775f774c6bd55a958424ab2257199580564bef01d9",
         "src/web/components/subscription-presets.tsx": "3a033e7ad150601a70937d8cb9bae9612e1b9c47f2accb032d060e2918b9c93f",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
         "src/web/components/system-health-card.tsx": "63571202edee5054acd8611f32c0774bf8e1b554f32aa3581a92d5409aecd5c1",
         "src/web/components/target-utils.tsx": "39f5850e648b8a584c117f75d969611ab33b07acddb3ae5f010c36667c348a6a",
-        "src/web/components/todays-pick.tsx": "2e37c49fe3ab6da571ef7ce014b034526c0dcd083af6faf6521817f934416935",
+        "src/web/components/todays-pick.tsx": "76b4d21766c28b72ad2c59051128cb5759c284f57fa5e6e7a14c85fac1f0afe8",
         "src/web/components/ui/badge.tsx": "f0f5d51c2e6423b40b4545562afa0b8ade27caab3af28cd15e9618532823b79a",
         "src/web/components/ui/button.tsx": "439ba5044611aca45c2c8ee698ec4d336740ca8cd1734bdb34883ee86d7c7255",
         "src/web/components/ui/card.tsx": "55d10877a7ece79dadb712352ee14946866e2aa778ebe563d01da7340358af11",
@@ -469,6 +469,7 @@
         "src/web/hooks/use-popular-albums-availability.ts": "bf13931fa629db7626129492b1ca2c1bde2b9494cf5a9b857b953e9aefdb08af",
         "src/web/hooks/use-preview.ts": "c2f16860c6d99b6b6eba1e5af73f9bc8930b58acdd08dead9c77905af602166f",
         "src/web/hooks/use-pull-to-refresh.ts": "3f2712e5eeedb351704404d837f6b82290fd4414de60274d3c70988253004a76",
+        "src/web/hooks/use-spotify-autoload.ts": "8bda2af616b5f01bc62114ee3c48c0df533b4dc60dc98ba3e973797f0a940511",
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
@@ -530,14 +531,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "366980ff287ecad180ad02f76557d0798ea051adb376c9c371e47d40c577d68c",
+      "digest": "fbda4a05847bf9ab30029ca8d11be0eeeb3795e19a773f53df678d25468eeee6",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Follow-up to the compact Easy/Advanced toggle: it now also shows for advanced-only modes (empty easy fields) and hides only when advanced fields are absent or identical to easy; no guide text changes.",
+        "note": "Today's Pick gains an opt-in checkbox and a turn-off link for loading the Spotify player automatically; the click-to-load default and other embeds are unchanged, and all 15 locales are updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "366980ff287ecad180ad02f76557d0798ea051adb376c9c371e47d40c577d68c"
+        "digest": "fbda4a05847bf9ab30029ca8d11be0eeeb3795e19a773f53df678d25468eeee6"
       }
     },
     "features": {

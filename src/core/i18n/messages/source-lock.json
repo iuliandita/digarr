@@ -1588,6 +1588,8 @@
   "setup.userId": "7967e089a7b9",
   "setup.verifyProviderLater": "3bbdd270b7c4",
   "streaming.playShort": "f53a7ab988e2",
+  "streaming.spotifyAutoloadOff": "927c535fedae",
+  "streaming.spotifyAutoloadOption": "0fb018b30894",
   "streaming.spotifyEmbedTitle": "6f2b08ff570c",
   "streaming.spotifyLoad": "08a3ef4b4920",
   "streaming.spotifyLoadHint": "01ae64c0edbf",

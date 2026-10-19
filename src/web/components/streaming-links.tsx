@@ -10,6 +10,7 @@ type StreamingLinksProps = {
   compact?: boolean
   onPlay?: () => void
   isPlaying?: boolean
+  spotifyAutoload?: SpotifyAutoload
 }
 
 function safeUrl(url: string): string {
@@ -71,8 +72,14 @@ const SERVICE_INITIALS: Record<string, string> = {
   bandcamp: 'BC',
 }
 
+export type SpotifyAutoload = {
+  enabled: boolean
+  onChange: (enabled: boolean) => void
+}
+
 type SpotifyEmbedProps = {
   url: string
+  autoload?: SpotifyAutoload
 }
 
 function extractSpotifyId(url: string): { type: string; id: string } | null {
@@ -81,13 +88,14 @@ function extractSpotifyId(url: string): { type: string; id: string } | null {
   return { type: match[1], id: match[2] }
 }
 
-function SpotifyEmbed({ url }: SpotifyEmbedProps) {
+function SpotifyEmbed({ url, autoload }: SpotifyEmbedProps) {
   const { t } = useI18n()
   const preview = useContext(PreviewContext)
   const [activated, setActivated] = useState(false)
   const parsed = extractSpotifyId(url)
   if (!parsed) return null
-  if (!activated) {
+  const autoloaded = autoload?.enabled === true
+  if (!activated && !autoloaded) {
     return (
       <div className="mt-2 flex flex-col items-start gap-1 rounded border border-border bg-surface/50 p-3">
         <Button
@@ -102,20 +110,48 @@ function SpotifyEmbed({ url }: SpotifyEmbedProps) {
           {t('streaming.spotifyLoad')}
         </Button>
         <p className="text-caption text-muted">{t('streaming.spotifyLoadHint')}</p>
+        {autoload && (
+          <label className="flex items-center gap-2 text-caption text-muted">
+            <input
+              type="checkbox"
+              className="accent-accent"
+              checked={false}
+              onChange={() => {
+                autoload.onChange(true)
+                setActivated(true)
+              }}
+            />
+            {t('streaming.spotifyAutoloadOption')}
+          </label>
+        )}
       </div>
     )
   }
   const embedUrl = `https://open.spotify.com/embed/${parsed.type}/${parsed.id}?utm_source=generator`
   return (
-    <iframe
-      src={embedUrl}
-      width="100%"
-      height="84"
-      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-      loading="lazy"
-      className="rounded border border-border mt-2"
-      title={t('streaming.spotifyEmbedTitle')}
-    />
+    <div className="mt-2 flex flex-col items-start gap-1">
+      <iframe
+        src={embedUrl}
+        width="100%"
+        height="84"
+        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+        loading="lazy"
+        className="rounded border border-border"
+        title={t('streaming.spotifyEmbedTitle')}
+      />
+      {autoload?.enabled && (
+        <button
+          type="button"
+          className="text-caption text-muted underline hover:text-text"
+          onClick={() => {
+            autoload.onChange(false)
+            setActivated(false)
+          }}
+        >
+          {t('streaming.spotifyAutoloadOff')}
+        </button>
+      )}
+    </div>
   )
 }
 
@@ -125,6 +161,7 @@ export function StreamingLinks({
   compact = false,
   onPlay,
   isPlaying = false,
+  spotifyAutoload,
 }: StreamingLinksProps) {
   const { t } = useI18n()
   const urls = streamingUrls ?? {}
@@ -183,7 +220,7 @@ export function StreamingLinks({
           </a>
         ))}
       </div>
-      {!compact && spotifyUrl && <SpotifyEmbed url={spotifyUrl} />}
+      {!compact && spotifyUrl && <SpotifyEmbed url={spotifyUrl} autoload={spotifyAutoload} />}
     </div>
   )
 }

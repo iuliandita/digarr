@@ -1761,6 +1761,8 @@ export const ko = {
   'streaming.spotifyEmbedTitle': 'Spotify 미리듣기',
   'streaming.spotifyLoad': 'Spotify 플레이어 불러오기',
   'streaming.spotifyLoadHint': '클릭하기 전에는 Spotify로 어떤 요청도 보내지 않습니다.',
+  'streaming.spotifyAutoloadOption': '대시보드에서 자동으로 불러오기',
+  'streaming.spotifyAutoloadOff': '자동으로 불러오지 않기',
   'discover.moodAddedSuccess': '"{0}"을(를) 추가했고 비슷한 아티스트를 찾고 있습니다',
   'discover.moodAddFailed': '"{0}" 추가에 실패했습니다',
   'discover.moodAddQueued': '대기 중',

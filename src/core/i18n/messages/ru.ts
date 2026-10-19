@@ -1815,6 +1815,8 @@ export const ru = {
   'streaming.spotifyEmbedTitle': 'Предпросмотр Spotify',
   'streaming.spotifyLoad': 'Загрузить плеер Spotify',
   'streaming.spotifyLoadHint': 'Пока ты не нажмёшь, к Spotify запросов нет.',
+  'streaming.spotifyAutoloadOption': 'Загружать автоматически на панели',
+  'streaming.spotifyAutoloadOff': 'Не загружать автоматически',
   'discover.moodAddedSuccess': '«{0}» добавлено; ищем похожих исполнителей',
   'discover.moodAddFailed': 'Не удалось добавить «{0}»',
   'discover.moodAddQueued': 'В очереди',

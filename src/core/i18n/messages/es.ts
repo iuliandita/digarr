@@ -1821,6 +1821,8 @@ export const es = {
   'streaming.spotifyEmbedTitle': 'Vista previa de Spotify',
   'streaming.spotifyLoad': 'Cargar reproductor de Spotify',
   'streaming.spotifyLoadHint': 'No se solicita nada a Spotify hasta que hagas clic.',
+  'streaming.spotifyAutoloadOption': 'Cargar automáticamente en el panel',
+  'streaming.spotifyAutoloadOff': 'No cargar automáticamente',
   'discover.moodAddedSuccess': 'Se añadió «{0}» y se están descubriendo artistas similares',
   'discover.moodAddFailed': 'No se pudo añadir «{0}»',
   'discover.moodAddQueued': 'En cola',

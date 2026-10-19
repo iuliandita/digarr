@@ -1791,6 +1791,8 @@ export const tr = {
   'streaming.spotifyEmbedTitle': 'Spotify önizlemesi',
   'streaming.spotifyLoad': 'Spotify oynatıcısını yükle',
   'streaming.spotifyLoadHint': "Sen tıklayana kadar Spotify'dan hiçbir şey istenmez.",
+  'streaming.spotifyAutoloadOption': 'Panoda otomatik yükle',
+  'streaming.spotifyAutoloadOff': 'Otomatik yükleme',
   'discover.moodAddedSuccess': '"{0}" eklendi; benzer sanatçılar aranıyor',
   'discover.moodAddFailed': '"{0}" eklenemedi',
   'discover.moodAddQueued': 'Sırada',

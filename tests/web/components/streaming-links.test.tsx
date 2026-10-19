@@ -50,3 +50,47 @@ describe('StreamingLinks Spotify embed', () => {
     expect(document.querySelector('iframe')).toBeNull()
   })
 })
+
+describe('StreamingLinks Spotify autoload', () => {
+  function renderAuto(enabled: boolean, dashboard = true) {
+    const onChange = vi.fn()
+    const stop = vi.fn()
+    const preview = { stop } as unknown as NonNullable<ContextType<typeof PreviewContext>>
+    render(
+      <I18nProvider>
+        <PreviewContext.Provider value={preview}>
+          <StreamingLinks
+            streamingUrls={urls}
+            artistName="Radiohead"
+            spotifyAutoload={dashboard ? { enabled, onChange } : undefined}
+          />
+        </PreviewContext.Provider>
+      </I18nProvider>,
+    )
+    return { onChange, stop }
+  }
+
+  it('loads the player without a click when enabled, and never stops a preview', () => {
+    const { onChange, stop } = renderAuto(true)
+    expect(document.querySelector('iframe')).not.toBeNull()
+    expect(stop).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: "Don't load automatically" }))
+    expect(onChange).toHaveBeenCalledWith(false)
+  })
+
+  it('offers the checkbox without loading when disabled, and ticking saves and loads', () => {
+    const { onChange } = renderAuto(false)
+    expect(document.querySelector('iframe')).toBeNull()
+
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Load automatically on the dashboard' }))
+    expect(onChange).toHaveBeenCalledWith(true)
+    expect(document.querySelector('iframe')).not.toBeNull()
+  })
+
+  it('stays click-to-load with no checkbox outside the dashboard', () => {
+    renderAuto(true, false)
+    expect(document.querySelector('iframe')).toBeNull()
+    expect(screen.queryByRole('checkbox')).toBeNull()
+  })
+})
