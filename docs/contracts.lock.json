@@ -481,7 +481,7 @@
         "src/web/lib/locale-catalogs.ts": "6a9f4ecb955cc4385a70cfc98e5f095b5b99e8e81bee3d28ff286bc97f32fcba",
         "src/web/lib/locale-storage.ts": "a8bf64757283878e86e66bacd695f6b12c94969d84e419a4ace6d4c57bb8ffb3",
         "src/web/lib/menu-styles.ts": "ad7e058f2750f44ff4763919eef060169878c5d12e0c02ffeb2fd8c54aa2f018",
-        "src/web/lib/mood-add-queue.ts": "be3e7774b32708692f577df7765ad966e754f738db4497415f10c39dfddae530",
+        "src/web/lib/mood-add-queue.ts": "aa516ab1905a473751153e1dbe8e7a72bc279bc07cb2fc22dfc917844a67c6d4",
         "src/web/lib/nav.ts": "ac7e4bc9d3f0ceeae6af87ba0603426c600f686713ed15af0bb14c8a4d8482d4",
         "src/web/lib/preview-context.ts": "fc101e13930429984ef669086058111f936871c7dab92ff4613df31b9fdb8aad",
         "src/web/lib/preview-volume.ts": "027c2709f5d0d5698f130cc1b4853c8eea33633f391a0e93a37b4c34c13d012c",
@@ -526,14 +526,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "d027daa2cf034705013795fc08000f2e94c8c0099ec85a93af51394e59a171cf",
+      "digest": "87778c2fb7114be10313d0676184f21b0cfbf8eb8c43a5acc0ce4346bed5daa0",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
         "note": "Mood search adds are queued client-side with a Queued card state and specific failure toasts; the server rate limit and API are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "d027daa2cf034705013795fc08000f2e94c8c0099ec85a93af51394e59a171cf"
+        "digest": "87778c2fb7114be10313d0676184f21b0cfbf8eb8c43a5acc0ce4346bed5daa0"
       }
     },
     "features": {

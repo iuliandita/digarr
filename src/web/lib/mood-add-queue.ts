@@ -94,4 +94,4 @@ export function createMoodAddQueue(send: (artistName: string) => Promise<unknown
   }
 }
 
-export const moodAddQueue = createMoodAddQueue(quickDiscover)
+export const moodAddQueue = createMoodAddQueue((artistName) => quickDiscover(artistName))
