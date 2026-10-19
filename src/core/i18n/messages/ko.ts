@@ -975,6 +975,7 @@ export const ko = {
   'discoveryMode.unavailable': '사용 불가',
   'discoveryMode.easy': '쉬움',
   'discoveryMode.advanced': '고급',
+  'discoveryMode.settingsView': '설정 보기',
   'discoveryMode.starting': '시작 중...',
   'discoveryMode.dismiss': '닫기',
   'discoveryMode.addTag': '+ 태그 추가',

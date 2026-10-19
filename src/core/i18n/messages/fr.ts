@@ -999,6 +999,7 @@ export const fr = {
   'discoveryMode.unavailable': 'Indisponible',
   'discoveryMode.easy': 'Facile',
   'discoveryMode.advanced': 'Avancé',
+  'discoveryMode.settingsView': 'Affichage des réglages',
   'discoveryMode.starting': 'Démarrage...',
   'discoveryMode.dismiss': 'Ignorer',
   'discoveryMode.addTag': '+ Ajouter un tag',

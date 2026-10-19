@@ -997,6 +997,7 @@ export const ru = {
   'discoveryMode.unavailable': 'Недоступно',
   'discoveryMode.easy': 'Простой',
   'discoveryMode.advanced': 'Расширенный',
+  'discoveryMode.settingsView': 'Вид настроек',
   'discoveryMode.starting': 'Запуск...',
   'discoveryMode.dismiss': 'Закрыть',
   'discoveryMode.addTag': '+ Добавить тег',

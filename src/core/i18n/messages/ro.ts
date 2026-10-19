@@ -997,6 +997,7 @@ export const ro = {
   'discoveryMode.unavailable': 'Indisponibil',
   'discoveryMode.easy': 'Ușor',
   'discoveryMode.advanced': 'Avansat',
+  'discoveryMode.settingsView': 'Vizualizare setări',
   'discoveryMode.starting': 'Se pornește...',
   'discoveryMode.dismiss': 'Închide',
   'discoveryMode.addTag': '+ Adaugă etichetă',

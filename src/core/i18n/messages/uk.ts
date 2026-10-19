@@ -990,6 +990,7 @@ export const uk = {
   'discoveryMode.unavailable': 'Недоступно',
   'discoveryMode.easy': 'Простий',
   'discoveryMode.advanced': 'Розширений',
+  'discoveryMode.settingsView': 'Вигляд налаштувань',
   'discoveryMode.starting': 'Запуск...',
   'discoveryMode.dismiss': 'Закрити',
   'discoveryMode.addTag': '+ Додати тег',
