@@ -67,7 +67,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     }))
   }
 
-  async function getArtistTopTracks(artistId: number, limit = 5): Promise<TopTrack[]> {
+  async function fetchTopTrackItems(artistId: number, limit: number): Promise<DeezerTrackItem[]> {
     const params = new URLSearchParams({ limit: String(limit) })
     const res = await http.get<DeezerTopTracksResponse>(
       `/artist/${artistId}/top?${params.toString()}`,
@@ -75,11 +75,34 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     if (res.error) {
       throw new Error(`Deezer API error: ${res.error.message}`)
     }
-    return (res.data ?? []).map((track) => ({
+    return res.data ?? []
+  }
+
+  async function getArtistTopTracks(artistId: number, limit = 5): Promise<TopTrack[]> {
+    return (await fetchTopTrackItems(artistId, limit)).map((track) => ({
       name: track.title,
       previewUrl: track.preview || undefined,
       durationMs: track.duration * 1000,
     }))
+  }
+
+  // Ids for playlist resolution; preview URLs are signed and expire, so they are dropped.
+  async function getArtistTopTrackResults(
+    artistId: number,
+    limit = 5,
+  ): Promise<Array<{ id: string; name: string; artists: string[]; rank: number }>> {
+    return (await fetchTopTrackItems(artistId, limit)).flatMap((item) =>
+      item.id && item.title
+        ? [
+            {
+              id: String(item.id),
+              name: item.title,
+              artists: item.artist?.name ? [item.artist.name] : [],
+              rank: item.rank ?? 0,
+            },
+          ]
+        : [],
+    )
   }
 
   async function searchTracks(
@@ -122,6 +145,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     searchArtists,
     searchTracks,
     getArtistTopTracks,
+    getArtistTopTrackResults,
     testConnection,
   }
 }

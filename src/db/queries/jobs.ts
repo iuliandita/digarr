@@ -175,7 +175,8 @@ export function playlistResolution(value: unknown): PlaylistGenerationSummary | 
   for (const value of outcomes) {
     if (!value || typeof value !== 'object') return null
     const outcome = value as Record<string, unknown>
-    const { artistName, artistMbid, status, resolvedTrackCount, includedTrackCount } = outcome
+    const { artistName, artistMbid, status, resolvedTrackCount, includedTrackCount, titleOnly } =
+      outcome
     if (
       typeof artistName !== 'string' ||
       (artistMbid !== undefined && typeof artistMbid !== 'string') ||
@@ -194,6 +195,7 @@ export function playlistResolution(value: unknown): PlaylistGenerationSummary | 
       status,
       resolvedTrackCount,
       includedTrackCount,
+      ...(titleOnly === true ? { titleOnly } : {}),
     })
   }
   return {

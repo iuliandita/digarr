@@ -1,3 +1,5 @@
+import type { SuggestedRecording } from '@/core/types'
+
 export const TRACKS_PER_ARTIST = 3
 
 export type StrategyArtist = {
@@ -5,6 +7,8 @@ export type StrategyArtist = {
   mbid?: string
   score: number
   genres?: string[]
+  /** When set, only this recording may represent the artist. */
+  recording?: SuggestedRecording
 }
 
 export type StrategyDeps = {

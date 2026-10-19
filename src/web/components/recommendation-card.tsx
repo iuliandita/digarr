@@ -31,6 +31,7 @@ export type Recommendation = {
   > | null
   recommendedReleaseGroupId: string | null
   recommendedReleaseGroupTitle: string | null
+  recommendedRecordingTitle?: string | null
   artist: {
     id: number
     name: string
@@ -797,6 +798,12 @@ export function RecommendationCard({
                     <p className="text-xs text-muted mt-0.5">
                       {t('recommendation.startWith')}:{' '}
                       <span className="italic">{rec.recommendedReleaseGroupTitle}</span>
+                    </p>
+                  )}
+                  {rec.recommendedRecordingTitle && (
+                    <p data-testid="rec-recommended-track" className="text-xs text-muted mt-0.5">
+                      {t('recommendation.recommendedTrack')}:{' '}
+                      <span className="italic">{rec.recommendedRecordingTitle}</span>
                     </p>
                   )}
                 </div>

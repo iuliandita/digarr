@@ -60,6 +60,8 @@ function projectRecommendation(
     reasoning: rec.aiReasoning,
     recommendedReleaseGroupId: rec.recommendedReleaseGroupId,
     recommendedReleaseGroupTitle: rec.recommendedReleaseGroupTitle,
+    recommendedRecordingMbid: rec.recommendedRecordingMbid,
+    recommendedRecordingTitle: rec.recommendedRecordingTitle,
     rejectionReason: rec.rejectionReason,
     rejectionReasonText: rec.rejectionReasonText,
     createdAt: rec.createdAt,

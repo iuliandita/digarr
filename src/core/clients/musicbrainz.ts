@@ -96,6 +96,7 @@ export type RecordingArtistCredit = {
   recordingMbid: string
   artistMbid: string
   artistName: string
+  title?: string
 }
 
 type MBRecordingLookup = {
@@ -427,6 +428,7 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
       recordingMbid: mbid,
       artistMbid: credit.artist.id,
       artistName: credit.artist.name,
+      title: data.title || undefined,
     }
   }
 

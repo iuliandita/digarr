@@ -464,6 +464,7 @@ export const ru = {
   'discover.playability.missingSource': 'Источник треков не настроен: {count}',
   'discover.playability.noMatch': 'Подходящий трек не найден: {count}',
   'discover.playability.upstreamFailure': 'Ошибка поиска: {count}',
+  'discover.playability.titleOnly': 'Только название, воспроизводить нечего: {count}',
   'discover.playability.unknown': 'Ещё не проверено: {count}',
   'discover.rejectAllPending': 'Отклонить все ожидающие',
   'discover.rejectAllPendingMessage':
@@ -850,6 +851,7 @@ export const ru = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Выбрать',
   'recommendation.startWith': 'Начни с',
+  'recommendation.recommendedTrack': 'Рекомендованный трек',
   'recommendation.albumBadge': 'Альбом',
   'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Метаданные кэшируются',

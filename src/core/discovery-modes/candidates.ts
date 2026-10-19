@@ -42,6 +42,8 @@ export function discoveryCandidatesToDiscoveredArtists(
       aiReasoning: candidate.explanationHint,
       source: candidate.provenanceMode,
       sourceUrl: candidate.sourceUrl,
+      recordingMbid: candidate.recordingMbid,
+      recordingTitle: candidate.recordingTitle,
     })
     return results
   }, [])

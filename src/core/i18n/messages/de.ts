@@ -466,6 +466,7 @@ export const de = {
   'discover.playability.missingSource': 'Keine Titelquelle eingerichtet: {count}',
   'discover.playability.noMatch': 'Kein passender Titel: {count}',
   'discover.playability.upstreamFailure': 'Suche fehlgeschlagen: {count}',
+  'discover.playability.titleOnly': 'Nur ein Titel, nichts zum Abspielen: {count}',
   'discover.playability.unknown': 'Noch nicht geprüft: {count}',
   'discover.rejectAllPending': 'Alle ausstehenden ablehnen',
   'discover.rejectAllPendingMessage':
@@ -860,6 +861,7 @@ export const de = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Auswählen',
   'recommendation.startWith': 'Beginne mit',
+  'recommendation.recommendedTrack': 'Empfohlener Titel',
   'recommendation.albumBadge': 'Album',
   'recommendation.albumByArtist': '{album} von {artist}',
   'recommendation.metadataCached': 'Metadaten zwischengespeichert',

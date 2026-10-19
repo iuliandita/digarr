@@ -95,6 +95,8 @@ const mockRecommendation = {
   lidarrError: null,
   recommendedReleaseGroupId: null,
   recommendedReleaseGroupTitle: null,
+  recommendedRecordingMbid: null as string | null,
+  recommendedRecordingTitle: null as string | null,
   targetActions: null,
   rejectionReason: null,
   rejectionReasonText: null,
@@ -443,6 +445,43 @@ describe('PATCH /api/v1/recommendations/:id', () => {
       'added_to_lidarr',
       expect.objectContaining({ lidarrArtistId: 99 }),
     )
+  })
+
+  it('approves a recording-backed rec exactly like an artist rec, never as an album', async () => {
+    const recordingRec = {
+      ...mockRecommendation,
+      recommendedRecordingMbid: 'e8f9b188-f819-4e43-ab0f-4bd26ce9ff56',
+      recommendedRecordingTitle: 'Roads',
+    }
+    const addArtist = vi
+      .fn()
+      .mockResolvedValue({ success: true, targetType: 'lidarr', targetId: 1, externalId: 99 })
+    const addAlbum = vi.fn()
+    const app = createApp(
+      makeDeps({
+        getRecommendation: vi.fn(async (id: number) => (id === 1 ? recordingRec : null)),
+        getUserCount: vi.fn(async () => 1),
+        getEnabledTargetsForUser: vi.fn().mockResolvedValue([
+          {
+            id: 'lidarr-1',
+            type: 'lidarr',
+            capabilities: ['addArtist', 'addAlbum'],
+            addArtist,
+            addAlbum,
+          },
+        ]),
+      }),
+    )
+
+    const res = await authedRequest(app, '/api/v1/recommendations/1', json({ status: 'approved' }))
+
+    expect(res.status).toBe(200)
+    expect(addArtist).toHaveBeenCalledTimes(1)
+    expect(addArtist).toHaveBeenCalledWith(
+      { mbid: 'mbid-abc-123', name: 'Test Artist' },
+      expect.objectContaining({ monitorOption: 'none' }),
+    )
+    expect(addAlbum).not.toHaveBeenCalled()
   })
 
   it('approves album-kind recs via addAlbum capability', async () => {
@@ -1295,7 +1334,7 @@ describe('GET /api/v1/recommendations/playability', () => {
       pendingArtists: 3,
       withTrack: 1,
       withoutTrack: 1,
-      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0 },
+      reasons: { missingSource: 0, noMatch: 1, upstreamFailure: 0, titleOnly: 0 },
       unknown: 1,
       checkedAt: '2026-10-02T00:00:00.000Z',
     }

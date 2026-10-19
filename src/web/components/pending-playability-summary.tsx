@@ -17,6 +17,7 @@ export function PendingPlayabilitySummary() {
     ['discover.playability.missingSource', data.reasons.missingSource],
     ['discover.playability.noMatch', data.reasons.noMatch],
     ['discover.playability.upstreamFailure', data.reasons.upstreamFailure],
+    ['discover.playability.titleOnly', data.reasons.titleOnly ?? 0],
     ['discover.playability.unknown', data.unknown],
   ]
 

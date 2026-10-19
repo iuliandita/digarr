@@ -60,7 +60,13 @@ export type DiscoveredArtist = {
   /** ISO release date (firstReleaseDate) for album candidates; feeds recency. */
   releaseDate?: string
   releaseGroupTypes?: ReleaseGroupTypes
+  /** MusicBrainz recording MBID when the source recommended a specific track. */
+  recordingMbid?: string
+  recordingTitle?: string
 }
+
+/** A source-recommended recording. Provider IDs (Spotify URI, Deezer id) never go here. */
+export type SuggestedRecording = { mbid: string; title?: string }
 
 export type ResolvedArtist = {
   mbid: string
@@ -73,6 +79,7 @@ export type ResolvedArtist = {
   imageFailed?: boolean
   streamingUrls: Record<string, string>
   suggestedAlbum?: { releaseGroupId?: string; title: string; type?: string }
+  suggestedRecording?: SuggestedRecording
   discoveries: DiscoveredArtist[]
   beginYear?: number
   endYear?: number

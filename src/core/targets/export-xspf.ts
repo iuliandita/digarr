@@ -32,7 +32,7 @@ export function exportToXspf(
     const parts = ['    <track>']
     parts.push(`      <location>${escapeXml(getStreamingUrl(rec))}</location>`)
     parts.push(`      <creator>${escapeXml(rec.artistName)}</creator>`)
-    parts.push(`      <title>${escapeXml(rec.artistName)}</title>`)
+    parts.push(`      <title>${escapeXml(rec.recordingTitle ?? rec.artistName)}</title>`)
     if (rec.suggestedAlbum) {
       parts.push(`      <album>${escapeXml(rec.suggestedAlbum)}</album>`)
     }
@@ -41,6 +41,11 @@ export function exportToXspf(
     }
     if (rec.imageUrl) {
       parts.push(`      <image>${escapeXml(rec.imageUrl)}</image>`)
+    }
+    if (rec.recordingMbid) {
+      parts.push(
+        `      <identifier>https://musicbrainz.org/recording/${escapeXml(rec.recordingMbid)}</identifier>`,
+      )
     }
     parts.push(`      <info>https://musicbrainz.org/artist/${escapeXml(rec.artistMbid)}</info>`)
     parts.push('    </track>')

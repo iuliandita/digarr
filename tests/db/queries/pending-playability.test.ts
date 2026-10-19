@@ -14,13 +14,14 @@ import { makeTestDb } from '../../helpers/test-db'
 
 const mbid = (n: number) => `00000000-0000-0000-0000-${String(n).padStart(12, '0')}`
 
-function outcome(n: number, status: string) {
+function outcome(n: number, status: string, titleOnly = false) {
   return {
     artistName: `Artist ${n}`,
     artistMbid: mbid(n),
     status,
     resolvedTrackCount: status === 'resolved' ? 1 : 0,
     includedTrackCount: status === 'resolved' ? 1 : 0,
+    ...(titleOnly ? { titleOnly: true } : {}),
   }
 }
 
@@ -105,7 +106,7 @@ describe('getPendingPlayability on migrated PGlite', () => {
       pendingArtists: 0,
       withTrack: 0,
       withoutTrack: 0,
-      reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+      reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0, titleOnly: 0 },
       unknown: 0,
       checkedAt: null,
     })
@@ -122,7 +123,7 @@ describe('getPendingPlayability on migrated PGlite', () => {
   })
 
   it('classifies the newest owned Audition outcome per pending artist', async () => {
-    await pending(1, 2, 3, 4, 5, 6)
+    await pending(1, 2, 3, 4, 5, 6, 7)
     const audition = await playlist(ownerId, 'audition')
     const foreign = await playlist(otherId, 'audition')
     // Older run without credentials: no source was configured for anyone.
@@ -135,15 +136,16 @@ describe('getPendingPlayability on migrated PGlite', () => {
       outcome(3, 'error'),
       outcome(4, 'resolved'),
       outcome(5, 'limited'),
+      outcome(7, 'resolved', true),
       outcome(99, 'unmatched'),
     ])
     await run(otherId, foreign, '2026-10-03', [outcome(6, 'unmatched')])
 
     expect(await getPendingPlayability(db, ownerId)).toEqual({
-      pendingArtists: 6,
+      pendingArtists: 7,
       withTrack: 2,
-      withoutTrack: 3,
-      reasons: { missingSource: 1, noMatch: 1, upstreamFailure: 1 },
+      withoutTrack: 4,
+      reasons: { missingSource: 1, noMatch: 1, upstreamFailure: 1, titleOnly: 1 },
       unknown: 1,
       checkedAt: new Date('2026-10-02').toISOString(),
     })

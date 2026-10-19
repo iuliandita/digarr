@@ -212,6 +212,42 @@ bypass those artist-oriented filters because a new release from a tracked artist
 is the point, but still pass the album block layer, cross-batch dedup, and the
 score threshold.
 
+### Recording identity
+
+Recommendations stay artist- or album-kind. A source that recommends a specific
+track can also attach a MusicBrainz recording MBID and title. Today only
+ListenBrainz Tag Radio does this: it keeps the highest-ranked radio recording for
+each artist. The fields travel as `recordingMbid` / `recordingTitle` on the
+discovery candidate and `DiscoveredArtist`, then `suggestedRecording` on
+`ResolvedArtist`. They are stored in `recommendations.recommended_recording_mbid`
+and `recommended_recording_title`, both nullable. Resolve keeps a recording only when the discovery's
+artist MBID equals the resolved artist, so a name-only match to a same-name
+artist drops it. Provider IDs (Spotify URI, Deezer id, local path) are never
+stored in these fields; they are looked up at playlist time and kept in their
+own `ResolvedTrack` fields next to `mbid`.
+
+Audition takes the recording of the best-scored pending recommendation for each
+artist. When a stored recording has a title, the track resolver only accepts an
+exact artist and title match in local libraries, Spotify (field query, double
+quotes stripped), or Deezer (plain query, matched in code). Without a match, it
+keeps the MusicBrainz identity itself. It never picks another song by the same
+artist. Export targets match that identity by exact title, so a remaster with a
+different title or the same title by another artist stays unresolved there. The
+ListenBrainz playlist write-back sends the stored MBID. Tag Radio only stores a
+recording when MusicBrainz returned a title; a stored recording without one
+cannot be matched and the artist resolves the usual way. Spotify export skips an
+item that has a recording MBID but no title instead of using the artist's top
+tracks. Recommendation exports include the recording: JSON `recordingMbid` /
+`recordingTitle`, CSV `recording_mbid` / `recording_title`, and XSPF uses the
+title as the track title and the recording URL as the identifier.
+
+Approval ignores the recording. A recording-backed recommendation is approved
+exactly like an artist recommendation: Lidarr `addArtist` with the same monitor
+option (manual approval defaults to `none`; auto-approve uses its configured
+option) and the same slskd artist job. It never becomes an album
+add or a track download. Later work that filters recently played tracks can
+match on `recommended_recording_mbid`.
+
 ## Registry patterns
 
 Extension points use registries or configuration maps:
@@ -414,7 +450,7 @@ three points, allowing multiple albums per artist to survive a single run:
   Anthropic and OpenAI providers use vendor SDK transports, so these policies are not universal. Read-only shared-client calls retain the client retry default. Duplicate-producing playlist
   creation and song-add calls pass `retries: 0`; this classification is based on
   endpoint semantics because Subsonic mutations use GET-shaped endpoints.
-- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected.
+- Playlist resolution records a disposition for every selected artist: resolved, unmatched, unavailable, error, or excluded by the size cap. Spotify and Deezer artist names must match after Unicode/case/whitespace normalization before tracks are selected. Deezer rejects field-qualified searches (`artist:"x"` returns nothing), so Deezer resolution is artist search, then `/artist/{id}/top` when exactly one exact-name artist exists, else a plain track search filtered to that name. An outcome whose tracks are all MusicBrainz titles carries `titleOnly` and is not counted as playable in the pending playability summary.
 
   Production resolver credentials come only from the playlist owner's saved
   library connections. Jellyfin, Emby, and Subsonic use the saved operator TLS

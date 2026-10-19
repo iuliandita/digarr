@@ -32,6 +32,8 @@ export type RawDiscoveryCandidate =
   | (RawDiscoveryCandidateBase & {
       candidateType: 'artist'
       artistName?: never
+      recordingMbid?: string
+      recordingTitle?: string
     })
   | (RawDiscoveryCandidateBase & {
       candidateType: 'release'

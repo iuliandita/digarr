@@ -469,6 +469,7 @@ export const es = {
   'discover.playability.missingSource': 'Sin fuente de pistas configurada: {count}',
   'discover.playability.noMatch': 'Sin pista coincidente: {count}',
   'discover.playability.upstreamFailure': 'Falló la búsqueda: {count}',
+  'discover.playability.titleOnly': 'Solo el título, nada que reproducir: {count}',
   'discover.playability.unknown': 'Aún sin comprobar: {count}',
   'discover.rejectAllPending': 'Rechazar todos los pendientes',
   'discover.rejectAllPendingMessage':
@@ -856,6 +857,7 @@ export const es = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Seleccionar',
   'recommendation.startWith': 'Empezar con',
+  'recommendation.recommendedTrack': 'Canción recomendada',
   'recommendation.albumBadge': 'Álbum',
   'recommendation.albumByArtist': '{album} de {artist}',
   'recommendation.metadataCached': 'Metadatos almacenados en caché',

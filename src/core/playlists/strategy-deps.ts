@@ -28,6 +28,13 @@ export function buildStrategyDeps(db: Database, userId: number | null): Strategy
           mbid: artists.mbid,
           score: max(recommendations.score),
           genres: artists.genres,
+          // The best-scored pending recommendation that names a recording supplies it.
+          recordingMbid: sql<
+            string | null
+          >`(array_agg(${recommendations.recommendedRecordingMbid} ORDER BY ${recommendations.score} DESC, ${recommendations.id} DESC) FILTER (WHERE ${recommendations.recommendedRecordingMbid} IS NOT NULL))[1]`,
+          recordingTitle: sql<
+            string | null
+          >`(array_agg(${recommendations.recommendedRecordingTitle} ORDER BY ${recommendations.score} DESC, ${recommendations.id} DESC) FILTER (WHERE ${recommendations.recommendedRecordingMbid} IS NOT NULL))[1]`,
         })
         .from(recommendations)
         .innerJoin(artists, eq(artists.id, recommendations.artistId))
@@ -36,7 +43,14 @@ export function buildStrategyDeps(db: Database, userId: number | null): Strategy
         .orderBy(desc(max(recommendations.score)), artists.id)
         .limit(opts.limit)
 
-      return rows.map((row) => ({ ...row, score: row.score ?? 0, genres: row.genres ?? [] }))
+      return rows.map(({ recordingMbid, recordingTitle, ...row }) => ({
+        ...row,
+        score: row.score ?? 0,
+        genres: row.genres ?? [],
+        ...(recordingMbid
+          ? { recording: { mbid: recordingMbid, title: recordingTitle ?? undefined } }
+          : {}),
+      }))
     },
 
     async getApprovedArtists(opts): Promise<StrategyArtist[]> {

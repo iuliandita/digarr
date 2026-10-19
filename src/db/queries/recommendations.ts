@@ -204,6 +204,8 @@ export type ExportableRecommendationRow = {
   aiReasoning: string | null
   createdAt: Date
   recommendedReleaseGroupTitle: string | null
+  recommendedRecordingMbid: string | null
+  recommendedRecordingTitle: string | null
   artist: {
     name: string
     mbid: string
@@ -241,6 +243,8 @@ export async function listRecommendationsForExport(
       aiReasoning: recommendations.aiReasoning,
       createdAt: recommendations.createdAt,
       recommendedReleaseGroupTitle: recommendations.recommendedReleaseGroupTitle,
+      recommendedRecordingMbid: recommendations.recommendedRecordingMbid,
+      recommendedRecordingTitle: recommendations.recommendedRecordingTitle,
       artist: {
         name: artists.name,
         mbid: artists.mbid,
@@ -717,6 +721,8 @@ export type InsertRecommendationData = {
   userId?: number
   recommendedReleaseGroupId?: string
   recommendedReleaseGroupTitle?: string
+  recommendedRecordingMbid?: string
+  recommendedRecordingTitle?: string
   kind?: 'artist' | 'album'
 }
 
@@ -734,6 +740,8 @@ export async function insertRecommendation(
     userId: data.userId,
     recommendedReleaseGroupId: data.recommendedReleaseGroupId,
     recommendedReleaseGroupTitle: data.recommendedReleaseGroupTitle,
+    recommendedRecordingMbid: data.recommendedRecordingMbid,
+    recommendedRecordingTitle: data.recommendedRecordingTitle,
     kind: data.kind ?? 'artist',
   })
 }

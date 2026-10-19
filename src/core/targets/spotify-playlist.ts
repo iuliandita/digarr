@@ -122,6 +122,12 @@ async function resolveTracks(token: string, items: PlaylistItem[]) {
       continue
     }
 
+    // A recording without a title cannot be matched; never substitute the artist's top tracks.
+    if (item.trackMbid) {
+      itemsSkipped += 1
+      continue
+    }
+
     const search = await searchTracks(token, `artist:${item.artistName}`)
     const artistTracks = search.tracks.items.filter((track) => hasArtist(track, item.artistName))
     if (artistTracks.length === 0) itemsSkipped += 1

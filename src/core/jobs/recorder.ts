@@ -16,7 +16,8 @@ const STUCK_THRESHOLDS_MS: Record<string, number> = {
   quick_discover: 5 * 60 * 1000,
   subscription: 5 * 60 * 1000,
   target: 2 * 60 * 1000,
-  playlist: 2 * 60 * 1000,
+  // Track resolution is rate-limited to ~1.4s per artist, so a 100-artist Audition takes over 2 min.
+  playlist: 15 * 60 * 1000,
   library_sync: 90 * 60 * 1000,
 }
 

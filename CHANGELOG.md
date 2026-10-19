@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Tag Radio recommendations keep the ListenBrainz recording that put the artist on the list. The card shows it as "Recommended track". Audition and playlist exports use that exact recording; when no exact match exists, the track is reported as unresolved, so a different song by the same artist no longer takes its place. Approving one still adds the artist, the same as any artist recommendation. Migration 0062 adds two nullable columns; see the upgrade notes in `docs/OPERATIONS.md` (#1046).
 - Today's Pick on the dashboard can load the Spotify player automatically. It stays click-to-load by default; tick "Load automatically on the dashboard" under the load button to opt in, and use "Don't load automatically" under the player to turn it off. Other places that embed Spotify are unchanged (#1125).
 - Saved notification channel secrets that are optional (webhook signing secret, ntfy token) can be removed from the channel editor with a Remove action next to the "Saved" hint, instead of deleting and recreating the channel. Telegram bot tokens and Apprise URLs are required and can only be replaced (#1068).
 
@@ -20,6 +21,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - A scan killed by a server restart no longer keeps showing as running on the dashboard: once the server reports no scan is running, the progress card switches to "The scan stopped - the server restarted. Run it again to finish." On startup, jobs and batches left `running` by the previous process are marked `failed` ("Interrupted by a server restart") right away instead of waiting for the stuck detector (#1141).
+- Deezer track lookup works again for Audition and playlists, and the Discover preview. Deezer stopped answering `artist:"..."` searches, so nearly every artist fell through to MusicBrainz titles. Digarr now finds the artist by exact name and takes its top tracks, or falls back to a plain search filtered to that exact artist. The MusicBrainz fallback also skips placeholder and non-song titles (`[untitled]`, broadcasts, rehearsals, demos, live sessions) when it has other recordings (#1135).
+- The pending-artist playability summary no longer counts artists whose only match is a MusicBrainz title as playable; they show as "Title only, nothing to play" and `GET /api/v1/recommendations/playability` returns a new `reasons.titleOnly` count. Runs saved before this change keep their old classification until the next Audition run (#1135, #1045).
+- Playlist generation is no longer marked stuck after 2 minutes; a full-size Audition takes longer than that, so the limit is now 15 minutes (#1136).
 - Integration health no longer keeps showing `failing` for up to 30 days after the failing target, subscription or scrobbler connection was removed (#1069).
 - The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).

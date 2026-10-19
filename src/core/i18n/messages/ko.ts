@@ -454,6 +454,7 @@ export const ko = {
   'discover.playability.missingSource': '곡 소스가 설정되지 않음: {count}',
   'discover.playability.noMatch': '일치하는 곡 없음: {count}',
   'discover.playability.upstreamFailure': '검색 실패: {count}',
+  'discover.playability.titleOnly': '제목만 있고 재생할 수 없음: {count}',
   'discover.playability.unknown': '아직 확인되지 않음: {count}',
   'discover.rejectAllPending': '대기 중인 모든 항목 거부',
   'discover.rejectAllPendingMessage':
@@ -832,6 +833,7 @@ export const ko = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': '선택',
   'recommendation.startWith': '다음으로 시작',
+  'recommendation.recommendedTrack': '추천 트랙',
   'recommendation.albumBadge': '앨범',
   'recommendation.albumByArtist': '{artist}의 {album}',
   'recommendation.metadataCached': '캐시된 메타데이터',
