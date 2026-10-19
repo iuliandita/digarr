@@ -460,6 +460,7 @@ export const ja = {
   'discover.playability.missingSource': '曲のソースが未設定: {count}',
   'discover.playability.noMatch': '一致する曲なし: {count}',
   'discover.playability.upstreamFailure': '検索に失敗: {count}',
+  'discover.playability.titleOnly': 'タイトルのみで再生不可: {count}',
   'discover.playability.unknown': '未確認: {count}',
   'discover.rejectAllPending': '保留中のすべてを拒否する',
   'discover.rejectAllPendingMessage':

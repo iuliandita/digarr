@@ -465,6 +465,7 @@ export const ro = {
   'discover.playability.missingSource': 'Nicio sursă de piese configurată: {count}',
   'discover.playability.noMatch': 'Nicio piesă potrivită: {count}',
   'discover.playability.upstreamFailure': 'Căutarea a eșuat: {count}',
+  'discover.playability.titleOnly': 'Doar titlul, nimic de redat: {count}',
   'discover.playability.unknown': 'Neverificat încă: {count}',
   'discover.rejectAllPending': 'Respinge toate recomandările în așteptare',
   'discover.rejectAllPendingMessage':

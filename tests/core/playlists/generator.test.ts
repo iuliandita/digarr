@@ -450,6 +450,7 @@ describe('generatePlaylist()', () => {
           status: 'resolved',
           resolvedTrackCount: 1,
           includedTrackCount: 1,
+          titleOnly: true,
         },
         {
           artistName: 'Same Name',
@@ -457,6 +458,7 @@ describe('generatePlaylist()', () => {
           status: 'limited',
           resolvedTrackCount: 1,
           includedTrackCount: 0,
+          titleOnly: true,
         },
       ],
     })

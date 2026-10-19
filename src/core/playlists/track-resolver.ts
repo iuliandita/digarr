@@ -1,5 +1,6 @@
 import PQueue from 'p-queue'
 import type {
+  DeezerTrackSearchResult,
   LocalTrack,
   MBRecording,
   PlaylistArtistOutcome,
@@ -61,27 +62,47 @@ async function resolveFromSpotify(
     }))
 }
 
+// Deezer answers no field-qualified queries (artist:"x") any more, so resolve the
+// artist by exact name, then use its top tracks; ambiguous or unknown names fall back
+// to a plain track search filtered to that exact artist name.
 async function resolveFromDeezer(
   artistName: string,
   deps: TrackResolverDeps,
   limit: number,
 ): Promise<ResolvedTrack[]> {
-  if (!deps.deezerSearch) return []
+  const wanted = normalizeArtist(artistName)
+  const toTrack = (t: DeezerTrackSearchResult): ResolvedTrack => ({
+    artistName,
+    trackName: t.name,
+    deezerId: t.id,
+    source: 'deezer',
+  })
 
-  const results = await deps.deezerSearch(`artist:"${artistName}"`, limit)
-  return results
-    .filter((t) =>
-      t.artists.some((artist) => normalizeArtist(artist) === normalizeArtist(artistName)),
+  if (deps.deezerArtists && deps.deezerArtistTopTracks) {
+    const matches = (await deps.deezerArtists(artistName, 10)).filter(
+      (a) => normalizeArtist(a.name) === wanted,
     )
+    const [only] = matches
+    if (matches.length === 1 && only) {
+      const top = await deps.deezerArtistTopTracks(only.id, limit)
+      if (top.length > 0) return top.slice(0, limit).map(toTrack)
+    }
+  }
+
+  if (!deps.deezerSearch) return []
+  const results = await deps.deezerSearch(artistName, Math.max(limit, 25))
+  return results
+    .filter((t) => t.artists.some((artist) => normalizeArtist(artist) === wanted))
     .sort((a, b) => b.rank - a.rank)
     .slice(0, limit)
-    .map((t) => ({
-      artistName,
-      trackName: t.name,
-      deezerId: t.id,
-      source: 'deezer' as const,
-    }))
+    .map(toTrack)
 }
+
+// MusicBrainz browse order is arbitrary, so skip titles that are clearly not songs:
+// bracketed placeholders ("[untitled]"), broadcasts, rehearsals, demos, interviews,
+// "live at/in/on/from ..." sessions and dated radio takes like "(1997-03-02)".
+const NON_TRACK_TITLE =
+  /^\s*\[.*\]\s*$|\b(broadcast|rehearsal|demo|interview)\b|\blive (at|in|on|from)\b|\(\d{4}(-\d{2}){0,2}\)/i
 
 async function resolveFromMusicBrainz(
   artistName: string,
@@ -92,7 +113,8 @@ async function resolveFromMusicBrainz(
   if (!deps.musicbrainzRecordings) return []
 
   const recordings = await deps.musicbrainzRecordings(artistMbid)
-  return recordings.slice(0, limit).map((r: MBRecording) => ({
+  const songs = recordings.filter((r) => !NON_TRACK_TITLE.test(r.title))
+  return (songs.length > 0 ? songs : recordings).slice(0, limit).map((r: MBRecording) => ({
     artistName,
     trackName: r.title,
     mbid: r.id,
@@ -135,7 +157,7 @@ export async function resolveTracksForArtistDetailed(
         source,
         resolve: () => resolveFromSpotify(artistName, deps, cfg.tracksPerArtist),
       })
-    } else if (source === 'deezer' && deps.deezerSearch) {
+    } else if (source === 'deezer' && (deps.deezerSearch || deps.deezerArtistTopTracks)) {
       searches.push({
         source,
         resolve: () => resolveFromDeezer(artistName, deps, cfg.tracksPerArtist),
@@ -162,6 +184,9 @@ export async function resolveTracksForArtistDetailed(
             status: 'resolved',
             resolvedTrackCount: tracks.length,
             includedTrackCount: tracks.length,
+            ...(tracks.every((t) => t.source === 'musicbrainz')
+              ? { titleOnly: true as const }
+              : {}),
           },
         }
       }

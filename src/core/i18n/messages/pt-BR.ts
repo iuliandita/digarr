@@ -466,6 +466,7 @@ export const ptBR = {
   'discover.playability.missingSource': 'Nenhuma fonte de faixas configurada: {count}',
   'discover.playability.noMatch': 'Nenhuma faixa correspondente: {count}',
   'discover.playability.upstreamFailure': 'Falha na busca: {count}',
+  'discover.playability.titleOnly': 'Só o título, nada para tocar: {count}',
   'discover.playability.unknown': 'Ainda não verificado: {count}',
   'discover.rejectAllPending': 'Rejeitar todas as pendências',
   'discover.rejectAllPendingMessage':

@@ -466,6 +466,7 @@ export const it = {
   'discover.playability.missingSource': 'Nessuna fonte di brani configurata: {count}',
   'discover.playability.noMatch': 'Nessun brano corrispondente: {count}',
   'discover.playability.upstreamFailure': 'Ricerca non riuscita: {count}',
+  'discover.playability.titleOnly': 'Solo il titolo, niente da riprodurre: {count}',
   'discover.playability.unknown': 'Non ancora controllato: {count}',
   'discover.rejectAllPending': 'Rifiuta tutto in sospeso',
   'discover.rejectAllPendingMessage':

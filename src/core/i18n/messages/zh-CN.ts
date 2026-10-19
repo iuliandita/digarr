@@ -426,6 +426,7 @@ export const zhCN = {
   'discover.playability.missingSource': '未设置曲目来源：{count}',
   'discover.playability.noMatch': '没有匹配的曲目：{count}',
   'discover.playability.upstreamFailure': '查找失败：{count}',
+  'discover.playability.titleOnly': '仅有标题，无法播放：{count}',
   'discover.playability.unknown': '尚未检查：{count}',
   'discover.rejectAllPending': '拒绝所有待处理的',
   'discover.rejectAllPendingMessage': '拒绝所有待处理的建议？此操作无法撤消。',

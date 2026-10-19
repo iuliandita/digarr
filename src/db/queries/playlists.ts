@@ -77,7 +77,7 @@ export type PendingPlayability = {
   pendingArtists: number
   withTrack: number
   withoutTrack: number
-  reasons: { missingSource: number; noMatch: number; upstreamFailure: number }
+  reasons: { missingSource: number; noMatch: number; upstreamFailure: number; titleOnly: number }
   unknown: number
   checkedAt: string | null
 }
@@ -117,11 +117,15 @@ export async function getPendingPlayability(
       .limit(PLAYABILITY_RUN_LIMIT),
   ])
 
-  const latest = new Map<string, { status: string; startedAt: Date }>()
+  const latest = new Map<string, { status: string; titleOnly: boolean; startedAt: Date }>()
   for (const run of runs) {
     for (const outcome of playlistResolution(run.resolution)?.outcomes ?? []) {
       if (outcome.artistMbid && !latest.has(outcome.artistMbid)) {
-        latest.set(outcome.artistMbid, { status: outcome.status, startedAt: run.startedAt })
+        latest.set(outcome.artistMbid, {
+          status: outcome.status,
+          titleOnly: outcome.titleOnly === true,
+          startedAt: run.startedAt,
+        })
       }
     }
   }
@@ -130,7 +134,7 @@ export async function getPendingPlayability(
     pendingArtists: pending.length,
     withTrack: 0,
     withoutTrack: 0,
-    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0 },
+    reasons: { missingSource: 0, noMatch: 0, upstreamFailure: 0, titleOnly: 0 },
     unknown: 0,
     checkedAt: null,
   }
@@ -142,8 +146,13 @@ export async function getPendingPlayability(
       continue
     }
     if (!checkedAt || outcome.startedAt > checkedAt) checkedAt = outcome.startedAt
-    if (outcome.status === 'resolved' || outcome.status === 'limited') summary.withTrack++
-    else {
+    if (outcome.status === 'resolved' || outcome.status === 'limited') {
+      // A bare MusicBrainz title has nothing to play, so it is not playable.
+      if (outcome.titleOnly) {
+        summary.withoutTrack++
+        summary.reasons.titleOnly++
+      } else summary.withTrack++
+    } else {
       summary.withoutTrack++
       if (outcome.status === 'unavailable') summary.reasons.missingSource++
       else if (outcome.status === 'unmatched') summary.reasons.noMatch++

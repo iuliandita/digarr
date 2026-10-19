@@ -467,6 +467,7 @@ export const nl = {
   'discover.playability.missingSource': 'Geen nummerbron ingesteld: {count}',
   'discover.playability.noMatch': 'Geen overeenkomend nummer: {count}',
   'discover.playability.upstreamFailure': 'Opzoeken mislukt: {count}',
+  'discover.playability.titleOnly': 'Alleen een titel, niets om af te spelen: {count}',
   'discover.playability.unknown': 'Nog niet gecontroleerd: {count}',
   'discover.rejectAllPending': 'Alles in behandeling afwijzen',
   'discover.rejectAllPendingMessage':

@@ -469,6 +469,7 @@ export const fr = {
   'discover.playability.missingSource': 'Aucune source de titres configurée : {count}',
   'discover.playability.noMatch': 'Aucun titre correspondant : {count}',
   'discover.playability.upstreamFailure': 'Échec de la recherche : {count}',
+  'discover.playability.titleOnly': 'Titre seulement, rien à lire : {count}',
   'discover.playability.unknown': 'Pas encore vérifié : {count}',
   'discover.rejectAllPending': 'Rejeter tout en attente',
   'discover.rejectAllPendingMessage':

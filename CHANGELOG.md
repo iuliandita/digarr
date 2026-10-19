@@ -17,6 +17,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Deezer track lookup works again for Audition and playlists, and the Discover preview. Deezer stopped answering `artist:"..."` searches, so nearly every artist fell through to MusicBrainz titles. Digarr now finds the artist by exact name and takes its top tracks, or falls back to a plain search filtered to that exact artist. The MusicBrainz fallback also skips placeholder and non-song titles (`[untitled]`, broadcasts, rehearsals, demos, live sessions) when it has other recordings (#1135).
+- The pending-artist playability summary no longer counts artists whose only match is a MusicBrainz title as playable; they show as "Title only, nothing to play" and `GET /api/v1/recommendations/playability` returns a new `reasons.titleOnly` count. Runs saved before this change keep their old classification until the next Audition run (#1135, #1045).
 - The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).
 - Library Sources "Sync now" and "Sync all" no longer hit a 504 behind a reverse proxy: the sync runs in the background, the request returns 202 at once, and the card shows running, then the final counts or error. A sync that is already running returns 409 (#1127).

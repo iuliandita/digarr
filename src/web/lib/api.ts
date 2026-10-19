@@ -1049,7 +1049,7 @@ export type PendingPlayability = {
   pendingArtists: number
   withTrack: number
   withoutTrack: number
-  reasons: { missingSource: number; noMatch: number; upstreamFailure: number }
+  reasons: { missingSource: number; noMatch: number; upstreamFailure: number; titleOnly: number }
   unknown: number
   checkedAt: string | null
 }

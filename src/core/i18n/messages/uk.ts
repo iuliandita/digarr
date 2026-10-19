@@ -462,6 +462,7 @@ export const uk = {
   'discover.playability.missingSource': 'Джерело треків не налаштовано: {count}',
   'discover.playability.noMatch': 'Відповідного треку немає: {count}',
   'discover.playability.upstreamFailure': 'Помилка пошуку: {count}',
+  'discover.playability.titleOnly': 'Лише назва, нічого відтворювати: {count}',
   'discover.playability.unknown': 'Ще не перевірено: {count}',
   'discover.rejectAllPending': 'Відхилити всі незавершені',
   'discover.rejectAllPendingMessage':

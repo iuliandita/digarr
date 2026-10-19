@@ -21,6 +21,9 @@ export async function buildPlaylistResolverDeps(
   const deps: TrackResolverDeps = {
     musicbrainzRecordings: (artistMbid) => mbClient.getRecordings(artistMbid),
     deezerSearch: (query, limit = 10) => deezerClient.searchTracks(query, limit),
+    deezerArtists: (query, limit = 10) => deezerClient.searchArtists(query, limit),
+    deezerArtistTopTracks: (artistId, limit = 10) =>
+      deezerClient.getArtistTopTrackResults(artistId, limit),
   }
   if (userId == null) return deps
 
