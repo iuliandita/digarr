@@ -31,14 +31,18 @@ export async function resolveTagRadioRecordings(
   const cached = await getCachedRecordingArtists(db, allMbids)
   const cacheMap = new Map(cached.map((c) => [c.recordingMbid, c]))
 
-  // 2. Partition into hits and misses; rows cached before titles were stored count as misses.
-  const misses = recordings.filter((r) => !cacheMap.get(r.recordingMbid)?.recordingTitle)
+  // 2. Partition into hits and misses. Rows cached before titles were stored (null) are
+  // looked up once; a successful lookup always writes a title or '' so it is not refetched.
+  const misses = recordings.filter((r) => cacheMap.get(r.recordingMbid)?.recordingTitle == null)
 
   // 3. Resolve misses via MB (client handles rate limiting internally)
   const resolved: (RecordingArtistCredit | null)[] = []
   for (const r of misses) {
     try {
-      resolved.push(await mbClient.lookupRecording(r.recordingMbid))
+      const credit = await mbClient.lookupRecording(r.recordingMbid)
+      const stale = cacheMap.get(r.recordingMbid)
+      // Gone from MB: mark the old row as looked up instead of refetching it every run.
+      resolved.push(credit ?? (stale ? { ...stale, title: '' } : null))
     } catch (err) {
       console.error(`[tag-radio] lookupRecording failed for ${r.recordingMbid}:`, err)
       resolved.push(null)
@@ -54,7 +58,7 @@ export async function resolveTagRadioRecordings(
         recordingMbid: e.recordingMbid,
         artistMbid: e.artistMbid,
         artistName: e.artistName,
-        recordingTitle: e.title ?? null,
+        recordingTitle: e.title ?? '',
       })),
     )
   } catch (err) {
@@ -71,14 +75,14 @@ export async function resolveTagRadioRecordings(
     recordingToArtist.set(c.recordingMbid, {
       artistMbid: c.artistMbid,
       artistName: c.artistName,
-      title: c.recordingTitle ?? undefined,
+      title: c.recordingTitle || undefined,
     })
   }
   for (const e of newEntries) {
     recordingToArtist.set(e.recordingMbid, {
       artistMbid: e.artistMbid,
       artistName: e.artistName,
-      title: e.title,
+      title: e.title || undefined,
     })
   }
 

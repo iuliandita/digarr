@@ -117,6 +117,11 @@ function isSameRecording(
   )
 }
 
+// Spotify field filters cannot escape a double quote, so drop it from the phrase.
+function spotifyPhrase(value: string): string {
+  return value.replace(/"/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
 function recordingSearches(
   artistName: string,
   recording: SuggestedRecording,
@@ -153,7 +158,10 @@ function recordingSearches(
       searches.push({
         source,
         resolve: async () => {
-          const results = await spotifySearch(`artist:"${artistName}" track:"${title}"`, 10)
+          const results = await spotifySearch(
+            `artist:"${spotifyPhrase(artistName)}" track:"${spotifyPhrase(title)}"`,
+            10,
+          )
           const match = results.find((t) =>
             isSameRecording({ title: t.name, artists: t.artists }, artistName, title),
           )
@@ -165,7 +173,8 @@ function recordingSearches(
       searches.push({
         source,
         resolve: async () => {
-          const results = await deezerSearch(`artist:"${artistName}" track:"${title}"`, 10)
+          // Plain query: Deezer ignores field filters; exact matching happens below.
+          const results = await deezerSearch(`${artistName} ${title}`, 10)
           const match = results.find((t) =>
             isSameRecording({ title: t.name, artists: t.artists }, artistName, title),
           )
@@ -174,13 +183,11 @@ function recordingSearches(
       })
     }
   }
-  if (deps.musicbrainzRecordings) {
-    // The stored recording is already a MusicBrainz identity; no lookup needed.
-    searches.push({
-      source: 'musicbrainz',
-      resolve: async () => [{ ...base, source: 'musicbrainz' as const }],
-    })
-  }
+  // The stored recording is already a MusicBrainz identity; no lookup needed.
+  searches.push({
+    source: 'musicbrainz',
+    resolve: async () => [{ ...base, source: 'musicbrainz' as const }],
+  })
   return searches
 }
 
@@ -199,13 +206,14 @@ export async function resolveTracksForArtistDetailed(
   const cfg = { ...DEFAULT_CONFIG, ...config }
   let attempted = false
   let failed = false
-  const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = recording
-    ? recordingSearches(artistName, recording, deps, cfg.sourcePriority)
+  // A titled recording is never swapped for another song by the same artist. Without a
+  // title it cannot be matched, so the artist resolves the usual way.
+  const pinned = recording?.title?.trim() ? recording : undefined
+  const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = pinned
+    ? recordingSearches(artistName, pinned, deps, cfg.sourcePriority)
     : []
-  // A recommended recording is never swapped for another song by the same artist.
-  if (recording) attempted = true
 
-  for (const source of recording ? [] : cfg.sourcePriority) {
+  for (const source of pinned ? [] : cfg.sourcePriority) {
     if (source === 'local') {
       for (const search of [
         deps.jellyfinSearch,
@@ -231,7 +239,7 @@ export async function resolveTracksForArtistDetailed(
       })
     }
   }
-  if (!recording && artistMbid && deps.musicbrainzRecordings) {
+  if (!pinned && artistMbid && deps.musicbrainzRecordings) {
     searches.push({
       source: 'musicbrainz',
       resolve: () => resolveFromMusicBrainz(artistName, artistMbid, deps, cfg.tracksPerArtist),

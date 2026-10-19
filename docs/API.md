@@ -1142,7 +1142,7 @@ Album override notes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/exports/:format` | Yes | Export recommendations as json/csv/m3u/xspf |
+| GET | `/api/v1/exports/:format` | Yes | Export recommendations as json/csv/m3u/xspf. A recommended recording appears as JSON `recordingMbid` / `recordingTitle`, the trailing CSV columns `recording_mbid,recording_title`, and the XSPF track title and `<identifier>` |
 
 Query params: `status`, `batchId`. Limit: 10,000 rows.
 

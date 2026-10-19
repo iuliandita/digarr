@@ -430,7 +430,7 @@ export function createListenBrainzTagRadioMode(): DiscoveryModeDefinition {
           provenanceProvider: 'listenbrainz:tag-radio',
           confidenceHint: a.score,
           fallbackUsed: false,
-          ...(UUID_RE.test(a.recordingMbid)
+          ...(a.recordingTitle && UUID_RE.test(a.recordingMbid)
             ? { recordingMbid: a.recordingMbid.toLowerCase(), recordingTitle: a.recordingTitle }
             : {}),
         })),

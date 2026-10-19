@@ -204,6 +204,8 @@ export type ExportableRecommendationRow = {
   aiReasoning: string | null
   createdAt: Date
   recommendedReleaseGroupTitle: string | null
+  recommendedRecordingMbid: string | null
+  recommendedRecordingTitle: string | null
   artist: {
     name: string
     mbid: string
@@ -241,6 +243,8 @@ export async function listRecommendationsForExport(
       aiReasoning: recommendations.aiReasoning,
       createdAt: recommendations.createdAt,
       recommendedReleaseGroupTitle: recommendations.recommendedReleaseGroupTitle,
+      recommendedRecordingMbid: recommendations.recommendedRecordingMbid,
+      recommendedRecordingTitle: recommendations.recommendedRecordingTitle,
       artist: {
         name: artists.name,
         mbid: artists.mbid,

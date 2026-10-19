@@ -191,8 +191,8 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "53e3afe9bbcb09c962fba06e773cadf6c629dfc0f97b78098393ab4e5f19394a",
-        "src/db/queries/recommendations.ts": "fef1f4b7cadd16248f8f9193edc267c831a092ae0c1880dea86426e85a528718",
-        "src/db/queries/recording-artist-cache.ts": "6cd2af92cc73dc23abbf8cc0c47f2a30199bd4cf1ad5631a9b254f422ffc4bbe",
+        "src/db/queries/recommendations.ts": "0cb939924bf9519435670c8b840772c385315e89b103e9b7900e069dfc1acd4f",
+        "src/db/queries/recording-artist-cache.ts": "30f8ccf38d6084704bc809d6cd4c38821fcbaaeae11c95906fa057cef94aec31",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
         "src/db/queries/setup.ts": "25ad4caa8da652ae83f6dcdd845630a8ec801261cd753816e6908abaf6345401",
@@ -203,14 +203,14 @@
         "src/db/schema.ts": "95c3f8eccf8be879afc8086473558d5bc0a4036e8545a0d74acbe0d4d1e2385e",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "320ad0671934ac342c97019bfe5356660683bd7e7ee6af4ef4d62deb7a05fddc",
+      "digest": "23a8a4bd5c01da04ff0865d4e7c6ad0e53739b2cdb1f4494087cf98d7d69514d",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0062 adds nullable recommendations.recommended_recording_mbid/title and recording_artist_cache.recording_title with ADD COLUMN IF NOT EXISTS; backups carry the columns and older backups restore them as null. Validated on isolated in-memory PGlite (migration re-run, backup round-trip, older-format restore); no live PostgreSQL restore.",
+        "note": "Migration 0062 is unchanged. The cache upsert now also refreshes artist_mbid/artist_name, and a successful lookup stores an empty title marker so it is not refetched. The export query selects the two recording columns. Backup/restore behavior is unchanged and covered by the existing PGlite tests.",
         "breaking": "none",
         "migration": "Take a normal backup before upgrading. Rollback: the previous image ignores the nullable columns, or restore the pre-upgrade backup; either way only the stored recommended track is lost.",
-        "digest": "320ad0671934ac342c97019bfe5356660683bd7e7ee6af4ef4d62deb7a05fddc"
+        "digest": "23a8a4bd5c01da04ff0865d4e7c6ad0e53739b2cdb1f4494087cf98d7d69514d"
       }
     },
     "configuration": {
@@ -299,7 +299,7 @@
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "ed7401ae574d24d0a68ee80e46ace07f625ed379f25bd27e6a3a745714f8f8d8",
         "src/server/routes/discovery-modes.ts": "f84e434fd2bdf8b9a3c92ba5d983d3acd76abe8bec15c440bd67b5b8e491c7d4",
-        "src/server/routes/exports.ts": "74c47dbedf5c5dcc7ad95c306f60e2a2d95cb1bf0f5a9b67bb64524304b050a2",
+        "src/server/routes/exports.ts": "033b3afb539a0e0213ca319173643bf96f52e7417048e824e9157e4888a313ff",
         "src/server/routes/genres.ts": "fbaf9454ecec0f6dfcf49b95c41807b14c4aa3dba2233e0aa3e18da4e5ff3723",
         "src/server/routes/health.ts": "35dc74f5a76a2c6d2ed738a977ad6af2857b5e029808a71f86978bcdcc52934f",
         "src/server/routes/jobs.ts": "e63cba1b86075418235c1e06f2460baa1210d28bd76185bdac376ff697f46dca",
@@ -338,14 +338,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "a2df94acfd81ecc5f396f504b878569a886eb33ed25b380a806640af490045c6",
+      "digest": "383128394026a8bb2fee541f742ae8de7375052d6d9f5a1befcfeb242649e52f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md"],
-        "note": "MCP recommendation results and the recommendations API now expose nullable recommendedRecordingMbid and recommendedRecordingTitle; documented next to the release-group fields.",
+        "note": "The recommendation export now includes the recording: JSON recordingMbid/recordingTitle, trailing CSV columns recording_mbid,recording_title, and the XSPF title plus identifier. Documented on the exports route.",
         "breaking": "none",
         "migration": "",
-        "digest": "a2df94acfd81ecc5f396f504b878569a886eb33ed25b380a806640af490045c6"
+        "digest": "383128394026a8bb2fee541f742ae8de7375052d6d9f5a1befcfeb242649e52f"
       }
     },
     "interface": {
@@ -577,7 +577,7 @@
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
         "src/core/clients/subsonic.ts": "fd3a22c4274bba4ebad45b175a2f92f1689e1bc20379f3cfa4850860eb290d7e",
-        "src/core/clients/tag-radio-resolver.ts": "46f004a3c756b545fc458f72e01540c8f650f4b5733fb27eabb49057d4223002",
+        "src/core/clients/tag-radio-resolver.ts": "09bcaded570d0e05e1e60d34fbff8402af9a3f3823dfb73932c8b90f2fac80af",
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "9c8d8fd48eb212eb6914302c3882dd1e7751b26e9192e1a14d9e2bea56e758f4",
         "src/core/clients/wikidata.ts": "7d558154a6690fbaedd521e35bba78ef811c7f414df02c3c5a64c8c3b7c825ec",
@@ -592,7 +592,7 @@
         "src/core/discovery-modes/modes/deezer-flow.ts": "0eee1d434256cf9bf4ab9fadb166045a66cbd6d0222f6ed3bf9b4f98c8a8ff7e",
         "src/core/discovery-modes/modes/gap-fill.ts": "b3a32e0bfd823f63912fccb9cc801cd97db52945890412bfbba78ed579e30201",
         "src/core/discovery-modes/modes/labels.ts": "a9ebf278f6d1b72a975b605db0d4714365c8fb74a4e5201aeb99ecd44a16ac14",
-        "src/core/discovery-modes/modes/listenbrainz.ts": "12b59444902d9b25a444da7a253c0d2f3b6719f53c43ba8ea529dd274d2f92fe",
+        "src/core/discovery-modes/modes/listenbrainz.ts": "2e53637cec87a0aa034374ae60295b1ef2974d86147aec969ca601496270a518",
         "src/core/discovery-modes/modes/release-radar.ts": "8c50cdbf589dc0b592337bad73639617cc71ba522f922f25c254014d3f132755",
         "src/core/discovery-modes/modes/runtime.ts": "b2f52eeb674e0fda51e4e52978310c8917367e650d0882af20db409f9e8faf25",
         "src/core/discovery-modes/modes/similar-artist-web.ts": "866b8090cbc461e444360f8f220c93168a0f6283b38b5d3a022175d3119e2624",
@@ -671,7 +671,7 @@
         "src/core/playlists/strategies/types.ts": "efe670bc2f59e7df954c7a7fc90a127859b125ab0093931d3c39bff69401a50f",
         "src/core/playlists/strategies/weekly-digest.ts": "ff51e16426ef4ce4b28e19c5f8c453573adc8e067d86dd3025d52af1a81389d5",
         "src/core/playlists/strategy-deps.ts": "b94cbc2c5245d2f44ca31ffc420f708c07238cc4771530a55a943f0fcd9f261a",
-        "src/core/playlists/track-resolver.ts": "c06b260b6f3f7b64ce7cd777aace60486a4409d8dfdbe6a6e88557c993a7b3fd",
+        "src/core/playlists/track-resolver.ts": "2ea6a8edf6c2b0f894cf3781d68abd5fac76fa521535c34b8ec3f1bd5b382cac",
         "src/core/playlists/types.ts": "b8006ce7069c32248a16d1d6a2a28d770fc9128d3fe7e417c8bc1dc0c80ae2b9",
         "src/core/plugins/audiomuse.ts": "5f4dcc3bb590d63a53a544432932b6a114645fde1c659863d8f77f0266f7a948",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
@@ -733,10 +733,10 @@
         "src/core/subscriptions/types.ts": "05e47b95327590fd88f4307c6eb27ddb4eb89fc6ee0f7429073544ed512a3c5e",
         "src/core/targets/action-status.ts": "cfa09e111312ce4d47bda3679e6328f18efbea6262ade6037bcdf34d80d99ccb",
         "src/core/targets/emby-playlist.ts": "517b800456ce079a87380f8cb38817ef3bf54aa0f6d55f6e30ea089ef6551401",
-        "src/core/targets/export-csv.ts": "60c7f330c976f623d4e94f1d412a919134947add60f3b6725550187f4c0055a1",
+        "src/core/targets/export-csv.ts": "82989e24a5e576108395166c090e79073b6297682da82e2b474d331b792300f1",
         "src/core/targets/export-json.ts": "f418e541febdc4771b1c11a920688e187f46126b3a622a61fe0048f940ce5b6a",
         "src/core/targets/export-m3u.ts": "0cb4d7c7b9cc92b088f4bd043a5c93dd503853790db3586b1720498f729e821b",
-        "src/core/targets/export-xspf.ts": "2154173163b08ab03023ce458c7ee0e073f1b1d6a1727711122111d378db6e25",
+        "src/core/targets/export-xspf.ts": "4d99d929eca55e8c80d38ef765e8ff54be5623cb33bf1056044f2753c4e5493e",
         "src/core/targets/jellyfin-family-playlist.ts": "d83a7e675b8a10f92ab4a8e8de40df0a834cdd42087088d9887a301065bcfd02",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
         "src/core/targets/lidarr-connection.ts": "f60cd7104c3fca9ef32158c2c621d560c8c909d326b405fca870ef9962e0b26a",
@@ -753,7 +753,7 @@
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "e06e528ed1284642ac79cee57551a02b5fd07208ee0b55248ead3b5e42f3527e",
         "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
-        "src/core/targets/types.ts": "02669332082348a5981750d4636f76a2de5af01a61c3a67b99eba94aa75744e1",
+        "src/core/targets/types.ts": "466a3eab1d0d136d6a56269fdd1a2d39d1c3ab848640da722788d49ae827ff93",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
@@ -761,14 +761,14 @@
         "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "83b8941f3af85034561705059b79f9df46326d1dfc91a626f4110cc4ab534acf",
+      "digest": "2c8262c583ce97f928657596d98a316ca620a081f563670565ca3d77ee213613",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Tag Radio carries its recording MBID and title through resolve, storage, Audition and playlist export. Matching is exact only, and a miss is unresolved instead of swapped. Approval is unchanged. The discovery-recipes guide is updated too.",
+        "note": "Recording matching documented. Tag Radio stores a recording only when it has a title, and a title-less stored recording falls back to artist resolution. Spotify strips quotes from field queries and Deezer uses a plain query matched in code. The MusicBrainz identity fallback is always available, and exports carry the recording.",
         "breaking": "none",
         "migration": "",
-        "digest": "83b8941f3af85034561705059b79f9df46326d1dfc91a626f4110cc4ab534acf"
+        "digest": "2c8262c583ce97f928657596d98a316ca620a081f563670565ca3d77ee213613"
       }
     },
     "deployment": {

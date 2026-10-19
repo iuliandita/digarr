@@ -227,17 +227,24 @@ stored in these fields; they are looked up at playlist time and kept in their
 own `ResolvedTrack` fields next to `mbid`.
 
 Audition takes the recording of the best-scored pending recommendation for each
-artist. When a stored recording exists, the track resolver only accepts an exact
-artist and title match, in local libraries, Spotify, or Deezer. Without one, it
-falls back to the MusicBrainz identity. It never picks another song by the same
-artist. A remaster with a different title, the same title by another artist, or a
-recording without a title stays unresolved. The ListenBrainz playlist write-back
-sends the stored MBID. Spotify export skips an item that has a recording MBID but
-no title instead of using the artist's top tracks.
+artist. When a stored recording has a title, the track resolver only accepts an
+exact artist and title match in local libraries, Spotify (field query, double
+quotes stripped), or Deezer (plain query, matched in code). Without a match, it
+keeps the MusicBrainz identity itself. It never picks another song by the same
+artist. Export targets match that identity by exact title, so a remaster with a
+different title or the same title by another artist stays unresolved there. The
+ListenBrainz playlist write-back sends the stored MBID. Tag Radio only stores a
+recording when MusicBrainz returned a title; a stored recording without one
+cannot be matched and the artist resolves the usual way. Spotify export skips an
+item that has a recording MBID but no title instead of using the artist's top
+tracks. Recommendation exports include the recording: JSON `recordingMbid` /
+`recordingTitle`, CSV `recording_mbid` / `recording_title`, and XSPF uses the
+title as the track title and the recording URL as the identifier.
 
 Approval ignores the recording. A recording-backed recommendation is approved
 exactly like an artist recommendation: Lidarr `addArtist` with the same monitor
-option (default `none`) and the same slskd artist job. It never becomes an album
+option (manual approval defaults to `none`; auto-approve uses its configured
+option) and the same slskd artist job. It never becomes an album
 add or a track download. Later work that filters recently played tracks can
 match on `recommended_recording_mbid`.
 

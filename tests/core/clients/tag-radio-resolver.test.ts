@@ -109,6 +109,30 @@ describe('resolveTagRadioRecordings', () => {
     expect(result).toHaveLength(2)
   })
 
+  it('marks looked-up recordings so they are not refetched', async () => {
+    mockGetCached.mockResolvedValue([
+      { recordingMbid: 'rec-1', artistMbid: 'artist-A', artistName: 'A', recordingTitle: '' },
+      { recordingMbid: 'rec-2', artistMbid: 'artist-B', artistName: 'B', recordingTitle: null },
+    ])
+    mockLookupRecording.mockResolvedValueOnce(null)
+    const recordings: TagRadioRecording[] = [
+      { recordingMbid: 'rec-1', percent: 90, source: 'artist', tagCount: 1 },
+      { recordingMbid: 'rec-2', percent: 80, source: 'artist', tagCount: 1 },
+    ]
+
+    const result = await resolveTagRadioRecordings(recordings, mockMbClient, mockDb)
+
+    expect(mockLookupRecording).toHaveBeenCalledExactlyOnceWith('rec-2')
+    expect(mockInsertCached).toHaveBeenCalledWith(mockDb, [
+      expect.objectContaining({
+        recordingMbid: 'rec-2',
+        artistMbid: 'artist-B',
+        recordingTitle: '',
+      }),
+    ])
+    expect(result.map((r) => r.recordingTitle)).toEqual([undefined, undefined])
+  })
+
   it('groups multiple recordings by artist and takes max percent', async () => {
     const recordings: TagRadioRecording[] = [
       { recordingMbid: 'rec-1', percent: 40, source: 'artist', tagCount: 5 },

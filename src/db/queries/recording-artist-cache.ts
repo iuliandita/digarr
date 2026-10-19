@@ -36,6 +36,8 @@ export async function insertCachedRecordingArtists(
       .onConflictDoUpdate({
         target: recordingArtistCache.recordingMbid,
         set: {
+          artistMbid: sql`excluded.artist_mbid`,
+          artistName: sql`excluded.artist_name`,
           recordingTitle: sql`COALESCE(excluded.recording_title, ${recordingArtistCache.recordingTitle})`,
         },
       })
