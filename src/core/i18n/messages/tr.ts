@@ -1089,6 +1089,7 @@ export const tr = {
     '0-100. Popülerliği bu değerin üstünde olan kayıtları hariç tutar.',
   'discoveryMode.field.region': 'Bölge',
   'discoveryMode.option.weeklyJams': 'Haftalık Seçkiler',
+  'discoveryMode.option.weeklyExploration': 'Haftalık Keşif',
   'discoveryMode.option.similarUsersQuick': 'Benzer Kullanıcılar (Hızlı)',
   'discoveryMode.option.safe': 'Güvenli',
   'discoveryMode.option.medium': 'Orta',
@@ -1716,7 +1717,7 @@ export const tr = {
   'admin.migrateFailed': 'Taşıma başarısız oldu',
   'integration.radioArtistTagUser': 'Radyo (Sanatçı, Etiket, Kullanıcı), Benzer kullanıcılar',
   'integration.lbSubscriptions':
-    'Haftalık seçkiler, Yeni çıkışlar, Sanatçı radyosu, Etiket radyosu, Benzer kullanıcılar',
+    'Haftalık seçkiler, Haftalık keşif, Yeni çıkışlar, Sanatçı radyosu, Etiket radyosu, Benzer kullanıcılar',
   'integration.spotifySubscriptions': 'Beğenilenler, Listeler, Çalma listesi',
   'integration.deezerSubscriptions': 'Favoriler, Takip edilenler, Flow',
   'integration.deezerImport': 'Favoriler, Takip edilenler, Çalma listeleri',

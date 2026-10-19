@@ -88,6 +88,31 @@ describe('createListenBrainzMode', () => {
     ])
   })
 
+  it('passes the weekly-exploration feed through to the adapter', async () => {
+    getUserConnections.mockResolvedValue({
+      listenbrainzUsername: 'lb-user',
+      listenbrainzToken: 'lb-token',
+    })
+    adapterFetch.mockResolvedValue({ artists: [] })
+
+    const { createListenBrainzMode } = await import('@/core/discovery-modes/modes/listenbrainz')
+    await createListenBrainzMode().executor({
+      modeId: 'listenbrainz',
+      triggerType: 'manual',
+      settingsMode: 'easy',
+      userId: 7,
+      rawUserSettings: { feedType: 'weekly-exploration' },
+      normalizedSettings: { feedType: 'weekly-exploration' },
+      providerContext: { providerPath: ['listenbrainz'] },
+      fallbackPolicy: 'strict',
+    })
+
+    expect(adapterFetch).toHaveBeenCalledWith(
+      { feedType: 'weekly-exploration' },
+      { limit: undefined },
+    )
+  })
+
   it('approximates similar-users from top artists plus ListenBrainz similar artists', async () => {
     getUserConnections.mockResolvedValue({
       listenbrainzUsername: 'lb-user',

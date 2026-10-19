@@ -1108,6 +1108,7 @@ export const ru = {
     '0-100. Исключает записи с популярностью выше этого значения.',
   'discoveryMode.field.region': 'Регион',
   'discoveryMode.option.weeklyJams': 'Недельные хиты',
+  'discoveryMode.option.weeklyExploration': 'Еженедельные открытия',
   'discoveryMode.option.similarUsersQuick': 'Похожие пользователи (быстрый)',
   'discoveryMode.option.safe': 'Безопасный',
   'discoveryMode.option.medium': 'Средний',
@@ -1741,7 +1742,7 @@ export const ru = {
   'admin.migrateFailed': 'Миграция не удалась',
   'integration.radioArtistTagUser': 'Радио (Исполнитель, Тег, Пользователь), Похожие пользователи',
   'integration.lbSubscriptions':
-    'Еженедельные джемы, Новые релизы, Радио исполнителя, Радио тегов, Похожие пользователи',
+    'Еженедельные джемы, Еженедельные открытия, Новые релизы, Радио исполнителя, Радио тегов, Похожие пользователи',
   'integration.spotifySubscriptions': 'Понравившиеся песни, Чарты, Плейлист',
   'integration.deezerSubscriptions': 'Избранное, Отслеживаемые, Flow',
   'integration.deezerImport': 'Избранное, Отслеживаемые, Плейлисты',

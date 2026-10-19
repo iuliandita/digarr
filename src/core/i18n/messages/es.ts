@@ -1113,6 +1113,7 @@ export const es = {
     '0-100. Excluye las grabaciones cuya popularidad sea superior a este valor.',
   'discoveryMode.field.region': 'Región',
   'discoveryMode.option.weeklyJams': 'Jams semanales',
+  'discoveryMode.option.weeklyExploration': 'Exploración semanal',
   'discoveryMode.option.similarUsersQuick': 'Usuarios similares (rápido)',
   'discoveryMode.option.safe': 'Seguro',
   'discoveryMode.option.medium': 'Medio',
@@ -1746,7 +1747,7 @@ export const es = {
   'admin.migrateFailed': 'Error en la migración',
   'integration.radioArtistTagUser': 'Radio (Artista, Etiqueta, Usuario), Usuarios similares',
   'integration.lbSubscriptions':
-    'Jams semanales, Nuevos lanzamientos, Radio de artista, Radio de etiquetas, Usuarios similares',
+    'Jams semanales, Exploración semanal, Nuevos lanzamientos, Radio de artista, Radio de etiquetas, Usuarios similares',
   'integration.spotifySubscriptions':
     'Canciones que te gustan, Listas de éxitos, Lista de reproducción',
   'integration.deezerSubscriptions': 'Favoritos, Seguidos, Flow',

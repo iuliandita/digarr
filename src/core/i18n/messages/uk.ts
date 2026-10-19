@@ -1100,6 +1100,7 @@ export const uk = {
     '0-100. Виключає записи з популярністю вище цього значення.',
   'discoveryMode.field.region': 'Регіон',
   'discoveryMode.option.weeklyJams': 'Тижневі хіти',
+  'discoveryMode.option.weeklyExploration': 'Щотижневі відкриття',
   'discoveryMode.option.similarUsersQuick': 'Схожі користувачі (швидкий)',
   'discoveryMode.option.safe': 'Безпечний',
   'discoveryMode.option.medium': 'Середній',
@@ -1731,7 +1732,7 @@ export const uk = {
   'admin.migrateFailed': 'Міграція не вдалася',
   'integration.radioArtistTagUser': 'Радіо (Виконавець, Тег, Користувач), Подібні користувачі',
   'integration.lbSubscriptions':
-    'Щотижневі джеми, Нові релізи, Радіо виконавця, Радіо тегів, Подібні користувачі',
+    'Щотижневі джеми, Щотижневі відкриття, Нові релізи, Радіо виконавця, Радіо тегів, Подібні користувачі',
   'integration.spotifySubscriptions': 'Вподобані пісні, Чарти, Плейлист',
   'integration.deezerSubscriptions': 'Улюблене, Відстежувані, Flow',
   'integration.deezerImport': 'Улюблене, Відстежувані, Плейлисти',

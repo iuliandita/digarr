@@ -1088,6 +1088,7 @@ export const en = {
   'discoveryMode.field.helpPopularityMax': '0-100. Filter out recordings above this popularity.',
   'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Weekly Jams',
+  'discoveryMode.option.weeklyExploration': 'Weekly Exploration',
   'discoveryMode.option.similarUsersQuick': 'Similar Users (Quick)',
   'discoveryMode.option.safe': 'Safe',
   'discoveryMode.option.medium': 'Medium',
@@ -1732,7 +1733,7 @@ export const en = {
   // Integration capabilities - cell values
   'integration.radioArtistTagUser': 'Radio (Artist, Tag, User), Similar Users',
   'integration.lbSubscriptions':
-    'Weekly Jams, Fresh Releases, Artist Radio, Tag Radio, Similar Users',
+    'Weekly Jams, Weekly Exploration, Fresh Releases, Artist Radio, Tag Radio, Similar Users',
   'integration.spotifySubscriptions': 'Liked Songs, Charts, Playlist',
   'integration.deezerSubscriptions': 'Favorites, Followed, Flow',
   'integration.deezerImport': 'Favorites, Followed, Playlists',

@@ -258,6 +258,7 @@ export function subscriptionRoutes(deps: AppDependencies) {
               options: [
                 { value: 'fresh-releases', label: 'Fresh Releases' },
                 { value: 'weekly-jams', label: 'Weekly Jams' },
+                { value: 'weekly-exploration', label: 'Weekly Exploration' },
               ],
             },
           ],

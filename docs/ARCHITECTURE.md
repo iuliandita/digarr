@@ -237,8 +237,8 @@ rejection cooldowns run before this step, unchanged.
 
 Recommendations stay artist- or album-kind. A source that recommends a specific
 track can also attach a MusicBrainz recording MBID and title. Today ListenBrainz
-Tag Radio (the highest-ranked radio recording for each artist) and Weekly Jams
-(the first playlist track for each artist) do this. The fields travel as `recordingMbid` / `recordingTitle` on the
+Tag Radio (the highest-ranked radio recording for each artist), Weekly Jams and Weekly
+Exploration (the first playlist track for each artist) do this. The fields travel as `recordingMbid` / `recordingTitle` on the
 discovery candidate and `DiscoveredArtist`, then `suggestedRecording` on
 `ResolvedArtist`. They are stored in `recommendations.recommended_recording_mbid`
 and `recommended_recording_title`, both nullable. Resolve keeps a recording only when the discovery's

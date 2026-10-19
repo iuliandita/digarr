@@ -25,7 +25,7 @@ What each route needs:
 | Describe a mood (Discover) | An AI provider | The request fails with "AI provider not configured". |
 | Search (MusicBrainz) then Add to discovery queue, or adding a mood result | The searched artist is stored with no account. Similar artists also need a Last.fm API key or an AI provider. | Only the artist you picked is stored. |
 | Scan | At least one connected listening source, library source, or AI provider | The run stops with "At least one listening source or AI provider must be configured". |
-| ListenBrainz modes (Weekly Jams, Artist Radio, Tag Radio, and others) | ListenBrainz username and token | The mode shows "Connect ListenBrainz to use this mode." |
+| ListenBrainz modes (Weekly Jams, Weekly Exploration, Artist Radio, Tag Radio, and others) | ListenBrainz username and token | The mode shows "Connect ListenBrainz to use this mode." |
 | Charts | Last.fm API key | "Connect Last.fm to use this mode." |
 
 Fastest path with no accounts:
@@ -80,6 +80,7 @@ A schedule is a mode or a genre feed run on a cron. Two ways to build a tag sche
 
 - Tag Radio (needs ListenBrainz). Run a mode > Tag Radio, add tags with weights (for example `summer` weight 2, `surf rock` weight 1), then Schedule instead of Run now. Advanced adds Recordings to fetch (default 25; larger values are slower because of MusicBrainz rate limiting), and Popularity min and max (0 to 100) to keep results away from the most or least played. Each Tag Radio recommendation also remembers the radio track that earned the artist a place. Discover shows it as "Recommended track", and Audition plays that recording instead of a different song by the artist. If no exact match is found, the track is reported as unresolved.
 - Weekly Jams (needs ListenBrainz). Run a mode > ListenBrainz > Weekly Jams. Digarr reads the newest "Weekly Jams" playlist ListenBrainz generated for you (Mondays), not your own playlists. Each artist keeps the track ListenBrainz picked, shown as "Recommended track". If ListenBrainz has not generated one yet, the run finds nothing.
+- Weekly Exploration (needs ListenBrainz). Same place, pick Weekly Exploration. Weekly Jams is music you already play, so most of it is filtered out as owned or already recommended; Weekly Exploration is the playlist ListenBrainz builds from music you haven't heard, so it is the better fit for finding new artists. It is read the same way, newest playlist first, with the picked track kept per artist.
 - Genre schedule (needs Last.fm or Discogs). New > Source Type Genre, enter a tag such as `christmas` or `synthwave`, and pick the providers that can look up genres.
 
 Scheduling:

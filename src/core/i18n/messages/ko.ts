@@ -1077,6 +1077,7 @@ export const ko = {
   'discoveryMode.field.helpPopularityMax': '0-100. 인기도가 이 값보다 높은 녹음을 제외합니다.',
   'discoveryMode.field.region': '지역',
   'discoveryMode.option.weeklyJams': '위클리 잼',
+  'discoveryMode.option.weeklyExploration': '위클리 탐색',
   'discoveryMode.option.similarUsersQuick': '유사 사용자 (빠름)',
   'discoveryMode.option.safe': '안전',
   'discoveryMode.option.medium': '중간',
@@ -1686,7 +1687,7 @@ export const ko = {
   'admin.migrateFailed': '마이그레이션 실패',
   'integration.radioArtistTagUser': '라디오 (아티스트, 태그, 사용자), 유사한 사용자',
   'integration.lbSubscriptions':
-    '주간 잼, 신규 릴리스, 아티스트 라디오, 태그 라디오, 유사한 사용자',
+    '주간 잼, 주간 탐색, 신규 릴리스, 아티스트 라디오, 태그 라디오, 유사한 사용자',
   'integration.spotifySubscriptions': '좋아하는 곡, 차트, 플레이리스트',
   'integration.deezerSubscriptions': '즐겨찾기, 팔로잉, Flow',
   'integration.deezerImport': '즐겨찾기, 팔로잉, 플레이리스트',

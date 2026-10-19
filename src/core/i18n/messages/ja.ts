@@ -1090,6 +1090,7 @@ export const ja = {
   'discoveryMode.field.helpPopularityMax': '0-100。この人気度を上回る録音を除外します。',
   'discoveryMode.field.region': '地域',
   'discoveryMode.option.weeklyJams': 'ウィークリージャム',
+  'discoveryMode.option.weeklyExploration': 'ウィークリー探索',
   'discoveryMode.option.similarUsersQuick': '類似ユーザー（クイック）',
   'discoveryMode.option.safe': '安全',
   'discoveryMode.option.medium': '中程度',
@@ -1711,7 +1712,7 @@ export const ja = {
   'admin.migrateFailed': '移行に失敗しました',
   'integration.radioArtistTagUser': 'ラジオ (アーティスト, タグ, ユーザー), 類似ユーザー',
   'integration.lbSubscriptions':
-    'ウィークリージャム, 新リリース, アーティストラジオ, タグラジオ, 類似ユーザー',
+    'ウィークリージャム, ウィークリー探索, 新リリース, アーティストラジオ, タグラジオ, 類似ユーザー',
   'integration.spotifySubscriptions': 'お気に入りの曲, チャート, プレイリスト',
   'integration.deezerSubscriptions': 'お気に入り, フォロー中, Flow',
   'integration.deezerImport': 'お気に入り, フォロー中, プレイリスト',

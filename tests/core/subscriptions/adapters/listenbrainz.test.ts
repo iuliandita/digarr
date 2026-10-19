@@ -96,6 +96,19 @@ const playlistFixtures: Record<string, unknown> = {
       ],
     },
   },
+  [EXPLORATION]: {
+    playlist: {
+      title: 'Weekly Exploration for testuser, week of 2026-10-05 Mon',
+      track: [
+        jspfTrack(
+          'Explore Artist',
+          'New To You',
+          'aaaaaaaa-0000-4000-8000-000000000005',
+          'bbbbbbbb-0000-4000-8000-000000000005',
+        ),
+      ],
+    },
+  },
   [OLD_JAMS]: {
     playlist: {
       title: 'old',
@@ -266,6 +279,22 @@ describe('createListenBrainzAdapter', () => {
         noJamsServer.close()
       }
     })
+  })
+
+  it('reads the Weekly Exploration playlist for the weekly-exploration feed', async () => {
+    const adapter = createListenBrainzAdapter({ username: 'testuser', token: 'testtoken' })
+    const result = await adapter.fetch({ feedType: 'weekly-exploration' })
+
+    expect(result.artists).toEqual([
+      {
+        name: 'Explore Artist',
+        mbid: 'aaaaaaaa-0000-4000-8000-000000000005',
+        similarityScore: 0.6,
+        source: 'listenbrainz:weekly-exploration',
+        recordingMbid: 'bbbbbbbb-0000-4000-8000-000000000005',
+        recordingTitle: 'New To You',
+      },
+    ])
   })
 
   it('returns empty for unknown feedType', async () => {

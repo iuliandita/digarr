@@ -76,7 +76,16 @@ async function fetchFeed(
   }
 
   if (feedType === 'weekly-jams') {
-    return fetchWeeklyJams(deps.username, deps.token)
+    return fetchCreatedForPlaylist(deps.username, deps.token, 'weekly-jams', 'Weekly Jams')
+  }
+
+  if (feedType === 'weekly-exploration') {
+    return fetchCreatedForPlaylist(
+      deps.username,
+      deps.token,
+      'weekly-exploration',
+      'Weekly Exploration',
+    )
   }
 
   if (feedType === 'artist-radio') {
@@ -249,25 +258,30 @@ function mapJspfTrack(t: JspfTrack) {
   return { name, artistMbid, recordingMbid, recordingTitle: t.title?.trim() }
 }
 
-async function fetchWeeklyJams(username: string, token: string): Promise<AdapterResult> {
-  // Weekly Jams are created for the user by ListenBrainz, so they are not in /playlists, and
+async function fetchCreatedForPlaylist(
+  username: string,
+  token: string,
+  feed: string,
+  titlePrefix: string,
+): Promise<AdapterResult> {
+  // Weekly playlists are created for the user by ListenBrainz, so they are not in /playlists, and
   // the list endpoints return empty track arrays; tracks come from the playlist itself.
   const listRes = await fetchListenBrainz(
     `${LB_BASE}/user/${encodeURIComponent(username)}/playlists/createdfor`,
     token,
-    'weekly-jams',
+    feed,
   )
   const list = (await listRes.json()) as UserPlaylistsResponse
-  const newest = pickNewestPlaylist(list.playlists ?? [], 'Weekly Jams')
+  const newest = pickNewestPlaylist(list.playlists ?? [], titlePrefix)
   const playlistMbid = mbidFromUrl(newest?.identifier)
   if (!playlistMbid) {
     return {
       artists: [],
-      message: 'ListenBrainz has not generated a Weekly Jams playlist for this account yet.',
+      message: `ListenBrainz has not generated a ${titlePrefix} playlist for this account yet.`,
     }
   }
 
-  const res = await fetchListenBrainz(`${LB_BASE}/playlist/${playlistMbid}`, token, 'weekly-jams')
+  const res = await fetchListenBrainz(`${LB_BASE}/playlist/${playlistMbid}`, token, feed)
   const data = (await res.json()) as JspfResponse
   const tracks = (data.playlist?.track ?? []).flatMap((t) => {
     const mapped = mapJspfTrack(t)
@@ -278,7 +292,7 @@ async function fetchWeeklyJams(username: string, token: string): Promise<Adapter
     name: t.name,
     ...(t.artistMbid ? { mbid: t.artistMbid } : {}),
     similarityScore: 0.6,
-    source: 'listenbrainz:weekly-jams',
+    source: `listenbrainz:${feed}`,
     ...(t.artistMbid && t.recordingMbid && t.recordingTitle
       ? { recordingMbid: t.recordingMbid, recordingTitle: t.recordingTitle }
       : {}),

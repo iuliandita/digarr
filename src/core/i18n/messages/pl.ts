@@ -1104,6 +1104,7 @@ export const pl = {
     '0-100. Wyklucza nagrania o popularności powyżej tej wartości.',
   'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Cotygodniowa mieszanka',
+  'discoveryMode.option.weeklyExploration': 'Cotygodniowe odkrycia',
   'discoveryMode.option.similarUsersQuick': 'Podobni użytkownicy (szybko)',
   'discoveryMode.option.safe': 'Bezpieczny',
   'discoveryMode.option.medium': 'Średni',
@@ -1731,7 +1732,7 @@ export const pl = {
   'admin.migrateFailed': 'Migracja nieudana',
   'integration.radioArtistTagUser': 'Radio (Artysta, Tag, Użytkownik), Podobni użytkownicy',
   'integration.lbSubscriptions':
-    'Cotygodniowa mieszanka, Nowe wydania, Radio artysty, Radio tagu, Podobni użytkownicy',
+    'Cotygodniowa mieszanka, Cotygodniowe odkrycia, Nowe wydania, Radio artysty, Radio tagu, Podobni użytkownicy',
   'integration.spotifySubscriptions': 'Polubione utwory, Listy, Playlista',
   'integration.deezerSubscriptions': 'Ulubione, Obserwowani, Flow',
   'integration.deezerImport': 'Ulubione, Obserwowani, Playlisty',

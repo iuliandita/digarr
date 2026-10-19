@@ -1105,6 +1105,7 @@ export const nl = {
     '0-100. Sluit opnamen boven deze populariteitswaarde uit.',
   'discoveryMode.field.region': 'Regio',
   'discoveryMode.option.weeklyJams': 'Wekelijkse jams',
+  'discoveryMode.option.weeklyExploration': 'Wekelijkse verkenning',
   'discoveryMode.option.similarUsersQuick': 'Vergelijkbare gebruikers (snel)',
   'discoveryMode.option.safe': 'Veilig',
   'discoveryMode.option.medium': 'Gemiddeld',
@@ -1738,7 +1739,7 @@ export const nl = {
   'admin.migrateFailed': 'Migratie mislukt',
   'integration.radioArtistTagUser': 'Radio (Artiest, Tag, Gebruiker), Vergelijkbare gebruikers',
   'integration.lbSubscriptions':
-    'Wekelijkse jams, Nieuwe releases, Artiest-radio, Tag-radio, Vergelijkbare gebruikers',
+    'Wekelijkse jams, Wekelijkse verkenning, Nieuwe releases, Artiest-radio, Tag-radio, Vergelijkbare gebruikers',
   'integration.spotifySubscriptions': 'Favoriete nummers, Charts, Afspeellijst',
   'integration.deezerSubscriptions': 'Favorieten, Gevolgd, Flow',
   'integration.deezerImport': 'Favorieten, Gevolgd, Afspeellijsten',

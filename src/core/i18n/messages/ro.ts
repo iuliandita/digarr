@@ -1109,6 +1109,7 @@ export const ro = {
     '0-100. Exclude înregistrările cu popularitate peste această valoare.',
   'discoveryMode.field.region': 'Regiune',
   'discoveryMode.option.weeklyJams': 'Sesiuni săptămânale',
+  'discoveryMode.option.weeklyExploration': 'Explorare săptămânală',
   'discoveryMode.option.similarUsersQuick': 'Utilizatori similari (rapid)',
   'discoveryMode.option.safe': 'Sigur',
   'discoveryMode.option.medium': 'Mediu',
@@ -1736,7 +1737,7 @@ export const ro = {
   'admin.migrateFailed': 'Migrarea a eșuat',
   'integration.radioArtistTagUser': 'Radio (Artist, Tag, Utilizator), Utilizatori similari',
   'integration.lbSubscriptions':
-    'Jam-uri săptămânale, Lansări noi, Radio artist, Radio etichete, Utilizatori similari',
+    'Jam-uri săptămânale, Explorare săptămânală, Lansări noi, Radio artist, Radio etichete, Utilizatori similari',
   'integration.spotifySubscriptions': 'Melodii apreciate, Topuri, Playlist',
   'integration.deezerSubscriptions': 'Favorite, Urmăriți, Flow',
   'integration.deezerImport': 'Favorite, Urmăriți, Playlisturi',

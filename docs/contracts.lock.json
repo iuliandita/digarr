@@ -319,7 +319,7 @@
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
         "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
-        "src/server/routes/subscriptions.ts": "1806f93c110ce6c4d0f2eec68288ae5c9fc8f980d1efe8343ff6b761f8a392cf",
+        "src/server/routes/subscriptions.ts": "77fb5edc614cceed10db76e8cd3a19deed7f6267d6ccd906bcc8780fd112a674",
         "src/server/routes/targets.ts": "b3682f7c1d2166ee234af764b65537100d1be73c66364cdec4b63c6ac4824c0d",
         "src/server/routes/test-seed.ts": "c69548244f1c788052a8a3d2bca5dbf5f2ff42af8fb8eb0cb2085d61b012660f",
         "src/server/routes/user-notifications.ts": "9d2889d4d02034d7e6890c5c4fef58a1b5f18f81a99edcc43ab52cb7e0d5abd7",
@@ -341,14 +341,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "c5b071fd35ea25866194b9779395c70105c8ef9ab0cd89d1a8327001e9366b2a",
+      "digest": "7efcc87f3654c7b68a688230ecf1896516ee78405cb59aec89bdb74324ed29ee",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md"],
-        "note": "Document the excludeRecentlyPlayed preference shape, its 1-365 window validation on both preference PATCH routes, and the metadata.recentlyPlayed fields on pipeline jobs.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Subscription adapter docs list the ListenBrainz feedType values including the new weekly-exploration; additive, no request shape change",
         "breaking": "none",
         "migration": "",
-        "digest": "c5b071fd35ea25866194b9779395c70105c8ef9ab0cd89d1a8327001e9366b2a"
+        "digest": "7efcc87f3654c7b68a688230ecf1896516ee78405cb59aec89bdb74324ed29ee"
       }
     },
     "interface": {
@@ -359,24 +359,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "90058fb12465429c447d0c842582988e8a36a2f7aafc31932c5f8d5880cf3e9c",
-        "src/core/i18n/messages/en.ts": "a9c95c9a0d36a842a764c6c998e0bea16507d4943c98ac526bf888db2aa7a6d6",
-        "src/core/i18n/messages/es.ts": "427ff064b14bd670fda9c1a59f1298b267ef7a50a873ea5b0f6f579c510cacce",
-        "src/core/i18n/messages/fr.ts": "89bda9567ac761d762597140dd5ad41774371faece9914bbb09c5502c6ce6cc2",
+        "src/core/i18n/messages/de.ts": "5ccbbfd61c1e7dd8e0a5e72c05d2a2648cec7b78eca95247361119e479f6dbc8",
+        "src/core/i18n/messages/en.ts": "3ede968518899d570e81515703dcfc14fb3e06458436f97ce21afcf9ed1d1996",
+        "src/core/i18n/messages/es.ts": "cde26e16f432de7bb0f419df4a016f923aae2785cb034ee81db2e3ede56e45f7",
+        "src/core/i18n/messages/fr.ts": "9da5821016b0734f52bc27a5c9fa6047680c06da72b0cb7d9930a26101e4f4be",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "813cdfea79720abbafdf32ec7685a29ca757f1ff4fb3b8064ff79e3d3568196c",
-        "src/core/i18n/messages/ja.ts": "f7a96ea6993ad977d6edf806dc12c8a99a935283acb0627b97dfa95cc37287d3",
-        "src/core/i18n/messages/ko.ts": "1cd6afaf04b0f1751126e84825bf244dba6693f659cc8db17c82bd3cdba4e3a9",
-        "src/core/i18n/messages/nl.ts": "abee27a1ac12e9a865e0186ec0cf11cf9691cec657aaca83cc7ab55a0b975148",
-        "src/core/i18n/messages/pl.ts": "6c04c02b104eaa318e188d83d73fe0fc7d77d5fbd5bdc14dc3c833e1ff33da81",
-        "src/core/i18n/messages/pt-BR.ts": "0013770b46edb460ba662b41e14f6cdacfa976b433b955f4be0969f87ae5c30d",
-        "src/core/i18n/messages/ro.ts": "10c0775c7aecc0cc6a5f1786f7a7812e35c977257584111e2f185276b5b9e28c",
-        "src/core/i18n/messages/ru.ts": "bc0ab697d92b42ff7a207c2523d84e7496f78361b3c3ca0abccf4a49e715080b",
-        "src/core/i18n/messages/source-lock.json": "8f991b4053d7450039c818dc864f4a8e2f1311529403456bb788b4bebfe27b9a",
-        "src/core/i18n/messages/tr.ts": "5dab511aeb4f688c88cc67f37a0c79f0a9868a96510db0606c2ab0f267f2fd07",
+        "src/core/i18n/messages/it.ts": "46de6c01cc74bffe7942c9f4c582a8d87388bd352ceacdcd6d4e3aaca3675489",
+        "src/core/i18n/messages/ja.ts": "824c9e9bebc5988460566edb99651ec0f6552d313dee810493bda7b87f1d1eef",
+        "src/core/i18n/messages/ko.ts": "7e701486afa63f32213e243026ce63d5b3428be35365ca4f781eb1930e2f5e6e",
+        "src/core/i18n/messages/nl.ts": "8582044bf7acba504126229bbbcb21b179ae009c43e16118beb873932cc79022",
+        "src/core/i18n/messages/pl.ts": "965e0610c953702292eb6d101f493ea7cc8a266724c5632869e388c92c256b54",
+        "src/core/i18n/messages/pt-BR.ts": "8181885055d477e2316d0096345e6a23d6c521b776bf95a7800a00ebb692c4c3",
+        "src/core/i18n/messages/ro.ts": "6a81f7c58f6c90fe10c8e80105ff6b020a17e7778aa90b240f0c7cae95a25ebe",
+        "src/core/i18n/messages/ru.ts": "3678b91c98098354db74c78cbf5a000854585914b660d49ba9396e6c7a6b59a8",
+        "src/core/i18n/messages/source-lock.json": "0258f0235af78a24606c21e541d23a74b87fd7eaa1d51904c43859fb1e06c7eb",
+        "src/core/i18n/messages/tr.ts": "a4d2b379625266ca6503997faaa7452529882697c0a04161027235f078227735",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "e93492a40fb60fee70a20013fb8e94c4bd5d95b902e15fda1d2b6e07a8097417",
-        "src/core/i18n/messages/zh-CN.ts": "f79e61a54609f60ee1e5131b9eea1e9514fefe84e959a286f376d5e56adaf6da",
+        "src/core/i18n/messages/uk.ts": "8f32711237fe0f002e395694a1b8735dd60cc4d9a92dad50c892869eae7be539",
+        "src/core/i18n/messages/zh-CN.ts": "ac47e0d581a5e8d4b275b932cc73c11a0e21051fc60d46de431ae168283cf82b",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -538,14 +538,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "79b11ccd0806135026fe7485d2aecbe60c92135241d1e61a3af648f073d77f53",
+      "digest": "636f02f1e6498382579c0e794e0c307c2dc098c0a9d19eca6734d3421db79315",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Settings > Recommendations > Advanced gains the recently played toggle and window, Job History shows one recently played status line, and the scan warns when the exclusion leaves too few results; nine new keys in all 15 locales. The discovery recipes guide also describes the setting.",
+        "note": "New Weekly Exploration option label and updated ListenBrainz subscriptions capability text in all 15 locales",
         "breaking": "none",
         "migration": "",
-        "digest": "79b11ccd0806135026fe7485d2aecbe60c92135241d1e61a3af648f073d77f53"
+        "digest": "636f02f1e6498382579c0e794e0c307c2dc098c0a9d19eca6734d3421db79315"
       }
     },
     "features": {
@@ -596,7 +596,7 @@
         "src/core/discovery-modes/modes/deezer-flow.ts": "0eee1d434256cf9bf4ab9fadb166045a66cbd6d0222f6ed3bf9b4f98c8a8ff7e",
         "src/core/discovery-modes/modes/gap-fill.ts": "b3a32e0bfd823f63912fccb9cc801cd97db52945890412bfbba78ed579e30201",
         "src/core/discovery-modes/modes/labels.ts": "a9ebf278f6d1b72a975b605db0d4714365c8fb74a4e5201aeb99ecd44a16ac14",
-        "src/core/discovery-modes/modes/listenbrainz.ts": "632e3d13c5d5edfd4fab20cde20b50deefa8a837842d517fe758e80bb2030d84",
+        "src/core/discovery-modes/modes/listenbrainz.ts": "1b00efe31dadfbc710692b4f69f70dd427ed351dba264e67eb939193b11a5a9a",
         "src/core/discovery-modes/modes/release-radar.ts": "8c50cdbf589dc0b592337bad73639617cc71ba522f922f25c254014d3f132755",
         "src/core/discovery-modes/modes/runtime.ts": "b2f52eeb674e0fda51e4e52978310c8917367e650d0882af20db409f9e8faf25",
         "src/core/discovery-modes/modes/similar-artist-web.ts": "866b8090cbc461e444360f8f220c93168a0f6283b38b5d3a022175d3119e2624",
@@ -726,7 +726,7 @@
         "src/core/subscriptions/adapters/genre.ts": "bdf75eacb7bfbe012e6a369d58e0ad6ccd8aea3d469fdcbb1149820d9c8334bb",
         "src/core/subscriptions/adapters/lastfm-charts.ts": "48deaa64c7e1bc5b4206048611763771e150eb0141d681e881e7bffea0679bd2",
         "src/core/subscriptions/adapters/lastfm-tag.ts": "1ccd33922c25b097c05ed06870f3c1c5716476639d71a3a9866f0da814d106d7",
-        "src/core/subscriptions/adapters/listenbrainz.ts": "af92a992a102021b88360fa8f4bc5ebafb03f31161bb86269d6a426fbd2137f5",
+        "src/core/subscriptions/adapters/listenbrainz.ts": "f6159af0dc994b69a8a3b29ab223966f8cffb524b4fc654fde0bc147b1e9cb25",
         "src/core/subscriptions/adapters/similar.ts": "c7d82ca5a438eef6076263bbc79123e1a471bd0599a9f0f52116dafd95353254",
         "src/core/subscriptions/adapters/spotify-charts.ts": "87c31cb69bc82212529b6a1c40e50922535c54e9a20683cdebee71b89f48ced5",
         "src/core/subscriptions/adapters/spotify-liked-songs.ts": "f1835f48a2800b292f271d8c7127d2e487e8c57b6d672f6e2c62a970925ab1a2",
@@ -767,14 +767,14 @@
         "src/index.ts": "2c26341fb4a31f015b25a9ccec50ca700191a068f0b23a5c74668acaaaea10b6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "7fb5831baf168d0c1d9fee38366ae442fcf6c9a397b8beaf27f863b90733ac03",
+      "digest": "a33785f74e22797bc9cf0bd9250fe03577ffd52da12c5fb2ecd283df8cdb011c",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
-        "note": "Release-group persistent TTL is 24h and memory refills inherit the DB expiry, so release groups are never staler than before; artist-search TTL 3 days; forced library sync bypasses cached searches and release groups and writes fresh results to both layers. TTL text updated in ARCHITECTURE, OPERATIONS and the changelog.",
+        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
+        "note": "Weekly Exploration feed documented in discovery recipes, recording identity sources and changelog",
         "breaking": "none",
         "migration": "",
-        "digest": "7fb5831baf168d0c1d9fee38366ae442fcf6c9a397b8beaf27f863b90733ac03"
+        "digest": "a33785f74e22797bc9cf0bd9250fe03577ffd52da12c5fb2ecd283df8cdb011c"
       }
     },
     "deployment": {

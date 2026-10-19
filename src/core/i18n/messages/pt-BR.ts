@@ -1108,6 +1108,7 @@ export const ptBR = {
     '0-100. Exclui gravações com popularidade acima deste valor.',
   'discoveryMode.field.region': 'Região',
   'discoveryMode.option.weeklyJams': 'Jams semanais',
+  'discoveryMode.option.weeklyExploration': 'Exploração semanal',
   'discoveryMode.option.similarUsersQuick': 'Usuários similares (rápido)',
   'discoveryMode.option.safe': 'Seguro',
   'discoveryMode.option.medium': 'Médio',
@@ -1738,7 +1739,7 @@ export const ptBR = {
   'admin.migrateFailed': 'Migração falhou',
   'integration.radioArtistTagUser': 'Rádio (Artista, Tag, Usuário), Usuários similares',
   'integration.lbSubscriptions':
-    'Jams semanais, Novos lançamentos, Rádio de artista, Rádio de tag, Usuários similares',
+    'Jams semanais, Exploração semanal, Novos lançamentos, Rádio de artista, Rádio de tag, Usuários similares',
   'integration.spotifySubscriptions': 'Músicas curtidas, Charts, Playlist',
   'integration.deezerSubscriptions': 'Favoritos, Seguidos, Flow',
   'integration.deezerImport': 'Favoritos, Seguidos, Playlists',

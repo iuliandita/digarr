@@ -1116,6 +1116,7 @@ export const de = {
     '0-100. Aufnahmen oberhalb dieses Beliebtheitswerts ausschließen.',
   'discoveryMode.field.region': 'Region',
   'discoveryMode.option.weeklyJams': 'Wöchentliche Jams',
+  'discoveryMode.option.weeklyExploration': 'Wöchentliche Entdeckungen',
   'discoveryMode.option.similarUsersQuick': 'Ähnliche Nutzer (Schnell)',
   'discoveryMode.option.safe': 'Sicher',
   'discoveryMode.option.medium': 'Mittel',
@@ -1752,7 +1753,7 @@ export const de = {
   'admin.migrateFailed': 'Migration fehlgeschlagen',
   'integration.radioArtistTagUser': 'Radio (Künstler, Tag, Benutzer), Ähnliche Benutzer',
   'integration.lbSubscriptions':
-    'Wöchentliche Jams, Neue Veröffentlichungen, Künstler-Radio, Tag-Radio, Ähnliche Benutzer',
+    'Wöchentliche Jams, Wöchentliche Entdeckungen, Neue Veröffentlichungen, Künstler-Radio, Tag-Radio, Ähnliche Benutzer',
   'integration.spotifySubscriptions': 'Gelikte Songs, Charts, Playlist',
   'integration.deezerSubscriptions': 'Favoriten, Gefolgt, Flow',
   'integration.deezerImport': 'Favoriten, Gefolgt, Playlists',

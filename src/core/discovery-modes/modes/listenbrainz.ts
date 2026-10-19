@@ -98,7 +98,10 @@ export function createListenBrainzMode(): DiscoveryModeDefinition {
         label: 'Feed',
         type: 'select',
         required: true,
-        options: [{ value: 'weekly-jams', label: 'Weekly Jams' }],
+        options: [
+          { value: 'weekly-jams', label: 'Weekly Jams' },
+          { value: 'weekly-exploration', label: 'Weekly Exploration' },
+        ],
       },
     ],
     advancedFields: [
@@ -109,6 +112,7 @@ export function createListenBrainzMode(): DiscoveryModeDefinition {
         required: true,
         options: [
           { value: 'weekly-jams', label: 'Weekly Jams' },
+          { value: 'weekly-exploration', label: 'Weekly Exploration' },
           { value: 'similar-users-quick', label: 'Similar Users (Quick)' },
         ],
       },
@@ -122,9 +126,10 @@ export function createListenBrainzMode(): DiscoveryModeDefinition {
         throw new Error('Connect ListenBrainz to use this mode.')
       }
 
+      const requested = request.normalizedSettings.feedType
       const feedType =
-        request.normalizedSettings.feedType === 'similar-users-quick'
-          ? 'similar-users-quick'
+        requested === 'similar-users-quick' || requested === 'weekly-exploration'
+          ? requested
           : 'weekly-jams'
       const limit = getNormalizedLimit(request, 25)
 
