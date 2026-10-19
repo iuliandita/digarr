@@ -3,6 +3,12 @@ import { envConfig } from '@/config/env'
 import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
 import { VERSION } from '@/version'
+import {
+  getMusicBrainzCacheStore,
+  type MusicBrainzCacheEntry,
+  type MusicBrainzCacheKind,
+  type MusicBrainzCacheStore,
+} from './musicbrainz-cache'
 import { type ReleaseGroupCache, releaseGroupCache } from './release-group-cache'
 
 const BASE_URL = envConfig.musicbrainzUrl
@@ -160,9 +166,61 @@ const sharedQueue = new PQueue({
 
 const DEFAULT_RELEASE_TYPES = ['album', 'ep', 'single'] as const
 
-export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGroupCache } = {}) {
+// p-queue runs higher numbers first. Background work (library sync and
+// reconciliation) only gets a slot when no interactive request is waiting.
+export type MusicBrainzPriority = 'interactive' | 'background'
+const QUEUE_PRIORITY: Record<MusicBrainzPriority, number> = { interactive: 1, background: 0 }
+
+export function createMusicBrainzClient(
+  options: {
+    releaseGroupCache?: ReleaseGroupCache
+    cacheStore?: MusicBrainzCacheStore
+    priority?: MusicBrainzPriority
+  } = {},
+) {
   const cache = options.releaseGroupCache ?? releaseGroupCache
   const queue = sharedQueue
+  const priority = QUEUE_PRIORITY[options.priority ?? 'interactive']
+  // Resolved per call: module-level clients are built before startup installs the DB store.
+  const store = () => options.cacheStore ?? getMusicBrainzCacheStore()
+
+  // The persistent cache is an optimisation; a DB hiccup must not fail a lookup.
+  async function readCache(key: string): Promise<MusicBrainzCacheEntry | null> {
+    try {
+      return await store().get(key)
+    } catch (err) {
+      console.warn(`[musicbrainz] cache read failed for ${key}: ${errMsg(err)}`)
+      return null
+    }
+  }
+
+  async function writeCache(
+    key: string,
+    kind: MusicBrainzCacheKind,
+    entry: MusicBrainzCacheEntry,
+  ): Promise<void> {
+    try {
+      await store().set(key, kind, entry)
+    } catch (err) {
+      console.warn(`[musicbrainz] cache write failed for ${key}: ${errMsg(err)}`)
+    }
+  }
+
+  async function cachedRequest<T>(kind: MusicBrainzCacheKind, path: string): Promise<T> {
+    const hit = await readCache(path)
+    if (hit?.status === 404) throw new MusicBrainzHttpError(404, path)
+    if (hit) return hit.body as T
+    try {
+      const body = await request<T>(path)
+      await writeCache(path, kind, { status: 200, body })
+      return body
+    } catch (err) {
+      if (err instanceof MusicBrainzHttpError && err.status === 404) {
+        await writeCache(path, kind, { status: 404, body: null })
+      }
+      throw err
+    }
+  }
 
   async function fetchOnce(path: string): Promise<Response> {
     const controller = new AbortController()
@@ -187,7 +245,7 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
     let lastErr: unknown
     for (let attempt = 0; attempt <= MAX_RETRIES; attempt += 1) {
       try {
-        const res = (await queue.add(() => fetchOnce(path))) as Response
+        const res = (await queue.add(() => fetchOnce(path), { priority })) as Response
 
         if (res.ok) {
           return (await res.json()) as T
@@ -236,19 +294,19 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
 
   function lookupArtist(mbid: string): Promise<MBArtist> {
     const params = new URLSearchParams({ inc: 'tags+url-rels+aliases', fmt: 'json' })
-    return request<MBArtist>(`/artist/${mbid}?${params}`)
+    return cachedRequest<MBArtist>('artist', `/artist/${mbid}?${params}`)
   }
 
   // Artist-artist relations (member-of-band, collaboration, aliases, etc.) for
   // the artist-relationships discovery mode. One request per artist.
   function lookupArtistRelations(mbid: string): Promise<MBArtist> {
     const params = new URLSearchParams({ inc: 'artist-rels', fmt: 'json' })
-    return request<MBArtist>(`/artist/${mbid}?${params}`)
+    return cachedRequest<MBArtist>('artist-relations', `/artist/${mbid}?${params}`)
   }
 
   function searchArtist(query: string): Promise<MBSearchResult> {
     const params = new URLSearchParams({ query, fmt: 'json' })
-    return request<MBSearchResult>(`/artist/?${params}`)
+    return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`)
   }
 
   async function getReleaseGroups(
@@ -264,15 +322,27 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
     ) {
       return (await fetchReleaseGroups(artistMbid, types)).groups
     }
-    const groups = await cache.get(artistMbid, () =>
-      fetchReleaseGroups(artistMbid, DEFAULT_RELEASE_TYPES),
-    )
+    const groups = await cache.get(artistMbid, () => loadReleaseGroupCatalog(artistMbid))
     return types === DEFAULT_RELEASE_TYPES ||
       DEFAULT_RELEASE_TYPES.every((type) => types.includes(type))
       ? groups
       : groups.filter(
           (group) => typeof group.type === 'string' && types.includes(group.type.toLowerCase()),
         )
+  }
+
+  async function loadReleaseGroupCatalog(
+    artistMbid: string,
+  ): Promise<{ groups: MBReleaseGroup[]; cacheable: boolean }> {
+    const key = `release-groups:${artistMbid}`
+    const hit = await readCache(key)
+    if (hit?.status === 200 && Array.isArray(hit.body)) {
+      return { groups: hit.body as MBReleaseGroup[], cacheable: true }
+    }
+    const catalog = await fetchReleaseGroups(artistMbid, DEFAULT_RELEASE_TYPES)
+    if (catalog.cacheable)
+      await writeCache(key, 'release-groups', { status: 200, body: catalog.groups })
+    return catalog
   }
 
   async function fetchReleaseGroups(
@@ -398,13 +468,13 @@ export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGr
       fmt: 'json',
       limit: String(limit),
     })
-    const data = await request<{
+    const data = await cachedRequest<{
       recordings?: Array<{
         id: string
         title: string
         isrcs?: string[]
       }>
-    }>(`/recording?${params}`)
+    }>('recordings', `/recording?${params}`)
 
     return (data.recordings ?? []).map((recording) => ({
       id: recording.id,

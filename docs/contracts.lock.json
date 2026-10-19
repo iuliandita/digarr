@@ -94,6 +94,7 @@
         "drizzle/0060_damp_grim_reaper.sql": "49202023b2d5a70185bc566c6fc87497e506357a1f712432d2ce31a0e1d2af3b",
         "drizzle/0061_artist_image_https.sql": "e9f0fb6c4dc1510b661ce181528ff4cadf158552ff655025b53352f3292336bb",
         "drizzle/0062_recommended_recording.sql": "ffedbec3adcdb5defda2148ea44de086324f37ce28db06f2e6e41d45a1395cef",
+        "drizzle/0063_musicbrainz_cache.sql": "a6620525bad3748ce5db36ae38a30e65a58b438f8b5dc46c53681f859ff1c5e7",
         "drizzle/meta/0000_snapshot.json": "0288497d803f09f4ad1304b866b91ab25785865951841152291b11e6642230c2",
         "drizzle/meta/0001_snapshot.json": "2d057997cde52ff489663572db9d8c8a905017420e37fc808444e0fd2e23057d",
         "drizzle/meta/0002_snapshot.json": "1b11da03bfc729f4c3a59fed6765ed2e7fff3e602dc1738e176062cff922a4b9",
@@ -153,7 +154,8 @@
         "drizzle/meta/0060_snapshot.json": "ca7914721ad1e36fb9912faff7f8907477f1233897e96449ed9b745729f53064",
         "drizzle/meta/0061_snapshot.json": "2379d4a4e7c452ed5c6b7f6f998a5667d10b26a643268596a401c97ed1295557",
         "drizzle/meta/0062_snapshot.json": "46bbecc9872c87a9215685dec8f150b30f5321aebd309e684b8014753d5a9cce",
-        "drizzle/meta/_journal.json": "671f5496c79c6f2d4175b5866e7d3fcdf006020a0eb5aca7220c0cf6360e1deb",
+        "drizzle/meta/0063_snapshot.json": "fc2c028cf6abf199ac58d50624e60531738e1b9510d92e4002eed9373d924b07",
+        "drizzle/meta/_journal.json": "c29eeae6fbd667123e4f37527e78526299649be8dc5d7456cd028d0b78d20a9d",
         "scripts/prepare-rollback-backup.ts": "16f86f11d35ca8d4f20cda207fafb2c60323b301f1d9e3befe1e583981529a36",
         "scripts/rotate-encryption-key.ts": "45e964db2a6d7b623df8151d6ea256c83d6e0d6eb2984fd5c2409acdf1868980",
         "scripts/rotation-sites.ts": "6b25ef3f836cdc7a333fd493a09ae4bd770bded277ba164f01decbd3bf68d882",
@@ -187,6 +189,7 @@
         "src/db/queries/jobs.ts": "88b3d71b463afec4a24e4f5476fc5ccf6606863c6a0b2211ec392e057be5cdff",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
+        "src/db/queries/musicbrainz-cache.ts": "6d47c3b0dd3b1b10fd32e9e2919e6b33e1dbbe8e67269e75d95b624d16a4033d",
         "src/db/queries/oauth-pending.ts": "2f7cde20dbaa8b63e49f66fbae0403847e91e8146e220819bdd32adc6b87f56b",
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
@@ -200,17 +203,17 @@
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "f5ce2a210b6c7c2b957166a03799bf5f8295abc2920d675a09556fb048e44218",
-        "src/db/schema.ts": "95c3f8eccf8be879afc8086473558d5bc0a4036e8545a0d74acbe0d4d1e2385e",
+        "src/db/schema.ts": "38c7f6a9905587994d777f35a8a27174a0d280d6a8ea0626594660055ea25761",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "99514e2efeaec8edd3e49c0935da2794d4bf3a4497fe9e1fd70cbeb6fb680680",
+      "digest": "f8b4ff2011629d4c2953651c3bbc981b835ea8087c4a8e48ab3183740a06e01b",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0062 is unchanged. The cache upsert now also refreshes artist_mbid/artist_name, and a successful lookup stores an empty title marker so it is not refetched. The export query selects the two recording columns. Backup/restore behavior is unchanged and covered by the existing PGlite tests.",
+        "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; JSON backups and backend copies exclude it and it is safe to truncate. Validated on isolated in-memory PGlite (re-run plus cache hit from a fresh client); no live PostgreSQL run.",
         "breaking": "none",
-        "migration": "Take a normal backup before upgrading. Rollback: the previous image ignores the nullable columns, or restore the pre-upgrade backup; either way only the stored recommended track is lost.",
-        "digest": "99514e2efeaec8edd3e49c0935da2794d4bf3a4497fe9e1fd70cbeb6fb680680"
+        "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
+        "digest": "f8b4ff2011629d4c2953651c3bbc981b835ea8087c4a8e48ab3183740a06e01b"
       }
     },
     "configuration": {
@@ -566,8 +569,9 @@
         "src/core/clients/listenbrainz.ts": "3fde2f4532375a4fc96d33019943190c214c73f913d2801e1f5db291de97ef13",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
+        "src/core/clients/musicbrainz-cache.ts": "bf8eb298fd667d99b5bfeceddaa45bb0bdb91731127b1b29c12300cf4fad21ee",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "7f592a0083d60f4b1fbec97d54767f1c14ae489f3f5642dcd5e83f5c01eb88b4",
+        "src/core/clients/musicbrainz.ts": "120ce60a84195d2fe62ad924525bda6beb76b908f0a9a3f6a3b53692d200740a",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -759,17 +763,17 @@
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "96e86b1665ddddc967789b30bd2ee034a80cea14cb0e0108e0329ba782253cca",
+        "src/index.ts": "2c26341fb4a31f015b25a9ccec50ca700191a068f0b23a5c74668acaaaea10b6",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "4bf240e251ad55a8cd57c1bc0ecb5c72820b617bac9f49bf34ff5ab41ecdaa9c",
+      "digest": "af01de027e92dbe3f056dd7052d5c2a4fd9cac89d497046d0f30579c202065da",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Startup marks jobs and batches left running by the previous process as failed (Interrupted by a server restart); documented in the Job History section and the changelog.",
+        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md"],
+        "note": "MusicBrainz client gains a persistent L2 response cache behind the in-memory release-group cache and interactive/background queue priority; library sync uses background priority. Documented TTLs, priority and exclusion in ARCHITECTURE and the changelog; no API or UI change.",
         "breaking": "none",
         "migration": "",
-        "digest": "4bf240e251ad55a8cd57c1bc0ecb5c72820b617bac9f49bf34ff5ab41ecdaa9c"
+        "digest": "af01de027e92dbe3f056dd7052d5c2a4fd9cac89d497046d0f30579c202065da"
       }
     },
     "deployment": {

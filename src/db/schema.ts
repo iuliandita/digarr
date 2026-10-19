@@ -926,6 +926,20 @@ export const recordingArtistCache = pgTable('recording_artist_cache', {
   cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow().notNull(),
 })
 
+// Rebuildable HTTP cache: excluded from backups and backend migration, safe to truncate.
+export const musicbrainzCache = pgTable(
+  'musicbrainz_cache',
+  {
+    key: text('key').primaryKey(),
+    kind: text('kind').notNull(),
+    status: integer('status').notNull(),
+    body: jsonb('body'),
+    fetchedAt: timestamp('fetched_at', { withTimezone: true }).defaultNow().notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('musicbrainz_cache_expires_at_idx').on(table.expiresAt)],
+)
+
 export const artistBlocks = pgTable(
   'artist_blocks',
   {

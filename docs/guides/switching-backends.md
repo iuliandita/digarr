@@ -6,6 +6,18 @@ and supports a PostgreSQL server via `DATABASE_URL` or the `DB_HOST` / `DB_USER`
 Settings lets admins copy the application restore registry between the two backends in one
 operation, without touching or modifying the source.
 
+## MusicBrainz cache migration
+
+Migration 0063 creates the `musicbrainz_cache` table and its `expires_at` index
+with `IF NOT EXISTS`, so it is safe to re-run; PostgreSQL and PGlite both apply
+it at startup. The table only holds MusicBrainz responses Digarr can fetch
+again. JSON backups and backend copies leave it out, and it is safe to
+truncate at any time. Take a normal backup before upgrading. Rollback: the
+previous image ignores the table, so it is left unused and harmless; drop it
+by hand if you want the space back. Validation used isolated in-memory PGlite:
+the migration was re-run and the cache served lookups from a fresh client. No
+live PostgreSQL run is claimed.
+
 ## Recommended recording migration
 
 Migration 0062 adds nullable `recommendations.recommended_recording_mbid` and
@@ -223,6 +235,7 @@ The copy follows the application restore registry, not every database table. The
 | `sessions` | All users are logged out and must log in again after the restart. |
 | Rate-limit counters | Login and register rate limits reset. |
 | `oauth_pending_auths` | Unfinished Spotify, Deezer, and TIDAL connect attempts must be restarted. |
+| `musicbrainz_cache` | The first scans on the new backend fetch MusicBrainz again and refill the cache. |
 
 The registry includes users, artists, recommendations, targets, saved connections, settings, preferences, jobs, playlists and their remote export bindings, artist/album blocks, and library state. It does not preserve unfinished provider authorization transactions.
 

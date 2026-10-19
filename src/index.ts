@@ -10,6 +10,7 @@ import { createEmbyClient } from './core/clients/emby'
 import { createJellyfinClient } from './core/clients/jellyfin'
 import { createLidarrClient } from './core/clients/lidarr'
 import { createMusicBrainzClient } from './core/clients/musicbrainz'
+import { setMusicBrainzCacheStore } from './core/clients/musicbrainz-cache'
 import { createPlexClient } from './core/clients/plex'
 import { tryConsume } from './core/clients/rate-limiter'
 import { createSlskdClient } from './core/clients/slskd'
@@ -152,6 +153,7 @@ import {
   markLibraryHealthScanStarted,
   saveLibraryHealthState,
 } from './db/queries/library-health'
+import { createMusicBrainzCacheStore } from './db/queries/musicbrainz-cache'
 import { deleteExpiredPendingOAuth } from './db/queries/oauth-pending'
 import { getOAuthToken } from './db/queries/oauth-tokens'
 import {
@@ -273,6 +275,7 @@ await runPreFlightCheck(db)
 // Idempotent; selects the migrator matching the active backend.
 await runMigrations()
 console.log('Database migrations applied')
+setMusicBrainzCacheStore(createMusicBrainzCacheStore(db))
 await initializeExperimentalIntegrations(db)
 
 const legacyEncrypted = await encryptLegacyPlaintext(db)
@@ -631,7 +634,7 @@ async function buildGlobalLibrarySources() {
 const librarySyncOrchestrator: SyncOrchestrator = createSyncOrchestrator({
   store: librarySyncStore,
   recorder: jobRecorder,
-  mbClient: createMusicBrainzClient(),
+  mbClient: createMusicBrainzClient({ priority: 'background' }),
   buildPerUserSources: buildPerUserLibrarySources,
   buildGlobalSources: buildGlobalLibrarySources,
   staleHours: librarySyncIntervalHours,
