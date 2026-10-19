@@ -1,6 +1,6 @@
 import { resolve } from 'node:path'
-import { serveStatic } from '@hono/node-server/serve-static'
 import { Hono } from 'hono'
+import { compress } from 'hono/compress'
 import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
@@ -55,6 +55,7 @@ import { targetRoutes } from './routes/targets'
 import { testSeedRoutes } from './routes/test-seed'
 import { userNotificationRoutes } from './routes/user-notifications'
 import { userRoutes } from './routes/users'
+import { mountStatic } from './static'
 import type { HonoEnv } from './types'
 
 // AppDependencies is the intersection of every per-domain slice in deps.ts.
@@ -65,6 +66,8 @@ import type { HonoEnv } from './types'
 export type { AppDependencies } from './deps'
 
 import type { AppDependencies } from './deps'
+
+const JSON_CONTENT_TYPE = /^\s*application\/(?:[\w.-]+\+)?json(?:[;\s]|$)/i
 
 const SPOTIFY_BRIDGE_CSP = [
   "default-src 'none'",
@@ -114,6 +117,8 @@ export function createApp(deps: AppDependencies) {
 
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
+  // JSON only: SSE, the audio proxy and images pass through untouched.
+  app.use('/api/*', compress({ contentTypeFilter: JSON_CONTENT_TYPE }))
   app.use('*', problemJsonErrors())
 
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
@@ -446,8 +451,7 @@ export function createApp(deps: AppDependencies) {
   // to the module directory (dist/server/), not process.cwd()
   if (process.env.NODE_ENV === 'production') {
     const webRoot = resolve(process.cwd(), 'dist/web')
-    app.use('/*', serveStatic({ root: webRoot }))
-    app.get('*', serveStatic({ root: webRoot, path: 'index.html' }))
+    mountStatic(app, webRoot)
   }
 
   return app

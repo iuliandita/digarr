@@ -1,4 +1,4 @@
-import { useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useInfiniteQuery, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { toast } from 'sonner'
@@ -52,6 +52,7 @@ import {
   deleteArtistBlock,
   getAuthStatus,
   getFeedbackSummary,
+  getRecommendationCounts,
   getRecommendations,
   getUserPreferences,
   getWarmStatuses,
@@ -61,11 +62,18 @@ import {
   updateRecommendation,
 } from '../lib/api'
 import { reportApprovalOutcome } from '../lib/approval'
+import {
+  applyStatusChange,
+  type DiscoverFilter,
+  RECOMMENDATION_COUNTS_KEY,
+  type StatusChange,
+  settleAfterAction,
+} from '../lib/discover-cache'
 import { scanStartedMessage } from '../lib/discovery-run-feedback'
 import { useI18n } from '../lib/i18n'
 import { usePreviewContext } from '../lib/preview-context'
 
-type FilterTab = 'all' | 'pending' | 'approved' | 'rejected'
+type FilterTab = DiscoverFilter
 type KindFilter = 'all' | 'artist' | 'album'
 
 function initialStatusFromParam(value: string | null): FilterTab {
@@ -420,6 +428,33 @@ export function DiscoverPage() {
     queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
   }, [queryClient])
 
+  // Grid/list pages refill from the server so a row sliding into the gap is
+  // never skipped by the next page; the stack adjusts its offsets instead.
+  const activePageKeyRef = useRef<readonly unknown[] | null>(null)
+  const settle = useCallback(
+    (approval = false) => {
+      settleAfterAction(queryClient, { approval })
+      if (activePageKeyRef.current)
+        void queryClient.refetchQueries({ queryKey: activePageKeyRef.current, exact: true })
+    },
+    [queryClient],
+  )
+  const applyOutcome = useCallback(
+    (id: number, status: string, approval = false) => {
+      const change = applyStatusChange(queryClient, id, status)
+      settle(approval)
+      return change
+    },
+    [queryClient, settle],
+  )
+  const applyOutcomes = useCallback(
+    (entries: Array<{ id: number; status: string }>, approval = false) => {
+      for (const { id, status } of entries) applyStatusChange(queryClient, id, status)
+      settle(approval)
+    },
+    [queryClient, settle],
+  )
+
   const {
     pullY,
     pullThreshold: PULL_THRESHOLD,
@@ -480,8 +515,10 @@ export function DiscoverPage() {
   }
   const isStack = viewMode === 'stack'
 
+  const pagedKey = ['recommendations', { ...filterKey, page }] as const
+  activePageKeyRef.current = isStack ? null : pagedKey
   const pagedQuery = useQuery({
-    queryKey: ['recommendations', { ...filterKey, page }],
+    queryKey: pagedKey,
     queryFn: () =>
       getRecommendations({
         ...filterParams,
@@ -489,6 +526,17 @@ export function DiscoverPage() {
         offset: String(page * PAGE_SIZE),
       }),
     enabled: !isStack,
+    // Keep the old grid only while paging; a filter change shows the skeleton.
+    placeholderData: (previous, previousQuery) => {
+      const prev = previousQuery?.queryKey[1] as (typeof filterKey & { page: number }) | undefined
+      return prev &&
+        prev.filter === filterKey.filter &&
+        prev.kind === filterKey.kind &&
+        prev.tasteOrdering === filterKey.tasteOrdering &&
+        prev.decades === filterKey.decades
+        ? keepPreviousData(previous)
+        : undefined
+    },
   })
 
   // The stack walks every page instead of one grid page (#882).
@@ -585,20 +633,42 @@ export function DiscoverPage() {
 
   // Warm status
 
-  const mbids = (isStack ? [] : items)
-    .map((r) => r.artist.mbid)
-    .filter(Boolean)
-    .join(',')
+  const pageMbids = (isStack ? [] : items).map((r) => r.artist.mbid).filter(Boolean)
+  const mbids = pageMbids.join(',')
+  // Warm only moves forward while the page is open, so a set that is already
+  // warm needs no new poll chain when the page or its rows change.
+  const knownWarmRef = useRef(new Set<string>())
+  const allKnownWarm = pageMbids.every((mbid) => knownWarmRef.current.has(mbid))
 
   const { data: warmData } = useQuery({
     queryKey: ['warm-status', mbids],
-    queryFn: () => getWarmStatuses(mbids),
-    enabled: !!mbids,
-    refetchInterval: 5000,
+    queryFn: async () => {
+      const res = await getWarmStatuses(mbids)
+      for (const [mbid, status] of Object.entries(res.statuses)) {
+        if (status === 'warm') knownWarmRef.current.add(mbid)
+      }
+      return res
+    },
+    // The endpoint is admin-only; non-admins would only collect 403s.
+    enabled: isAdmin && !!mbids && !allKnownWarm,
+    refetchInterval: (query) => {
+      const statuses = query.state.data?.statuses
+      return statuses &&
+        String(query.queryKey[1])
+          .split(',')
+          .every((mbid) => statuses[mbid] === 'warm')
+        ? false
+        : 5000
+    },
     staleTime: 2000,
   })
 
-  const warmStatuses = warmData?.statuses ?? {}
+  const warmStatuses: Record<string, string> = {
+    ...warmData?.statuses,
+    ...Object.fromEntries(
+      pageMbids.filter((m) => knownWarmRef.current.has(m)).map((m) => [m, 'warm']),
+    ),
+  }
 
   const { data: targetsData } = useQuery({
     queryKey: ['targets'],
@@ -643,11 +713,11 @@ export function DiscoverPage() {
       setActingIds((prev) => new Set([...prev, recId]))
       try {
         const targetOptions = resolveApprovalTargetOptions(targets, targetId)
-        await approveToTarget(recId, targetId, {
+        const res = await approveToTarget(recId, targetId, {
           ...targetOptions,
           feedbackTrack: feedbackForRecommendation(recId),
         })
-        refetch()
+        applyOutcome(recId, res?.status ?? 'approved', true)
         toast.success(t('dashboard.sentToTarget'))
       } catch {
         toast.error(t('dashboard.approveFailed'))
@@ -659,7 +729,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [feedbackForRecommendation, refetch, t, targets],
+    [applyOutcome, feedbackForRecommendation, t, targets],
   )
 
   // Undo toast
@@ -671,6 +741,7 @@ export function DiscoverPage() {
     action: UndoAction
     name: string
     block?: { artistId: number } | { releaseGroupMbid: string }
+    change: StatusChange
   }
   const [undoEntry, setUndoEntry] = useState<UndoEntry | null>(null)
   const undoTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -678,8 +749,16 @@ export function DiscoverPage() {
   itemsRef.current = items
 
   const showUndo = useCallback(
-    (id: number, prevStatus: string, action: UndoAction, blockCreated = false) => {
-      const rec = itemsRef.current.find((item) => item.id === id)
+    (
+      id: number,
+      prevStatus: string,
+      action: UndoAction,
+      change: StatusChange,
+      blockCreated = false,
+    ) => {
+      const rec =
+        (change.row as Recommendation | undefined) ??
+        itemsRef.current.find((item) => item.id === id)
       // Mirrors the server: album recs with a release group get an album block, else an artist block.
       // A block that existed before this reject is left in place on undo.
       const block =
@@ -695,6 +774,7 @@ export function DiscoverPage() {
         action,
         name: rec ? recommendationDisplayName(rec, t) : '',
         block,
+        change,
       })
       undoTimerRef.current = setTimeout(() => setUndoEntry(null), 5000)
     },
@@ -706,41 +786,38 @@ export function DiscoverPage() {
     if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
     const entry = undoEntry
     setUndoEntry(null)
+    const { row, removedAt } = entry.change
+    const restored = row
+      ? applyStatusChange(queryClient, entry.id, entry.prevStatus, { row, at: removedAt })
+      : undefined
     try {
       await updateRecommendation(entry.id, { status: entry.prevStatus })
+    } catch {
+      restored?.rollback()
+      toast.error(t('discover.undoFailed'))
+      return
+    }
+    try {
       if (entry.block && 'artistId' in entry.block) await deleteArtistBlock(entry.block.artistId)
       else if (entry.block) await deleteAlbumBlock(entry.block.releaseGroupMbid)
       toast.success(t('discover.undone'))
-      refetch()
     } catch {
       toast.error(t('discover.undoFailed'))
+    } finally {
+      settle()
     }
-  }, [undoEntry, refetch, t])
+  }, [undoEntry, queryClient, settle, t])
 
-  // Count per filter for tab badges - fetch all counts independently
-  const { data: allCountData } = useQuery({
-    queryKey: ['recommendations', 'count', 'all'],
-    queryFn: () => getRecommendations({ limit: '1' }),
-  })
-  const { data: pendingCountData } = useQuery({
-    queryKey: ['recommendations', 'count', 'pending'],
-    queryFn: () => getRecommendations({ status: 'pending', limit: '1' }),
-  })
-  const { data: approvedCountData } = useQuery({
-    queryKey: ['recommendations', 'count', 'approved'],
-    queryFn: () =>
-      getRecommendations({ status: 'added_to_lidarr,add_failed,approved,waiting', limit: '1' }),
-  })
-  const { data: rejectedCountData } = useQuery({
-    queryKey: ['recommendations', 'count', 'rejected'],
-    queryFn: () => getRecommendations({ status: 'rejected', limit: '1' }),
+  const { data: countsData } = useQuery({
+    queryKey: RECOMMENDATION_COUNTS_KEY,
+    queryFn: getRecommendationCounts,
   })
 
   const counts: Record<FilterTab, number> = {
-    all: allCountData?.total ?? 0,
-    pending: pendingCountData?.total ?? 0,
-    approved: approvedCountData?.total ?? 0,
-    rejected: rejectedCountData?.total ?? 0,
+    all: countsData?.all ?? 0,
+    pending: countsData?.pending ?? 0,
+    approved: countsData?.approved ?? 0,
+    rejected: countsData?.rejected ?? 0,
   }
 
   const handleApproveWithOptions = useCallback(
@@ -763,8 +840,8 @@ export function DiscoverPage() {
           selectedAlbumIds,
           feedbackTrack: feedbackForRecommendation(id),
         })
-        if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
-        refetch()
+        const change = applyOutcome(id, res?.status ?? 'approved', true)
+        if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved', change)
       } catch (err) {
         toast.error(approveErrorMessage(err, t('dashboard.approveFailed'), t))
       } finally {
@@ -775,7 +852,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [feedbackForRecommendation, hasLidarrTarget, refetch, showUndo, t],
+    [applyOutcome, feedbackForRecommendation, hasLidarrTarget, showUndo, t],
   )
 
   const handleApprove = useCallback(
@@ -797,12 +874,12 @@ export function DiscoverPage() {
             ...(newStatus === 'approved' ? { feedbackTrack: feedbackForRecommendation(id) } : {}),
           })
         }
+        const change = applyOutcome(id, res?.status ?? newStatus, newStatus === 'approved')
         if (filter !== 'rejected') {
-          if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved')
+          if (reportApprovalOutcome(res, t)) showUndo(id, prevStatus, 'approved', change)
         } else {
           toast.success(t('discover.restoredToPending'))
         }
-        refetch()
       } catch (err) {
         toast.error(
           approveErrorMessage(
@@ -819,7 +896,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [feedbackForRecommendation, filter, refetch, showUndo, standaloneSlskdTarget, t, targets],
+    [applyOutcome, feedbackForRecommendation, filter, showUndo, standaloneSlskdTarget, t, targets],
   )
 
   const handleReject = useCallback(
@@ -839,13 +916,14 @@ export function DiscoverPage() {
         if (payload?.reasonText) body.reasonText = payload.reasonText
         if (payload?.permanent) body.permanent = true
         const res = await updateRecommendation(id, body)
+        const change = applyOutcome(id, 'rejected')
         showUndo(
           id,
           prevStatus,
           payload?.permanent ? 'blocked' : 'rejected',
+          change,
           res?.blockCreated === true,
         )
-        refetch()
       } catch {
         toast.error(t('discover.rejectFailed'))
       } finally {
@@ -856,7 +934,7 @@ export function DiscoverPage() {
         })
       }
     },
-    [refetch, showUndo, t],
+    [applyOutcome, showUndo, t],
   )
 
   const requestReject = useCallback((id: number, prevStatus?: string) => {
@@ -871,12 +949,12 @@ export function DiscoverPage() {
   async function handleRetry(id: number) {
     setActingIds((prev) => new Set([...prev, id]))
     try {
-      await updateRecommendation(id, {
+      const res = await updateRecommendation(id, {
         status: 'approved',
         feedbackTrack: feedbackForRecommendation(id),
       })
       toast.success(t('discover.queuedForRetry'))
-      refetch()
+      applyOutcome(id, res?.status ?? 'approved', true)
     } catch {
       toast.error(t('discover.retryFailed'))
     } finally {
@@ -895,19 +973,21 @@ export function DiscoverPage() {
     setActingIds((prev) => new Set([...prev, id]))
     try {
       const stillFailed: string[] = []
+      let status = 'approved'
       for (const targetId of failedTargetIds) {
         const res = await approveToTarget(id, targetId, {
           ...resolveApprovalTargetOptions(targets, targetId),
           feedbackTrack: feedbackForRecommendation(id),
         })
         stillFailed.push(...(res.targetSummary?.failures ?? []).map((f) => f.name))
+        status = res.status ?? status
       }
       if (stillFailed.length === 0) {
         toast.success(t('discover.retrySucceeded'))
       } else {
         toast.error(t('discover.approveAllFailed').replace('{0}', stillFailed.join(', ')))
       }
-      refetch()
+      applyOutcome(id, status, true)
     } catch {
       toast.error(t('discover.retryFailed'))
     } finally {
@@ -930,6 +1010,10 @@ export function DiscoverPage() {
     if (requested) toast.success(`${t('approvalRequests.created')} (${requested})`)
     if (limited) toast.error(t('errors.approval.requestLimit'))
     if (approved) toast.success(`${t('discover.approvedCount')} ${approved}`)
+    applyOutcomes(
+      result.results.filter((entry) => !entry.error && entry.status !== 'not_found'),
+      true,
+    )
   }
 
   function handleApproveAbove() {
@@ -947,7 +1031,6 @@ export function DiscoverPage() {
     try {
       const result = await bulkAction(ids, 'approve')
       reportBulkApproval(result)
-      refetch()
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t('discover.bulkApproveFailed'))
     }
@@ -981,6 +1064,7 @@ export function DiscoverPage() {
   async function handleClearAll() {
     try {
       let cleared = 0
+      const rejectedIds: number[] = []
 
       while (true) {
         const pending = await getRecommendations({
@@ -991,6 +1075,7 @@ export function DiscoverPage() {
         if (ids.length === 0) break
 
         const result = (await bulkAction(ids, 'reject')) as { updated?: number } | undefined
+        rejectedIds.push(...ids)
         const updated = typeof result?.updated === 'number' ? result.updated : ids.length
         cleared += updated
         if (updated === 0 || ids.length < CLEAR_ALL_BATCH_SIZE) break
@@ -1001,7 +1086,7 @@ export function DiscoverPage() {
         return
       }
       toast.success(`${t('discover.clearedCount')} ${cleared}`)
-      refetch()
+      applyOutcomes(rejectedIds.map((id) => ({ id, status: 'rejected' })))
     } catch {
       toast.error(t('discover.clearFailed'))
     }
@@ -1041,7 +1126,6 @@ export function DiscoverPage() {
       const result = await bulkAction([...checkedIds], 'approve')
       reportBulkApproval(result)
       setCheckedIds(new Set())
-      refetch()
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t('discover.bulkApproveFailed'))
     } finally {
@@ -1063,15 +1147,16 @@ export function DiscoverPage() {
   }) {
     if (checkedIds.size === 0) return
     const count = checkedIds.size
+    const ids = [...checkedIds]
     setBulkActing(true)
     try {
-      await bulkAction([...checkedIds], 'reject', {
+      await bulkAction(ids, 'reject', {
         reason: payload.reason,
         permanent: payload.permanent,
       })
       toast.success(`${t('discover.rejectedCount')} ${count}`)
       setCheckedIds(new Set())
-      refetch()
+      applyOutcomes(ids.map((id) => ({ id, status: 'rejected' })))
     } catch {
       toast.error(t('discover.bulkRejectFailed'))
     } finally {
@@ -1691,8 +1776,8 @@ export function DiscoverPage() {
                   ...(dialogTarget ? { lidarrTargetId: `lidarr-${dialogTarget.id}` } : {}),
                 })
               }
+              applyOutcome(recId, res?.status ?? 'approved', true)
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
-              refetch()
             } catch (err) {
               toast.error(approveErrorMessage(err, t('dashboard.addToLidarrFailed'), t))
             } finally {

@@ -388,6 +388,7 @@ export const jobRuns = pgTable(
     subscriptionIdx: index('idx_job_runs_subscription')
       .on(table.subscriptionId)
       .where(sql`${table.subscriptionId} IS NOT NULL`),
+    startedAtIdIdx: index('job_runs_started_at_id_idx').on(table.startedAt.desc(), table.id.desc()),
     typeStartedAtIdx: index('job_runs_type_started_at_idx').on(table.type, table.startedAt),
   }),
 )

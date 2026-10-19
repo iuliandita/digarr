@@ -5,13 +5,15 @@ import { exportToM3u } from '@/core/targets/export-m3u'
 import { exportToXspf } from '@/core/targets/export-xspf'
 import type { ExportableRecommendation } from '@/core/targets/types'
 import type {
+  ExportableRecommendationRow,
   ListRecommendationsFilters,
-  ListRecommendationsResult,
 } from '@/db/queries/recommendations'
 import type { HonoEnv } from '@/server/types'
 
 type ExportDeps = {
-  listRecommendations: (filters?: ListRecommendationsFilters) => Promise<ListRecommendationsResult>
+  listRecommendationsForExport: (
+    filters?: Pick<ListRecommendationsFilters, 'status' | 'batchId' | 'userId' | 'limit'>,
+  ) => Promise<ExportableRecommendationRow[]>
 }
 
 const CONTENT_TYPES: Record<string, string> = {
@@ -54,16 +56,16 @@ export function exportRoutes(deps: ExportDeps) {
     } catch (err) {
       return c.json({ error: (err as Error).message }, 400)
     }
-    const filters: ListRecommendationsFilters = {
+    const filters = {
       userId,
       limit: 10000, // Export all matching
       status: query.status,
       batchId,
     }
 
-    const result = await deps.listRecommendations(filters)
+    const rows = await deps.listRecommendationsForExport(filters)
 
-    const exportable: ExportableRecommendation[] = result.items.map((rec) => ({
+    const exportable: ExportableRecommendation[] = rows.map((rec) => ({
       artistName: rec.artist?.name ?? 'Unknown',
       artistMbid: rec.artist?.mbid ?? '',
       genres: rec.artist?.genres ?? [],

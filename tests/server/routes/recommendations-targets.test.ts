@@ -13,6 +13,7 @@ const mockDeps = {
   removeArtistBlock: vi.fn().mockResolvedValue(true),
   addArtistBlock: vi.fn().mockResolvedValue(undefined),
   bulkUpdateStatus: vi.fn().mockResolvedValue(undefined),
+  bulkRejectRecommendations: vi.fn().mockResolvedValue({ rejected: 0, blocksCreated: 0 }),
   filterOwnedIds: vi.fn(async (ids: number[]) => ids),
   listRecommendations: vi.fn().mockResolvedValue({ items: [], total: 0 }),
   getSettings: vi.fn().mockResolvedValue({ preferences: {} }),

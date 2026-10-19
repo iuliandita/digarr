@@ -1,4 +1,4 @@
-import { and, eq, getTableColumns, isNotNull, isNull, or, sql } from 'drizzle-orm'
+import { and, count, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import {
   type LibrarySyncCounts,
   libraryAlbumMatchOverrides,
@@ -123,9 +123,12 @@ export interface LibrarySyncStore {
 
   listSyncStateForUser(userId: number): Promise<LibrarySyncStateRow[]>
 
-  listUnreconciledForUser(userId: number): Promise<LibraryArtistRow[]>
+  listUnreconciledForUser(userId: number, page?: ReviewPage): Promise<ReviewResult<ArtistReviewRow>>
 
-  listUnreconciledAlbumsForUser(userId: number): Promise<LibraryAlbumRow[]>
+  listUnreconciledAlbumsForUser(
+    userId: number,
+    page?: ReviewPage,
+  ): Promise<ReviewResult<AlbumReviewRow>>
 
   listOwnedAlbumsForArtist(
     userId: number,
@@ -144,6 +147,17 @@ export interface LibrarySyncStore {
 
 export type LibraryArtistRow = typeof libraryArtists.$inferSelect
 export type LibraryAlbumRow = typeof libraryAlbums.$inferSelect
+
+export type ReviewPage = { limit: number; offset: number }
+export type ReviewResult<T> = { items: T[]; total: number }
+export type ArtistReviewRow = Pick<
+  LibraryArtistRow,
+  'id' | 'source' | 'sourceArtistId' | 'name' | 'unreconciledReason'
+>
+export type AlbumReviewRow = Pick<
+  LibraryAlbumRow,
+  'id' | 'source' | 'sourceAlbumId' | 'title' | 'primaryType' | 'releaseYear' | 'unreconciledReason'
+>
 
 function deduplicateNaturalKeys<T>(
   items: T[],
@@ -635,47 +649,73 @@ export function createLibrarySyncStore(database: Db): LibrarySyncStore {
       return rows as LibrarySyncStateRow[]
     },
 
-    async listUnreconciledForUser(userId) {
-      return database
-        .select({ ...getTableColumns(libraryArtists) })
-        .from(libraryArtists)
-        .leftJoin(
-          libraryMatchOverrides,
-          and(
-            eq(libraryMatchOverrides.userId, userId),
-            eq(libraryMatchOverrides.source, libraryArtists.source),
-            eq(libraryMatchOverrides.sourceArtistId, libraryArtists.sourceArtistId),
-          ),
-        )
-        .where(
-          and(
-            isNull(libraryArtists.mbid),
-            or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
-            isNull(libraryMatchOverrides.id),
-          ),
-        )
+    async listUnreconciledForUser(userId, page = { limit: 20, offset: 0 }) {
+      const query = () =>
+        database
+          .select({
+            id: libraryArtists.id,
+            source: libraryArtists.source,
+            sourceArtistId: libraryArtists.sourceArtistId,
+            name: libraryArtists.name,
+            unreconciledReason: libraryArtists.unreconciledReason,
+          })
+          .from(libraryArtists)
+          .leftJoin(
+            libraryMatchOverrides,
+            and(
+              eq(libraryMatchOverrides.userId, userId),
+              eq(libraryMatchOverrides.source, libraryArtists.source),
+              eq(libraryMatchOverrides.sourceArtistId, libraryArtists.sourceArtistId),
+            ),
+          )
+          .where(
+            and(
+              isNull(libraryArtists.mbid),
+              or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId)),
+              isNull(libraryMatchOverrides.id),
+            ),
+          )
+      const [items, totals] = await Promise.all([
+        query().orderBy(libraryArtists.id).limit(page.limit).offset(page.offset),
+        database.select({ total: count() }).from(query().as('unresolved')),
+      ])
+      return { items, total: totals[0]?.total ?? 0 }
     },
 
-    async listUnreconciledAlbumsForUser(userId) {
-      return database
-        .select({ ...getTableColumns(libraryAlbums) })
-        .from(libraryAlbums)
-        .leftJoin(
-          libraryAlbumMatchOverrides,
-          and(
-            eq(libraryAlbumMatchOverrides.userId, userId),
-            eq(libraryAlbumMatchOverrides.source, libraryAlbums.source),
-            eq(libraryAlbumMatchOverrides.sourceAlbumId, libraryAlbums.sourceAlbumId),
-          ),
-        )
-        .where(
-          and(
-            // Unmatched rows can keep their source MBID, so the reason is what marks them.
-            or(isNull(libraryAlbums.albumMbid), isNotNull(libraryAlbums.unreconciledReason)),
-            or(eq(libraryAlbums.userId, userId), isNull(libraryAlbums.userId)),
-            isNull(libraryAlbumMatchOverrides.id),
-          ),
-        )
+    async listUnreconciledAlbumsForUser(userId, page = { limit: 20, offset: 0 }) {
+      const query = () =>
+        database
+          .select({
+            id: libraryAlbums.id,
+            source: libraryAlbums.source,
+            sourceAlbumId: libraryAlbums.sourceAlbumId,
+            title: libraryAlbums.title,
+            primaryType: libraryAlbums.primaryType,
+            releaseYear: libraryAlbums.releaseYear,
+            unreconciledReason: libraryAlbums.unreconciledReason,
+          })
+          .from(libraryAlbums)
+          .leftJoin(
+            libraryAlbumMatchOverrides,
+            and(
+              eq(libraryAlbumMatchOverrides.userId, userId),
+              eq(libraryAlbumMatchOverrides.source, libraryAlbums.source),
+              eq(libraryAlbumMatchOverrides.sourceAlbumId, libraryAlbums.sourceAlbumId),
+            ),
+          )
+          .where(
+            and(
+              // Unmatched rows can keep their source MBID, so the reason is what marks them.
+              or(isNull(libraryAlbums.albumMbid), isNotNull(libraryAlbums.unreconciledReason)),
+              or(eq(libraryAlbums.userId, userId), isNull(libraryAlbums.userId)),
+              isNull(libraryAlbumMatchOverrides.id),
+            ),
+          )
+      const [items, totals] = await Promise.all([
+        query().orderBy(libraryAlbums.id).limit(page.limit).offset(page.offset),
+        database.select({ total: count() }).from(query().as('unresolved')),
+      ])
+      return { items, total: totals[0]?.total ?? 0 }
     },
 
     async listOwnedAlbumsForArtist(userId, artistMbid) {
