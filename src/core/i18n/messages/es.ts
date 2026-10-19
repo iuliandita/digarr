@@ -1819,6 +1819,11 @@ export const es = {
   'streaming.spotifyLoadHint': 'No se solicita nada a Spotify hasta que hagas clic.',
   'discover.moodAddedSuccess': 'Se añadió «{0}» y se están descubriendo artistas similares',
   'discover.moodAddFailed': 'No se pudo añadir «{0}»',
+  'discover.moodAddQueued': 'En cola',
+  'discover.moodAddRateLimited':
+    'No se pudo añadir «{0}»: demasiadas solicitudes, inténtalo de nuevo en un minuto',
+  'discover.moodAddPipelineRunning':
+    'No se pudo añadir «{0}»: aún hay un análisis en curso, inténtalo cuando termine',
   'albumPicker.noReleaseGroups': 'No se encontraron grupos de lanzamientos',
   'albumPicker.title': 'Seleccionar álbumes',
   'albumPicker.loadFailed': 'No se pudieron cargar los álbumes',

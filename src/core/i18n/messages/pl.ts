@@ -1801,6 +1801,11 @@ export const pl = {
   'streaming.spotifyLoadHint': 'Nic nie jest pobierane ze Spotify, dopóki nie klikniesz.',
   'discover.moodAddedSuccess': 'Dodano „{0}" i wyszukiwane są podobni artyści',
   'discover.moodAddFailed': 'Nie udało się dodać „{0}"',
+  'discover.moodAddQueued': 'W kolejce',
+  'discover.moodAddRateLimited':
+    'Nie udało się dodać „{0}": zbyt wiele żądań, spróbuj ponownie za minutę',
+  'discover.moodAddPipelineRunning':
+    'Nie udało się dodać „{0}": skan nadal trwa, spróbuj ponownie po jego zakończeniu',
   'albumPicker.noReleaseGroups': 'Nie znaleziono grup wydań',
   'albumPicker.title': 'Wybierz albumy',
   'albumPicker.loadFailed': 'Nie udało się wczytać albumów',

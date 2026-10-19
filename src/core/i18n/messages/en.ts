@@ -1825,6 +1825,10 @@ export const en = {
   // Mood discover toasts
   'discover.moodAddedSuccess': 'Added "{0}" and discovering similar artists',
   'discover.moodAddFailed': 'Failed to add "{0}"',
+  'discover.moodAddQueued': 'Queued',
+  'discover.moodAddRateLimited': 'Could not add "{0}": too many requests, try again in a minute',
+  'discover.moodAddPipelineRunning':
+    'Could not add "{0}": a scan is still running, try again when it finishes',
 
   // Album picker empty state
   'albumPicker.noReleaseGroups': 'No release groups found',

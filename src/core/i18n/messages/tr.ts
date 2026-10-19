@@ -1789,6 +1789,11 @@ export const tr = {
   'streaming.spotifyLoadHint': "Sen tıklayana kadar Spotify'dan hiçbir şey istenmez.",
   'discover.moodAddedSuccess': '"{0}" eklendi; benzer sanatçılar aranıyor',
   'discover.moodAddFailed': '"{0}" eklenemedi',
+  'discover.moodAddQueued': 'Sırada',
+  'discover.moodAddRateLimited':
+    '"{0}" eklenemedi: çok fazla istek var, bir dakika sonra tekrar dene',
+  'discover.moodAddPipelineRunning':
+    '"{0}" eklenemedi: bir tarama hâlâ sürüyor, bitince tekrar dene',
   'albumPicker.noReleaseGroups': 'Yayın grubu bulunamadı',
   'albumPicker.title': 'Albümleri seç',
   'albumPicker.loadFailed': 'Albümler yüklenemedi',

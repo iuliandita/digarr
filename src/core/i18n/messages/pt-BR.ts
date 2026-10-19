@@ -1811,6 +1811,11 @@ export const ptBR = {
   'streaming.spotifyLoadHint': 'Nada é solicitado ao Spotify até você clicar.',
   'discover.moodAddedSuccess': '"{0}" adicionado; descobrindo artistas similares',
   'discover.moodAddFailed': 'Falha ao adicionar "{0}"',
+  'discover.moodAddQueued': 'Na fila',
+  'discover.moodAddRateLimited':
+    'Falha ao adicionar "{0}": muitas solicitações, tente de novo em um minuto',
+  'discover.moodAddPipelineRunning':
+    'Falha ao adicionar "{0}": uma varredura ainda está em andamento, tente de novo quando terminar',
   'albumPicker.noReleaseGroups': 'Nenhum grupo de lançamento encontrado',
   'albumPicker.title': 'Selecionar álbuns',
   'albumPicker.loadFailed': 'Falha ao carregar álbuns',

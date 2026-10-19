@@ -1802,6 +1802,11 @@ export const uk = {
   'streaming.spotifyLoadHint': 'Доки ти не натиснеш, запитів до Spotify немає.',
   'discover.moodAddedSuccess': '«{0}» додано; шукаємо схожих виконавців',
   'discover.moodAddFailed': 'Не вдалося додати «{0}»',
+  'discover.moodAddQueued': 'У черзі',
+  'discover.moodAddRateLimited':
+    'Не вдалося додати «{0}»: забагато запитів, спробуй ще раз за хвилину',
+  'discover.moodAddPipelineRunning':
+    'Не вдалося додати «{0}»: сканування ще триває, спробуй знову, коли воно завершиться',
   'albumPicker.noReleaseGroups': 'Груп релізів не знайдено',
   'albumPicker.title': 'Вибрати альбоми',
   'albumPicker.loadFailed': 'Не вдалося завантажити альбоми',

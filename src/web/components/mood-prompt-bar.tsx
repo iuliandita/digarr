@@ -1,9 +1,17 @@
 import { Sparkles } from 'lucide-react'
-import { type FocusEvent, type FormEvent, useEffect, useRef, useState } from 'react'
+import {
+  type FocusEvent,
+  type FormEvent,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { toast } from 'sonner'
 import { shouldIgnoreShortcut } from '../hooks/use-keyboard-shortcuts'
-import { moodDiscover, quickDiscover } from '../lib/api'
+import { moodDiscover } from '../lib/api'
 import { useI18n } from '../lib/i18n'
+import { type MoodAddFailure, moodAddQueue } from '../lib/mood-add-queue'
 
 export function MoodPromptBar({
   existingArtistNames,
@@ -22,7 +30,7 @@ export function MoodPromptBar({
     inLibrary?: boolean
   }> | null>(null)
   const [loading, setLoading] = useState(false)
-  const [queued, setQueued] = useState<Set<string>>(new Set())
+  const addStatuses = useSyncExternalStore(moodAddQueue.subscribe, moodAddQueue.getSnapshot)
   const [expanded, setExpanded] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
   const focusOnOpen = useRef(false)
@@ -72,22 +80,27 @@ export function MoodPromptBar({
     }
   }
 
-  async function handleAddToQueue(artistName: string) {
-    setQueued((prev) => new Set([...prev, artistName]))
-    try {
-      await quickDiscover(artistName)
-      toast.success(t('discover.moodAddedSuccess').replace('{0}', artistName))
-      // Seed artist is stored async on the backend - poll for it to appear
-      setTimeout(onQueued, 2000)
-      setTimeout(onQueued, 5000)
-    } catch {
-      toast.error(t('discover.moodAddFailed').replace('{0}', artistName))
-      setQueued((prev) => {
-        const next = new Set(prev)
-        next.delete(artistName)
-        return next
-      })
+  function handleAddToQueue(artistName: string) {
+    moodAddQueue.enqueue(artistName, {
+      onAdded: () => {
+        toast.success(t('discover.moodAddedSuccess').replace('{0}', artistName))
+        // Seed artist is stored async on the backend - poll for it to appear
+        setTimeout(onQueued, 2000)
+        setTimeout(onQueued, 5000)
+      },
+      onFailed: (reason, err) => toast.error(failureMessage(artistName, reason, err)),
+    })
+  }
+
+  function failureMessage(artistName: string, reason: MoodAddFailure, err: unknown) {
+    if (reason === 'rate-limited')
+      return t('discover.moodAddRateLimited').replace('{0}', artistName)
+    if (reason === 'pipeline-running') {
+      return t('discover.moodAddPipelineRunning').replace('{0}', artistName)
     }
+    const base = t('discover.moodAddFailed').replace('{0}', artistName)
+    const detail = err instanceof Error ? err.message.trim() : ''
+    return detail ? `${base}: ${detail}` : base
   }
 
   if (!visible) {
@@ -167,9 +180,17 @@ export function MoodPromptBar({
                       <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
                         {t('discover.pendingReview')}
                       </span>
-                    ) : queued.has(r.artistName) ? (
+                    ) : addStatuses.get(r.artistName) === 'added' ? (
                       <span className="text-micro text-approve px-2 py-1 bg-approve/10 border border-approve/20 rounded">
                         {t('discover.addedToQueue')}
+                      </span>
+                    ) : addStatuses.get(r.artistName) === 'sending' ? (
+                      <span className="text-micro text-muted px-2 py-1 bg-bg border border-border rounded">
+                        {t('discover.discovering')}
+                      </span>
+                    ) : addStatuses.get(r.artistName) === 'queued' ? (
+                      <span className="text-micro text-muted px-2 py-1 bg-bg border border-dashed border-border rounded">
+                        {t('discover.moodAddQueued')}
                       </span>
                     ) : (
                       <button

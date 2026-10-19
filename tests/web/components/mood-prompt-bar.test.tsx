@@ -1,15 +1,20 @@
 // @vitest-environment jsdom
 
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { toast } from 'sonner'
 import { describe, expect, it, vi } from 'vitest'
 import { MoodPromptBar } from '@/web/components/mood-prompt-bar'
+import { ApiError, moodDiscover, quickDiscover } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', async () =>
   (await import('../helpers/locale')).localeStorageMock(),
 )
 
-vi.mock('@/web/lib/api', () => ({
+vi.mock('sonner', async () => (await import('../helpers/sonner')).sonnerMock())
+
+vi.mock('@/web/lib/api', async () => ({
+  ...(await vi.importActual<typeof import('@/web/lib/api')>('@/web/lib/api')),
   moodDiscover: vi.fn(),
   quickDiscover: vi.fn(),
 }))
@@ -61,5 +66,25 @@ describe('MoodPromptBar collapse (#993)', () => {
     fireEvent.change(reopened, { target: { value: 'dark ambient' } })
     fireEvent.blur(reopened)
     expect(screen.getByPlaceholderText(PLACEHOLDER)).toHaveValue('dark ambient')
+  })
+})
+
+describe('MoodPromptBar add errors (#1109)', () => {
+  it('shows the server reason in the toast and frees the card for a retry', async () => {
+    vi.mocked(moodDiscover).mockResolvedValue({
+      results: [{ artistName: 'Ghost Act', reasoning: 'r', confidence: 1, genres: [] }],
+    })
+    vi.mocked(quickDiscover).mockRejectedValue(new ApiError(404, { title: 'Artist not found' }))
+    renderBar()
+    fireEvent.keyDown(window, { key: '/' })
+    fireEvent.change(screen.getByPlaceholderText(PLACEHOLDER), { target: { value: 'moody' } })
+    fireEvent.submit(screen.getByPlaceholderText(PLACEHOLDER).closest('form') as HTMLFormElement)
+
+    fireEvent.click(await screen.findByRole('button', { name: '+ Discover' }))
+
+    await waitFor(() =>
+      expect(toast.error).toHaveBeenCalledWith('Failed to add "Ghost Act": Artist not found'),
+    )
+    expect(screen.getByRole('button', { name: '+ Discover' })).toBeTruthy()
   })
 })
