@@ -3,7 +3,9 @@ import { describe, expect, it, vi } from 'vitest'
 import { RateLimitedError } from '@/core/clients/audiodb'
 import type { MBArtist } from '@/core/clients/musicbrainz'
 import { PipelineCancelledError } from '@/core/pipeline/cancel'
-import { fetchArtistImage, resolve } from '@/core/pipeline/resolve'
+import { filter } from '@/core/pipeline/filter'
+import { fetchArtistImage, prefilterArtistCandidates, resolve } from '@/core/pipeline/resolve'
+import { score } from '@/core/pipeline/score'
 import type { DiscoveredArtist } from '@/core/types'
 
 function makeMbArtist(overrides: Partial<MBArtist> = {}): MBArtist {
@@ -605,4 +607,171 @@ describe('fetchArtistImage', () => {
     expect(audiodb.searchArtistByName).not.toHaveBeenCalled()
     expect(result.url).toBe('lidarr://x')
   })
+})
+
+describe('resolution work sharing', () => {
+  it('keeps final recommendations identical when known, blocked and cooldown candidates are prefiltered', async () => {
+    const excluded = new Set(['known', 'blocked', 'cooldown', 'existing'])
+    const discovered = [
+      radiohead({ mbid: undefined, name: 'blocked' }),
+      ...[...excluded, 'new', 'promoted'].map((mbid) => radiohead({ mbid, name: mbid })),
+      radiohead({
+        mbid: 'promoted',
+        name: 'promoted',
+        suggestedAlbum: 'New album',
+        source: 'lastfm',
+      }),
+      radiohead({
+        mbid: 'known',
+        name: 'known',
+        releaseGroupMbid: 'known-rg',
+        suggestedAlbum: 'Known album',
+      }),
+    ]
+    async function run(prefilter: boolean) {
+      const mb = makeMb()
+      mb.lookupArtist.mockImplementation(async (id: string) => makeMbArtist({ id, name: id }))
+      mb.searchArtist.mockResolvedValue({
+        artists: [{ id: 'blocked', name: 'blocked', score: 100 }],
+      })
+      mb.getReleaseGroups = vi.fn(async () => [
+        { id: 'promoted-rg', title: 'New album', type: 'Album' },
+      ])
+      const lidarr = { lookupArtist: vi.fn(async () => []) }
+      const resolved = await resolve(
+        prefilter ? prefilterArtistCandidates(discovered, excluded, true) : discovered,
+        mb,
+        undefined,
+        lidarr,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        true,
+        undefined,
+        new Set(discovered.filter((d) => !d.releaseGroupMbid).map((d) => d.mbid as string)),
+      )
+      const weights = {
+        consensus: 0.3,
+        similarity: 0.25,
+        genreOverlap: 0.2,
+        aiConfidence: 0.15,
+        feedbackBoost: 0.1,
+        popularity: 0,
+      }
+      const scored = score(resolved, ['rock'], weights, new Map())
+      return {
+        recommendations: [
+          ...filter(
+            scored.filter((a) => a.kind !== 'album'),
+            new Set(['known', 'existing']),
+            new Set(['cooldown']),
+            new Set(['blocked']),
+            90,
+            0,
+          ),
+          ...scored.filter((a) => a.kind === 'album'),
+        ],
+        mb: mb.lookupArtist.mock.calls.length,
+        images: lidarr.lookupArtist.mock.calls.length,
+      }
+    }
+    const before = await run(false)
+    const after = await run(true)
+    expect(after.recommendations).toEqual(before.recommendations)
+    expect(after.recommendations.map((a) => [a.mbid, a.kind])).toEqual([
+      ['new', undefined],
+      ['promoted', 'album'],
+      ['known', 'album'],
+    ])
+    expect([before.mb, after.mb, before.images, after.images]).toEqual([7, 3, 6, 3])
+  })
+
+  it('overlaps MB with at most four image chains and shares images across ten albums', async () => {
+    let releaseImage = () => {}
+    const imageReady = new Promise<void>((resume) => {
+      releaseImage = resume
+    })
+    let active = 0
+    let maximum = 0
+    const mb = makeMb()
+    mb.lookupArtist.mockImplementation(async (id: string) => makeMbArtist({ id, name: id }))
+    const lidarr = {
+      lookupArtist: vi.fn(async () => {
+        active++
+        maximum = Math.max(maximum, active)
+        await imageReady
+        active--
+        return []
+      }),
+    }
+    const discovered = Array.from({ length: 10 }, (_, i) => radiohead({ mbid: `artist-${i}` }))
+    discovered.push(
+      ...Array.from({ length: 10 }, (_, i) =>
+        radiohead({ mbid: 'album-artist', releaseGroupMbid: `rg-${i}` }),
+      ),
+    )
+    const resultPromise = resolve(discovered, mb, undefined, lidarr)
+    await vi.waitFor(() => expect(mb.lookupArtist).toHaveBeenCalledTimes(11))
+    expect(lidarr.lookupArtist).toHaveBeenCalledTimes(4)
+    releaseImage()
+    const result = await resultPromise
+    expect(result).toHaveLength(20)
+    expect(result.slice(0, 10).map((a) => a.mbid)).toEqual(
+      discovered.slice(0, 10).map((a) => a.mbid),
+    )
+    expect(result.slice(10).map((a) => a.releaseGroupMbid)).toEqual(
+      Array.from({ length: 10 }, (_, i) => `rg-${i}`),
+    )
+    expect(lidarr.lookupArtist).toHaveBeenCalledTimes(11)
+    expect(maximum).toBe(4)
+  })
+
+  it.each([false, true])(
+    'drains images even when identity mapping fails (%s)',
+    async (mappingFails) => {
+      const controller = new AbortController()
+      let releaseImage = () => {}
+      const imageReady = new Promise<void>((resume) => {
+        releaseImage = resume
+      })
+      const mb = makeMb()
+      mb.lookupArtist.mockImplementation(async (id: string) => makeMbArtist({ id }))
+      if (mappingFails)
+        mb.extractStreamingUrls.mockImplementation(() => {
+          throw new Error('Invalid relations')
+        })
+      const lidarr = {
+        lookupArtist: vi.fn(async () => {
+          await imageReady
+          return []
+        }),
+      }
+      const result = resolve(
+        Array.from({ length: 8 }, (_, i) => radiohead({ mbid: `id-${i}` })),
+        mb,
+        undefined,
+        lidarr,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        false,
+        controller.signal,
+      )
+      await vi.waitFor(() => expect(mb.lookupArtist).toHaveBeenCalledTimes(8))
+      controller.abort()
+      let returned = false
+      const checked = expect(result)
+        .rejects.toBeInstanceOf(PipelineCancelledError)
+        .then(() => {
+          returned = true
+        })
+      await Promise.resolve()
+      expect(returned).toBe(false)
+      releaseImage()
+      await checked
+      expect(lidarr.lookupArtist).toHaveBeenCalledTimes(4)
+    },
+  )
 })

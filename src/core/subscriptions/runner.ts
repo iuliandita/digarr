@@ -5,7 +5,7 @@ import {
 import type { DiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { runDiscoveryMode } from '@/core/discovery-modes/run'
 import { filter } from '@/core/pipeline/filter'
-import { resolve } from '@/core/pipeline/resolve'
+import { prefilterArtistCandidates, resolve } from '@/core/pipeline/resolve'
 import { score } from '@/core/pipeline/score'
 import { store } from '@/core/pipeline/store'
 import { resolveWeights } from '@/core/pipeline/weight-presets'
@@ -240,11 +240,30 @@ export async function runSubscription(
 
     const artistsFound = artists.length
 
+    const existingBeforeResolve = await deps.db.getExistingRecommendationMbids(
+      subscription.userId ?? undefined,
+      { rejectionCooldownDays: deps.cooldownDays },
+    )
     const resolved = await resolve(
-      artists,
+      prefilterArtistCandidates(
+        artists,
+        new Set([
+          ...deps.libraryMbids,
+          ...deps.rejectedMbids,
+          ...deps.blockedMbids,
+          ...existingBeforeResolve,
+        ]),
+      ),
       deps.mbClient as Parameters<typeof resolve>[1],
       undefined,
       deps.lidarr as Parameters<typeof resolve>[3],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      false,
+      undefined,
+      new Set(artists.filter((d) => d.mbid && !d.releaseGroupMbid).map((d) => d.mbid as string)),
     )
 
     const weightPreset = subscription.scoringWeightPreset ?? 'default'

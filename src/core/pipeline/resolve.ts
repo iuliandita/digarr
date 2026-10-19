@@ -42,6 +42,23 @@ function normalizeArtistName(name: string): string {
   return name.normalize('NFC').toLowerCase().trim().replace(/\s+/gu, ' ')
 }
 
+export function prefilterArtistCandidates(
+  discovered: DiscoveredArtist[],
+  excludedMbids: Set<string>,
+  promoteSuggestedAlbums = false,
+): DiscoveredArtist[] {
+  // Preserve the whole discovery group when any source can promote it to an album.
+  const promotable = new Set(
+    discovered
+      .filter((d) => promoteSuggestedAlbums && d.suggestedAlbum && !d.releaseGroupMbid)
+      .map((d) => d.mbid)
+      .filter((mbid): mbid is string => Boolean(mbid)),
+  )
+  return discovered.filter(
+    (d) => d.releaseGroupMbid || !d.mbid || promotable.has(d.mbid) || !excludedMbids.has(d.mbid),
+  )
+}
+
 export async function resolve(
   discovered: DiscoveredArtist[],
   mb: MusicBrainzClient,
@@ -53,6 +70,7 @@ export async function resolve(
   audiodb?: AudiodbClient | null,
   promoteSuggestedAlbums = false,
   signal?: AbortSignal,
+  reservedArtistMbids: Set<string> = new Set(),
 ): Promise<ResolvedArtist[]> {
   // Album-kind discoveries (gap-fill / release-radar) carry a releaseGroupMbid and
   // must each resolve to their OWN recommendation -- one per release group, even
@@ -90,7 +108,38 @@ export async function resolve(
 
   const total = byMbid.size + byName.size + byReleaseGroup.size
   let current = 0
-  const resolved: ResolvedArtist[] = []
+  const pending: Array<Promise<ResolvedArtist | null>> = []
+  const images = new Map<string, ReturnType<typeof fetchArtistImage>>()
+  let activeImages = 0
+  const imageWaiters: Array<() => void> = []
+  function getImage(artist: MBArtist): ReturnType<typeof fetchArtistImage> {
+    const cached = images.get(artist.id)
+    if (cached) return cached
+    const result = (async () => {
+      if (activeImages >= 4) await new Promise<void>((resume) => imageWaiters.push(resume))
+      else activeImages++
+      try {
+        if (signal?.aborted) throw new PipelineCancelledError()
+        return await fetchArtistImage(artist.id, artist.name, audiodb, lidarr, fanart, musicinfo)
+      } finally {
+        const resume = imageWaiters.shift()
+        if (resume) resume()
+        else activeImages--
+      }
+    })()
+    void result.catch(() => {})
+    images.set(artist.id, result)
+    return result
+  }
+  function enqueue(artist: MBArtist, discoveries: DiscoveredArtist[]) {
+    if (signal?.aborted) throw new PipelineCancelledError()
+    if (isSpecialPurposeArtist(artist.id)) return
+    pending.push(
+      buildResolvedArtist(artist, discoveries, mb, getImage(artist), promoteSuggestedAlbums).catch(
+        () => null,
+      ),
+    )
+  }
 
   onProgress?.({
     stage: 'resolve',
@@ -99,143 +148,129 @@ export async function resolve(
     message: t ? t('pipeline.message.startingResolution') : 'Starting resolution',
   })
 
-  // Resolve artists that already have MBIDs
-  for (const [mbid, discoveries] of byMbid) {
-    if (signal?.aborted) throw new PipelineCancelledError()
-    current++
-    const artistName = discoveries[0]?.name ?? mbid
-    onProgress?.({
-      stage: 'resolve',
-      current,
-      total,
-      message: t ? t('pipeline.message.resolvingArtist', artistName) : `Resolving ${artistName}...`,
-    })
+  try {
+    // Resolve artists that already have MBIDs
+    for (const [mbid, discoveries] of byMbid) {
+      if (signal?.aborted) throw new PipelineCancelledError()
+      current++
+      const artistName = discoveries[0]?.name ?? mbid
+      onProgress?.({
+        stage: 'resolve',
+        current,
+        total,
+        message: t
+          ? t('pipeline.message.resolvingArtist', artistName)
+          : `Resolving ${artistName}...`,
+      })
 
-    try {
-      const mbArtist = await mb.lookupArtist(mbid)
-      resolved.push(
-        await buildResolvedArtist(
-          mbArtist,
-          discoveries,
-          mb,
-          lidarr,
-          fanart,
-          musicinfo,
-          audiodb,
-          promoteSuggestedAlbums,
-        ),
-      )
-    } catch {
-      // Drop unresolvable
+      try {
+        const mbArtist = await mb.lookupArtist(mbid)
+        enqueue(mbArtist, discoveries)
+      } catch {
+        // Drop unresolvable
+      }
     }
-  }
 
-  // Search MB for artists without MBIDs
-  for (const [_nameLower, discoveries] of byName) {
-    if (signal?.aborted) throw new PipelineCancelledError()
-    current++
-    const firstName = discoveries[0]?.name ?? ''
-    onProgress?.({
-      stage: 'resolve',
-      current,
-      total,
-      message: t ? t('pipeline.message.searchingArtist', firstName) : `Searching ${firstName}...`,
-    })
-    if (!firstName) continue
+    // Search MB for artists without MBIDs
+    for (const [_nameLower, discoveries] of byName) {
+      if (signal?.aborted) throw new PipelineCancelledError()
+      current++
+      const firstName = discoveries[0]?.name ?? ''
+      onProgress?.({
+        stage: 'resolve',
+        current,
+        total,
+        message: t ? t('pipeline.message.searchingArtist', firstName) : `Searching ${firstName}...`,
+      })
+      if (!firstName) continue
 
-    try {
-      const searchResult = await mb.searchArtist(firstName)
-      const discoveryGenres = discoveries.flatMap((d) => d.genres ?? [])
-      const expectedName = normalizeArtistName(firstName)
+      try {
+        const searchResult = await mb.searchArtist(firstName)
+        const discoveryGenres = discoveries.flatMap((d) => d.genres ?? [])
+        const expectedName = normalizeArtistName(firstName)
 
-      let bestCandidate: MBArtist | null = null
-      let bestOverlap = -Infinity
-      let ambiguous = false
+        let bestCandidate: MBArtist | null = null
+        let bestOverlap = -Infinity
+        let ambiguous = false
 
-      for (const hit of searchResult.artists.slice(0, 5)) {
-        if (byMbid.has(hit.id) || isSpecialPurposeArtist(hit.id)) continue
-        try {
-          const mbArtist = await mb.lookupArtist(hit.id)
+        for (const hit of searchResult.artists.slice(0, 5)) {
+          if (
+            byMbid.has(hit.id) ||
+            reservedArtistMbids.has(hit.id) ||
+            isSpecialPurposeArtist(hit.id)
+          )
+            continue
+          try {
+            const mbArtist = await mb.lookupArtist(hit.id)
 
-          // Genre similarity cannot establish that a search hit is the requested artist.
-          const names = [mbArtist.name, ...(mbArtist.aliases ?? []).map((alias) => alias.name)]
-          if (!names.some((name) => normalizeArtistName(name) === expectedName)) continue
+            // Genre similarity cannot establish that a search hit is the requested artist.
+            const names = [mbArtist.name, ...(mbArtist.aliases ?? []).map((alias) => alias.name)]
+            if (!names.some((name) => normalizeArtistName(name) === expectedName)) continue
 
-          const overlap = genreOverlapScore(discoveryGenres, mbArtist.tags ?? [])
-          if (overlap > bestOverlap) {
-            bestCandidate = mbArtist
-            bestOverlap = overlap
-            ambiguous = false
-          } else if (overlap === bestOverlap && bestCandidate?.id !== mbArtist.id) {
-            ambiguous = true
+            const overlap = genreOverlapScore(discoveryGenres, mbArtist.tags ?? [])
+            if (overlap > bestOverlap) {
+              bestCandidate = mbArtist
+              bestOverlap = overlap
+              ambiguous = false
+            } else if (overlap === bestOverlap && bestCandidate?.id !== mbArtist.id) {
+              ambiguous = true
+            }
+          } catch {
+            // skip failed lookup, try next candidate
           }
-        } catch {
-          // skip failed lookup, try next candidate
         }
+
+        // Skip when AI provided genres but the best MB candidate has zero overlap --
+        // strong signal that the AI confused similarly-named artists (e.g. "Digital
+        // Underground" vs "The Velvet Underground"). bestOverlap of -1 means MB had
+        // no tags to compare, which is fine - many lesser-known artists lack tags.
+        if (discoveryGenres.length > 0 && bestOverlap === 0) continue
+
+        if (!bestCandidate || ambiguous || byMbid.has(bestCandidate.id)) continue
+        enqueue(bestCandidate, discoveries)
+        byMbid.set(bestCandidate.id, discoveries)
+      } catch {
+        // Drop unresolvable
       }
-
-      // Skip when AI provided genres but the best MB candidate has zero overlap --
-      // strong signal that the AI confused similarly-named artists (e.g. "Digital
-      // Underground" vs "The Velvet Underground"). bestOverlap of -1 means MB had
-      // no tags to compare, which is fine - many lesser-known artists lack tags.
-      if (discoveryGenres.length > 0 && bestOverlap === 0) continue
-
-      if (!bestCandidate || ambiguous || byMbid.has(bestCandidate.id)) continue
-      resolved.push(
-        await buildResolvedArtist(
-          bestCandidate,
-          discoveries,
-          mb,
-          lidarr,
-          fanart,
-          musicinfo,
-          audiodb,
-          promoteSuggestedAlbums,
-        ),
-      )
-      byMbid.set(bestCandidate.id, discoveries)
-    } catch {
-      // Drop unresolvable
     }
-  }
 
-  // Resolve album-kind discoveries: one rec per release group, caching the artist
-  // MB lookup so N missing albums for one artist cost a single lookupArtist call.
-  const artistLookupCache = new Map<string, MBArtist>()
-  for (const [, discoveries] of byReleaseGroup) {
-    if (signal?.aborted) throw new PipelineCancelledError()
-    current++
-    const artistMbid = discoveries[0]?.mbid
-    const albumTitle = discoveries[0]?.suggestedAlbum ?? ''
-    onProgress?.({
-      stage: 'resolve',
-      current,
-      total,
-      message: t ? t('pipeline.message.resolvingArtist', albumTitle) : `Resolving ${albumTitle}...`,
-    })
-    if (!artistMbid) continue
-    try {
-      let mbArtist = artistLookupCache.get(artistMbid)
-      if (!mbArtist) {
-        mbArtist = await mb.lookupArtist(artistMbid)
-        artistLookupCache.set(artistMbid, mbArtist)
+    // Resolve album-kind discoveries: one rec per release group, caching the artist
+    // MB lookup so N missing albums for one artist cost a single lookupArtist call.
+    const artistLookupCache = new Map<string, MBArtist>()
+    for (const [, discoveries] of byReleaseGroup) {
+      if (signal?.aborted) throw new PipelineCancelledError()
+      current++
+      const artistMbid = discoveries[0]?.mbid
+      const albumTitle = discoveries[0]?.suggestedAlbum ?? ''
+      onProgress?.({
+        stage: 'resolve',
+        current,
+        total,
+        message: t
+          ? t('pipeline.message.resolvingArtist', albumTitle)
+          : `Resolving ${albumTitle}...`,
+      })
+      if (!artistMbid) continue
+      try {
+        let mbArtist = artistLookupCache.get(artistMbid)
+        if (!mbArtist) {
+          mbArtist = await mb.lookupArtist(artistMbid)
+          artistLookupCache.set(artistMbid, mbArtist)
+        }
+        enqueue(mbArtist, discoveries)
+      } catch {
+        // Drop unresolvable
       }
-      resolved.push(
-        await buildResolvedArtist(
-          mbArtist,
-          discoveries,
-          mb,
-          lidarr,
-          fanart,
-          musicinfo,
-          audiodb,
-          promoteSuggestedAlbums,
-        ),
-      )
-    } catch {
-      // Drop unresolvable
     }
+  } finally {
+    // Drain image work before cancellation returns to the caller.
+    await Promise.all(pending)
+    await Promise.allSettled(images.values())
   }
+  if (signal?.aborted) throw new PipelineCancelledError()
+  const resolved = (await Promise.all(pending)).filter(
+    (artist): artist is ResolvedArtist => artist !== null,
+  )
 
   onProgress?.({
     stage: 'resolve',
@@ -311,25 +346,12 @@ async function buildResolvedArtist(
   mbArtist: MBArtist,
   discoveries: DiscoveredArtist[],
   mb: MusicBrainzClient,
-  lidarr?: LidarrLookupClient | null,
-  fanart?: FanartClient | null,
-  musicinfo?: MusicinfoClient | null,
-  audiodb?: AudiodbClient | null,
+  image: ReturnType<typeof fetchArtistImage>,
   promoteSuggestedAlbums = false,
 ): Promise<ResolvedArtist> {
   if (isSpecialPurposeArtist(mbArtist.id)) throw new Error('Special-purpose artist')
   const tags = (mbArtist.tags ?? []).map((t) => t.name)
   const streamingUrls = mb.extractStreamingUrls(mbArtist.relations ?? [])
-
-  // AudioDB first, then Lidarr -> fanart.tv -> musicinfo.pro
-  const imageResult = await fetchArtistImage(
-    mbArtist.id,
-    mbArtist.name,
-    audiodb,
-    lidarr,
-    fanart,
-    musicinfo,
-  )
 
   // Album-kind: a discovery from release-radar already knows the real
   // release-group id -- use it directly and skip the lossy title match.
@@ -365,6 +387,7 @@ async function buildResolvedArtist(
     }
   }
 
+  const imageResult = await image
   return {
     mbid: mbArtist.id,
     name: mbArtist.name,

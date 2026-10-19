@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- Settings tabs and the setup wizard load on demand, so the main web bundle is smaller (the Settings chunk went from 217 kB to 9 kB), and the audio preview context no longer re-renders every consumer on each app update (#1098).
+
 ### Fixed
 
 - The release digest-sync and eval workflows now pin Bun 1.4.3 like the other jobs (#1042).
@@ -23,6 +27,9 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Changed
 
 - Approving, rejecting or undoing on Discover updates the visible list in place: one action now sends the PATCH plus one counts request and, in grid and list views, a reload of the current page, instead of refetching the current page (or every loaded stack page) plus four separate count requests. In the All view an acted card stays with its new status. The tab counts come from the new `GET /api/v1/recommendations/counts`. Warm-status polling stops once every artist on the page is warm, paging keeps the current grid visible until the next page loads, and a Today's Pick action on the Dashboard reloads only the cards it changes (#1097).
+- Discovery scans skip resolution for artists already excluded, overlap and reuse artist images, and save recommendations in bulk; download syncs share one inventory read per target (#1094).
+
+- Hashed web assets are now cached for a year and the app shell revalidates on each load, API JSON is gzip-compressed when the client asks for it (event streams and audio are untouched), static file requests no longer fill the request log, the setup check is remembered once setup is complete, and the first library sync, health scan and slskd warmup now start 60 seconds after boot instead of immediately. The Docker image only ships the PGlite runtime dependency and a minified server bundle, going from 204 MB to 137 MB (#1091).
 - The web app now downloads only the selected language instead of all 15. The JavaScript loaded on first visit went from about 2.4 MB (662 KB gzipped) to about 711 KB (210 KB gzipped); a non-English language adds one catalog of about 115 KB (32 KB gzipped). A stored non-English language loads before the app renders, and switching keeps the current language on screen until the new one has loaded; if a catalog cannot load, the app falls back to English.
 - Spotify Charts subscriptions now reject an unknown region or a chart type the region does not have (400 on create/update, a clear error on run) instead of silently using the global Top 50. When Spotify answers 403/404, the error says it no longer serves its editorial chart playlists to newer apps (since 2024-11-27), and the setup text warns that charts may not work. Upgrade note: an existing Spotify Charts subscription saved with an unknown region or a chart type its region lacks (for example Viral 50 outside Global) now fails each run with that error instead of quietly fetching the global Top 50; edit it to a supported region/chart (#1040).
 - Discovery Modes combines manual runs and schedules in one page, with compact saved/recent rows, a searchable mode picker, and presets and imports in its add flow. Scheduling stays in the picked mode card, with one schedule select, presets that show their run time in server time, Custom cron validation, and More options for name, artist limit, and scoring. Saved rows use the same compact editor and their switch handles pause/resume. Old URLs and mode deep links keep working. Settings > Schedule lists schedules with edit links and now holds the admin playlist scheduling switch (#983).
