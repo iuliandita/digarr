@@ -608,7 +608,7 @@
         "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "d2b28419f5e7a4046320075d71120bfa1d16b6a18dcf9ab0d6de947744eabe67",
+        "src/core/jobs/recorder.ts": "c733e3338858e84c4a369412f086200a0857d09ed328c5c7404b8a07e3213d11",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -759,14 +759,14 @@
         "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "656aafd51413ef34fd849d9e7de944749b88efaed7478c537d74bbb43e7eb854",
+      "digest": "78d2f72fb73573f6cf74fdc0685722a1af8df19a5f84d44ff1048caf208612dc",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Image URL normalization at provider ingest for fanart.tv and theaudiodb; no setting, API, or UI change, and the migration and upgrade note are documented under the data-recovery domain.",
+        "outcome": "docs-updated",
+        "docs": ["docs/OPERATIONS.md"],
+        "note": "Playlist generation stuck limit raised from 2 to 15 minutes; OPERATIONS stuck-limit table updated",
         "breaking": "none",
         "migration": "",
-        "digest": "656aafd51413ef34fd849d9e7de944749b88efaed7478c537d74bbb43e7eb854"
+        "digest": "78d2f72fb73573f6cf74fdc0685722a1af8df19a5f84d44ff1048caf208612dc"
       }
     },
     "deployment": {

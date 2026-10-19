@@ -17,6 +17,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Playlist generation is no longer marked stuck after 2 minutes; a full-size Audition takes longer than that, so the limit is now 15 minutes (#1136).
 - The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).
 - Library Sources "Sync now" and "Sync all" no longer hit a 504 behind a reverse proxy: the sync runs in the background, the request returns 202 at once, and the card shows running, then the final counts or error. A sync that is already running returns 409 (#1127).

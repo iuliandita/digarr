@@ -54,7 +54,8 @@ Admins can inspect Job History for failures and partial results; the Failures on
 |----------|------------|
 | Pipeline | 10 minutes |
 | Quick discovery or subscription | 5 minutes |
-| Target or playlist | 2 minutes |
+| Target | 2 minutes |
+| Playlist generation | 15 minutes |
 | Library sync | 90 minutes |
 
 This label does not stop the job or prove that it has stopped making progress. A slow, healthy run can cross the limit; check its progress before retrying.
