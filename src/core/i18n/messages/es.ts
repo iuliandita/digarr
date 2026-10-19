@@ -1002,6 +1002,7 @@ export const es = {
   'discoveryMode.unavailable': 'No disponible',
   'discoveryMode.easy': 'Fácil',
   'discoveryMode.advanced': 'Avanzado',
+  'discoveryMode.settingsView': 'Vista de ajustes',
   'discoveryMode.starting': 'Iniciando...',
   'discoveryMode.dismiss': 'Cerrar',
   'discoveryMode.addTag': '+ Añadir etiqueta',

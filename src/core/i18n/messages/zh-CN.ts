@@ -923,6 +923,7 @@ export const zhCN = {
   'discoveryMode.unavailable': '不可用',
   'discoveryMode.easy': '简单',
   'discoveryMode.advanced': '高级',
+  'discoveryMode.settingsView': '设置视图',
   'discoveryMode.starting': '启动中...',
   'discoveryMode.dismiss': '关闭',
   'discoveryMode.addTag': '+ 添加标签',

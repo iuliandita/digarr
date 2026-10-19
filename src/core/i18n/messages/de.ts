@@ -1006,6 +1006,7 @@ export const de = {
   'discoveryMode.unavailable': 'Nicht verfügbar',
   'discoveryMode.easy': 'Einfach',
   'discoveryMode.advanced': 'Erweitert',
+  'discoveryMode.settingsView': 'Einstellungsansicht',
   'discoveryMode.starting': 'Wird gestartet...',
   'discoveryMode.dismiss': 'Schließen',
   'discoveryMode.addTag': '+ Tag hinzufügen',

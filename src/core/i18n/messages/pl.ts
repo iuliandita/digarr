@@ -996,6 +996,7 @@ export const pl = {
   'discoveryMode.unavailable': 'Niedostępny',
   'discoveryMode.easy': 'Prosty',
   'discoveryMode.advanced': 'Zaawansowany',
+  'discoveryMode.settingsView': 'Widok ustawień',
   'discoveryMode.starting': 'Uruchamianie...',
   'discoveryMode.dismiss': 'Zamknij',
   'discoveryMode.addTag': '+ Dodaj tag',

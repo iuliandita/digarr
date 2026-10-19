@@ -178,7 +178,7 @@
         "src/db/queries/artists.ts": "113aaf2c7158127ffb0e563ef5ee7722fdcc980910db9f9152b359fbc7a57e9c",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
-        "src/db/queries/gap-fill.ts": "614d60689b39a363cea37394d22f09dfc482486061e16131beeb2a758d589e7f",
+        "src/db/queries/gap-fill.ts": "2e5aae971156d2c14842552496b76541184489140ae51b7854208bfaaf9abf6a",
         "src/db/queries/genres.ts": "623e351944c65a8b03ac3361cbe49f073a424f791fd4170719db6f78afa8c934",
         "src/db/queries/jobs.ts": "4a69d8cea2bb8d22913ea730e982053b8e92ec23506ff74fcacc80358f78171e",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
@@ -199,14 +199,14 @@
         "src/db/schema.ts": "e9f39316c61d47d3d44fc2570831921b88b538b6119836752c75e1b47aae6cf1",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "e67511142260632f0cd7b3b7cc5358a7037bcfdb511e50d41f0b6ddecff68721",
+      "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Adds optional preferences.lidarrRequireFiles to the existing preferences JSON; no column or migration, absent means true.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
         "breaking": "none",
-        "migration": "No schema change, so upgrade needs no backup beyond the usual one; the key is carried inside preferences JSON. Rollback to an older image ignores it and counts all Lidarr albums again after the next sync.",
-        "digest": "e67511142260632f0cd7b3b7cc5358a7037bcfdb511e50d41f0b6ddecff68721"
+        "migration": "Query-only fix: the gap-fill artist filter compares the uuid column directly instead of lower(uuid), which Postgres rejects. No schema, backup, restore or rollback change.",
+        "digest": "98a6ea81099b03b28a62c7bcad1e5505896f89897df235251bcdde8fbd2be4b9"
       }
     },
     "configuration": {
@@ -331,17 +331,17 @@
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
-        "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
+        "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "8b31bb5e844e02c179c25d79c63b28c70c517bef464371d91d2125d3b005f1d7",
+      "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Settings schema accepts boolean preferences.lidarrRequireFiles; documented in API.md.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Static /assets responses now send Access-Control-Allow-Origin star for the sandboxed Spotify bridge; no route, schema, or API contract changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "8b31bb5e844e02c179c25d79c63b28c70c517bef464371d91d2125d3b005f1d7"
+        "digest": "bddfa5e22f32223a935b0502beed85adb4e0a46a3299c5b7e6e86d222bf2c4af"
       }
     },
     "interface": {
@@ -352,24 +352,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "47b36dcc8318686ab1ec54fd14068d9b2be6aeb5d3b282e413dae33d747e6c44",
-        "src/core/i18n/messages/en.ts": "1fb82ea800d4dbfebce28081f1ed18c1a25d1801b6dfa434b007d0f8e52f5901",
-        "src/core/i18n/messages/es.ts": "4d5c2c3a6b44a3ffaf988d1c2fedf8121c435ee116b76dc068e912c080d3a328",
-        "src/core/i18n/messages/fr.ts": "1672bfcf9696a607bcb4d3c660db3fe06a7617d8884bab82ad412a78f1b95d28",
+        "src/core/i18n/messages/de.ts": "cd2d184d164d66daa99ac98ba6c380bc3777c86930b9cd91d4c72b30039f0e9f",
+        "src/core/i18n/messages/en.ts": "bef8f752b58a6b1e1f5175ce3285192adb7eb259f09338967895a4a79f7316db",
+        "src/core/i18n/messages/es.ts": "d3cda8316230d53e2db593bd03c46e4c5a0be0857bc99a39284225029f0ef0e8",
+        "src/core/i18n/messages/fr.ts": "290389a26c020c297dbf94bc2659f3486d3c669588a785f134c1523d8d414e79",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "e337fb0161915246a744169790954c22dfd0f426a81d7571382a0808ce2a1ad3",
-        "src/core/i18n/messages/ja.ts": "b64bf98a8beb064a735d28acfe514407a12146aaf7cfb43477f172be386d4525",
-        "src/core/i18n/messages/ko.ts": "d7fc722d922d635d0540ca210c649779de8d9a3fd96802ec8a6a38f8947999d2",
-        "src/core/i18n/messages/nl.ts": "457cb2775ca8b0589b72bfe9b175540b26cc01b36322ff84531a32ab448c2372",
-        "src/core/i18n/messages/pl.ts": "4a908875ae3eb17aa568570a16613c870653bbf095a9700896f3ad20b3bb789d",
-        "src/core/i18n/messages/pt-BR.ts": "ddcb2e74f1e70d9cf4f2b2c0cfa7f58859696feb3b0539b32c56ad74a6292dc4",
-        "src/core/i18n/messages/ro.ts": "183096a63269a92792061c036eed891c5e32f0a93b152cdcaea7b4fae1747dbe",
-        "src/core/i18n/messages/ru.ts": "224a043c1f3b76bbdf7be0b74b18565fc925f2b10ed37ba9d7c71d7f47bed48f",
-        "src/core/i18n/messages/source-lock.json": "9c9d0de23b64095ed0a48ae564717f740cf612e6b2d6bb87c436df6e04681c35",
-        "src/core/i18n/messages/tr.ts": "c09dafd5045b5229fd45b8fd9196cac8fcf631a1912a16af0b2f44d6ddcbf45f",
+        "src/core/i18n/messages/it.ts": "f50bc888e93b7f71169f266b746f8fd93f3a0f205613fc280b2d86a8c7379afb",
+        "src/core/i18n/messages/ja.ts": "1ae2e616caa4b6df730f03da337218850d193752226e6c7b341241076ce1f50a",
+        "src/core/i18n/messages/ko.ts": "837a2a53b8fe9adccce1837fabb9c6f2c012dcb096052f62fdfd41606eb25b39",
+        "src/core/i18n/messages/nl.ts": "145d9af4a4d143d875534b43ac33e5998243ecbcc1af908861c0f4fe76364df3",
+        "src/core/i18n/messages/pl.ts": "33b9f28497115fb29c709ff85f7b86aee771f50cb7a0c9d7fff93512d2a57980",
+        "src/core/i18n/messages/pt-BR.ts": "1194df80eb005f3142152c2073cd9e345160176f7337602b56b944df23b0b3e9",
+        "src/core/i18n/messages/ro.ts": "db689388031eabe194170023ae1d2da174d9b48ce1ba82453329769743eac66e",
+        "src/core/i18n/messages/ru.ts": "9d31e762cb46b43c2b81f8dc00a29af5e301f16f74ff7229bea7fb352b572e39",
+        "src/core/i18n/messages/source-lock.json": "ad277b4ea85e87a3b7ffc276eb29005b7506fdebae2e4cc8314f7d157addda31",
+        "src/core/i18n/messages/tr.ts": "80670d9c50367415bee46ccbcde069aea2036853e6c3e92d18b792827b5777f8",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "a31f5044d0617a9c8ba6c35835c64608949890671598c76ab4fb8871d5aa3dd6",
-        "src/core/i18n/messages/zh-CN.ts": "c7a8d71d0f0e1df2dea72c27fd966b5cf8d00d931d0e052a4fc957d7a5774ad4",
+        "src/core/i18n/messages/uk.ts": "a4208579d26ed7bbdcd4166cd7f6277b3e14c7ca29957a262c655e3adf53f8ac",
+        "src/core/i18n/messages/zh-CN.ts": "009aa3722c7d31bac034ba05aeaa6edec6e8d8bf0f00ee2032df456a7a734348",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -396,9 +396,9 @@
         "src/web/components/dashboard-customize.tsx": "adda1d8624fdcf04d34f4e8e3f3d5d785fdca1d767b1c9a802cbdfa3780515c2",
         "src/web/components/discover-tabs.tsx": "87e40802ee861172e82c747002f33b660de28a2eead2ff9ff0fa4e76fea24c19",
         "src/web/components/discover-toolbar.tsx": "f94ce0055d78b3a1f6feaba6e0e80b137d9c2b9d4322d4322befa69cd0954e7d",
-        "src/web/components/discovery-mode-form.tsx": "a940d0173f0b658972d29e70c25ae1a43fee14248c62d7faa2eb2c372342883b",
+        "src/web/components/discovery-mode-form.tsx": "b95983f72eaad20ace5ef53fb41411f006c5640bfa5ca46ef3860c148b221fae",
         "src/web/components/discovery-modes-redirect.tsx": "dfc760ce1423ed980ddad2d5d257dbf22143c2d7256c778b2dd5912ef38305f8",
-        "src/web/components/discovery-modes-section.tsx": "3b8d9716d9e51b17906bacb01d97946a9914fc3a29ce3c49570b7b731c430c8b",
+        "src/web/components/discovery-modes-section.tsx": "80153d85fecaec67a6ff9a866409b8066dc6f5fd454f0f35d04fd1b378bcdffc",
         "src/web/components/error-boundary.tsx": "1ae352ac2b2d67b2e8515714d5018ce93a02ca6001e2eab0900173fd4f9a9a92",
         "src/web/components/field.tsx": "47407ad280484d017eb808be60411ea2a0767450910013c20af87d1317ff57fa",
         "src/web/components/genre-card.tsx": "c1effa52ea1724b55e1c111a1dfaf850d059ef4d68e23c93b68a4625c84e65ad",
@@ -530,14 +530,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "cabfa095989c791c70e8654ddf0e67bbc7a5bb0d21e57e5fa7ae9130aad48dad",
+      "digest": "b5c726a8d1bd3ebee11a37f2611d9dbbd51e24821c70c23e602f09c166d0c978",
       "review": {
         "outcome": "docs-updated",
         "docs": ["README.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Scrobbler write-back switches moved from Settings Account to the ListenBrainz and Last.fm cards in Connections; updated README, operations guide and changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "cabfa095989c791c70e8654ddf0e67bbc7a5bb0d21e57e5fa7ae9130aad48dad"
+        "digest": "b5c726a8d1bd3ebee11a37f2611d9dbbd51e24821c70c23e602f09c166d0c978"
       }
     },
     "features": {
@@ -605,7 +605,7 @@
         "src/core/genre/types.ts": "255a1ad2571bd3c83e0ed02cf50c762819afa9c22e4d2ab70de6f2d92aaebff1",
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "824ad430976f1269a86de3169d2fd18c5734ac1585b3ba1670792b051eb032f6",
+        "src/core/jobs/recorder.ts": "d2b28419f5e7a4046320075d71120bfa1d16b6a18dcf9ab0d6de947744eabe67",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -756,14 +756,14 @@
         "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "e3f6788c2a466d1cada90ec0e137392ceea04ec2bc8e67bfe91c9305e9bd6ad1",
+      "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Lidarr library source drops albums without track files by default and the option is wired from settings in index.ts; documented in OPERATIONS.md and the changelog.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Job failure recording replaces raw drizzle query text with a short database error message; the full error goes to the server log. Changelog Fixed entry added.",
         "breaking": "none",
         "migration": "",
-        "digest": "e3f6788c2a466d1cada90ec0e137392ceea04ec2bc8e67bfe91c9305e9bd6ad1"
+        "digest": "ac9b0bbffdedd983fd4107da34643cf44f12cb5e075802a2e6c4d0a261c7a483"
       }
     },
     "deployment": {
@@ -830,16 +830,16 @@
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
-        "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
+        "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755",
+      "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Only the server build script gains whitespace and syntax minification; version, scripts and pins are unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Vite output filenames use 10-char hashes once to bust immutable-cached assets; no release pins, channels, or version surfaces change.",
         "breaking": "none",
         "migration": "",
-        "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755"
+        "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391"
       }
     },
     "maintenance": {

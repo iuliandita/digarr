@@ -999,6 +999,7 @@ export const ptBR = {
   'discoveryMode.unavailable': 'Indisponível',
   'discoveryMode.easy': 'Fácil',
   'discoveryMode.advanced': 'Avançado',
+  'discoveryMode.settingsView': 'Visualização das configurações',
   'discoveryMode.starting': 'Iniciando...',
   'discoveryMode.dismiss': 'Dispensar',
   'discoveryMode.addTag': '+ Adicionar tag',

@@ -984,6 +984,7 @@ export const en = {
   // Discovery Mode Form
   'discoveryMode.easy': 'Easy',
   'discoveryMode.advanced': 'Advanced',
+  'discoveryMode.settingsView': 'Settings view',
   'discoveryMode.starting': 'Starting...',
   'discoveryMode.dismiss': 'Dismiss',
   'discoveryMode.addTag': '+ Add tag',

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight, History, LayoutGrid, Play, Plus, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
 import {
   createSubscriptionApi,
@@ -33,6 +33,46 @@ function jobModeId(job: JobRun): string | null {
   const metadata = job.metadata?.discoveryMode
   if (!metadata || typeof metadata !== 'object' || !('modeId' in metadata)) return null
   return typeof metadata.modeId === 'string' ? metadata.modeId : null
+}
+
+function ModeFormPanel({
+  mode,
+  title,
+  description,
+  closeLabel,
+  onClose,
+  children,
+}: {
+  mode: DiscoveryModeResponse
+  title: string
+  description: string
+  closeLabel: string
+  onClose: () => void
+  children: (toggleSlot: HTMLElement | null) => ReactNode
+}) {
+  const [toggleSlot, setToggleSlot] = useState<HTMLElement | null>(null)
+  return (
+    <article
+      id={`discovery-mode-${mode.id}`}
+      tabIndex={-1}
+      aria-label={title}
+      className="scroll-mt-24 space-y-4 rounded-lg border border-border bg-surface p-4 outline-none focus:ring-1 focus:ring-accent"
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="space-y-1">
+          <h3 className="text-base font-semibold text-text">{title}</h3>
+          <p className="text-sm text-muted">{description}</p>
+        </div>
+        <div className="flex shrink-0 items-center gap-1">
+          <div ref={setToggleSlot} />
+          <Button variant="ghost" size="icon" aria-label={closeLabel} onClick={onClose}>
+            <X size={16} />
+          </Button>
+        </div>
+      </div>
+      {children(toggleSlot)}
+    </article>
+  )
 }
 
 export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: string | null }) {
@@ -235,52 +275,40 @@ export function DiscoveryModesSection({ requestedModeId }: { requestedModeId?: s
         : translateDiscoveryReason(t, mode.availability.reason) || t('discoveryMode.unavailable'),
     }))
   const renderModeForm = (mode: DiscoveryModeResponse) => (
-    <article
-      id={`discovery-mode-${mode.id}`}
-      tabIndex={-1}
-      aria-label={translateDiscoveryModeLabel(t, mode)}
-      className="scroll-mt-24 space-y-4 rounded-lg border border-border bg-surface p-4 outline-none focus:ring-1 focus:ring-accent"
+    <ModeFormPanel
+      mode={mode}
+      title={translateDiscoveryModeLabel(t, mode)}
+      description={translateDiscoveryModeDescription(t, mode)}
+      closeLabel={t('common.close')}
+      onClose={() => setSelectedModeId(null)}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="space-y-1">
-          <h3 className="text-base font-semibold text-text">
-            {translateDiscoveryModeLabel(t, mode)}
-          </h3>
-          <p className="text-sm text-muted">{translateDiscoveryModeDescription(t, mode)}</p>
-        </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          aria-label={t('common.close')}
-          onClick={() => setSelectedModeId(null)}
-        >
-          <X size={16} />
-        </Button>
-      </div>
-      {createRequest?.initial.sourceProvider === mode.id ? (
-        <SubscriptionForm
-          key={createRequest.id}
-          inline
-          mode="create"
-          initial={createRequest.initial}
-          discoveryModes={discoveryModes?.modes}
-          configuredSources={[]}
-          onSubmit={createSchedule}
-          onCancel={requestHandled}
-        />
-      ) : (
-        <DiscoveryModeForm
-          key={mode.id}
-          mode={mode}
-          onRun={handleRun}
-          onSchedule={(config) => scheduleMode(mode, config)}
-          initialSettingsMode={
-            runConfigs[mode.id]?.settingsMode === 'advanced' ? 'advanced' : 'easy'
-          }
-          initialSettings={runConfigs[mode.id]?.settings as Record<string, unknown> | undefined}
-        />
-      )}
-    </article>
+      {(toggleSlot) =>
+        createRequest?.initial.sourceProvider === mode.id ? (
+          <SubscriptionForm
+            key={createRequest.id}
+            inline
+            mode="create"
+            initial={createRequest.initial}
+            discoveryModes={discoveryModes?.modes}
+            configuredSources={[]}
+            onSubmit={createSchedule}
+            onCancel={requestHandled}
+          />
+        ) : (
+          <DiscoveryModeForm
+            key={mode.id}
+            mode={mode}
+            onRun={handleRun}
+            onSchedule={(config) => scheduleMode(mode, config)}
+            initialSettingsMode={
+              runConfigs[mode.id]?.settingsMode === 'advanced' ? 'advanced' : 'easy'
+            }
+            initialSettings={runConfigs[mode.id]?.settings as Record<string, unknown> | undefined}
+            toggleSlot={toggleSlot}
+          />
+        )
+      }
+    </ModeFormPanel>
   )
   const selectedMode = discoveryModes?.modes.find((mode) => mode.id === selectedModeId)
   const recentRows =

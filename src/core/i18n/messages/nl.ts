@@ -996,6 +996,7 @@ export const nl = {
   'discoveryMode.unavailable': 'Niet beschikbaar',
   'discoveryMode.easy': 'Eenvoudig',
   'discoveryMode.advanced': 'Geavanceerd',
+  'discoveryMode.settingsView': 'Instellingenweergave',
   'discoveryMode.starting': 'Bezig met starten...',
   'discoveryMode.dismiss': 'Sluiten',
   'discoveryMode.addTag': '+ Tag toevoegen',

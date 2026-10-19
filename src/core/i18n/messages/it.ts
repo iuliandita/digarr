@@ -1000,6 +1000,7 @@ export const it = {
   'discoveryMode.unavailable': 'Non disponibile',
   'discoveryMode.easy': 'Facile',
   'discoveryMode.advanced': 'Avanzato',
+  'discoveryMode.settingsView': 'Vista impostazioni',
   'discoveryMode.starting': 'Avvio...',
   'discoveryMode.dismiss': 'Ignora',
   'discoveryMode.addTag': '+ Aggiungi tag',

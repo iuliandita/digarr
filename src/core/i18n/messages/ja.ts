@@ -981,6 +981,7 @@ export const ja = {
   'discoveryMode.unavailable': '利用不可',
   'discoveryMode.easy': '簡単',
   'discoveryMode.advanced': '詳細',
+  'discoveryMode.settingsView': '設定の表示',
   'discoveryMode.starting': '起動中...',
   'discoveryMode.dismiss': '閉じる',
   'discoveryMode.addTag': '+ タグを追加',

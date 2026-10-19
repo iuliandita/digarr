@@ -1,4 +1,5 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { DiscoveryConfigField } from '@/core/discovery-modes/types'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
@@ -314,6 +315,36 @@ function DiscoveryModeFields({
   )
 }
 
+function SettingsModeToggle({
+  value,
+  onChange,
+}: {
+  value: DiscoverySettingsMode
+  onChange: (next: DiscoverySettingsMode) => void
+}) {
+  const { t } = useI18n()
+  return (
+    <fieldset
+      aria-label={t('discoveryMode.settingsView')}
+      className="m-0 inline-flex min-w-0 shrink-0 rounded-full border border-border bg-surface p-0.5"
+    >
+      {(['easy', 'advanced'] as const).map((option) => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={value === option}
+          onClick={() => onChange(option)}
+          className={`rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-accent ${
+            value === option ? 'bg-border text-text' : 'text-muted hover:text-text'
+          }`}
+        >
+          {option === 'easy' ? t('discoveryMode.easy') : t('discoveryMode.advanced')}
+        </button>
+      ))}
+    </fieldset>
+  )
+}
+
 export function DiscoveryModeForm({
   mode,
   onRun,
@@ -322,6 +353,7 @@ export function DiscoveryModeForm({
   initialSettingsMode,
   initialSettings,
   onSchedule,
+  toggleSlot,
 }: {
   mode: DiscoveryModeResponse
   onRun: (body: Record<string, unknown>) => Promise<void>
@@ -330,6 +362,8 @@ export function DiscoveryModeForm({
   initialSettingsMode?: DiscoverySettingsMode
   initialSettings?: Record<string, unknown>
   onSchedule?: (config: Record<string, unknown>) => void
+  // undefined: render the toggle inline at the top; null: header slot not mounted yet
+  toggleSlot?: HTMLElement | null
 }) {
   const { t } = useI18n()
   const [settingsMode, setSettingsMode] = useState<DiscoverySettingsMode>(
@@ -410,24 +444,20 @@ export function DiscoveryModeForm({
     }
   }
 
+  const easyKeys = mode.easyFields.map((field) => field.key).join(',')
+  const hasBothModes =
+    mode.advancedFields.length > 0 &&
+    mode.advancedFields.map((field) => field.key).join(',') !== easyKeys
+  const toggleNode = <SettingsModeToggle value={settingsMode} onChange={setSettingsMode} />
+  const toggle = !hasBothModes ? null : toggleSlot === undefined ? (
+    <div className="flex justify-end">{toggleNode}</div>
+  ) : toggleSlot ? (
+    createPortal(toggleNode, toggleSlot)
+  ) : null
+
   const content = (
     <>
-      <div className="flex items-center gap-2">
-        {(['easy', 'advanced'] as const).map((option) => (
-          <button
-            key={option}
-            type="button"
-            onClick={() => setSettingsMode(option)}
-            className={`rounded-md border px-3 py-1.5 text-sm font-medium transition-colors ${
-              settingsMode === option
-                ? 'border-accent bg-accent text-accent-fg'
-                : 'border-border bg-surface text-muted hover:text-text'
-            }`}
-          >
-            {option === 'easy' ? t('discoveryMode.easy') : t('discoveryMode.advanced')}
-          </button>
-        ))}
-      </div>
+      {toggle}
 
       {error && (
         <div className="rounded-md border border-reject/20 bg-reject/5 px-3 py-2 text-sm text-reject">

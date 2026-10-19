@@ -982,6 +982,7 @@ export const tr = {
   'discoveryMode.unavailable': 'Kullanılamıyor',
   'discoveryMode.easy': 'Kolay',
   'discoveryMode.advanced': 'Gelişmiş',
+  'discoveryMode.settingsView': 'Ayar görünümü',
   'discoveryMode.starting': 'Başlatılıyor...',
   'discoveryMode.dismiss': 'Kapat',
   'discoveryMode.addTag': '+ Etiket ekle',
