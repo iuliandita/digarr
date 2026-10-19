@@ -136,3 +136,39 @@ describe('lidarr LibrarySource', () => {
     ])
   })
 })
+
+describe('lidarr LibrarySource requireFiles', () => {
+  const base = { artistId: 1, monitored: true, albumType: 'Album' }
+  const albums = [
+    {
+      ...base,
+      id: 1,
+      title: 'Has files',
+      foreignAlbumId: 'a',
+      statistics: { trackCount: 10, trackFileCount: 4, percentOfTracks: 40 },
+    },
+    {
+      ...base,
+      id: 2,
+      title: 'Wanted only',
+      foreignAlbumId: 'b',
+      statistics: { trackCount: 10, trackFileCount: 0, percentOfTracks: 0 },
+    },
+    { ...base, id: 3, title: 'No statistics', foreignAlbumId: 'c' },
+  ]
+  const makeClient = () => ({
+    getArtists: vi.fn(),
+    getAlbums: vi.fn().mockResolvedValue(albums),
+    testConnection: vi.fn(),
+  })
+
+  it.each([
+    ['by default', undefined, ['1', '3']],
+    ['when requireFiles is true', { requireFiles: true }, ['1', '3']],
+    ['when requireFiles is false', { requireFiles: false }, ['1', '2', '3']],
+  ])('listAlbums keeps the expected albums %s', async (_label, options, expected) => {
+    const source = createLidarrLibrarySource(makeClient() as never, options)
+    const result = await source.listAlbums?.('1')
+    expect(result?.map((a) => a.sourceAlbumId)).toEqual(expected)
+  })
+})

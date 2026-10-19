@@ -248,6 +248,8 @@ For complete recovery, retain a database backup and the matching encryption key 
 
 The [Docker backup procedure](../../deploy/docker/README.md#back-up-and-update) includes complete Compose commands for both database-backup methods. Protect backups as credentials, copy them off the host, and preserve the original database until the recovered instance is verified.
 
+The Lidarr "Only count albums with files" setting lives in the preferences JSON, so exports and backend copies carry it with no schema change. An image from before this setting ignores the key and counts every album Lidarr tracks again after the next library sync.
+
 ## Digest delivery migration
 
 Migration 0052 in v2.0.0 adds nullable `settings.digest_delivery_positions`. Existing databases lack this column before the migration, so the v2.0.0 automatic snapshot fails closed before DDL; v2.0.1 and later back it up without an override. For v2.0.0 only, stop app writers, take and verify the native consistent database backup described above, and retain the exact encryption key and previous image. Then explicitly set `DIGARR_AUTO_BACKUP=false` for the upgrade and re-enable it after startup succeeds. Do not bypass an unexplained backup failure. Fresh databases need no override.

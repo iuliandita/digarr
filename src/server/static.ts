@@ -14,6 +14,8 @@ export function mountStatic<E extends Env>(app: Hono<E>, webRoot: string): void 
     // A missing hashed asset falls through to the SPA fallback (html), which must not be pinned.
     if (path.startsWith('/assets/') && !type.startsWith('text/html')) {
       c.res.headers.set('cache-control', IMMUTABLE)
+      // The sandboxed Spotify bridge iframe has an opaque origin, so its module scripts are CORS requests with Origin: null.
+      c.res.headers.set('access-control-allow-origin', '*')
     } else if (type.startsWith('text/html') || path === '/sw.js') {
       c.res.headers.set('cache-control', 'no-cache')
     }
