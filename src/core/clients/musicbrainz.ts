@@ -3,6 +3,7 @@ import { envConfig } from '@/config/env'
 import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
 import { VERSION } from '@/version'
+import { type ReleaseGroupCache, releaseGroupCache } from './release-group-cache'
 
 const BASE_URL = envConfig.musicbrainzUrl
 const USER_AGENT = `Digarr/${VERSION} (https://github.com/iuliandita/digarr)`
@@ -156,7 +157,10 @@ const sharedQueue = new PQueue({
   intervalCap: 1,
 })
 
-export function createMusicBrainzClient() {
+const DEFAULT_RELEASE_TYPES = ['album', 'ep', 'single'] as const
+
+export function createMusicBrainzClient(options: { releaseGroupCache?: ReleaseGroupCache } = {}) {
+  const cache = options.releaseGroupCache ?? releaseGroupCache
   const queue = sharedQueue
 
   async function fetchOnce(path: string): Promise<Response> {
@@ -193,13 +197,15 @@ export function createMusicBrainzClient() {
           throw new MusicBrainzHttpError(res.status, path)
         }
 
-        // Transient HTTP status: prefer server-provided Retry-After, else
-        // exponential backoff with jitter. Final failed attempt throws out.
+        // Honor Retry-After without shortening exponential backoff.
         if (attempt === MAX_RETRIES) {
           throw new MusicBrainzHttpError(res.status, path)
         }
         const retryAfter = parseRetryAfterMs(res.headers.get('retry-after'))
-        const backoff = retryAfter ?? BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250
+        const backoff = Math.max(
+          retryAfter ?? 0,
+          BASE_BACKOFF_MS * 2 ** attempt + Math.random() * 250,
+        )
         console.warn(
           `[musicbrainz] HTTP ${res.status} for ${path} (attempt ${attempt + 1}/${MAX_RETRIES + 1}); retrying in ${Math.round(backoff)}ms`,
         )
@@ -246,14 +252,39 @@ export function createMusicBrainzClient() {
 
   async function getReleaseGroups(
     artistMbid: string,
-    types: readonly string[] = ['album', 'ep', 'single'],
+    types: readonly string[] = DEFAULT_RELEASE_TYPES,
+    options: { bypassCache?: boolean } = {},
   ): Promise<MBReleaseGroup[]> {
+    if (
+      options.bypassCache ||
+      types.some(
+        (type) => !DEFAULT_RELEASE_TYPES.includes(type as (typeof DEFAULT_RELEASE_TYPES)[number]),
+      )
+    ) {
+      return (await fetchReleaseGroups(artistMbid, types)).groups
+    }
+    const groups = await cache.get(artistMbid, () =>
+      fetchReleaseGroups(artistMbid, DEFAULT_RELEASE_TYPES),
+    )
+    return types === DEFAULT_RELEASE_TYPES ||
+      DEFAULT_RELEASE_TYPES.every((type) => types.includes(type))
+      ? groups
+      : groups.filter(
+          (group) => typeof group.type === 'string' && types.includes(group.type.toLowerCase()),
+        )
+  }
+
+  async function fetchReleaseGroups(
+    artistMbid: string,
+    types: readonly string[],
+  ): Promise<{ groups: MBReleaseGroup[]; cacheable: boolean }> {
     const limit = 100
     const maxPages = 100
     const releaseGroups: MBReleaseGroup[] = []
     const seenIds = new Set<string>()
     let offset = 0
     let totalCount: number | undefined
+    let cacheable = true
 
     for (let page = 0; page < maxPages; page += 1) {
       const params = new URLSearchParams({
@@ -298,6 +329,7 @@ export function createMusicBrainzClient() {
       if (page > 0 && !Array.isArray(data['release-groups'])) {
         throw new Error(`MusicBrainz invalid release-group page for artist ${artistMbid}`)
       }
+      if (!Array.isArray(data['release-groups'])) cacheable = false
       const groups = data['release-groups'] ?? []
       if (
         groups.length > limit ||
@@ -309,12 +341,26 @@ export function createMusicBrainzClient() {
         if (totalCount !== undefined && offset < totalCount) {
           throw new Error(`MusicBrainz incomplete release groups for artist ${artistMbid}`)
         }
-        return releaseGroups
+        return { groups: releaseGroups, cacheable }
       }
 
       const previousSize = seenIds.size
       for (const group of groups) {
-        if (seenIds.has(group.id)) continue
+        if (
+          typeof group.id !== 'string' ||
+          !group.id ||
+          typeof group.title !== 'string' ||
+          typeof group['primary-type'] !== 'string' ||
+          (group['first-release-date'] !== undefined &&
+            typeof group['first-release-date'] !== 'string') ||
+          !Array.isArray(group['secondary-types']) ||
+          !group['secondary-types'].every((type) => typeof type === 'string')
+        )
+          cacheable = false
+        if (seenIds.has(group.id)) {
+          cacheable = false
+          continue
+        }
         seenIds.add(group.id)
         const aliases = releaseGroupAliasNames(group.aliases)
         releaseGroups.push({
@@ -337,7 +383,7 @@ export function createMusicBrainzClient() {
       }
       offset += groups.length
       if (totalCount !== undefined ? offset === totalCount : groups.length < limit) {
-        return releaseGroups
+        return { groups: releaseGroups, cacheable }
       }
     }
     throw new Error(

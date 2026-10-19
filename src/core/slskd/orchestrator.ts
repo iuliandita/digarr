@@ -248,20 +248,27 @@ function flattenDownloads(downloads: SlskdDownloadUser[]): SlskdTransferFile[] {
   )
 }
 
+type DownloadSnapshot = Map<string, SlskdTransferFile>
+
+function indexDownloads(downloads: SlskdDownloadUser[]): DownloadSnapshot {
+  const index: DownloadSnapshot = new Map()
+  for (const transfer of flattenDownloads(downloads)) {
+    for (const batchId of [null, transfer.batchId]) {
+      const key = JSON.stringify([batchId, transfer.username, transfer.filename])
+      if (!index.has(key)) index.set(key, transfer)
+    }
+  }
+  return index
+}
+
 function findTransfers(
   selected: SlskdSelectedRelease,
-  downloads: SlskdDownloadUser[],
+  downloads: DownloadSnapshot,
   batchId: string | null,
 ): Array<{ expected: SlskdSearchFile; transfer?: SlskdTransferFile }> {
-  const transfers = flattenDownloads(downloads)
   return selected.files.map((expected) => ({
     expected,
-    transfer: transfers.find(
-      (transfer) =>
-        (batchId == null || transfer.batchId === batchId) &&
-        transfer.username === selected.username &&
-        transfer.filename === expected.filename,
-    ),
+    transfer: downloads.get(JSON.stringify([batchId, selected.username, expected.filename])),
   }))
 }
 
@@ -523,8 +530,8 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
 
   async function processTransferJob(
     job: SlskdPendingJob,
-    slskd: SlskdClient,
     targets: SlskdTargetRow[] | null,
+    getDownloads: () => Promise<DownloadSnapshot>,
   ) {
     if (!deps.updateJobState) return
     const selected = readSelectedRelease(job.selectedResult)
@@ -546,7 +553,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
       return
     }
 
-    const matches = findTransfers(selected, await slskd.getDownloads(), job.slskdQueueId)
+    const matches = findTransfers(selected, await getDownloads(), job.slskdQueueId)
     const failed = matches.find((match) => match.transfer && transferFailed(match.transfer.state))
     if (failed?.transfer) {
       const suffix = failed.transfer.exception ? `: ${failed.transfer.exception}` : ''
@@ -638,6 +645,15 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
     if (!deps.createSlskdClient || jobs.length === 0) return
     const targets = deps.listTargets ? await deps.listTargets() : null
     const cache = new Map<number, SlskdClient>()
+    const snapshots = new Map<number, Promise<DownloadSnapshot>>()
+    function getDownloads(targetId: number, client: SlskdClient): Promise<DownloadSnapshot> {
+      let snapshot = snapshots.get(targetId)
+      if (!snapshot) {
+        snapshot = client.getDownloads().then(indexDownloads)
+        snapshots.set(targetId, snapshot)
+      }
+      return snapshot
+    }
     const createClient = deps.createSlskdClient
     function getSlskdClient(targetId: number): SlskdClient {
       const cached = cache.get(targetId)
@@ -683,7 +699,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
             targets?.find((target) => target.id === job.targetId)?.config ?? {},
           )
         } else {
-          await processTransferJob(job, slskd, targets)
+          await processTransferJob(job, targets, () => getDownloads(job.targetId, slskd))
         }
       } catch (err: unknown) {
         const message = redactSecrets(errMsg(err)).replace(/\s+/g, ' ').trim()

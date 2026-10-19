@@ -136,6 +136,9 @@ export interface JobDeps {
 
 export interface RecommendationDeps {
   listRecommendations: (filters?: ListRecommendationsFilters) => Promise<ListRecommendationsResult>
+  listRecommendationsForExport: (
+    filters?: Pick<ListRecommendationsFilters, 'status' | 'batchId' | 'userId' | 'limit'>,
+  ) => Promise<import('@/db/queries/recommendations').ExportableRecommendationRow[]>
   getRecommendation: (id: number) => Promise<RecommendationWithArtist | null>
   updateRecommendationStatus: (
     id: number,
@@ -146,6 +149,9 @@ export interface RecommendationDeps {
     params: import('@/db/queries/recommendations').RejectRecommendationParams,
   ) => Promise<{ artistId: number; blockCreated: boolean } | null>
   bulkUpdateStatus: (ids: number[], status: string) => Promise<void>
+  bulkRejectRecommendations: (
+    params: import('@/db/queries/recommendations').BulkRejectParams,
+  ) => Promise<{ rejected: number; blocksCreated: number }>
   filterOwnedIds: (ids: number[], userId: number | undefined) => Promise<number[]>
   listBatches: (opts?: { limit?: number; cursor?: Cursor | null }) => Promise<BatchRow[]>
   getBatch: (id: number) => Promise<BatchRow | null>

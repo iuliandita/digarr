@@ -18,6 +18,12 @@ function album(overrides: Partial<LibraryAlbum> = {}): LibraryAlbum {
 }
 
 describe('reconcileAlbumsForArtist', () => {
+  it('returns the same empty inventory without a catalog lookup for zero albums', async () => {
+    const mbClient = { getReleaseGroups: vi.fn() }
+    expect(await reconcileAlbumsForArtist(ARTIST_MBID, [], { mbClient })).toEqual([])
+    expect(mbClient.getReleaseGroups).not.toHaveBeenCalled()
+  })
+
   it.each(['89ad4ac3-39f7-470e-963a-56509c546377', '125ec42a-7229-4250-afc5-e057484327fe'])(
     'skips special-purpose artist %s without MB calls or errors',
     async (mbid) => {

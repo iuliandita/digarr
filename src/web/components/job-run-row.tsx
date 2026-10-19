@@ -1,6 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { MessageKey } from '@/core/i18n/messages/types'
-import type { JobRun } from '../lib/api'
+import { getJob, type JobSummary } from '../lib/api'
 import { formatDuration, formatRelativeTime } from '../lib/format-time'
 import { useI18n } from '../lib/i18n'
 
@@ -60,7 +61,7 @@ function sourceLabel(
   return key ? t(key) : value
 }
 
-function jobDescription(job: JobRun, t: (key: MessageKey) => string): string {
+function jobDescription(job: JobSummary, t: (key: MessageKey) => string): string {
   const meta = job.metadata ?? {}
   switch (job.type) {
     case 'pipeline':
@@ -95,7 +96,7 @@ function jobDescription(job: JobRun, t: (key: MessageKey) => string): string {
   }
 }
 
-function jobStats(job: JobRun, t: (key: MessageKey) => string): string {
+function jobStats(job: JobSummary, t: (key: MessageKey) => string): string {
   const meta = job.metadata ?? {}
   const parts: string[] = []
   if (meta.artistsDiscovered != null)
@@ -107,11 +108,17 @@ function jobStats(job: JobRun, t: (key: MessageKey) => string): string {
   return parts.join(' / ')
 }
 
-export function JobRunRow({ job }: { job: JobRun }) {
+export function JobRunRow({ job }: { job: JobSummary }) {
   const { locale, t } = useI18n()
   const [expanded, setExpanded] = useState(false)
+  const detail = useQuery({
+    queryKey: ['job', job.id],
+    queryFn: () => getJob(job.id),
+    enabled: expanded,
+    staleTime: job.status === 'running' ? 0 : 60_000,
+  })
   const typeLabelKey = TYPE_LABEL_KEYS[job.type]
-  const metadata = job.metadata ?? {}
+  const metadata = detail.data?.metadata ?? {}
 
   const statusBadge = STATUS_BADGES[job.status]
 
@@ -169,16 +176,18 @@ export function JobRunRow({ job }: { job: JobRun }) {
 
       {expanded && (
         <div className="mt-3 space-y-2 border-t border-border pt-3 text-xs">
-          {job.error && (
+          {detail.isLoading && <div>{t('common.loading')}</div>}
+          {detail.isError && <div role="alert">{t('common.unknownError')}</div>}
+          {detail.data?.error && (
             <div className="rounded bg-reject/5 p-2 text-reject">
-              <strong>{t('jobHistory.errorLabel')}</strong> {job.error}
+              <strong>{t('jobHistory.errorLabel')}</strong> {detail.data?.error}
             </div>
           )}
-          {job.sourceResults && (
+          {detail.data?.sourceResults && (
             <div>
               <strong className="text-muted">{t('jobHistory.sourceResultsLabel')}</strong>
               <div className="mt-1 space-y-1">
-                {Object.entries(job.sourceResults).map(([source, result]) => (
+                {Object.entries(detail.data?.sourceResults).map(([source, result]) => (
                   <div key={source} className="flex justify-between">
                     <span>{source}</span>
                     <span

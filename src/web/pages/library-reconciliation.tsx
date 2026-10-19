@@ -50,6 +50,7 @@ function toggleSelection(previous: Set<string>, key: string, selected: boolean) 
 export function LibraryReconciliationPage() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
+  const [artistPage, setArtistPage] = useState(1)
   const [albumPage, setAlbumPage] = useState(1)
   const [artistSelection, setArtistSelection] = useState<Set<string>>(() => new Set())
   const [albumSelection, setAlbumSelection] = useState<Set<string>>(() => new Set())
@@ -60,23 +61,32 @@ export function LibraryReconciliationPage() {
   const [albumBulkError, setAlbumBulkError] = useState<string | null>(null)
   const artistSectionRef = useRef<HTMLElement>(null)
   const albumSectionRef = useRef<HTMLElement>(null)
-  const { data, error, isError, isLoading } = useQuery({
-    queryKey: ['library', 'unreconciled'],
-    queryFn: getLibraryUnreconciled,
+  const artistPageKeys = useRef(new Map<number, Set<string>>())
+  const { data, error, isError, isLoading, isPlaceholderData } = useQuery({
+    placeholderData: (previous) => previous,
+    queryKey: ['library', 'unreconciled', artistPage],
+    queryFn: () => getLibraryUnreconciled(ALBUMS_PER_PAGE, (artistPage - 1) * ALBUMS_PER_PAGE),
   })
   const {
     data: albumData,
     error: albumError,
     isError: isAlbumError,
     isLoading: isAlbumLoading,
+    isPlaceholderData: isAlbumPlaceholder,
   } = useQuery({
-    queryKey: ['library', 'unreconciled-albums'],
-    queryFn: getLibraryUnreconciledAlbums,
+    placeholderData: (previous) => previous,
+    queryKey: ['library', 'unreconciled-albums', albumPage],
+    queryFn: () => getLibraryUnreconciledAlbums(ALBUMS_PER_PAGE, (albumPage - 1) * ALBUMS_PER_PAGE),
   })
 
   const items = data?.items ?? []
   const albumItems = albumData?.items ?? []
-  const albumTotal = albumItems.length
+  const albumTotal = albumData?.total ?? 0
+  const artistTotal = data?.total ?? 0
+  const artistPageCount = Math.max(1, Math.ceil(artistTotal / ALBUMS_PER_PAGE))
+  useEffect(() => {
+    if (artistPage > artistPageCount) setArtistPage(artistPageCount)
+  }, [artistPage, artistPageCount])
   const albumPageCount = Math.max(1, Math.ceil(albumTotal / ALBUMS_PER_PAGE))
 
   useEffect(() => {
@@ -85,7 +95,7 @@ export function LibraryReconciliationPage() {
 
   const visibleAlbumPage = Math.min(albumPage, albumPageCount)
   const albumPageStart = (visibleAlbumPage - 1) * ALBUMS_PER_PAGE
-  const albumPageItems = albumItems.slice(albumPageStart, albumPageStart + ALBUMS_PER_PAGE)
+  const albumPageItems = albumItems
   const artistEligibleRows = items.filter((row) => isBulkIgnoreEligible(row.unreconciledReason))
   const albumEligibleRows = albumPageItems.filter((row) =>
     isBulkIgnoreEligible(row.unreconciledReason),
@@ -103,11 +113,10 @@ export function LibraryReconciliationPage() {
     () =>
       new Set(
         albumItems
-          .slice(albumPageStart, albumPageStart + ALBUMS_PER_PAGE)
           .filter((row) => isBulkIgnoreEligible(row.unreconciledReason))
           .map((row) => selectionKey(row.source, row.sourceAlbumId)),
       ),
-    [albumItems, albumPageStart],
+    [albumItems],
   )
   const grouped = new Map<string, typeof items>()
 
@@ -117,20 +126,34 @@ export function LibraryReconciliationPage() {
     grouped.set(row.source, list)
   }
 
-  async function handleResolved() {
+  async function handleResolved(entity: BulkEntity) {
     await Promise.all([
-      queryClient.invalidateQueries({ queryKey: ['library', 'unreconciled'] }),
-      queryClient.invalidateQueries({ queryKey: ['library', 'unreconciled-albums'] }),
+      queryClient.invalidateQueries({
+        queryKey: [
+          'library',
+          entity === 'artists' ? 'unreconciled' : 'unreconciled-albums',
+          entity === 'artists' ? artistPage : albumPage,
+        ],
+        exact: true,
+      }),
       queryClient.invalidateQueries({ queryKey: ['library', 'sources'] }),
     ])
   }
 
   useEffect(() => {
+    if (isPlaceholderData) return
+    const visibleKeys = artistPageKeys.current.get(artistPage) ?? new Set<string>()
+    artistPageKeys.current.set(
+      artistPage,
+      new Set(items.map((row) => selectionKey(row.source, row.sourceArtistId))),
+    )
     setArtistSelection((previous) => {
-      const next = new Set([...previous].filter((key) => artistEligibleKeys.has(key)))
+      const next = new Set(
+        [...previous].filter((key) => !visibleKeys.has(key) || artistEligibleKeys.has(key)),
+      )
       return next.size === previous.size ? previous : next
     })
-  }, [artistEligibleKeys])
+  }, [artistEligibleKeys, items, artistPage, isPlaceholderData])
 
   useEffect(() => {
     if (visibleAlbumPage < 1) return
@@ -151,6 +174,31 @@ export function LibraryReconciliationPage() {
       return previous
     })
   }, [artistSelection.size, albumSelection.size])
+
+  async function selectAllArtists() {
+    setArtistBusy(true)
+    setArtistBulkError(null)
+    try {
+      let selected = new Set(artistSelection)
+      for (
+        let offset = 0;
+        offset < artistTotal && selected.size < LIBRARY_BULK_IGNORE_LIMIT;
+        offset += 500
+      ) {
+        const page = await getLibraryUnreconciled(500, offset)
+        selected = addSelections(
+          selected,
+          page.items.filter((row) => isBulkIgnoreEligible(row.unreconciledReason)),
+          (row) => selectionKey(row.source, row.sourceArtistId),
+        )
+      }
+      setArtistSelection(selected)
+    } catch {
+      setArtistBulkError(t('libraryReconciliation.bulkIgnoreFailed'))
+    } finally {
+      setArtistBusy(false)
+    }
+  }
 
   function addVisibleArtistSelections() {
     setArtistSelection((previous) =>
@@ -196,13 +244,10 @@ export function LibraryReconciliationPage() {
     const entity = confirming
     if (!entity) return
 
-    const artistPayload = items
-      .filter(
-        (row) =>
-          isBulkIgnoreEligible(row.unreconciledReason) &&
-          artistSelection.has(selectionKey(row.source, row.sourceArtistId)),
-      )
-      .map((row) => ({ source: row.source, sourceArtistId: row.sourceArtistId }))
+    const artistPayload = [...artistSelection].map((key) => {
+      const [source, sourceArtistId] = JSON.parse(key) as [string, string]
+      return { source, sourceArtistId }
+    })
     const albumPayload = albumPageItems
       .filter(
         (row) =>
@@ -233,7 +278,7 @@ export function LibraryReconciliationPage() {
         await bulkIgnoreLibraryAlbums(albumPayload)
         setAlbumSelection(new Set())
       }
-      await handleResolved()
+      await handleResolved(entity)
     } catch {
       if (entity === 'artists') setArtistBulkError(t('libraryReconciliation.bulkIgnoreFailed'))
       else setAlbumBulkError(t('libraryReconciliation.bulkIgnoreFailed'))
@@ -256,7 +301,7 @@ export function LibraryReconciliationPage() {
           <p className="text-sm text-muted">
             {isLoading
               ? t('libraryReconciliation.loadingArtists')
-              : `${items.length} ${t('libraryReconciliation.artistsCouldNotBeMatched')}`}
+              : `${artistTotal} ${t('libraryReconciliation.artistsCouldNotBeMatched')}`}
           </p>
         </div>
 
@@ -288,7 +333,7 @@ export function LibraryReconciliationPage() {
             selectedCount={artistSelection.size}
             eligibleCount={artistEligibleRows.length}
             hasRows={items.length > 0}
-            busy={artistBusy}
+            busy={artistBusy || isPlaceholderData}
             error={artistBulkError}
             limitReached={artistSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
             onSelectVisible={addVisibleArtistSelections}
@@ -308,8 +353,8 @@ export function LibraryReconciliationPage() {
                   <LibraryUnreconciledRowComponent
                     key={row.id}
                     row={row}
-                    onResolved={handleResolved}
-                    bulkBusy={artistBusy}
+                    onResolved={() => handleResolved('artists')}
+                    bulkBusy={artistBusy || isPlaceholderData}
                     selected={artistSelection.has(selectionKey(row.source, row.sourceArtistId))}
                     selectionDisabled={
                       !isBulkIgnoreEligible(row.unreconciledReason) ||
@@ -322,6 +367,41 @@ export function LibraryReconciliationPage() {
               </div>
             </section>
           ))}
+        {!isError && artistTotal > ALBUMS_PER_PAGE && (
+          <div className="flex items-center gap-3 text-sm">
+            <button
+              type="button"
+              disabled={artistBusy || artistSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
+              onClick={selectAllArtists}
+            >
+              {t('albumPicker.selectAll')}
+            </button>
+            <button
+              type="button"
+              onClick={() => setArtistSelection(new Set())}
+              disabled={artistBusy}
+            >
+              {t('discover.clearAll')}
+            </button>
+            <button
+              type="button"
+              disabled={artistPage === 1 || artistBusy}
+              onClick={() => setArtistPage(artistPage - 1)}
+            >
+              {t('common.previous')}
+            </button>
+            <span>
+              {t('libraryReconciliation.page')} {artistPage} / {artistPageCount}
+            </span>
+            <button
+              type="button"
+              disabled={artistPage === artistPageCount || artistBusy}
+              onClick={() => setArtistPage(artistPage + 1)}
+            >
+              {t('common.next')}
+            </button>
+          </div>
+        )}
       </section>
 
       <section
@@ -367,7 +447,7 @@ export function LibraryReconciliationPage() {
             selectedCount={albumSelection.size}
             eligibleCount={albumEligibleRows.length}
             hasRows={albumItems.length > 0}
-            busy={albumBusy}
+            busy={albumBusy || isAlbumPlaceholder}
             error={albumBulkError}
             limitReached={albumSelection.size >= LIBRARY_BULK_IGNORE_LIMIT}
             onSelectVisible={addVisibleAlbumSelections}
@@ -383,8 +463,8 @@ export function LibraryReconciliationPage() {
                 <LibraryUnreconciledAlbumRowComponent
                   key={row.id}
                   row={row}
-                  onResolved={handleResolved}
-                  bulkBusy={albumBusy}
+                  onResolved={() => handleResolved('albums')}
+                  bulkBusy={albumBusy || isAlbumPlaceholder}
                   selected={albumSelection.has(selectionKey(row.source, row.sourceAlbumId))}
                   selectionDisabled={
                     !isBulkIgnoreEligible(row.unreconciledReason) ||
@@ -407,7 +487,7 @@ export function LibraryReconciliationPage() {
                   <button
                     type="button"
                     onClick={() => setAlbumPage(Math.max(1, visibleAlbumPage - 1))}
-                    disabled={visibleAlbumPage === 1}
+                    disabled={visibleAlbumPage === 1 || albumBusy}
                     className="px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
                   >
                     {t('common.previous')}
@@ -418,7 +498,7 @@ export function LibraryReconciliationPage() {
                   <button
                     type="button"
                     onClick={() => setAlbumPage(Math.min(albumPageCount, visibleAlbumPage + 1))}
-                    disabled={visibleAlbumPage === albumPageCount}
+                    disabled={visibleAlbumPage === albumPageCount || albumBusy}
                     className="px-2.5 py-1 text-xs font-medium text-text border border-border rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
                   >
                     {t('common.next')}

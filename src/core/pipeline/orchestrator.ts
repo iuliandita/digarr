@@ -33,7 +33,7 @@ import { enrichGenres } from './enrich'
 import { filter } from './filter'
 import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
 import { createArtistImageClients } from './image-clients'
-import { resolve } from './resolve'
+import { prefilterArtistCandidates, resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
 import { store } from './store'
@@ -538,8 +538,24 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'resolve',
         message: t('pipeline.message.resolving', String(discovered.length)),
       })
+      const existingBeforeResolve = await db.getExistingRecommendationMbids(deps.userId, {
+        rejectionCooldownDays: prefs.rejectionCooldownDays,
+      })
+      const excludedBeforeResolve = new Set([
+        ...libraryMbids,
+        ...rejectedMbids,
+        ...blockedMbids,
+        ...existingBeforeResolve,
+      ])
+      for (const artist of tasteProfile.topArtists) {
+        if (artist.mbid) excludedBeforeResolve.add(artist.mbid)
+      }
       const rawResolved = await resolve(
-        discovered,
+        prefilterArtistCandidates(
+          discovered,
+          excludedBeforeResolve,
+          prefs.netNewAlbumDiscovery ?? false,
+        ),
         mbClient,
         (progress) => {
           this.emit('progress', progress)
@@ -551,6 +567,9 @@ export class PipelineOrchestrator extends EventEmitter {
         audiodbClient,
         prefs.netNewAlbumDiscovery ?? false,
         signal,
+        new Set(
+          discovered.filter((d) => d.mbid && !d.releaseGroupMbid).map((d) => d.mbid as string),
+        ),
       )
 
       // Enrich sparse genres from artist_metadata (if available)
@@ -561,7 +580,9 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'score',
         message: t('pipeline.message.scoring', String(resolved.length)),
       })
-      const popularityMap = (await db.getPopularityMap?.()) ?? new Map<string, number>()
+      const popularityMap =
+        (await db.getPopularityMap?.(resolved.map((artist) => artist.name))) ??
+        new Map<string, number>()
       const referenceGenres =
         libraryGenres.length > 0 ? libraryGenres : tasteProfile.topGenres.map((g) => g.name)
       const scored = score(

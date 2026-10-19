@@ -2,6 +2,23 @@
 
 These notes describe v2.0.1. Start with the [README](../README.md) for installation. Most connection, playlist, notification, and maintenance settings live in the web UI; public origin and the environment settings below require a restart.
 
+## Query scaling upgrade
+
+Migration 0060 adds `job_runs_started_at_id_idx` on `(started_at DESC, id DESC)`
+with `IF NOT EXISTS` on both PostgreSQL and PGlite. It is additive and backward
+compatible: no rows or columns change, and the previous application can use the
+same database. Allow disk space and startup time for building the history index.
+Take a complete database backup before upgrading, then let startup migrations
+finish before serving requests. Backend copies continue to migrate the destination
+before restoring rows, so the index is created there too.
+
+Rollback can use the previous image while leaving the index in place. If a full
+restore is needed, stop the application and restore the complete pre-upgrade
+backup with the previous image using the recovery procedure in this guide.
+No live restore is claimed for this change. API clients must account for the
+paginated reconciliation lists and summary job metadata described in
+[API.md](API.md).
+
 <a id="known-limitations-in-v1190"></a>
 
 ## Known limitations
@@ -273,7 +290,7 @@ Take a complete destination backup first and prefer restoring into a fresh datab
 
 **Legacy OIDC data:** Older backups may contain an obsolete `oidcTokens` table. An empty table is ignored; nonempty rows are skipped with a warning and are never restored.
 
-**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Files are named `pre-migrate-<UTC timestamp to the second>-<from>-<to>.json` and readable only by the app user (mode `0600`); a backup directory Digarr creates is `0700`, while an existing directory or volume keeps its permissions. A write that fails partway leaves no file behind, so it never counts as the latest backup or toward the 14. Copy backups off the server as well; a local volume does not protect against disk loss.
+**Auto-backup before migrations:** On an existing database with pending migrations, Digarr attempts a backup to `DIGARR_BACKUP_DIR` (default: `./backups/`). It keeps the last 14 auto-backups, counted by migration runs rather than days. Files are named `pre-migrate-<UTC timestamp to the second>-<from>-<to>.json` and readable only by the app user (mode `0600`); a backup directory Digarr creates is `0700`, while an existing directory or volume keeps its permissions. A write that fails partway leaves no file behind, so it never counts as the latest backup or toward the 14. The snapshot is written table by table as compact JSON from one consistent read-only transaction, so memory use does not grow with the database; the restore endpoint above accepts it like a downloaded backup. Copy backups off the server as well; a local volume does not protect against disk loss.
 
 Automatic backups include the persistent application snapshot and optional metadata. The snapshot reads only the tables and columns the database already has, so an older schema that lacks what the new release adds still produces a backup. The file lists the omitted tables and columns under `absentSchema`. Restoring it never clears an omitted table, so a restore into a database that already holds rows in one (for example saved playlist exports after the upgrade) is refused as a partial-backup conflict; restore into a fresh database. A directory, snapshot-read, or write failure stops startup before migrations and logs one line saying so. Keep previous backups until a new one is written. Fresh databases skip this step. If the snapshot fails, take and verify a native consistent database backup, retain its exact encryption key and previous image, then fix the cause. `DIGARR_AUTO_BACKUP=false` bypasses the safety check, so only set it for a failure you understand and only for that upgrade.
 

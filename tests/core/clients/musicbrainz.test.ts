@@ -1,16 +1,19 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-  createMusicBrainzClient,
+  createMusicBrainzClient as createClient,
   type MBArtist,
   type MBRelation,
   type MBSearchResult,
   parseYear,
 } from '@/core/clients/musicbrainz'
+import { createReleaseGroupCache } from '@/core/clients/release-group-cache'
 import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fill'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
 import { VERSION } from '@/version'
 
+let cache = createReleaseGroupCache()
+const createMusicBrainzClient = () => createClient({ releaseGroupCache: cache })
 const mockFetch = vi.fn()
 vi.stubGlobal('fetch', mockFetch)
 
@@ -110,6 +113,7 @@ function groups(start: number, length: number) {
 }
 
 beforeEach(() => {
+  cache = createReleaseGroupCache()
   vi.clearAllMocks()
 })
 
@@ -271,7 +275,7 @@ describe('createMusicBrainzClient', () => {
   describe('getReleaseGroups(artistMbid)', () => {
     it.each([
       { types: undefined, expected: 'album|ep|single' },
-      { types: ['album'], expected: 'album' },
+      { types: ['album'], expected: 'album|ep|single' },
     ])('queues release-group requests with type $expected', async ({ types, expected }) => {
       mockFetch.mockResolvedValueOnce(makeJsonResponse({ 'release-groups': [] }))
       await createMusicBrainzClient().getReleaseGroups(MOCK_ARTIST_MBID, types)
@@ -426,7 +430,7 @@ describe('createMusicBrainzClient', () => {
         for (const [index, [url, options]] of mockFetch.mock.calls.entries()) {
           expect(Object.fromEntries(new URL(url).searchParams)).toEqual({
             artist: MOCK_ARTIST_MBID,
-            type: 'album',
+            type: 'album|ep|single',
             inc: 'aliases',
             fmt: 'json',
             limit: '100',
@@ -640,6 +644,25 @@ describe('createMusicBrainzClient', () => {
       await vi.runAllTimersAsync()
       expect(await pending).toEqual({ artists: [] })
       expect(mockFetch).toHaveBeenCalledTimes(failures.length + 1)
+    })
+
+    it('keeps the exponential retry floor for Retry-After: 0', async () => {
+      const started = Date.now()
+      const attempts: number[] = []
+      mockFetch
+        .mockImplementationOnce(async () => {
+          attempts.push(Date.now())
+          return new Response('', { status: 503, headers: { 'Retry-After': '0' } })
+        })
+        .mockImplementationOnce(async () => {
+          attempts.push(Date.now())
+          return makeJsonResponse({ artists: [] })
+        })
+      const pending = createMusicBrainzClient().searchArtist('retry-floor')
+      await vi.runAllTimersAsync()
+      await pending
+      expect(attempts[0]).toBe(started)
+      expect((attempts[1] ?? 0) - (attempts[0] ?? 0)).toBeGreaterThanOrEqual(1000)
     })
 
     it('gives up after max retries and throws the final error', async () => {

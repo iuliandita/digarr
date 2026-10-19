@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getPendingMigrations, runPreFlightCheck } from '@/core/ops/upgrade'
 
 vi.mock('@/core/ops/backup', () => ({
-  createBackupSnapshot: vi.fn(),
+  writeBackupSnapshot: vi.fn(),
 }))
 
 // Mock fs for journal reading
@@ -12,7 +12,9 @@ vi.mock('node:fs', async (importOriginal) => {
   return {
     ...actual,
     readFileSync: vi.fn(),
-    writeFileSync: vi.fn(),
+    openSync: vi.fn().mockReturnValue(99),
+    writeSync: vi.fn((_fd: number, bytes: Uint8Array) => bytes.length),
+    closeSync: vi.fn(),
     mkdirSync: vi.fn(),
     existsSync: vi.fn().mockReturnValue(true),
     readdirSync: vi.fn().mockReturnValue([]),
@@ -23,15 +25,8 @@ vi.mock('node:fs', async (importOriginal) => {
   }
 })
 
-import {
-  existsSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  unlinkSync,
-  writeFileSync,
-} from 'node:fs'
-import { createBackupSnapshot } from '@/core/ops/backup'
+import { existsSync, mkdirSync, readdirSync, readFileSync, unlinkSync, writeSync } from 'node:fs'
+import { writeBackupSnapshot } from '@/core/ops/backup'
 
 const mockJournal = {
   version: '7',
@@ -118,9 +113,13 @@ describe('runPreFlightCheck', () => {
   beforeEach(() => {
     vi.mocked(readFileSync).mockReturnValue(JSON.stringify(mockJournal))
     vi.mocked(existsSync).mockReturnValue(true)
-    vi.mocked(createBackupSnapshot).mockReset()
+    vi.mocked(writeBackupSnapshot).mockReset()
+    vi.mocked(writeBackupSnapshot).mockImplementation(async (_db, write) => {
+      write('{}')
+      return {}
+    })
     vi.mocked(mkdirSync).mockReset()
-    vi.mocked(writeFileSync).mockReset()
+    vi.mocked(writeSync).mockClear()
     vi.mocked(unlinkSync).mockReset()
     vi.mocked(readdirSync).mockReturnValue([])
     vi.stubEnv('DIGARR_AUTO_BACKUP', 'true')
@@ -143,34 +142,13 @@ describe('runPreFlightCheck', () => {
     expect(result.pendingCount).toBe(3)
     expect(result.backupSkipped).toBe(true)
     expect(result.backupPath).toBeNull()
-    expect(createBackupSnapshot).not.toHaveBeenCalled()
+    expect(writeBackupSnapshot).not.toHaveBeenCalled()
   })
 
   it('still runs auto-backup when app tables already exist', async () => {
     vi.mocked(readdirSync).mockReturnValue(
       Array.from({ length: 15 }, (_, index) => `pre-migrate-${index}.json`) as never,
     )
-    vi.mocked(createBackupSnapshot).mockResolvedValue({
-      version: 1,
-      appVersion: '0.0.0-test',
-      createdAt: '2026-04-13T00:00:00.000Z',
-      encryptionKeyHash: null,
-      includesCaches: false,
-      data: {
-        settings: [],
-        users: [],
-        oauthTokens: [],
-        targets: [],
-        subscriptions: [],
-        jobRuns: [],
-        recommendationBatches: [],
-        recommendations: [],
-        playlists: [],
-        playlistTracks: [],
-        artistBlocks: [],
-      },
-    })
-
     const mockDb = {
       execute: vi
         .fn()
@@ -182,13 +160,13 @@ describe('runPreFlightCheck', () => {
 
     expect(result.pendingCount).toBe(3)
     expect(result.backupSkipped).toBe(false)
-    expect(createBackupSnapshot).toHaveBeenCalledExactlyOnceWith(mockDb, {
+    expect(writeBackupSnapshot).toHaveBeenCalledExactlyOnceWith(mockDb, expect.any(Function), {
       includeCaches: true,
       tolerateMissingSchema: true,
     })
-    expect(writeFileSync).toHaveBeenCalledTimes(1)
+    expect(writeSync).toHaveBeenCalledTimes(1)
     expect(unlinkSync).toHaveBeenCalledTimes(1)
-    expect(vi.mocked(writeFileSync).mock.invocationCallOrder[0]).toBeLessThan(
+    expect(vi.mocked(writeSync).mock.invocationCallOrder[0]).toBeLessThan(
       vi.mocked(unlinkSync).mock.invocationCallOrder[0] ?? 0,
     )
     expect(result.backupPath).toContain('pre-migrate-')
@@ -205,9 +183,9 @@ describe('runPreFlightCheck', () => {
         vi.mocked(mkdirSync).mockImplementation(() => {
           throw failure
         })
-      if (stage === 'snapshot') vi.mocked(createBackupSnapshot).mockRejectedValue(failure)
+      if (stage === 'snapshot') vi.mocked(writeBackupSnapshot).mockRejectedValue(failure)
       if (stage === 'write')
-        vi.mocked(writeFileSync).mockImplementation(() => {
+        vi.mocked(writeSync).mockImplementationOnce(() => {
           throw failure
         })
       const mockDb = {
@@ -216,8 +194,8 @@ describe('runPreFlightCheck', () => {
 
       await expect(runPreFlightCheck(mockDb as never)).rejects.toThrow(failure)
       expect(unlinkSync).not.toHaveBeenCalled()
-      if (stage !== 'write') expect(writeFileSync).not.toHaveBeenCalled()
-      if (stage === 'mkdir') expect(createBackupSnapshot).not.toHaveBeenCalled()
+      if (stage !== 'write') expect(writeSync).not.toHaveBeenCalled()
+      if (stage === 'mkdir') expect(writeBackupSnapshot).not.toHaveBeenCalled()
     },
   )
 
@@ -234,8 +212,8 @@ describe('runPreFlightCheck', () => {
 
       expect(result.backupSkipped).toBe(reason === 'explicit override')
       expect(result.backupError).toBeNull()
-      expect(createBackupSnapshot).not.toHaveBeenCalled()
-      expect(writeFileSync).not.toHaveBeenCalled()
+      expect(writeBackupSnapshot).not.toHaveBeenCalled()
+      expect(writeSync).not.toHaveBeenCalled()
     },
   )
 })

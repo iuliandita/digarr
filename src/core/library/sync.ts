@@ -154,12 +154,19 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
         userId != null ? await deps.store.getKnownMbidsForUser(userId) : new Set<string>()
       const previousMatches = await deps.store.listArtistMatches(userId, source.id)
       const counts = emptyLibrarySyncCounts()
+      const mbClient: MBClient = options?.force
+        ? {
+            searchArtist: deps.mbClient.searchArtist,
+            getReleaseGroups: (mbid, types) =>
+              deps.mbClient.getReleaseGroups(mbid, types, { bypassCache: true }),
+          }
+        : deps.mbClient
       const ctx: ReconcilerContext = {
         userId,
         overrides,
         knownMbids,
         previousMatches,
-        mbClient: deps.mbClient,
+        mbClient,
         cacheLookup: (nameNormalized) =>
           userId != null
             ? deps.store.findReconciledByNormalizedName(userId, nameNormalized)
@@ -188,7 +195,7 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
             albumQueue.add(async () => {
               const rawAlbums = await listAlbums(artist.sourceArtistId)
               const reconciledAlbums = await reconcileAlbumsForArtist(artist.mbid, rawAlbums, {
-                mbClient: deps.mbClient,
+                mbClient,
                 onMbError: () => {
                   counts.mbApiCallsFailed = (counts.mbApiCallsFailed ?? 0) + 1
                 },

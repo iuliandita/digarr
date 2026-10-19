@@ -76,6 +76,8 @@ export async function reconcileAlbumsForArtist(
     onMbError?: (err: unknown) => void
   },
 ): Promise<ReconciledAlbum[]> {
+  if (albums.length === 0) return []
+
   if (isSpecialPurposeArtist(artistMbid)) {
     // Keep the source inventory without attempting discography matching.
     return albums.map((album) =>

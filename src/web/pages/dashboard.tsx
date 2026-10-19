@@ -449,6 +449,9 @@ function ActivityFeed({
   )
 }
 
+const APPROVED_STATUSES = new Set(['added_to_lidarr', 'add_failed', 'approved', 'waiting'])
+const ACTIVITY_STATUSES = new Set(['added_to_lidarr', 'add_failed', 'approved', 'rejected'])
+
 export function Dashboard() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
@@ -610,6 +613,23 @@ export function Dashboard() {
   // Recently approved recs for the gallery
   const approvedRecs = (approvedData?.items ?? []) as Recommendation[]
 
+  // Refetch only the cards an outcome changes. The acted pick stays hidden via
+  // actedIds, so the pick list reloads only once the local pool runs out.
+  function refreshAfterAction(id: number, status: string | undefined, approval: boolean) {
+    const poolLeft = allPending.some(
+      (r) => r.id !== id && !skippedIds.has(r.id) && !actedIds.has(r.id),
+    )
+    void queryClient.invalidateQueries({
+      queryKey: ['dashboard-pick'],
+      refetchType: poolLeft ? 'none' : 'active',
+    })
+    if (approval) void queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
+    if (status === undefined || APPROVED_STATUSES.has(status))
+      void queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
+    if (status === undefined || ACTIVITY_STATUSES.has(status))
+      void queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+  }
+
   async function handleAction(id: number, status: 'approved' | 'rejected') {
     setActedIds((prev) => new Set([...prev, id]))
     try {
@@ -621,12 +641,7 @@ export function Dashboard() {
           status === 'approved' ? t('dashboard.approvedSuccess') : t('dashboard.rejectedSuccess'),
         )
       }
-      queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
-      if (status === 'approved') {
-        queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-      }
+      refreshAfterAction(id, res?.status, status === 'approved')
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t('dashboard.actionFailed'))
       setActedIds((prev) => {
@@ -647,10 +662,7 @@ export function Dashboard() {
     try {
       const res = await approveRecommendation(recId, { monitorOption })
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
-      queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+      refreshAfterAction(recId, res?.status, true)
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t('dashboard.actionFailed'))
       setActedIds((prev) => {
@@ -686,13 +698,9 @@ export function Dashboard() {
         ...targetOptions,
       })
       if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.sentToTarget'))
-      queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-      queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-      queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+      refreshAfterAction(recId, res?.status, true)
     } catch (error) {
       toast.error(error instanceof ApiError ? error.message : t('dashboard.approveFailed'))
-    } finally {
       setActedIds((prev) => {
         const next = new Set(prev)
         next.delete(recId)
@@ -905,15 +913,11 @@ export function Dashboard() {
                 })
               }
               if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.addedToLidarr'))
-              queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-              queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
-              queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-              queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+              refreshAfterAction(recId, res?.status, true)
             } catch (error) {
               toast.error(
                 error instanceof ApiError ? error.message : t('dashboard.addToLidarrFailed'),
               )
-            } finally {
               setActedIds((prev) => {
                 const next = new Set(prev)
                 next.delete(recId)
@@ -944,15 +948,11 @@ export function Dashboard() {
                     selectedAlbumIds,
                   })
                   if (reportApprovalOutcome(res, t)) toast.success(t('dashboard.approvedSuccess'))
-                  queryClient.invalidateQueries({ queryKey: ['dashboard-pick'] })
-                  queryClient.invalidateQueries({ queryKey: ['approval-requests'] })
-                  queryClient.invalidateQueries({ queryKey: ['dashboard-approved'] })
-                  queryClient.invalidateQueries({ queryKey: ['dashboard-activity'] })
+                  refreshAfterAction(pickerRec.id, res?.status, true)
                 } catch (error) {
                   toast.error(
                     error instanceof ApiError ? error.message : t('dashboard.actionFailed'),
                   )
-                } finally {
                   setActedIds((prev) => {
                     const next = new Set(prev)
                     next.delete(pickerRec.id)

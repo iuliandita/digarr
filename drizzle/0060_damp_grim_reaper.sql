@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS "job_runs_started_at_id_idx" ON "job_runs" USING btree ("started_at" DESC NULLS LAST,"id" DESC NULLS LAST);

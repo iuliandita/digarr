@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import type { JobRunRow, JobType } from '@/core/jobs/types'
-import type { HealthSummary } from '@/db/queries/jobs'
+import type { HealthSummary, JobListRow } from '@/db/queries/jobs'
 import type { AppDependencies } from '@/server'
 import { adminGuard } from '@/server/middleware/admin-guard'
 import { jobIdParamSchema, listJobsQuerySchema } from '@/server/schemas/jobs'
@@ -14,7 +14,7 @@ type JobRouteDeps = Pick<AppDependencies, 'getUserById'> & {
       status?: string
       limit?: number
       offset?: number
-    }) => Promise<{ items: JobRunRow[]; total: number }>
+    }) => Promise<{ items: JobListRow[]; total: number }>
     getJobById: (id: number) => Promise<JobRunRow | null>
     getJobHealth: (nextRun: Date | null) => Promise<HealthSummary>
   }
