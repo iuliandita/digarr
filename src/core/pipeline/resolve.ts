@@ -13,9 +13,15 @@ interface MusicBrainzClient {
   extractStreamingUrls: (
     relations: Array<{ type: string; url?: { resource: string } }>,
   ) => Record<string, string>
-  getReleaseGroups?: (
-    artistMbid: string,
-  ) => Promise<Array<{ id: string; title: string; type: string; firstReleaseDate?: string }>>
+  getReleaseGroups?: (artistMbid: string) => Promise<
+    Array<{
+      id: string
+      title: string
+      type: string
+      secondaryTypes?: string[]
+      firstReleaseDate?: string
+    }>
+  >
 }
 
 interface LidarrLookupClient {
@@ -267,7 +273,13 @@ async function matchSuggestedAlbum(
   suggestedAlbum: string,
   artistMbid: string,
   mb: MusicBrainzClient,
-): Promise<{ releaseGroupId?: string; title: string; type?: string; firstReleaseDate?: string }> {
+): Promise<{
+  releaseGroupId?: string
+  title: string
+  type?: string
+  secondaryTypes?: string[]
+  firstReleaseDate?: string
+}> {
   if (!mb.getReleaseGroups) {
     return { title: suggestedAlbum }
   }
@@ -284,6 +296,7 @@ async function matchSuggestedAlbum(
         releaseGroupId: exact.id,
         title: exact.title,
         type: exact.type,
+        secondaryTypes: exact.secondaryTypes,
         firstReleaseDate: exact.firstReleaseDate,
       }
     }
@@ -296,6 +309,7 @@ async function matchSuggestedAlbum(
         releaseGroupId: normalized.id,
         title: normalized.title,
         type: normalized.type,
+        secondaryTypes: normalized.secondaryTypes,
         firstReleaseDate: normalized.firstReleaseDate,
       }
     }
@@ -337,6 +351,7 @@ async function buildResolvedArtist(
   let kind: 'artist' | 'album' | undefined
   let releaseGroupMbid: string | undefined
   let releaseDate: string | undefined
+  let releaseGroupTypes: ResolvedArtist['releaseGroupTypes']
   let suggestedAlbum:
     | { releaseGroupId?: string; title: string; type?: string; firstReleaseDate?: string }
     | undefined
@@ -345,6 +360,7 @@ async function buildResolvedArtist(
     kind = 'album'
     releaseGroupMbid = albumDiscovery.releaseGroupMbid
     releaseDate = albumDiscovery.releaseDate
+    releaseGroupTypes = albumDiscovery.releaseGroupTypes
     suggestedAlbum = {
       releaseGroupId: albumDiscovery.releaseGroupMbid,
       title: albumDiscovery.suggestedAlbum ?? '',
@@ -362,6 +378,7 @@ async function buildResolvedArtist(
       kind = 'album'
       releaseGroupMbid = matched.releaseGroupId
       releaseDate = matched.firstReleaseDate
+      releaseGroupTypes = { primaryType: matched.type, secondaryTypes: matched.secondaryTypes }
     }
   }
 
@@ -382,6 +399,7 @@ async function buildResolvedArtist(
     kind,
     releaseGroupMbid,
     releaseDate,
+    releaseGroupTypes,
   }
 }
 

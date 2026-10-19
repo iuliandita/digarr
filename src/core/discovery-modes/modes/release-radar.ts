@@ -142,6 +142,10 @@ export function createReleaseRadarMode(): DiscoveryModeDefinition {
             artistName: artist.name,
             artistMbid: mbid,
             releaseGroupMbid: release.id,
+            releaseGroupTypes: {
+              primaryType: release.type,
+              secondaryTypes: release.secondaryTypes,
+            },
             provenanceProvider: artist.providerId,
             fallbackUsed: artist.providerId !== 'listenbrainz',
             freshnessDate: release.firstReleaseDate,

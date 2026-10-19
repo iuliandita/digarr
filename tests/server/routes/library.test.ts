@@ -211,6 +211,7 @@ const mockLidarrClient = {
   getArtists: vi.fn(async () => []),
   findArtistByMbid: vi.fn(async () => null),
   lookupArtist: vi.fn(async () => []),
+  lookupAlbum: vi.fn(async () => null),
   getAlbums: vi.fn(async () => []),
   getWantedMissing: vi.fn(async () => []),
   setArtistsMonitored: vi.fn(async () => []),

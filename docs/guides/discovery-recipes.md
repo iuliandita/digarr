@@ -65,6 +65,7 @@ Two follow-ups use the library directly:
 
 - Library Gap-Fill (a mode; needs a synced library) suggests missing albums by artists you own.
 - Release Radar needs ListenBrainz, Spotify or Last.fm for artist seeds, and skips albums already in your synced library.
+- With a Lidarr target, album suggestions skip release types your Lidarr metadata profile filters out, such as compilations under a studio-only profile. To get them, allow the type in Lidarr.
 
 Library seed ratio (Settings > Recommendations > Advanced > Library discovery, `librarySeedRatio`, default 0.3) sets how many of the Top artists limit (`topArtistsLimit`, default 30) come from your library rather than your listening history.
 

@@ -24,6 +24,7 @@ import { errMsg } from '@/core/validation'
 import { type OwnedAlbumKeys, ownedAlbumTitleKey } from '@/db/queries/library-albums'
 import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { dropUnaddableAlbums } from './album-profile-filter'
 import { analyze } from './analyze'
 import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { PipelineCancelledError } from './cancel'
@@ -63,6 +64,8 @@ export interface PipelineDeps {
   providerRegistry?: AiProviderRegistry
   userConnections?: UserConnections | null
   autoApproveDeps?: AutoApproveDeps | null
+  /** Defaults to autoApproveDeps.getEnabledTargets; feeds the album metadata profile check. */
+  getEnabledTargets?: AutoApproveDeps['getEnabledTargets']
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   trigger?: 'scheduled' | 'manual'
   explicitCandidates?: DiscoveredArtist[]
@@ -606,6 +609,11 @@ export class PipelineOrchestrator extends EventEmitter {
         )
       })
 
+      const addable = await dropUnaddableAlbums(
+        albumAware,
+        deps.getEnabledTargets ?? deps.autoApproveDeps?.getEnabledTargets,
+      )
+
       // Also exclude top artists from listening history - the AI prompt asks
       // models to skip these, but smaller models ignore the instruction.
       const topArtistNames = new Set<string>()
@@ -619,8 +627,8 @@ export class PipelineOrchestrator extends EventEmitter {
       // filters would drop every album. They already passed the album block/dedup
       // layer above; here they only face the score threshold. Artist-kind
       // candidates take the full artist filter unchanged.
-      const albumKind = albumAware.filter((c) => c.kind === 'album' && c.releaseGroupMbid)
-      const artistKind = albumAware.filter((c) => !(c.kind === 'album' && c.releaseGroupMbid))
+      const albumKind = addable.filter((c) => c.kind === 'album' && c.releaseGroupMbid)
+      const artistKind = addable.filter((c) => !(c.kind === 'album' && c.releaseGroupMbid))
 
       const filteredArtists = filter(
         artistKind,
