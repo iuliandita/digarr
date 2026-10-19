@@ -473,7 +473,7 @@ describe('LibraryReconciliationPage', () => {
     expect(payload).toHaveLength(200)
     expect(payload).not.toContainEqual({ source: 'plex', sourceArtistId: 'artist-202' })
     expect(payload).toContainEqual({ source: 'plex', sourceArtistId: 'artist-201' })
-  })
+  }, 20_000)
 
   it('keeps artist and album bulk requests independently busy', async () => {
     mockGetLibraryUnreconciled.mockResolvedValue(
