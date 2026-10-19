@@ -1213,6 +1213,9 @@ export const ja = {
   'settings.lidarrDescription': '音楽ライブラリマネージャー - アーティストの追加に必要です。',
   'settings.lidarrPublicUrlHelp':
     'ブラウザからアクセスできる Lidarr アーティストページの URL。API URL がブラウザからすでに到達可能な場合は空白のままにしてください。',
+  'settings.lidarrRequireFiles': 'ファイルのあるアルバムだけを数える',
+  'settings.lidarrRequireFilesHelp':
+    'Lidarr が追跡していてもまだダウンロードされていないアルバムは、所有済みとして数えません。次回のライブラリ同期から適用されます。',
   'settings.aiTip':
     'アーティストを提案する AI プロバイダーを選びます。Ollama や OpenAI 互換サーバーはローカルで動かせます。ホスト型のプロバイダーには API キーが必要です。',
   'settings.aiDescription': '音楽のおすすめを生成します。',

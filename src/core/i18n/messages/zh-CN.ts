@@ -1128,6 +1128,9 @@ export const zhCN = {
   'settings.lidarrDescription': '音乐库管理器，添加艺术家必需。',
   'settings.lidarrPublicUrlHelp':
     '浏览器可访问的 Lidarr 艺术家页面链接 URL。如果 API URL 已可从浏览器访问，可留空。',
+  'settings.lidarrRequireFiles': '仅统计有文件的专辑',
+  'settings.lidarrRequireFilesHelp':
+    'Lidarr 正在跟踪但尚未下载的专辑不会算作已拥有。将在下次资料库同步时生效。',
   'settings.aiTip':
     '选择用来推荐艺人的 AI 服务商。Ollama 或任何兼容 OpenAI 的服务器可在本地运行；托管服务商需要 API 密钥。',
   'settings.aiDescription': '生成音乐推荐。',

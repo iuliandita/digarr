@@ -106,6 +106,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   )
   const [lidarrUrl, setLidarrUrl] = useState(settings.lidarrUrl ?? '')
   const [lidarrPublicUrl, setLidarrPublicUrl] = useState(prefs.lidarrPublicUrl ?? '')
+  const [lidarrRequireFiles, setLidarrRequireFiles] = useState(prefs.lidarrRequireFiles !== false)
   const [lidarrApiKey, setLidarrApiKey] = useState(unmaskSecret(settings.lidarrApiKey))
   const [lbUsername, setLbUsername] = useState(settings.listenbrainzUsername ?? '')
   const [lbToken, setLbToken] = useState(unmaskSecret(settings.listenbrainzToken))
@@ -316,6 +317,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
       preferences: {
         ...prefs,
         lidarrPublicUrl: lidarrPublicUrl || undefined,
+        lidarrRequireFiles,
       },
     }),
   )
@@ -908,6 +910,18 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
               onChange={(e) => setLidarrApiKey(e.target.value)}
             />
           </Field>
+        </div>
+        <div>
+          <label className="flex items-center gap-2 text-sm text-text">
+            <input
+              type="checkbox"
+              checked={lidarrRequireFiles}
+              onChange={(e) => setLidarrRequireFiles(e.target.checked)}
+              className="rounded border-border"
+            />
+            {t('settings.lidarrRequireFiles')}
+          </label>
+          <p className="text-xs text-muted mt-1">{t('settings.lidarrRequireFilesHelp')}</p>
         </div>
         <Disclosure title={t('settings.advancedSettings')}>
           <Field label={t('settings.fieldPublicUrl')} id="lidarr-public-url">

@@ -615,6 +615,7 @@ async function buildGlobalLibrarySources() {
     return [
       createLidarrLibrarySource(
         createLidarrClient(s.lidarrUrl, s.lidarrApiKey, s.skipTlsVerify ?? false),
+        { requireFiles: s.preferences?.lidarrRequireFiles !== false },
       ),
     ]
   }

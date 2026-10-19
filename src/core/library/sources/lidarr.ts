@@ -18,7 +18,11 @@ const LIDARR_PRIMARY_TYPE_MAP = {
  *
  * Lidarr is global (one instance per Digarr install), so userId is null.
  */
-export function createLidarrLibrarySource(client: LidarrClient): LibrarySource {
+export function createLidarrLibrarySource(
+  client: LidarrClient,
+  options: { requireFiles?: boolean } = {},
+): LibrarySource {
+  const requireFiles = options.requireFiles ?? true
   return {
     id: 'lidarr',
     name: 'Lidarr',
@@ -38,7 +42,11 @@ export function createLidarrLibrarySource(client: LidarrClient): LibrarySource {
 
     async listAlbums(sourceArtistId): Promise<LibraryAlbum[]> {
       const albums = await client.getAlbums(Number(sourceArtistId))
-      return albums.map((album) => ({
+      // Lidarr tracks wanted albums too; missing statistics is unknown, not "no files".
+      const owned = requireFiles
+        ? albums.filter((album) => !album.statistics || album.statistics.trackFileCount > 0)
+        : albums
+      return owned.map((album) => ({
         sourceAlbumId: String(album.id),
         sourceArtistId: String(album.artistId),
         title: album.title,

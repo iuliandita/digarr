@@ -196,17 +196,17 @@
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
         "src/db/queries/users.ts": "f5ce2a210b6c7c2b957166a03799bf5f8295abc2920d675a09556fb048e44218",
-        "src/db/schema.ts": "e729ed83307cdf724b056e1ea31765bdbec1625610d1e61b6e0e13566f3665ca",
+        "src/db/schema.ts": "e9f39316c61d47d3d44fc2570831921b88b538b6119836752c75e1b47aae6cf1",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a",
+      "digest": "e67511142260632f0cd7b3b7cc5358a7037bcfdb511e50d41f0b6ddecff68721",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Pre-migration auto-backup now streams each table in keyset pages to the temp file as compact JSON inside one read-only repeatable-read transaction; same top-level structure and keys, and restore code is unchanged.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "note": "Adds optional preferences.lidarrRequireFiles to the existing preferences JSON; no column or migration, absent means true.",
         "breaking": "none",
-        "migration": "No schema migration. Upgrading changes only how the pre-migration snapshot is written. Old pretty-printed and new compact backup files both restore through the same endpoint, and an image rollback still restores either format. Keep taking a native database backup before upgrades as documented.",
-        "digest": "829e9450a7746dd5a13a273d391a2e1323ffbca289da15cdc213ecb15ce7110a"
+        "migration": "No schema change, so upgrade needs no backup beyond the usual one; the key is carried inside preferences JSON. Rollback to an older image ignores it and counts all Lidarr albums again after the next sync.",
+        "digest": "e67511142260632f0cd7b3b7cc5358a7037bcfdb511e50d41f0b6ddecff68721"
       }
     },
     "configuration": {
@@ -325,7 +325,7 @@
         "src/server/schemas/pipeline.ts": "12b32f38d093560568f21ddc9626fe4282d74b12ab29af4ecab8ddd405e10341",
         "src/server/schemas/playlists.ts": "3b9fd109610633b0f481e58b9206e5e0c1f75577a9b0c8e4a23949e3c7c667d8",
         "src/server/schemas/recommendations.ts": "d1b34fbcdfdc8edd459c999ae3a4ad7b4109679ba9e4a7600cae560e04ebddd6",
-        "src/server/schemas/settings.ts": "fbe229f86d765d2bb7e9bd76ba85cde79a3cdcf752e5971868d448c4bb87125b",
+        "src/server/schemas/settings.ts": "92132ecf0bc6d62c1b34ec2aa8fc7a6ff6a47d35062812fcedf0ffaeef45d72d",
         "src/server/schemas/subscriptions.ts": "c0550e8fd462b9d856b951ab185aefa38b839161d86b8151306438c79ef56812",
         "src/server/schemas/targets.ts": "c2ae54526be2ae70214b4f6e425e67989283b5565a11cc7472ba4ee28c1114d2",
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
@@ -334,14 +334,14 @@
         "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925",
+      "digest": "8b31bb5e844e02c179c25d79c63b28c70c517bef464371d91d2125d3b005f1d7",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
-        "note": "Document bounded reconciliation pages, projected review rows, stable job ordering, compact summaries, and the existing full-detail endpoint.",
-        "breaking": "Reconciliation clients must request successive pages and stop using removed internal fields; job clients need the detail endpoint for complete metadata and source diagnostics.",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Settings schema accepts boolean preferences.lidarrRequireFiles; documented in API.md.",
+        "breaking": "none",
         "migration": "",
-        "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925"
+        "digest": "8b31bb5e844e02c179c25d79c63b28c70c517bef464371d91d2125d3b005f1d7"
       }
     },
     "interface": {
@@ -352,24 +352,24 @@
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
         "src/core/i18n/locales.ts": "897165c00a1ba9e1b95224f94453841e9194f4ddc5e0b6c83239f85f8a32a727",
-        "src/core/i18n/messages/de.ts": "c69cad9fa809a1e60e40d42c7330e3af7a0d1d97fa78519d2c77dadacd0ba6f8",
-        "src/core/i18n/messages/en.ts": "56440edc7bbebe6633e14c9c242b73c03d78ae2274aafef23ab76b6346d28070",
-        "src/core/i18n/messages/es.ts": "99981b0471fb639d6d4885da03b80051a12b1168fce785b4d71d2f55de493c96",
-        "src/core/i18n/messages/fr.ts": "457386ae3cb7639449304adb74fa6dbfe153d614a030f494e02668600533319e",
+        "src/core/i18n/messages/de.ts": "567dddd3a4114ad44470ccfb0a58e687ca673bd34590f8d007d34c1fc7c22f6f",
+        "src/core/i18n/messages/en.ts": "189badefe862d01fd8b0052c88f8872f6bb70a39b2ee98ed1ab4e12eae4ecaf4",
+        "src/core/i18n/messages/es.ts": "14a2706c565fbddeda8495c5c5d67d9ce00d10cb04ebc8722932cc2ca8a23b73",
+        "src/core/i18n/messages/fr.ts": "fc6cbb1ba6da75ce35b21c9e8f15115a0578b2d997752eeff85a65811b0fe812",
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
-        "src/core/i18n/messages/it.ts": "941635b6554395d00a17282dc3f7681ba7cd9ef5b5d9e884849fa70704b732d8",
-        "src/core/i18n/messages/ja.ts": "29e82c142d381bbe70eb12a7bfedc6db1b86f6012b3639cdde0c4a474fdead35",
-        "src/core/i18n/messages/ko.ts": "4d9166eed6ffb62b00c844f87cd22c81197c6dcc4c5b412b82dc938a81826166",
-        "src/core/i18n/messages/nl.ts": "7b48a569819e55c2fb7e15b8d768d24774b511b53c9851daaa7689d231c6252a",
-        "src/core/i18n/messages/pl.ts": "593deb80be9077b5fb4d3679bd42ead76a0a02199c3cafca6e44e3b4cabe0119",
-        "src/core/i18n/messages/pt-BR.ts": "262e7449a6e917671f783ad18702b07bf231e5c596b75d5c235f7665dc90ce33",
-        "src/core/i18n/messages/ro.ts": "9adc64715a16cd55452175c5bf8b17676191a9f560064d3027eabd33c54089c7",
-        "src/core/i18n/messages/ru.ts": "bfb2dc0a3506ac4753bdba6f0d54c9b49b6a2c5fad5a8cb0b9e2b573032144e5",
-        "src/core/i18n/messages/source-lock.json": "1060afd4d75b5a18783a63f5478324fa7e9ca2c6b281d7bda3e7db1299c65d6a",
-        "src/core/i18n/messages/tr.ts": "68e75ccd1945749f299def524d5160a63527dbaf5e051b272ef794d5daf75af2",
+        "src/core/i18n/messages/it.ts": "e33730001e7226ba05abd9076a1e7ceae66201615ead3fed101fb28c68899090",
+        "src/core/i18n/messages/ja.ts": "b388c754433e9032843c64a47f1bb932f29858260aee3142b032cb5c0f1c449f",
+        "src/core/i18n/messages/ko.ts": "8d83e18f02507fe12f2d1d4e437c6c76173df33a10b141bfe5e821e8bee0d373",
+        "src/core/i18n/messages/nl.ts": "b0a71240b10efe7696b98df714f0c68fdfac004d954ec0d97dd02f3a8d60f459",
+        "src/core/i18n/messages/pl.ts": "d1ab421b26fb4201cd64e899ea201befc6839125cd390957be99786a3c04d79a",
+        "src/core/i18n/messages/pt-BR.ts": "16fd350558d264955cddf379d85abc2a558995dfbebddf10c8ebaad5e5dabab9",
+        "src/core/i18n/messages/ro.ts": "a0dd9be7e1f02827c88fa178da1ebaab2924d6cb21838e1172532c2628ff1d06",
+        "src/core/i18n/messages/ru.ts": "72c90ab30ccd2bf5f2477860013dab38b0d281980f0d28939853a46a4e386b01",
+        "src/core/i18n/messages/source-lock.json": "693e37db9f6112800a39fe91720ca6584c920357f1ecc0344ff55351886f80b3",
+        "src/core/i18n/messages/tr.ts": "0123ecf6bc92ddb428172ce0069319b2541a2a2cd0e560cbcb72800dd808bcd6",
         "src/core/i18n/messages/types.ts": "c718007b119a617d179556aae299d41aa2d2bccf49b99847d93ec24a68d71052",
-        "src/core/i18n/messages/uk.ts": "98de7b0c60cd5da535fcea075eeb624eed6ebaf4692307c33b48d5354e22f43d",
-        "src/core/i18n/messages/zh-CN.ts": "8ba6065f71b87a6b75721727f33db551d0e0403aef63d1d8fe61bc91e1693f45",
+        "src/core/i18n/messages/uk.ts": "1bbb6e9716d6441df4df7612361c94a8ca393901e8a232b51a6088f302570b29",
+        "src/core/i18n/messages/zh-CN.ts": "9a2331f414c48083ba40521afc8dd609519c531801cfae244d0bdc3ad9741ea2",
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
@@ -512,7 +512,7 @@
         "src/web/pages/settings/artist-images-card.tsx": "b7ecf89daa643e133a1630b236efa5d43ff60b365d8307f7bab8f46e86d6ff61",
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
         "src/web/pages/settings/connection-picker.tsx": "49360515b4df1d7ffb5b9b6c0affd640727cdcddcf4c364098b6a8f01a782e4e",
-        "src/web/pages/settings/connections-tab.tsx": "6d0c1bea1a8588a5c3b98d8b697faedaff08e480138f4b5d505e16400dd6322e",
+        "src/web/pages/settings/connections-tab.tsx": "6ba57284ca4a9e46b6ec9faa00d08ff33f12fad151cedaf115fcd07e2cab812b",
         "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
         "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
@@ -530,14 +530,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "298a4877e3e28536afae8620aca8723346363e0c369fc8a3e1cf48d8a2b47724",
+      "digest": "9095d94061390e7e99973b0af52ff5c8d35f6752518ee6cf50d7ecbc8349ca4e",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Mood search adds are queued client-side with a Queued card state and specific failure toasts; the server rate limit and API are unchanged.",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Adds the Only count albums with files checkbox to the Lidarr connection card in all 15 locales; described in OPERATIONS.md.",
         "breaking": "none",
         "migration": "",
-        "digest": "298a4877e3e28536afae8620aca8723346363e0c369fc8a3e1cf48d8a2b47724"
+        "digest": "9095d94061390e7e99973b0af52ff5c8d35f6752518ee6cf50d7ecbc8349ca4e"
       }
     },
     "features": {
@@ -619,7 +619,7 @@
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
         "src/core/library/sources/jellyfin-family.ts": "32697d4cc5aca0d8ad123619ad5aea4c4ab258bc6e503f5b6daf60bc9b9c5d05",
         "src/core/library/sources/jellyfin.ts": "3b4cc00e211f7eee7db5e7ac85783377e0b8f00da61b988cc1288064d8835b0e",
-        "src/core/library/sources/lidarr.ts": "3d74de8044a4a23a5d142080d1778f59eb8a3d9d610eef1667bd6e43b8b2ecdb",
+        "src/core/library/sources/lidarr.ts": "f7651bd31f150e1b9ad8ad66cd0b049c8aa874a3419ec14a1338a12e091dbd5c",
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
         "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
@@ -753,17 +753,17 @@
         "src/core/types.ts": "db17455dd508e5d71fb981353b2cc494d8574ad0495418d04c0d51103524af17",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "0fde65395444c0047974eb5344715dae03d75b9e6ba544c122ce55ce7937ee71",
+        "src/index.ts": "7511739d9fb74a3d115ab294915974d61148605230449ac4376d0a3dcf2679ad",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990",
+      "digest": "e3f6788c2a466d1cada90ec0e137392ceea04ec2bc8e67bfe91c9305e9bd6ad1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Album candidates are filtered by the Lidarr metadata profile and the add error names the blocked type; documented the rule, fallbacks and the unscanned existing recommendations. Rebased over the delayed boot sync, which is unrelated.",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Lidarr library source drops albums without track files by default and the option is wired from settings in index.ts; documented in OPERATIONS.md and the changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "dd49dfb48e5792440eb5bbce845be7577a18e580a7efde45184ad03061425990"
+        "digest": "e3f6788c2a466d1cada90ec0e137392ceea04ec2bc8e67bfe91c9305e9bd6ad1"
       }
     },
     "deployment": {
