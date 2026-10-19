@@ -34,6 +34,13 @@ const SOURCE_REASON_KEYS: Record<string, MessageKey> = {
   audiomuse_request_failed: 'audiomuse.request_failed',
 }
 
+const RECENTLY_PLAYED_STATUS_KEYS: Record<string, MessageKey> = {
+  ok: 'jobHistory.recentlyPlayedOk',
+  missing: 'jobHistory.recentlyPlayedMissing',
+  capped: 'jobHistory.recentlyPlayedCapped',
+  partial: 'jobHistory.recentlyPlayedPartial',
+}
+
 const STATUS_BADGES: Record<string, { key: MessageKey; className: string }> = {
   completed: { key: 'jobHistory.statusCompleted', className: 'bg-approve/15 text-approve' },
   failed: { key: 'jobHistory.statusFailed', className: 'bg-reject/5 text-reject' },
@@ -108,6 +115,19 @@ function jobStats(job: JobSummary, t: (key: MessageKey) => string): string {
   return parts.join(' / ')
 }
 
+function recentlyPlayedLine(job: JobSummary, t: (key: MessageKey) => string): string | null {
+  const recent = job.metadata?.recentlyPlayed as
+    | { status?: string; windowDays?: number; listensRead?: number; excluded?: number }
+    | undefined
+  const statusKey = recent?.status ? RECENTLY_PLAYED_STATUS_KEYS[recent.status] : undefined
+  if (!recent || !statusKey) return null
+  return t('jobHistory.recentlyPlayed')
+    .replace('{days}', String(recent.windowDays ?? 0))
+    .replace('{listens}', String(recent.listensRead ?? 0))
+    .replace('{excluded}', String(recent.excluded ?? 0))
+    .replace('{status}', t(statusKey))
+}
+
 export function JobRunRow({ job }: { job: JobSummary }) {
   const { locale, t } = useI18n()
   const [expanded, setExpanded] = useState(false)
@@ -123,6 +143,7 @@ export function JobRunRow({ job }: { job: JobSummary }) {
   const statusBadge = STATUS_BADGES[job.status]
 
   const statsText = jobStats(job, t)
+  const recentText = recentlyPlayedLine(job, t)
 
   return (
     // biome-ignore lint/a11y/useSemanticElements: nested interactive elements require div wrapper
@@ -154,6 +175,7 @@ export function JobRunRow({ job }: { job: JobSummary }) {
       </div>
 
       {statsText && <div className="mt-1 text-xs text-muted">{statsText}</div>}
+      {recentText && <div className="mt-1 text-xs text-muted">{recentText}</div>}
 
       {job.sourceResults && !expanded && (
         <div className="mt-1 flex gap-2 text-xs">

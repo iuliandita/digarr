@@ -1356,6 +1356,10 @@ export const it = {
   'settings.autoApproveDescription':
     'Aggiunge automaticamente le raccomandazioni con punteggio più alto alle tue destinazioni dopo ogni scansione. Funziona solo se le destinazioni sono configurate.',
   'settings.enableAutoApprove': 'Abilita approvazione automatica',
+  'settings.excludeRecentlyPlayed': 'Salta le registrazioni ascoltate di recente',
+  'settings.excludeRecentlyPlayedHelp':
+    'Legge i tuoi ascolti ListenBrainz nel periodo. Vengono saltate solo le raccomandazioni legate a una registrazione precisa, e solo se quella registrazione è nella tua cronologia. Blocchi e periodi di attesa funzionano come prima.',
+  'settings.excludeRecentlyPlayedWindow': 'Periodo degli ascolti recenti (giorni)',
   'settings.netNewAlbumDiscovery': 'Scoperta di album inediti',
   'settings.netNewAlbumDiscoveryHelp':
     'Quando attivo, l’IA può consigliare un album specifico di un nuovo artista invece del solo artista.',
@@ -1638,6 +1642,13 @@ export const it = {
   'jobHistory.sourceNoSeeds': 'Nessun artista di riferimento disponibile',
   'jobHistory.sourceExplicitRun': 'Questa esecuzione usa candidati espliciti',
   'jobHistory.sourceNotConfigured': 'La sorgente non è configurata',
+  'jobHistory.recentlyPlayed':
+    'Ascoltato di recente ({days} giorni): {listens} ascolti letti, {excluded} saltati - {status}',
+  'jobHistory.recentlyPlayedOk': 'cronologia completa',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz non collegato, nulla saltato',
+  'jobHistory.recentlyPlayedCapped': 'cronologia limitata, ascolti più vecchi non controllati',
+  'jobHistory.recentlyPlayedPartial':
+    'lettura della cronologia interrotta, controllati solo gli ascolti letti finora',
   'jobHistory.metadataLabel': 'Metadati:',
   'jobHistory.artists': 'artisti',
   'recommendation.ownStudioAlbums': 'Possiedi {0}/{1} album in studio',
@@ -1892,6 +1903,8 @@ export const it = {
   'pipeline.message.findingSimilar': 'Ricerca di artisti simili da tutte le fonti...',
   'pipeline.message.aiSourceFailed':
     'Provider IA non riuscito: {0} - si continua senza suggerimenti IA',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Saltate {0} registrazioni ascoltate di recente, restano solo {1} raccomandazioni - il filtro resta attivo, accorcia il periodo se ne vuoi di più',
   'pipeline.message.discovered': '{0} artisti candidati scoperti',
   'pipeline.message.resolving': 'Risoluzione di {0} artisti tramite MusicBrainz...',
   'pipeline.message.scoring': 'Valutazione di {0} artisti risolti...',

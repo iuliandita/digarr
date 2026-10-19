@@ -1312,6 +1312,10 @@ export const ko = {
   'settings.autoApproveDescription':
     '각 스캔 후 높은 점수의 추천을 자동으로 대상에 추가합니다. 대상이 설정된 경우에만 실행됩니다.',
   'settings.enableAutoApprove': '자동 승인 활성화',
+  'settings.excludeRecentlyPlayed': '최근 재생한 녹음 건너뛰기',
+  'settings.excludeRecentlyPlayedHelp':
+    '기간 내 ListenBrainz 재생 기록을 읽습니다. 특정 녹음에 연결된 추천만, 그 녹음이 기록에 있을 때만 건너뜁니다. 차단과 대기 기간은 이전과 같이 동작합니다.',
+  'settings.excludeRecentlyPlayedWindow': '최근 재생 기간 (일)',
   'settings.netNewAlbumDiscovery': '신규 앨범 발견',
   'settings.netNewAlbumDiscoveryHelp':
     '켜면 AI가 아티스트만이 아니라 새로운 아티스트의 특정 앨범을 추천할 수 있습니다.',
@@ -1586,6 +1590,12 @@ export const ko = {
   'jobHistory.sourceNoSeeds': '검색 기준 아티스트가 없습니다',
   'jobHistory.sourceExplicitRun': '이번 실행은 지정된 후보를 사용합니다',
   'jobHistory.sourceNotConfigured': '소스가 설정되지 않았습니다',
+  'jobHistory.recentlyPlayed':
+    '최근 재생 ({days}일): 재생 {listens}개 읽음, {excluded}개 건너뜀 - {status}',
+  'jobHistory.recentlyPlayedOk': '기록 전체 확인됨',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz가 연결되지 않아 아무것도 건너뛰지 않았습니다',
+  'jobHistory.recentlyPlayedCapped': '기록 상한에 도달해 오래된 재생은 확인하지 않았습니다',
+  'jobHistory.recentlyPlayedPartial': '기록 읽기가 중간에 실패해 읽은 부분만 확인했습니다',
   'jobHistory.metadataLabel': '메타데이터:',
   'jobHistory.artists': '아티스트',
   'recommendation.ownStudioAlbums': '스튜디오 앨범 {0}/{1} 소유',
@@ -1835,6 +1845,8 @@ export const ko = {
   'pipeline.message.profiled': '인기 아티스트 {0}명, 장르 {1}개 프로파일링 완료',
   'pipeline.message.findingSimilar': '모든 소스에서 비슷한 아티스트를 찾는 중...',
   'pipeline.message.aiSourceFailed': 'AI 제공자 실패: {0} - AI 추천 없이 계속합니다',
+  'pipeline.message.recentlyPlayedTooFew':
+    '최근 재생한 녹음 {0}개를 건너뛰어 추천이 {1}개만 남았습니다 - 필터는 계속 켜져 있으니 더 원하시면 기간을 줄이세요',
   'pipeline.message.discovered': '{0}명의 후보 아티스트를 발견했습니다',
   'pipeline.message.resolving': 'MusicBrainz를 통해 {0}명의 아티스트를 해결 중...',
   'pipeline.message.scoring': '해결된 {0}명의 아티스트에 점수를 매기는 중...',

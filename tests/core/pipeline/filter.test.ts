@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { filter } from '@/core/pipeline/filter'
+import { excludeRecentlyPlayed, filter } from '@/core/pipeline/filter'
 import type { ScoredArtist } from '@/core/types'
 
 function makeArtist(mbid: string, score = 0.7): ScoredArtist {
@@ -179,5 +179,18 @@ describe('filter()', () => {
 
       expect(result).toHaveLength(1)
     })
+  })
+})
+
+describe('excludeRecentlyPlayed()', () => {
+  it('drops a played recording and keeps candidates without a recording MBID', () => {
+    const played = { ...makeArtist('a'), suggestedRecording: { mbid: 'rec-1' } }
+    const unheard = { ...makeArtist('b'), suggestedRecording: { mbid: 'rec-2' } }
+    const noRecording = makeArtist('c')
+
+    const result = excludeRecentlyPlayed([played, unheard, noRecording], new Set(['rec-1']))
+
+    expect(result.kept.map((a) => a.mbid)).toEqual(['b', 'c'])
+    expect(result.excluded).toBe(1)
   })
 })

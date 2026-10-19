@@ -212,6 +212,26 @@ bypass those artist-oriented filters because a new release from a tracked artist
 is the point, but still pass the album block layer, cross-batch dedup, and the
 score threshold.
 
+### Filter: recently played recordings
+
+When a user turns on `excludeRecentlyPlayed`, the filter stage reads that
+user's own ListenBrainz listens for the configured window (1-365 days, default
+30) and drops candidates whose `suggestedRecording.mbid` is in them. Listens are
+read newest first in pages of 1,000 with `max_ts`, stopping at the window start,
+an empty page, or 5,000 listens. Matching uses the listen's `recording_mbid`
+from `additional_info` or the server-side `mbid_mapping`.
+
+Only known plays are excluded. Candidates without a recording MBID are always
+kept, and so is everything when history is unavailable. The job's
+`metadata.recentlyPlayed` records `status`: `missing` (no ListenBrainz
+connection), `capped` (hit the listen cap before the window start), `partial`
+(a page failed, so only listens read before it count), `ok`, or `disabled`,
+plus `listensRead`, `windowDays` and `excluded`; Job History shows it as one
+line. If the exclusion leaves fewer than 5 results, or under a quarter of what
+the run would have stored, the stage emits a filter progress warning
+(`pipeline.message.recentlyPlayedTooFew`) and keeps the filter. Blocks and
+rejection cooldowns run before this step, unchanged.
+
 ### Recording identity
 
 Recommendations stay artist- or album-kind. A source that recommends a specific
@@ -245,8 +265,8 @@ Approval ignores the recording. A recording-backed recommendation is approved
 exactly like an artist recommendation: Lidarr `addArtist` with the same monitor
 option (manual approval defaults to `none`; auto-approve uses its configured
 option) and the same slskd artist job. It never becomes an album
-add or a track download. Later work that filters recently played tracks can
-match on `recommended_recording_mbid`.
+add or a track download. The recently played filter above matches on the same
+recording MBID before it is stored.
 
 ## Registry patterns
 

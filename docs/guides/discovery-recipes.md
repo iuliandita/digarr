@@ -9,6 +9,7 @@ Names in `code font` are exact setting keys or API fields; names in plain text a
 - Run a mode: open Discover > Discovery Modes (`/discovery-modes`), choose Run a mode, pick a mode, fill its Easy or Advanced fields, then Run now. A mode that needs a connection shows the reason in the picker (for example "Connect ListenBrainz to use this mode.").
 - A scan (Run Scan on the Dashboard, Run a scan on Discover) asks your connected sources and AI provider for similar artists. A mode run uses only that mode's candidates.
 - Recommendations you already have, reject, or block are not suggested again until the rejection cooldown ends (`rejectionCooldownDays`, default 90).
+- To keep recordings you played recently out of scans, turn on "Skip recordings I played recently" under Settings > Recommendations > Advanced and pick a window (default 30 days). It reads your ListenBrainz listens and only skips recommendations tied to a specific recording, such as Tag Radio picks; artist-only recommendations are not affected. Job History shows whether the history was complete, capped at 5,000 listens, partial, or missing, and the scan warns instead of loosening the filter when it leaves too few results.
 - Previews need no account: Digarr looks the artist up in Deezer's public catalog and plays a clip when it finds exactly one artist with that name. With zero or several matches you get track titles from MusicBrainz and no audio.
 
 ## 1. Discovery only, to the first playable recommendation

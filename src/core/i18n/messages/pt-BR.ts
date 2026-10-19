@@ -1354,6 +1354,10 @@ export const ptBR = {
   'settings.autoApproveDescription':
     'Adiciona automaticamente as recomendações com maior pontuação aos seus destinos após cada varredura. Funciona apenas quando há destinos configurados.',
   'settings.enableAutoApprove': 'Ativar aprovação automática',
+  'settings.excludeRecentlyPlayed': 'Pular gravações que ouvi recentemente',
+  'settings.excludeRecentlyPlayedHelp':
+    'Lê suas escutas do ListenBrainz no período. Só são puladas recomendações ligadas a uma gravação específica, e só quando essa gravação está no seu histórico. Bloqueios e períodos de espera funcionam como antes.',
+  'settings.excludeRecentlyPlayedWindow': 'Período de escutas recentes (dias)',
   'settings.netNewAlbumDiscovery': 'Descoberta de álbuns inéditos',
   'settings.netNewAlbumDiscoveryHelp':
     'Quando ativado, a IA pode recomendar um álbum específico de um novo artista em vez de apenas o artista.',
@@ -1634,6 +1638,13 @@ export const ptBR = {
   'jobHistory.sourceNoSeeds': 'Nenhum artista de referência disponível',
   'jobHistory.sourceExplicitRun': 'Esta execução usa candidatos explícitos',
   'jobHistory.sourceNotConfigured': 'A fonte não está configurada',
+  'jobHistory.recentlyPlayed':
+    'Ouvido recentemente ({days} dias): {listens} escutas lidas, {excluded} puladas - {status}',
+  'jobHistory.recentlyPlayedOk': 'histórico completo',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz não conectado, nada foi pulado',
+  'jobHistory.recentlyPlayedCapped': 'histórico limitado, escutas mais antigas não verificadas',
+  'jobHistory.recentlyPlayedPartial':
+    'a leitura do histórico falhou no meio, só as escutas lidas até então foram verificadas',
   'jobHistory.metadataLabel': 'Metadados:',
   'jobHistory.artists': 'artistas',
   'recommendation.ownStudioAlbums': 'Você possui {0}/{1} álbuns de estúdio',
@@ -1887,6 +1898,8 @@ export const ptBR = {
   'pipeline.message.findingSimilar': 'Procurando artistas similares em todas as fontes...',
   'pipeline.message.aiSourceFailed':
     'O provedor de IA falhou: {0} - continuando sem sugestões de IA',
+  'pipeline.message.recentlyPlayedTooFew':
+    '{0} gravações ouvidas recentemente foram puladas e restaram só {1} recomendações - o filtro continua ativo, encurte o período se quiser mais',
   'pipeline.message.discovered': '{0} artistas candidatos descobertos',
   'pipeline.message.resolving': 'Resolvendo {0} artistas via MusicBrainz...',
   'pipeline.message.scoring': 'Pontuando {0} artistas resolvidos...',

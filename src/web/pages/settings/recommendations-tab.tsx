@@ -133,6 +133,11 @@ function RecommendationsTabInner({
   const [netNewAlbumDiscovery, setNetNewAlbumDiscovery] = useState(
     (prefs.netNewAlbumDiscovery as boolean) ?? false,
   )
+  const recentPrefs = prefs.excludeRecentlyPlayed as Preferences['excludeRecentlyPlayed']
+  const [excludeRecentEnabled, setExcludeRecentEnabled] = useState(recentPrefs?.enabled ?? false)
+  const [excludeRecentWindow, setExcludeRecentWindow] = useState(
+    String(recentPrefs?.windowDays ?? 30),
+  )
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -186,6 +191,10 @@ function RecommendationsTabInner({
           | 'first'
           | 'none',
         netNewAlbumDiscovery,
+        excludeRecentlyPlayed: {
+          enabled: excludeRecentEnabled,
+          windowDays: Math.min(365, Math.max(1, parseInt(excludeRecentWindow, 10) || 30)),
+        },
       })
       queryClient.invalidateQueries({ queryKey: ['user-preferences'] })
       queryClient.invalidateQueries({ queryKey: ['recommendations'] })
@@ -385,6 +394,29 @@ function RecommendationsTabInner({
                 className="max-w-[120px]"
               />
             </Field>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={excludeRecentEnabled}
+                onChange={(e) => setExcludeRecentEnabled(e.target.checked)}
+                className="rounded border-border"
+              />
+              <span className="text-sm text-text">{t('settings.excludeRecentlyPlayed')}</span>
+            </label>
+            <p className="text-xs text-muted">{t('settings.excludeRecentlyPlayedHelp')}</p>
+            {excludeRecentEnabled && (
+              <Field label={t('settings.excludeRecentlyPlayedWindow')} id="exclude-recent-window">
+                <Input
+                  id="exclude-recent-window"
+                  type="number"
+                  min={1}
+                  max={365}
+                  value={excludeRecentWindow}
+                  onChange={(e) => setExcludeRecentWindow(e.target.value)}
+                  className="max-w-[120px]"
+                />
+              </Field>
+            )}
           </section>
 
           <section className="space-y-4">

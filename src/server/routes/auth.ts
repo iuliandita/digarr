@@ -82,6 +82,7 @@ const ALLOWED_PREF_KEYS = new Set([
   'fanartApiKey',
   'metadataFallbackUrl',
   'netNewAlbumDiscovery',
+  'excludeRecentlyPlayed',
   'listenbrainzLoveEnabled',
   'listenbrainzPlaylistEnabled',
   'lastfmLoveEnabled',

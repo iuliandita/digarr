@@ -1,6 +1,7 @@
 import { EventEmitter } from 'node:events'
 import { envConfig } from '@/config/env'
 import type { AudioMuseConfig } from '@/core/clients/audiomuse'
+import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { decryptChannelSecrets } from '@/core/crypto'
 import type { SupportedLocale } from '@/core/i18n/locales'
@@ -30,9 +31,10 @@ import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { PipelineCancelledError } from './cancel'
 import { discover } from './discover'
 import { enrichGenres } from './enrich'
-import { filter } from './filter'
+import { excludeRecentlyPlayed, filter } from './filter'
 import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
 import { createArtistImageClients } from './image-clients'
+import { loadRecentlyPlayed, recentlyPlayedLeftTooFew } from './recently-played'
 import { prefilterArtistCandidates, resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
@@ -661,7 +663,34 @@ export class PipelineOrchestrator extends EventEmitter {
         topArtistNames,
       )
       const filteredAlbums = albumKind.filter((c) => c.score >= prefs.scoreThreshold)
-      const filtered = [...filteredArtists, ...filteredAlbums]
+      const beforeHistory = [...filteredArtists, ...filteredAlbums]
+
+      // Per-user history only: the reader is built from this user's own connection.
+      const recentPrefs = prefs.excludeRecentlyPlayed
+      const recentEnabled = recentPrefs?.enabled === true
+      const recentlyPlayed = await loadRecentlyPlayed({
+        enabled: recentEnabled,
+        windowDays: recentPrefs?.windowDays ?? 30,
+        readPage:
+          recentEnabled && lbUsername && lbToken
+            ? createListenBrainzClient(lbUsername, lbToken).getListens
+            : null,
+      })
+      const { kept: filtered, excluded: recentlyPlayedExcluded } = excludeRecentlyPlayed(
+        beforeHistory,
+        recentlyPlayed.recordingMbids,
+      )
+      // Deliberately not relaxed: the user asked for these to stay out.
+      if (recentlyPlayedLeftTooFew(beforeHistory.length, filtered.length)) {
+        this.emit('progress', {
+          stage: 'filter',
+          message: t(
+            'pipeline.message.recentlyPlayedTooFew',
+            String(recentlyPlayedExcluded),
+            String(filtered.length),
+          ),
+        })
+      }
 
       ckpt()
       this.emit('progress', {
@@ -706,6 +735,13 @@ export class PipelineOrchestrator extends EventEmitter {
             artistsFiltered: scored.length - filtered.length,
             ...(tasteProfile.genreCoverage ? { genreCoverage: tasteProfile.genreCoverage } : {}),
             ...(aiProvider?.lastUsage ? { aiUsage: aiProvider.lastUsage } : {}),
+            recentlyPlayed: {
+              status: recentlyPlayed.status,
+              windowDays: recentlyPlayed.windowDays,
+              listensRead: recentlyPlayed.listensRead,
+              excluded: recentlyPlayedExcluded,
+              ...(recentlyPlayed.error ? { error: recentlyPlayed.error.slice(0, 300) } : {}),
+            },
           },
           sourceResults,
           batchId,

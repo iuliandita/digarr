@@ -1346,6 +1346,10 @@ export const uk = {
   'settings.autoApproveDescription':
     'Автоматично додавати рекомендації з високою оцінкою до цілей після кожного сканування. Працює лише якщо налаштовані цілі.',
   'settings.enableAutoApprove': 'Увімкнути автосхвалення',
+  'settings.excludeRecentlyPlayed': 'Пропускати нещодавно прослухані записи',
+  'settings.excludeRecentlyPlayedHelp':
+    'Читає твої прослуховування в ListenBrainz за вибраний період. Пропускаються лише рекомендації для конкретного запису, і лише якщо цей запис є у твоїй історії. Блокування та періоди очікування працюють як раніше.',
+  'settings.excludeRecentlyPlayedWindow': 'Період нещодавніх прослуховувань (днів)',
   'settings.netNewAlbumDiscovery': 'Пошук нових альбомів',
   'settings.netNewAlbumDiscoveryHelp':
     'Коли ввімкнено, ШІ може рекомендувати конкретний альбом нового виконавця, а не лише виконавця.',
@@ -1627,6 +1631,14 @@ export const uk = {
   'jobHistory.sourceNoSeeds': 'Немає виконавців для початкового пошуку',
   'jobHistory.sourceExplicitRun': 'Цей запуск використовує заданих кандидатів',
   'jobHistory.sourceNotConfigured': 'Джерело не налаштовано',
+  'jobHistory.recentlyPlayed':
+    'Нещодавно прослухане ({days} дн.): прочитано прослуховувань: {listens}, пропущено: {excluded} - {status}',
+  'jobHistory.recentlyPlayedOk': 'історія повна',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz не підключено, нічого не пропущено',
+  'jobHistory.recentlyPlayedCapped':
+    'історію обрізано за лімітом, старіші прослуховування не перевірено',
+  'jobHistory.recentlyPlayedPartial':
+    'читання історії перервалося, перевірено лише вже прочитані прослуховування',
   'jobHistory.metadataLabel': 'Метадані:',
   'jobHistory.artists': 'виконавців',
   'recommendation.ownStudioAlbums': 'У тебе {0}/{1} студійних альбомів',
@@ -1877,6 +1889,8 @@ export const uk = {
   'pipeline.message.profiled': 'Профільовано {0} топ-виконавців, {1} жанрів',
   'pipeline.message.findingSimilar': 'Пошук схожих виконавців з усіх джерел...',
   'pipeline.message.aiSourceFailed': 'Помилка AI-провайдера: {0} - продовжуємо без AI-пропозицій',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Пропущено нещодавно прослуханих записів: {0}, залишилося рекомендацій: {1} - фільтр лишається увімкненим, скороти період, якщо хочеш більше',
   'pipeline.message.discovered': 'Знайдено {0} виконавців-кандидатів',
   'pipeline.message.resolving': 'Зіставлення {0} виконавців через MusicBrainz...',
   'pipeline.message.scoring': 'Оцінювання {0} зіставлених виконавців...',

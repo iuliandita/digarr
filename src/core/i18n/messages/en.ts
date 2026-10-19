@@ -1335,6 +1335,10 @@ export const en = {
   'settings.autoApproveDescription':
     'Automatically add high-scoring recommendations to your targets after each scan. Only runs when targets are configured.',
   'settings.enableAutoApprove': 'Enable auto-approve',
+  'settings.excludeRecentlyPlayed': 'Skip recordings I played recently',
+  'settings.excludeRecentlyPlayedHelp':
+    'Reads your ListenBrainz listens for the window. Only recommendations tied to a specific recording are skipped, and only when that recording is in your history. Blocks and cooldowns work as before.',
+  'settings.excludeRecentlyPlayedWindow': 'Recently played window (days)',
   'settings.netNewAlbumDiscovery': 'Net-new album discovery',
   'settings.netNewAlbumDiscoveryHelp':
     'When on, the AI may recommend a specific album by a new artist instead of just the artist.',
@@ -1625,6 +1629,13 @@ export const en = {
   'jobHistory.sourceNoSeeds': 'No seed artists available',
   'jobHistory.sourceExplicitRun': 'This run uses explicit candidates',
   'jobHistory.sourceNotConfigured': 'Source is not configured',
+  'jobHistory.recentlyPlayed':
+    'Recently played ({days} days): {listens} listens read, {excluded} skipped - {status}',
+  'jobHistory.recentlyPlayedOk': 'history complete',
+  'jobHistory.recentlyPlayedMissing': 'ListenBrainz not connected, nothing skipped',
+  'jobHistory.recentlyPlayedCapped': 'history capped, older listens not checked',
+  'jobHistory.recentlyPlayedPartial':
+    'history read failed partway, only listens read so far were checked',
   'jobHistory.metadataLabel': 'Metadata:',
   'jobHistory.artists': 'artists',
 
@@ -1919,6 +1930,8 @@ export const en = {
   'pipeline.message.profiled': 'Profiled {0} top artists, {1} genres',
   'pipeline.message.findingSimilar': 'Finding similar artists from all sources...',
   'pipeline.message.aiSourceFailed': 'AI provider failed: {0} - continuing without AI suggestions',
+  'pipeline.message.recentlyPlayedTooFew':
+    'Skipped {0} recently played recordings and only {1} recommendations are left - the filter stays on, shorten the window if you want more',
   'pipeline.message.discovered': 'Discovered {0} candidate artists',
   'pipeline.message.resolving': 'Resolving {0} artists via MusicBrainz...',
   'pipeline.message.scoring': 'Scoring {0} resolved artists...',
