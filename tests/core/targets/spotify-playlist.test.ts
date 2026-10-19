@@ -140,6 +140,26 @@ describe('createSpotifyPlaylistTarget()', () => {
     })
   })
 
+  it('skips recordings without an exact match instead of using artist top tracks', async () => {
+    const explicit = trackUri('9')
+    setupSuccessResponses([
+      spotifyTrack(trackUri('a'), 'Glory Box', 'Portishead'),
+      spotifyTrack(trackUri('b'), 'Roads - 2008 Remaster', 'Portishead'),
+    ])
+
+    const result = await createViaSession([
+      { artistName: 'Portishead', artistMbid: '', trackName: 'Roads', trackMbid: 'rec-roads' },
+      { artistName: 'Portishead', artistMbid: '', trackMbid: 'rec-untitled' },
+      { artistName: 'Radiohead', artistMbid: '', spotifyUri: explicit },
+    ])
+
+    expect(result).toMatchObject({ success: true, itemsAdded: 1, itemsSkipped: 2 })
+    const addCall = mockFetch.mock.calls.find(([url]) => String(url).includes('/items')) as
+      | [unknown, RequestInit | undefined]
+      | undefined
+    expect(requestBody(addCall)).toEqual({ uris: [explicit] })
+  })
+
   it('fails before playlist creation when a search returns a malformed track URI', async () => {
     setupSuccessResponses([spotifyTrack('spotify:track:not-valid', 'Creep', 'Radiohead')])
 

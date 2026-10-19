@@ -1,4 +1,5 @@
 import PQueue from 'p-queue'
+import type { SuggestedRecording } from '@/core/types'
 import type {
   LocalTrack,
   MBRecording,
@@ -100,6 +101,89 @@ async function resolveFromMusicBrainz(
   }))
 }
 
+function normalizeTitle(title: string): string {
+  return title.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+}
+
+// Exact artist + title only: a remaster or another song by the artist stays unresolved.
+function isSameRecording(
+  candidate: { title: string; artists: string[] },
+  artistName: string,
+  title: string,
+): boolean {
+  return (
+    normalizeTitle(candidate.title) === normalizeTitle(title) &&
+    candidate.artists.some((artist) => normalizeArtist(artist) === normalizeArtist(artistName))
+  )
+}
+
+function recordingSearches(
+  artistName: string,
+  recording: SuggestedRecording,
+  deps: TrackResolverDeps,
+  sourcePriority: TrackResolverConfig['sourcePriority'],
+): { source: string; resolve: () => Promise<ResolvedTrack[]> }[] {
+  const title = recording.title?.trim()
+  if (!title) return []
+  const base = { artistName, trackName: title, mbid: recording.mbid }
+  const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = []
+  for (const source of sourcePriority) {
+    if (source === 'local') {
+      for (const search of [
+        deps.jellyfinSearch,
+        deps.embySearch,
+        deps.navidromeSearch,
+        deps.plexSearch,
+      ]) {
+        if (!search) continue
+        searches.push({
+          source,
+          resolve: async () => {
+            const match = (await search(artistName)).find(
+              (t) =>
+                t.path.trim() &&
+                isSameRecording({ title: t.name, artists: [t.artist] }, artistName, title),
+            )
+            return match ? [{ ...base, localPath: match.path, source: 'local' as const }] : []
+          },
+        })
+      }
+    } else if (source === 'spotify' && deps.spotifySearch) {
+      const spotifySearch = deps.spotifySearch
+      searches.push({
+        source,
+        resolve: async () => {
+          const results = await spotifySearch(`artist:"${artistName}" track:"${title}"`, 10)
+          const match = results.find((t) =>
+            isSameRecording({ title: t.name, artists: t.artists }, artistName, title),
+          )
+          return match ? [{ ...base, spotifyUri: match.uri, source: 'spotify' as const }] : []
+        },
+      })
+    } else if (source === 'deezer' && deps.deezerSearch) {
+      const deezerSearch = deps.deezerSearch
+      searches.push({
+        source,
+        resolve: async () => {
+          const results = await deezerSearch(`artist:"${artistName}" track:"${title}"`, 10)
+          const match = results.find((t) =>
+            isSameRecording({ title: t.name, artists: t.artists }, artistName, title),
+          )
+          return match ? [{ ...base, deezerId: match.id, source: 'deezer' as const }] : []
+        },
+      })
+    }
+  }
+  if (deps.musicbrainzRecordings) {
+    // The stored recording is already a MusicBrainz identity; no lookup needed.
+    searches.push({
+      source: 'musicbrainz',
+      resolve: async () => [{ ...base, source: 'musicbrainz' as const }],
+    })
+  }
+  return searches
+}
+
 export type ArtistTrackResolution = {
   tracks: ResolvedTrack[]
   outcome: PlaylistArtistOutcome
@@ -110,13 +194,18 @@ export async function resolveTracksForArtistDetailed(
   artistMbid: string | undefined,
   deps: TrackResolverDeps,
   config: TrackResolverConfig,
+  recording?: SuggestedRecording,
 ): Promise<ArtistTrackResolution> {
   const cfg = { ...DEFAULT_CONFIG, ...config }
   let attempted = false
   let failed = false
-  const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = []
+  const searches: { source: string; resolve: () => Promise<ResolvedTrack[]> }[] = recording
+    ? recordingSearches(artistName, recording, deps, cfg.sourcePriority)
+    : []
+  // A recommended recording is never swapped for another song by the same artist.
+  if (recording) attempted = true
 
-  for (const source of cfg.sourcePriority) {
+  for (const source of recording ? [] : cfg.sourcePriority) {
     if (source === 'local') {
       for (const search of [
         deps.jellyfinSearch,
@@ -142,7 +231,7 @@ export async function resolveTracksForArtistDetailed(
       })
     }
   }
-  if (artistMbid && deps.musicbrainzRecordings) {
+  if (!recording && artistMbid && deps.musicbrainzRecordings) {
     searches.push({
       source: 'musicbrainz',
       resolve: () => resolveFromMusicBrainz(artistName, artistMbid, deps, cfg.tracksPerArtist),
@@ -185,7 +274,7 @@ export async function resolveTracksForArtistDetailed(
 }
 
 export async function resolvePlaylistTracksDetailed(
-  artists: { name: string; mbid?: string }[],
+  artists: { name: string; mbid?: string; recording?: SuggestedRecording }[],
   deps: TrackResolverDeps,
   config: TrackResolverConfig,
 ): Promise<ArtistTrackResolution[]> {
@@ -193,7 +282,9 @@ export async function resolvePlaylistTracksDetailed(
 
   return Promise.all(
     artists.map((artist) =>
-      queue.add(() => resolveTracksForArtistDetailed(artist.name, artist.mbid, deps, config)),
+      queue.add(() =>
+        resolveTracksForArtistDetailed(artist.name, artist.mbid, deps, config, artist.recording),
+      ),
     ),
   )
 }

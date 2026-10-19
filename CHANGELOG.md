@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- Tag Radio recommendations keep the ListenBrainz recording that put the artist on the list. The card shows it as "Recommended track". Audition and playlist exports use that exact recording; when no exact match exists, the track is reported as unresolved, so a different song by the same artist no longer takes its place. Approving one still adds the artist, the same as any artist recommendation. Migration 0062 adds two nullable columns; see the upgrade notes in `docs/OPERATIONS.md` (#1046).
 - Today's Pick on the dashboard can load the Spotify player automatically. It stays click-to-load by default; tick "Load automatically on the dashboard" under the load button to opt in, and use "Don't load automatically" under the player to turn it off. Other places that embed Spotify are unchanged (#1125).
 
 ### Changed

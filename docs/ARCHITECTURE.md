@@ -212,6 +212,35 @@ bypass those artist-oriented filters because a new release from a tracked artist
 is the point, but still pass the album block layer, cross-batch dedup, and the
 score threshold.
 
+### Recording identity
+
+Recommendations stay artist- or album-kind. A source that recommends a specific
+track can also attach a MusicBrainz recording MBID and title. Today only
+ListenBrainz Tag Radio does this: it keeps the highest-ranked radio recording for
+each artist. The fields travel as `recordingMbid` / `recordingTitle` on the
+discovery candidate and `DiscoveredArtist`, then `suggestedRecording` on
+`ResolvedArtist`. They are stored in `recommendations.recommended_recording_mbid`
+and `recommended_recording_title`, both nullable. Resolve keeps a recording only when the discovery's
+artist MBID equals the resolved artist, so a name-only match to a same-name
+artist drops it. Provider IDs (Spotify URI, Deezer id, local path) are never
+stored in these fields; they are looked up at playlist time and kept in their
+own `ResolvedTrack` fields next to `mbid`.
+
+Audition takes the recording of the best-scored pending recommendation for each
+artist. When a stored recording exists, the track resolver only accepts an exact
+artist and title match, in local libraries, Spotify, or Deezer. Without one, it
+falls back to the MusicBrainz identity. It never picks another song by the same
+artist. A remaster with a different title, the same title by another artist, or a
+recording without a title stays unresolved. The ListenBrainz playlist write-back
+sends the stored MBID. Spotify export skips an item that has a recording MBID but
+no title instead of using the artist's top tracks.
+
+Approval ignores the recording. A recording-backed recommendation is approved
+exactly like an artist recommendation: Lidarr `addArtist` with the same monitor
+option (default `none`) and the same slskd artist job. It never becomes an album
+add or a track download. Later work that filters recently played tracks can
+match on `recommended_recording_mbid`.
+
 ## Registry patterns
 
 Extension points use registries or configuration maps:

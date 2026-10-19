@@ -435,6 +435,13 @@
       "when": 1792406357820,
       "tag": "0061_artist_image_https",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1792410546597,
+      "tag": "0062_recommended_recording",
+      "breakpoints": true
     }
   ]
 }

@@ -56,6 +56,7 @@ describe('lookupRecording(mbid)', () => {
       recordingMbid: 'rec-mbid',
       artistMbid: 'artist-mbid-1',
       artistName: 'Portishead',
+      title: 'Wandering Star',
     })
   })
 
@@ -99,6 +100,7 @@ describe('lookupRecording(mbid)', () => {
       recordingMbid: 'rec-mbid',
       artistMbid: 'primary-mbid',
       artistName: 'Primary Artist',
+      title: 'Collab Track',
     })
   })
 

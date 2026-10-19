@@ -459,7 +459,7 @@ Taste ordering reads only the authenticated user's optional `primaryGenres` and 
 
 Save either list through `PATCH /api/v1/auth/me/preferences`: `{"primaryGenres":["metal","jazz"],"secondaryGenres":["ambient"]}`. Each list accepts up to 24 nonempty names of at most 64 characters. Names are trimmed, lowercased, and deduplicated. Empty lists clear the preference.
 
-Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `recommendedReleaseGroupId` / `recommendedReleaseGroupTitle` identify the album (its `artistId` still points at the album's artist), and the UI renders the album as the primary unit.
+Each item carries a `kind` field (`artist` or `album`). For `kind: "album"`, `recommendedReleaseGroupId` / `recommendedReleaseGroupTitle` identify the album (its `artistId` still points at the album's artist), and the UI renders the album as the primary unit. `recommendedRecordingMbid` / `recommendedRecordingTitle` are the MusicBrainz recording a source recommended (currently ListenBrainz Tag Radio), or `null`. They never hold provider IDs, and they do not change what approval adds. MCP recommendation results include the same two fields.
 
 **PATCH /api/v1/recommendations/:id** body:
 ```json

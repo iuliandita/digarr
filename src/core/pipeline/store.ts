@@ -62,6 +62,8 @@ export interface StoreDb {
     userId?: number
     recommendedReleaseGroupId?: string
     recommendedReleaseGroupTitle?: string
+    recommendedRecordingMbid?: string
+    recommendedRecordingTitle?: string
     kind?: 'artist' | 'album'
   }) => Promise<void>
 
@@ -218,6 +220,8 @@ export async function store(
         userId: options.userId,
         recommendedReleaseGroupId: artist.suggestedAlbum?.releaseGroupId,
         recommendedReleaseGroupTitle: artist.suggestedAlbum?.title,
+        recommendedRecordingMbid: artist.suggestedRecording?.mbid,
+        recommendedRecordingTitle: artist.suggestedRecording?.title,
         kind: artist.kind ?? 'artist',
       }
 

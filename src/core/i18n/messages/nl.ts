@@ -852,6 +852,7 @@ export const nl = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Selecteer',
   'recommendation.startWith': 'Begin met',
+  'recommendation.recommendedTrack': 'Aanbevolen nummer',
   'recommendation.albumBadge': 'Album',
   'recommendation.albumByArtist': '{album} van {artist}',
   'recommendation.metadataCached': 'Metagegevens in cache',

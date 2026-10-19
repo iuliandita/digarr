@@ -839,6 +839,7 @@ export const ja = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': '選択',
   'recommendation.startWith': 'から始める',
+  'recommendation.recommendedTrack': 'おすすめの曲',
   'recommendation.albumBadge': 'アルバム',
   'recommendation.albumByArtist': '{artist} の {album}',
   'recommendation.metadataCached': 'キャッシュされたメタデータ',

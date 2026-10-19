@@ -10,6 +10,9 @@ export type ResolvedTagArtist = {
   artistMbid: string
   artistName: string
   score: number
+  /** The radio recording that earned this artist its score. */
+  recordingMbid: string
+  recordingTitle?: string
 }
 
 type MbClientForTagRadio = {
@@ -28,8 +31,8 @@ export async function resolveTagRadioRecordings(
   const cached = await getCachedRecordingArtists(db, allMbids)
   const cacheMap = new Map(cached.map((c) => [c.recordingMbid, c]))
 
-  // 2. Partition into hits and misses
-  const misses = recordings.filter((r) => !cacheMap.has(r.recordingMbid))
+  // 2. Partition into hits and misses; rows cached before titles were stored count as misses.
+  const misses = recordings.filter((r) => !cacheMap.get(r.recordingMbid)?.recordingTitle)
 
   // 3. Resolve misses via MB (client handles rate limiting internally)
   const resolved: (RecordingArtistCredit | null)[] = []
@@ -51,6 +54,7 @@ export async function resolveTagRadioRecordings(
         recordingMbid: e.recordingMbid,
         artistMbid: e.artistMbid,
         artistName: e.artistName,
+        recordingTitle: e.title ?? null,
       })),
     )
   } catch (err) {
@@ -59,22 +63,30 @@ export async function resolveTagRadioRecordings(
   }
 
   // 5. Build unified recording -> artist map
-  const recordingToArtist = new Map<string, { artistMbid: string; artistName: string }>()
+  const recordingToArtist = new Map<
+    string,
+    { artistMbid: string; artistName: string; title?: string }
+  >()
   for (const c of cached) {
     recordingToArtist.set(c.recordingMbid, {
       artistMbid: c.artistMbid,
       artistName: c.artistName,
+      title: c.recordingTitle ?? undefined,
     })
   }
   for (const e of newEntries) {
     recordingToArtist.set(e.recordingMbid, {
       artistMbid: e.artistMbid,
       artistName: e.artistName,
+      title: e.title,
     })
   }
 
-  // 6. Group by artist, take max percent
-  const artistMap = new Map<string, { artistName: string; maxPercent: number }>()
+  // 6. Group by artist, take max percent and keep that recording
+  const artistMap = new Map<
+    string,
+    { artistName: string; maxPercent: number; recordingMbid: string; recordingTitle?: string }
+  >()
   for (const rec of recordings) {
     const artist = recordingToArtist.get(rec.recordingMbid)
     if (!artist) continue
@@ -83,16 +95,20 @@ export async function resolveTagRadioRecordings(
       artistMap.set(artist.artistMbid, {
         artistName: artist.artistName,
         maxPercent: rec.percent,
+        recordingMbid: rec.recordingMbid,
+        recordingTitle: artist.title,
       })
     }
   }
 
   // 7. Return sorted by score descending
   return Array.from(artistMap.entries())
-    .map(([artistMbid, { artistName, maxPercent }]) => ({
+    .map(([artistMbid, { artistName, maxPercent, recordingMbid, recordingTitle }]) => ({
       artistMbid,
       artistName,
       score: maxPercent / 100,
+      recordingMbid,
+      recordingTitle,
     }))
     .sort((a, b) => b.score - a.score)
 }

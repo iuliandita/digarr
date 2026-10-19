@@ -854,6 +854,7 @@ export const ptBR = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Selecione',
   'recommendation.startWith': 'Comece com',
+  'recommendation.recommendedTrack': 'Faixa recomendada',
   'recommendation.albumBadge': 'Álbum',
   'recommendation.albumByArtist': '{album} de {artist}',
   'recommendation.metadataCached': 'Metadados armazenados em cache',

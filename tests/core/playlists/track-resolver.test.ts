@@ -1,5 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
+import { generatePlaylist } from '@/core/playlists/generator'
+import type { StrategyDeps } from '@/core/playlists/strategies/types'
 import {
   resolvePlaylistTracksDetailed,
   resolveTracksForArtistDetailed,
@@ -679,5 +681,86 @@ describe('resolvePlaylistTracks()', () => {
     expect(spotifySearch).toHaveBeenCalledTimes(6)
 
     void callOrder // silence unused warning
+  })
+})
+
+describe('recommended recordings', () => {
+  const RECORDING = { mbid: 'e8f9b188-f819-4e43-ab0f-4bd26ce9ff56', title: 'Roads' }
+  const portisheadTracks = (roads: SpotifySearchResult): SpotifySearchResult[] => [
+    { name: 'Glory Box', artists: ['Portishead'], uri: 'spotify:track:glory', popularity: 99 },
+    roads,
+  ]
+
+  it('Audition plays the stored recording, not the artist top track', async () => {
+    const strategyDeps: StrategyDeps = {
+      getPendingArtists: vi
+        .fn()
+        .mockResolvedValue([
+          { name: 'Portishead', mbid: 'mbid-ph', score: 0.9, recording: RECORDING },
+        ]),
+      getApprovedArtists: vi.fn(),
+      getOlderApprovedArtists: vi.fn(),
+    }
+    const spotifySearch = vi.fn().mockResolvedValue(
+      portisheadTracks({
+        name: 'Roads',
+        artists: ['Portishead'],
+        uri: 'spotify:track:roads',
+        popularity: 80,
+      }),
+    )
+
+    const result = await generatePlaylist(
+      'audition',
+      { trackSourcePriority: ['spotify'] },
+      strategyDeps,
+      { spotifySearch },
+    )
+
+    expect(result.tracks).toEqual([
+      {
+        artistName: 'Portishead',
+        trackName: 'Roads',
+        mbid: RECORDING.mbid,
+        spotifyUri: 'spotify:track:roads',
+        source: 'spotify',
+      },
+    ])
+  })
+
+  it.each([
+    {
+      name: 'remaster only',
+      recording: RECORDING,
+      match: { name: 'Roads - 2008 Remaster', artists: ['Portishead'] },
+    },
+    {
+      name: 'same title by another artist',
+      recording: RECORDING,
+      match: { name: 'Roads', artists: ['Portishead Tribute'] },
+    },
+    {
+      name: 'missing recording title',
+      recording: { mbid: RECORDING.mbid },
+      match: { name: 'Roads', artists: ['Portishead'] },
+    },
+  ])('leaves the recording unresolved instead of swapping songs: $name', async (testCase) => {
+    const spotifySearch = vi
+      .fn()
+      .mockResolvedValue(
+        portisheadTracks({ ...testCase.match, uri: 'spotify:track:roads', popularity: 80 }),
+      )
+    const localSearch = vi.fn().mockResolvedValue(LOCAL_TRACKS)
+
+    const result = await resolveTracksForArtistDetailed(
+      'Portishead',
+      'mbid-ph',
+      { spotifySearch, jellyfinSearch: localSearch },
+      { tracksPerArtist: 1, sourcePriority: ['local', 'spotify'] },
+      testCase.recording,
+    )
+
+    expect(result.tracks).toEqual([])
+    expect(result.outcome.status).toBe('unmatched')
   })
 })

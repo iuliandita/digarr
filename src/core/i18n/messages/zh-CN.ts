@@ -789,6 +789,7 @@ export const zhCN = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': '选择',
   'recommendation.startWith': '开始于',
+  'recommendation.recommendedTrack': '推荐曲目',
   'recommendation.albumBadge': '专辑',
   'recommendation.albumByArtist': '{artist} 的 {album}',
   'recommendation.metadataCached': '元数据缓存',

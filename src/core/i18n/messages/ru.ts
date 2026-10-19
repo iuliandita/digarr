@@ -850,6 +850,7 @@ export const ru = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Выбрать',
   'recommendation.startWith': 'Начни с',
+  'recommendation.recommendedTrack': 'Рекомендованный трек',
   'recommendation.albumBadge': 'Альбом',
   'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Метаданные кэшируются',

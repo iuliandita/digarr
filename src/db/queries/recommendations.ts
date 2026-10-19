@@ -717,6 +717,8 @@ export type InsertRecommendationData = {
   userId?: number
   recommendedReleaseGroupId?: string
   recommendedReleaseGroupTitle?: string
+  recommendedRecordingMbid?: string
+  recommendedRecordingTitle?: string
   kind?: 'artist' | 'album'
 }
 
@@ -734,6 +736,8 @@ export async function insertRecommendation(
     userId: data.userId,
     recommendedReleaseGroupId: data.recommendedReleaseGroupId,
     recommendedReleaseGroupTitle: data.recommendedReleaseGroupTitle,
+    recommendedRecordingMbid: data.recommendedRecordingMbid,
+    recommendedRecordingTitle: data.recommendedRecordingTitle,
     kind: data.kind ?? 'artist',
   })
 }

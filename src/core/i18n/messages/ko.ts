@@ -832,6 +832,7 @@ export const ko = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': '선택',
   'recommendation.startWith': '다음으로 시작',
+  'recommendation.recommendedTrack': '추천 트랙',
   'recommendation.albumBadge': '앨범',
   'recommendation.albumByArtist': '{artist}의 {album}',
   'recommendation.metadataCached': '캐시된 메타데이터',

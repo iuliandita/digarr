@@ -6,6 +6,19 @@ and supports a PostgreSQL server via `DATABASE_URL` or the `DB_HOST` / `DB_USER`
 Settings lets admins copy the application restore registry between the two backends in one
 operation, without touching or modifying the source.
 
+## Recommended recording migration
+
+Migration 0062 adds nullable `recommendations.recommended_recording_mbid` and
+`recommended_recording_title` and `recording_artist_cache.recording_title`
+with `ADD COLUMN IF NOT EXISTS`. PostgreSQL and PGlite both apply it at startup.
+Backend copies migrate the destination first, so the columns copy through.
+Older JSON backups without these fields restore with null values. Take a
+complete database backup before upgrading. Rollback is safe in two ways: the
+previous image ignores the nullable columns, or a pre-upgrade backup restores
+the earlier state. Validation used isolated in-memory PGlite: the migration was
+re-run, a backup round-trip kept the recording, and an older-format backup
+restored. No live PostgreSQL restore is claimed.
+
 ## Artist image https migration
 
 Migration 0061 rewrites `http://` prefixes to `https://` in `artists.image_url` and

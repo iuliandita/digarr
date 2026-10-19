@@ -2,6 +2,10 @@
 
 These notes describe v2.0.1. Start with the [README](../README.md) for installation. Most connection, playlist, notification, and maintenance settings live in the web UI; public origin and the environment settings below require a restart.
 
+## Recommended recording upgrade
+
+Migration 0062 adds two nullable text columns: `recommendations.recommended_recording_mbid` and `recommended_recording_title`. It also adds a nullable `recording_artist_cache.recording_title`. Every statement uses `ADD COLUMN IF NOT EXISTS`, so it is safe to re-run, and PostgreSQL and PGlite apply it at startup. Existing recommendations keep null values and behave as before. Tag Radio lookups that were cached before the upgrade are fetched from MusicBrainz again once to pick up their titles, so the first run after upgrading is slower. Take a normal backup before upgrading. New backups include the columns. Restoring an older backup leaves them null. Rollback: the previous image ignores the extra columns, or you can restore the pre-upgrade backup. Either way, the recommended track is lost.
+
 ## Query scaling upgrade
 
 Migration 0060 adds `job_runs_started_at_id_idx` on `(started_at DESC, id DESC)`

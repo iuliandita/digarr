@@ -833,6 +833,7 @@ export const en = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Select',
   'recommendation.startWith': 'Start with',
+  'recommendation.recommendedTrack': 'Recommended track',
   'recommendation.albumBadge': 'Album',
   'recommendation.albumByArtist': '{album} by {artist}',
   'recommendation.metadataCached': 'Metadata cached',

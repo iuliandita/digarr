@@ -850,6 +850,7 @@ export const ro = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Selectează',
   'recommendation.startWith': 'Începe cu',
+  'recommendation.recommendedTrack': 'Piesă recomandată',
   'recommendation.albumBadge': 'Album',
   'recommendation.albumByArtist': '{album} de {artist}',
   'recommendation.metadataCached': 'Metadatele stocate în cache',

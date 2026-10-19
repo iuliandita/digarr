@@ -845,6 +845,7 @@ export const uk = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Вибери',
   'recommendation.startWith': 'Почни з',
+  'recommendation.recommendedTrack': 'Рекомендований трек',
   'recommendation.albumBadge': 'Альбом',
   'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Метадані кешовані',

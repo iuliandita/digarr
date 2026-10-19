@@ -302,6 +302,8 @@ export const recommendations = pgTable(
     lidarrError: text('lidarr_error'),
     recommendedReleaseGroupId: text('recommended_release_group_id'),
     recommendedReleaseGroupTitle: text('recommended_release_group_title'),
+    recommendedRecordingMbid: text('recommended_recording_mbid'),
+    recommendedRecordingTitle: text('recommended_recording_title'),
     targetActions: jsonb('target_actions').$type<Record<string, unknown>>(),
     rejectionReason: text('rejection_reason'),
     rejectionReasonText: text('rejection_reason_text'),
@@ -920,6 +922,7 @@ export const recordingArtistCache = pgTable('recording_artist_cache', {
   recordingMbid: uuid('recording_mbid').primaryKey(),
   artistMbid: uuid('artist_mbid').notNull(),
   artistName: text('artist_name').notNull(),
+  recordingTitle: text('recording_title'),
   cachedAt: timestamp('cached_at', { withTimezone: true }).defaultNow().notNull(),
 })
 

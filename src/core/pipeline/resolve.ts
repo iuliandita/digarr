@@ -404,6 +404,15 @@ async function buildResolvedArtist(
     }
   }
 
+  // A recording only belongs to the artist its source credited, never a same-name match.
+  const recordingDiscovery =
+    kind === 'album'
+      ? undefined
+      : discoveries.find((d) => d.recordingMbid && d.mbid === mbArtist.id)
+  const suggestedRecording = recordingDiscovery?.recordingMbid
+    ? { mbid: recordingDiscovery.recordingMbid, title: recordingDiscovery.recordingTitle }
+    : undefined
+
   const imageResult = await image
   return {
     mbid: mbArtist.id,
@@ -416,6 +425,7 @@ async function buildResolvedArtist(
     imageFailed: imageResult.failed,
     streamingUrls,
     suggestedAlbum,
+    suggestedRecording,
     discoveries,
     beginYear: parseYear(mbArtist['life-span']?.begin),
     endYear: parseYear(mbArtist['life-span']?.end),

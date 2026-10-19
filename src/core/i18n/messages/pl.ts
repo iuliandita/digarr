@@ -851,6 +851,7 @@ export const pl = {
   'recommendation.sourceListenBrainz': 'ListenBrainz',
   'recommendation.select': 'Wybierz',
   'recommendation.startWith': 'Zacznij od',
+  'recommendation.recommendedTrack': 'Polecany utwór',
   'recommendation.albumBadge': 'Album',
   'recommendation.albumByArtist': '{album} ({artist})',
   'recommendation.metadataCached': 'Metadane zapisane w pamięci podręcznej',
