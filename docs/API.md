@@ -1218,14 +1218,20 @@ Job detail `sourceResults` describe each source's discovery contribution. Config
 
 Source health samples the 20 most recent pipeline/quick-discover runs with source results from the last 24 hours. Within that sample, `/api/v1/jobs/health` counts only `ok` and `error` attempts for each source; successful zero-artist lookups count as `ok`. Skips do not count as successes or errors, and sources with no attempts are omitted from `sources`. Zero errors yields `ok`, an error rate below 50% yields `degraded`, and 50% or more yields `failing`. Skipped runs still occupy the sample; the query does not pull in older attempts to replace them. Individual job records retain their skip reasons. v1.19.0 counts skips as failures; this is corrected in v2.0.0 ([#769](https://github.com/iuliandita/digarr/issues/769)).
 
-`integrations` lists the last success and last error per integration, derived from the past 30 days of recorded job runs; no service is probed. Each entry is `{ "kind", "name", "status", "lastSuccess", "lastError" }`:
+`integrations` lists one entry per concrete integration instance, derived from the past 30 days of recorded job runs; no service is probed. Each entry is `{ "id", "kind", "name", "label", "owner", "status", "lastSuccess", "lastError", "itemFailures" }`:
 
-- `kind` - `target` (approval targets such as `lidarr` or `slskd`, keyed by target type), `library` (library sync sources: `lidarr`, `plex`, `jellyfin`, `emby`, `subsonic`), `source` (discovery `sourceResults` keys, including `ai` for the AI provider), `subscription` (adapter type), or `scrobbler` (ListenBrainz/Last.fm write-back)
+- `id` - stable instance key: `target:<target id>`, `subscription:<subscription id>`, or `<kind>:<user id or 0>:<name>` for per-user connections
+- `kind` - `target` (approval targets such as `lidarr` or `slskd`), `library` (library sync sources: `lidarr`, `plex`, `jellyfin`, `emby`, `subsonic`), `source` (discovery `sourceResults` keys, including `ai` for the AI provider), `subscription`, or `scrobbler` (ListenBrainz/Last.fm write-back)
+- `name` - target type, source id, adapter type, or scrobbler service; `label` - the target or subscription name, or `null`
+- `owner` - `{ "id", "username" }` of the user the instance belongs to, or `null` for shared instances. The endpoint is admin-only
 - `lastSuccess` - ISO timestamp of the newest completed run, `ok` source result, or `null`
-- `lastError` - `{ "at": "<ISO timestamp>", "message": "..." }` for the newest failed run or `error` source result, or `null`. Messages are secret-redacted and capped at 300 characters
-- `status` - `failing` when the last error is newer than the last success, otherwise `ok`
+- `lastError` - `{ "at": "<ISO timestamp>", "message": "..." }` for the newest integration-level failure, or `null`. Messages are secret-redacted and capped at 300 characters
+- `status` - `failing` when the last integration-level failure is newer than the last success, otherwise `ok`
+- `itemFailures` - failed runs in the window that were not integration-level; they never make a row `failing`
 
-Running, stuck, cancelled, and skipped runs and skipped source results are ignored. Integrations with no recorded attempt in the window are omitted. Playlist exports and notification channels are not listed because their outcomes are not recorded per integration.
+Failed jobs record `metadata.failureScope` from the error text: `integration` for unreachable or timed-out services, authentication errors and HTTP 5xx/408/429; `item` for missing configuration, not-found, profile or validation rejections, duplicates, blocks and other HTTP 4xx. Target jobs count as outages only when classified `integration`; other job types count unless classified `item`. Target jobs recorded before this field and `targetId` existed are not attributed to an instance and no longer appear.
+
+Running, stuck, cancelled, and skipped runs and skipped source results are ignored. Integrations with no recorded attempt in the window are omitted, as are rows whose target, subscription or scrobbler connection has since been removed. Playlist exports and notification channels are not listed because their outcomes are not recorded per integration.
 
 ---
 
@@ -1286,7 +1292,7 @@ Notification channels:
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
 - Channel secrets (`telegram.botToken`, `ntfy.token`, `webhook.signingSecret`, `apprise.urls`) are returned masked as `***`;
-  sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
+  sending `***` back on `PATCH` preserves the stored value instead of overwriting it. Sending `""` for an optional secret (`ntfy.token`, `webhook.signingSecret`) clears it; `telegram.botToken` and `apprise.urls` are required, so `""` is rejected with a validation error.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
   returns `403` (same rule as other global settings).

@@ -1422,6 +1422,10 @@ export type JobHealth = {
 }
 
 export type IntegrationHealth = {
+  id: string
+  label: string | null
+  owner: { id: number; username: string } | null
+  itemFailures: number
   kind: 'target' | 'library' | 'source' | 'subscription' | 'scrobbler'
   name: string
   status: 'ok' | 'failing'

@@ -979,6 +979,7 @@ export const ptBR = {
     'Nenhuma atividade de integração registrada nos últimos 30 dias.',
   'systemHealth.lastSuccess': 'Último sucesso',
   'systemHealth.lastError': 'Último erro',
+  'systemHealth.itemFailures': '{0} falhas por item (não contam como queda)',
   'systemHealth.integrationOk': 'Funcionando',
   'systemHealth.integrationFailing': 'Com falha',
   'systemHealth.kind.target': 'Destino',
@@ -1958,6 +1959,10 @@ export const ptBR = {
   'settings.channels.saved': 'Notificações salvas',
   'settings.channels.saveFailed': 'Falha ao salvar notificações',
   'settings.channels.secretKeepPlaceholder': 'Deixe em branco para manter o valor salvo',
+  'settings.channels.secretSaved': 'Salvo',
+  'settings.channels.secretRemove': 'Remover',
+  'settings.channels.secretRemovePending': 'Será removido ao salvar',
+  'settings.channels.secretUndo': 'Desfazer',
   'settings.primaryGenres': 'Gêneros prioritários (opcional)',
   'settings.secondaryGenres': 'Outros gêneros preferidos (opcional)',
   'settings.genrePriorityHelp':

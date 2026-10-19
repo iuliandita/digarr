@@ -9,15 +9,18 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Added
 
 - Today's Pick on the dashboard can load the Spotify player automatically. It stays click-to-load by default; tick "Load automatically on the dashboard" under the load button to opt in, and use "Don't load automatically" under the player to turn it off. Other places that embed Spotify are unchanged (#1125).
+- Saved notification channel secrets that are optional (webhook signing secret, ntfy token) can be removed from the channel editor with a Remove action next to the "Saved" hint, instead of deleting and recreating the channel. Telegram bot tokens and Apprise URLs are required and can only be replaced (#1068).
 
 ### Changed
 
+- System integration health rows are per integration instead of per type: each Lidarr or slskd target, subscription, and per-user connection gets its own row with its owner, so one user's broken integration no longer marks everyone's `failing`. Only integration-level failures (unreachable, timeouts, auth, HTTP 5xx) flip a row; per-item failures such as a missing album or an unconfigured target show as a softer count. `GET /api/v1/jobs/health` entries gain `id`, `label`, `owner` and `itemFailures`. Target job history from before this release is not attributed to a target, so those rows reappear after the next run (#1069).
 - Scrobbler write-back moved from Settings > Account to the ListenBrainz and Last.fm cards in Settings > Connections, next to the credentials and the Last.fm connect button. Preferences and API are unchanged, and returning from Last.fm authorization now lands on Connections (#1123).
 - Settings tabs and the setup wizard load on demand, so the main web bundle is smaller (the Settings chunk went from 217 kB to 9 kB), and the audio preview context no longer re-renders every consumer on each app update (#1098).
 
 ### Fixed
 
 - Playlist generation is no longer marked stuck after 2 minutes; a full-size Audition takes longer than that, so the limit is now 15 minutes (#1136).
+- Integration health no longer keeps showing `failing` for up to 30 days after the failing target, subscription or scrobbler connection was removed (#1069).
 - The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).
 - Library Sources "Sync now" and "Sync all" no longer hit a 504 behind a reverse proxy: the sync runs in the background, the request returns 202 at once, and the card shows running, then the final counts or error. A sync that is already running returns 409 (#1127).

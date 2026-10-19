@@ -1,6 +1,7 @@
 import { and, eq, lt, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { jobRuns } from '@/db/schema'
+import { classifyFailure } from './failure-scope'
 import type { CompleteJobParams, JobRecorder, StartJobParams } from './types'
 
 // drizzle error text embeds the full SQL and every bound param; never persist or show it.
@@ -68,6 +69,7 @@ export function createJobRecorder(db: Database): JobRecorder {
           ? `${safeError.slice(0, MAX_ERROR_LENGTH)}...`
           : safeError
       const now = new Date()
+      const failureScope = classifyFailure(safeError)
       await db
         .update(jobRuns)
         .set({
@@ -75,6 +77,9 @@ export function createJobRecorder(db: Database): JobRecorder {
           completedAt: now,
           durationMs: sql<number>`ROUND(EXTRACT(EPOCH FROM (NOW() - ${jobRuns.startedAt})) * 1000)::integer`,
           error: truncatedError,
+          ...(failureScope
+            ? { metadata: sql`${jobRuns.metadata} || ${JSON.stringify({ failureScope })}::jsonb` }
+            : {}),
         })
         .where(eq(jobRuns.id, jobId))
     },

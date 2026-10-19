@@ -903,6 +903,7 @@ export const zhCN = {
   'systemHealth.integrationsEmpty': '过去 30 天内没有记录到集成活动。',
   'systemHealth.lastSuccess': '最近成功',
   'systemHealth.lastError': '最近错误',
+  'systemHealth.itemFailures': '{0} 次单项失败 (不计为故障)',
   'systemHealth.integrationOk': '正常',
   'systemHealth.integrationFailing': '失败',
   'systemHealth.kind.target': '目标',
@@ -1800,6 +1801,10 @@ export const zhCN = {
   'settings.channels.saved': '通知已保存',
   'settings.channels.saveFailed': '保存通知失败',
   'settings.channels.secretKeepPlaceholder': '留空以保留已保存的值',
+  'settings.channels.secretSaved': '已保存',
+  'settings.channels.secretRemove': '移除',
+  'settings.channels.secretRemovePending': '保存时将被移除',
+  'settings.channels.secretUndo': '撤销',
   'settings.primaryGenres': '优先类型（可选）',
   'settings.secondaryGenres': '其他喜欢的类型（可选）',
   'settings.genrePriorityHelp':

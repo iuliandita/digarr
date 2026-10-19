@@ -15,6 +15,7 @@ import {
   targetAction,
 } from '@/core/targets/lidarr-retry'
 import { withApprovalLock, withApprovalLocks } from '@/core/targets/lidarr-retry-worker'
+import { targetDbId } from '@/core/targets/types'
 import { conciseErrMsg, errMsg } from '@/core/validation'
 import {
   ApprovalRequestCooldownError,
@@ -229,6 +230,7 @@ async function addArtistToTarget(
         userId,
         metadata: {
           targetType: target.type,
+          targetId: targetDbId(target.id),
           artistName: artist.name,
           mbid: artist.mbid,
           action: 'add',
@@ -395,6 +397,7 @@ async function approveAlbumToTargets(
           userId,
           metadata: {
             targetType: target.type,
+            targetId: targetDbId(target.id),
             artistName: album.artistName,
             mbid: album.artistMbid,
             releaseGroupMbid: album.releaseGroupMbid,

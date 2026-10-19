@@ -11,7 +11,7 @@ import {
   LIDARR_RETRY_WINDOW,
   targetAction,
 } from './lidarr-retry'
-import type { DestinationTarget, TargetResult } from './types'
+import { type DestinationTarget, type TargetResult, targetDbId } from './types'
 
 export type LidarrRetryDeps = {
   listWaiting: () => Promise<RecommendationWithArtist[]>
@@ -104,6 +104,7 @@ export async function retryWaitingApprovals(deps: LidarrRetryDeps): Promise<void
               userId: rec.userId ?? undefined,
               metadata: {
                 targetType: 'lidarr',
+                targetId: targetDbId(target.id),
                 artistName: rec.artist.name,
                 mbid: rec.artist.mbid,
                 recommendationId: rec.id,
@@ -163,6 +164,7 @@ export async function retryWaitingApprovals(deps: LidarrRetryDeps): Promise<void
                   userId: rec.userId ?? undefined,
                   metadata: {
                     targetType: 'slskd',
+                    targetId: targetDbId(followUp.id),
                     artistName: rec.artist.name,
                     mbid: rec.artist.mbid,
                     action: 'add',
