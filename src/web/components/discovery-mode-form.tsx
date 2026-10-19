@@ -444,7 +444,10 @@ export function DiscoveryModeForm({
     }
   }
 
-  const hasBothModes = mode.easyFields.length > 0 && mode.advancedFields.length > 0
+  const easyKeys = mode.easyFields.map((field) => field.key).join(',')
+  const hasBothModes =
+    mode.advancedFields.length > 0 &&
+    mode.advancedFields.map((field) => field.key).join(',') !== easyKeys
   const toggleNode = <SettingsModeToggle value={settingsMode} onChange={setSettingsMode} />
   const toggle = !hasBothModes ? null : toggleSlot === undefined ? (
     <div className="flex justify-end">{toggleNode}</div>

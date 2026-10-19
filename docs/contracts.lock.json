@@ -396,7 +396,7 @@
         "src/web/components/dashboard-customize.tsx": "adda1d8624fdcf04d34f4e8e3f3d5d785fdca1d767b1c9a802cbdfa3780515c2",
         "src/web/components/discover-tabs.tsx": "87e40802ee861172e82c747002f33b660de28a2eead2ff9ff0fa4e76fea24c19",
         "src/web/components/discover-toolbar.tsx": "f94ce0055d78b3a1f6feaba6e0e80b137d9c2b9d4322d4322befa69cd0954e7d",
-        "src/web/components/discovery-mode-form.tsx": "ae226cc20c3cb9afb95d68001e6475623e21e3861d13decda5ac58de418f1b0a",
+        "src/web/components/discovery-mode-form.tsx": "b95983f72eaad20ace5ef53fb41411f006c5640bfa5ca46ef3860c148b221fae",
         "src/web/components/discovery-modes-redirect.tsx": "dfc760ce1423ed980ddad2d5d257dbf22143c2d7256c778b2dd5912ef38305f8",
         "src/web/components/discovery-modes-section.tsx": "80153d85fecaec67a6ff9a866409b8066dc6f5fd454f0f35d04fd1b378bcdffc",
         "src/web/components/error-boundary.tsx": "1ae352ac2b2d67b2e8515714d5018ce93a02ca6001e2eab0900173fd4f9a9a92",
@@ -530,14 +530,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "a79348ab378277a681e3cfcdc22dc140bd37d1183b8f673f7eba60db103c5339",
+      "digest": "007205e22c6d869ef02a7fd24fd89878fc4765f0fceb4f892ac1e787b42c3226",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Easy/Advanced switch on discovery modes becomes a compact toggle in the mode panel header; guides and SCREENSHOTS.md only say Easy/Advanced form, which stays accurate. New discoveryMode.settingsView aria-label added to all 15 locales.",
+        "note": "Follow-up to the compact Easy/Advanced toggle: it now also shows for advanced-only modes (empty easy fields) and hides only when advanced fields are absent or identical to easy; no guide text changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "a79348ab378277a681e3cfcdc22dc140bd37d1183b8f673f7eba60db103c5339"
+        "digest": "007205e22c6d869ef02a7fd24fd89878fc4765f0fceb4f892ac1e787b42c3226"
       }
     },
     "features": {
