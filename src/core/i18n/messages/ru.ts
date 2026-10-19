@@ -1958,6 +1958,10 @@ export const ru = {
   'settings.channels.saved': 'Уведомления сохранены',
   'settings.channels.saveFailed': 'Не удалось сохранить уведомления',
   'settings.channels.secretKeepPlaceholder': 'Оставь пустым, чтобы сохранить сохранённое значение',
+  'settings.channels.secretSaved': 'Сохранено',
+  'settings.channels.secretRemove': 'Удалить',
+  'settings.channels.secretRemovePending': 'Будет удалено при сохранении',
+  'settings.channels.secretUndo': 'Отменить',
   'settings.primaryGenres': 'Приоритетные жанры (необязательно)',
   'settings.secondaryGenres': 'Другие любимые жанры (необязательно)',
   'settings.genrePriorityHelp':

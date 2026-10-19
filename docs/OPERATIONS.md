@@ -159,7 +159,7 @@ Admins can add webhook, ntfy, Telegram, and Apprise channels in Settings > Conne
 
 #### Webhook signing
 
-A webhook channel can have an optional signing secret (off by default; stored encrypted and masked like other channel secrets). When set, every request carries `X-Digarr-Timestamp` (unix seconds) and `X-Digarr-Signature: sha256=<hex>`, where the hex value is the HMAC-SHA256 of `<timestamp>.<raw request body>` keyed with the secret. Verify against the raw bytes before parsing, and reject old timestamps to limit replay.
+A webhook channel can have an optional signing secret (off by default; stored encrypted and masked like other channel secrets). When set, every request carries `X-Digarr-Timestamp` (unix seconds) and `X-Digarr-Signature: sha256=<hex>`, where the hex value is the HMAC-SHA256 of `<timestamp>.<raw request body>` keyed with the secret. Verify against the raw bytes before parsing, and reject old timestamps to limit replay. To turn signing off, open the channel, click Remove under the saved signing secret, and Save; no delete and recreate needed. The same Remove action clears a saved ntfy token.
 
 Test vector: secret `whsec_test`, timestamp `1700000000`, body `{"event":"digest","message":"hello"}` gives `sha256=69063f9268083f6b8a9f648b71756b35fb62251050afe40fec18f25dd4b5a737`.
 

@@ -1955,6 +1955,10 @@ export const nl = {
   'settings.channels.saved': 'Meldingen opgeslagen',
   'settings.channels.saveFailed': 'Meldingen konden niet worden opgeslagen',
   'settings.channels.secretKeepPlaceholder': 'Laat leeg om de opgeslagen waarde te behouden',
+  'settings.channels.secretSaved': 'Opgeslagen',
+  'settings.channels.secretRemove': 'Verwijderen',
+  'settings.channels.secretRemovePending': 'Wordt verwijderd bij het opslaan',
+  'settings.channels.secretUndo': 'Ongedaan maken',
   'settings.primaryGenres': 'Voorkeursgenres (optioneel)',
   'settings.secondaryGenres': 'Andere voorkeursgenres (optioneel)',
   'settings.genrePriorityHelp':

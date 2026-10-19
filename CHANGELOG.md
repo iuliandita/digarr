@@ -9,6 +9,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Added
 
 - Today's Pick on the dashboard can load the Spotify player automatically. It stays click-to-load by default; tick "Load automatically on the dashboard" under the load button to opt in, and use "Don't load automatically" under the player to turn it off. Other places that embed Spotify are unchanged (#1125).
+- Saved notification channel secrets that are optional (webhook signing secret, ntfy token) can be removed from the channel editor with a Remove action next to the "Saved" hint, instead of deleting and recreating the channel. Telegram bot tokens and Apprise URLs are required and can only be replaced (#1068).
 
 ### Changed
 

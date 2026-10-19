@@ -1286,7 +1286,7 @@ Notification channels:
   - `telegram` - `{ ..., botToken, chatId }` (plain-text messages)
   - `apprise` - `{ ..., endpoint, urls }` (`urls` newline-separated, fans out to 80+ services)
 - Channel secrets (`telegram.botToken`, `ntfy.token`, `webhook.signingSecret`, `apprise.urls`) are returned masked as `***`;
-  sending `***` back on `PATCH` preserves the stored value instead of overwriting it.
+  sending `***` back on `PATCH` preserves the stored value instead of overwriting it. Sending `""` for an optional secret (`ntfy.token`, `webhook.signingSecret`) clears it; `telegram.botToken` and `apprise.urls` are required, so `""` is rejected with a validation error.
   Webhook URLs are partially masked so their destination remains recognizable; submitting the unchanged masked URL preserves the saved value. Encryption at rest requires `DIGARR_ENCRYPTION_KEY`.
 - The `channels` array is stripped from `GET` responses for non-admins, and non-admin `PATCH` of it
   returns `403` (same rule as other global settings).

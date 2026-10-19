@@ -1955,6 +1955,10 @@ export const ro = {
   'settings.channels.saved': 'Notificări salvate',
   'settings.channels.saveFailed': 'Salvarea notificărilor a eșuat',
   'settings.channels.secretKeepPlaceholder': 'Lasă necompletat pentru a păstra valoarea salvată',
+  'settings.channels.secretSaved': 'Salvat',
+  'settings.channels.secretRemove': 'Elimină',
+  'settings.channels.secretRemovePending': 'Va fi eliminat la salvare',
+  'settings.channels.secretUndo': 'Anulează',
   'settings.primaryGenres': 'Genuri prioritare (opțional)',
   'settings.secondaryGenres': 'Alte genuri preferate (opțional)',
   'settings.genrePriorityHelp':

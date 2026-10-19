@@ -1800,6 +1800,10 @@ export const zhCN = {
   'settings.channels.saved': '通知已保存',
   'settings.channels.saveFailed': '保存通知失败',
   'settings.channels.secretKeepPlaceholder': '留空以保留已保存的值',
+  'settings.channels.secretSaved': '已保存',
+  'settings.channels.secretRemove': '移除',
+  'settings.channels.secretRemovePending': '保存时将被移除',
+  'settings.channels.secretUndo': '撤销',
   'settings.primaryGenres': '优先类型（可选）',
   'settings.secondaryGenres': '其他喜欢的类型（可选）',
   'settings.genrePriorityHelp':

@@ -1997,6 +1997,10 @@ export const en = {
   'settings.channels.saved': 'Notifications saved',
   'settings.channels.saveFailed': 'Failed to save notifications',
   'settings.channels.secretKeepPlaceholder': 'Leave blank to keep the saved value',
+  'settings.channels.secretSaved': 'Saved',
+  'settings.channels.secretRemove': 'Remove',
+  'settings.channels.secretRemovePending': 'Will be removed when you save',
+  'settings.channels.secretUndo': 'Undo',
   'settings.primaryGenres': 'Priority genres (optional)',
   'settings.secondaryGenres': 'Other preferred genres (optional)',
   'settings.genrePriorityHelp':

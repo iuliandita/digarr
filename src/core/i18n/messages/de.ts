@@ -1972,6 +1972,10 @@ export const de = {
   'settings.channels.saved': 'Benachrichtigungen gespeichert',
   'settings.channels.saveFailed': 'Benachrichtigungen konnten nicht gespeichert werden',
   'settings.channels.secretKeepPlaceholder': 'Leer lassen, um den gespeicherten Wert beizubehalten',
+  'settings.channels.secretSaved': 'Gespeichert',
+  'settings.channels.secretRemove': 'Entfernen',
+  'settings.channels.secretRemovePending': 'Wird beim Speichern entfernt',
+  'settings.channels.secretUndo': 'Rückgängig',
   'settings.primaryGenres': 'Bevorzugte Genres (optional)',
   'settings.secondaryGenres': 'Weitere bevorzugte Genres (optional)',
   'settings.genrePriorityHelp':
