@@ -984,3 +984,45 @@ describe('search pacing', () => {
     },
   )
 })
+
+it('shares one inventory per target per tick and refreshes on the next tick', async () => {
+  const first = slskdWith({ getDownloads: vi.fn(async () => downloadsFor(ONE_FILE)) })
+  const second = slskdWith({
+    getDownloads: vi.fn(async () => downloadsFor(ONE_FILE, 'Completed, Failed')),
+  })
+  const updateJobState = vi.fn(async (_id: number, _state: string, _patch: unknown) => makeJob())
+  const jobs = Array.from({ length: 50 }, (_, id) =>
+    makeJob({
+      id: id + 1,
+      state: 'downloading',
+      selectedResult: makeSelectedResult({ files: ONE_FILE }),
+    }),
+  )
+  jobs.push(
+    makeJob({
+      id: 51,
+      targetId: 72,
+      state: 'downloading',
+      selectedResult: makeSelectedResult({ files: ONE_FILE }),
+    }),
+  )
+  const createSlskdClient = vi
+    .fn()
+    .mockReturnValueOnce(first)
+    .mockReturnValueOnce(second)
+    .mockReturnValueOnce(first)
+    .mockReturnValueOnce(second)
+  const orchestrator = createSlskdOrchestrator({
+    listPendingJobs: vi.fn(async () => jobs),
+    createSlskdClient,
+    updateJobState,
+  } as never)
+  await orchestrator.triggerSync()
+  expect(first.getDownloads).toHaveBeenCalledOnce()
+  expect(second.getDownloads).toHaveBeenCalledOnce()
+  expect(updateJobState.mock.calls.filter((call) => call[1] === 'completed')).toHaveLength(50)
+  expect(updateJobState).toHaveBeenCalledWith(51, 'failed', expect.anything())
+  await orchestrator.triggerSync()
+  expect(first.getDownloads).toHaveBeenCalledTimes(2)
+  expect(second.getDownloads).toHaveBeenCalledTimes(2)
+})

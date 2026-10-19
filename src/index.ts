@@ -46,7 +46,7 @@ import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
-import type { StoreDb } from './core/pipeline/store'
+import { type StoreDb, saveRecommendationChunk } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
 import { withPlaylistLock } from './core/playlists/generation-lock'
@@ -367,6 +367,7 @@ const storeDb: StoreDb = {
     return { id: row.id }
   },
   insertRecommendation: (data) => insertRecommendation(db, data),
+  saveRecommendationChunk: (entries) => saveRecommendationChunk(db, entries),
   // Atomic pair: prevents orphaned artist rows when the followup insert fails
   upsertArtistAndRecommendation: async (artistData, recData) => {
     await db.transaction(async (tx) => {
@@ -388,7 +389,7 @@ const storeDb: StoreDb = {
   },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
-  getPopularityMap: () => getPopularityMap(db),
+  getPopularityMap: (names) => getPopularityMap(db, names),
   getLibraryArtistsForUser: async (userId, options) => {
     const conds = [or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId))]
     if (options?.onlyReconciled) conds.push(isNotNull(libraryArtists.mbid))
@@ -1566,11 +1567,14 @@ const server = serve({ fetch: app.fetch, port })
     // Library maintenance schedulers - background, idempotent. Boot fire is non-blocking.
     restartLibraryMaintenanceScheduler(librarySyncIntervalHours)
     // Fire one sync + health scan at boot so fresh installs don't wait for the first cron tick.
-    void librarySyncOrchestrator
-      .syncGlobal()
-      .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
-    libraryHealth.startScan()
-    void slskdOrchestrator.warmup()
+    // Delayed so the first page loads after a restart do not compete with these.
+    setTimeout(() => {
+      void librarySyncOrchestrator
+        .syncGlobal()
+        .catch((err) => console.error('[boot] initial library syncGlobal failed:', err))
+      libraryHealth.startScan()
+      void slskdOrchestrator.warmup()
+    }, 60_000).unref()
     slskdCron = new Cron('*/10 * * * *', async () => {
       if (isMaintenance()) {
         console.log('[slskd-scheduler] tick skipped: maintenance in progress')

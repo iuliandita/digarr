@@ -8,7 +8,10 @@ import type { UserConnections } from '@/db/queries/users'
 vi.mock('@/core/notifications', () => ({ dispatch: vi.fn().mockResolvedValue(undefined) }))
 vi.mock('@/core/pipeline/analyze', () => ({ analyze: vi.fn() }))
 vi.mock('@/core/pipeline/discover', () => ({ discover: vi.fn() }))
-vi.mock('@/core/pipeline/resolve', () => ({ resolve: vi.fn() }))
+vi.mock('@/core/pipeline/resolve', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('@/core/pipeline/resolve')>()),
+  resolve: vi.fn(),
+}))
 vi.mock('@/core/pipeline/score', () => ({ score: vi.fn() }))
 vi.mock('@/core/pipeline/filter', () => ({ filter: vi.fn() }))
 vi.mock('@/core/pipeline/store', () => ({ store: vi.fn() }))

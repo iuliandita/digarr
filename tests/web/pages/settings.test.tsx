@@ -1,15 +1,32 @@
 // @vitest-environment jsdom
 
-import { act, fireEvent, screen, waitFor, within } from '@testing-library/react'
+import { act, configure, fireEvent, screen, waitFor, within } from '@testing-library/react'
 import type { ReactElement, ReactNode } from 'react'
 import { MemoryRouter, useLocation } from 'react-router-dom'
 import { toast } from 'sonner'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { I18nProvider } from '@/web/lib/i18n'
 
 vi.mock('@/web/lib/locale-storage', async () =>
   (await import('../helpers/locale')).localeStorageMock(),
 )
+
+configure({ asyncUtilTimeout: 10_000 })
+
+// Settings tabs are lazy chunks; load them once so tests don't race the first dynamic import
+beforeAll(async () => {
+  await Promise.all([
+    import('@/web/components/admin/administration-tab'),
+    import('@/web/pages/user-management'),
+    import('@/web/pages/settings/account-tab'),
+    import('@/web/pages/settings/auth-tab'),
+    import('@/web/pages/settings/connections-tab'),
+    import('@/web/pages/settings/recommendations-tab'),
+    import('@/web/pages/settings/schedule-tab'),
+    import('@/web/pages/settings/system-tab'),
+    import('@/web/pages/settings/targets-tab'),
+  ])
+}, 120_000)
 
 async function expandService(name: string) {
   await screen.findByRole('button', { name: 'Add connection' })
@@ -416,9 +433,11 @@ describe('SettingsPage', () => {
     const select = screen.getByTestId('settings-section-select')
     expect(select).toHaveValue('connections')
     fireEvent.change(select, { target: { value: 'account' } })
-    expect(within(nav).getByRole('button', { name: 'Account' })).toHaveAttribute(
-      'aria-current',
-      'page',
+    await waitFor(() =>
+      expect(within(nav).getByRole('button', { name: 'Account' })).toHaveAttribute(
+        'aria-current',
+        'page',
+      ),
     )
   })
 
