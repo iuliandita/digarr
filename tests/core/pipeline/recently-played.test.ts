@@ -22,7 +22,11 @@ describe('loadRecentlyPlayed()', () => {
     const readPage = vi
       .fn()
       .mockResolvedValueOnce([listen(1, 'r1'), listen(5)])
-      .mockResolvedValueOnce([listen(10, 'r2'), listen(40, 'too-old')])
+      .mockResolvedValueOnce([
+        listen(10, 'r2'),
+        { ...listen(12, 'redirected-old'), mappedRecordingMbid: 'r3' },
+        listen(40, 'too-old'),
+      ])
 
     const history = await loadRecentlyPlayed({
       enabled: true,
@@ -35,8 +39,8 @@ describe('loadRecentlyPlayed()', () => {
     expect(readPage).toHaveBeenNthCalledWith(1, 2, {})
     expect(readPage).toHaveBeenNthCalledWith(2, 2, { maxTs: nowTs - 5 * DAY })
     expect(readPage).toHaveBeenCalledTimes(2)
-    expect(history).toMatchObject({ status: 'ok', listensRead: 3 })
-    expect([...history.recordingMbids]).toEqual(['r1', 'r2'])
+    expect(history).toMatchObject({ status: 'ok', listensRead: 4 })
+    expect([...history.recordingMbids]).toEqual(['r1', 'r2', 'redirected-old', 'r3'])
   })
 
   it('reports capped when the listen cap is hit inside the window', async () => {

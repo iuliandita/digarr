@@ -54,6 +54,7 @@ export async function loadRecentlyPlayed(options: {
         if (listen.listenedAt < cutoff || listensRead >= maxListens) continue
         listensRead++
         if (listen.recordingMbid) recordingMbids.add(listen.recordingMbid)
+        if (listen.mappedRecordingMbid) recordingMbids.add(listen.mappedRecordingMbid)
       }
       if (oldest < cutoff) return { status: 'ok', windowDays, listensRead, recordingMbids }
       maxTs = oldest

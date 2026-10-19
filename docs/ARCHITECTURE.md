@@ -218,8 +218,9 @@ When a user turns on `excludeRecentlyPlayed`, the filter stage reads that
 user's own ListenBrainz listens for the configured window (1-365 days, default
 30) and drops candidates whose `suggestedRecording.mbid` is in them. Listens are
 read newest first in pages of 1,000 with `max_ts`, stopping at the window start,
-an empty page, or 5,000 listens. Matching uses the listen's `recording_mbid`
-from `additional_info` or the server-side `mbid_mapping`.
+an empty page, or 5,000 listens. Matching uses both the submitted
+`additional_info.recording_mbid` and the server-side `mbid_mapping` one, since a
+scrobbler can submit a stale or redirected MBID that LB has since remapped.
 
 Only known plays are excluded. Candidates without a recording MBID are always
 kept, and so is everything when history is unavailable. The job's

@@ -563,7 +563,7 @@
         "src/core/clients/jellyfin.ts": "4d718b3ffa61c06001ad901fc7a4dfad294fe5198a1fc7a7c3e43786b19696ba",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
         "src/core/clients/lidarr.ts": "90a22d92a4bd32421a8c84f5effaf04e152c9c8ba34b62a27fb968f5092bdb73",
-        "src/core/clients/listenbrainz.ts": "11627aa995cb1dd4c4e854c8cd9a9a507fede1e6d8a0c6a9904e180d70979c10",
+        "src/core/clients/listenbrainz.ts": "9f6ff6f4435d74b920428e912a5a5dcd0d8c2416f20e94faaed94709b14de094",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
@@ -653,7 +653,7 @@
         "src/core/pipeline/genre-backfill.ts": "aa1dee05dfe3588e304070f80db1d31afc36cc851247f703732967b70e431230",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
         "src/core/pipeline/orchestrator.ts": "74a28553567efaeeea5c4f7ca8f35e5b327c2854c7a1689df39d800ab5d27a29",
-        "src/core/pipeline/recently-played.ts": "d3827ef96b30ced113abac16c4a8263296310b318518fd9db609065745823f6c",
+        "src/core/pipeline/recently-played.ts": "33f929141b31657945490f78417fc1d8067a77263c5c301bbc8790b31b2e5eca",
         "src/core/pipeline/resolve.ts": "02cbcb86b4375980a5cded31117ac77b41b45a995668abe901414fa97407cd8b",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
         "src/core/pipeline/store.ts": "5a83859bfe3ebd8b8128aecab11f167aaef885457d6ec82bb0f5301f5b45d535",
@@ -763,14 +763,14 @@
         "src/index.ts": "96e86b1665ddddc967789b30bd2ee034a80cea14cb0e0108e0329ba782253cca",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "66a7d99ef4844c4812a2c126df929271503fe91542c961645a80b7f65037e2ec",
+      "digest": "030a75a15a2d48723c59bf37726ceb3c59dc3c3ce9762df726962c69ddc5deb3",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md"],
-        "note": "Filter stage optionally drops recording-backed candidates the user played inside the window, using bounded ListenBrainz listens reads with max_ts paging and mbid_mapping recording ids; unknown recordings and unreadable history are never excluded.",
+        "docs": ["docs/ARCHITECTURE.md"],
+        "note": "Recently played matching now adds both the submitted additional_info recording MBID and the ListenBrainz mbid_mapping recording MBID to the played set, so a stale or redirected submitted MBID no longer hides a play; ARCHITECTURE filter section updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "66a7d99ef4844c4812a2c126df929271503fe91542c961645a80b7f65037e2ec"
+        "digest": "030a75a15a2d48723c59bf37726ceb3c59dc3c3ce9762df726962c69ddc5deb3"
       }
     },
     "deployment": {

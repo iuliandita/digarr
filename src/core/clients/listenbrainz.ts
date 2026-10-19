@@ -32,6 +32,8 @@ export type RecentListen = {
   listenedAt: number
   artistMbid?: string
   recordingMbid?: string
+  /** LB's own mapping; can differ from a stale or redirected MBID the scrobbler submitted. */
+  mappedRecordingMbid?: string
   releaseName?: string
 }
 
@@ -226,6 +228,7 @@ export function createListenBrainzClient(username: string, token: string) {
         listenedAt: l.listened_at,
         artistMbid: info?.artist_mbids?.[0] ?? mapping?.artist_mbids?.[0],
         recordingMbid: info?.recording_mbid ?? mapping?.recording_mbid,
+        mappedRecordingMbid: mapping?.recording_mbid,
         releaseName: l.track_metadata.release_name,
       }
     })
