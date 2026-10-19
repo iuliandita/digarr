@@ -885,6 +885,8 @@ export const uk = {
   'pipeline.stop': 'Зупинити сканування',
   'pipeline.stopping': 'Зупинка...',
   'pipeline.cancelled': 'Сканування зупинено',
+  'pipeline.interrupted':
+    'Сканування зупинилося - сервер перезапустився. Запусти його знову, щоб завершити.',
   'libraryHealth.artistSingular': 'виконавець',
   'libraryHealth.artistPlural': 'виконавці',
   'libraryHealth.triggeredActionFor': 'Запущена дія для',

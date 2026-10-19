@@ -879,6 +879,8 @@ export const ja = {
   'pipeline.stop': 'スキャンを停止',
   'pipeline.stopping': '停止中...',
   'pipeline.cancelled': 'スキャンを停止しました',
+  'pipeline.interrupted':
+    'スキャンが停止しました - サーバーが再起動されました。もう一度実行して完了させてください。',
   'libraryHealth.artistSingular': 'アーティスト',
   'libraryHealth.artistPlural': 'アーティスト',
   'libraryHealth.triggeredActionFor': 'トリガーされたアクション',

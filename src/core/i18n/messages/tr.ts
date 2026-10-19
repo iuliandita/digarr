@@ -878,6 +878,7 @@ export const tr = {
   'pipeline.stop': 'Taramayı durdur',
   'pipeline.stopping': 'Durduruluyor...',
   'pipeline.cancelled': 'Tarama durduruldu',
+  'pipeline.interrupted': 'Tarama durdu - sunucu yeniden başladı. Bitirmek için tekrar çalıştır.',
   'libraryHealth.artistSingular': 'sanatçı',
   'libraryHealth.artistPlural': 'sanatçılar',
   'libraryHealth.triggeredActionFor': 'Şunun için tetiklenen eylem:',

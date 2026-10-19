@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
-import { createJobRecorder } from '@/core/jobs/recorder'
+import { createJobRecorder, INTERRUPTED_JOB_ERROR, markInterruptedJobs } from '@/core/jobs/recorder'
 
 // Build a mock db that covers insert().values().returning() and update().set().where() / .returning()
 function makeDb(opts: { insertedId?: number; updatedRows?: number } = {}) {
@@ -194,6 +194,23 @@ describe('createJobRecorder', () => {
       expect(setArg).toEqual(expect.objectContaining({ status: 'cancelled' }))
       expect(setArg.completedAt).toBeInstanceOf(Date)
       expect(db._mocks.updateWhere).toHaveBeenCalledOnce()
+    })
+  })
+
+  describe('markInterruptedJobs()', () => {
+    it('fails running jobs and batches from before boot with the restart message', async () => {
+      const db = makeDb({ updatedRows: 3 })
+      const bootedAt = new Date('2026-10-19T10:00:00Z')
+
+      const count = await markInterruptedJobs(db as never, bootedAt)
+
+      expect(count).toBe(3)
+      expect(db._mocks.update).toHaveBeenCalledTimes(2)
+      expect(db._mocks.updateSet).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining({ status: 'failed', error: INTERRUPTED_JOB_ERROR }),
+      )
+      expect(db._mocks.updateSet).toHaveBeenNthCalledWith(2, { status: 'failed' })
     })
   })
 

@@ -894,6 +894,8 @@ export const it = {
   'pipeline.stop': 'Ferma scansione',
   'pipeline.stopping': 'Arresto...',
   'pipeline.cancelled': 'Scansione interrotta',
+  'pipeline.interrupted':
+    'La scansione si è interrotta - il server è stato riavviato. Riavviala per completarla.',
   'libraryHealth.artistSingular': 'artista',
   'libraryHealth.artistPlural': 'artisti',
   'libraryHealth.triggeredActionFor': 'Azione innescata per',

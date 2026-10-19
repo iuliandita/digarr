@@ -19,6 +19,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- A scan killed by a server restart no longer keeps showing as running on the dashboard: once the server reports no scan is running, the progress card switches to "The scan stopped - the server restarted. Run it again to finish." On startup, jobs and batches left `running` by the previous process are marked `failed` ("Interrupted by a server restart") right away instead of waiting for the stuck detector (#1141).
 - Integration health no longer keeps showing `failing` for up to 30 days after the failing target, subscription or scrobbler connection was removed (#1069).
 - The TheAudioDB image proxy also covers images hosted on `r2.theaudiodb.com`, which were loaded straight from the browser even with proxying on (#1131).
 - fanart.tv and TheAudioDB artist images and logos are stored and served over https, so browsers no longer log mixed-content warnings. Migration 0061 upgrades the existing `http://` URLs for those hosts; other hosts are unchanged (#1128).

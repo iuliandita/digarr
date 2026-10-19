@@ -54,6 +54,10 @@ function formatElapsed(seconds: number): string {
 }
 
 const STALL_THRESHOLD_MS = 30_000
+const STATUS_POLL_MS = 10_000
+const TERMINAL_STAGES = ['complete', 'cancelled']
+// Two polls in a row, so a status that flips a beat before the 'complete' event lands is ignored.
+const NOT_RUNNING_POLLS_TO_END = 2
 
 export function PipelineProgress({
   onComplete,
@@ -63,11 +67,15 @@ export function PipelineProgress({
   isFirstScan?: boolean
 }) {
   const { t } = useI18n()
-  const { data: status } = useQuery({
+  const { data: sseData } = useSSE('/api/v1/pipeline/events')
+  const progress = sseData as SSEProgress | null
+  // A killed server never sends a terminal event, so keep checking the status while a stage shows.
+  const showingLiveStage = progress != null && !TERMINAL_STAGES.includes(progress.stage)
+  const { data: status, dataUpdatedAt } = useQuery({
     queryKey: ['pipelineStatus'],
     queryFn: getPipelineStatus,
+    refetchInterval: showingLiveStage ? STATUS_POLL_MS : false,
   })
-  const { data: sseData } = useSSE('/api/v1/pipeline/events')
   const completeFired = useRef(false)
 
   // Elapsed timer
@@ -81,12 +89,16 @@ export function PipelineProgress({
 
   const [cancelling, setCancelling] = useState(false)
 
-  const progress = sseData as SSEProgress | null
+  const [interruptedEvent, setInterruptedEvent] = useState<SSEProgress | null>(null)
+  const notRunningPolls = useRef(0)
+  const lastPollRef = useRef(0)
+
   const isRunning = status?.running ?? false
 
   const stage = progress?.stage ?? (status?.running ? (status.stage ?? 'collect') : null)
   const cancelled = stage === 'cancelled'
-  const isTerminal = stage === 'complete' || cancelled
+  const interrupted = progress != null && interruptedEvent === progress
+  const isTerminal = stage === 'complete' || cancelled || interrupted
   const stageIdx = stage ? stageIndex(stage) : 0
   const pct = stage ? Math.round(((stageIdx + 1) / STAGES.length) * 100) : 0
   const label = stage ? (STAGE_LABELS[stage] ? t(STAGE_LABELS[stage]) : stage) : ''
@@ -95,6 +107,21 @@ export function PipelineProgress({
 
   const current = progress?.current
   const total = progress?.total
+
+  // The last SSE event is non-terminal but the server has stopped running: it died mid-scan.
+  useEffect(() => {
+    if (dataUpdatedAt === lastPollRef.current) return
+    lastPollRef.current = dataUpdatedAt
+    const idle =
+      status != null && !status.running && !(status.queuePosition && status.queuePosition > 0)
+    if (!progress || TERMINAL_STAGES.includes(progress.stage) || !idle) {
+      notRunningPolls.current = 0
+      if (status?.running) setInterruptedEvent(null)
+      return
+    }
+    notRunningPolls.current += 1
+    if (notRunningPolls.current >= NOT_RUNNING_POLLS_TO_END) setInterruptedEvent(progress)
+  }, [dataUpdatedAt, status, progress])
 
   // Start timer on first SSE event
   useEffect(() => {
@@ -120,16 +147,21 @@ export function PipelineProgress({
     return () => clearInterval(interval)
   }, [stage, isTerminal])
 
-  // Clean up timer on terminal (complete/cancelled) or unmount
+  // Clean up timer on terminal (complete/cancelled/interrupted) or unmount
   useEffect(() => {
     if (isTerminal && timerRef.current) {
       clearInterval(timerRef.current)
       timerRef.current = null
     }
+    if (interrupted) {
+      // let the next run's first event restart the timer
+      startedRef.current = false
+      setElapsed(0)
+    }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current)
     }
-  }, [isTerminal])
+  }, [isTerminal, interrupted])
 
   // Reset timer state when pipeline stops
   useEffect(() => {
@@ -142,7 +174,7 @@ export function PipelineProgress({
 
   // Fire onComplete exactly once when the pipeline finishes or is stopped
   useEffect(() => {
-    if (isTerminal && onComplete && !completeFired.current) {
+    if (isTerminal && !interrupted && onComplete && !completeFired.current) {
       completeFired.current = true
       setCancelling(false)
       setTimeout(onComplete, 500)
@@ -150,7 +182,7 @@ export function PipelineProgress({
     if (stage && !isTerminal) {
       completeFired.current = false
     }
-  }, [stage, isTerminal, onComplete])
+  }, [stage, isTerminal, interrupted, onComplete])
 
   async function handleStop() {
     setCancelling(true)
@@ -165,6 +197,16 @@ export function PipelineProgress({
   }
 
   if (!isRunning && !progress) return null
+
+  if (interrupted) {
+    return (
+      <div className="bg-surface border border-border rounded-lg p-4">
+        <p role="status" className="text-sm text-text">
+          {t('pipeline.interrupted')}
+        </p>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-surface border border-border rounded-lg p-4 space-y-3">

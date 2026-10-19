@@ -907,6 +907,7 @@
   "pipeline.description.store": "7c35d51a3514",
   "pipeline.firstScanComplete": "97c7c93bbb61",
   "pipeline.firstScanDescription": "f4aa776fb854",
+  "pipeline.interrupted": "4c4e5bf1488f",
   "pipeline.message.aiSourceFailed": "0b6ec5a143c2",
   "pipeline.message.autoApproving": "4f59d1ac985b",
   "pipeline.message.buildingProfile": "1a86dd58fd8a",

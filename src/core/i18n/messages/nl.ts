@@ -892,6 +892,8 @@ export const nl = {
   'pipeline.stop': 'Scan stoppen',
   'pipeline.stopping': 'Stoppen...',
   'pipeline.cancelled': 'Scan gestopt',
+  'pipeline.interrupted':
+    'De scan is gestopt - de server is herstart. Start hem opnieuw om hem af te maken.',
   'libraryHealth.artistSingular': 'kunstenaar',
   'libraryHealth.artistPlural': 'artiesten',
   'libraryHealth.triggeredActionFor': 'Geactiveerde actie voor',

@@ -891,6 +891,8 @@ export const ru = {
   'pipeline.stop': 'Остановить сканирование',
   'pipeline.stopping': 'Остановка...',
   'pipeline.cancelled': 'Сканирование остановлено',
+  'pipeline.interrupted':
+    'Сканирование остановилось - сервер перезапустился. Запусти его снова, чтобы завершить.',
   'libraryHealth.artistSingular': 'исполнитель',
   'libraryHealth.artistPlural': 'исполнители',
   'libraryHealth.triggeredActionFor': 'Активированное действие для',

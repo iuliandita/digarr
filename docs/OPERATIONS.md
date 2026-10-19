@@ -59,6 +59,8 @@ Admins can inspect Job History for failures and partial results; the Failures on
 
 This label does not stop the job or prove that it has stopped making progress. A slow, healthy run can cross the limit; check its progress before retrying.
 
+On startup, before that check, every job still `running` from before the boot is marked `failed` with the error `Interrupted by a server restart`, and any batch still `running` is marked `failed`, because all jobs run inside the app process and a restart ends them. This assumes a single app replica (see [Architecture](ARCHITECTURE.md)). The dashboard shows a scan whose process died as stopped instead of running.
+
 ## Connections and artist images
 
 Settings > Connections lists saved server integrations and Your connections, including incomplete saved credentials. Use Add connection to search the grouped picker, select a service, and open its existing setup form. Save moves it into the list; Disconnect returns it to the picker. Missing server services appear in an extra admin group. Server rows are read-only for non-admins; their own connection forms remain editable.

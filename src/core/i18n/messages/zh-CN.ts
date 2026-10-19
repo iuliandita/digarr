@@ -826,6 +826,7 @@ export const zhCN = {
   'pipeline.stop': '停止扫描',
   'pipeline.stopping': '正在停止...',
   'pipeline.cancelled': '扫描已停止',
+  'pipeline.interrupted': '扫描已停止 - 服务器已重启。请重新运行以完成扫描。',
   'libraryHealth.artistSingular': '艺术家',
   'libraryHealth.artistPlural': '艺术家',
   'libraryHealth.triggeredActionFor': '触发动作',

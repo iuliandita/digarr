@@ -893,6 +893,8 @@ export const fr = {
   'pipeline.stop': 'Arrêter le scan',
   'pipeline.stopping': 'Arrêt...',
   'pipeline.cancelled': 'Scan arrêté',
+  'pipeline.interrupted':
+    'Le scan s’est arrêté - le serveur a redémarré. Relance-le pour le terminer.',
   'libraryHealth.artistSingular': 'artiste',
   'libraryHealth.artistPlural': 'artistes',
   'libraryHealth.triggeredActionFor': 'Action lancée pour',

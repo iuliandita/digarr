@@ -1,6 +1,6 @@
 import { and, eq, lt, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
-import { jobRuns } from '@/db/schema'
+import { jobRuns, recommendationBatches } from '@/db/schema'
 import { classifyFailure } from './failure-scope'
 import type { CompleteJobParams, JobRecorder, StartJobParams } from './types'
 
@@ -18,6 +18,34 @@ const STUCK_THRESHOLDS_MS: Record<string, number> = {
   target: 2 * 60 * 1000,
   playlist: 2 * 60 * 1000,
   library_sync: 90 * 60 * 1000,
+}
+
+export const INTERRUPTED_JOB_ERROR = 'Interrupted by a server restart'
+
+// Every job type runs in-process, so a row still 'running' from before this boot belongs to a
+// dead process. Assumes one app replica (documented); a second live replica's jobs would be hit.
+// The startedAt cutoff keeps work that started after boot safe from this late-landing update.
+export async function markInterruptedJobs(db: Database, bootedAt = new Date()): Promise<number> {
+  const jobs = await db
+    .update(jobRuns)
+    .set({
+      status: 'failed',
+      completedAt: bootedAt,
+      durationMs: sql<number>`ROUND(EXTRACT(EPOCH FROM (${bootedAt.toISOString()}::timestamptz - ${jobRuns.startedAt})) * 1000)::integer`,
+      error: INTERRUPTED_JOB_ERROR,
+    })
+    .where(and(eq(jobRuns.status, 'running'), lt(jobRuns.startedAt, bootedAt)))
+    .returning({ id: jobRuns.id })
+  await db
+    .update(recommendationBatches)
+    .set({ status: 'failed' })
+    .where(
+      and(
+        eq(recommendationBatches.status, 'running'),
+        lt(recommendationBatches.createdAt, bootedAt),
+      ),
+    )
+  return jobs.length
 }
 
 export function createJobRecorder(db: Database): JobRecorder {

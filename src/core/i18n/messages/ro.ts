@@ -891,6 +891,8 @@ export const ro = {
   'pipeline.stop': 'Oprește scanarea',
   'pipeline.stopping': 'Se oprește...',
   'pipeline.cancelled': 'Scanare oprită',
+  'pipeline.interrupted':
+    'Scanarea s-a oprit - serverul a repornit. Rulează-o din nou ca s-o termini.',
   'libraryHealth.artistSingular': 'artist muzical',
   'libraryHealth.artistPlural': 'artiștilor',
   'libraryHealth.triggeredActionFor': 'Acțiune declanșată pentru',

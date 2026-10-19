@@ -873,6 +873,7 @@ export const en = {
   'pipeline.stop': 'Stop scan',
   'pipeline.stopping': 'Stopping...',
   'pipeline.cancelled': 'Scan stopped',
+  'pipeline.interrupted': 'The scan stopped - the server restarted. Run it again to finish.',
   'libraryHealth.artistSingular': 'artist',
   'libraryHealth.artistPlural': 'artists',
   'libraryHealth.triggeredActionFor': 'Triggered action for',

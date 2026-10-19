@@ -871,6 +871,8 @@ export const ko = {
   'pipeline.stop': '스캔 중지',
   'pipeline.stopping': '중지 중...',
   'pipeline.cancelled': '스캔이 중지됨',
+  'pipeline.interrupted':
+    '스캔이 중지되었습니다 - 서버가 다시 시작되었습니다. 다시 실행하여 완료해 주세요.',
   'libraryHealth.artistSingular': '아티스트',
   'libraryHealth.artistPlural': '아티스트',
   'libraryHealth.triggeredActionFor': '다음에 대해 트리거된 작업',

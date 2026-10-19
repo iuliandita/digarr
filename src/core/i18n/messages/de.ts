@@ -900,6 +900,8 @@ export const de = {
   'pipeline.stop': 'Scan stoppen',
   'pipeline.stopping': 'Wird gestoppt...',
   'pipeline.cancelled': 'Scan gestoppt',
+  'pipeline.interrupted':
+    'Der Scan wurde gestoppt - der Server wurde neu gestartet. Starte ihn erneut, um ihn abzuschließen.',
   'libraryHealth.artistSingular': 'Künstler',
   'libraryHealth.artistPlural': 'Künstler',
   'libraryHealth.triggeredActionFor': 'Ausgelöste Aktion für',

@@ -22,7 +22,7 @@ import { GenreService } from './core/genre/service'
 import { resolveSupportedLocale } from './core/i18n/locales'
 import { startDigestNotifier } from './core/jobs/digest-notifier'
 import { recordFailureSafely } from './core/jobs/record-failure-safely'
-import { createJobRecorder } from './core/jobs/recorder'
+import { createJobRecorder, markInterruptedJobs } from './core/jobs/recorder'
 import { startStuckDetector } from './core/jobs/stuck-detector'
 import { createAlbumCoverageService } from './core/library/album-coverage'
 import { LibraryHealthService } from './core/library/health'
@@ -420,6 +420,12 @@ const scrobblerWriteBack = createScrobblerWriteBack({
   lastfmSharedSecret: () => envConfig.lastfmSharedSecret,
   encryptionEnabled: isEncryptionEnabled,
 })
+// Close out jobs and batches a previous process left 'running' so they do not wait for the stuck detector
+markInterruptedJobs(db)
+  .then((n) => {
+    if (n > 0) console.warn(`[startup] Marked ${n} job(s) interrupted by a restart as failed`)
+  })
+  .catch((err) => console.error('[startup] Interrupted-job cleanup failed:', err))
 // Mark stuck jobs at startup
 jobRecorder.markStuck().catch((err) => console.error('[startup] Stuck detection failed:', err))
 // Reset any library_sync_state rows left in 'running' from a previous crash/restart.

@@ -896,6 +896,8 @@ export const es = {
   'pipeline.stop': 'Detener escaneo',
   'pipeline.stopping': 'Deteniendo...',
   'pipeline.cancelled': 'Escaneo detenido',
+  'pipeline.interrupted':
+    'El escaneo se detuvo - el servidor se reinició. Ejecútalo de nuevo para terminarlo.',
   'libraryHealth.artistSingular': 'artista',
   'libraryHealth.artistPlural': 'artistas',
   'libraryHealth.triggeredActionFor': 'Acción desencadenada por',

@@ -891,6 +891,8 @@ export const pl = {
   'pipeline.stop': 'Zatrzymaj skanowanie',
   'pipeline.stopping': 'Zatrzymywanie...',
   'pipeline.cancelled': 'Skanowanie zatrzymane',
+  'pipeline.interrupted':
+    'Skanowanie zatrzymało się - serwer został zrestartowany. Uruchom je ponownie, żeby je dokończyć.',
   'libraryHealth.artistSingular': 'artysta',
   'libraryHealth.artistPlural': 'artyści',
   'libraryHealth.triggeredActionFor': 'Wyzwolona akcja dla',

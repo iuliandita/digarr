@@ -894,6 +894,8 @@ export const ptBR = {
   'pipeline.stop': 'Parar varredura',
   'pipeline.stopping': 'Parando...',
   'pipeline.cancelled': 'Varredura interrompida',
+  'pipeline.interrupted':
+    'A varredura parou - o servidor reiniciou. Execute de novo para concluir.',
   'libraryHealth.artistSingular': 'artista',
   'libraryHealth.artistPlural': 'artistas',
   'libraryHealth.triggeredActionFor': 'Ação desencadeada para',
