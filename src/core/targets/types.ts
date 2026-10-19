@@ -1,4 +1,5 @@
 import type { ServiceTestResult } from '@/core/types'
+import type { ReleaseGroupTypes } from './lidarr-metadata-profile'
 
 export type TargetCapability = 'addArtist' | 'addAlbum' | 'createPlaylist'
 
@@ -85,6 +86,11 @@ export interface DestinationTarget {
     album: { artistMbid: string; artistName: string; releaseGroupMbid: string },
     options?: TargetAddOptions,
   ): Promise<TargetResult>
+
+  /** Release-group MBIDs this target would never list, so `addAlbum` could not add them. */
+  unaddableAlbums?(
+    albums: Array<{ artistMbid: string; releaseGroupMbid: string; types: ReleaseGroupTypes }>,
+  ): Promise<Set<string>>
 
   openPlaylistExportSession?(items: PlaylistItem[]): Promise<PlaylistExportSession>
 

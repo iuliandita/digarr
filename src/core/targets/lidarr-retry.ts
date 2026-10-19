@@ -10,7 +10,7 @@ export function isTemporaryLidarrFailure(error: string): boolean {
   if (status && Number(status) >= 500 && Number(status) < 600) return true
   if (status && Number(status) >= 400 && Number(status) < 500) return false
   if (
-    /already exists|validation|(?:quality|metadata) profile .*not found|root folder .*not found|invalid (?:quality|metadata|root)|unauthorized|forbidden/i.test(
+    /already exists|validation|(?:quality|metadata) profile .*not found|allowed by the Lidarr metadata profile|root folder .*not found|invalid (?:quality|metadata|root)|unauthorized|forbidden/i.test(
       error,
     )
   )

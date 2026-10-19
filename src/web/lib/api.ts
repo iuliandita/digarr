@@ -357,6 +357,14 @@ export const getRecommendations = (params?: Record<string, string>) => {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
   return fetchApi<{ items: unknown[]; total: number }>(`/recommendations${qs}`)
 }
+export type RecommendationTabCounts = {
+  all: number
+  pending: number
+  approved: number
+  rejected: number
+}
+export const getRecommendationCounts = () =>
+  fetchApi<RecommendationTabCounts>('/recommendations/counts')
 export type ApprovalTargetSummary = {
   total: number
   succeeded: number
@@ -699,18 +707,10 @@ export type LibraryArtistIdentity = { source: string; sourceArtistId: string }
 export type LibraryAlbumIdentity = { source: string; sourceAlbumId: string }
 export type LibraryUnreconciledRow = {
   id: number
-  userId: number | null
   source: string
   sourceArtistId: string
   name: string
-  nameNormalized: string
-  mbid: string | null
-  matchMethod: string | null
-  matchConfidence: number | null
   unreconciledReason: LibraryUnreconciledReason | null
-  genres: string[] | null
-  syncedAt: string
-  lastGapCheckAt: string | null
 }
 export type LibrarySourceSyncResult =
   | { source: string; status: 'completed'; counts: LibrarySyncCounts }
@@ -743,20 +743,12 @@ export type LibraryAlbumCoverage = {
 }
 export type LibraryUnreconciledAlbumRow = {
   id: number
-  userId: number | null
   source: string
-  sourceArtistId: string
   sourceAlbumId: string
   title: string
-  titleNormalized: string
-  albumMbid: string | null
-  artistMbid: string | null
   primaryType: string | null
   releaseYear: number | null
-  matchMethod: string | null
-  matchConfidence: number | null
   unreconciledReason: LibraryUnreconciledReason | null
-  syncedAt: string
 }
 export type LibraryAlbumOverrideInput = {
   source: string
@@ -773,12 +765,16 @@ export const triggerLibrarySync = (source?: string) =>
     method: 'POST',
     body: JSON.stringify(source ? { source } : {}),
   })
-export const getLibraryUnreconciled = () =>
-  fetchApi<{ items: LibraryUnreconciledRow[] }>('/library/unreconciled')
+export const getLibraryUnreconciled = (limit = 20, offset = 0) =>
+  fetchApi<{ items: LibraryUnreconciledRow[]; total: number }>(
+    `/library/unreconciled?limit=${limit}&offset=${offset}`,
+  )
 export const getLibraryAlbumCoverage = (artistMbid: string) =>
   fetchApi<LibraryAlbumCoverage>(`/library/album-coverage/${encodeURIComponent(artistMbid)}`)
-export const getLibraryUnreconciledAlbums = () =>
-  fetchApi<{ items: LibraryUnreconciledAlbumRow[] }>('/library/unreconciled-albums')
+export const getLibraryUnreconciledAlbums = (limit = 20, offset = 0) =>
+  fetchApi<{ items: LibraryUnreconciledAlbumRow[]; total: number }>(
+    `/library/unreconciled-albums?limit=${limit}&offset=${offset}`,
+  )
 export const bulkIgnoreLibraryArtists = (items: LibraryArtistIdentity[]) =>
   fetchApi<void>('/library/overrides/bulk-ignore', {
     method: 'POST',
@@ -1423,6 +1419,8 @@ export type JobRun = {
   batchId: number | null
 }
 
+export type JobSummary = JobRun
+
 export type JobHealth = {
   pipeline: { status: string; lastRun: string | null; nextRun: string | null }
   subscriptions: { status: string; healthy: number; total: number }
@@ -1454,7 +1452,7 @@ export const listJobs = (params?: {
   if (params?.limit !== undefined) sp.set('limit', String(params.limit))
   if (params?.offset !== undefined) sp.set('offset', String(params.offset))
   const qs = sp.toString()
-  return fetchApi<{ items: JobRun[]; total: number }>(`/jobs${qs ? `?${qs}` : ''}`)
+  return fetchApi<{ items: JobSummary[]; total: number }>(`/jobs${qs ? `?${qs}` : ''}`)
 }
 
 export const getJob = (id: number) => fetchApi<JobRun>(`/jobs/${id}`)

@@ -1,17 +1,19 @@
 import {
+  closeSync,
   existsSync,
   mkdirSync,
+  openSync,
   readdirSync,
   readFileSync,
   renameSync,
   rmSync,
   statSync,
   unlinkSync,
-  writeFileSync,
+  writeSync,
 } from 'node:fs'
 import { basename, join } from 'node:path'
 import { sql } from 'drizzle-orm'
-import { createBackupSnapshot } from './backup'
+import { writeBackupSnapshot } from './backup'
 import type { MigrationStatus, OpsDb, PreFlightResult } from './types'
 
 interface JournalEntry {
@@ -145,10 +147,6 @@ export async function autoBackup(
   const dir = getBackupDir()
   mkdirSync(dir, { recursive: true, mode: 0o700 })
 
-  const backup = await createBackupSnapshot(db, {
-    includeCaches: true,
-    tolerateMissingSchema: true,
-  })
   const ts = new Date().toISOString().replace(/[:.]/g, '').slice(0, 17)
   const from = fromVersion ?? 'fresh'
   const to = toVersion ?? 'unknown'
@@ -157,8 +155,23 @@ export async function autoBackup(
 
   // Write under a name the listing ignores, so a failed write never counts as the latest backup.
   const tmpPath = join(dir, `.${filename}.tmp`)
+  let absentSchema: Awaited<ReturnType<typeof writeBackupSnapshot>>['absentSchema']
   try {
-    writeFileSync(tmpPath, JSON.stringify(backup, null, 2), { encoding: 'utf-8', mode: 0o600 })
+    const fd = openSync(tmpPath, 'w', 0o600)
+    try {
+      ;({ absentSchema } = await writeBackupSnapshot(
+        db,
+        (chunk) => {
+          const bytes = Buffer.from(chunk, 'utf-8')
+          for (let offset = 0; offset < bytes.length; ) {
+            offset += writeSync(fd, bytes, offset)
+          }
+        },
+        { includeCaches: true, tolerateMissingSchema: true },
+      ))
+    } finally {
+      closeSync(fd)
+    }
     renameSync(tmpPath, filepath)
   } catch (error) {
     rmSync(tmpPath, { force: true })
@@ -166,8 +179,8 @@ export async function autoBackup(
   }
   pruneOldBackups(dir)
 
-  if (backup.absentSchema) {
-    const { tables, columns } = backup.absentSchema
+  if (absentSchema) {
+    const { tables, columns } = absentSchema
     const missing = [
       ...tables,
       ...Object.entries(columns).map(([t, cols]) => `${t}(${cols.join(', ')})`),

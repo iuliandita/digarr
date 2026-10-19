@@ -18,36 +18,20 @@ vi.mock('@/web/lib/api', () => ({
 
 const artistRow: LibraryUnreconciledRow = {
   id: 1,
-  userId: 1,
   source: 'plex',
   sourceArtistId: 'artist-1',
   name: 'Artist Name',
-  nameNormalized: 'artist name',
-  mbid: null,
-  matchMethod: null,
-  matchConfidence: null,
   unreconciledReason: 'ambiguous',
-  genres: ['rock'],
-  syncedAt: '2026-04-07T12:00:00.000Z',
-  lastGapCheckAt: null,
 }
 
 const albumRow: LibraryUnreconciledAlbumRow = {
   id: 2,
-  userId: 1,
   source: 'plex',
-  sourceArtistId: 'artist-1',
   sourceAlbumId: 'album-1',
   title: 'Album Title',
-  titleNormalized: 'album title',
-  albumMbid: null,
-  artistMbid: null,
   primaryType: 'Album',
   releaseYear: 2001,
-  matchMethod: null,
-  matchConfidence: null,
   unreconciledReason: 'ambiguous',
-  syncedAt: '2026-04-07T12:00:00.000Z',
 }
 
 function renderArtist(
@@ -137,7 +121,6 @@ describe('library unreconciled rows', () => {
       row: {
         ...artistRow,
         name: 'Cash $& $$',
-        nameNormalized: 'cash $& $$',
       },
     })
 

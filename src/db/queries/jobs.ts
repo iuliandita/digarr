@@ -12,10 +12,12 @@ export type ListJobsFilters = {
   offset?: number
 }
 
+export type JobListRow = JobRunRow
+
 export async function listJobs(
   db: Database,
   filters: ListJobsFilters = {},
-): Promise<{ items: JobRunRow[]; total: number }> {
+): Promise<{ items: JobListRow[]; total: number }> {
   const limit = Math.min(filters.limit ?? 50, 100)
   const offset = filters.offset ?? 0
 
@@ -27,17 +29,36 @@ export async function listJobs(
 
   const [items, totalRows] = await Promise.all([
     db
-      .select()
+      .select({
+        id: jobRuns.id,
+        type: jobRuns.type,
+        status: jobRuns.status,
+        startedAt: jobRuns.startedAt,
+        durationMs: jobRuns.durationMs,
+        userId: jobRuns.userId,
+        completedAt: jobRuns.completedAt,
+        error: jobRuns.error,
+        subscriptionId: jobRuns.subscriptionId,
+        batchId: jobRuns.batchId,
+        metadata: sql<JobMetadata>`(SELECT coalesce(jsonb_object_agg(key, value), '{}'::jsonb)
+          FROM jsonb_each(${jobRuns.metadata}) WHERE key IN (
+            'trigger', 'seedArtist', 'adapterType', 'writeBackService', 'artistName',
+            'action', 'playlistName', 'source', 'artistsDiscovered', 'artistsStored',
+            'artistsFound', 'artistsNew', 'trackCount', 'discoveryMode'))`,
+        sourceResults: sql<Record<string, SourceResult> | null>`(
+          SELECT jsonb_object_agg(key, jsonb_build_object('status', value->'status'))
+          FROM jsonb_each(${jobRuns.sourceResults}))`,
+      })
       .from(jobRuns)
       .where(where)
-      .orderBy(desc(jobRuns.startedAt))
+      .orderBy(desc(jobRuns.startedAt), desc(jobRuns.id))
       .limit(limit)
       .offset(offset),
     db.select({ count: count() }).from(jobRuns).where(where),
   ])
 
   return {
-    items: items as JobRunRow[],
+    items: items as JobListRow[],
     total: totalRows[0]?.count ?? 0,
   }
 }

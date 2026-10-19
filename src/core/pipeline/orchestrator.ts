@@ -24,6 +24,7 @@ import { errMsg } from '@/core/validation'
 import { type OwnedAlbumKeys, ownedAlbumTitleKey } from '@/db/queries/library-albums'
 import type { UserConnections } from '@/db/queries/users'
 import { mergePreferences, type Preferences } from '@/db/schema'
+import { dropUnaddableAlbums } from './album-profile-filter'
 import { analyze } from './analyze'
 import { type AutoApproveDeps, autoApprove } from './auto-approve'
 import { PipelineCancelledError } from './cancel'
@@ -32,7 +33,7 @@ import { enrichGenres } from './enrich'
 import { filter } from './filter'
 import { type GenreBackfillDb, hydrateArtistGenres, warmArtistGenres } from './genre-backfill'
 import { createArtistImageClients } from './image-clients'
-import { resolve } from './resolve'
+import { prefilterArtistCandidates, resolve } from './resolve'
 import { score } from './score'
 import type { StoreDb } from './store'
 import { store } from './store'
@@ -63,6 +64,8 @@ export interface PipelineDeps {
   providerRegistry?: AiProviderRegistry
   userConnections?: UserConnections | null
   autoApproveDeps?: AutoApproveDeps | null
+  /** Defaults to autoApproveDeps.getEnabledTargets; feeds the album metadata profile check. */
+  getEnabledTargets?: AutoApproveDeps['getEnabledTargets']
   jobRecorder?: import('@/core/jobs/types').JobRecorder
   trigger?: 'scheduled' | 'manual'
   explicitCandidates?: DiscoveredArtist[]
@@ -535,8 +538,24 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'resolve',
         message: t('pipeline.message.resolving', String(discovered.length)),
       })
+      const existingBeforeResolve = await db.getExistingRecommendationMbids(deps.userId, {
+        rejectionCooldownDays: prefs.rejectionCooldownDays,
+      })
+      const excludedBeforeResolve = new Set([
+        ...libraryMbids,
+        ...rejectedMbids,
+        ...blockedMbids,
+        ...existingBeforeResolve,
+      ])
+      for (const artist of tasteProfile.topArtists) {
+        if (artist.mbid) excludedBeforeResolve.add(artist.mbid)
+      }
       const rawResolved = await resolve(
-        discovered,
+        prefilterArtistCandidates(
+          discovered,
+          excludedBeforeResolve,
+          prefs.netNewAlbumDiscovery ?? false,
+        ),
         mbClient,
         (progress) => {
           this.emit('progress', progress)
@@ -548,6 +567,9 @@ export class PipelineOrchestrator extends EventEmitter {
         audiodbClient,
         prefs.netNewAlbumDiscovery ?? false,
         signal,
+        new Set(
+          discovered.filter((d) => d.mbid && !d.releaseGroupMbid).map((d) => d.mbid as string),
+        ),
       )
 
       // Enrich sparse genres from artist_metadata (if available)
@@ -558,7 +580,9 @@ export class PipelineOrchestrator extends EventEmitter {
         stage: 'score',
         message: t('pipeline.message.scoring', String(resolved.length)),
       })
-      const popularityMap = (await db.getPopularityMap?.()) ?? new Map<string, number>()
+      const popularityMap =
+        (await db.getPopularityMap?.(resolved.map((artist) => artist.name))) ??
+        new Map<string, number>()
       const referenceGenres =
         libraryGenres.length > 0 ? libraryGenres : tasteProfile.topGenres.map((g) => g.name)
       const scored = score(
@@ -606,6 +630,11 @@ export class PipelineOrchestrator extends EventEmitter {
         )
       })
 
+      const addable = await dropUnaddableAlbums(
+        albumAware,
+        deps.getEnabledTargets ?? deps.autoApproveDeps?.getEnabledTargets,
+      )
+
       // Also exclude top artists from listening history - the AI prompt asks
       // models to skip these, but smaller models ignore the instruction.
       const topArtistNames = new Set<string>()
@@ -619,8 +648,8 @@ export class PipelineOrchestrator extends EventEmitter {
       // filters would drop every album. They already passed the album block/dedup
       // layer above; here they only face the score threshold. Artist-kind
       // candidates take the full artist filter unchanged.
-      const albumKind = albumAware.filter((c) => c.kind === 'album' && c.releaseGroupMbid)
-      const artistKind = albumAware.filter((c) => !(c.kind === 'album' && c.releaseGroupMbid))
+      const albumKind = addable.filter((c) => c.kind === 'album' && c.releaseGroupMbid)
+      const artistKind = addable.filter((c) => !(c.kind === 'album' && c.releaseGroupMbid))
 
       const filteredArtists = filter(
         artistKind,

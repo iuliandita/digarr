@@ -9,6 +9,7 @@ export type LidarrArtist = {
   artistName: string
   foreignArtistId: string // This is the MBID
   qualityProfileId: number
+  metadataProfileId?: number
   rootFolderPath: string
   monitored: boolean
   status: string
@@ -20,9 +21,21 @@ export type QualityProfile = {
   name: string
 }
 
+type ProfileTypeItem = { albumType?: { name?: string }; allowed?: boolean }
+
 export type MetadataProfile = {
   id: number
   name: string
+  primaryAlbumTypes?: ProfileTypeItem[]
+  secondaryAlbumTypes?: ProfileTypeItem[]
+  releaseStatuses?: Array<{ releaseStatus?: { name?: string }; allowed?: boolean }>
+}
+
+export type LidarrAlbumLookup = {
+  foreignAlbumId: string
+  albumType?: string
+  secondaryTypes?: string[]
+  releases?: Array<{ status?: string }>
 }
 
 export type RootFolder = {
@@ -172,6 +185,7 @@ export function createLidarrClient(
       artistName: a.artistName as string,
       foreignArtistId: a.foreignArtistId as string,
       qualityProfileId: a.qualityProfileId as number,
+      metadataProfileId: a.metadataProfileId as number | undefined,
       rootFolderPath: a.rootFolderPath as string,
       monitored: a.monitored as boolean,
       status: a.status as string,
@@ -212,6 +226,14 @@ export function createLidarrClient(
   function lookupArtist(term: string): Promise<LidarrArtist[]> {
     const encoded = new URLSearchParams({ term }).toString()
     return http.get<LidarrArtist[]>(`/api/v1/artist/lookup?${encoded}`)
+  }
+
+  // An album-id lookup is not filtered by any metadata profile, so it reports
+  // the types Lidarr would test even when the artist's album list omits them.
+  async function lookupAlbum(releaseGroupMbid: string): Promise<LidarrAlbumLookup | null> {
+    const encoded = new URLSearchParams({ term: `lidarr:${releaseGroupMbid}` }).toString()
+    const raw = await http.get<LidarrAlbumLookup[]>(`/api/v1/album/lookup?${encoded}`)
+    return raw.find((a) => a.foreignAlbumId === releaseGroupMbid) ?? null
   }
 
   async function getQualityProfiles(): Promise<QualityProfile[]> {
@@ -470,6 +492,7 @@ export function createLidarrClient(
     getArtists,
     findArtistByMbid,
     lookupArtist,
+    lookupAlbum,
     addArtist,
     getAlbums,
     getWantedMissing,

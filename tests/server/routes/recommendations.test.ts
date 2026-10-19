@@ -158,6 +158,7 @@ const mockLidarrClient = {
   getArtists: vi.fn(async () => []),
   findArtistByMbid: vi.fn(async () => null),
   lookupArtist: vi.fn(async () => []),
+  lookupAlbum: vi.fn(async () => null),
   getAlbums: vi.fn(async () => []),
   getWantedMissing: vi.fn(async () => []),
   setArtistsMonitored: vi.fn(async () => []),
@@ -1098,17 +1099,18 @@ describe('POST /api/v1/recommendations/bulk', () => {
     expect(await res.json()).toEqual({ updated: 1 })
     expect(deps.filterOwnedIds).toHaveBeenCalledWith([1, 2], 1)
     if (fields.reason || fields.permanent) {
-      expect(deps.rejectRecommendation).toHaveBeenCalledExactlyOnceWith({
-        recommendationId: 1,
+      expect(deps.bulkRejectRecommendations).toHaveBeenCalledExactlyOnceWith({
+        ids: [1],
         userId: 1,
         reason: fields.reason ?? null,
         reasonText: null,
         permanent: fields.permanent ?? false,
       })
+      expect(deps.rejectRecommendation).not.toHaveBeenCalled()
       expect(deps.bulkUpdateStatus).not.toHaveBeenCalled()
     } else {
       expect(deps.bulkUpdateStatus).toHaveBeenCalledExactlyOnceWith([1], 'rejected')
-      expect(deps.rejectRecommendation).not.toHaveBeenCalled()
+      expect(deps.bulkRejectRecommendations).not.toHaveBeenCalled()
     }
   })
 
@@ -1151,32 +1153,30 @@ describe('POST /api/v1/recommendations/bulk', () => {
     expect(bulkUpdateStatus).toHaveBeenCalledWith([1, 2, 3], 'rejected')
   })
 
-  it('bulk rejects with a shared reason via rejectRecommendation per id', async () => {
+  it('bulk rejects with a shared reason in one bulk query', async () => {
     const bulkUpdateStatus = vi.fn(async () => {})
     const rejectRecommendation = vi.fn(async () => ({ artistId: 1, blockCreated: false }))
+    const bulkRejectRecommendations = vi.fn(async () => ({ rejected: 2, blocksCreated: 2 }))
     const filterOwnedIds = vi.fn(async (ids: number[]) => ids)
-    const app = createApp(makeDeps({ bulkUpdateStatus, rejectRecommendation, filterOwnedIds }))
+    const app = createApp(
+      makeDeps({
+        bulkUpdateStatus,
+        rejectRecommendation,
+        bulkRejectRecommendations,
+        filterOwnedIds,
+      }),
+    )
     const res = await authedRequest(
       app,
       '/api/v1/recommendations/bulk',
-      json(
-        {
-          ids: [1, 2],
-          action: 'reject',
-          reason: 'wrong_style',
-          permanent: true,
-        },
-        'POST',
-      ),
+      json({ ids: [1, 2], action: 'reject', reason: 'wrong_style', permanent: true }, 'POST'),
     )
     expect(res.status).toBe(200)
     expect((await res.json()).updated).toBe(2)
-    // Shared-reason path routes each id through rejectRecommendation, not the
-    // reason-less bulk fast path.
     expect(bulkUpdateStatus).not.toHaveBeenCalled()
-    expect(rejectRecommendation).toHaveBeenCalledTimes(2)
-    expect(rejectRecommendation).toHaveBeenCalledWith({
-      recommendationId: 1,
+    expect(rejectRecommendation).not.toHaveBeenCalled()
+    expect(bulkRejectRecommendations).toHaveBeenCalledExactlyOnceWith({
+      ids: [1, 2],
       userId: 1,
       reason: 'wrong_style',
       reasonText: null,

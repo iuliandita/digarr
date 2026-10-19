@@ -6,6 +6,7 @@ import type { LibrarySyncStore } from '@/core/library/store'
 import { SOURCE_NOT_CONFIGURED_ERROR, type SyncOrchestrator } from '@/core/library/sync'
 import type { HealthCheckId, UnreconciledReason } from '@/core/library/types'
 import { errMsg, isValidMbid, logAndSanitize } from '@/core/validation'
+import { parseIntClamp } from '@/server/helpers/parse-int-clamp'
 import { requireAdmin, requireSessionUser } from '@/server/helpers/require-user'
 import { rateLimiter } from '@/server/middleware/rate-limit'
 import {
@@ -172,8 +173,17 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   app.get('/api/v1/library/unreconciled', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
-    const items = await deps.librarySyncStore.listUnreconciledForUser(auth.userId)
-    return c.json({ items: hideInternalUnreconciledReasons(items) })
+    const page = {
+      limit: parseIntClamp(c.req.query('limit'), { name: 'limit', min: 1, max: 500, default: 20 }),
+      offset: parseIntClamp(c.req.query('offset'), {
+        name: 'offset',
+        min: 0,
+        max: Number.MAX_SAFE_INTEGER,
+        default: 0,
+      }),
+    }
+    const result = await deps.librarySyncStore.listUnreconciledForUser(auth.userId, page)
+    return c.json({ ...result, items: hideInternalUnreconciledReasons(result.items) })
   })
 
   app.get('/api/v1/library/album-coverage/:artistMbid', async (c) => {
@@ -190,8 +200,17 @@ export function libraryRoutes(deps: LibraryRouteDeps) {
   app.get('/api/v1/library/unreconciled-albums', async (c) => {
     const auth = await adminGate(c)
     if (!auth.ok) return auth.response
-    const items = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId)
-    return c.json({ items: hideInternalUnreconciledReasons(items) })
+    const page = {
+      limit: parseIntClamp(c.req.query('limit'), { name: 'limit', min: 1, max: 500, default: 20 }),
+      offset: parseIntClamp(c.req.query('offset'), {
+        name: 'offset',
+        min: 0,
+        max: Number.MAX_SAFE_INTEGER,
+        default: 0,
+      }),
+    }
+    const result = await deps.librarySyncStore.listUnreconciledAlbumsForUser(auth.userId, page)
+    return c.json({ ...result, items: hideInternalUnreconciledReasons(result.items) })
   })
 
   app.post('/api/v1/library/overrides/bulk-ignore', zJson(libraryBulkIgnoreSchema), async (c) => {

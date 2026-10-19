@@ -46,7 +46,7 @@ import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
-import type { StoreDb } from './core/pipeline/store'
+import { type StoreDb, saveRecommendationChunk } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
 import { withPlaylistLock } from './core/playlists/generation-lock'
@@ -161,6 +161,7 @@ import {
   updatePlaylist as updatePlaylistRow,
 } from './db/queries/playlists'
 import {
+  bulkRejectRecommendations,
   bulkUpdateStatus,
   filterOwnedIds,
   getExistingAlbumReleaseGroupMbids,
@@ -170,6 +171,7 @@ import {
   getRejectedArtistMbids,
   insertRecommendation,
   listRecommendations,
+  listRecommendationsForExport,
   listWaitingApprovals,
   rejectRecommendation,
   updateRecommendationStatus,
@@ -365,6 +367,7 @@ const storeDb: StoreDb = {
     return { id: row.id }
   },
   insertRecommendation: (data) => insertRecommendation(db, data),
+  saveRecommendationChunk: (entries) => saveRecommendationChunk(db, entries),
   // Atomic pair: prevents orphaned artist rows when the followup insert fails
   upsertArtistAndRecommendation: async (artistData, recData) => {
     await db.transaction(async (tx) => {
@@ -386,7 +389,7 @@ const storeDb: StoreDb = {
   },
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   lookupArtistMetadata: (name) => lookupByName(db, name),
-  getPopularityMap: () => getPopularityMap(db),
+  getPopularityMap: (names) => getPopularityMap(db, names),
   getLibraryArtistsForUser: async (userId, options) => {
     const conds = [or(eq(libraryArtists.userId, userId), isNull(libraryArtists.userId))]
     if (options?.onlyReconciled) conds.push(isNotNull(libraryArtists.mbid))
@@ -649,6 +652,7 @@ const runPipeline = async (userId?: number) => {
     providerRegistry,
     librarySync: librarySyncOrchestrator,
     userId: resolvedUserId,
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(resolvedUserId),
   })
 }
 
@@ -1300,6 +1304,7 @@ const app = createApp({
     return batches[0] ?? null
   },
   listRecommendations: (filters) => listRecommendations(db, filters),
+  listRecommendationsForExport: (filters) => listRecommendationsForExport(db, filters),
   getRecommendation: (id) => getRecommendation(db, id),
   updateRecommendationStatus: (id, status, extra) =>
     updateRecommendationStatus(db, id, status, extra),
@@ -1317,6 +1322,7 @@ const app = createApp({
   listAlbumBlocks: (userId) => listAlbumBlocksQuery(db, userId),
   removeAlbumBlock: (params) => removeAlbumBlockQuery(db, params),
   bulkUpdateStatus: (ids, status) => bulkUpdateStatus(db, ids, status),
+  bulkRejectRecommendations: (params) => bulkRejectRecommendations(db, params),
   filterOwnedIds: (ids, userId) => filterOwnedIds(db, ids, userId),
   listBatches: (opts?: Parameters<typeof listBatches>[1]) => listBatches(db, opts),
   getBatch: (id) => getBatch(db, id),

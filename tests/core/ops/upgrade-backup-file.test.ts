@@ -3,10 +3,14 @@ import { mkdirSync, mkdtempSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { writeBackupSnapshot } from '@/core/ops/backup'
 import { autoBackup } from '@/core/ops/upgrade'
 
 vi.mock('@/core/ops/backup', () => ({
-  createBackupSnapshot: vi.fn(async () => ({ version: 1, data: {} })),
+  writeBackupSnapshot: vi.fn(async (_db: unknown, write: (chunk: string) => void) => {
+    write('{"version":1,"data":{}}')
+    return {}
+  }),
 }))
 
 let root: string
@@ -45,5 +49,15 @@ describe('autoBackup file', () => {
       vi.useRealTimers()
     }
     expect(readdirSync(dir)).toEqual([target])
+  })
+
+  it('removes the temp file when the snapshot fails mid-stream', async () => {
+    vi.mocked(writeBackupSnapshot).mockImplementationOnce(async (_db, write) => {
+      write('{"version":1,"data":{"settings":[')
+      throw new Error('connection lost')
+    })
+
+    await expect(autoBackup({} as never, '0001', '0002')).rejects.toThrow('connection lost')
+    expect(readdirSync(dir)).toEqual([])
   })
 })

@@ -364,6 +364,19 @@ recommendation with its release-group MBID and first-release date, then follows
 the normal album scoring, filtering, and storage paths. An unmatched title stays
 an artist recommendation.
 
+### Lidarr metadata profile check
+
+Lidarr only lists release groups its metadata profile allows (`SkyHookProxy.FilterAlbums`:
+allowed primary type; no secondary types needs `Studio`, otherwise any allowed
+secondary type; any allowed release status). When the user has an enabled Lidarr
+target, the filter stage drops album candidates whose MusicBrainz types no enabled
+Lidarr target would list. The profile is the tracked artist's, else the target's
+default metadata profile. Unknown types, target lookup failures and users without
+a Lidarr target keep every candidate. Release status is not known at pipeline time,
+so only the add path checks it. When an album add cannot find the release group,
+the target looks it up through Lidarr and reports which type the profile blocks;
+that failure is not retried. Existing pending recommendations are not rescanned (#1108).
+
 ### Album empty-state routing
 
 A normal pipeline scan remains artist-focused. When the album-filtered

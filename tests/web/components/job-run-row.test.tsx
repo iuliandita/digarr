@@ -1,11 +1,31 @@
 // @vitest-environment jsdom
-import { fireEvent, render, screen } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { SupportedLocale } from '@/core/i18n/locales'
 import { JobRunRow } from '@/web/components/job-run-row'
-import type { JobRun } from '@/web/lib/api'
+import { getJob, type JobRun, type JobSummary } from '@/web/lib/api'
 import { I18nProvider } from '@/web/lib/i18n'
 import { loadMessages } from '@/web/lib/locale-catalogs'
+
+import { createTestQueryClient } from '../helpers/query'
+import { installMemoryLocalStorage } from '../helpers/storage'
+
+vi.mock('@/web/lib/api', () => ({ getJob: vi.fn() }))
+beforeEach(() => {
+  installMemoryLocalStorage()
+  vi.clearAllMocks()
+})
+
+function renderRow(job: JobRun) {
+  return render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <I18nProvider>
+        <JobRunRow job={job} />
+      </I18nProvider>
+    </QueryClientProvider>,
+  )
+}
 
 describe('JobRunRow source results', () => {
   it.each<[SupportedLocale, NonNullable<JobRun['sourceResults']>[string], string]>([
@@ -53,13 +73,10 @@ describe('JobRunRow source results', () => {
       subscriptionId: null,
       batchId: null,
     }
-    render(
-      <I18nProvider>
-        <JobRunRow job={job} />
-      </I18nProvider>,
-    )
+    vi.mocked(getJob).mockResolvedValue(job)
+    renderRow(job)
     fireEvent.click(screen.getByRole('button'))
-    expect(screen.getByText(expected)).toBeInTheDocument()
+    expect(await screen.findByText(expected)).toBeInTheDocument()
   })
 })
 
@@ -84,11 +101,7 @@ describe('JobRunRow readability', () => {
       configurable: true,
       value: { getItem: vi.fn(() => 'en'), setItem: vi.fn() },
     })
-    render(
-      <I18nProvider>
-        <JobRunRow job={base} />
-      </I18nProvider>,
-    )
+    renderRow(base)
     expect(screen.getByText('Plex')).toBeInTheDocument()
     expect(screen.getByText('failed')).toBeInTheDocument()
     expect(screen.queryByText('!')).toBeNull()
@@ -119,12 +132,47 @@ describe('JobRunRow write-back labels', () => {
       subscriptionId: null,
       batchId: null,
     }
-    render(
-      <I18nProvider>
-        <JobRunRow job={job} />
-      </I18nProvider>,
-    )
+    renderRow(job)
     expect(screen.getByText(`${service} write-back`)).toBeInTheDocument()
     expect(screen.queryByText('Target operation')).toBeNull()
   })
+})
+
+it('fetches diagnostics only when expanded and reuses that detail on reopening', async () => {
+  const job: JobSummary = {
+    id: 7,
+    type: 'pipeline',
+    status: 'failed',
+    userId: 1,
+    startedAt: '2026-01-01T00:00:00Z',
+    completedAt: null,
+    durationMs: 100,
+    error: 'diagnostic error',
+    metadata: { trigger: 'manual', artistsDiscovered: 3 },
+    sourceResults: { test: { status: 'error' } },
+    subscriptionId: null,
+    batchId: null,
+  }
+  vi.mocked(getJob).mockResolvedValue({
+    ...job,
+    metadata: { ...job.metadata, playlistResolution: { outcomes: ['full detail'] } },
+    sourceResults: { test: { status: 'error', error: 'source failure', artists: 2 } },
+  })
+  render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <I18nProvider>
+        <JobRunRow job={job} />
+      </I18nProvider>
+    </QueryClientProvider>,
+  )
+  expect(getJob).not.toHaveBeenCalled()
+  expect(screen.queryByText('diagnostic error')).not.toBeInTheDocument()
+  fireEvent.click(screen.getByRole('button'))
+  expect(await screen.findByText(/full detail/)).toBeInTheDocument()
+  expect(screen.getByText(/source failure/)).toBeInTheDocument()
+  expect(screen.getByText('diagnostic error', { exact: false })).toBeInTheDocument()
+  await waitFor(() => expect(getJob).toHaveBeenCalledExactlyOnceWith(7))
+  fireEvent.click(screen.getByRole('button'))
+  fireEvent.click(screen.getByRole('button'))
+  expect(getJob).toHaveBeenCalledTimes(1)
 })

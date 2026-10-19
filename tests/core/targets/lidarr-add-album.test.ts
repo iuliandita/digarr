@@ -9,6 +9,23 @@ const { createLidarrClient } = await import('@/core/clients/lidarr')
 const { createLidarrTarget } = await import('@/core/targets/lidarr')
 const { targetAction } = await import('@/core/targets/lidarr-retry')
 
+function profile(id: number, name: string, primary: string[], secondary: string[]) {
+  const items = (all: string[], allowed: string[]) =>
+    all.map((type) => ({ albumType: { name: type }, allowed: allowed.includes(type) }))
+  return {
+    id,
+    name,
+    primaryAlbumTypes: items(['Album', 'EP', 'Single'], primary),
+    secondaryAlbumTypes: items(['Studio', 'Compilation', 'Live'], secondary),
+    releaseStatuses: [{ releaseStatus: { name: 'Official' }, allowed: true }],
+  }
+}
+
+const PROFILES = [
+  profile(1, 'Standard', ['Album', 'EP'], ['Studio', 'Compilation', 'Live']),
+  profile(5, 'StudioAlbumOnly', ['Album'], ['Studio']),
+]
+
 function mockLidarrClient() {
   const client = {
     getArtists: vi.fn().mockResolvedValue([]),
@@ -19,6 +36,8 @@ function mockLidarrClient() {
     triggerCommand: vi.fn().mockResolvedValue({}),
     testConnection: vi.fn().mockResolvedValue({ success: true, message: 'ok' }),
     getRootFolders: vi.fn().mockResolvedValue([{ id: 1, path: '/music' }]),
+    getMetadataProfiles: vi.fn().mockResolvedValue(PROFILES),
+    lookupAlbum: vi.fn().mockResolvedValue(null),
   }
   vi.mocked(createLidarrClient).mockReturnValue(client as never)
   return client
@@ -130,12 +149,47 @@ describe('createLidarrTarget().addAlbum', () => {
     expect(client.triggerCommand).not.toHaveBeenCalled()
   })
 
+  it('explains an absent album that the artist metadata profile filters out', async () => {
+    const client = mockLidarrClient()
+    client.findArtistByMbid.mockResolvedValue({
+      id: 99,
+      foreignArtistId: 'a1',
+      metadataProfileId: 5,
+    })
+    client.lookupAlbum.mockResolvedValue({
+      foreignAlbumId: 'rg-1',
+      albumType: 'Album',
+      secondaryTypes: ['Compilation'],
+      releases: [{ status: 'Official' }],
+    })
+    const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })
+
+    const result = await target.addAlbum?.({
+      artistMbid: 'a1',
+      artistName: 'Artist',
+      releaseGroupMbid: 'rg-1',
+    })
+
+    expect(result?.error).toBe(
+      'Compilation releases aren\'t allowed by the Lidarr metadata profile "StudioAlbumOnly" - allow that in Lidarr or pick a different metadata profile for this artist',
+    )
+    if (!result) throw new Error('missing target result')
+    expect(targetAction(target, result, {}).status).toBe('failed')
+  })
+
   it('defers an absent album only when the artist was added in this attempt', async () => {
     vi.useFakeTimers()
     try {
       const client = mockLidarrClient()
       client.findArtistByMbid.mockResolvedValue(null)
-      client.addArtist.mockResolvedValue({ id: 42 })
+      client.addArtist.mockResolvedValue({ id: 42, metadataProfileId: 5 })
+      // The profile allows the type, so the refresh explanation stands.
+      client.lookupAlbum.mockResolvedValue({
+        foreignAlbumId: 'rg-missing',
+        albumType: 'Album',
+        secondaryTypes: [],
+        releases: [{ status: 'Official' }],
+      })
       // Lidarr has the artist but never surfaces this release group
       client.getAlbums.mockResolvedValue([
         { id: 7, foreignAlbumId: 'some-other-rg', monitored: false, title: 'Other' },
@@ -237,5 +291,33 @@ describe('createLidarrTarget().addAlbum', () => {
 
     expect(result?.success).toBe(false)
     expect(client.getAlbums).toHaveBeenCalledTimes(1)
+  })
+})
+
+describe('createLidarrTarget().unaddableAlbums', () => {
+  it("uses a tracked artist's profile and the target default for new artists", async () => {
+    const client = mockLidarrClient()
+    client.findArtistByMbid.mockImplementation(async (mbid: string) =>
+      mbid === 'tracked' ? { id: 9, foreignArtistId: 'tracked', metadataProfileId: 1 } : null,
+    )
+    const target = createLidarrTarget(1, {
+      url: 'http://lidarr',
+      apiKey: 'k',
+      metadataProfileId: 5,
+    })
+    const compilation = { primaryType: 'Album', secondaryTypes: ['Compilation'] }
+
+    const unaddable = await target.unaddableAlbums?.([
+      { artistMbid: 'tracked', releaseGroupMbid: 'rg-tracked', types: compilation },
+      { artistMbid: 'new', releaseGroupMbid: 'rg-new', types: compilation },
+      {
+        artistMbid: 'new',
+        releaseGroupMbid: 'rg-studio',
+        types: { primaryType: 'Album', secondaryTypes: [] },
+      },
+    ])
+
+    expect([...(unaddable ?? [])]).toEqual(['rg-new'])
+    expect(client.findArtistByMbid).toHaveBeenCalledTimes(2)
   })
 })

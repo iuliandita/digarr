@@ -155,54 +155,36 @@ export async function getArtistById(db: Database, id: number): Promise<ArtistRow
 
 type GenreEnrichment = { examples: string[]; liveCount: number }
 
-/**
- * Returns a map of genre name -> { examples, liveCount } using two efficient
- * queries: a lateral join for example names, and an aggregate for live counts.
- */
 export async function getGenreEnrichments(
   db: Database,
   exampleLimit = 3,
 ): Promise<Map<string, GenreEnrichment>> {
-  const [exRows, countRows] = await Promise.all([
-    db.execute<{ genre_name: string; artist_name: string }>(
-      sql`SELECT g.name AS genre_name, sub.name AS artist_name
-          FROM ${genres} g
-          CROSS JOIN LATERAL (
-            SELECT ar.name
-            FROM artists ar
-            WHERE EXISTS (
-              SELECT 1 FROM unnest(ar.genres) ag WHERE lower(ag) = lower(g.name)
-            )
-            ORDER BY ar.name
-            LIMIT ${exampleLimit}
-          ) sub
-          WHERE g.source IN ('library', 'rebuild')`,
-    ),
-    db.execute<{ genre_name: string; cnt: string }>(
-      sql`SELECT g.name AS genre_name, count(*)::text AS cnt
-          FROM ${genres} g
-          JOIN artists ar ON EXISTS (
-            SELECT 1 FROM unnest(ar.genres) ag WHERE lower(ag) = lower(g.name)
-          )
-          WHERE g.source IN ('library', 'rebuild')
-          GROUP BY g.name`,
-    ),
-  ])
-
+  const rows = await db.execute<{ genre_name: string; examples: string[]; cnt: number }>(sql`
+    WITH memberships AS MATERIALIZED (
+      SELECT DISTINCT ar.id, ar.name, lower(tag) AS normalized_genre
+      FROM ${artists} ar CROSS JOIN LATERAL unnest(ar.genres) tag
+    ), ranked AS (
+      SELECT name, normalized_genre,
+        count(*) OVER (PARTITION BY normalized_genre)::integer AS cnt,
+        row_number() OVER (PARTITION BY normalized_genre ORDER BY name, id) AS rank
+      FROM memberships
+    ), enriched AS (
+      SELECT normalized_genre, max(cnt) AS cnt,
+        coalesce(array_agg(name ORDER BY rank) FILTER (WHERE rank <= ${exampleLimit}),
+          ARRAY[]::text[]) AS examples
+      FROM ranked GROUP BY normalized_genre
+    )
+    SELECT g.name AS genre_name, enriched.examples, enriched.cnt
+    FROM ${genres} g JOIN enriched ON enriched.normalized_genre = lower(g.name)
+    WHERE g.source IN ('library', 'rebuild')
+  `)
   const result = new Map<string, GenreEnrichment>()
-  const counts = countRows.rows as { genre_name: string; cnt: string }[]
-  const examples = exRows.rows as { genre_name: string; artist_name: string }[]
-
-  for (const { genre_name, cnt } of counts) {
-    result.set(genre_name, { examples: [], liveCount: Number.parseInt(cnt, 10) })
+  for (const row of rows.rows) {
+    const entry = result.get(row.genre_name) ?? { examples: [], liveCount: 0 }
+    entry.examples.push(...row.examples)
+    entry.liveCount += row.cnt
+    result.set(row.genre_name, entry)
   }
-
-  for (const { genre_name, artist_name } of examples) {
-    const entry = result.get(genre_name) ?? { examples: [], liveCount: 0 }
-    entry.examples.push(artist_name)
-    result.set(genre_name, entry)
-  }
-
   return result
 }
 

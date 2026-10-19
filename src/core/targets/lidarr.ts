@@ -1,6 +1,13 @@
-import { createLidarrClient } from '@/core/clients/lidarr'
+import PQueue from 'p-queue'
+import { createLidarrClient, type MetadataProfile } from '@/core/clients/lidarr'
 import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
+import {
+  effectiveMetadataProfile,
+  lookupToReleaseGroupTypes,
+  metadataProfileRejection,
+  profileRejectionMessage,
+} from './lidarr-metadata-profile'
 import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
 
 // Lidarr populates an artist's album list asynchronously after the add, so an
@@ -63,6 +70,27 @@ export function createLidarrTarget(
       await sleep(ALBUM_POLL_DELAY_MS)
     }
     return []
+  }
+
+  // Explains why Lidarr does not list an album under the artist when its
+  // metadata profile filters the release type out; null when the type is allowed
+  // or cannot be determined, so the caller keeps its generic message.
+  async function profileMismatch(
+    releaseGroupMbid: string,
+    metadataProfileId: number | undefined,
+  ): Promise<string | null> {
+    try {
+      const [profiles, album] = await Promise.all([
+        client.getMetadataProfiles(),
+        client.lookupAlbum(releaseGroupMbid),
+      ])
+      const profile = effectiveMetadataProfile(profiles, metadataProfileId)
+      if (!profile || !album) return null
+      const rejection = metadataProfileRejection(profile, lookupToReleaseGroupTypes(album))
+      return rejection ? profileRejectionMessage(profile.name, rejection) : null
+    } catch {
+      return null
+    }
   }
 
   return {
@@ -147,6 +175,7 @@ export function createLidarrTarget(
         // unmonitored so Lidarr does not grab the whole discography.
         const existing = await client.findArtistByMbid(album.artistMbid)
         let artistId = existing?.id
+        let metadataProfileId = existing?.metadataProfileId ?? profileIds(options).metadataProfileId
 
         if (!artistId) {
           const ids = profileIds(options)
@@ -159,6 +188,7 @@ export function createLidarrTarget(
             { monitorOption: 'none', ...(ids.tags ? { tags: ids.tags } : {}) },
           )
           artistId = added.id
+          metadataProfileId = added.metadataProfileId ?? metadataProfileId
         }
 
         // A just-added artist populates its album list asynchronously (see the
@@ -172,9 +202,11 @@ export function createLidarrTarget(
             success: false,
             targetType: 'lidarr',
             targetId,
-            error: existing
-              ? 'album not found in Lidarr'
-              : 'album not found in Lidarr after adding artist (metadata may still be refreshing)',
+            error:
+              (await profileMismatch(album.releaseGroupMbid, metadataProfileId)) ??
+              (existing
+                ? 'album not found in Lidarr'
+                : 'album not found in Lidarr after adding artist (metadata may still be refreshing)'),
           }
         }
 
@@ -195,6 +227,33 @@ export function createLidarrTarget(
           error: errMsg(err),
         }
       }
+    },
+
+    async unaddableAlbums(albums) {
+      if (!configured || albums.length === 0) return new Set<string>()
+      const profiles = await client.getMetadataProfiles()
+      const fallback = effectiveMetadataProfile(profiles, config.metadataProfileId)
+      const byArtist = new Map<string, MetadataProfile | undefined>()
+      const queue = new PQueue({ concurrency: 4 })
+      await Promise.all(
+        [...new Set(albums.map((album) => album.artistMbid))].map((mbid) =>
+          queue.add(async () => {
+            const existing = await client.findArtistByMbid(mbid)
+            byArtist.set(
+              mbid,
+              existing ? effectiveMetadataProfile(profiles, existing.metadataProfileId) : fallback,
+            )
+          }),
+        ),
+      )
+      const unaddable = new Set<string>()
+      for (const album of albums) {
+        const profile = byArtist.get(album.artistMbid)
+        if (profile && metadataProfileRejection(profile, album.types)) {
+          unaddable.add(album.releaseGroupMbid)
+        }
+      }
+      return unaddable
     },
 
     async testConnection() {

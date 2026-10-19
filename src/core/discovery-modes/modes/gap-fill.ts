@@ -21,6 +21,7 @@ export function coverageToReleaseCandidates(
     artistName,
     artistMbid: coverage.artistMbid,
     releaseGroupMbid: album.albumMbid,
+    releaseGroupTypes: { primaryType: 'Album', secondaryTypes: [] },
     provenanceProvider: 'gap-fill',
     fallbackUsed: false,
     ...(album.releaseYear != null ? { freshnessDate: String(album.releaseYear) } : {}),

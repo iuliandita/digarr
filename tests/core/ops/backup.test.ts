@@ -11,7 +11,9 @@ function makeMockDb(tableData: Record<string, unknown[]> = {}): OpsDb {
     select: vi.fn().mockImplementation(() => ({
       from: vi.fn().mockImplementation((table: unknown) => {
         const name = getTableName(table as Parameters<typeof getTableName>[0])
-        return Promise.resolve(tableData[name] ?? [])
+        const page = Promise.resolve(tableData[name] ?? [])
+        const self = () => page
+        return Object.assign(page, { where: self, orderBy: self, limit: self })
       }),
     })),
   } as unknown as OpsDb
