@@ -16,13 +16,22 @@ type FreshReleasesPayload = {
   }
 }
 
+type JspfTrackExtension = {
+  additional_metadata?: { artists?: Array<{ artist_credit_name?: string; artist_mbid?: string }> }
+  artist_identifiers?: string[]
+}
+
 type JspfTrack = {
   creator?: string
   title?: string
+  identifier?: string | string[]
+  extension?: Record<string, JspfTrackExtension | undefined>
 }
 
 type JspfPlaylist = {
   title?: string
+  date?: string
+  identifier?: string
   track?: JspfTrack[]
 }
 
@@ -33,6 +42,9 @@ type JspfResponse = {
 type UserPlaylistsResponse = {
   playlists?: JspfResponse[]
 }
+
+const JSPF_TRACK_EXT = 'https://musicbrainz.org/doc/jspf#track'
+const UUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i
 
 const LB_BASE = 'https://api.listenbrainz.org/1'
 
@@ -210,27 +222,66 @@ async function fetchTagRadio(
   }
 }
 
+/** Newest created-for playlist whose title starts with `titlePrefix`, by its date, not list order. */
+function pickNewestPlaylist(
+  entries: JspfResponse[],
+  titlePrefix: string,
+): JspfPlaylist | undefined {
+  const prefix = titlePrefix.toLowerCase()
+  const time = (p: JspfPlaylist) => Date.parse(p.date ?? '') || 0
+  return entries
+    .flatMap((e) => (e.playlist?.title?.toLowerCase().startsWith(prefix) ? [e.playlist] : []))
+    .sort((a, b) => time(b) - time(a))[0]
+}
+
+function mbidFromUrl(value: string | undefined): string | undefined {
+  return value && UUID_RE.test(value) ? value.match(UUID_RE)?.[0]?.toLowerCase() : undefined
+}
+
+function mapJspfTrack(t: JspfTrack) {
+  const ext = t.extension?.[JSPF_TRACK_EXT]
+  const credit = ext?.additional_metadata?.artists?.[0]
+  const name = credit?.artist_credit_name?.trim() || t.creator?.trim()
+  if (!name) return null
+  const artistMbid = mbidFromUrl(ext?.artist_identifiers?.[0]) ?? mbidFromUrl(credit?.artist_mbid)
+  const identifier = Array.isArray(t.identifier) ? t.identifier[0] : t.identifier
+  const recordingMbid = identifier?.includes('/recording/') ? mbidFromUrl(identifier) : undefined
+  return { name, artistMbid, recordingMbid, recordingTitle: t.title?.trim() }
+}
+
 async function fetchWeeklyJams(username: string, token: string): Promise<AdapterResult> {
-  const res = await fetchListenBrainz(
-    `${LB_BASE}/user/${encodeURIComponent(username)}/playlists`,
+  // Weekly Jams are created for the user by ListenBrainz, so they are not in /playlists, and
+  // the list endpoints return empty track arrays; tracks come from the playlist itself.
+  const listRes = await fetchListenBrainz(
+    `${LB_BASE}/user/${encodeURIComponent(username)}/playlists/createdfor`,
     token,
     'weekly-jams',
   )
-  const data = (await res.json()) as UserPlaylistsResponse
-  const playlists = data.playlists ?? []
+  const list = (await listRes.json()) as UserPlaylistsResponse
+  const newest = pickNewestPlaylist(list.playlists ?? [], 'Weekly Jams')
+  const playlistMbid = mbidFromUrl(newest?.identifier)
+  if (!playlistMbid) {
+    return {
+      artists: [],
+      message: 'ListenBrainz has not generated a Weekly Jams playlist for this account yet.',
+    }
+  }
 
-  const jamsEntry = playlists.find((p) => p.playlist?.title?.toLowerCase().includes('weekly jams'))
-
-  if (!jamsEntry?.playlist) return { artists: [] }
-
-  const tracks = (jamsEntry.playlist.track ?? []).flatMap((t) =>
-    t.creator ? [{ name: t.creator }] : [],
-  )
+  const res = await fetchListenBrainz(`${LB_BASE}/playlist/${playlistMbid}`, token, 'weekly-jams')
+  const data = (await res.json()) as JspfResponse
+  const tracks = (data.playlist?.track ?? []).flatMap((t) => {
+    const mapped = mapJspfTrack(t)
+    return mapped ? [mapped] : []
+  })
 
   const artists = deduplicateByName(tracks, (t) => ({
     name: t.name,
+    ...(t.artistMbid ? { mbid: t.artistMbid } : {}),
     similarityScore: 0.6,
     source: 'listenbrainz:weekly-jams',
+    ...(t.artistMbid && t.recordingMbid && t.recordingTitle
+      ? { recordingMbid: t.recordingMbid, recordingTitle: t.recordingTitle }
+      : {}),
   }))
 
   return { artists }

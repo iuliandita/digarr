@@ -16,6 +16,8 @@ export type DiscoveryModeSubscriptionConfig = {
 
 export type AdapterResult = {
   artists: DiscoveredArtist[]
+  /** Why a feed came back empty without failing, e.g. no playlist generated yet. */
+  message?: string
 }
 
 export interface SubscriptionAdapter {

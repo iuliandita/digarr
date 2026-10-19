@@ -3,6 +3,7 @@ import { createListenBrainzClient } from '@/core/clients/listenbrainz'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { resolveTagRadioRecordings } from '@/core/clients/tag-radio-resolver'
 import { createListenBrainzAdapter } from '@/core/subscriptions/adapters/listenbrainz'
+import type { DiscoveredArtist } from '@/core/types'
 import type {
   DiscoveryConfigField,
   DiscoveryModeDefinition,
@@ -11,15 +12,22 @@ import type {
 import { getDiscoveryModeConnections, getNormalizedLimit, normalizeDiscoveryName } from './runtime'
 
 function mapFeedArtists(
-  artists: Array<{ name: string; similarityScore?: number; source: string }>,
+  artists: Array<
+    Pick<DiscoveredArtist, 'name' | 'similarityScore' | 'source' | 'mbid'> &
+      Partial<Pick<DiscoveredArtist, 'recordingMbid' | 'recordingTitle'>>
+  >,
   limit: number,
 ) {
   return artists.slice(0, limit).map((artist) => ({
     candidateType: 'artist' as const,
     name: artist.name,
+    ...(artist.mbid ? { mbid: artist.mbid } : {}),
     provenanceProvider: artist.source,
     confidenceHint: artist.similarityScore,
     fallbackUsed: false,
+    ...(artist.recordingMbid && artist.recordingTitle
+      ? { recordingMbid: artist.recordingMbid, recordingTitle: artist.recordingTitle }
+      : {}),
   }))
 }
 
