@@ -78,7 +78,6 @@ export const ro = {
   'tokens.readOnlyError': 'Acest token permite doar cereri GET și HEAD.',
   'tokens.notFoundError': 'Acest token nu a fost găsit.',
   'writeBack.lastfmReconnect': 'Reconectează Last.fm',
-  'writeBack.title': 'Trimitere către scrobblere',
   'writeBack.scope':
     'Se trimit doar aprobările pieselor identificate exact din previzualizări sau Audition. Respingerile, blocările și aprobările doar de artiști rămân locale.',
   'writeBack.offHelp':

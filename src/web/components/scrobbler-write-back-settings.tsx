@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { toast } from 'sonner'
 import type { MessageKey } from '@/core/i18n/messages/types'
 import { errMsg } from '@/core/validation'
@@ -14,7 +14,7 @@ import { Button } from './ui/button'
 
 type Preference = 'listenbrainzLoveEnabled' | 'listenbrainzPlaylistEnabled' | 'lastfmLoveEnabled'
 
-export function ScrobblerWriteBackSettings() {
+function useWriteBack() {
   const { t } = useI18n()
   const client = useQueryClient()
   const preferences = useQuery({ queryKey: ['user-preferences'], queryFn: getUserPreferences })
@@ -72,84 +72,118 @@ export function ScrobblerWriteBackSettings() {
   }
 
   const error = preferences.error ?? status.error
+  const retry = () => {
+    void preferences.refetch()
+    void status.refetch()
+  }
 
+  return {
+    saving,
+    connectLastFm,
+    toggle,
+    error,
+    retry,
+    status: status.data,
+    ready: !!preferences.data && !!status.data,
+  }
+}
+
+type WriteBack = ReturnType<typeof useWriteBack>
+
+function WriteBackShell({
+  writeBack,
+  children,
+}: {
+  writeBack: WriteBack
+  children: (status: NonNullable<WriteBack['status']>) => ReactNode
+}) {
+  const { t } = useI18n()
   return (
-    <section className="space-y-3">
-      <h2 className="text-lead font-semibold text-text">{t('writeBack.title')}</h2>
+    <div className="space-y-3 border-t border-border pt-3">
       <p className="text-xs text-muted">{t('writeBack.scope')}</p>
       <p className="text-xs text-muted">{t('writeBack.offHelp')}</p>
-      {error ? (
+      {writeBack.error ? (
         <div role="alert" className="space-y-2 text-sm text-reject">
           <p>{t('writeBack.loadFailed')}</p>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              void preferences.refetch()
-              void status.refetch()
-            }}
-          >
+          <Button variant="outline" size="sm" onClick={writeBack.retry}>
             {t('errorBoundary.retry')}
           </Button>
         </div>
-      ) : !preferences.data || !status.data ? (
+      ) : !writeBack.ready || !writeBack.status ? (
         <p className="text-sm text-muted">{t('common.loading')}</p>
       ) : (
-        <div className="space-y-4">
-          <div className="space-y-2">
-            {toggle(
-              'listenbrainzLoveEnabled',
-              'writeBack.listenbrainzLoves',
-              status.data.listenbrainz.configured,
-            )}
-            <p className="text-xs text-muted">{t('writeBack.listenbrainzHelp')}</p>
-            {toggle(
-              'listenbrainzPlaylistEnabled',
-              'writeBack.listenbrainzPlaylists',
-              status.data.listenbrainz.configured,
-            )}
-            <p className="text-xs text-muted">{t('writeBack.playlistHelp')}</p>
-            {!status.data.listenbrainz.configured && (
-              <p className="text-xs text-muted">{t('writeBack.listenbrainzMissing')}</p>
-            )}
-            {status.data.listenbrainz.lastError && (
-              <p role="status" className="text-xs text-reject">
-                {t('writeBack.lastError').replace('{0}', status.data.listenbrainz.lastError)}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            {toggle('lastfmLoveEnabled', 'writeBack.lastfmLoves', status.data.lastfm.configured)}
-            <p className="text-xs text-muted">{t('writeBack.lastfmHelp')}</p>
-            {!status.data.lastfm.configured ? (
-              <p className="text-xs text-muted">{t('writeBack.lastfmMissing')}</p>
-            ) : (
-              <p className="text-xs text-muted">
-                {t(
-                  status.data.lastfm.connected
-                    ? 'writeBack.lastfmConnected'
-                    : 'writeBack.lastfmConnect',
-                )}
-              </p>
-            )}
-            {status.data.lastfm.configured && status.data.lastfm.connected && (
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={saving}
-                onClick={() => void connectLastFm()}
-              >
-                {t('writeBack.lastfmReconnect')}
-              </Button>
-            )}
-            {status.data.lastfm.lastError && (
-              <p role="status" className="text-xs text-reject">
-                {t('writeBack.lastError').replace('{0}', status.data.lastfm.lastError)}
-              </p>
-            )}
-          </div>
-        </div>
+        <div className="space-y-2">{children(writeBack.status)}</div>
       )}
-    </section>
+    </div>
+  )
+}
+
+export function ListenBrainzWriteBack() {
+  const { t } = useI18n()
+  const writeBack = useWriteBack()
+  return (
+    <WriteBackShell writeBack={writeBack}>
+      {(status) => (
+        <>
+          {writeBack.toggle(
+            'listenbrainzLoveEnabled',
+            'writeBack.listenbrainzLoves',
+            status.listenbrainz.configured,
+          )}
+          <p className="text-xs text-muted">{t('writeBack.listenbrainzHelp')}</p>
+          {writeBack.toggle(
+            'listenbrainzPlaylistEnabled',
+            'writeBack.listenbrainzPlaylists',
+            status.listenbrainz.configured,
+          )}
+          <p className="text-xs text-muted">{t('writeBack.playlistHelp')}</p>
+          {!status.listenbrainz.configured && (
+            <p className="text-xs text-muted">{t('writeBack.listenbrainzMissing')}</p>
+          )}
+          {status.listenbrainz.lastError && (
+            <p role="status" className="text-xs text-reject">
+              {t('writeBack.lastError').replace('{0}', status.listenbrainz.lastError)}
+            </p>
+          )}
+        </>
+      )}
+    </WriteBackShell>
+  )
+}
+
+export function LastfmWriteBack() {
+  const { t } = useI18n()
+  const writeBack = useWriteBack()
+  return (
+    <WriteBackShell writeBack={writeBack}>
+      {(status) => (
+        <>
+          {writeBack.toggle('lastfmLoveEnabled', 'writeBack.lastfmLoves', status.lastfm.configured)}
+          <p className="text-xs text-muted">{t('writeBack.lastfmHelp')}</p>
+          {!status.lastfm.configured ? (
+            <p className="text-xs text-muted">{t('writeBack.lastfmMissing')}</p>
+          ) : (
+            <p className="text-xs text-muted">
+              {t(status.lastfm.connected ? 'writeBack.lastfmConnected' : 'writeBack.lastfmConnect')}
+            </p>
+          )}
+          {status.lastfm.configured && status.lastfm.connected && (
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={writeBack.saving}
+              onClick={() => void writeBack.connectLastFm()}
+            >
+              {t('writeBack.lastfmReconnect')}
+            </Button>
+          )}
+          {status.lastfm.lastError && (
+            <p role="status" className="text-xs text-reject">
+              {t('writeBack.lastError').replace('{0}', status.lastfm.lastError)}
+            </p>
+          )}
+        </>
+      )}
+    </WriteBackShell>
   )
 }

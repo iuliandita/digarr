@@ -78,7 +78,6 @@ export const en = {
   'tokens.readOnlyError': 'This token only allows GET and HEAD requests.',
   'tokens.notFoundError': 'This token was not found.',
   'writeBack.lastfmReconnect': 'Reconnect Last.fm',
-  'writeBack.title': 'Scrobbler write-back',
   'writeBack.scope':
     'Only approvals of exact tracks from previews or Audition are sent. Rejections, blocks, and artist-only approvals stay local.',
   'writeBack.offHelp':

@@ -8,6 +8,10 @@ import { Field } from '../../components/field'
 import { GenreCoverageSummary } from '../../components/genre-coverage-summary'
 import { Hint } from '../../components/hint'
 import { IntegrationCapabilities } from '../../components/integration-capabilities'
+import {
+  LastfmWriteBack,
+  ListenBrainzWriteBack,
+} from '../../components/scrobbler-write-back-settings'
 import { ServiceCard, type ServiceStatus } from '../../components/service-card'
 import {
   AiProviderIcon,
@@ -1239,6 +1243,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 : t('settings.configure')}
           </Button>
         </div>
+        <ListenBrainzWriteBack />
       </ServiceCard>
     ),
     lastfm: (
@@ -1309,6 +1314,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
                 : t('settings.configure')}
           </Button>
         </div>
+        <LastfmWriteBack />
       </ServiceCard>
     ),
     spotify: (

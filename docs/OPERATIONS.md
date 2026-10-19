@@ -99,7 +99,7 @@ The checked source files are `app_artist_similarity.py`, `tasks/artist_gmm_manag
 | `DIGARR_ENCRYPTION_KEY` | Required before connecting Last.fm write sessions; retain with backups. |
 | `ALLOWED_ORIGIN` | Public origin used for the Last.fm callback by the Account UI. |
 
-Restart after changing these settings. Users authorize their own sessions and enable sending separately in Account; there is no global opt-in. Unraid operators can add these optional variables manually without changing the baseline template. See [scrobbler write-back](AUTHENTICATION.md#scrobbler-write-back) for data sent, failure reporting, backup, and rollback behavior.
+Restart after changing these settings. Users authorize their own sessions and enable sending separately in Connections; there is no global opt-in. Unraid operators can add these optional variables manually without changing the baseline template. See [scrobbler write-back](AUTHENTICATION.md#scrobbler-write-back) for data sent, failure reporting, backup, and rollback behavior.
 
 ## Unattended setup
 

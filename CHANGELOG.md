@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Changed
 
+- Scrobbler write-back moved from Settings > Account to the ListenBrainz and Last.fm cards in Settings > Connections, next to the credentials and the Last.fm connect button. Preferences and API are unchanged, and returning from Last.fm authorization now lands on Connections (#1123).
 - Settings tabs and the setup wizard load on demand, so the main web bundle is smaller (the Settings chunk went from 217 kB to 9 kB), and the audio preview context no longer re-renders every consumer on each app update (#1098).
 
 ### Fixed

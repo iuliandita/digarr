@@ -79,7 +79,6 @@ export const ptBR = {
   'tokens.readOnlyError': 'Este token só permite requisições GET e HEAD.',
   'tokens.notFoundError': 'Este token não foi encontrado.',
   'writeBack.lastfmReconnect': 'Reconectar Last.fm',
-  'writeBack.title': 'Envio para scrobblers',
   'writeBack.scope':
     'Só são enviadas aprovações de faixas exatas das prévias ou do Audition. Rejeições, bloqueios e aprovações só de artistas ficam locais.',
   'writeBack.offHelp':

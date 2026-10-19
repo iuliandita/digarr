@@ -71,7 +71,6 @@ export const zhCN = {
   'tokens.readOnlyError': '此令牌仅允许 GET 和 HEAD 请求。',
   'tokens.notFoundError': '找不到此令牌。',
   'writeBack.lastfmReconnect': '重新连接 Last.fm',
-  'writeBack.title': '向音乐记录服务发送',
   'writeBack.scope':
     '仅发送从试听或 Audition 中对确切曲目的认可。拒绝、屏蔽和仅对艺人的认可会保留在本地。',
   'writeBack.offHelp': '关闭开关会停止后续发送，不会撤销已经发送的内容。',

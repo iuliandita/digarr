@@ -7,7 +7,6 @@ import { errMsg } from '@/core/validation'
 import { ApiTokensSection } from '../../components/api-tokens-section'
 import { Field } from '../../components/field'
 import { LanguageSelect } from '../../components/language-switcher'
-import { ScrobblerWriteBackSettings } from '../../components/scrobbler-write-back-settings'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { useHints } from '../../hooks/use-hints'
@@ -252,8 +251,6 @@ export function AccountTab() {
       </section>
 
       <PersonalNotificationChannels />
-
-      <ScrobblerWriteBackSettings />
 
       <section className="space-y-3">
         <h2 className="text-lead font-semibold text-text">{t('settings.language')}</h2>

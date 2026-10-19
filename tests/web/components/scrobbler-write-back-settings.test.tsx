@@ -5,7 +5,10 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { OAuthCallbackNotice, resolveOAuthNotice } from '@/web/components/oauth-callback-notice'
-import { ScrobblerWriteBackSettings } from '@/web/components/scrobbler-write-back-settings'
+import {
+  LastfmWriteBack,
+  ListenBrainzWriteBack,
+} from '@/web/components/scrobbler-write-back-settings'
 import {
   getScrobblerWriteBackStatus,
   getUserPreferences,
@@ -30,10 +33,11 @@ function renderSettings(search = '') {
   const client = createTestQueryClient()
   return render(
     <QueryClientProvider client={client}>
-      <MemoryRouter initialEntries={[`/settings?tab=account${search}`]}>
+      <MemoryRouter initialEntries={[`/settings?tab=connections${search}`]}>
         <I18nProvider>
           <OAuthCallbackNotice />
-          <ScrobblerWriteBackSettings />
+          <ListenBrainzWriteBack />
+          <LastfmWriteBack />
         </I18nProvider>
       </MemoryRouter>
     </QueryClientProvider>,
@@ -45,7 +49,7 @@ const configuredStatus = {
   lastfm: { configured: true, connected: true, lastError: null },
 }
 
-describe('ScrobblerWriteBackSettings', () => {
+describe('scrobbler write-back cards', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(getScrobblerWriteBackStatus).mockResolvedValue(configuredStatus)
@@ -77,10 +81,10 @@ describe('ScrobblerWriteBackSettings', () => {
     fireEvent.click(loves)
     await waitFor(() => expect(loves).not.toBeChecked())
     expect(updateUserPreferences).toHaveBeenLastCalledWith({ listenbrainzLoveEnabled: false })
-    expect(screen.getByText(/does not undo anything already sent/)).toBeInTheDocument()
+    expect(screen.getAllByText(/does not undo anything already sent/)).toHaveLength(2)
     expect(
-      screen.getByText(/Rejections, blocks, and artist-only approvals stay local/),
-    ).toBeInTheDocument()
+      screen.getAllByText(/Rejections, blocks, and artist-only approvals stay local/),
+    ).toHaveLength(2)
   })
 
   it('explains missing credentials and permits disabling an existing opt-in', async () => {
@@ -152,10 +156,9 @@ describe('ScrobblerWriteBackSettings', () => {
   it('shows load failures and retries both settings requests', async () => {
     vi.mocked(getScrobblerWriteBackStatus).mockRejectedValueOnce(new Error('unavailable'))
     renderSettings()
-    expect(await screen.findByRole('alert')).toHaveTextContent(
-      'Could not load your write-back settings.',
-    )
-    fireEvent.click(screen.getByRole('button', { name: 'Try again' }))
+    const alerts = await screen.findAllByRole('alert')
+    expect(alerts[0]).toHaveTextContent('Could not load your write-back settings.')
+    fireEvent.click(screen.getAllByRole('button', { name: 'Try again' })[0])
     await waitFor(() =>
       expect(screen.getByRole('checkbox', { name: 'Send track loves to Last.fm' })).toBeEnabled(),
     )
