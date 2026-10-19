@@ -350,6 +350,14 @@ export const getRecommendations = (params?: Record<string, string>) => {
   const qs = params ? `?${new URLSearchParams(params).toString()}` : ''
   return fetchApi<{ items: unknown[]; total: number }>(`/recommendations${qs}`)
 }
+export type RecommendationTabCounts = {
+  all: number
+  pending: number
+  approved: number
+  rejected: number
+}
+export const getRecommendationCounts = () =>
+  fetchApi<RecommendationTabCounts>('/recommendations/counts')
 export type ApprovalTargetSummary = {
   total: number
   succeeded: number

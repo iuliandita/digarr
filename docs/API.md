@@ -424,11 +424,12 @@ The parser coerces rather than rejects most fields:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable) |
+| GET | `/api/v1/recommendations` | Yes | List recommendations (paginated, filterable). Each `artist` omits the cache fields `topTracks`, `description`, `externalLinks`, `wikidataId`, `wikidataFetchedAt`, `wikidataFailedAt`, `cachedAt` and `genresCachedAt`; use `/api/v1/artists/:id/top-tracks`, `/api/v1/artists/:id/enrichment` or `GET /api/v1/recommendations/:id` for them |
 | GET | `/api/v1/recommendations/:id` | Yes | Get single recommendation with artist data |
 | PATCH | `/api/v1/recommendations/:id` | Yes | Approve, reject, or restore a recommendation |
 | POST | `/api/v1/recommendations/bulk` | Yes | Bulk approve/reject (reject accepts an optional shared `reason` + `permanent` block; optional `Idempotency-Key`) |
 | POST | `/api/v1/recommendations/missing-albums` | Yes | Approve selected missing studio albums for an artist using the caller's album-capable targets |
+| GET | `/api/v1/recommendations/counts` | Yes | Discover tab counts for the caller in one query: `{ all, pending, approved, rejected }` |
 | GET | `/api/v1/recommendations/feedback-summary` | Yes | Genre approval rates (top 20, at least 3 acted-on recommendations per genre), scoped to the calling user's own feedback |
 | GET | `/api/v1/recommendations/popular-albums/availability` | Yes | Credential availability for the popular-album approve option: Spotify token resolution succeeds and/or a Last.fm API key is stored. Does not probe album lookups; a subsequent lookup can still fail. Returns `{ available, spotify, lastfm }` (booleans). |
 | GET | `/api/v1/recommendations/playability` | Yes | Track availability for the caller's pending artists, read from saved Audition playlist outcomes. Sends no provider requests. |
@@ -436,6 +437,8 @@ The parser coerces rather than rejects most fields:
 **GET /api/v1/recommendations/feedback-summary** returns `{ summary: [{ genre, approved, rejected, other, total, rate }] }` in v2.0.0, ordered by descending rate and limited to 20 genres with at least 3 acted-on recommendations each. `total` counts recommendations with an action timestamp. `approved` counts current `approved` and `added_to_lidarr` statuses; `rejected` counts only current `rejected` rows, including those without a reason. `other` counts the remaining acted-on rows, such as failed approvals and recommendations restored to pending. Thus `approved + rejected + other = total`. `rate` remains `approved / total`, including those other outcomes in the denominator, so it is not a pure like/dislike ratio. Recommendation scoring is unchanged.
 
 v1.19.0 has no `other` field and labels every non-approved acted-on row as `rejected` ([#789](https://github.com/iuliandita/digarr/issues/789)). API consumers upgrading to v2.0.0 must use `other` when reconciling totals instead of assuming `approved + rejected = total`. There is no schema migration or stored-row rewrite; rollback restores the old response calculation.
+
+**GET /api/v1/recommendations/counts** returns `{ all, pending, approved, rejected }`, scoped to the calling user like the list endpoint. Each number equals the `total` that `GET /api/v1/recommendations` reports for the matching Discover tab: no status filter, `status=pending`, `status=added_to_lidarr,add_failed,approved,waiting`, and `status=rejected`. Pending excludes recommendations with an open approval request, which still count in `all`. Kind, decade and taste filters do not apply. No schema change.
 
 **GET /api/v1/recommendations/playability** returns `{ pendingArtists, withTrack, withoutTrack, reasons: { missingSource, noMatch, upstreamFailure }, unknown, checkedAt }`. It counts distinct artists with a pending recommendation, using each artist's newest outcome from the caller's last 20 Audition playlist runs (failed runs included). `missingSource` means no track source was configured for that run, `noMatch` means the configured sources found no track, and `upstreamFailure` means a source lookup failed. Artists no run has resolved count as `unknown`, never as missing a track. A MusicBrainz title without a playable source counts as `withTrack`, matching the playlist outcome. `checkedAt` is the newest run that classified a pending artist, or `null`. No schema change; the endpoint reads existing job history.
 

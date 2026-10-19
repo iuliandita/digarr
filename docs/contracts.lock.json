@@ -174,7 +174,7 @@
         "src/db/queries/api-tokens.ts": "ec3460118af7dbb12f4dbdc3854756a286644b74508d4fc9d71bcb1d11fae4ef",
         "src/db/queries/approval-requests.ts": "6547d3941a56731fbd48066b6334d8055415e229188f5f33e7c41564bf0833f3",
         "src/db/queries/artist-blocks.ts": "88fee42a98ec0483cd2bfbc296404765ce74e671a404c10eeebc8afba288e9a1",
-        "src/db/queries/artist-metadata.ts": "51250a52df988acc71f442ad2c687e15b26bab874f18c21ccc47a71cd7faaf78",
+        "src/db/queries/artist-metadata.ts": "66bb8aae77cef9ff2449884ffb3878d598c0a9c8500138b66dfad8e8b84f5b42",
         "src/db/queries/artists.ts": "113aaf2c7158127ffb0e563ef5ee7722fdcc980910db9f9152b359fbc7a57e9c",
         "src/db/queries/batches.ts": "5488ebea7af47bccd7c9861a41293bcf8199b60873e02b3f7dc1c7084cd9f970",
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
@@ -187,7 +187,7 @@
         "src/db/queries/oauth-tokens.ts": "878479c899c2eeb1077296c3d8eb19a189bf7d6e1b87c2611e6dfe5b093d3e81",
         "src/db/queries/playlist-exports.ts": "e9960e26d65e30e9b310f859008ad529b959d45f9365cdc4410c6b3db160e365",
         "src/db/queries/playlists.ts": "53e3afe9bbcb09c962fba06e773cadf6c629dfc0f97b78098393ab4e5f19394a",
-        "src/db/queries/recommendations.ts": "2b1d553be9097c75ed144acf7d2054460175c3ce042d2f325535b61c262d6bfe",
+        "src/db/queries/recommendations.ts": "e358f0887722717d065ddb29005d703d4aec96e8f0235ecf637a70d8e1a35532",
         "src/db/queries/recording-artist-cache.ts": "dd949706e674604c018e2941e4c462dc24afb623ce0ba288971f30cb360b05c0",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
@@ -199,14 +199,14 @@
         "src/db/schema.ts": "e729ed83307cdf724b056e1ea31765bdbec1625610d1e61b6e0e13566f3665ca",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "80ce5eabc349d4bd7a9c2e3f1df50e2cde92d224c533d5ade7aac89a4045a658",
+      "digest": "4293ca21da6ed16e7fe9e0816eeecf5de342bab027c8ee751c03034aefa4b93f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
         "note": "Document the additive job history ordering index, index build time, backend copies, and recovery.",
         "breaking": "none",
         "migration": "Before upgrade, take a complete database backup. Migration 0060 adds only an IF NOT EXISTS ordering index and remains backward compatible. Rollback uses the previous image with the index retained, or restores the complete pre-upgrade backup while the application is stopped.",
-        "digest": "80ce5eabc349d4bd7a9c2e3f1df50e2cde92d224c533d5ade7aac89a4045a658"
+        "digest": "4293ca21da6ed16e7fe9e0816eeecf5de342bab027c8ee751c03034aefa4b93f"
       }
     },
     "configuration": {
@@ -242,12 +242,12 @@
         "src/server/middleware/auth.ts": "458f5c99af6918d5336fc7660c39b754595b9ddd0455058d7fde29510bd336bb",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
         "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
-        "src/server/middleware/logger.ts": "094972eca5d2de702252b6c07284313cd7f248c0aed3be8b1e2dbd624ea4c0d1",
+        "src/server/middleware/logger.ts": "370c52c638ba0e5ca89baa7fa8058eccc6024349b835a36bb2b64499334ab9e0",
         "src/server/middleware/problem-json.ts": "b1b07dc5522735858efe4a8157d064d29c1440b0a4cca881139a4d0bab919085",
         "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
         "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
-        "src/server/middleware/setup-guard.ts": "c908c814ee54aae786b71ffd39aba471c2617224910a87a472bd1cc53069b261",
+        "src/server/middleware/setup-guard.ts": "01f0bada266b354aecbac172986940affee6d92d8769de03db20eec02bd9b4ba",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
         "src/server/routes/auth.ts": "855369731419d7658ceb7ac9d2f9ee186749397168869fe5576c565a1b1bcef7",
         "src/server/routes/oauth-callbacks.ts": "9afe6d6d34017118f84c679dfa82e2ce2ad529bd04a17833ab01aa0ba83ba4e9",
@@ -262,29 +262,29 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "1ddda3ec46666a123e43358e07b152f25c8814fdd904daf7331108ab7152bb18",
+      "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Re-recorded after merging develop into #1060; its webhook signing docs and CHANGELOG entry are already in this branch.",
+        "note": "The setup guard remembers a true setup-complete result in memory and the logger skips static file paths; which requests are allowed or rejected is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "1ddda3ec46666a123e43358e07b152f25c8814fdd904daf7331108ab7152bb18"
+        "digest": "c95634ce9e67e9936e3cbbc64d09d134211cb76ed599020a663a128c69546423"
       }
     },
     "api": {
       "files": {
-        "src/server/deps.ts": "b0757dea7c1168ec33d036590967a6b31791df7a24183ad47be131caf16244d1",
+        "src/server/deps.ts": "4c1d190afdb922d6af349b48acfea57094dfb733fe73be048e5923f00c459acb",
         "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
         "src/server/helpers/openapi-doc.ts": "b512509ccb06b92fe1a9117da7d5f981c76766e921deb7f5ef6df9229f99be3d",
-        "src/server/helpers/openapi-routes.ts": "92cda8cc478444325509fec3f4ce6fd0554df4acf328f8cabfdc6bbf852a1183",
+        "src/server/helpers/openapi-routes.ts": "09187c4cd72a57088485977b41c2650a9691e74d658fb28487b3fd0829ced57a",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "3e278c15ba0772f11d1a9dd8337098a2bbfb31ccef863580abcac581d8f1e8d1",
+        "src/server/index.ts": "a643bb8ba7b9a38e36997c89ff1e282da30b8757af61263efd5f56459d3e2c66",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -295,19 +295,20 @@
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "ed7401ae574d24d0a68ee80e46ace07f625ed379f25bd27e6a3a745714f8f8d8",
         "src/server/routes/discovery-modes.ts": "f84e434fd2bdf8b9a3c92ba5d983d3acd76abe8bec15c440bd67b5b8e491c7d4",
-        "src/server/routes/exports.ts": "6e93cc52cb4ed3909081b9b27ca25c93c3f61d14e546d1466f7c79f87f46a92c",
+        "src/server/routes/exports.ts": "74c47dbedf5c5dcc7ad95c306f60e2a2d95cb1bf0f5a9b67bb64524304b050a2",
         "src/server/routes/genres.ts": "fbaf9454ecec0f6dfcf49b95c41807b14c4aa3dba2233e0aa3e18da4e5ff3723",
         "src/server/routes/health.ts": "35dc74f5a76a2c6d2ed738a977ad6af2857b5e029808a71f86978bcdcc52934f",
         "src/server/routes/jobs.ts": "e63cba1b86075418235c1e06f2460baa1210d28bd76185bdac376ff697f46dca",
         "src/server/routes/library.ts": "ac0058c60c6bbb2308f0d713df40b4ac99d39bde0ba92d23a1d845c717b6096f",
         "src/server/routes/lidarr.ts": "d2f726dcae32a8146e887724b8fc484bc8c7bff3b495f3e08f679fda59c732a0",
-        "src/server/routes/listening.ts": "bc8c37bc858b73398791982861a2c39e792edcc25ef7c41c7df80152ad6ef251",
-        "src/server/routes/mcp.ts": "75fdba073140ce4e5e20e26cb8bafe86dc08fb525a792ebf4f499047c2ed2b26",
+        "src/server/routes/listening-images.ts": "872e674cc8a9bb4cd5b1eb60160dd096e6abd6379cb85d464e484f7a6b2c36b5",
+        "src/server/routes/listening.ts": "07cc8c4f308bfaa175ca088db30b961219c729d0386f6df55732f40fded1eeb8",
+        "src/server/routes/mcp.ts": "b55788e04b4afbcbe727e3226a3c5891354b8fabdf1ee2f848c4e962edce024b",
         "src/server/routes/media.ts": "4a46245005cf2fcd3dd2496c976a2faa76db1dc60344d6d54760d31df8cd3aff",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
         "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
-        "src/server/routes/recommendations.ts": "69087cc7593cd18d52993f5c562e0f9bfef829647e30b5b5b4652efae62443ce",
+        "src/server/routes/recommendations.ts": "c05e1c4ef64673890858208a1784ea5ab98f42d0dd7a25ec07ea13193e2363fc",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
         "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
@@ -330,16 +331,17 @@
         "src/server/schemas/user-notifications.ts": "0a0ec838fda6c9a8d930c7722c557c19095f9dc5e4192e9566012b5a5d9bc4c0",
         "src/server/schemas/validator.ts": "ac6b42d5851b8b5806d774eee1ed12de27adfb4355137eed3b6e0f2f7b52d631",
         "src/server/sse.ts": "ea2fd18393dcf5d517b8e7e53f392bf79e03c25445a36d8b6ac3efde7b14cde1",
+        "src/server/static.ts": "9b9425315642c8583fd27610b5b51697de68d0bec98420a4ceef7bba52072fc8",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "20a206462918404a7cbd0383d49dd81e226626244b20a2fee3f2bc9c92bc2abe",
+      "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "src/server/helpers/openapi-doc.ts", "CHANGELOG.md"],
         "note": "Document bounded reconciliation pages, projected review rows, stable job ordering, compact summaries, and the existing full-detail endpoint.",
         "breaking": "Reconciliation clients must request successive pages and stop using removed internal fields; job clients need the detail endpoint for complete metadata and source diagnostics.",
         "migration": "",
-        "digest": "20a206462918404a7cbd0383d49dd81e226626244b20a2fee3f2bc9c92bc2abe"
+        "digest": "c99f16c2a53fb2044e9081b78f82037920b878fe2de27169811eed00227dc925"
       }
     },
     "interface": {
@@ -371,7 +373,7 @@
         "src/core/i18n/prompt-locale.ts": "9fb5643f128f2ee1a0f3c094704a40844b2d2d6e4912a9a501650daa522efe04",
         "src/core/i18n/protected-terms.ts": "826362e0adb7850002887c6e2d4cf8c5428c1140f6414ab03d71b2d38d803c6d",
         "src/core/i18n/translator.ts": "37a576b6327c38d0c652d1504b574bc98ddfa2b4b774df4210a426dba330809f",
-        "src/web/App.tsx": "d8e25abb6741a7e33769c9fef24fb233d3c5f6d16c82105c982a96e97023ffb9",
+        "src/web/App.tsx": "81b8517deaef8853b18fd87803c45598bb43f756294f7c02b24ae6b67342df7f",
         "src/web/components/admin/administration-tab.tsx": "6af6a3773aa3d669a89a520aa636eb185ec86d8bbabaafda66f6609e58092fa7",
         "src/web/components/admin/backup-section.tsx": "aac1e33dbc5c1e98e79e519560c50d253823c00c2bca497b4f9b7e8675374ee6",
         "src/web/components/admin/hygiene-section.tsx": "a02f8318469d01b51202b9537a5d40f7694496824cedb1a42f9bd294e8fd9b28",
@@ -387,7 +389,7 @@
         "src/web/components/blocked-albums-tab.tsx": "b7183b82387212253a5659a29073860fa8ce0debe45a7961ee7258bfef87f6d3",
         "src/web/components/blocked-artists-tab.tsx": "745f164a66ede7570250801c9140d00cd2b5394987009021e64aed41d076de26",
         "src/web/components/bottom-nav.tsx": "66ef43a9dde69c425a1c1745e55869e57738984b620657f53c1dad80f6c8941b",
-        "src/web/components/card-stack.tsx": "7354e27d1f9f2cc85977d5603f42d15679bc20faabebeeb2c06d09f60743704e",
+        "src/web/components/card-stack.tsx": "de3b82a14f1103f48f655b58fa962bbd773da375f9a6df10a81bbede09ec36ba",
         "src/web/components/confirm-dialog.tsx": "2b4b5ffb3316c6f78977953384a793d0b1f72d10a85a598480cb9d149de54e61",
         "src/web/components/cron-picker.tsx": "e270427b67aaa6e721dd8c290cd04e3f2c250b02f805ef03b3849b84378b6c04",
         "src/web/components/dashboard-card-toggle.tsx": "942a1102a39680daa17ffa421b0e72e0d56570348543aec283ec0e767070c56a",
@@ -456,7 +458,7 @@
         "src/web/components/ui/select.tsx": "d1bf3a859cf27e8ef45e86731bddecd984994c1265794bec9f1bef394726f833",
         "src/web/components/ui/skeleton.tsx": "1d33366a895e482264f4fa13030ef65269396d281554c46a31d356137e3ef11e",
         "src/web/components/user-approval-policy.tsx": "cc359a7cf8e19ef2dc2047eb61089d9ddd4105c51bb6407f9d72f192d8c8528b",
-        "src/web/hooks/use-audition-queue.ts": "f546b67ce9f458a8bc2418e173a99acfbd37efa5ce33308b968a2ec366dc60fe",
+        "src/web/hooks/use-audition-queue.ts": "3c092ab394ac26bcf1c73cc04482a0fd38019bf35e7ef566d9456a181e8dd564",
         "src/web/hooks/use-click-outside.ts": "4b5d69046fdd1307242e0560e7367f1e9647660cd3ca2dcb8becff9315765621",
         "src/web/hooks/use-dashboard-layout.ts": "05c162361785554bff1afd9adf04b5886331c47cf3744df0dadb12f9ffa12e60",
         "src/web/hooks/use-dialog-focus.ts": "22fa8ad597dec3cfa38c35c061688e86a60348e5ecfb8f1bdede3009a00b532e",
@@ -470,9 +472,10 @@
         "src/web/hooks/use-spotify-embed.ts": "7327425789266250fb45694f5755c76bac371eda96676190a56f8df3263391c0",
         "src/web/hooks/use-swipe.ts": "d17f0c75cd42e8d91e31585bcf7d3ed9e5fbe939093a030d25cf2ce41adef250",
         "src/web/index.css": "b8085bf0a9a16b9a7424f93297dbbf6e008ee6a618163cd5f07e22216f540bfc",
-        "src/web/lib/api.ts": "7991e3889c778ca22a157f777819a1eb21dcb8ac853ccb2f6fbd34faf70a6c3b",
+        "src/web/lib/api.ts": "cfb86049916ba85b6c915a7277a7adbb05803ba10c9e6c1cbf5677c4f60ee878",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
+        "src/web/lib/discover-cache.ts": "33b98aaeed8fdd7f9e53fbfe9ee5b23779920483bcf10481048c11a2ad7f4a2e",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
         "src/web/lib/discovery-run-feedback.ts": "ee388d3fffef7a95a2b9456200e51f391a8c4c7608d2bbb91addef8e465acc3e",
         "src/web/lib/format-time.ts": "24a4efbcbc7a44f9374e74659fb7a4125c843792e11c053f017f99f1861f7a4d",
@@ -492,8 +495,8 @@
         "src/web/lib/utils.ts": "29c4c23be2d7b7438299d59be219d2197d94cacb72f6de3e63c41f8525c126c0",
         "src/web/main.tsx": "ccd448a84acb20e8bc42daeefb02b726d58400149c0cc34b8b1517f5a3283337",
         "src/web/pages/analytics.tsx": "3e530e18a0c5ccf4d64f1df017095f8d3f2caad335197903aea2f4308f600f63",
-        "src/web/pages/dashboard.tsx": "86b7052904708da15c88cb66ed2974830aa4de72d8d198ca155d17ef4885a1ad",
-        "src/web/pages/discover.tsx": "cc5fbae89becb9091fadc19e24b3435bcdd2979681018d206bf14843791b41be",
+        "src/web/pages/dashboard.tsx": "6dc7cd6372a4bb041b1ddea60b02d5d08119c638438b095126f4ca9d4b28fb71",
+        "src/web/pages/discover.tsx": "89d761c8b8948e58e2ec21bf7e8cf74d865263878daeeab753ba9417ba89863c",
         "src/web/pages/discovery-modes.tsx": "03001fe47cf4402bb1a22a250c8a43d97c5a024d00ddbe70c4511b5e4dbfe24b",
         "src/web/pages/genre-detail.tsx": "49d5bcb372c5bb727be376f9231731b1783092a7eeb35b73153726467ae2234c",
         "src/web/pages/genres.tsx": "993a08b560ee596026a9c5f0895ff33f180a28e35ab3541f1de204c410337d36",
@@ -509,7 +512,7 @@
         "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
         "src/web/pages/settings/connection-picker.tsx": "49360515b4df1d7ffb5b9b6c0affd640727cdcddcf4c364098b6a8f01a782e4e",
         "src/web/pages/settings/connections-tab.tsx": "6d0c1bea1a8588a5c3b98d8b697faedaff08e480138f4b5d505e16400dd6322e",
-        "src/web/pages/settings/index.tsx": "cf82d5aa1fee27fbb1afafd6742f0131bf04b88c664fd92382bd8180901085e4",
+        "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
         "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
         "src/web/pages/settings/notification-channels.tsx": "9d1053d421655206b88b9b50002ef4973787c933e3c694143d12357de64750d3",
         "src/web/pages/settings/recommendations-tab.tsx": "a05f52b26f1429997ab501cdf8cffa0a10dc181c04bd7e376b8478cbec2fac5b",
@@ -526,14 +529,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "bd8caee1c4881dcf948e9e3e1af02df8668f80d2d41cf04cdfe12a4bca628bc0",
+      "digest": "4c1f505c9a9deb828385c19b5ef52fafbed3585dcbc3ccbd093847a26c26d6a8",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
         "note": "History expands with an on-demand detail request; reconciliation loads 20 rows per page and refetches the affected page after corrections. Artist selection remains available across pages through All.",
         "breaking": "none",
         "migration": "",
-        "digest": "bd8caee1c4881dcf948e9e3e1af02df8668f80d2d41cf04cdfe12a4bca628bc0"
+        "digest": "4c1f505c9a9deb828385c19b5ef52fafbed3585dcbc3ccbd093847a26c26d6a8"
       }
     },
     "features": {
@@ -640,10 +643,10 @@
         "src/core/pipeline/filter.ts": "45700543557426bb5247a5963c3d1a479c0099638d363667834438617035213b",
         "src/core/pipeline/genre-backfill.ts": "aa1dee05dfe3588e304070f80db1d31afc36cc851247f703732967b70e431230",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
-        "src/core/pipeline/orchestrator.ts": "8d7b3b0aa448d73eb76fdfa586a056c152ecaa803cdd218c84a08682fe9b11bb",
-        "src/core/pipeline/resolve.ts": "1254cf614a9af0531c447ca636d4a618ff0c86ca7103c076443de1d357fb9f1b",
+        "src/core/pipeline/orchestrator.ts": "838a98fca35b1e519a3e4ea53825bebc3288227018d34c833f718f813b8ae92d",
+        "src/core/pipeline/resolve.ts": "06eb83373929c265677017e86ce33fe942e4951f54b6ecbdb7abb8d8d3d2f9b5",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
-        "src/core/pipeline/store.ts": "273a8de585542e39d666b4c5b2c518d6ea861ef2d75d3efcc60cac1fe1aa6939",
+        "src/core/pipeline/store.ts": "0c515bc9adb7bbee7f9650f7095b6ce912771b087bc9fca4a5d132bf796dbbca",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
         "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
@@ -700,7 +703,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "7d3789abf19f6d22bd427eba3e261f840d8661536218a0a5353e2c2d6280ca18",
+        "src/core/slskd/orchestrator.ts": "c60f7cae03f5a956dda10793b395e7f2ab6f05465f96e3b6056a4bfe3139667e",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -718,7 +721,7 @@
         "src/core/subscriptions/connections.ts": "a7a26cbba2e3ab823140a71c9bc4a40cf8a698014b5f9a78f1322ed60833b59e",
         "src/core/subscriptions/dedup.ts": "f23afd2e0b4385a7e0c416ce23ae89125d16de848623fafc12eda91b2610c849",
         "src/core/subscriptions/registry.ts": "e62daa124bf30b318ad7c99e73c240809fa59fed8929a106f515549c0351d224",
-        "src/core/subscriptions/runner.ts": "b8f37fb7a3423ad468007d7772db6f5f1bb211e59fcd08ebaf18bf5e61c367c1",
+        "src/core/subscriptions/runner.ts": "d0533e808cd69ae8548318095bc31a83a6d56aea56aaf457a6369e519f0452ea",
         "src/core/subscriptions/types.ts": "05e47b95327590fd88f4307c6eb27ddb4eb89fc6ee0f7429073544ed512a3c5e",
         "src/core/targets/action-status.ts": "cfa09e111312ce4d47bda3679e6328f18efbea6262ade6037bcdf34d80d99ccb",
         "src/core/targets/emby-playlist.ts": "517b800456ce079a87380f8cb38817ef3bf54aa0f6d55f6e30ea089ef6551401",
@@ -746,23 +749,23 @@
         "src/core/types.ts": "6d84c932174ff44fbb0f95b1466e8f790e8e06b8b7e028f7828623bb46bf4cd6",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "c4ae00f83b83c4e877bbec02592399ed114172f4382ca5f1405b103a0bad8a94",
+        "src/index.ts": "6792f26da5ebbee14a36cae57ac2ebdf8477d23af9233409e746de83368dc53f",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "aa4ac337ab4e8b7d52df1cb967b1870657af9acf4bfcc9bfca8bf949f752cb61",
+      "digest": "2e0d688af815b2b61ee8256f85d5007069f8aaa92c8df6551c855520be1215a6",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Document server pagination and review projections while preserving current-user and global visibility, override filtering, and the bulk-ignore cap.",
         "breaking": "none",
         "migration": "",
-        "digest": "aa4ac337ab4e8b7d52df1cb967b1870657af9acf4bfcc9bfca8bf949f752cb61"
+        "digest": "2e0d688af815b2b61ee8256f85d5007069f8aaa92c8df6551c855520be1215a6"
       }
     },
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "6505d50f20bfe47d4865d5a8f16d5b9fe7ed1af3614f40f1f5fc1e725da93153",
-        "deploy/docker/Dockerfile": "ea53912a3ba45cfca3d245cbe005e57a7782327eb0cd891fbb6d8820ba7c9ad1",
+        "deploy/docker/Dockerfile": "005db0aac52e09144abfb06e10595c4ae6e9284bcff8bd458b3ea6b854979e7f",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -796,14 +799,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469",
+      "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document optional server secret and encryption configuration without changing baseline templates, ports, volumes or authentication defaults. Published personal template is aligned; community setup differences remain tracked by existing PR 697 and optional variables can be set manually.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "The image copies only the PGlite runtime package the bundle leaves external and the server bundle is whitespace and syntax minified; ports, volumes, env vars, user and entrypoint are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "53f1a942ddcd6b492aff8b44bbe8b38845ec7a75790acaf9217bd90b039ed469"
+        "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81"
       }
     },
     "release": {
@@ -822,17 +825,17 @@
         ".github/workflows/release.yml": "8b31d8c84cd4c23450e234f78ac595ccef8bd93086be8acfd9dab0709d7db231",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "6e3c232888606470232bbccd3f6d53532e9a8e4342352d0e3582d7608ba49572",
+        "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
         "vite.config.ts": "c161286e35d04885837e1306144cdd77d72e922329eebf463923f57501293b59"
       },
-      "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476",
+      "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Package name now comes from GITHUB_REPOSITORY; scheduled runs lack the repository event payload. No operator-facing change.",
+        "note": "Only the server build script gains whitespace and syntax minification; version, scripts and pins are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "4f6d3bd17264cabe608f02f74e544880cee9307bc9c3f99c36e78bd6816a9476"
+        "digest": "03bb5c0ef1ebb7ec97bd296fb85a6fe078edc8ab747c45c4891bf34d8f8e2755"
       }
     },
     "maintenance": {

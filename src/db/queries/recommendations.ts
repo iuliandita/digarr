@@ -1,9 +1,24 @@
-import { and, asc, count, desc, eq, gte, inArray, isNull, ne, or, type SQL, sql } from 'drizzle-orm'
+import {
+  and,
+  asc,
+  count,
+  desc,
+  eq,
+  getTableColumns,
+  gte,
+  inArray,
+  isNull,
+  ne,
+  or,
+  type SQL,
+  sql,
+} from 'drizzle-orm'
 import type { GenreFeedback } from '@/core/pipeline/score'
 import type { RejectionReason } from '@/core/recommendations/rejection-reasons'
 import { parseStatusFilter } from '@/core/recommendations/statuses'
 import type { Database, DbOrTx } from '@/db'
 import {
+  albumBlocks,
   approvalRequests,
   artistBlocks,
   artistMetadata,
@@ -17,6 +32,32 @@ type RecommendationRow = typeof recommendations.$inferSelect
 type ArtistRow = typeof artists.$inferSelect
 
 export type RecommendationWithArtist = RecommendationRow & { artist: ArtistRow }
+
+// Heavy cache columns the list view never reads; the detail endpoints serve them.
+const {
+  topTracks: _topTracks,
+  description: _description,
+  externalLinks: _externalLinks,
+  wikidataId: _wikidataId,
+  wikidataFetchedAt: _wikidataFetchedAt,
+  wikidataFailedAt: _wikidataFailedAt,
+  cachedAt: _cachedAt,
+  genresCachedAt: _genresCachedAt,
+  ...listArtistColumns
+} = getTableColumns(artists)
+
+export type ListedArtist = Omit<
+  ArtistRow,
+  | 'topTracks'
+  | 'description'
+  | 'externalLinks'
+  | 'wikidataId'
+  | 'wikidataFetchedAt'
+  | 'wikidataFailedAt'
+  | 'cachedAt'
+  | 'genresCachedAt'
+>
+export type ListedRecommendation = RecommendationRow & { artist: ListedArtist }
 
 const DECADE_RANGES: Record<string, [number, number]> = {
   '60s': [1960, 1969],
@@ -50,7 +91,7 @@ export type ListRecommendationsFilters = {
 }
 
 export type ListRecommendationsResult = {
-  items: RecommendationWithArtist[]
+  items: ListedRecommendation[]
   total: number
 }
 
@@ -134,7 +175,7 @@ export async function listRecommendations(
     db
       .select({
         recommendation: recommendations,
-        artist: artists,
+        artist: listArtistColumns,
       })
       .from(recommendations)
       .innerJoin(artists, eq(recommendations.artistId, artists.id))
@@ -155,6 +196,64 @@ export async function listRecommendations(
   const total = countRows[0]?.total ?? 0
 
   return { items, total }
+}
+
+export type ExportableRecommendationRow = {
+  score: number | null
+  status: string | null
+  aiReasoning: string | null
+  createdAt: Date
+  recommendedReleaseGroupTitle: string | null
+  artist: {
+    name: string
+    mbid: string
+    genres: string[] | null
+    imageUrl: string | null
+    streamingUrls: Record<string, string> | null
+  }
+}
+
+export async function listRecommendationsForExport(
+  db: Database,
+  filters: Pick<ListRecommendationsFilters, 'status' | 'batchId' | 'userId' | 'limit'> = {},
+): Promise<ExportableRecommendationRow[]> {
+  const { status, batchId, userId, limit = 20 } = filters
+  const conditions = [
+    sql`(${recommendations.status} <> 'pending' OR coalesce(${recommendations.sources}->>'album_request', '') <> '0')`,
+  ]
+  if (status !== undefined) {
+    const filtered = parseStatusFilter(status)
+    if (filtered.includes('pending'))
+      conditions.push(sql`(${recommendations.status} <> 'pending' OR NOT EXISTS (
+      SELECT 1 FROM ${approvalRequests}
+      WHERE ${approvalRequests.recommendationId} = ${recommendations.id}
+        AND ${approvalRequests.status} = 'pending'
+    ))`)
+    if (filtered.length > 0) conditions.push(inArray(recommendations.status, filtered))
+  }
+  if (batchId !== undefined) conditions.push(eq(recommendations.batchId, batchId))
+  if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
+
+  return db
+    .select({
+      score: recommendations.score,
+      status: recommendations.status,
+      aiReasoning: recommendations.aiReasoning,
+      createdAt: recommendations.createdAt,
+      recommendedReleaseGroupTitle: recommendations.recommendedReleaseGroupTitle,
+      artist: {
+        name: artists.name,
+        mbid: artists.mbid,
+        genres: artists.genres,
+        imageUrl: artists.imageUrl,
+        streamingUrls: artists.streamingUrls,
+      },
+    })
+    .from(recommendations)
+    .innerJoin(artists, eq(recommendations.artistId, artists.id))
+    .where(and(...conditions))
+    .orderBy(desc(recommendations.score))
+    .limit(limit)
 }
 
 export async function getRecommendation(
@@ -268,6 +367,95 @@ export async function rejectRecommendation(
       }
     }
     return { artistId: rec.artistId, blockCreated }
+  })
+}
+
+export type BulkRejectParams = {
+  ids: number[]
+  userId: number | undefined
+  reason: RejectionReason | null
+  reasonText: string | null
+  permanent: boolean
+}
+
+/** Same semantics as rejectRecommendation applied to many ids in one transaction. */
+export async function bulkRejectRecommendations(
+  db: Database,
+  params: BulkRejectParams,
+): Promise<{ rejected: number; blocksCreated: number }> {
+  if (params.ids.length === 0) return { rejected: 0, blocksCreated: 0 }
+  return db.transaction(async (tx) => {
+    const conditions = [inArray(recommendations.id, params.ids)]
+    if (params.userId !== undefined) conditions.push(eq(recommendations.userId, params.userId))
+    const returned = await tx
+      .update(recommendations)
+      .set({
+        status: 'rejected',
+        rejectionReason: params.reason,
+        rejectionReasonText: params.reasonText,
+        actedOnAt: new Date(),
+      })
+      .where(and(...conditions))
+      .returning({
+        id: recommendations.id,
+        artistId: recommendations.artistId,
+        kind: recommendations.kind,
+        releaseGroupMbid: recommendations.recommendedReleaseGroupId,
+        releaseGroupTitle: recommendations.recommendedReleaseGroupTitle,
+      })
+
+    let blocksCreated = 0
+    if (params.permanent && params.userId !== undefined) {
+      const userId = params.userId
+      const order = new Map(params.ids.map((id, i) => [id, i]))
+      const rows = [...returned].sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0))
+      const albumRows = new Map<string, (typeof rows)[number]>()
+      const artistIds = new Set<number>()
+      for (const rec of rows) {
+        // Album recs without a release group can't be album-blocked, so they
+        // fall back to the artist block like the single reject path.
+        if (rec.kind === 'album' && rec.releaseGroupMbid) {
+          if (!albumRows.has(rec.releaseGroupMbid)) albumRows.set(rec.releaseGroupMbid, rec)
+        } else {
+          artistIds.add(rec.artistId)
+        }
+      }
+      if (albumRows.size > 0) {
+        const created = await tx
+          .insert(albumBlocks)
+          .values(
+            [...albumRows.entries()].map(([releaseGroupMbid, rec]) => ({
+              userId,
+              artistId: rec.artistId,
+              releaseGroupMbid,
+              albumTitle: rec.releaseGroupTitle ?? null,
+              reason: params.reason ?? undefined,
+              reasonText: params.reasonText ?? undefined,
+              source: 'rejection',
+            })),
+          )
+          .onConflictDoNothing({ target: [albumBlocks.userId, albumBlocks.releaseGroupMbid] })
+          .returning({ id: albumBlocks.id })
+        blocksCreated += created.length
+      }
+      if (artistIds.size > 0) {
+        const created = await tx
+          .insert(artistBlocks)
+          .values(
+            [...artistIds].map((artistId) => ({
+              userId,
+              artistId,
+              reason: params.reason,
+              reasonText: params.reasonText,
+              source: 'rejection',
+            })),
+          )
+          .onConflictDoNothing({ target: [artistBlocks.userId, artistBlocks.artistId] })
+          .returning({ id: artistBlocks.id })
+        blocksCreated += created.length
+      }
+    }
+    return { rejected: returned.length, blocksCreated }
   })
 }
 
@@ -594,4 +782,50 @@ export async function listWaitingApprovals(db: Database): Promise<Recommendation
     )
     .orderBy(asc(recommendations.actedOnAt), asc(recommendations.id))
   return rows.map((row) => ({ ...row.recommendation, artist: row.artist }))
+}
+
+export type RecommendationTabCounts = {
+  all: number
+  pending: number
+  approved: number
+  rejected: number
+}
+
+const APPROVED_TAB_STATUSES = ['added_to_lidarr', 'add_failed', 'approved', 'waiting']
+
+/** Discover tab badges in one pass, each with the same filters listRecommendations applies for that tab. */
+export async function countRecommendationsByTab(
+  db: Database,
+  userId?: number,
+): Promise<RecommendationTabCounts> {
+  const conditions = [
+    sql`(${recommendations.status} <> 'pending' OR coalesce(${recommendations.sources}->>'album_request', '') <> '0')`,
+  ]
+  if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
+  const [row] = await db
+    .select({
+      all: count(),
+      // Uncorrelated on purpose: select-list columns render unqualified, so a
+      // correlated "id" would bind to approval_requests.
+      pending:
+        sql<number>`count(*) filter (where ${recommendations.status} = 'pending' and ${recommendations.id} not in (
+        select ${approvalRequests.recommendationId} from ${approvalRequests}
+        where ${approvalRequests.status} = 'pending' and ${approvalRequests.recommendationId} is not null
+      ))`.mapWith(Number),
+      approved:
+        sql<number>`count(*) filter (where ${inArray(recommendations.status, APPROVED_TAB_STATUSES)})`.mapWith(
+          Number,
+        ),
+      rejected: sql<number>`count(*) filter (where ${recommendations.status} = 'rejected')`.mapWith(
+        Number,
+      ),
+    })
+    .from(recommendations)
+    .where(and(...conditions))
+  return {
+    all: row?.all ?? 0,
+    pending: row?.pending ?? 0,
+    approved: row?.approved ?? 0,
+    rejected: row?.rejected ?? 0,
+  }
 }

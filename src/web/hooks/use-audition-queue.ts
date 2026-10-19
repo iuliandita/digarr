@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PreviewFailureReason, usePreview } from './use-preview'
 
 export type AuditionItem = {
@@ -203,17 +203,20 @@ export function useAuditionQueue(preview: ReturnType<typeof usePreview>): Auditi
 
   useEffect(() => clearTimer, [clearTimer])
 
-  return {
-    unavailable,
-    selectedCount,
-    dismissSummary,
-    active: queue !== null,
-    index: queue?.index ?? 0,
-    count: queue?.items.length ?? 0,
-    current: queue ? (queue.items[queue.index] ?? null) : null,
-    start,
-    next: advance,
-    previous,
-    stop,
-  }
+  return useMemo(
+    () => ({
+      unavailable,
+      selectedCount,
+      dismissSummary,
+      active: queue !== null,
+      index: queue?.index ?? 0,
+      count: queue?.items.length ?? 0,
+      current: queue ? (queue.items[queue.index] ?? null) : null,
+      start,
+      next: advance,
+      previous,
+      stop,
+    }),
+    [unavailable, selectedCount, dismissSummary, queue, start, advance, previous, stop],
+  )
 }

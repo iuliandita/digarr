@@ -22,6 +22,7 @@ import {
   approvalRequestQueries,
 } from '@/db/queries/approval-requests'
 import { getOwnedAuditionTrack, getPendingPlayability } from '@/db/queries/playlists'
+import { countRecommendationsByTab } from '@/db/queries/recommendations'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -804,6 +805,10 @@ function createRecommendationRoutes(
     return c.json(result)
   })
 
+  router.get('/api/v1/recommendations/counts', async (c) =>
+    c.json(await countRecommendationsByTab(deps.db, c.get('userId'))),
+  )
+
   router.get('/api/v1/recommendations/feedback-summary', async (c) => {
     const userId = c.get('userId')
     const history = await deps.getFeedbackHistory(userId)
@@ -1202,17 +1207,13 @@ function createRecommendationRoutes(
             }
             return c.json({ updated: ownedIds.length })
           }
-          // Shared-reason path: route each id through rejectRecommendation so the
-          // reason is recorded and the optional permanent block is created per artist.
-          for (const id of ownedIds) {
-            await deps.rejectRecommendation({
-              recommendationId: id,
-              userId,
-              reason: reason ?? null,
-              reasonText: null,
-              permanent,
-            })
-          }
+          await deps.bulkRejectRecommendations({
+            ids: ownedIds,
+            userId,
+            reason: reason ?? null,
+            reasonText: null,
+            permanent,
+          })
           return c.json({ updated: ownedIds.length })
         })
       }

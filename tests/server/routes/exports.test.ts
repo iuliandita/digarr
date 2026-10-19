@@ -5,26 +5,23 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { HonoEnv } from '@/server/types'
 
 const mockDeps = {
-  listRecommendations: vi.fn().mockResolvedValue({
-    items: [
-      {
-        id: 1,
-        score: 0.92,
-        status: 'pending',
-        aiReasoning: 'Good match',
-        createdAt: '2026-03-20T00:00:00Z',
-        recommendedReleaseGroupTitle: null,
-        artist: {
-          name: 'Radiohead',
-          mbid: 'mbid-rh',
-          genres: ['rock'],
-          imageUrl: null,
-          streamingUrls: {},
-        },
+  listRecommendationsForExport: vi.fn().mockResolvedValue([
+    {
+      id: 1,
+      score: 0.92,
+      status: 'pending',
+      aiReasoning: 'Good match',
+      createdAt: '2026-03-20T00:00:00Z',
+      recommendedReleaseGroupTitle: null,
+      artist: {
+        name: 'Radiohead',
+        mbid: 'mbid-rh',
+        genres: ['rock'],
+        imageUrl: null,
+        streamingUrls: {},
       },
-    ],
-    total: 1,
-  }),
+    },
+  ]),
 }
 
 const { exportRoutes } = await import('@/server/routes/exports')
@@ -89,7 +86,7 @@ describe('export routes', () => {
   it('supports status filter query param', async () => {
     const app = createTestApp()
     await app.request('/api/v1/exports/json?status=approved')
-    expect(mockDeps.listRecommendations).toHaveBeenCalledWith(
+    expect(mockDeps.listRecommendationsForExport).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'approved' }),
     )
   })
@@ -97,7 +94,7 @@ describe('export routes', () => {
   it('supports batchId filter query param', async () => {
     const app = createTestApp()
     await app.request('/api/v1/exports/json?batchId=5')
-    expect(mockDeps.listRecommendations).toHaveBeenCalledWith(
+    expect(mockDeps.listRecommendationsForExport).toHaveBeenCalledWith(
       expect.objectContaining({ batchId: 5 }),
     )
   })
@@ -107,6 +104,6 @@ describe('export routes', () => {
     const res = await app.request('/api/v1/exports/json?batchId=not-a-number')
 
     expect(res.status).toBe(400)
-    expect(mockDeps.listRecommendations).not.toHaveBeenCalled()
+    expect(mockDeps.listRecommendationsForExport).not.toHaveBeenCalled()
   })
 })
