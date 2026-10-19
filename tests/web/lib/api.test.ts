@@ -19,6 +19,7 @@ import {
   importSpotifyLikedSongs,
   loginUser,
   migrateLegacySession,
+  quickDiscover,
   registerUser,
   restoreBackupApi,
   updateSettings,
@@ -389,6 +390,20 @@ describe('ApiError message', () => {
     ['the message when nothing else is set', { message: 'Plain message' }, 'Plain message'],
   ])('prefers %s', (_case, data, expected) => {
     expect(new ApiError(400, data).message).toBe(expected)
+  })
+})
+
+describe('Retry-After on API errors (#1109)', () => {
+  it('exposes the Retry-After header in seconds on the thrown ApiError', async () => {
+    const res = jsonResponse({ code: 'rate-limited' }, 429)
+    res.headers.set('Retry-After', '42')
+    fetchMock.mockResolvedValueOnce(res)
+
+    const error = await quickDiscover('Burial').catch((e: unknown) => e)
+
+    expect(error).toBeInstanceOf(ApiError)
+    expect((error as ApiError).status).toBe(429)
+    expect((error as ApiError).retryAfter).toBe(42)
   })
 })
 

@@ -1783,6 +1783,11 @@ export const ja = {
   'streaming.spotifyLoadHint': 'クリックするまでSpotifyへのリクエストは送信されません。',
   'discover.moodAddedSuccess': '「{0}」を追加しました。類似アーティストを検索中です',
   'discover.moodAddFailed': '「{0}」の追加に失敗しました',
+  'discover.moodAddQueued': '待機中',
+  'discover.moodAddRateLimited':
+    '「{0}」の追加に失敗しました: リクエストが多すぎます。1分ほど待ってからもう一度お試しください',
+  'discover.moodAddPipelineRunning':
+    '「{0}」の追加に失敗しました: スキャンがまだ実行中です。終わってからもう一度お試しください',
   'albumPicker.noReleaseGroups': 'リリースグループが見つかりません',
   'albumPicker.title': 'アルバムを選択',
   'albumPicker.loadFailed': 'アルバムの読み込みに失敗しました',

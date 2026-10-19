@@ -58,9 +58,16 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     public data: unknown,
+    public retryAfter?: number,
   ) {
     super(extractApiErrorMessage(status, data))
   }
+}
+
+function parseRetryAfter(value: string | null): number | undefined {
+  if (!value) return undefined
+  const seconds = Number(value)
+  return Number.isFinite(seconds) && seconds >= 0 ? seconds : undefined
 }
 
 function extractApiErrorMessage(status: number, data: unknown): string {
@@ -134,7 +141,7 @@ async function fetchApi<T>(path: string, options?: RequestInit): Promise<T> {
   if (!res.ok) {
     if (res.status === 401) handleSessionExpired()
     const error = await res.json().catch(() => ({ error: res.statusText }))
-    throw new ApiError(res.status, error)
+    throw new ApiError(res.status, error, parseRetryAfter(res.headers.get('Retry-After')))
   }
   if (res.status === 204) {
     return undefined as T

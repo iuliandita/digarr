@@ -1759,6 +1759,11 @@ export const ko = {
   'streaming.spotifyLoadHint': '클릭하기 전에는 Spotify로 어떤 요청도 보내지 않습니다.',
   'discover.moodAddedSuccess': '"{0}"을(를) 추가했고 비슷한 아티스트를 찾고 있습니다',
   'discover.moodAddFailed': '"{0}" 추가에 실패했습니다',
+  'discover.moodAddQueued': '대기 중',
+  'discover.moodAddRateLimited':
+    '"{0}" 추가에 실패했습니다: 요청이 너무 많습니다. 1분 뒤에 다시 시도해 주세요',
+  'discover.moodAddPipelineRunning':
+    '"{0}" 추가에 실패했습니다: 스캔이 아직 실행 중입니다. 끝난 뒤에 다시 시도해 주세요',
   'albumPicker.noReleaseGroups': '발매 그룹을 찾을 수 없습니다',
   'albumPicker.title': '앨범 선택',
   'albumPicker.loadFailed': '앨범을 불러오지 못했습니다',

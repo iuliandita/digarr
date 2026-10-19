@@ -1810,6 +1810,11 @@ export const nl = {
   'streaming.spotifyLoadHint': 'Er wordt niets bij Spotify opgevraagd tot je klikt.',
   'discover.moodAddedSuccess': '"{0}" toegevoegd; vergelijkbare artiesten worden gezocht',
   'discover.moodAddFailed': '"{0}" kon niet worden toegevoegd',
+  'discover.moodAddQueued': 'In wachtrij',
+  'discover.moodAddRateLimited':
+    '"{0}" kon niet worden toegevoegd: te veel verzoeken, probeer het over een minuut opnieuw',
+  'discover.moodAddPipelineRunning':
+    '"{0}" kon niet worden toegevoegd: er loopt nog een scan, probeer het opnieuw als die klaar is',
   'albumPicker.noReleaseGroups': 'Geen releasegroepen gevonden',
   'albumPicker.title': 'Albums selecteren',
   'albumPicker.loadFailed': 'Laden van albums mislukt',

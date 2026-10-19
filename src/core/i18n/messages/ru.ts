@@ -1813,6 +1813,11 @@ export const ru = {
   'streaming.spotifyLoadHint': 'Пока ты не нажмёшь, к Spotify запросов нет.',
   'discover.moodAddedSuccess': '«{0}» добавлено; ищем похожих исполнителей',
   'discover.moodAddFailed': 'Не удалось добавить «{0}»',
+  'discover.moodAddQueued': 'В очереди',
+  'discover.moodAddRateLimited':
+    'Не удалось добавить «{0}»: слишком много запросов, попробуй ещё раз через минуту',
+  'discover.moodAddPipelineRunning':
+    'Не удалось добавить «{0}»: сканирование ещё идёт, попробуй снова, когда оно закончится',
   'albumPicker.noReleaseGroups': 'Группы релизов не найдены',
   'albumPicker.title': 'Выбрать альбомы',
   'albumPicker.loadFailed': 'Не удалось загрузить альбомы',

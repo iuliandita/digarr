@@ -1808,6 +1808,11 @@ export const ro = {
   'streaming.spotifyLoadHint': 'Nu se cere nimic de la Spotify până nu dai clic.',
   'discover.moodAddedSuccess': '„{0}" a fost adăugat; căutăm artiști similari',
   'discover.moodAddFailed': 'Adăugarea „{0}" a eșuat',
+  'discover.moodAddQueued': 'În coadă',
+  'discover.moodAddRateLimited':
+    'Adăugarea „{0}" a eșuat: prea multe cereri, încearcă din nou peste un minut',
+  'discover.moodAddPipelineRunning':
+    'Adăugarea „{0}" a eșuat: o scanare încă rulează, încearcă din nou când se termină',
   'albumPicker.noReleaseGroups': 'Nu s-au găsit grupuri de lansări',
   'albumPicker.title': 'Selectează albume',
   'albumPicker.loadFailed': 'Încărcarea albumelor a eșuat',

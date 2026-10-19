@@ -1825,6 +1825,11 @@ export const de = {
   'streaming.spotifyLoadHint': 'Spotify wird erst nach deinem Klick kontaktiert.',
   'discover.moodAddedSuccess': '„{0}" hinzugefügt, ähnliche Künstler werden entdeckt',
   'discover.moodAddFailed': '„{0}" konnte nicht hinzugefügt werden',
+  'discover.moodAddQueued': 'In Warteschlange',
+  'discover.moodAddRateLimited':
+    '„{0}" konnte nicht hinzugefügt werden: zu viele Anfragen, versuche es in einer Minute erneut',
+  'discover.moodAddPipelineRunning':
+    '„{0}" konnte nicht hinzugefügt werden: ein Scan läuft noch, versuche es nach dem Ende erneut',
   'albumPicker.noReleaseGroups': 'Keine Veröffentlichungsgruppen gefunden',
   'albumPicker.title': 'Alben auswählen',
   'albumPicker.loadFailed': 'Alben konnten nicht geladen werden',
