@@ -106,6 +106,7 @@ import {
   getUserPreferences,
   listTargets,
   rescanArtists,
+  updateRecommendation,
   updateUserPreferences,
 } from '@/web/lib/api'
 import { Dashboard } from '@/web/pages/dashboard'
@@ -254,6 +255,27 @@ describe('Dashboard', () => {
     await waitFor(() => {
       expect(mockApproveRecommendation).toHaveBeenCalledWith(1, { monitorOption: 'popular' })
     })
+  })
+
+  it("rejecting today's pick refetches only the activity list while the pick pool lasts", async () => {
+    setupMocks()
+    const statuses = () => mockGetRecommendations.mock.calls.map(([p]) => p?.status)
+    mockGetRecommendations.mockImplementation((params) => {
+      if (params?.status === 'pending')
+        return Promise.resolve({ items: [pendingRec, { ...pendingRec, id: 5 }], total: 2 })
+      return Promise.resolve({ items: [approvedRec], total: 1 })
+    })
+    vi.mocked(updateRecommendation).mockResolvedValue({ status: 'rejected' })
+    renderWithQuery(<Dashboard />)
+    await screen.findByText('Sigur Ros')
+    await waitFor(() => expect(mockGetRecommendations).toHaveBeenCalledTimes(3))
+    const loadCalls = statuses()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reject' }))
+
+    await waitFor(() => expect(mockGetRecommendations).toHaveBeenCalledTimes(4))
+    await new Promise((resolve) => setTimeout(resolve, 20))
+    expect(statuses()).toEqual([...loadCalls, 'added_to_lidarr,add_failed,approved,rejected'])
   })
 
   it('switches between top artists and recent plays', async () => {

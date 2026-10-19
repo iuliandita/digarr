@@ -570,6 +570,13 @@ export const routeCatalog: RouteSpec[] = [
   },
   {
     method: 'get',
+    path: '/api/v1/recommendations/counts',
+    tag: 'Recommendations',
+    auth: 'user',
+    summary: "Discover tab counts for the caller's recommendations",
+  },
+  {
+    method: 'get',
     path: '/api/v1/recommendations/popular-albums/availability',
     tag: 'Recommendations',
     auth: 'user',

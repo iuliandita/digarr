@@ -22,6 +22,7 @@ import {
   approvalRequestQueries,
 } from '@/db/queries/approval-requests'
 import { getOwnedAuditionTrack, getPendingPlayability } from '@/db/queries/playlists'
+import { countRecommendationsByTab } from '@/db/queries/recommendations'
 import { getUserConnections } from '@/db/queries/users'
 import { mergePreferences } from '@/db/schema'
 import type { AppDependencies } from '@/server'
@@ -803,6 +804,10 @@ function createRecommendationRoutes(
     const result = await deps.listRecommendations(filters)
     return c.json(result)
   })
+
+  router.get('/api/v1/recommendations/counts', async (c) =>
+    c.json(await countRecommendationsByTab(deps.db, c.get('userId'))),
+  )
 
   router.get('/api/v1/recommendations/feedback-summary', async (c) => {
     const userId = c.get('userId')

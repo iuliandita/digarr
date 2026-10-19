@@ -595,3 +595,49 @@ export async function listWaitingApprovals(db: Database): Promise<Recommendation
     .orderBy(asc(recommendations.actedOnAt), asc(recommendations.id))
   return rows.map((row) => ({ ...row.recommendation, artist: row.artist }))
 }
+
+export type RecommendationTabCounts = {
+  all: number
+  pending: number
+  approved: number
+  rejected: number
+}
+
+const APPROVED_TAB_STATUSES = ['added_to_lidarr', 'add_failed', 'approved', 'waiting']
+
+/** Discover tab badges in one pass, each with the same filters listRecommendations applies for that tab. */
+export async function countRecommendationsByTab(
+  db: Database,
+  userId?: number,
+): Promise<RecommendationTabCounts> {
+  const conditions = [
+    sql`(${recommendations.status} <> 'pending' OR coalesce(${recommendations.sources}->>'album_request', '') <> '0')`,
+  ]
+  if (userId !== undefined) conditions.push(eq(recommendations.userId, userId))
+  const [row] = await db
+    .select({
+      all: count(),
+      // Uncorrelated on purpose: select-list columns render unqualified, so a
+      // correlated "id" would bind to approval_requests.
+      pending:
+        sql<number>`count(*) filter (where ${recommendations.status} = 'pending' and ${recommendations.id} not in (
+        select ${approvalRequests.recommendationId} from ${approvalRequests}
+        where ${approvalRequests.status} = 'pending' and ${approvalRequests.recommendationId} is not null
+      ))`.mapWith(Number),
+      approved:
+        sql<number>`count(*) filter (where ${inArray(recommendations.status, APPROVED_TAB_STATUSES)})`.mapWith(
+          Number,
+        ),
+      rejected: sql<number>`count(*) filter (where ${recommendations.status} = 'rejected')`.mapWith(
+        Number,
+      ),
+    })
+    .from(recommendations)
+    .where(and(...conditions))
+  return {
+    all: row?.all ?? 0,
+    pending: row?.pending ?? 0,
+    approved: row?.approved ?? 0,
+    rejected: row?.rejected ?? 0,
+  }
+}
