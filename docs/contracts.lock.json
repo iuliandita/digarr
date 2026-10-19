@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -756,10 +753,7 @@
       "digest": "5292fa7a3e7299a69135a948b20b1b328be689b7dd1a3561e83f6faadba76a59",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/ARCHITECTURE.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
         "note": "Album candidates are filtered by the Lidarr metadata profile and the add error names the blocked type; documented the rule, fallbacks and the unscanned existing recommendations. Rebased over the delayed boot sync, which is unrelated.",
         "breaking": "none",
         "migration": "",
