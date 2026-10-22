@@ -659,6 +659,7 @@
         "src/core/pipeline/orchestrator.ts": "74a28553567efaeeea5c4f7ca8f35e5b327c2854c7a1689df39d800ab5d27a29",
         "src/core/pipeline/recently-played.ts": "33f929141b31657945490f78417fc1d8067a77263c5c301bbc8790b31b2e5eca",
         "src/core/pipeline/resolve.ts": "02cbcb86b4375980a5cded31117ac77b41b45a995668abe901414fa97407cd8b",
+        "src/core/pipeline/scheduled-run.ts": "1b4340f9b25992e6dcc17d7686df58cac069becd6eb1bbeedc647799083e3f21",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
         "src/core/pipeline/store.ts": "5a83859bfe3ebd8b8128aecab11f167aaef885457d6ec82bb0f5301f5b45d535",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
@@ -764,17 +765,17 @@
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "2c26341fb4a31f015b25a9ccec50ca700191a068f0b23a5c74668acaaaea10b6",
+        "src/index.ts": "997d2b788c0d3ba6e16ce020e104814d5a3c0c5fafb110231781b0ffb29fd2bf",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "a33785f74e22797bc9cf0bd9250fe03577ffd52da12c5fb2ecd283df8cdb011c",
+      "digest": "a25342c9b0f03928e295337c735813b3ecc353908eb8d98fb476b7a850ef0791",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "Weekly Exploration feed documented in discovery recipes, recording identity sources and changelog",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Document that the scheduled scan runs as the admin account with its connections, preferences, auto-approve and Job History, matching Run Scan; extracted the cron handler into scheduled-run.ts without changing the schedule or its API.",
         "breaking": "none",
         "migration": "",
-        "digest": "a33785f74e22797bc9cf0bd9250fe03577ffd52da12c5fb2ecd283df8cdb011c"
+        "digest": "a25342c9b0f03928e295337c735813b3ecc353908eb8d98fb476b7a850ef0791"
       }
     },
     "deployment": {

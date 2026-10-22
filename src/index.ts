@@ -47,6 +47,7 @@ import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
+import { createScheduledPipelineRunner } from './core/pipeline/scheduled-run'
 import { type StoreDb, saveRecommendationChunk } from './core/pipeline/store'
 import { SubscriptionScheduler } from './core/pipeline/subscription-scheduler'
 import { createSavedPlaylistExportStore, pushSavedPlaylistToTargets } from './core/playlists/export'
@@ -645,26 +646,17 @@ const albumCoverage = createAlbumCoverageService({
   mbClient: createMusicBrainzClient(),
 })
 
-const runPipeline = async (userId?: number) => {
-  const currentSettings = await getSettings(db)
-  if (!currentSettings) return
-  // Default to admin user when not provided (cron-triggered runs)
-  let resolvedUserId = userId
-  if (resolvedUserId === undefined) {
-    const allUsers = await listUsers(db)
-    const admin = allUsers.find((u) => u.isAdmin) ?? allUsers[0]
-    resolvedUserId = admin?.id
-  }
-  if (resolvedUserId === undefined) return
-  await orchestrator.run({
-    db: storeDb,
-    settings: currentSettings,
-    providerRegistry,
-    librarySync: librarySyncOrchestrator,
-    userId: resolvedUserId,
-    getEnabledTargets: () => getEnabledTargetsForResolvedUser(resolvedUserId),
-  })
-}
+// Cron-triggered main scan: same per-user context as POST /api/v1/pipeline/run
+// (user connections, resolved preferences, auto-approve, job history), run as the admin.
+const runPipeline = createScheduledPipelineRunner({
+  orchestrator,
+  jobRecorder,
+  listUsers: () => listUsers(db),
+  buildPipelineDeps: async (userId) => {
+    if (!(await getSettings(db))) return null
+    return (await buildDiscoveryModePipelineDeps(userId)).pipelineDeps
+  },
+})
 
 async function buildDiscoveryModePipelineDeps(userId: number) {
   const settings = await getSettings(db)

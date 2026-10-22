@@ -138,6 +138,8 @@ Old `/subscriptions` and `/discover/modes` URLs redirect to the unified page and
 
 Settings > Schedule lists scan, mode, playlist, library-sync, and notification-digest schedules, with links to their editors. Everyone can review their own mode and playlist schedules; scan, library-sync, and digest configuration remains admin-only. The global Scheduled generation switch now lives here. A saved playlist schedule stays paused while that switch is off; manual generation still works.
 
+The scan schedule runs as the admin account (the first account when none is an admin), the same as Run Scan for that user: it uses that account's connections, resolved preferences, targets and auto-approve settings, and records a `pipeline` entry with trigger `scheduled` in Job History.
+
 ## Playlists and notifications
 
 Add media-server playlist destinations in Settings > Targets, then select those targets in each playlist. A successful Spotify connection attempts to create a user-owned Spotify Playlist target automatically; select that target in the playlist. The Add Target dialog does not offer Spotify. If the target is missing after connecting, ask an admin to inspect the logs and create it through the targets API.
