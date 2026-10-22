@@ -419,6 +419,54 @@ describe('resolveTracksForArtist()', () => {
       expect(tracks.map((t) => t.deezerId)).toEqual(['dz-1', 'dz-2'])
     })
 
+    it('picks the dominant artist when the other exact matches are near-empty duplicates', async () => {
+      const deezerArtists = vi.fn().mockResolvedValue([
+        { id: 412970591, name: 'Radiohead', fans: 0 },
+        { id: 7, name: 'Radiohead', fans: 1300000 },
+      ])
+      const deezerArtistTopTracks = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+
+      await resolveTracksForArtist(
+        'Radiohead',
+        ARTIST_MBID,
+        { deezerArtists, deezerArtistTopTracks },
+        { tracksPerArtist: 2, sourcePriority: ['deezer'] },
+      )
+
+      expect(deezerArtistTopTracks).toHaveBeenCalledWith(7, 2)
+    })
+
+    it('still refuses same-name artists with comparable fan counts', async () => {
+      const deezerArtists = vi.fn().mockResolvedValue([
+        { id: 7, name: 'Radiohead', fans: 900000 },
+        { id: 9, name: 'Radiohead', fans: 400000 },
+      ])
+      const deezerArtistTopTracks = vi.fn()
+
+      await resolveTracksForArtist(
+        'Radiohead',
+        ARTIST_MBID,
+        { deezerArtists, deezerArtistTopTracks, deezerSearch: vi.fn().mockResolvedValue([]) },
+        { tracksPerArtist: 2, sourcePriority: ['deezer'] },
+      )
+
+      expect(deezerArtistTopTracks).not.toHaveBeenCalled()
+    })
+
+    it('matches artist names that differ only by Unicode hyphen variant', async () => {
+      const deezerArtists = vi.fn().mockResolvedValue([{ id: 5, name: 'Glenn-Copeland' }])
+      const deezerArtistTopTracks = vi.fn().mockResolvedValue(DEEZER_RESULTS)
+
+      await resolveTracksForArtist(
+        'Glenn\u2010Copeland',
+        ARTIST_MBID,
+        { deezerArtists, deezerArtistTopTracks },
+        { tracksPerArtist: 2, sourcePriority: ['deezer'] },
+      )
+
+      expect(deezerArtistTopTracks).toHaveBeenCalledWith(5, 2)
+    })
+
     it('sorts Deezer results by rank descending', async () => {
       const [first, second, third, fourth] = DEEZER_RESULTS
       if (!first || !second || !third || !fourth) throw new Error('Missing Deezer fixtures')

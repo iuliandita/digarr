@@ -11,7 +11,26 @@ import type {
 } from './types'
 
 function normalizeArtist(name: string): string {
-  return name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+  return name
+    .normalize('NFC')
+    .replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, '-')
+    .trim()
+    .replace(/\s+/g, ' ')
+    .toLowerCase()
+}
+
+const DOMINANT_MIN_FANS = 1000
+const DOMINANT_FAN_RATIO = 100
+
+// Deezer often lists an empty duplicate next to the real artist. Trust one of several
+// same-name artists only when it is established and every other is at least 100x smaller.
+function pickArtist(matches: { id: number; fans?: number }[]): { id: number } | undefined {
+  const [first, ...rest] = [...matches].sort((a, b) => (b.fans ?? 0) - (a.fans ?? 0))
+  if (!first || rest.length === 0) return first
+  const fans = first.fans ?? 0
+  const dominant =
+    fans >= DOMINANT_MIN_FANS && rest.every((a) => (a.fans ?? 0) * DOMINANT_FAN_RATIO <= fans)
+  return dominant ? first : undefined
 }
 
 const DEFAULT_CONFIG: TrackResolverConfig = {
@@ -83,9 +102,9 @@ async function resolveFromDeezer(
     const matches = (await deps.deezerArtists(artistName, 10)).filter(
       (a) => normalizeArtist(a.name) === wanted,
     )
-    const [only] = matches
-    if (matches.length === 1 && only) {
-      const top = await deps.deezerArtistTopTracks(only.id, limit)
+    const chosen = pickArtist(matches)
+    if (chosen) {
+      const top = await deps.deezerArtistTopTracks(chosen.id, limit)
       if (top.length > 0) return top.slice(0, limit).map(toTrack)
     }
   }

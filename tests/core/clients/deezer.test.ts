@@ -1,11 +1,12 @@
 // @vitest-environment node
 import * as http from 'node:http'
 import type { AddressInfo } from 'node:net'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { createDeezerClient } from '@/core/clients/deezer'
 
 let server: http.Server
 let baseUrl: string
+let quotaHits = 0
 
 function sendJson(res: http.ServerResponse, status: number, body: unknown): void {
   const payload = JSON.stringify(body)
@@ -60,6 +61,16 @@ beforeAll(async () => {
         res.writeHead(500, { 'Content-Type': 'text/plain' })
         res.end('server error')
         return
+      }
+
+      if (q === 'quotaonce' || q === 'quotaalways') {
+        quotaHits++
+        if (q === 'quotaalways' || quotaHits === 1) {
+          sendJson(res, 200, {
+            error: { type: 'Exception', message: 'Quota limit exceeded', code: 4 },
+          })
+          return
+        }
       }
 
       if (q === 'apierror') {
@@ -170,6 +181,21 @@ describe('createDeezerClient', () => {
     it('throws when API returns error field', async () => {
       const client = createDeezerClient({ baseUrl })
       await expect(client.searchArtists('apierror')).rejects.toThrow(/Deezer API error/)
+    })
+
+    it('retries once after a quota error and returns the second response', async () => {
+      quotaHits = 0
+      const sleep = vi.fn().mockResolvedValue(undefined)
+      const client = createDeezerClient({ baseUrl, sleep })
+      await expect(client.searchArtists('quotaonce')).resolves.toHaveLength(2)
+      expect(sleep).toHaveBeenCalledTimes(1)
+    })
+
+    it('surfaces a quota error that persists after the retry', async () => {
+      const sleep = vi.fn().mockResolvedValue(undefined)
+      const client = createDeezerClient({ baseUrl, sleep })
+      await expect(client.searchArtists('quotaalways')).rejects.toThrow(/Quota limit exceeded/)
+      expect(sleep).toHaveBeenCalledTimes(1)
     })
   })
 

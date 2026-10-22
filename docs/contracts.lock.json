@@ -557,7 +557,7 @@
         "src/core/clients/audiomuse.ts": "6f436671d49438fb08a4ee052915bdcffce3f5bd759a1cbecbb391fa208ea1ec",
         "src/core/clients/bandcamp.ts": "7ca5e968ea34da9199108b0feff8d33d90752a721752fa9b5f6855bfb8e08729",
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
-        "src/core/clients/deezer.ts": "8c7ca3e0f385c42d300b45d071ba8496ec9144f87932ea84c361f3ff1ebc0d32",
+        "src/core/clients/deezer.ts": "42d430f2c268c810cf5d2a08dc04bc41860bfbe7ad2c8cd2bb66441530ed2a55",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
         "src/core/clients/emby.ts": "f550c15da83f7d8148ab24167d40da8fe68e174714b95bc1885eb93eafcc2135",
         "src/core/clients/fanart.ts": "d01e3b7138cdcc7b29c19e6f670678fbdca818c3b7eb63f75300da6849c5d1c1",
@@ -678,8 +678,8 @@
         "src/core/playlists/strategies/types.ts": "efe670bc2f59e7df954c7a7fc90a127859b125ab0093931d3c39bff69401a50f",
         "src/core/playlists/strategies/weekly-digest.ts": "ff51e16426ef4ce4b28e19c5f8c453573adc8e067d86dd3025d52af1a81389d5",
         "src/core/playlists/strategy-deps.ts": "b94cbc2c5245d2f44ca31ffc420f708c07238cc4771530a55a943f0fcd9f261a",
-        "src/core/playlists/track-resolver.ts": "9967a869ccddbbed122c9417bc8b2a19e7da9b0a88d9761f178167ebc4de92a3",
-        "src/core/playlists/types.ts": "3cdf37257ad92fa5145cb189b1fff2a48219eff74b4458a1c1b65f32a7799a21",
+        "src/core/playlists/track-resolver.ts": "6e06655828a4f804a9fa99f5e6ef6ac3d5fc883345df72ccb4e7cea8324d7557",
+        "src/core/playlists/types.ts": "a4cdbe781bcb928a7e0845ef63568dc5d95a5871b6571c76f68de74bec444b6b",
         "src/core/plugins/audiomuse.ts": "5f4dcc3bb590d63a53a544432932b6a114645fde1c659863d8f77f0266f7a948",
         "src/core/plugins/discogs.ts": "f887ebc3ea8b68d10353eff256c118d926815a26fb8ab87cc34be177c2066e7e",
         "src/core/plugins/emby.ts": "ad73fab18f531878937b7cbbcbb2c0c8ff13aff42fece578bbaef560d0469600",
@@ -768,14 +768,14 @@
         "src/index.ts": "4d1255e909d526bef9463c6cb980955292b61663a1173ba120feae8e5210dc28",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "336b6220cde58b155a0772990a6cc46fdafa8e81298b0ea41e84f0679db8df2d",
+      "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "Document that the scheduled scan runs as the admin account with its connections, preferences, language, auto-approve and Job History, matching Run Scan, and queues behind a running scan; extracted the cron handler into scheduled-run.ts without changing the schedule or its API.",
+        "docs": ["CHANGELOG.md"],
+        "note": "Deezer audition resolution picks a dominant same-name artist, folds Unicode hyphens, and retries then surfaces quota errors.",
         "breaking": "none",
         "migration": "",
-        "digest": "336b6220cde58b155a0772990a6cc46fdafa8e81298b0ea41e84f0679db8df2d"
+        "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad"
       }
     },
     "deployment": {

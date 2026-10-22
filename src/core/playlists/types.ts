@@ -65,7 +65,10 @@ export type MBRecording = {
 export type TrackResolverDeps = {
   spotifySearch?: (query: string, limit?: number) => Promise<SpotifySearchResult[]>
   deezerSearch?: (query: string, limit?: number) => Promise<DeezerTrackSearchResult[]>
-  deezerArtists?: (query: string, limit?: number) => Promise<{ id: number; name: string }[]>
+  deezerArtists?: (
+    query: string,
+    limit?: number,
+  ) => Promise<{ id: number; name: string; fans?: number }[]>
   deezerArtistTopTracks?: (artistId: number, limit?: number) => Promise<DeezerTrackSearchResult[]>
   jellyfinSearch?: (artist: string) => Promise<LocalTrack[]>
   embySearch?: (artist: string) => Promise<LocalTrack[]>

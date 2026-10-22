@@ -1,9 +1,12 @@
 import { createHttpClient } from '@/core/clients/http'
+import { sleep as defaultSleep } from '@/core/sleep'
 import type { ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import type { TopTrack } from '@/db/schema'
 
 const DEFAULT_BASE_URL = 'https://api.deezer.com'
+const QUOTA_ERROR_CODE = 4
+const QUOTA_BACKOFF_MS = 1500
 
 export type DeezerSearchResult = {
   id: number
@@ -48,16 +51,33 @@ type DeezerTrackSearchResponse = {
   error?: { type: string; message: string; code: number }
 }
 
-export function createDeezerClient(config?: { baseUrl?: string }) {
+export function createDeezerClient(config?: {
+  baseUrl?: string
+  sleep?: (ms: number) => Promise<void>
+}) {
   const baseUrl = config?.baseUrl ?? DEFAULT_BASE_URL
+  const sleep = config?.sleep ?? defaultSleep
   const http = createHttpClient({ baseUrl })
 
-  async function searchArtists(query: string, limit = 25): Promise<DeezerSearchResult[]> {
-    const params = new URLSearchParams({ q: query, limit: String(limit) })
-    const res = await http.get<DeezerSearchResponse>(`/search/artist?${params.toString()}`)
+  // Deezer reports errors (including quota) as HTTP 200 with an error object. A quota
+  // error during a request burst usually clears within a second, so retry once.
+  async function getChecked<T extends { error?: { message: string; code: number } }>(
+    path: string,
+  ): Promise<T> {
+    let res = await http.get<T>(path)
+    if (res.error?.code === QUOTA_ERROR_CODE) {
+      await sleep(QUOTA_BACKOFF_MS)
+      res = await http.get<T>(path)
+    }
     if (res.error) {
       throw new Error(`Deezer API error: ${res.error.message}`)
     }
+    return res
+  }
+
+  async function searchArtists(query: string, limit = 25): Promise<DeezerSearchResult[]> {
+    const params = new URLSearchParams({ q: query, limit: String(limit) })
+    const res = await getChecked<DeezerSearchResponse>(`/search/artist?${params.toString()}`)
     return (res.data ?? []).map((item) => ({
       id: item.id,
       name: item.name,
@@ -69,12 +89,9 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
 
   async function fetchTopTrackItems(artistId: number, limit: number): Promise<DeezerTrackItem[]> {
     const params = new URLSearchParams({ limit: String(limit) })
-    const res = await http.get<DeezerTopTracksResponse>(
+    const res = await getChecked<DeezerTopTracksResponse>(
       `/artist/${artistId}/top?${params.toString()}`,
     )
-    if (res.error) {
-      throw new Error(`Deezer API error: ${res.error.message}`)
-    }
     return res.data ?? []
   }
 
@@ -110,10 +127,7 @@ export function createDeezerClient(config?: { baseUrl?: string }) {
     limit = 25,
   ): Promise<Array<{ id: string; name: string; artists: string[]; rank: number }>> {
     const params = new URLSearchParams({ q: query, limit: String(limit) })
-    const res = await http.get<DeezerTrackSearchResponse>(`/search/track?${params.toString()}`)
-    if (res.error) {
-      throw new Error(`Deezer API error: ${res.error.message}`)
-    }
+    const res = await getChecked<DeezerTrackSearchResponse>(`/search/track?${params.toString()}`)
     return (res.data ?? []).flatMap((item) =>
       item.id && item.title
         ? [
