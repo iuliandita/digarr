@@ -138,7 +138,7 @@ Old `/subscriptions` and `/discover/modes` URLs redirect to the unified page and
 
 Settings > Schedule lists scan, mode, playlist, library-sync, and notification-digest schedules, with links to their editors. Everyone can review their own mode and playlist schedules; scan, library-sync, and digest configuration remains admin-only. The global Scheduled generation switch now lives here. A saved playlist schedule stays paused while that switch is off; manual generation still works.
 
-The scan schedule runs as the admin account (the first account when none is an admin), the same as Run Scan for that user: it uses that account's connections, resolved preferences, targets and auto-approve settings, and records a `pipeline` entry with trigger `scheduled` in Job History.
+The scan schedule runs as the admin account (the first account when none is an admin), the same as Run Scan for that user: it uses that account's connections, resolved preferences, targets and auto-approve settings, and records a `pipeline` entry with trigger `scheduled` in Job History. If another scan is running when it fires, it waits in the queue behind it.
 
 ## Playlists and notifications
 

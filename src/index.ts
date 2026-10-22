@@ -654,7 +654,11 @@ const runPipeline = createScheduledPipelineRunner({
   listUsers: () => listUsers(db),
   buildPipelineDeps: async (userId) => {
     if (!(await getSettings(db))) return null
-    return (await buildDiscoveryModePipelineDeps(userId)).pipelineDeps
+    const [{ pipelineDeps }, user] = await Promise.all([
+      buildDiscoveryModePipelineDeps(userId),
+      getUserById(db, userId),
+    ])
+    return { ...pipelineDeps, responseLocale: resolveSupportedLocale(user?.preferredLocale) }
   },
 })
 

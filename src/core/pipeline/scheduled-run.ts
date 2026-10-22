@@ -4,7 +4,7 @@ import type { PipelineDeps, PipelineOrchestrator } from '@/core/pipeline/orchest
 type ScheduledPipelineDeps = Omit<PipelineDeps, 'jobRecorder' | 'trigger' | 'userId'>
 
 interface ScheduledPipelineRunnerOptions {
-  orchestrator: Pick<PipelineOrchestrator, 'run'>
+  orchestrator: Pick<PipelineOrchestrator, 'enqueue'>
   jobRecorder: JobRecorder
   listUsers: () => Promise<Array<{ id: number; isAdmin: boolean }>>
   /** Builds the per-user context (connections, preferences, auto-approve) a manual run gets. */
@@ -23,11 +23,15 @@ export function createScheduledPipelineRunner(options: ScheduledPipelineRunnerOp
     if (resolvedUserId === undefined) return
     const pipelineDeps = await buildPipelineDeps(resolvedUserId)
     if (!pipelineDeps) return
-    await orchestrator.run({
+    // Queue behind an in-flight scan like Run Scan does, instead of dropping this tick.
+    const result = orchestrator.enqueue({
       ...pipelineDeps,
       userId: resolvedUserId,
       jobRecorder,
       trigger: 'scheduled',
     })
+    if (result.status !== 'started') {
+      console.log(`[scheduler] scheduled scan ${result.status} (position ${result.position})`)
+    }
   }
 }

@@ -37,21 +37,21 @@ function makeUserContext(userId: number) {
 }
 
 function setup(users: Array<{ id: number; isAdmin: boolean }>) {
-  const run = vi.fn(async (_deps: PipelineDeps) => ({ batchId: 1 }))
+  const enqueue = vi.fn((_deps: PipelineDeps) => ({ status: 'started' as const, position: 0 }))
   const jobRecorder = makeJobRecorder()
   const buildPipelineDeps = vi.fn(async (userId: number) => makeUserContext(userId))
   const runScheduled = createScheduledPipelineRunner({
-    orchestrator: { run },
+    orchestrator: { enqueue },
     jobRecorder,
     listUsers: async () => users,
     buildPipelineDeps,
   })
-  return { run, jobRecorder, buildPipelineDeps, runScheduled }
+  return { enqueue, jobRecorder, buildPipelineDeps, runScheduled }
 }
 
 describe('createScheduledPipelineRunner', () => {
   it('runs the cron scan with the same user context as a manual run', async () => {
-    const { run, jobRecorder, buildPipelineDeps, runScheduled } = setup([
+    const { enqueue, jobRecorder, buildPipelineDeps, runScheduled } = setup([
       { id: 2, isAdmin: false },
       { id: 5, isAdmin: true },
     ])
@@ -59,8 +59,8 @@ describe('createScheduledPipelineRunner', () => {
     await runScheduled()
 
     expect(buildPipelineDeps).toHaveBeenCalledExactlyOnceWith(5)
-    expect(run).toHaveBeenCalledTimes(1)
-    const deps = run.mock.calls[0]?.[0]
+    expect(enqueue).toHaveBeenCalledTimes(1)
+    const deps = enqueue.mock.calls[0]?.[0]
     const expected = makeUserContext(5)
     expect(deps?.userId).toBe(5)
     expect(deps?.userConnections).toEqual(expected.userConnections)
@@ -73,21 +73,21 @@ describe('createScheduledPipelineRunner', () => {
   })
 
   it('falls back to the first user when nobody is an admin', async () => {
-    const { run, runScheduled } = setup([
+    const { enqueue, runScheduled } = setup([
       { id: 3, isAdmin: false },
       { id: 4, isAdmin: false },
     ])
 
     await runScheduled()
 
-    expect(run.mock.calls[0]?.[0].userId).toBe(3)
+    expect(enqueue.mock.calls[0]?.[0].userId).toBe(3)
   })
 
   it('honors an explicit user id without listing users', async () => {
     const listUsers = vi.fn(async () => [{ id: 1, isAdmin: true }])
-    const run = vi.fn(async (_deps: PipelineDeps) => ({ batchId: 1 }))
+    const enqueue = vi.fn((_deps: PipelineDeps) => ({ status: 'started' as const, position: 0 }))
     const runScheduled = createScheduledPipelineRunner({
-      orchestrator: { run },
+      orchestrator: { enqueue },
       jobRecorder: makeJobRecorder(),
       listUsers,
       buildPipelineDeps: async (userId) => makeUserContext(userId),
@@ -96,22 +96,22 @@ describe('createScheduledPipelineRunner', () => {
     await runScheduled(9)
 
     expect(listUsers).not.toHaveBeenCalled()
-    expect(run.mock.calls[0]?.[0].userId).toBe(9)
+    expect(enqueue.mock.calls[0]?.[0].userId).toBe(9)
   })
 
   it('does nothing when there are no users', async () => {
-    const { run, buildPipelineDeps, runScheduled } = setup([])
+    const { enqueue, buildPipelineDeps, runScheduled } = setup([])
 
     await runScheduled()
 
     expect(buildPipelineDeps).not.toHaveBeenCalled()
-    expect(run).not.toHaveBeenCalled()
+    expect(enqueue).not.toHaveBeenCalled()
   })
 
   it('does nothing when the pipeline context is unavailable (settings missing)', async () => {
-    const run = vi.fn(async (_deps: PipelineDeps) => ({ batchId: 1 }))
+    const enqueue = vi.fn((_deps: PipelineDeps) => ({ status: 'started' as const, position: 0 }))
     const runScheduled = createScheduledPipelineRunner({
-      orchestrator: { run },
+      orchestrator: { enqueue },
       jobRecorder: makeJobRecorder(),
       listUsers: async () => [{ id: 1, isAdmin: true }],
       buildPipelineDeps: async () => null,
@@ -119,6 +119,6 @@ describe('createScheduledPipelineRunner', () => {
 
     await runScheduled()
 
-    expect(run).not.toHaveBeenCalled()
+    expect(enqueue).not.toHaveBeenCalled()
   })
 })
