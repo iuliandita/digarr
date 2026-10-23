@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-10-18 | Current: v2.0.1
+> Updated: 2026-10-23 | Current: v2.1.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v2.0.1 fixes the automatic pre-migration backup for databases one release behind. v2.0.0 moved OIDC to exact issuer/subject identities; read the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) before updating from v1.19.0. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
+v2.1.0 adds personal API tokens and a built-in MCP endpoint, per-user approval policies, ListenBrainz recording identity and Weekly Exploration, skipping recently played recordings, per-target playlist export results, and a persistent MusicBrainz cache so scans are fast after a restart. Upgrades from v2.0.x apply migrations 0055-0063 automatically; read the [upgrade notes](../CHANGELOG.md#v210---2026-10-23) first, and the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) when coming from v1.19.0. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
 
 Known gaps and integration limitations are tracked in [OPERATIONS.md](OPERATIONS.md#known-limitations).
 

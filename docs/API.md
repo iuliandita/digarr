@@ -1,6 +1,6 @@
 # API Reference
 
-This reference covers v2.0.1; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+This reference covers v2.1.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
 Except for [MCP](#mcp), all endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Personal API tokens are recommended for scripts; bearer sessions

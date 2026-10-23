@@ -811,18 +811,18 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "a2e3c5d3f941a1091e0a0581f447c3688659c64758d8588f98f874c4e3cd73bd",
+        "deploy/k8s/rendered.yaml": "3627af8f0c257cde0861f8a0dfa9627b0b3a7862da5792bacab9b3057acb76af",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81",
+      "digest": "38a4204a54f20cd2c895f4f77e9eed184c11a4fa2647780d8131a2bbbd81d9f7",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "The image copies only the PGlite runtime package the bundle leaves external and the server bundle is whitespace and syntax minified; ports, volumes, env vars, user and entrypoint are unchanged.",
+        "note": "Chart version/appVersion bump to 2.1.0 and regenerated rendered manifests only; deployment instructions unchanged, image digests sync after the release publishes",
         "breaking": "none",
         "migration": "",
-        "digest": "4d3967e67f28913506817e18a5d1a7bf16a126cc5b8a4a89bebf17bc8f6cbf81"
+        "digest": "38a4204a54f20cd2c895f4f77e9eed184c11a4fa2647780d8131a2bbbd81d9f7"
       }
     },
     "release": {
@@ -841,17 +841,17 @@
         ".github/workflows/release.yml": "8b31d8c84cd4c23450e234f78ac595ccef8bd93086be8acfd9dab0709d7db231",
         ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
-        "package.json": "e175c84bf5412e1fa278e13bee103bde0e83ede29fd9305b59a934cfd5125193",
+        "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391",
+      "digest": "8c4a8780b6045fd61fae9d0be16e3bbd8e0e4b90c68b8262ff7b47f068e4d0e9",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Vite output filenames use 10-char hashes once to bust immutable-cached assets; no release pins, channels, or version surfaces change.",
+        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "README.md"],
+        "note": "v2.1.0 release bump: changelog section with upgrade notes, roadmap current release, README banner and pins",
         "breaking": "none",
-        "migration": "",
-        "digest": "1163d36d87f8e7812fb5efe9d8e8962dd0fda313e2f06af5384360e4400ac391"
+        "migration": "Migrations 0055-0063 are additive or data backfills, applied automatically after the pre-migration backup; upgrade notes in CHANGELOG v2.1.0 and per-migration rollback notes in docs/OPERATIONS.md",
+        "digest": "8c4a8780b6045fd61fae9d0be16e3bbd8e0e4b90c68b8262ff7b47f068e4d0e9"
       }
     },
     "maintenance": {
