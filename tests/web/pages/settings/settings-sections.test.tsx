@@ -168,7 +168,7 @@ describe('NotificationChannelsCard', () => {
     )
 
     fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
-    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks\.example\.com/ }))
     const alert = screen.getByRole('checkbox', { name: 'Approval failed' })
     expect(alert).not.toBeChecked()
     fireEvent.click(alert)
@@ -192,7 +192,7 @@ describe('NotificationChannelsCard', () => {
       />,
     )
     fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
-    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks\.example\.com/ }))
     fireEvent.click(screen.getByRole('button', { name: /42/ }))
     const sign = screen.getByLabelText('Signing secret (optional)').parentElement as HTMLElement
     const bot = screen.getByLabelText('Bot token').parentElement as HTMLElement
@@ -221,7 +221,7 @@ describe('NotificationChannelsCard', () => {
       />,
     )
     fireEvent.click(screen.getByRole('button', { name: /Notifications/ }))
-    fireEvent.click(screen.getByRole('button', { name: /hooks.example.com/ }))
+    fireEvent.click(screen.getByRole('button', { name: /hooks\.example\.com/ }))
     const event = screen.getByRole('checkbox', { name: 'Request resolved' })
     expect(event).not.toBeChecked()
     expect(screen.queryByRole('checkbox', { name: 'Approval failed' })).not.toBeInTheDocument()

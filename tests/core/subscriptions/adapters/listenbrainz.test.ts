@@ -159,7 +159,7 @@ beforeAll(async () => {
 
   global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input)
-    if (url.includes('api.listenbrainz.org')) {
+    if (new URL(url).hostname === 'api.listenbrainz.org') {
       const parsed = new URL(url)
       const mockUrl = `${baseUrl}${parsed.pathname}${parsed.search}`
       return originalFetch(mockUrl, init)
@@ -262,7 +262,7 @@ describe('createListenBrainzAdapter', () => {
       const savedFetch = global.fetch
       global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
         const url = String(input)
-        if (url.includes('api.listenbrainz.org')) {
+        if (new URL(url).hostname === 'api.listenbrainz.org') {
           const parsed = new URL(url)
           return originalFetch(`${noJamsBase}${parsed.pathname}${parsed.search}`, init)
         }
@@ -315,7 +315,7 @@ describe('createListenBrainzAdapter', () => {
     const savedFetch = global.fetch
     global.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input)
-      if (url.includes('api.listenbrainz.org')) {
+      if (new URL(url).hostname === 'api.listenbrainz.org') {
         const parsed = new URL(url)
         return originalFetch(`${emptyBase}${parsed.pathname}${parsed.search}`, init)
       }

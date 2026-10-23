@@ -97,6 +97,7 @@ API clients: `GET /api/v1/recommendations` no longer returns the artist cache fi
 
 ### Fixed
 
+- zod is updated to 4.6.7 for GHSA-mrhx-c7xc-m3w5, where validating an oversized request body could exhaust memory (#1159).
 - Audition and playlist exports find Deezer tracks for more artists. An artist with an empty duplicate listing on Deezer (like Alice in Chains) now resolves when one listing clearly dominates, names that differ only by a hyphen variant now match, and Deezer quota errors are retried once and reported instead of being treated as no result (#1147).
 - The scheduled scan (Settings > Schedule) now runs like Run Scan for the admin account. It ignored that account's connections, so listening sources were empty and batches found nothing, and it never auto-approved or wrote a Job History entry. It now uses the account's connections, resolved preferences and auto-approve settings, and records a `pipeline` job with trigger `scheduled`. A scheduled scan that fires while another scan is running now waits for it instead of being skipped (#1152).
 - A scan killed by a server restart no longer keeps showing as running on the dashboard: once the server reports no scan is running, the progress card switches to "The scan stopped - the server restarted. Run it again to finish." On startup, jobs and batches left `running` by the previous process are marked `failed` ("Interrupted by a server restart") right away instead of waiting for the stuck detector (#1141).
