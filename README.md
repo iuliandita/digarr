@@ -19,8 +19,6 @@
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
-This dashboard capture predates v1.19.0; see [current behavior and screenshots](docs/SCREENSHOTS.md).
-
 [More screenshots](docs/SCREENSHOTS.md) | [Quick start](#quick-start) | [Configuration](#configuration) | [Documentation](#documentation)
 
 ## What you can do
