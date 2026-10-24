@@ -18,8 +18,9 @@
  *   ONLY=library-sources,settings  # restrict to specific files
  *
  * The script logs in, applies the color theme, sanitizes the DOM to remove
- * the logged-in username, email addresses, the instance hostname, and private
- * IP addresses from any visible text, masks URL / token / password /
+ * every account's username and linked-service account names, email addresses,
+ * the instance hostname, private IP addresses, URLs, and .local/.lan/.internal
+ * hostnames from any visible text, masks URL / token / password /
  * labelled-credential input values, and saves PNGs to OUT_DIR. It exits
  * without saving if any of those values are still visible after sanitizing.
  *
@@ -57,7 +58,38 @@ const specs: PageSpec[] = [
   { path: '/', file: 'dashboard-dark.png', theme: 'dark' },
   { path: '/', file: 'dashboard-light.png', theme: 'light' },
   { path: '/discover', file: 'discover.png', theme: 'dark' },
+  {
+    path: '/discover',
+    file: 'discover-list.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.getByRole('button', { name: 'List view' }).click()
+      await page.waitForTimeout(1000)
+    },
+  },
+  {
+    path: '/discover',
+    file: 'discover-stack.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.getByRole('button', { name: 'Stack view' }).click()
+      await page.waitForTimeout(1500)
+    },
+  },
   { path: '/discovery-modes', file: 'discovery-modes.png', theme: 'dark' },
+  {
+    path: '/discovery-modes',
+    file: 'discovery-modes-picker.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.getByRole('button', { name: 'Run a mode' }).first().click()
+      const search = page.getByRole('searchbox', { name: /Search modes/i })
+      await search.waitFor()
+      await search.evaluate((el) => el.scrollIntoView({ block: 'start' }))
+      await page.evaluate(() => window.scrollBy(0, -120))
+      await page.waitForTimeout(300)
+    },
+  },
   {
     path: '/search',
     file: 'search.png',
@@ -103,6 +135,13 @@ const specs: PageSpec[] = [
     },
   },
   { path: '/settings?tab=account', file: 'settings-account.png', theme: 'dark' },
+  { path: '/settings?tab=recommendations', file: 'settings-recommendations.png', theme: 'dark' },
+  { path: '/settings?tab=targets', file: 'settings-targets.png', theme: 'dark' },
+  { path: '/settings?tab=schedule', file: 'settings-schedule.png', theme: 'dark' },
+  { path: '/settings?tab=auth', file: 'settings-auth.png', theme: 'dark' },
+  { path: '/settings?tab=users', file: 'settings-users.png', theme: 'dark' },
+  { path: '/settings?tab=administration', file: 'settings-administration.png', theme: 'dark' },
+  { path: '/settings?tab=system', file: 'settings-system.png', theme: 'dark' },
   {
     path: '/settings?tab=blocked',
     file: 'settings-blocked.png',
@@ -143,6 +182,31 @@ await Promise.all([
 ])
 console.log('Logged in.')
 
+// Every account's username, email and linked-service account names are scrubbed,
+// not only the logged-in user's: admin pages list other users.
+const privateNames = new Set<string>([USERNAME])
+const usersRes = await page.request.get(`${BASE_URL}/api/v1/users`)
+if (usersRes.ok()) {
+  const users = (await usersRes.json()) as Record<string, unknown>[]
+  for (const user of users) {
+    for (const field of [
+      'username',
+      'email',
+      'lastfmUsername',
+      'listenbrainzUsername',
+      'discogsUsername',
+      'subsonicUsername',
+      'plexAccountName',
+    ]) {
+      const value = user[field]
+      if (typeof value === 'string' && value.trim().length >= 2) privateNames.add(value.trim())
+    }
+  }
+} else if (usersRes.status() !== 403) {
+  throw new Error(`GET /api/v1/users failed: HTTP ${usersRes.status()}`)
+}
+const names = [...privateNames].sort((a, b) => b.length - a.length)
+
 async function setTheme(theme: 'dark' | 'light') {
   await page.evaluate(
     ([t, c]) => {
@@ -161,9 +225,9 @@ async function setTheme(theme: 'dark' | 'light') {
 
 async function sanitize() {
   await page.evaluate(
-    ([u, pats]) => {
+    ([nameList, pats]) => {
       const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-      const uRe = u ? new RegExp(`\\b${escapeRe(u)}\\b`, 'g') : null
+      const nameRes = (nameList as string[]).map((n) => new RegExp(`\\b${escapeRe(n)}\\b`, 'g'))
       // Email addresses anywhere in visible text or attributes.
       const emailRe = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
       const privateIpRe =
@@ -173,9 +237,14 @@ async function sanitize() {
         .map((p) => ({ re: new RegExp(escapeRe(p), 'g'), replacement: 'example.com' }))
       const scrubText = (input: string) => {
         let val = input.replace(emailRe, 'user@example.com')
-        if (uRe) val = val.replace(uRe, 'user')
+        for (const re of nameRes) val = val.replace(re, 'user')
         for (const { re, replacement } of patRes) val = val.replace(re, replacement)
         val = val.replace(privateIpRe, '192.0.2.1')
+        val = val.replace(/\bhttps?:\/\/[^\s"'<>)]+/g, 'https://example.com')
+        val = val.replace(
+          /\b[\w-]+(?:\.[\w-]+)*\.(?:local|lan|internal|home\.arpa)\b(?::\d+)?/g,
+          'example.com',
+        )
         return val
       }
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
@@ -242,14 +311,14 @@ async function sanitize() {
         }
       }
     },
-    [USERNAME, hostPatterns] as const,
+    [names, hostPatterns] as const,
   )
 }
 
 /** Fail the capture if anything private survived sanitize(). */
 async function assertNoLeaks(file: string) {
   const leaks = await page.evaluate(
-    ([u, pats]) => {
+    ([nameList, pats]) => {
       const values = Array.from(document.querySelectorAll('input, textarea')).map(
         (el) => (el as HTMLInputElement).value,
       )
@@ -260,17 +329,22 @@ async function assertNoLeaks(file: string) {
       const haystack = [document.body.innerText, ...values, ...attrs].join('\n')
       const found: string[] = []
       for (const p of pats as string[]) if (p && haystack.includes(p)) found.push(p)
-      if (u && new RegExp(`\\b${u.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(haystack))
-        found.push('username')
+      for (const n of nameList as string[])
+        if (new RegExp(`\\b${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(haystack))
+          found.push('name')
       const email = haystack.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) ?? []
       found.push(...email.filter((e) => e !== 'user@example.com' && !e.endsWith('@example.com')))
       const ip = haystack.match(
         /\b(?:10\.\d{1,3}|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/g,
       )
       if (ip) found.push(...ip)
+      const urls = haystack.match(/\bhttps?:\/\/[^\s"'<>)]+/g) ?? []
+      found.push(...urls.filter((url) => !/^https?:\/\/(?:[\w-]+\.)*example\.com\b/.test(url)))
+      const internal = haystack.match(/\b[\w-]+(?:\.[\w-]+)*\.(?:local|lan|internal|home\.arpa)\b/g)
+      if (internal) found.push(...internal)
       return found
     },
-    [USERNAME, hostPatterns] as const,
+    [names, hostPatterns] as const,
   )
   if (leaks.length) {
     console.error(
@@ -320,6 +394,20 @@ async function findGenreSlug(): Promise<string | null> {
   await page.waitForURL(/\/genres\//, { timeout: 10000 }).catch(() => {})
   const url = new URL(page.url())
   return url.pathname.startsWith('/genres/') ? url.pathname : null
+}
+
+const playlistsRes = await page.request.get(`${BASE_URL}/api/v1/playlists`)
+if (!playlistsRes.ok())
+  throw new Error(`GET /api/v1/playlists failed: HTTP ${playlistsRes.status()}`)
+const playlists = (await playlistsRes.json()) as { id: number; trackCount: number }[]
+const fullest = playlists.toSorted((a, b) => b.trackCount - a.trackCount)[0]
+if (fullest?.trackCount) {
+  const idx = specs.findIndex((p) => p.file === 'playlists.png')
+  specs.splice(idx + 1, 0, {
+    path: `/playlists/${fullest.id}`,
+    file: 'playlist-detail.png',
+    theme: 'dark',
+  })
 }
 
 const genreHref = await findGenreSlug()

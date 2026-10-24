@@ -1,9 +1,10 @@
 # Screenshots
 
 The checked-in screenshots were captured from a real v2.1.0 (`97eefd8d`) installation and
-its library with the Youtarr theme at 1280x800. The capture script redacts the username,
-email addresses, the instance host and its domain, private IP addresses, and credential
-input values, and refuses to save a capture if any of them are still visible. Capture a fresh set with
+its library with the Youtarr theme at 1280x800. The capture script redacts every account's
+username and linked-service account names, email addresses, the instance host and its
+domain, private IP addresses, service URLs and internal hostnames, and credential input
+values, and refuses to save a capture if any of them are still visible. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment variables.
 
 First-time browser setup starts with account creation before the setup wizard; these
@@ -33,6 +34,14 @@ The normal Run Scan action is artist-focused. Use Library Gap-Fill or Release Ra
 
 The **Get missing albums** action opens a studio-album checklist from a recommendation's expanded artist details, including Gap-Fill results and approved artists. All missing albums start selected; untick any you do not want and check the selected count before choosing **Get selected albums**. The dialog reports when nothing is missing or a lookup fails. Partial approval keeps failed albums visible for retry and shows how many succeeded and failed. Approval means the target accepted the album request, not that its download finished. Only MusicBrainz Album groups without secondary types appear, using your synced library to decide what is missing. Lidarr monitors and searches only the selected albums.
 
+## Discover - list and stack views
+
+![Discover list view](screenshots/discover-list.png)
+
+![Discover stack view](screenshots/discover-stack.png)
+
+List view shows the same cards in one column with a smaller image. Stack view shows one recommendation at a time with a position counter; swipe right to approve and left to reject, or use the buttons.
+
 ## Discovery Modes
 
 ![Discovery Modes](screenshots/discovery-modes.png)
@@ -40,6 +49,10 @@ The **Get missing albums** action opens a studio-album checklist from a recommen
 The Discovery Modes page at `/discovery-modes` is reached from the Discovery Modes tab on Discover. Your modes shows compact scheduled and recently run rows. Run a mode opens a searchable picker, where connection requirements and experimental modes appear. Picking a mode opens its Easy/Advanced form with Run now and Schedule actions. Schedule stays in that card, with a preset select and Custom cron input; More options holds the name, artist cap, and scoring preset. Saved rows expand to the same compact editor. Presets and CSV/M3U/XSPF imports live in the add flow. Old `/discover/modes` and `/subscriptions` links redirect here; `?mode=<id>` still opens and focuses the requested form.
 
 Schedules, history, pause/resume, and bulk controls for the former Subscriptions page live here. Settings > Schedule collects the scan, mode, playlist, library-sync, and notification-digest schedules with edit links, and holds the admin Scheduled generation switch.
+
+![Run a mode picker](screenshots/discovery-modes-picker.png)
+
+Modes that need a connection you have not set up stay in the picker, dimmed, with a link to connect the service.
 
 The picker uses the same Show experimental integrations preference as Connections. TIDAL Favorite Artists remains experimental; live-account validation is deferred. See [TIDAL feedback](AUTHENTICATION.md#tidal-feedback).
 
@@ -62,6 +75,12 @@ The provider toggles sit under a collapsed Sources section, because every availa
 ![Playlists](screenshots/playlists.png)
 
 The playlist form also offers Audition: one track per pending artist, with the existing schedule and target controls. Playlist details show the latest local generation outcome, selected/resolved/included artist counts, and per-artist lookup or size-limit results. These do not verify remote delivery or playback.
+
+## Playlist detail
+
+![Playlist detail](screenshots/playlist-detail.png)
+
+A playlist page lists its tracks with their source and offers Generate, M3U and XSPF downloads, and Edit.
 
 ## Library - Health
 
@@ -111,6 +130,38 @@ The Account page offers password-confirmed SSO linking when OIDC is enabled and 
 
 The Account page also manages personal notification channels for your own request decisions (subscribe explicitly to request outcomes; new channels leave the event off) and personal API tokens. After creating a token, its one-time reveal includes a copyable MCP client configuration with `type: "http"`, the endpoint URL, and the bearer header; closing the dialog removes the token and configuration from view.
 
-## User management and approval requests
+## Settings > Recommendations
 
-The user-management page adds per-user approval policies, a trusted score threshold, and an optional open-request limit. Its Requests section shows the admin queue with scores, reasons, and approve/decline decisions with optional notes. Members see their pending and declined requests on Discover > Approved. These controls are not captured; see [approval policies](AUTHENTICATION.md#approval-policies) for the workflow.
+![Recommendations](screenshots/settings-recommendations.png)
+
+## Settings > Targets
+
+![Targets](screenshots/settings-targets.png)
+
+Each target shows its type, assigned user, address, and linked target, with Edit, Test, and Remove.
+
+## Settings > Schedule
+
+![Schedule](screenshots/settings-schedule.png)
+
+## Settings > Authentication
+
+![Authentication](screenshots/settings-auth.png)
+
+OIDC/SSO settings with a connection test, plus reverse proxy authentication in its own section.
+
+## Settings > Administration
+
+![Administration](screenshots/settings-administration.png)
+
+## Settings > System
+
+![System](screenshots/settings-system.png)
+
+Job History lists every pipeline, subscription, target, library sync, quick discover, and playlist run with per-source results, filterable by type and failures.
+
+## Settings > Users and approval requests
+
+![Users](screenshots/settings-users.png)
+
+The user-management page adds per-user approval policies, a trusted score threshold, and an optional open-request limit. Its Requests section shows the admin queue with scores, reasons, and approve/decline decisions with optional notes. Members see their pending and declined requests on Discover > Approved. See [approval policies](AUTHENTICATION.md#approval-policies) for the workflow.
