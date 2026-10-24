@@ -856,7 +856,7 @@
     },
     "maintenance": {
       "files": {
-        "scripts/capture-screenshots.ts": "606d12d74d4b2dbd9efa78e7c9339c68c398d05ead1e1e9de7d42bd67d5db5fd",
+        "scripts/capture-screenshots.ts": "bd6e46d65f00cb901ddbff343f3c02f23a24d8cc7aa6d8854557dac865d5872a",
         "scripts/check-api-docs.ts": "3fef3a7b58d3281882cd7993a637146784476cb343fcef3ecc68608409f563d6",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
@@ -882,14 +882,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "6ea85eca64731d7711ad4557d818df0e2cb2f6b45d52f29331700d60fd51cc82",
+      "digest": "640d6e684cae53e0e722f88d436aee8cf96af682676a43694566a08239394944",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "check:api-docs now also fails on routes missing from the OpenAPI spec or wrong admin markers; maintainer workflow unchanged.",
+        "note": "Screenshot capture script only: retired route specs and selector fixes for the current UI; docs/SCREENSHOTS.md updated with the new captures, no contributor or maintenance procedure change.",
         "breaking": "none",
         "migration": "",
-        "digest": "6ea85eca64731d7711ad4557d818df0e2cb2f6b45d52f29331700d60fd51cc82"
+        "digest": "640d6e684cae53e0e722f88d436aee8cf96af682676a43694566a08239394944"
       }
     }
   }

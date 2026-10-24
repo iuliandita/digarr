@@ -56,31 +56,32 @@ const specs: PageSpec[] = [
   { path: '/', file: 'dashboard-dark.png', theme: 'dark' },
   { path: '/', file: 'dashboard-light.png', theme: 'light' },
   { path: '/discover', file: 'discover.png', theme: 'dark' },
-  { path: '/discover/modes', file: 'discovery-modes.png', theme: 'dark' },
-  { path: '/search', file: 'search.png', theme: 'dark' },
+  { path: '/discovery-modes', file: 'discovery-modes.png', theme: 'dark' },
+  {
+    path: '/search',
+    file: 'search.png',
+    theme: 'dark',
+    onPage: async (page) => {
+      await page.getByPlaceholder(/Search artists/i).fill('Agalloch')
+      await page.waitForTimeout(4000)
+    },
+  },
   { path: '/genres', file: 'genres.png', theme: 'dark' },
   // genre-detail is inserted dynamically after finding a slug
   { path: '/playlists', file: 'playlists.png', theme: 'dark' },
-  { path: '/subscriptions', file: 'subscriptions.png', theme: 'dark' },
   { path: '/library?tab=health', file: 'library-health.png', theme: 'dark' },
   {
     path: '/library?tab=health',
     file: 'library-sources.png',
     theme: 'dark',
     onPage: async (page) => {
-      const heading = page
-        .locator('h2, h3, h4')
-        .filter({ hasText: /Library Sources/i })
-        .first()
-      if (await heading.count()) {
-        await heading.scrollIntoViewIfNeeded()
-        await page.waitForTimeout(300)
-        await page.evaluate(() => window.scrollBy(0, -40))
-        await page.waitForTimeout(300)
-      } else {
-        await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
-        await page.waitForTimeout(300)
-      }
+      // The panel sits in a collapsed Disclosure on Library > Health.
+      const toggle = page.getByRole('button', { name: /Library Sources/i }).first()
+      await toggle.click()
+      await page.waitForTimeout(800)
+      await toggle.evaluate((el) => el.scrollIntoView({ block: 'start' }))
+      await page.evaluate(() => window.scrollBy(0, -100))
+      await page.waitForTimeout(300)
     },
   },
   { path: '/library?tab=reconciliation', file: 'library-reconciliation.png', theme: 'dark' },
@@ -93,6 +94,11 @@ const specs: PageSpec[] = [
     onPage: async (page) => {
       await page.getByRole('button', { name: 'Add connection', exact: true }).click()
       await page.getByRole('searchbox', { name: 'Search connections' }).waitFor()
+      await page
+        .getByRole('searchbox', { name: 'Search connections' })
+        .evaluate((el) => el.scrollIntoView({ block: 'start' }))
+      await page.evaluate(() => window.scrollBy(0, -120))
+      await page.waitForTimeout(300)
     },
   },
   { path: '/settings?tab=account', file: 'settings-account.png', theme: 'dark' },
