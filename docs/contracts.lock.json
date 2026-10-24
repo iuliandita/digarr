@@ -856,7 +856,7 @@
     },
     "maintenance": {
       "files": {
-        "scripts/capture-screenshots.ts": "bd6e46d65f00cb901ddbff343f3c02f23a24d8cc7aa6d8854557dac865d5872a",
+        "scripts/capture-screenshots.ts": "96f8752a7def9b6b138f29cd2b0c9ee9e1183a417aadbf882ce19b0cd382a468",
         "scripts/check-api-docs.ts": "3fef3a7b58d3281882cd7993a637146784476cb343fcef3ecc68608409f563d6",
         "scripts/check-docker-identity.sh": "5a812b3dfcb4405ddef7e937937d21ed75b11102937f7fc8c92ad81033e103d4",
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
@@ -882,14 +882,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "640d6e684cae53e0e722f88d436aee8cf96af682676a43694566a08239394944",
+      "digest": "580a5cfae3102e7bcbc37a030f85ebfba75105a07da2a6a7d3ecb6193cad310b",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Screenshot capture script only: retired route specs and selector fixes for the current UI; docs/SCREENSHOTS.md updated with the new captures, no contributor or maintenance procedure change.",
+        "note": "Screenshot capture script only: retired route specs, selector fixes, private IP redaction and a fail-closed leak check; docs/SCREENSHOTS.md describes the redaction, no contributor or maintenance procedure change.",
         "breaking": "none",
         "migration": "",
-        "digest": "640d6e684cae53e0e722f88d436aee8cf96af682676a43694566a08239394944"
+        "digest": "580a5cfae3102e7bcbc37a030f85ebfba75105a07da2a6a7d3ecb6193cad310b"
       }
     }
   }

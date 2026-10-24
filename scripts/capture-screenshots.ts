@@ -18,9 +18,10 @@
  *   ONLY=library-sources,settings  # restrict to specific files
  *
  * The script logs in, applies the color theme, sanitizes the DOM to remove
- * the logged-in username, email addresses, and the instance hostname from any
- * visible text, masks URL / token / password / labelled-credential input
- * values, and saves PNGs to OUT_DIR.
+ * the logged-in username, email addresses, the instance hostname, and private
+ * IP addresses from any visible text, masks URL / token / password /
+ * labelled-credential input values, and saves PNGs to OUT_DIR. It exits
+ * without saving if any of those values are still visible after sanitizing.
  *
  * The script keeps credentials out of the repo - everything comes from env.
  */
@@ -165,6 +166,8 @@ async function sanitize() {
       const uRe = u ? new RegExp(`\\b${escapeRe(u)}\\b`, 'g') : null
       // Email addresses anywhere in visible text or attributes.
       const emailRe = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g
+      const privateIpRe =
+        /\b(?:10\.\d{1,3}|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/g
       const patRes = (pats as string[])
         .filter(Boolean)
         .map((p) => ({ re: new RegExp(escapeRe(p), 'g'), replacement: 'example.com' }))
@@ -172,6 +175,7 @@ async function sanitize() {
         let val = input.replace(emailRe, 'user@example.com')
         if (uRe) val = val.replace(uRe, 'user')
         for (const { re, replacement } of patRes) val = val.replace(re, replacement)
+        val = val.replace(privateIpRe, '192.0.2.1')
         return val
       }
       const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT)
@@ -242,6 +246,40 @@ async function sanitize() {
   )
 }
 
+/** Fail the capture if anything private survived sanitize(). */
+async function assertNoLeaks(file: string) {
+  const leaks = await page.evaluate(
+    ([u, pats]) => {
+      const values = Array.from(document.querySelectorAll('input, textarea')).map(
+        (el) => (el as HTMLInputElement).value,
+      )
+      const attrs = Array.from(document.querySelectorAll('[title], [aria-label]')).flatMap((el) => [
+        el.getAttribute('title') ?? '',
+        el.getAttribute('aria-label') ?? '',
+      ])
+      const haystack = [document.body.innerText, ...values, ...attrs].join('\n')
+      const found: string[] = []
+      for (const p of pats as string[]) if (p && haystack.includes(p)) found.push(p)
+      if (u && new RegExp(`\\b${u.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b`).test(haystack))
+        found.push('username')
+      const email = haystack.match(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g) ?? []
+      found.push(...email.filter((e) => e !== 'user@example.com' && !e.endsWith('@example.com')))
+      const ip = haystack.match(
+        /\b(?:10\.\d{1,3}|192\.168|172\.(?:1[6-9]|2\d|3[01]))\.\d{1,3}\.\d{1,3}\b/g,
+      )
+      if (ip) found.push(...ip)
+      return found
+    },
+    [USERNAME, hostPatterns] as const,
+  )
+  if (leaks.length) {
+    console.error(
+      `  ${file}: private values still visible after sanitize (${leaks.length}); not saving`,
+    )
+    process.exit(1)
+  }
+}
+
 async function waitForContent() {
   await page.waitForLoadState('domcontentloaded')
   await page.waitForLoadState('load')
@@ -306,6 +344,7 @@ for (const spec of specs) {
   if (spec.onPage) await spec.onPage(page)
   await page.waitForTimeout(300)
   await sanitize()
+  await assertNoLeaks(spec.file)
   await page.waitForTimeout(200)
   await page.screenshot({ path: `${OUT_DIR}/${spec.file}`, fullPage: false })
 }

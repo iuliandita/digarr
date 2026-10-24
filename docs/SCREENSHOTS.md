@@ -1,8 +1,9 @@
 # Screenshots
 
-The checked-in screenshots were captured from a v2.1.0 (`97eefd8d`) deployment with the
-Youtarr theme at 1280x800. Usernames, email addresses, the instance host, and credential
-input values are redacted by the capture script. Capture a fresh set with
+The checked-in screenshots were captured from a real v2.1.0 (`97eefd8d`) installation and
+its library with the Youtarr theme at 1280x800. The capture script redacts the username,
+email addresses, the instance host and its domain, private IP addresses, and credential
+input values, and refuses to save a capture if any of them are still visible. Capture a fresh set with
 `bun scripts/capture-screenshots.ts`; see that script's header for environment variables.
 
 First-time browser setup starts with account creation before the setup wizard; these
