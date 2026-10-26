@@ -10,14 +10,16 @@ The mark is a record inside a chip: music, run on your own hardware. The look ar
 | `digarr-mark-dark.svg` | The mark on dark backgrounds: the chip drawn as a white outline |
 | `digarr-wordmark.svg`, `digarr-wordmark-dark.svg` | "digarr" with the red dot, dark ink or white ink |
 | `digarr-lockup.svg`, `digarr-lockup-dark.svg` | Mark and wordmark side by side; the README header |
-| `digarr-icon.svg` | App icon: the dark-variant mark on an ink tile. Served as `/icon.svg` and the source for the PWA icons, the Apple touch icon and `docs/logo.png` (the Unraid icon) |
+| `digarr-icon.svg` | App icon: the dark-variant mark on an ink tile. Source for the PWA icons, the Apple touch icon and `docs/logo.png` (the Unraid icon) |
+| `digarr-favicon.svg` | The app icon redrawn for browser tabs: two pins per side, one red arc, wider gaps. Served as `/icon.svg` |
+| `digarr-social.png` | 1280x640 social preview card for the GitHub repository |
 
 Both marks are drawn from the same geometry, so the pins, disc, label and grooves match. Recolor nothing: the variant choice handles light and dark.
 
 ## Usage
 
 - Clear space around the mark is at least one pin length (about 13% of the mark's width). Around the wordmark, keep the height of the dot.
-- Minimum sizes: the mark 32 px, the lockup 160 px wide. At 16 px the grooves blur; the app icon tile still reads as the chip.
+- Minimum sizes: the mark 48 px, the lockup 160 px wide. Below 48 px use `digarr-favicon.svg`.
 - Red appears in exactly two places: the groove arcs on the record and the dot over the i. Do not add red elsewhere in the mark, and never set the whole word in red.
 - In the app header the name stays live text in the theme's brand color; the drawn wordmark is for static surfaces (README, releases, posters, listings).
 - Do not rotate, outline, add shadows or glows, place the dark variant on light backgrounds, or stretch the lockup.
