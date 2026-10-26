@@ -542,7 +542,7 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "README.md"],
-        "note": "Favicon is now a simplified record mark, PWA and Apple icons use the paper tile, the manifest drops the SVG entry so launchers use the detailed PNGs, and theme_color, background_color and the theme-color meta move from leftover tan, navy and blue to the default theme ground #0f0f0f. No routes, settings or app behavior change; the changelog records it.",
+        "note": "Favicon and installed-app icons use the new chip-and-record mark on an ink tile, apple-touch-icon points at a 180px PNG because iOS ignores SVG touch icons, the manifest lists separate any and maskable PNGs, and theme_color, background_color and the theme-color meta move from leftover tan, navy and blue to the default theme ground #0f0f0f. No routes, settings or app behavior change; the changelog records it.",
         "breaking": "none",
         "migration": "",
         "digest": "8408b4032282c6bf056577c8c9c97cf8c5fbaa8ee1f4a96c1a0b82543c3710a6"
