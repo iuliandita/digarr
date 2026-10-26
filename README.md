@@ -151,3 +151,13 @@ Most code and tests are AI-generated, with a human setting direction and reviewi
 MIT. See [LICENSE](LICENSE).
 
 Made by [Iulian Dita](https://iuliandita.com). [Other projects](https://iuliandita.com/projects/).
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=iuliandita%2Fdigarr&type=timeline&logscale=&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
+ </picture>
+</a>
