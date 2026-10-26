@@ -353,8 +353,8 @@
     },
     "interface": {
       "files": {
-        "index.html": "69d4f0c9c6242b299547d68a9ae5ac89c4c16e4884dfbf5443088581f9c489ae",
-        "public/manifest.json": "1c70f2ee3b00a0e30bd735607c203a51533e7e3d4f1223b2a72520ca57a6b384",
+        "index.html": "54bfd02494ce19e1544e73ec320696a6a10c9b3dfa6189ccc0e5a81b4922d97c",
+        "public/manifest.json": "245ae27af3b3faad2985d3598af73c669681958a00cf66419548c924c7e6338e",
         "public/sw.js": "d2ead1fe1da5389f0406ea997e171a98e8e63af7b5dcf35cdf4ed373d23ce3e7",
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
@@ -538,14 +538,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "0d3bd64e3ec0794370df3c652d617cbb54341aaa6ea9f64713e11ccd0a205bae",
+      "digest": "8408b4032282c6bf056577c8c9c97cf8c5fbaa8ee1f4a96c1a0b82543c3710a6",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "README.md"],
-        "note": "Swap the favicon and installed-app icons for the new mark, split the 512 icon into separate any and maskable entries, and point apple-touch-icon at a 180px PNG because iOS ignores SVG touch icons. No routes, settings or behavior change; the changelog and README header record it.",
+        "note": "Favicon is now a simplified record mark, PWA and Apple icons use the paper tile, the manifest drops the SVG entry so launchers use the detailed PNGs, and theme_color, background_color and the theme-color meta move from leftover tan, navy and blue to the default theme ground #0f0f0f. No routes, settings or app behavior change; the changelog records it.",
         "breaking": "none",
         "migration": "",
-        "digest": "0d3bd64e3ec0794370df3c652d617cbb54341aaa6ea9f64713e11ccd0a205bae"
+        "digest": "8408b4032282c6bf056577c8c9c97cf8c5fbaa8ee1f4a96c1a0b82543c3710a6"
       }
     },
     "features": {
