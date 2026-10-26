@@ -1,8 +1,9 @@
-<p align="center">
-  <img src="docs/logo.png" alt="Digarr" width="120" />
-</p>
-
-<h1 align="center">Digarr</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/digarr-lockup-dark.svg" />
+    <img src="docs/brand/digarr-lockup.svg" alt="Digarr" width="360" />
+  </picture>
+</h1>
 
 [![CI](https://github.com/iuliandita/digarr/actions/workflows/ci.yml/badge.svg)](https://github.com/iuliandita/digarr/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

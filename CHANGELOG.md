@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Changed
+
+- New logo and wordmark. The favicon, installed-app icons, README and Unraid icon use the new mark; light and dark variants of the mark, wordmark and lockup live in `docs/brand/`. Installing to an iPhone home screen now gets a real icon instead of a page screenshot (#1171).
+
 ## v2.1.0 - 2026-10-23
 
 ### Upgrade notes

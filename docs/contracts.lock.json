@@ -353,8 +353,8 @@
     },
     "interface": {
       "files": {
-        "index.html": "fb4eee7d339e8a1cf9904b023516a9f8f27582632e93917ee19899f7efae5ce9",
-        "public/manifest.json": "e67c93403f9c8939af0f6006feed3e892c95f9d8983284c10eb6eadc951457ef",
+        "index.html": "69d4f0c9c6242b299547d68a9ae5ac89c4c16e4884dfbf5443088581f9c489ae",
+        "public/manifest.json": "1c70f2ee3b00a0e30bd735607c203a51533e7e3d4f1223b2a72520ca57a6b384",
         "public/sw.js": "d2ead1fe1da5389f0406ea997e171a98e8e63af7b5dcf35cdf4ed373d23ce3e7",
         "public/theme-init.js": "3bfcc4d824b970658531580ecabe21007196f596a7e6b5b568c22e586767e8f0",
         "spotify-embed-bridge.html": "8b5dcf38aa1bea0cf155cc1a2d705776e9def3aa719424d8f8f0f61748ded443",
@@ -538,14 +538,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "636f02f1e6498382579c0e794e0c307c2dc098c0a9d19eca6734d3421db79315",
+      "digest": "0d3bd64e3ec0794370df3c652d617cbb54341aaa6ea9f64713e11ccd0a205bae",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "New Weekly Exploration option label and updated ListenBrainz subscriptions capability text in all 15 locales",
+        "docs": ["CHANGELOG.md", "README.md"],
+        "note": "Swap the favicon and installed-app icons for the new mark, split the 512 icon into separate any and maskable entries, and point apple-touch-icon at a 180px PNG because iOS ignores SVG touch icons. No routes, settings or behavior change; the changelog and README header record it.",
         "breaking": "none",
         "migration": "",
-        "digest": "636f02f1e6498382579c0e794e0c307c2dc098c0a9d19eca6734d3421db79315"
+        "digest": "0d3bd64e3ec0794370df3c652d617cbb54341aaa6ea9f64713e11ccd0a205bae"
       }
     },
     "features": {
