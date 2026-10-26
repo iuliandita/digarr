@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -212,11 +209,7 @@
       "digest": "eb911575549db38f1b70638883d40e4046beb041e3148c78a63bf8ee576ab9cc",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/OPERATIONS.md",
-          "docs/guides/switching-backends.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
         "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; reads now also return expires_at so memory refills never outlive the row. JSON backups and backend copies exclude the table and it is safe to truncate. Validated on isolated in-memory PGlite (re-run, restart hit, expiry); no live PostgreSQL run.",
         "breaking": "none",
         "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
@@ -351,10 +344,7 @@
       "digest": "7efcc87f3654c7b68a688230ecf1896516ee78405cb59aec89bdb74324ed29ee",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Subscription adapter docs list the ListenBrainz feedType values including the new weekly-exploration; additive, no request shape change",
         "breaking": "none",
         "migration": "",
@@ -551,9 +541,7 @@
       "digest": "9c4b9c0dfe6c33956e975c79afb7db4cc6f0baba3b7f596d730b0aee913f7a62",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Iframes take color-scheme normal so the Spotify embed sits on the theme background instead of a white browser backdrop on dark themes, and the streaming-links embed drops its border. No routes, settings or behavior change; the changelog records it and the README dashboard screenshot is updated to match.",
         "breaking": "none",
         "migration": "",
@@ -783,9 +771,7 @@
       "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md"
-        ],
+        "docs": ["CHANGELOG.md"],
         "note": "Deezer audition resolution picks a dominant same-name artist, folds Unicode hyphens, and retries then surfaces quota errors.",
         "breaking": "none",
         "migration": "",
@@ -861,11 +847,7 @@
       "digest": "8c4a8780b6045fd61fae9d0be16e3bbd8e0e4b90c68b8262ff7b47f068e4d0e9",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "docs/ROADMAP.md",
-          "README.md"
-        ],
+        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "README.md"],
         "note": "v2.1.0 release bump: changelog section with upgrade notes, roadmap current release, README banner and pins",
         "breaking": "none",
         "migration": "Migrations 0055-0063 are additive or data backfills, applied automatically after the pre-migration backup; upgrade notes in CHANGELOG v2.1.0 and per-migration rollback notes in docs/OPERATIONS.md",
