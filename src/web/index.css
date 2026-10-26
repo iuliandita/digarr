@@ -590,6 +590,12 @@ body {
   color-scheme: light;
 }
 
+/* Embeds declare no color scheme; a mismatch with a dark page makes the browser paint the
+   iframe an opaque white backdrop (#1177). */
+iframe {
+  color-scheme: normal;
+}
+
 /* One offset scale for fixed bottom surfaces, stacked nav < player < bars and toasts. The
    preview player writes its measured height to --player-offset while it is visible. */
 :root {

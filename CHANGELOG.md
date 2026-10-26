@@ -10,6 +10,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - New logo and wordmark: a record inside a chip. The favicon, installed-app icons, README and Unraid icon use it, and the installed-app colors now match the default dark theme. Installing to an iPhone home screen now gets a real icon instead of a page screenshot. Logo files, usage rules, colors and the art style for release posters are in `docs/brand/` (#1171).
 
+### Fixed
+
+- The Spotify player no longer sits in a white box on dark themes; it now shows on the theme background, in the artist streaming links and in the preview player (#1177).
+
 ## v2.1.0 - 2026-10-23
 
 ### Upgrade notes
