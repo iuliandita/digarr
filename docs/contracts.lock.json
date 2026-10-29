@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -209,7 +212,11 @@
       "digest": "eb911575549db38f1b70638883d40e4046beb041e3148c78a63bf8ee576ab9cc",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "docs": [
+          "CHANGELOG.md",
+          "docs/OPERATIONS.md",
+          "docs/guides/switching-backends.md"
+        ],
         "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; reads now also return expires_at so memory refills never outlive the row. JSON backups and backend copies exclude the table and it is safe to truncate. Validated on isolated in-memory PGlite (re-run, restart hit, expiry); no live PostgreSQL run.",
         "breaking": "none",
         "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
@@ -344,7 +351,10 @@
       "digest": "7efcc87f3654c7b68a688230ecf1896516ee78405cb59aec89bdb74324ed29ee",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
         "note": "Subscription adapter docs list the ListenBrainz feedType values including the new weekly-exploration; additive, no request shape change",
         "breaking": "none",
         "migration": "",
@@ -541,7 +551,9 @@
       "digest": "9c4b9c0dfe6c33956e975c79afb7db4cc6f0baba3b7f596d730b0aee913f7a62",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Iframes take color-scheme normal so the Spotify embed sits on the theme background instead of a white browser backdrop on dark themes, and the streaming-links embed drops its border. No routes, settings or behavior change; the changelog records it and the README dashboard screenshot is updated to match.",
         "breaking": "none",
         "migration": "",
@@ -771,7 +783,9 @@
       "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Deezer audition resolution picks a dominant same-name artist, folds Unicode hyphens, and retries then surfaces quota errors.",
         "breaking": "none",
         "migration": "",
@@ -830,7 +844,6 @@
         ".github/workflows/backmerge-develop.yml": "1a05e83e619424a285f68c3a68b6deda928cd2f2847e8c40c8512a60bc384f00",
         ".github/workflows/ci.yml": "c135c2f5ba99a834d0a58115de1724dcd0a27bdf4dc615cda9216493d1800d9a",
         ".github/workflows/compatibility.yml": "42ee1d93f9b47f68908de126aaa8fcc5a71846b7d915a7f4f9bf1e2bbfbab2c3",
-        ".github/workflows/dependabot-bun-lockfile.yml": "179d1f98a640acef73341dfc3b96a5940d244bb3c34ca4bada339b9b2cfb2fef",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
         ".github/workflows/evals.yml": "4a5e028b8a8edc5d311cdc00e5d26d1f3e816c90881b69c9e42c0df725058d8b",
         ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
@@ -844,14 +857,14 @@
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "8c4a8780b6045fd61fae9d0be16e3bbd8e0e4b90c68b8262ff7b47f068e4d0e9",
+      "digest": "35b2d1529215af4b990bff7753de082109a5fc90bc3de7a5358c93c21ba49e2d",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ROADMAP.md", "README.md"],
-        "note": "v2.1.0 release bump: changelog section with upgrade notes, roadmap current release, README banner and pins",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Removed the Dependabot bun lockfile workflow because Renovate's Bun manager updates bun.lock; no user-facing release behaviour changes.",
         "breaking": "none",
-        "migration": "Migrations 0055-0063 are additive or data backfills, applied automatically after the pre-migration backup; upgrade notes in CHANGELOG v2.1.0 and per-migration rollback notes in docs/OPERATIONS.md",
-        "digest": "8c4a8780b6045fd61fae9d0be16e3bbd8e0e4b90c68b8262ff7b47f068e4d0e9"
+        "migration": "",
+        "digest": "35b2d1529215af4b990bff7753de082109a5fc90bc3de7a5358c93c21ba49e2d"
       }
     },
     "maintenance": {
