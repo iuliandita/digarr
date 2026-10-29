@@ -109,6 +109,16 @@
         "github-actions"
       ],
       "groupName": "GitHub Actions"
+    },
+    {
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true,
+      "platformAutomerge": false
     }
   ]
 }
