@@ -1,0 +1,114 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "osvVulnerabilityAlerts": true,
+  "vulnerabilityAlerts": {
+    "labels": [
+      "security"
+    ]
+  },
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "groupName": "misc"
+    },
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "matchPackageNames": [
+        "hono",
+        "@hono/*",
+        "drizzle-*",
+        "pg",
+        "@anthropic-ai/*",
+        "openai",
+        "p-queue",
+        "p-retry",
+        "croner",
+        "openid-client",
+        "zod"
+      ],
+      "groupName": "production"
+    },
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "matchPackageNames": [
+        "typescript",
+        "vite",
+        "vitest",
+        "@vitest/*",
+        "@biomejs/*",
+        "drizzle-kit",
+        "@vitejs/*",
+        "@types/bun"
+      ],
+      "groupName": "dev-tools"
+    },
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "matchPackageNames": [
+        "react",
+        "react-dom",
+        "react-router-dom",
+        "@types/react*",
+        "@tanstack/*"
+      ],
+      "groupName": "react"
+    },
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "matchPackageNames": [
+        "@testing-library/*",
+        "@playwright/*",
+        "@axe-core/*",
+        "jsdom"
+      ],
+      "groupName": "testing"
+    },
+    {
+      "matchManagers": [
+        "bun"
+      ],
+      "matchPackageNames": [
+        "tailwindcss",
+        "@tailwindcss/*",
+        "lucide-react",
+        "sonner",
+        "clsx",
+        "class-variance-authority",
+        "tailwind-merge"
+      ],
+      "groupName": "frontend"
+    },
+    {
+      "matchManagers": [
+        "dockerfile",
+        "docker-compose"
+      ],
+      "groupName": "Docker images"
+    },
+    {
+      "matchManagers": [
+        "github-actions"
+      ],
+      "groupName": "GitHub Actions"
+    }
+  ]
+}
