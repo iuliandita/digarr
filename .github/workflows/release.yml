@@ -24,12 +24,12 @@ env:
 
 jobs:
   quality-gate:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     outputs:
       sha: ${{ steps.release.outputs.sha }}
       tag: ${{ steps.release.outputs.tag }}
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event_name == 'push' && github.sha || format('refs/tags/{0}', inputs.tag) }}
           fetch-depth: 0
@@ -43,7 +43,7 @@ jobs:
           fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24.22.2"
+          node-version: "26.13.0"
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
           bun-version: "1.4.4"
@@ -65,7 +65,7 @@ jobs:
       - run: bun run test
 
   docker:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     needs: quality-gate
     environment: production
     permissions:
@@ -89,7 +89,7 @@ jobs:
             sbom-file: sbom-container-debian.spdx.json
     steps:
       # Build the exact commit that passed the quality gate.
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ needs.quality-gate.outputs.sha }}
 
@@ -205,7 +205,7 @@ jobs:
 
   publish-sboms:
     needs: [quality-gate, docker]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
     steps:
@@ -239,13 +239,13 @@ jobs:
   # rather than waiting to be remembered (#616).
   sync-deploy-digests:
     needs: [quality-gate, docker]
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       contents: write
       pull-requests: write
       actions: write # dispatch ci.yml on the sync branch
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
           fetch-depth: 0
