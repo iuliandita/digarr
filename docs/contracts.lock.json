@@ -781,7 +781,7 @@
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "6505d50f20bfe47d4865d5a8f16d5b9fe7ed1af3614f40f1f5fc1e725da93153",
-        "deploy/docker/Dockerfile": "005db0aac52e09144abfb06e10595c4ae6e9284bcff8bd458b3ea6b854979e7f",
+        "deploy/docker/Dockerfile": "51724089d4184951b5de7320990920bc7bcad4e057c14fc1ab45714a7e3b9b48",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
@@ -815,42 +815,42 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "38a4204a54f20cd2c895f4f77e9eed184c11a4fa2647780d8131a2bbbd81d9f7",
+      "digest": "8b06828e7d1e0ea3d0ddb78bba94987f541852c09426bcefdf81ec715df39c99",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Chart version/appVersion bump to 2.1.0 and regenerated rendered manifests only; deployment instructions unchanged, image digests sync after the release publishes",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Bun base image moves 1.4.3 to 1.4.4 in all three build stages and in the Alpine and Debian runtime defaults, with digests resolved from the registry. Ports, volumes, user, entrypoint and environment are unchanged; changelog updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "38a4204a54f20cd2c895f4f77e9eed184c11a4fa2647780d8131a2bbbd81d9f7"
+        "digest": "8b06828e7d1e0ea3d0ddb78bba94987f541852c09426bcefdf81ec715df39c99"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "1a05e83e619424a285f68c3a68b6deda928cd2f2847e8c40c8512a60bc384f00",
-        ".github/workflows/ci.yml": "c135c2f5ba99a834d0a58115de1724dcd0a27bdf4dc615cda9216493d1800d9a",
-        ".github/workflows/compatibility.yml": "42ee1d93f9b47f68908de126aaa8fcc5a71846b7d915a7f4f9bf1e2bbfbab2c3",
+        ".github/workflows/ci.yml": "951e3a3954a3ed0c72905339d2cbcfab41af319d2ec4b5aad98483dc143f52d1",
+        ".github/workflows/compatibility.yml": "804f4736614852dc773f77990f26a32fa9897fefbc12b39e89904b43a01b0fc4",
         ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
-        ".github/workflows/evals.yml": "4a5e028b8a8edc5d311cdc00e5d26d1f3e816c90881b69c9e42c0df725058d8b",
+        ".github/workflows/evals.yml": "82c3bf42b4067af59eba9bb4173e88345d234d91b5a085634ceea1b063e2c1ac",
         ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
         ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
         ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
         ".github/workflows/prune-nightly.yml": "88b14306a97f8c7e97fbcb03cb5671e537984418bcc8ff3d1c59d9544923b2e8",
         ".github/workflows/release-readiness.yml": "8bf50801b00ba60589db3358f969b1eeb77cd2b98a743d8a2f0fc45af51017d0",
-        ".github/workflows/release.yml": "8b31d8c84cd4c23450e234f78ac595ccef8bd93086be8acfd9dab0709d7db231",
-        ".github/workflows/security.yml": "b7b2aeb688fcf24b7c50217bfc671d31916599de6f5cc5c970cf17a55cecba5d",
+        ".github/workflows/release.yml": "29fc3b2c22e65a0cb7f316f4debebabbe38b212fb1ae81de4927d472d04f82a2",
+        ".github/workflows/security.yml": "39a63d97ea0c8de6b7fe9ba77993c9f0600144be06a80c47427c9437976a59ac",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
       },
-      "digest": "35b2d1529215af4b990bff7753de082109a5fc90bc3de7a5358c93c21ba49e2d",
+      "digest": "b216792ee6d6acf869794bdcaba9d35d03a5db4cba36734f848372c663ce901f",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Removed the Dependabot bun lockfile workflow because Renovate's Bun manager updates bun.lock; no user-facing release behaviour changes.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md"],
+        "note": "Workflows move to Bun 1.4.4, Node 24.22.2, Helm 3.22.1, a refreshed postgres service digest and newer pinned action revisions; release and digest-sync runtime-image pins match the Dockerfile. Release flow, tags, channels and gates are unchanged; changelog updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "35b2d1529215af4b990bff7753de082109a5fc90bc3de7a5358c93c21ba49e2d"
+        "digest": "b216792ee6d6acf869794bdcaba9d35d03a5db4cba36734f848372c663ce901f"
       }
     },
     "maintenance": {

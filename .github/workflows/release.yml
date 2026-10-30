@@ -29,7 +29,7 @@ jobs:
       sha: ${{ steps.release.outputs.sha }}
       tag: ${{ steps.release.outputs.tag }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ github.event_name == 'push' && github.sha || format('refs/tags/{0}', inputs.tag) }}
           fetch-depth: 0
@@ -43,10 +43,10 @@ jobs:
           fi
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: "24"
+          node-version: "24.22.2"
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
       - name: Validate release identity
         id: release
         env:
@@ -78,18 +78,18 @@ jobs:
         include:
           # alpine is primary: owns unsuffixed :latest/:vX.Y.Z and the source SBOM.
           - variant: alpine
-            runtime-image: "oven/bun:1.4.3-alpine@sha256:629e17411f1f129dbec3af78d5af9c9f2a937435c80349437206c6b0b7422373"
+            runtime-image: "oven/bun:1.4.4-alpine@sha256:4cf82f5686b196504fe119db3fcd9185b191f82ece82c40680e597228ec6070a"
             suffix: ""
             latest: "auto"
             sbom-file: sbom-container.spdx.json
           - variant: debian
-            runtime-image: "oven/bun:1.4.3-slim@sha256:14a223fa35747ec728bce300ef85888bc5f7958164d15bbba6a54b22b52a3288"
+            runtime-image: "oven/bun:1.4.4-slim@sha256:1846adf22496bd711036aae8be147e57bdebbaea2e5264e3e0b5af1db187d9a4"
             suffix: "-debian"
             latest: "false"
             sbom-file: sbom-container-debian.spdx.json
     steps:
       # Build the exact commit that passed the quality gate.
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: ${{ needs.quality-gate.outputs.sha }}
 
@@ -97,7 +97,7 @@ jobs:
         uses: docker/setup-qemu-action@99012661954931238ded8c8b007157a8430204e1 # v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@594f3bf4285d9ea8dc53c9a0c9c4092420091003 # v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
 
       - name: Install cosign
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
@@ -245,13 +245,13 @@ jobs:
       pull-requests: write
       actions: write # dispatch ci.yml on the sync branch
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
         with:
           ref: main
           fetch-depth: 0
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
 
       - name: Sync digests and open the follow-up PR
         env:
