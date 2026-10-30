@@ -12,6 +12,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 - Container images and CI move to Bun 1.4.4 (Alpine and Debian runtimes, build stages, workflows). Container configuration, ports, volumes and database schema are unchanged. CI also moves to Node 24.22.2 and Helm 3.22.1, and refreshes pinned action revisions.
 
+- The bundled PostgreSQL 17 Alpine image pin moves to a newer digest in the Helm chart, the Compose file, the Synology guide, the contributor setup script and CI. The Dockerfile syntax frontend moves to 1.28. Ports, volumes and database schema are unchanged.
+
 ### Fixed
 
 - The Spotify player no longer sits in a white box on dark themes; it now shows on the theme background, in the artist streaming links and in the preview player (#1177).

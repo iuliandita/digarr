@@ -8,7 +8,10 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/guides/unraid.md",
+          "CHANGELOG.md"
+        ],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -209,7 +212,11 @@
       "digest": "eb911575549db38f1b70638883d40e4046beb041e3148c78a63bf8ee576ab9cc",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
+        "docs": [
+          "CHANGELOG.md",
+          "docs/OPERATIONS.md",
+          "docs/guides/switching-backends.md"
+        ],
         "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; reads now also return expires_at so memory refills never outlive the row. JSON backups and backend copies exclude the table and it is safe to truncate. Validated on isolated in-memory PGlite (re-run, restart hit, expiry); no live PostgreSQL run.",
         "breaking": "none",
         "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
@@ -344,7 +351,10 @@
       "digest": "7efcc87f3654c7b68a688230ecf1896516ee78405cb59aec89bdb74324ed29ee",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "docs": [
+          "docs/API.md",
+          "CHANGELOG.md"
+        ],
         "note": "Subscription adapter docs list the ListenBrainz feedType values including the new weekly-exploration; additive, no request shape change",
         "breaking": "none",
         "migration": "",
@@ -541,7 +551,9 @@
       "digest": "9c4b9c0dfe6c33956e975c79afb7db4cc6f0baba3b7f596d730b0aee913f7a62",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Iframes take color-scheme normal so the Spotify embed sits on the theme background instead of a white browser backdrop on dark themes, and the streaming-links embed drops its border. No routes, settings or behavior change; the changelog records it and the README dashboard screenshot is updated to match.",
         "breaking": "none",
         "migration": "",
@@ -771,7 +783,9 @@
       "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Deezer audition resolution picks a dominant same-name artist, folds Unicode hyphens, and retries then surfaces quota errors.",
         "breaking": "none",
         "migration": "",
@@ -781,12 +795,12 @@
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "6505d50f20bfe47d4865d5a8f16d5b9fe7ed1af3614f40f1f5fc1e725da93153",
-        "deploy/docker/Dockerfile": "51724089d4184951b5de7320990920bc7bcad4e057c14fc1ab45714a7e3b9b48",
+        "deploy/docker/Dockerfile": "a2805af008748b929e470c3c435557509d5ff7528f0f38cc870eb97e6cd0c83c",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
         "deploy/docker/docker-compose.pgport.yml": "e6d731113776f1bfdffa5b5c42e9b2f55447798948c6d19d89fbeb2f17dc3930",
-        "deploy/docker/docker-compose.yml": "5d88e9b6eb678b94b009c502c2db6b50279bfc2ee0a0cd2395b713730edb444d",
+        "deploy/docker/docker-compose.yml": "d298daf704bf6d3b7fe78fce8f72fdfcfb8434ae02e892863096153ed185c4d5",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "3c56eebb9f2f6a1da5ecaed21d6bf1cc5ed1dfae0e2048a2c0883ac389e8fb64",
@@ -805,24 +819,27 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "c12ee464acc5e99ace2ce59051265ff1146e5d3b82282dcb3a8568759d0b1ee1",
-        "deploy/helm/digarr/values.yaml": "678bc48ef8ecb83af594be3dbfd86a772614ddfc4923be9dd82aadb3bbbe6a58",
+        "deploy/helm/digarr/values.yaml": "651847222b498b1f9a0ba29db3d6243271eebda1cdf75be467e88ed831b40dad",
         "deploy/k8s/deployment.yaml": "e5c5c0fc36a8c19dbde13a95d067ea365c6ab7992c540fc4e83779ad9b4c402c",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "3627af8f0c257cde0861f8a0dfa9627b0b3a7862da5792bacab9b3057acb76af",
+        "deploy/k8s/rendered.yaml": "9bfaedadf5d21fef0d9729a97695e47482493defd292f4ecfa513445b01c148c",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "8b06828e7d1e0ea3d0ddb78bba94987f541852c09426bcefdf81ec715df39c99",
+      "digest": "3eb4668e5d604f5adc877f721d48c80bcea825c843856d4f637d3b89af5abfcb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Bun base image moves 1.4.3 to 1.4.4 in all three build stages and in the Alpine and Debian runtime defaults, with digests resolved from the registry. Ports, volumes, user, entrypoint and environment are unchanged; changelog updated.",
+        "docs": [
+          "CHANGELOG.md",
+          "docs/guides/synology.md"
+        ],
+        "note": "PostgreSQL 17 Alpine pin moves to the current registry digest in the Helm chart default, rendered snapshot, Compose file, Synology guide, setup script and CI; Dockerfile syntax frontend moves 1.7 to 1.28 (lint-checked with no warnings). Ports, volumes, user, entrypoint and schema are unchanged; changelog and Synology guide updated.",
         "breaking": "none",
         "migration": "",
-        "digest": "8b06828e7d1e0ea3d0ddb78bba94987f541852c09426bcefdf81ec715df39c99"
+        "digest": "3eb4668e5d604f5adc877f721d48c80bcea825c843856d4f637d3b89af5abfcb"
       }
     },
     "release": {
@@ -846,7 +863,9 @@
       "digest": "b216792ee6d6acf869794bdcaba9d35d03a5db4cba36734f848372c663ce901f",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
+        "docs": [
+          "CHANGELOG.md"
+        ],
         "note": "Workflows move to Bun 1.4.4, Node 24.22.2, Helm 3.22.1, a refreshed postgres service digest and newer pinned action revisions; release and digest-sync runtime-image pins match the Dockerfile. Release flow, tags, channels and gates are unchanged; changelog updated.",
         "breaking": "none",
         "migration": "",
@@ -865,7 +884,7 @@
         "scripts/check-version-drift.ts": "9e292e28b4de1b574353486349f603cb38cf19272e84d218889a1d725e61ae86",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
-        "scripts/dev-setup.sh": "1a65e70218d592fd317f0d908cbd75bbec30dcefb9d86f32879e2b534dc06b1b",
+        "scripts/dev-setup.sh": "11ce77e9bfee670bdcad8ea82e85550b9d60abc2229ee728f0e0229795fcc23e",
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
@@ -881,14 +900,17 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "12ef8083e1b03b058cc77826066e6854688fda5bc42ef651bb8d2360b4694985",
+      "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Screenshot capture script only: every page and settings tab captured, all account names, URLs and internal hosts redacted, fail-closed leak check; docs/SCREENSHOTS.md documents the new captures. No contributor or maintenance procedure change.",
+        "outcome": "docs-updated",
+        "docs": [
+          "CHANGELOG.md",
+          "CONTRIBUTING.md"
+        ],
+        "note": "Dev setup script pins the same current postgres:17-alpine digest as CI, Compose and the Helm chart; syntax checked, behavior and flags unchanged. Contributor guide shows the same digest and the changelog records the pin move.",
         "breaking": "none",
         "migration": "",
-        "digest": "12ef8083e1b03b058cc77826066e6854688fda5bc42ef651bb8d2360b4694985"
+        "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a"
       }
     }
   }
