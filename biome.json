@@ -11,13 +11,22 @@
       "!test-results",
       "!evaluation-results",
       "!playwright-report",
-      "!**/*.svg"
+      "!**/*.svg",
+      "!**/*.md",
+      "!**/*.yaml",
+      "!**/*.yml"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
-    "rules": { "preset": "recommended" }
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noComponentHookFactories": "off",
+        "usePlaywrightValidDescribeCallback": "off"
+      }
+    }
   },
   "formatter": {
     "enabled": true,
@@ -35,13 +44,5 @@
     "parser": {
       "tailwindDirectives": true
     }
-  },
-  "markdown": {
-    "formatter": { "enabled": false },
-    "linter": { "enabled": false }
-  },
-  "yaml": {
-    "formatter": { "enabled": false },
-    "linter": { "enabled": false }
   }
 }
