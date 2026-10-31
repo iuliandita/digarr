@@ -71,7 +71,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.127.0",
-    "@electric-sql/pglite": "0.5.13",
+    "@electric-sql/pglite": "0.5.14",
     "@hono/node-server": "^2.1.5",
     "@hono/zod-validator": "^0.9.1",
     "@modelcontextprotocol/sdk": "1.32.2",
