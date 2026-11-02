@@ -114,12 +114,168 @@ describe('AnthropicProvider', () => {
 
       await provider.getRecommendations(sampleProfile)
       const callArgs = mockCreate.mock.calls[0]?.[0] as {
-        tools?: Array<{ name: string; input_schema?: Record<string, unknown> }>
-        tool_choice?: { type: string; name?: string }
+        tools?: Array<{ name: string; strict?: boolean; input_schema?: Record<string, unknown> }>
+        tool_choice?: Record<string, unknown>
+        system?: Array<{ type: string; text: string }>
       }
       expect(callArgs.tools?.[0]?.name).toBe('emit_recommendations')
       expect(callArgs.tools?.[0]?.input_schema).toBeDefined()
-      expect(callArgs.tool_choice).toEqual({ type: 'tool', name: 'emit_recommendations' })
+      // Sonnet 5.5, Opus 5.5 and Fable 5.1 reject `tool` and `any` with a 400.
+      expect(callArgs.tool_choice).toEqual({ type: 'auto', disable_parallel_tool_use: true })
+      expect(callArgs.system?.at(-1)?.text).toContain(
+        'calling the emit_recommendations tool exactly once',
+      )
+    })
+
+    test('sends a strict tool schema without keywords strict mode rejects', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+      })
+
+      await provider.getRecommendations(sampleProfile)
+      const callArgs = mockCreate.mock.calls[0]?.[0] as {
+        tools?: Array<{ strict?: boolean; input_schema: Record<string, unknown> }>
+      }
+      const tool = callArgs.tools?.[0]
+      expect(tool?.strict).toBe(true)
+      expect(tool?.input_schema).toEqual({
+        type: 'object',
+        properties: {
+          recommendations: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                artistName: { type: 'string' },
+                reasoning: { type: 'string' },
+                confidence: { type: 'number' },
+                genres: { type: 'array', items: { type: 'string' } },
+                suggestedAlbum: { type: 'string' },
+              },
+              required: ['artistName', 'reasoning', 'confidence', 'genres'],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ['recommendations'],
+        additionalProperties: false,
+      })
+    })
+
+    test('still enforces the schema bounds on the tool input', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: {
+              recommendations: [
+                ...sampleRecommendations,
+                { artistName: 'Too Sure', reasoning: 'x', confidence: 1.5, genres: [] },
+              ],
+            },
+          },
+        ],
+      })
+
+      const result = await provider.getRecommendations(sampleProfile)
+      expect(result.map((rec) => rec.artistName)).toEqual(['Grouper', 'The Caretaker'])
+    })
+
+    test('names the tool in the system prompt for pre-built prompts too', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          {
+            type: 'tool_use',
+            name: 'emit_recommendations',
+            input: { recommendations: sampleRecommendations },
+          },
+        ],
+      })
+
+      await provider.getRecommendations({ ...sampleProfile, _rawPrompt: 'Recommend calm music.' })
+      const args = mockCreate.mock.calls[0]?.[0] as {
+        system?: Array<{ type: string; text: string; cache_control?: unknown }>
+        messages: Array<{ content: string }>
+      }
+      expect(args.system).toHaveLength(1)
+      expect(args.system?.[0]?.cache_control).toBeUndefined()
+      expect(args.system?.[0]?.text).toContain('emit_recommendations')
+      expect(args.messages[0]?.content).toBe('Recommend calm music.')
+    })
+
+    test('retries once when the reply has neither a tool call nor a JSON array', async () => {
+      mockCreate
+        .mockResolvedValueOnce({
+          content: [{ type: 'text', text: 'Here are some artists you might like.' }],
+          usage: { input_tokens: 100, output_tokens: 10, cache_creation_input_tokens: 90 },
+        })
+        .mockResolvedValueOnce({
+          content: [
+            {
+              type: 'tool_use',
+              name: 'emit_recommendations',
+              input: { recommendations: sampleRecommendations },
+            },
+          ],
+          usage: { input_tokens: 100, output_tokens: 80, cache_read_input_tokens: 90 },
+        })
+
+      const result = await provider.getRecommendations(sampleProfile)
+
+      expect(result).toHaveLength(2)
+      expect(mockCreate).toHaveBeenCalledTimes(2)
+      expect(mockCreate.mock.calls[1]?.[0]).toEqual(mockCreate.mock.calls[0]?.[0])
+      // Both requests are billed, so the recorded usage covers both.
+      expect(provider.lastUsage).toEqual({
+        provider: 'anthropic',
+        model: 'claude-3-5-sonnet-20241022',
+        inputTokens: 200,
+        outputTokens: 90,
+        cacheReadInputTokens: 90,
+        cacheCreationInputTokens: 90,
+      })
+    })
+
+    test('throws after the retry also comes back without recommendations', async () => {
+      const reply = { content: [{ type: 'text', text: 'Sorry, I cannot help with that.' }] }
+      mockCreate.mockResolvedValueOnce(reply).mockResolvedValueOnce(reply)
+
+      await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(
+        'No JSON array found',
+      )
+      expect(mockCreate).toHaveBeenCalledTimes(2)
+    })
+
+    test('does not retry when the tool input has the wrong shape', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [{ type: 'tool_use', name: 'emit_recommendations', input: { artists: [] } }],
+      })
+
+      await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(
+        'did not contain a recommendations array',
+      )
+      expect(mockCreate).toHaveBeenCalledOnce()
+    })
+
+    test('parses a text answer that follows a thinking block', async () => {
+      mockCreate.mockResolvedValueOnce({
+        content: [
+          { type: 'thinking', thinking: '', signature: 'sig' },
+          { type: 'text', text: JSON.stringify(sampleRecommendations) },
+        ],
+      })
+
+      const result = await provider.getRecommendations(sampleProfile)
+
+      expect(result).toHaveLength(2)
+      expect(mockCreate).toHaveBeenCalledOnce()
     })
 
     test('falls back to text parsing when no tool_use block returned', async () => {
@@ -265,13 +421,15 @@ describe('AnthropicProvider', () => {
     })
 
     test('throws on unexpected content type', async () => {
-      mockCreate.mockResolvedValueOnce({
+      const reply = {
         content: [{ type: 'image', source: { type: 'url', url: 'https://example.com' } }],
-      })
+      }
+      mockCreate.mockResolvedValueOnce(reply).mockResolvedValueOnce(reply)
 
       await expect(provider.getRecommendations(sampleProfile)).rejects.toThrow(
         'Unexpected response format',
       )
+      expect(mockCreate).toHaveBeenCalledTimes(2)
     })
   })
 

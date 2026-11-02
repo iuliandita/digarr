@@ -692,7 +692,7 @@
         "src/core/plugins/spotify.ts": "11c70bd47b76b3599b9b49de420505371338db38af689d4a7213df8d1b7ead5d",
         "src/core/plugins/subsonic.ts": "bcfe9ead0bda81542a653fede71e48c6442f36253dbbd62a2927e73cc0621d1a",
         "src/core/plugins/types.ts": "d104ca2a33bdf88f16f11e33d31690614e1e8b9c97142dd91b6def3047bc8fec",
-        "src/core/providers/anthropic.ts": "b1ad89e2f67cc30b27e9d14378dfaeb8f150035d9ff1893ff9346d3629f3bdb8",
+        "src/core/providers/anthropic.ts": "6ae2f50b49b4d374167fe29a9cac7fdb3f9c9be76faf546804ce5a32e51eb28b",
         "src/core/providers/gemini.ts": "a72a215dc47829ff5c8ebe89cd11075cc7aa90085163718a4bd15abb257cdf80",
         "src/core/providers/ollama.ts": "4a15373a3fd24a64a536af6b07d4327ea2b41853c099ea3aee93eaf38a74b474",
         "src/core/providers/openai-compatible.ts": "b3ba55273c7c5c7439018ea746df8ba9590ab036c31a6f36cb9d6484f011d170",
@@ -768,14 +768,14 @@
         "src/index.ts": "4d1255e909d526bef9463c6cb980955292b61663a1173ba120feae8e5210dc28",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad",
+      "digest": "5fdb6ff3144fae05f093832e9b5f2c7f5e389d8a0aaed52c3da163382a3010ed",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Deezer audition resolution picks a dominant same-name artist, folds Unicode hyphens, and retries then surfaces quota errors.",
+        "note": "Record that the Anthropic provider now requests the recommendation tool with automatic tool choice and a strict schema, retries once, and works on Claude Sonnet 5.5 and Opus 5.5.",
         "breaking": "none",
         "migration": "",
-        "digest": "4da59d7a946170de5e88b16d37261dac71294002fce2a34b854279f1df0cb6ad"
+        "digest": "5fdb6ff3144fae05f093832e9b5f2c7f5e389d8a0aaed52c3da163382a3010ed"
       }
     },
     "deployment": {
