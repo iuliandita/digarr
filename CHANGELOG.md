@@ -16,6 +16,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- AI recommendations work with Claude Sonnet 5.5 and Opus 5.5. These models reject a forced tool call with HTTP 400, so every scan failed while the connection test, which sends no tools, still passed. The Anthropic provider now offers the recommendation tool with automatic tool choice and a strict schema, tells the model to call it, and asks once more if a reply has neither the tool call nor a JSON array. Older models such as the default Claude Haiku 4.5 use the same request.
+
 - The Spotify player no longer sits in a white box on dark themes; it now shows on the theme background, in the artist streaming links and in the preview player (#1177).
 
 ## v2.1.0 - 2026-10-23
