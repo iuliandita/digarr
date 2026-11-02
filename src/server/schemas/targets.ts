@@ -1,5 +1,5 @@
 import * as z from 'zod'
-import { TARGET_TYPES } from '@/core/targets/types'
+import { LIDARR_NEW_ITEM_MONITOR_TYPES, TARGET_TYPES } from '@/core/targets/types'
 import { idParamSchema } from './validator'
 
 // URL must be http(s). Private-IP / SSRF checks live in handlers and
@@ -18,6 +18,8 @@ export const targetConfigSchema = z
   .object({
     url: httpUrl.optional(),
     tags: z.array(z.number().int().positive()).max(100).optional(),
+    // Lidarr only: which albums a later refresh finds get monitored.
+    monitorNewItems: z.enum(LIDARR_NEW_ITEM_MONITOR_TYPES).optional(),
   })
   .catchall(z.unknown())
 

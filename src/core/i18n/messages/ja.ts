@@ -1839,6 +1839,9 @@ export const ja = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
   'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
+  'settings.targetLidarrMonitorNewItems': '新しいアルバムを監視',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'このターゲットが追加したアーティストについて、Lidarr が後から新しいアルバムを見つけたときに監視するアルバム。',
   'cardStack.counter': '{1} 件中 {0} 件目',
   'cardStack.swipeHint': '右にスワイプで承認、左にスワイプで拒否',
   'serviceCard.testConnection': '接続テスト',

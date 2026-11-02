@@ -1865,6 +1865,9 @@ export const ro = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL-ul sau cheia API s-a schimbat. Salvează, apoi editează din nou ținta ca să alegi profiluri și un dosar rădăcină din noua instanță.',
   'settings.targetLidarrDefaultsUnset': 'Primul disponibil',
+  'settings.targetLidarrMonitorNewItems': 'Monitorizează albumele noi',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Ce albume monitorizează Lidarr când găsește mai târziu altele noi pentru artiștii adăugați de această destinație.',
   'cardStack.counter': '{0} din {1}',
   'cardStack.swipeHint': 'Glisează dreapta pentru a aproba, stânga pentru a respinge',
   'serviceCard.testConnection': 'Testează conexiunea',

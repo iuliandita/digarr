@@ -59,6 +59,25 @@ describe('resolveLidarrTargetDefaults', () => {
       ),
     ).toEqual({ qualityProfileId: 7, metadataProfileId: undefined, rootFolderId: 9 })
   })
+
+  it('reads monitorNewItems from the target itself for both shapes', () => {
+    expect(
+      resolveLidarrTargetDefaults(
+        { useServerConnection: true, monitorNewItems: 'new' },
+        serverDefaults,
+      ),
+    ).toMatchObject({ monitorNewItems: 'new' })
+    expect(
+      resolveLidarrTargetDefaults(
+        { url: 'http://other', apiKey: 'k', monitorNewItems: 'none' },
+        serverDefaults,
+      ),
+    ).toMatchObject({ monitorNewItems: 'none' })
+    expect(
+      resolveLidarrTargetDefaults({ useServerConnection: true, monitorNewItems: 'future' }, {})
+        .monitorNewItems,
+    ).toBeUndefined()
+  })
 })
 
 describe('normalizeLidarrTargetConfig', () => {
@@ -75,6 +94,21 @@ describe('normalizeLidarrTargetConfig', () => {
         rootFolderId: null,
       }),
     ).toEqual({ url: 'http://x', apiKey: 'k', qualityProfileId: 5 })
+  })
+
+  it('keeps a valid monitorNewItems on both shapes and drops an invalid one', () => {
+    expect(
+      normalizeLidarrTargetConfig({ useServerConnection: true, tags: [2], monitorNewItems: 'new' }),
+    ).toEqual({ useServerConnection: true, tags: [2], monitorNewItems: 'new' })
+    expect(
+      normalizeLidarrTargetConfig({ url: 'http://x', apiKey: 'k', monitorNewItems: 'none' }),
+    ).toEqual({ url: 'http://x', apiKey: 'k', monitorNewItems: 'none' })
+    expect(
+      normalizeLidarrTargetConfig({ useServerConnection: true, monitorNewItems: 'future' }),
+    ).toEqual({ useServerConnection: true })
+    expect(
+      normalizeLidarrTargetConfig({ url: 'http://x', apiKey: 'k', monitorNewItems: null }),
+    ).toEqual({ url: 'http://x', apiKey: 'k' })
   })
 })
 

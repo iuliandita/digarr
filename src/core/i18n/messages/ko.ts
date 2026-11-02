@@ -1813,6 +1813,9 @@ export const ko = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL 또는 API 키가 변경되었습니다. 저장한 다음 대상을 다시 편집하면 새 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
   'settings.targetLidarrDefaultsUnset': '첫 번째 사용 가능 항목',
+  'settings.targetLidarrMonitorNewItems': '새 앨범 모니터링',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    '이 대상이 추가한 아티스트에 대해 Lidarr가 나중에 새 앨범을 찾았을 때 모니터링할 앨범입니다.',
   'cardStack.counter': '{1} 중 {0}',
   'cardStack.swipeHint': '오른쪽으로 밀어 승인, 왼쪽으로 밀어 거부',
   'serviceCard.testConnection': '연결 테스트',

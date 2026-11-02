@@ -1869,6 +1869,9 @@ export const ru = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL или API-ключ изменились. Сохрани, затем снова отредактируй цель, чтобы выбрать профили и корневую папку нового экземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Первый доступный',
+  'settings.targetLidarrMonitorNewItems': 'Отслеживать новые альбомы',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Какие альбомы Lidarr отслеживает, когда позже находит новые для исполнителей, добавленных этим назначением.',
   'cardStack.counter': '{0} из {1}',
   'cardStack.swipeHint': 'Свайп вправо - одобрить, влево - отклонить',
   'serviceCard.testConnection': 'Проверить подключение',

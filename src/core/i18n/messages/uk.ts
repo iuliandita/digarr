@@ -1859,6 +1859,9 @@ export const uk = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Перший доступний',
+  'settings.targetLidarrMonitorNewItems': 'Відстежувати нові альбоми',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Які альбоми Lidarr відстежує, коли пізніше знаходить нові для виконавців, доданих цією ціллю.',
   'cardStack.counter': '{0} з {1}',
   'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч - щоб відхилити',
   'serviceCard.testConnection': 'Перевірити підключення',

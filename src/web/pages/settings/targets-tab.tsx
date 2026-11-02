@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { toast } from 'sonner'
 import { Hint } from '../../components/hint'
 import { LidarrTags } from '../../components/lidarr-tags'
@@ -262,7 +262,9 @@ function buildLidarrConfig(
   instanceChanged: boolean,
 ): Record<string, unknown> {
   const tags = instanceChanged ? [] : (config.tags ?? '').split(',').filter(Boolean).map(Number)
-  if (useServerConnection) return { useServerConnection: true, tags }
+  // Not tied to one instance, so it survives a url/key or mode change.
+  const monitorNewItems = config.monitorNewItems ? { monitorNewItems: config.monitorNewItems } : {}
+  if (useServerConnection) return { useServerConnection: true, tags, ...monitorNewItems }
   const base = isEditing
     ? (buildTargetConfigPatch(targetType, config) ?? {})
     : normalizeTargetConfig(targetType.value, config)
@@ -271,7 +273,41 @@ function buildLidarrConfig(
     if (config[key]) defaults[key] = Number(config[key])
     else if (isEditing) defaults[key] = null
   }
-  return { ...base, ...defaults, tags, useServerConnection: false }
+  return { ...base, ...defaults, tags, ...monitorNewItems, useServerConnection: false }
+}
+
+// Lidarr's own default is `all`, so an unset target shows that.
+function LidarrMonitorNewItems({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  const { t } = useI18n()
+  const fieldId = useId()
+  const helpId = useId()
+  return (
+    <div>
+      <label htmlFor={fieldId} className="block text-xs text-muted">
+        {t('settings.targetLidarrMonitorNewItems')}
+        <select
+          id={fieldId}
+          value={value || 'all'}
+          onChange={(e) => onChange(e.target.value)}
+          aria-describedby={helpId}
+          className="mt-1 w-full rounded-md border border-border bg-bg text-text text-sm px-3 py-2"
+        >
+          <option value="all">{t('settings.monitorAll')}</option>
+          <option value="new">{t('settings.monitorNew')}</option>
+          <option value="none">{t('common.none')}</option>
+        </select>
+      </label>
+      <p id={helpId} className="mt-1 text-xs text-muted">
+        {t('settings.targetLidarrMonitorNewItemsHelp')}
+      </p>
+    </div>
+  )
 }
 
 function LidarrInstanceDefaults({
@@ -633,6 +669,15 @@ function AddTargetDialog({
             ) : (
               <p className="text-xs text-muted">{t('settings.targetLidarrDefaultsSaveFirst')}</p>
             ))}
+
+          {isLidarr && (
+            <LidarrMonitorNewItems
+              value={config.monitorNewItems ?? ''}
+              onChange={(monitorNewItems) =>
+                setConfig((previous) => ({ ...previous, monitorNewItems }))
+              }
+            />
+          )}
 
           {selectedType.value === 'slskd' && (
             <div className="rounded-md border border-border bg-bg/60 p-3 space-y-2">

@@ -1882,6 +1882,9 @@ export const en = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'The URL or API key changed. Save, then edit the target again to pick profiles and a root folder from the new instance.',
   'settings.targetLidarrDefaultsUnset': 'First available',
+  'settings.targetLidarrMonitorNewItems': 'Monitor new albums',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Which albums Lidarr monitors when it later finds new ones for artists this target adds.',
 
   // Card stack navigation hints
   'cardStack.counter': '{0} of {1}',

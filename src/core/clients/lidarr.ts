@@ -116,6 +116,9 @@ export type LidarrTag = { id: number; label: string }
 export type AddArtistOptions = {
   tags?: number[]
   monitorOption?: 'all' | 'new' | 'missing' | 'existing' | 'latest' | 'first' | 'none'
+  // Lidarr's NewItemMonitorTypes: which albums a later refresh finds get
+  // monitored. Unlike monitorOption these names go to Lidarr unchanged.
+  monitorNewItems?: 'all' | 'none' | 'new'
 }
 
 // digarr's monitor vocabulary is not Lidarr's. MonitorTypes has no `new`
@@ -307,6 +310,9 @@ export function createLidarrClient(
       metadataProfileId: snapProfileId(metadataProfileId, metadataProfiles, 'metadata'),
       rootFolderPath: folder.path,
       monitored: true,
+      // `all` is what Lidarr assumes when the field is missing, so leaving
+      // the option unset keeps the behaviour of older digarr versions.
+      monitorNewItems: options?.monitorNewItems ?? 'all',
       tags: options?.tags ?? [],
       addOptions: {
         monitor: LIDARR_MONITOR_TYPES[monitorOption],

@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- Lidarr targets have a **Monitor new albums** setting (All albums, Future releases only, None) for the albums Lidarr finds later when it refreshes an artist. Digarr sends it as Lidarr's `monitorNewItems` with every artist the target adds, including artists an album approval adds unmonitored. Before, Digarr never sent it, so Lidarr fell back to All albums and monitored every album it found later, even for artists approved with no monitoring. All albums stays the default, so existing targets behave as before. `POST /api/v1/lidarr/add` accepts the same `monitorNewItems` field. No migration.
+
 ### Changed
 
 - New logo and wordmark: a record inside a chip. The favicon, installed-app icons, README and Unraid icon use it, and the installed-app colors now match the default dark theme. Installing to an iPhone home screen now gets a real icon instead of a page screenshot. Logo files, usage rules, colors and the art style for release posters are in `docs/brand/` (#1171).

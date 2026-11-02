@@ -1500,6 +1500,8 @@
   "settings.targetLidarrDefaultsSaveFirst": "5d968af8689e",
   "settings.targetLidarrDefaultsUnset": "98a61e9c945a",
   "settings.targetLidarrInstanceDefaults": "c0438b649cf3",
+  "settings.targetLidarrMonitorNewItems": "cab4e690dabd",
+  "settings.targetLidarrMonitorNewItemsHelp": "270b8d37da2b",
   "settings.targetLidarrServerConnection": "ef69c41fc64f",
   "settings.targetLidarrServerConnectionHelp": "b552bb3a4bde",
   "settings.targetLidarrUseOtherInstance": "77c19b710f2c",

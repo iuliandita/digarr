@@ -15,6 +15,10 @@ export const TARGET_TYPES = [
 ] as const
 export type TargetType = (typeof TARGET_TYPES)[number]
 
+/** Lidarr's `monitorNewItems` values, set per Lidarr target. */
+export const LIDARR_NEW_ITEM_MONITOR_TYPES = ['all', 'none', 'new'] as const
+export type LidarrNewItemMonitor = (typeof LIDARR_NEW_ITEM_MONITOR_TYPES)[number]
+
 export type TargetAddOptions = {
   followUpTargetId?: string
   retryExisting?: boolean
