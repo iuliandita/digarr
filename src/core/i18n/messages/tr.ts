@@ -1843,6 +1843,9 @@ export const tr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
   'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
+  'settings.targetLidarrMonitorNewItems': 'Yeni albümleri izle',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Bu hedefin eklediği sanatçılar için Lidarr daha sonra yeni albüm bulduğunda hangi albümleri izleyeceği.',
   'cardStack.counter': '{0} / {1}',
   'cardStack.swipeHint': 'Onaylamak için sağa, reddetmek için sola kaydır',
   'serviceCard.testConnection': 'Bağlantıyı Test Et',

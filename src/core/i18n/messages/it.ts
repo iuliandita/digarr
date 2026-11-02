@@ -1872,6 +1872,9 @@ export const it = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL o la chiave API sono cambiati. Salva, poi modifica di nuovo la destinazione per scegliere profili e una cartella radice dalla nuova istanza.",
   'settings.targetLidarrDefaultsUnset': 'Primo disponibile',
+  'settings.targetLidarrMonitorNewItems': 'Monitora i nuovi album',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Quali album Lidarr monitora quando in seguito ne trova di nuovi per gli artisti aggiunti da questa destinazione.',
   'cardStack.counter': '{0} di {1}',
   'cardStack.swipeHint': 'Scorri a destra per approvare, a sinistra per rifiutare',
   'serviceCard.testConnection': 'Testa connessione',

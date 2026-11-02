@@ -1867,6 +1867,9 @@ export const nl = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'De URL of API-sleutel is gewijzigd. Sla op en bewerk het doel daarna opnieuw om profielen en een hoofdmap van de nieuwe instantie te kiezen.',
   'settings.targetLidarrDefaultsUnset': 'Eerste beschikbare',
+  'settings.targetLidarrMonitorNewItems': 'Nieuwe albums volgen',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Welke albums Lidarr volgt wanneer het later nieuwe vindt voor artiesten die dit doel toevoegt.',
   'cardStack.counter': '{0} van {1}',
   'cardStack.swipeHint': 'Veeg naar rechts om goed te keuren, naar links om af te wijzen',
   'serviceCard.testConnection': 'Verbinding testen',

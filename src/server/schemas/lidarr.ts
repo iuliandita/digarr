@@ -1,4 +1,5 @@
 import * as z from 'zod'
+import { LIDARR_NEW_ITEM_MONITOR_TYPES } from '@/core/targets/types'
 
 // Minimal fields required to add an artist: foreignArtistId (MBID) and
 // artistName. Profile/folder IDs fall back to sensible defaults when omitted.
@@ -13,6 +14,7 @@ export const lidarrAddSchema = z
     monitorOption: z
       .enum(['all', 'new', 'missing', 'existing', 'latest', 'first', 'none'])
       .optional(),
+    monitorNewItems: z.enum(LIDARR_NEW_ITEM_MONITOR_TYPES).optional(),
   })
   .strict()
 

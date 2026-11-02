@@ -1712,6 +1712,9 @@ export const zhCN = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL 或 API 密钥已更改。请先保存，然后再次编辑目标，以从新实例选择配置文件和根目录。',
   'settings.targetLidarrDefaultsUnset': '第一个可用项',
+  'settings.targetLidarrMonitorNewItems': '监控新专辑',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    '对于此目标添加的艺术家，Lidarr 之后发现新专辑时要监控哪些专辑。',
   'cardStack.counter': '第 {0} / 共 {1}',
   'cardStack.swipeHint': '向右滑动批准，向左滑动拒绝',
   'serviceCard.testConnection': '测试连接',

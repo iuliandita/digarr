@@ -1867,6 +1867,9 @@ export const ptBR = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'A URL ou a chave de API mudou. Salve e depois edite o destino de novo para escolher perfis e uma pasta raiz da nova instância.',
   'settings.targetLidarrDefaultsUnset': 'Primeiro disponível',
+  'settings.targetLidarrMonitorNewItems': 'Monitorar novos álbuns',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Quais álbuns o Lidarr monitora quando encontra novos depois para os artistas que este destino adiciona.',
   'cardStack.counter': '{0} de {1}',
   'cardStack.swipeHint': 'Deslize para a direita para aprovar, para a esquerda para rejeitar',
   'serviceCard.testConnection': 'Testar conexão',

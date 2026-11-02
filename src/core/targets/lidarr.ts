@@ -8,7 +8,12 @@ import {
   metadataProfileRejection,
   profileRejectionMessage,
 } from './lidarr-metadata-profile'
-import type { DestinationTarget, TargetAddOptions, TargetResult } from './types'
+import type {
+  DestinationTarget,
+  LidarrNewItemMonitor,
+  TargetAddOptions,
+  TargetResult,
+} from './types'
 
 // Lidarr populates an artist's album list asynchronously after the add, so an
 // immediate getAlbums often returns an empty/partial list and the selected
@@ -27,6 +32,7 @@ export type LidarrTargetConfig = {
   metadataProfileId?: number
   tags?: number[]
   rootFolderId?: number
+  monitorNewItems?: LidarrNewItemMonitor
 }
 
 export function createLidarrTarget(
@@ -38,6 +44,9 @@ export function createLidarrTarget(
   const client = configured
     ? createLidarrClient(config.url as string, config.apiKey as string, config.skipTlsVerify)
     : (null as unknown as ReturnType<typeof createLidarrClient>)
+  // Applies to every artist this target adds, including the unmonitored
+  // artist an album approval creates; unset leaves Lidarr's default.
+  const newItemMonitor = config.monitorNewItems ? { monitorNewItems: config.monitorNewItems } : {}
 
   // Explicit picks scoped to another Lidarr target were loaded from that
   // instance, so their IDs mean nothing here; use this target's own defaults.
@@ -118,7 +127,11 @@ export function createLidarrTarget(
             ids.qualityProfileId,
             ids.metadataProfileId,
             ids.rootFolderId,
-            { monitorOption: effectiveMonitor, ...(ids.tags ? { tags: ids.tags } : {}) },
+            {
+              monitorOption: effectiveMonitor,
+              ...newItemMonitor,
+              ...(ids.tags ? { tags: ids.tags } : {}),
+            },
           ))
 
         // Monitor (and search) the selected albums after the add. The artist
@@ -185,7 +198,11 @@ export function createLidarrTarget(
             ids.qualityProfileId,
             ids.metadataProfileId,
             ids.rootFolderId,
-            { monitorOption: 'none', ...(ids.tags ? { tags: ids.tags } : {}) },
+            {
+              monitorOption: 'none',
+              ...newItemMonitor,
+              ...(ids.tags ? { tags: ids.tags } : {}),
+            },
           )
           artistId = added.id
           metadataProfileId = added.metadataProfileId ?? metadataProfileId

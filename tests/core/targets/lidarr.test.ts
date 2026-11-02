@@ -61,6 +61,37 @@ describe('createLidarrTarget()', () => {
     },
   )
 
+  it.each([true, false])(
+    'sends the stored monitorNewItems on every artist add (reference=%s)',
+    async (reference) => {
+      const client = mockLidarrClient()
+      const stored = normalizeLidarrTargetConfig({
+        ...(reference ? { useServerConnection: true } : { url: 'http://other', apiKey: 'k' }),
+        monitorNewItems: 'new',
+      })
+      expect(stored.monitorNewItems).toBe('new')
+      const target = createLidarrTarget(1, {
+        url: 'http://instance',
+        apiKey: 'k',
+        ...resolveLidarrTargetDefaults(stored, {}),
+      })
+      for (const monitorOption of ['none', 'new', 'all', 'selected'] as const) {
+        await target.addArtist?.({ mbid: 'mbid', name: 'Artist' }, { monitorOption })
+        expect(client.addArtist).toHaveBeenLastCalledWith(
+          'mbid',
+          'Artist',
+          undefined,
+          undefined,
+          undefined,
+          {
+            monitorOption: monitorOption === 'selected' ? 'none' : monitorOption,
+            monitorNewItems: 'new',
+          },
+        )
+      }
+    },
+  )
+
   it('addArtist calls lidarr.addArtist with correct params', async () => {
     const client = mockLidarrClient()
     const target = createLidarrTarget(1, {

@@ -1881,6 +1881,9 @@ export const de = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL oder API-Schlüssel wurden geändert. Speichere und bearbeite das Ziel dann erneut, um Profile und einen Stammordner aus der neuen Instanz auszuwählen.',
   'settings.targetLidarrDefaultsUnset': 'Erste verfügbare',
+  'settings.targetLidarrMonitorNewItems': 'Neue Alben überwachen',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Welche Alben Lidarr überwacht, wenn es später neue für Künstler findet, die dieses Ziel hinzufügt.',
   'cardStack.counter': '{0} von {1}',
   'cardStack.swipeHint': 'Nach rechts wischen zum Genehmigen, nach links zum Ablehnen',
   'serviceCard.testConnection': 'Verbindung testen',
