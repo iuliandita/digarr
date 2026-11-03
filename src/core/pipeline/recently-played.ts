@@ -16,8 +16,8 @@ export type ListensPageReader = (
   options: { maxTs?: number },
 ) => Promise<RecentListen[]>
 
-export const RECENTLY_PLAYED_PAGE_SIZE = 1000
-export const RECENTLY_PLAYED_MAX_LISTENS = 5000
+const RECENTLY_PLAYED_PAGE_SIZE = 1000
+const RECENTLY_PLAYED_MAX_LISTENS = 5000
 
 /**
  * Read the user's ListenBrainz listens inside the window, newest first. Pages

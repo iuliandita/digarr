@@ -13,7 +13,7 @@ const APPROVED_STATUSES = new Set(['added_to_lidarr', 'add_failed', 'approved', 
 // the server hides it from the Pending tab until the request is decided.
 const shownStatus = (status: string) => (status === 'requested' ? 'pending' : status)
 
-export function matchesFilter(filter: DiscoverFilter, status: string): boolean {
+function matchesFilter(filter: DiscoverFilter, status: string): boolean {
   if (filter === 'all') return true
   if (filter === 'approved') return APPROVED_STATUSES.has(status)
   return status === filter

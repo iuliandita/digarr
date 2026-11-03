@@ -44,8 +44,8 @@ import { migrateLegacyListeningConnections } from './core/ops/legacy-listening-c
 import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
-import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { buildAutoApproveDeps } from './core/pipeline/auto-approve-deps'
+import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import { createScheduledPipelineRunner } from './core/pipeline/scheduled-run'
 import { type StoreDb, saveRecommendationChunk } from './core/pipeline/store'
@@ -77,6 +77,7 @@ import { createMusicBrainzSearchSource } from './core/search/sources/musicbrainz
 import { createSpotifySearchSource } from './core/search/sources/spotify'
 import { createTidalSearchSource } from './core/search/sources/tidal'
 import { setSessionStore } from './core/sessions'
+import { sleep } from './core/sleep'
 import { createSlskdOrchestrator } from './core/slskd/orchestrator'
 import { createSlskdRunner } from './core/slskd/runner'
 import { createCsvImportAdapter } from './core/subscriptions/adapters/csv-import'
@@ -1662,7 +1663,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
     // in-flight requests finish on the listener we still own.
     markShuttingDown()
     setMaintenance(true)
-    await new Promise((resolve) => setTimeout(resolve, 12_000))
+    await sleep(12_000)
     scheduler.stopAll()
     playlistScheduler.stopAll()
     approvalRetryCron?.stop()
@@ -1700,7 +1701,7 @@ for (const signal of ['SIGTERM', 'SIGINT'] as const) {
         (async () => {
           while (inFlightJobs.size > 0) await Promise.allSettled([...inFlightJobs])
         })(),
-        new Promise((resolve) => setTimeout(resolve, 25_000)),
+        sleep(25_000),
       ])
     }
     await waitForGenreWarmers()

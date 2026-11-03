@@ -5,6 +5,7 @@ import { cors } from 'hono/cors'
 import { HTTPException } from 'hono/http-exception'
 import { secureHeaders } from 'hono/secure-headers'
 import { envConfig } from '@/config/env'
+import { parseCidrList } from '@/core/auth/cidr'
 import { errMsg } from '@/core/validation'
 import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
@@ -187,11 +188,7 @@ export function createApp(deps: AppDependencies) {
   )
   const proxyAuth = proxyAuthMiddleware({
     enabled: envConfig.proxyAuthEnabled,
-    trustedProxies:
-      envConfig.proxyAuthTrustedProxies
-        ?.split(',')
-        .map((s) => s.trim())
-        .filter(Boolean) ?? [],
+    trustedProxies: parseCidrList(envConfig.proxyAuthTrustedProxies),
     getUserByUsername: deps.getUserByUsername,
     createUser: deps.createUser,
   })

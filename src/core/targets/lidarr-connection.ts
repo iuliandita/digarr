@@ -163,7 +163,7 @@ function sameInstanceUrl(a: string, b: string): boolean {
   return left !== null && left === connectionKey(b)
 }
 
-export function matchesServerConnection(
+function matchesServerConnection(
   config: Record<string, unknown>,
   settings: LidarrServerSettings | null | undefined,
 ): boolean {

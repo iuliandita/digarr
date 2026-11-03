@@ -120,3 +120,12 @@ export function isIpTrusted(ip: string, cidrs: string[]): boolean {
   const cleanIp = unmapIpv4(ip)
   return cidrs.some((cidr) => ipInCidr(cleanIp, cidr))
 }
+
+export function parseCidrList(raw: string | null | undefined): string[] {
+  return (
+    raw
+      ?.split(',')
+      .map((entry) => entry.trim())
+      .filter(Boolean) ?? []
+  )
+}

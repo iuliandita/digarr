@@ -1,7 +1,7 @@
 import { isIP } from 'node:net'
 import type { Context } from 'hono'
 import { envConfig } from '@/config/env'
-import { isIpTrusted } from '@/core/auth/cidr'
+import { isIpTrusted, parseCidrList } from '@/core/auth/cidr'
 
 /** Only a trusted TCP peer may supply the forwarded client chain. */
 export function getClientIp(c: Context): string | null {
@@ -10,11 +10,7 @@ export function getClientIp(c: Context): string | null {
     | undefined
   const socketIp = env?.remoteAddress ?? env?.incoming?.socket?.remoteAddress ?? null
   if (!socketIp) return socketIp
-  const trustedProxies =
-    envConfig.proxyAuthTrustedProxies
-      ?.split(',')
-      .map((cidr) => cidr.trim())
-      .filter(Boolean) ?? []
+  const trustedProxies = parseCidrList(envConfig.proxyAuthTrustedProxies)
   if (!isIpTrusted(socketIp, trustedProxies)) return socketIp
 
   const forwarded = c.req.header('X-Forwarded-For')
