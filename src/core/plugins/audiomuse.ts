@@ -41,6 +41,21 @@ export function createAudioMuseSource(
     seedsWithResults: 0,
     skipReasons: {} as Record<string, number>,
   }
+  // /api/similar_artists is case-sensitive; /api/search_artists is not.
+  async function fetchSimilar(name: string) {
+    try {
+      return await client.getSimilarArtists(name)
+    } catch (error) {
+      if (!(error instanceof AudioMuseError) || error.reason !== 'artist_unknown') throw error
+      const wanted = name.trim().toLowerCase()
+      const canonical = await client
+        .searchArtistNames(name)
+        .then((names) => names.find((n) => n.trim().toLowerCase() === wanted))
+        .catch(() => undefined)
+      if (!canonical || canonical === name) throw error
+      return client.getSimilarArtists(canonical)
+    }
+  }
   let unavailable: AudioMuseError | undefined
   let consecutiveUnreachable = 0
   return {
@@ -57,7 +72,7 @@ export function createAudioMuseSource(
         if (emitted.size >= AUDIOMUSE_MAX_CANDIDATES) return []
         summary.seedsQueried++
         try {
-          const artists = await client.getSimilarArtists(name)
+          const artists = await fetchSimilar(name)
           consecutiveUnreachable = 0
           summary.seedsWithResults++
           // Rank eligible matches within each seed, preserving the strongest matches first.

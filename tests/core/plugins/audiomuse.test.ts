@@ -269,7 +269,7 @@ describe('AudioMuse discovery source', () => {
       )
       expect(results.map((a) => a.source)).toEqual(['ai'])
       expect(onSourceFailure).toHaveBeenCalledWith('audiomuse', `AudioMuse-AI: ${reason}`)
-      expect(fetch).toHaveBeenCalledTimes(1)
+      expect(fetch).toHaveBeenCalledTimes(status === 404 ? 2 : 1)
     },
   )
 
@@ -289,6 +289,83 @@ describe('AudioMuse discovery source', () => {
       .mockImplementation(async () => Response.json(fixture.unknownArtist, { status: 404 }))
     const unknownSource = createAudioMuseSource({ url: 'https://audiomuse.example' })
     await Promise.allSettled(['A', 'B', 'C'].map((name) => unknownSource.getSimilarArtists(name)))
-    expect(fetch).toHaveBeenCalledTimes(3)
+    expect(fetch).toHaveBeenCalledTimes(6)
+  })
+
+  describe('case-insensitive name fallback', () => {
+    const unknown = () => Response.json(fixture.unknownArtist, { status: 404 })
+    const similar = (url: URL) => url.pathname === '/api/similar_artists'
+    it.each([
+      {
+        label: 'retries once with the indexed spelling',
+        search: () => Response.json([{ artist: 'Gojira Tribute' }, { artist: 'Gojira' }]),
+        retry: () => Response.json(fixture.artists),
+        calls: ['gojira', 'gojira', 'Gojira'],
+        outcome: { length: 3 },
+      },
+      {
+        label: 'keeps artist_unknown when the search has no exact match',
+        search: () => Response.json([{ artist: 'Gojira Tribute' }]),
+        retry: unknown,
+        calls: ['gojira', 'gojira'],
+        outcome: { reason: 'artist_unknown' },
+      },
+      {
+        label: 'keeps artist_unknown when the search returns the same spelling',
+        search: () => Response.json([{ artist: 'gojira' }]),
+        retry: unknown,
+        calls: ['gojira', 'gojira'],
+        outcome: { reason: 'artist_unknown' },
+      },
+      {
+        label: 'keeps artist_unknown when the search fails',
+        search: () => Response.json({ error: 'boom' }, { status: 500 }),
+        retry: unknown,
+        calls: ['gojira', 'gojira'],
+        outcome: { reason: 'artist_unknown' },
+      },
+      {
+        label: 'keeps artist_unknown when the search body is malformed',
+        search: () => Response.json({}),
+        retry: unknown,
+        calls: ['gojira', 'gojira'],
+        outcome: { reason: 'artist_unknown' },
+      },
+      {
+        label: 'does not loop when the retry is unknown too',
+        search: () => Response.json([{ artist: 'Gojira' }]),
+        retry: unknown,
+        calls: ['gojira', 'gojira', 'Gojira'],
+        outcome: { reason: 'artist_unknown' },
+      },
+    ])('$label', async ({ search, retry, calls, outcome }) => {
+      const fetch = vi.fn(async (input: string) => {
+        const url = new URL(input)
+        if (!similar(url)) return search()
+        return url.searchParams.get('artist') === 'Gojira' ? retry() : unknown()
+      })
+      vi.stubGlobal('fetch', fetch)
+      const source = createAudioMuseSource({ url: 'https://audiomuse.example' })
+      const result = source.getSimilarArtists('gojira')
+      if ('length' in outcome) await expect(result).resolves.toHaveLength(outcome.length as number)
+      else await expect(result).rejects.toMatchObject(outcome)
+      expect(
+        fetch.mock.calls.map(([u]) => {
+          const url = new URL(u)
+          return url.searchParams.get('artist') ?? url.searchParams.get('query')
+        }),
+      ).toEqual(calls)
+      expect(source.getDiscoverySummary?.()).toMatchObject({ seedsQueried: 1 })
+    })
+
+    it('does not search when the first lookup fails for another reason', async () => {
+      const fetch = vi.fn(async () => Response.json(fixture.notIndexed, { status: 503 }))
+      vi.stubGlobal('fetch', fetch)
+      const source = createAudioMuseSource({ url: 'https://audiomuse.example' })
+      await expect(source.getSimilarArtists('gojira')).rejects.toMatchObject({
+        reason: 'not_indexed',
+      })
+      expect(fetch).toHaveBeenCalledTimes(1)
+    })
   })
 })
