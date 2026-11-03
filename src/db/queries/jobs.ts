@@ -254,7 +254,7 @@ export type IntegrationHealth = {
   itemFailures: number
 }
 
-export const INTEGRATION_HEALTH_WINDOW_DAYS = 30
+const INTEGRATION_HEALTH_WINDOW_DAYS = 30
 const INTEGRATION_ERROR_MAX_LENGTH = 300
 
 function toIso(value: unknown): string | null {

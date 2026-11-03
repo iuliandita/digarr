@@ -1358,6 +1358,61 @@ describe('SettingsPage', () => {
     )
   })
 
+  it('creates a Lidarr target with its new-album monitoring choice', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([])
+    renderPage(<SettingsPage />)
+    await openAddTarget('lidarr')
+    // Lidarr's own default when the target does not set one.
+    expect(screen.getByLabelText('Monitor new albums')).toHaveValue('all')
+    fireEvent.change(screen.getByLabelText('Monitor new albums'), { target: { value: 'new' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+    await waitFor(() =>
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'lidarr',
+        userId: 1,
+        name: 'Lidarr',
+        config: { useServerConnection: true, tags: [], monitorNewItems: 'new' },
+      }),
+    )
+  })
+
+  it('keeps a stored new-album monitoring choice when editing a separate instance', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([
+      {
+        id: 7,
+        userId: 1,
+        type: 'lidarr',
+        name: 'Other Lidarr',
+        enabled: true,
+        owned: true,
+        config: { url: 'http://lidarr:8686', apiKey: '***', monitorNewItems: 'none' },
+      },
+    ])
+    renderPage(<SettingsPage />)
+    await openTargetsTab()
+    fireEvent.click(await screen.findByRole('button', { name: 'Edit' }))
+    expect(await screen.findByLabelText('Monitor new albums')).toHaveValue('none')
+    fireEvent.click(screen.getByRole('button', { name: 'Save Changes' }))
+    await waitFor(() =>
+      expect(mockUpdateTargetApi).toHaveBeenCalledWith(7, {
+        name: 'Other Lidarr',
+        userId: 1,
+        enabled: true,
+        config: {
+          url: 'http://lidarr:8686',
+          qualityProfileId: null,
+          metadataProfileId: null,
+          rootFolderId: null,
+          tags: [],
+          monitorNewItems: 'none',
+          useServerConnection: false,
+        },
+      }),
+    )
+  })
+
   it('creates a Lidarr target for a different instance with its own URL and key', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([])

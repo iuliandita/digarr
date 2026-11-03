@@ -7,7 +7,7 @@ export const tr = {
   'settings.audiomuseDescription': 'AudioMuse-AI ses analiziyle benzer sanatçılar bul.',
   'settings.audiomuseToken': 'API belirteci (isteğe bağlı)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 veya üstü. Başlangıç sanatçılarının adlarını sunucuna gönderir. Kendinden imzalı sertifikalarda TLS doğrulamasını yalnızca güvendiğin sunucular için atla.',
+    'AudioMuse-AI v3.6.4 veya üstü. Yalnızca kendi dizinindeki sanatçıları döndürür; bu yüzden yeni sanatçıları ancak dizin kütüphanenin dışındaki müzikleri de kapsıyorsa bulur. Başlangıç sanatçılarının adlarını sunucuna gönderir. Kendinden imzalı sertifikalarda TLS doğrulamasını yalnızca güvendiğin sunucular için atla.',
   'audiomuse.unreachable': 'AudioMuse-AI sunucusuna ulaşılamıyor.',
   'audiomuse.not_indexed': 'AudioMuse-AI sanatçı indeksi hazır değil.',
   'audiomuse.artist_unknown': 'Sanatçı bilinmiyor veya indekste benzer sanatçı yok.',
@@ -1843,6 +1843,9 @@ export const tr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
   'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
+  'settings.targetLidarrMonitorNewItems': 'Yeni albümleri izle',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Bu hedefin eklediği sanatçılar için Lidarr daha sonra yeni albüm bulduğunda hangi albümleri izleyeceği.',
   'cardStack.counter': '{0} / {1}',
   'cardStack.swipeHint': 'Onaylamak için sağa, reddetmek için sola kaydır',
   'serviceCard.testConnection': 'Bağlantıyı Test Et',

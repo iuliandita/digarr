@@ -14,6 +14,47 @@ import type { AiUsage, RecommendationProvider } from './types'
 
 const RECOMMENDATION_TOOL_NAME = 'emit_recommendations'
 
+// Claude Sonnet 5.5, Opus 5.5 and Fable 5.1 reject a forced tool_choice
+// (`tool` or `any`) with a 400, so the tool is offered with `auto` and named
+// in the system prompt instead. It also overrides the prelude's "return a
+// JSON array" wording, which other providers still rely on.
+const RECOMMENDATION_TOOL_INSTRUCTION = `Deliver your answer by calling the ${RECOMMENDATION_TOOL_NAME} tool exactly once, with the complete list in its recommendations array, instead of writing the JSON array as text.`
+
+// Strict tool use answers length, range and item-count keywords with a 400
+// and needs `additionalProperties: false` on every object. Derive that
+// variant from the shared schema so the two cannot drift;
+// validateAiRecommendations still enforces the bounds on the parsed input.
+const STRICT_UNSUPPORTED_KEYWORDS = new Set([
+  'minLength',
+  'maxLength',
+  'minimum',
+  'maximum',
+  'multipleOf',
+  'minItems',
+  'maxItems',
+])
+
+function toStrictSchema(node: unknown): unknown {
+  if (Array.isArray(node)) return node.map(toStrictSchema)
+  if (!node || typeof node !== 'object') return node
+  const strict: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(node)) {
+    if (STRICT_UNSUPPORTED_KEYWORDS.has(key)) continue
+    strict[key] =
+      key === 'properties' && value && typeof value === 'object'
+        ? Object.fromEntries(
+            Object.entries(value).map(([name, child]) => [name, toStrictSchema(child)]),
+          )
+        : toStrictSchema(value)
+  }
+  if (strict.type === 'object') strict.additionalProperties = false
+  return strict
+}
+
+const RECOMMENDATION_INPUT_SCHEMA = toStrictSchema(
+  getAiRecommendationsJsonSchema(),
+) as Anthropic.Tool.InputSchema
+
 const DEFAULT_MODEL = 'claude-haiku-4-5-20251001'
 
 export class AnthropicProvider implements RecommendationProvider {
@@ -38,11 +79,6 @@ export class AnthropicProvider implements RecommendationProvider {
 
   async getRecommendations(profile: TasteProfile): Promise<AiRecommendation[]> {
     this.lastUsage = null
-    const schema = getAiRecommendationsJsonSchema() as {
-      type: string
-      properties: Record<string, unknown>
-      required?: string[]
-    }
 
     // When the caller supplied a pre-built prompt (quick-discover, mood) we
     // skip the split because there is no cacheable prelude to reuse.
@@ -51,53 +87,54 @@ export class AnthropicProvider implements RecommendationProvider {
       ? buildRecommendationUserTurn(profile)
       : buildRecommendationPrompt(profile)
 
-    const response = await this.client.messages.create({
+    const params: Anthropic.MessageCreateParamsNonStreaming = {
       model: this.model,
       max_tokens: 4096,
-      ...(useCachedPrelude
-        ? {
-            // System blocks support `cache_control: { type: 'ephemeral' }`.
-            // The first request writes the cache; subsequent requests within
-            // the 5-minute TTL read from it at ~10% of input-token cost.
-            system: [
+      system: [
+        ...(useCachedPrelude
+          ? [
+              // System blocks support `cache_control: { type: 'ephemeral' }`.
+              // The first request writes the cache; subsequent requests within
+              // the 5-minute TTL read from it at ~10% of input-token cost.
               {
-                type: 'text',
+                type: 'text' as const,
                 text: RECOMMENDATION_SYSTEM_PRELUDE,
-                cache_control: { type: 'ephemeral' },
+                cache_control: { type: 'ephemeral' as const },
               },
-            ],
-          }
-        : {}),
+            ]
+          : []),
+        { type: 'text', text: RECOMMENDATION_TOOL_INSTRUCTION },
+      ],
       messages: [{ role: 'user', content: userContent }],
       tools: [
         {
           name: RECOMMENDATION_TOOL_NAME,
           description:
             'Emit the structured recommendation list. Call this tool exactly once with the complete array of recommendations.',
-          input_schema: {
-            type: 'object',
-            properties: schema.properties,
-            required: schema.required ?? ['recommendations'],
-          },
+          strict: true,
+          input_schema: RECOMMENDATION_INPUT_SCHEMA,
         },
       ],
-      tool_choice: { type: 'tool', name: RECOMMENDATION_TOOL_NAME },
-    })
-
-    this.lastUsage = extractUsage(this.model, response.usage)
-
-    const toolUse = response.content.find((block) => block.type === 'tool_use')
-    if (toolUse && toolUse.type === 'tool_use') {
-      return validateAiRecommendations(toolUse.input)
+      tool_choice: { type: 'auto', disable_parallel_tool_use: true },
     }
 
-    // Fallback: some proxy deployments drop tool_use support - parse any text
-    // block as a JSON array the old way.
-    const firstContent = response.content[0]
-    if (firstContent?.type !== 'text') {
-      throw new Error('Unexpected response format from Anthropic API')
+    const response = await this.createMessage(params)
+    try {
+      return readRecommendations(response)
+    } catch (err) {
+      // `auto` does not guarantee the tool call. When the reply has neither
+      // the call nor a parseable array, ask once more before giving up.
+      if (response.content.some((block) => block.type === 'tool_use')) throw err
+      return readRecommendations(await this.createMessage(params))
     }
-    return parseRecommendationResponse(firstContent.text)
+  }
+
+  private async createMessage(
+    params: Anthropic.MessageCreateParamsNonStreaming,
+  ): Promise<Anthropic.Message> {
+    const response = await this.client.messages.create(params)
+    this.lastUsage = addUsage(this.lastUsage, extractUsage(this.model, response.usage))
+    return response
   }
 
   async testConnection(): Promise<{ success: boolean; message: string }> {
@@ -112,6 +149,36 @@ export class AnthropicProvider implements RecommendationProvider {
     } catch (err: unknown) {
       return { success: false, message: errMsg(err) }
     }
+  }
+}
+
+function readRecommendations(response: Anthropic.Message): AiRecommendation[] {
+  const toolUse = response.content.find((block) => block.type === 'tool_use')
+  if (toolUse && toolUse.type === 'tool_use') {
+    return validateAiRecommendations(toolUse.input)
+  }
+
+  // Fallback: some proxy deployments drop tool_use support - parse a text
+  // block as a JSON array the old way. Models that think by default put
+  // thinking blocks ahead of it.
+  const text = response.content.find((block) => block.type === 'text')
+  if (text?.type !== 'text') {
+    throw new Error('Unexpected response format from Anthropic API')
+  }
+  return parseRecommendationResponse(text.text)
+}
+
+// A retried request is billed too, so job history gets the sum.
+function addUsage(total: AiUsage | null, usage: AiUsage | null): AiUsage | null {
+  if (!total || !usage) return usage ?? total
+  const sum = (a?: number, b?: number) =>
+    a === undefined && b === undefined ? undefined : (a ?? 0) + (b ?? 0)
+  return {
+    ...usage,
+    inputTokens: sum(total.inputTokens, usage.inputTokens),
+    outputTokens: sum(total.outputTokens, usage.outputTokens),
+    cacheReadInputTokens: sum(total.cacheReadInputTokens, usage.cacheReadInputTokens),
+    cacheCreationInputTokens: sum(total.cacheCreationInputTokens, usage.cacheCreationInputTokens),
   }
 }
 

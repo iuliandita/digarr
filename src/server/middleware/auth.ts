@@ -42,6 +42,7 @@ const PUBLIC_PATHS = new Set([
   '/api/v1/auth/oidc/callback',
   '/api/v1/docs',
   '/api/v1/docs/openapi.json',
+  '/api/v1/docs/redoc.standalone.js',
 ])
 
 const OPTIONAL_AUTH_PATHS = new Set([

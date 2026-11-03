@@ -1,30 +1,85 @@
 name: Companion templates
+
+# Keeps the Unraid companion templates from drifting silently. A difference
+# opens (or refreshes) one tracking issue and a match closes it, so a stale
+# companion shows up in the issue list instead of a workflow summary nobody
+# opens. Retrieval failures only warn: a network blip must not open an issue.
 on:
   schedule:
     - cron: "0 9 * * 1"
+  push:
+    branches: [develop]
+    paths:
+      - deploy/unraid/**
+      - scripts/check-unraid-companions.py
+      - .github/workflows/docs-companions.yml
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: docs-companions
+  cancel-in-progress: true
+
 jobs:
   report:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      issues: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Compare published Unraid templates
+        id: compare
         run: |
           set -euo pipefail
-          if python3 scripts/check-unraid-companions.py --format markdown > companion-report.md; then
-            echo "Published companion templates align."
-          else
-            result=$?
-            if [ "$result" -eq 1 ]; then
-              echo "::warning::Published companion templates differ; inspect the report and pending PRs."
-            elif [ "$result" -eq 2 ]; then
-              echo "::warning::Companion state could not be verified; inspect the retrieval errors."
-            else
-              exit "$result"
-            fi
-          fi
+          result=0
+          python3 scripts/check-unraid-companions.py --format markdown > companion-report.md || result=$?
+          echo "result=$result" >> "$GITHUB_OUTPUT"
+          case "$result" in
+            0) echo "Published companion templates align." ;;
+            1) echo "::warning::Published companion templates differ; inspect the report and pending PRs." ;;
+            2) echo "::warning::Companion state could not be verified; inspect the retrieval errors." ;;
+            *) exit "$result" ;;
+          esac
           cat companion-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Track drift in one issue
+        if: steps.compare.outputs.result != '2'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TITLE: "Companion templates out of date"
+          RESULT: ${{ steps.compare.outputs.result }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list --repo "$REPO" --state open --search "$TITLE in:title" \
+            --json number,title --jq "map(select(.title == \"$TITLE\")) | .[0].number // \"\"")
+          if [ "$RESULT" = 0 ]; then
+            if [ -n "$existing" ]; then
+              gh issue comment "$existing" --repo "$REPO" \
+                --body "Both published companion templates match the bundled template again."
+              gh issue close "$existing" --repo "$REPO"
+              echo "closed issue #$existing"
+            fi
+            exit 0
+          fi
+          if prs=$(gh api --paginate "repos/selfhosters/unRAID-CA-templates/pulls?state=open&per_page=100" \
+            --jq '.[] | select((.title + " " + .head.ref) | test("digarr"; "i")) | "- [#\(.number)](\(.html_url)) \(.title), updated \(.updated_at[:10])"'); then
+            prs=${prs:-- none found}
+          else
+            prs="- lookup failed; check https://github.com/selfhosters/unRAID-CA-templates/pulls manually"
+          fi
+          {
+            cat companion-report.md
+            printf '\nOpen store PRs mentioning Digarr:\n\n%s\n' "$prs"
+            printf '\nUpdate the personal repo through a PR and the store template through its PR. A pending store PR keeps this open until it merges; this issue closes itself on the first run that finds both aligned. See `docs/MAINTENANCE.md`.\n'
+            printf '\n<sub>Maintained by `docs-companions.yml`.</sub>\n'
+          } > issue-body.md
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --repo "$REPO" --body-file issue-body.md
+            echo "refreshed issue #$existing"
+          else
+            gh issue create --repo "$REPO" --title "$TITLE" --body-file issue-body.md
+          fi

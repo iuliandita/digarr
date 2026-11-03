@@ -6,7 +6,7 @@ export const it = {
   'settings.audiomuseDescription': 'Trova artisti simili con l’analisi audio di AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (facoltativo)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 o successivo. Invia i nomi degli artisti di partenza al tuo server. Disattiva la verifica TLS per certificati autofirmati solo per server di cui ti fidi.',
+    "AudioMuse-AI v3.6.4 o successivo. Restituisce solo artisti del proprio indice, quindi trova nuovi artisti solo se quell'indice include musica non presente nella tua libreria. Invia i nomi degli artisti di partenza al tuo server. Disattiva la verifica TLS per certificati autofirmati solo per server di cui ti fidi.",
   'audiomuse.unreachable': 'AudioMuse-AI non è raggiungibile.',
   'audiomuse.not_indexed': 'L’indice degli artisti di AudioMuse-AI non è pronto.',
   'audiomuse.artist_unknown': 'Artista sconosciuto o nessun artista simile nell’indice.',
@@ -1872,6 +1872,9 @@ export const it = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL o la chiave API sono cambiati. Salva, poi modifica di nuovo la destinazione per scegliere profili e una cartella radice dalla nuova istanza.",
   'settings.targetLidarrDefaultsUnset': 'Primo disponibile',
+  'settings.targetLidarrMonitorNewItems': 'Monitora i nuovi album',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Quali album Lidarr monitora quando in seguito ne trova di nuovi per gli artisti aggiunti da questa destinazione.',
   'cardStack.counter': '{0} di {1}',
   'cardStack.swipeHint': 'Scorri a destra per approvare, a sinistra per rifiutare',
   'serviceCard.testConnection': 'Testa connessione',

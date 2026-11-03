@@ -7,7 +7,7 @@ export const fr = {
     'Trouve des artistes similaires grâce à l’analyse audio d’AudioMuse-AI.',
   'settings.audiomuseToken': 'Jeton API (facultatif)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 ou plus récent. Envoie les noms des artistes de départ à ton serveur. Ignore la vérification TLS pour un certificat autosigné uniquement si tu fais confiance au serveur.',
+    'AudioMuse-AI v3.6.4 ou plus récent. Ne renvoie que des artistes de son propre index, donc ne trouve de nouveaux artistes que si cet index couvre de la musique absente de ta bibliothèque. Envoie les noms des artistes de départ à ton serveur. Ignore la vérification TLS pour un certificat autosigné uniquement si tu fais confiance au serveur.',
   'audiomuse.unreachable': 'AudioMuse-AI est inaccessible.',
   'audiomuse.not_indexed': 'L’index des artistes d’AudioMuse-AI n’est pas prêt.',
   'audiomuse.artist_unknown': 'Artiste inconnu ou aucun artiste similaire dans l’index.',
@@ -1877,6 +1877,9 @@ export const fr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL ou la clé API a changé. Enregistre, puis modifie à nouveau la cible pour choisir les profils et un dossier racine de la nouvelle instance.",
   'settings.targetLidarrDefaultsUnset': 'Premier disponible',
+  'settings.targetLidarrMonitorNewItems': 'Surveiller les nouveaux albums',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    "Les albums que Lidarr surveille lorsqu'il en trouve de nouveaux plus tard pour les artistes ajoutés par cette destination.",
   'cardStack.counter': '{0} sur {1}',
   'cardStack.swipeHint': 'Glisse à droite pour approuver, à gauche pour rejeter',
   'serviceCard.testConnection': 'Tester la connexion',

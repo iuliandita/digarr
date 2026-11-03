@@ -7,7 +7,7 @@ export const uk = {
   'settings.audiomuseDescription': 'Знаходь схожих виконавців завдяки аудіоаналізу AudioMuse-AI.',
   'settings.audiomuseToken': 'Токен API (необов’язково)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 або новіша версія. Надсилає імена початкових виконавців на твій сервер. Пропускай перевірку TLS для самопідписаних сертифікатів лише на серверах, яким довіряєш.',
+    'AudioMuse-AI v3.6.4 або новіша версія. Повертає лише виконавців зі свого індексу, тож знаходить нових виконавців, лише якщо індекс містить музику поза твоєю бібліотекою. Надсилає імена початкових виконавців на твій сервер. Пропускай перевірку TLS для самопідписаних сертифікатів лише на серверах, яким довіряєш.',
   'audiomuse.unreachable': 'Не вдалося з’єднатися з AudioMuse-AI.',
   'audiomuse.not_indexed': 'Індекс виконавців AudioMuse-AI ще не готовий.',
   'audiomuse.artist_unknown': 'Виконавець невідомий або в індексі немає схожих виконавців.',
@@ -1859,6 +1859,9 @@ export const uk = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Перший доступний',
+  'settings.targetLidarrMonitorNewItems': 'Відстежувати нові альбоми',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Які альбоми Lidarr відстежує, коли пізніше знаходить нові для виконавців, доданих цією ціллю.',
   'cardStack.counter': '{0} з {1}',
   'cardStack.swipeHint': 'Проведи праворуч, щоб схвалити, ліворуч - щоб відхилити',
   'serviceCard.testConnection': 'Перевірити підключення',

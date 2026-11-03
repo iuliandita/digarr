@@ -16,12 +16,12 @@ concurrency:
 
 jobs:
   audit:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.bun/install/cache
@@ -33,11 +33,11 @@ jobs:
 
   trivy-fs:
     name: Trivy filesystem scan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: fs
@@ -49,15 +49,15 @@ jobs:
           # Revisit once we have a baseline + `.trivyignore` with dated entries.
           exit-code: "0"
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
-          version: "v0.70.0"
-      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+          version: "v0.76.1"
+      - uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4
         if: always()
         with:
           sarif_file: trivy-fs.sarif
 
   trivy-image:
     name: Trivy container scan
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Heavy (builds the image): main-only + weekly schedule, so develop PRs stay
     # cheap. Also skip when DOCKERHUB secrets are unavailable (fork PRs, dependabot).
     if: >-
@@ -66,15 +66,15 @@ jobs:
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
       - name: Log in to Docker Hub
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
         with:
-          bun-version: "1.4.3"
+          bun-version: "1.4.4"
       - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.bun/install/cache
@@ -91,21 +91,21 @@ jobs:
           format: sarif
           output: trivy-image.sarif
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
-          version: "v0.70.0"
-      - uses: github/codeql-action/upload-sarif@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+          version: "v0.76.1"
+      - uses: github/codeql-action/upload-sarif@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4
         if: always()
         with:
           sarif_file: trivy-image.sarif
 
   codeql:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     # Heavy (full analysis): main-only + weekly schedule, so develop PRs stay cheap.
     if: github.event_name == 'schedule' || github.ref == 'refs/heads/main' || github.base_ref == 'main'
     permissions:
       security-events: write
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v6
-      - uses: github/codeql-action/init@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - uses: github/codeql-action/init@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4
         with:
           languages: javascript-typescript
-      - uses: github/codeql-action/analyze@6f2ac81f5cd81fe351a197ba0b00d91d03cd2aee # v4
+      - uses: github/codeql-action/analyze@1fc58d04a4d4374f921bdac573c3811c240f9c26 # v4

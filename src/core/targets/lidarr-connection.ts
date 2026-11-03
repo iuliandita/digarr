@@ -2,6 +2,9 @@
 // (`useServerConnection: true`, plus per-target tags) or is a separate instance
 // with its own url/apiKey and per-target default IDs. Reference targets are
 // resolved at use time so a Connections change reaches approvals immediately.
+// Both kinds keep their own tags and new-album monitoring choice.
+
+import { LIDARR_NEW_ITEM_MONITOR_TYPES, type LidarrNewItemMonitor } from './types'
 
 export type LidarrServerSettings = {
   lidarrUrl?: string | null
@@ -16,6 +19,7 @@ export type LidarrDefaults = {
   qualityProfileId?: number
   metadataProfileId?: number
   rootFolderId?: number
+  monitorNewItems?: LidarrNewItemMonitor
 }
 
 const CONNECTION_KEYS = ['url', 'apiKey', 'skipTlsVerify'] as const
@@ -28,6 +32,10 @@ export function usesServerConnection(config: Record<string, unknown> | null | un
 function positiveInt(value: unknown): number | undefined {
   const n = typeof value === 'string' && value.trim() !== '' ? Number(value) : value
   return typeof n === 'number' && Number.isSafeInteger(n) && n > 0 ? n : undefined
+}
+
+function newItemMonitor(value: unknown): LidarrNewItemMonitor | undefined {
+  return LIDARR_NEW_ITEM_MONITOR_TYPES.find((type) => type === value)
 }
 
 export function serverLidarrConnection(
@@ -70,21 +78,27 @@ export function resolveLidarrTargetDefaults(
     qualityProfileId: positiveInt(source.qualityProfileId),
     metadataProfileId: positiveInt(source.metadataProfileId),
     rootFolderId: positiveInt(source.rootFolderId),
+    monitorNewItems: newItemMonitor(config.monitorNewItems),
   }
 }
 
-// Canonical stored shape. A reference keeps its flag and tags; a separate instance
-// drops the flag and keeps connection fields plus valid default IDs.
+// Canonical stored shape. A reference keeps its flag, tags and new-album
+// monitoring; a separate instance drops the flag and keeps connection fields,
+// valid default IDs and new-album monitoring.
 export function normalizeLidarrTargetConfig(
   config: Record<string, unknown>,
 ): Record<string, unknown> {
+  const monitorNewItems = newItemMonitor(config.monitorNewItems)
   if (usesServerConnection(config))
     return {
       useServerConnection: true,
       ...(Array.isArray(config.tags) ? { tags: config.tags } : {}),
+      ...(monitorNewItems ? { monitorNewItems } : {}),
     }
   const normalized: Record<string, unknown> = { ...config }
   delete normalized.useServerConnection
+  if (monitorNewItems) normalized.monitorNewItems = monitorNewItems
+  else delete normalized.monitorNewItems
   for (const key of DEFAULT_KEYS) {
     if (!(key in normalized)) continue
     const id = positiveInt(normalized[key])
@@ -149,7 +163,7 @@ function sameInstanceUrl(a: string, b: string): boolean {
   return left !== null && left === connectionKey(b)
 }
 
-export function matchesServerConnection(
+function matchesServerConnection(
   config: Record<string, unknown>,
   settings: LidarrServerSettings | null | undefined,
 ): boolean {

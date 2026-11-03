@@ -65,6 +65,21 @@ describe('createLidarrTarget().addAlbum', () => {
     },
   )
 
+  it('passes the target monitorNewItems to the unmonitored artist it adds', async () => {
+    const client = mockLidarrClient()
+    client.getAlbums.mockResolvedValue([{ id: 7, foreignAlbumId: 'rg-1' }])
+    const target = createLidarrTarget(1, {
+      url: 'http://lidarr',
+      apiKey: 'k',
+      monitorNewItems: 'none',
+    })
+    await target.addAlbum?.({ artistMbid: 'a1', artistName: 'Artist', releaseGroupMbid: 'rg-1' })
+    expect(client.addArtist).toHaveBeenCalledWith('a1', 'Artist', undefined, undefined, undefined, {
+      monitorOption: 'none',
+      monitorNewItems: 'none',
+    })
+  })
+
   it('capabilities includes addAlbum', () => {
     mockLidarrClient()
     const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })

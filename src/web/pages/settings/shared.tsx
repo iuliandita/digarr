@@ -1,3 +1,15 @@
+export function unmaskSecret(value: string | null | undefined): string {
+  return value === '***' ? '' : (value ?? '')
+}
+
+export function savedSecretPlaceholder(
+  value: string | null | undefined,
+  fallback: string,
+  savedLabel: string,
+): string {
+  return value === '***' ? `(${savedLabel})` : fallback
+}
+
 export function SliderField({
   label,
   id,

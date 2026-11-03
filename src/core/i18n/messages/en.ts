@@ -6,7 +6,7 @@ export const en = {
   'settings.audiomuseDescription': 'Find similar artists using AudioMuse-AI audio analysis.',
   'settings.audiomuseToken': 'API token (optional)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 or newer. Sends seed artist names to your server. For a self-signed certificate, enable Skip TLS verification only for a server you trust.',
+    'AudioMuse-AI v3.6.4 or newer. Only returns artists from its own index, so it finds new artists only if that index includes music outside your library. Sends seed artist names to your server. For a self-signed certificate, enable Skip TLS verification only for a server you trust.',
   'audiomuse.unreachable': 'Cannot reach AudioMuse-AI.',
   'audiomuse.not_indexed': 'AudioMuse-AI has no artist index ready.',
   'audiomuse.artist_unknown': 'Artist unknown or no similar artists in the index.',
@@ -1882,6 +1882,9 @@ export const en = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'The URL or API key changed. Save, then edit the target again to pick profiles and a root folder from the new instance.',
   'settings.targetLidarrDefaultsUnset': 'First available',
+  'settings.targetLidarrMonitorNewItems': 'Monitor new albums',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Which albums Lidarr monitors when it later finds new ones for artists this target adds.',
 
   // Card stack navigation hints
   'cardStack.counter': '{0} of {1}',

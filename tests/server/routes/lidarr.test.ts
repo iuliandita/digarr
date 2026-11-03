@@ -104,6 +104,44 @@ describe('POST /api/v1/lidarr/add', () => {
     const body = (await res.json()) as { id: number }
     expect(body.id).toBe(42)
   })
+
+  it('forwards monitorNewItems next to monitorOption', async () => {
+    const { createLidarrClient } = await import('@/core/clients/lidarr')
+    const app = createTestApp({ userId: 1 })
+    const res = await app.request('/api/v1/lidarr/add', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        foreignArtistId: 'mbid-1',
+        artistName: 'Test Artist',
+        monitorOption: 'new',
+        monitorNewItems: 'new',
+      }),
+    })
+    expect(res.status).toBe(200)
+    const client = vi.mocked(createLidarrClient).mock.results.at(-1)?.value as {
+      addArtist: ReturnType<typeof vi.fn>
+    }
+    expect(client.addArtist).toHaveBeenCalledWith('mbid-1', 'Test Artist', 1, 1, undefined, {
+      tags: undefined,
+      monitorOption: 'new',
+      monitorNewItems: 'new',
+    })
+  })
+
+  it('returns 400 for a monitorNewItems value Lidarr does not know', async () => {
+    const app = createTestApp({ userId: 1 })
+    const res = await app.request('/api/v1/lidarr/add', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        foreignArtistId: 'mbid-1',
+        artistName: 'Test Artist',
+        monitorNewItems: 'future',
+      }),
+    })
+    expect(res.status).toBe(400)
+  })
 })
 
 describe('GET /api/v1/lidarr/* (admin guard)', () => {

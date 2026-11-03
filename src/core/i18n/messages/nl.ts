@@ -7,7 +7,7 @@ export const nl = {
     'Vind vergelijkbare artiesten met de audioanalyse van AudioMuse-AI.',
   'settings.audiomuseToken': 'API-token (optioneel)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 of nieuwer. Stuurt namen van uitgangsartiesten naar je server. Sla TLS-verificatie voor zelfondertekende certificaten alleen over bij servers die je vertrouwt.',
+    'AudioMuse-AI v3.6.4 of nieuwer. Geeft alleen artiesten uit de eigen index terug, dus vindt alleen nieuwe artiesten als die index muziek buiten je bibliotheek bevat. Stuurt namen van uitgangsartiesten naar je server. Sla TLS-verificatie voor zelfondertekende certificaten alleen over bij servers die je vertrouwt.',
   'audiomuse.unreachable': 'AudioMuse-AI is niet bereikbaar.',
   'audiomuse.not_indexed': 'De artiestenindex van AudioMuse-AI is nog niet klaar.',
   'audiomuse.artist_unknown': 'Artiest onbekend of geen vergelijkbare artiesten in de index.',
@@ -1867,6 +1867,9 @@ export const nl = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'De URL of API-sleutel is gewijzigd. Sla op en bewerk het doel daarna opnieuw om profielen en een hoofdmap van de nieuwe instantie te kiezen.',
   'settings.targetLidarrDefaultsUnset': 'Eerste beschikbare',
+  'settings.targetLidarrMonitorNewItems': 'Nieuwe albums volgen',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Welke albums Lidarr volgt wanneer het later nieuwe vindt voor artiesten die dit doel toevoegt.',
   'cardStack.counter': '{0} van {1}',
   'cardStack.swipeHint': 'Veeg naar rechts om goed te keuren, naar links om af te wijzen',
   'serviceCard.testConnection': 'Verbinding testen',

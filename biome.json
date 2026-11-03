@@ -1,5 +1,5 @@
 {
-  "$schema": "https://biomejs.dev/schemas/2.5.14/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.6.4/schema.json",
   "files": {
     "includes": [
       "**",
@@ -11,13 +11,22 @@
       "!test-results",
       "!evaluation-results",
       "!playwright-report",
-      "!**/*.svg"
+      "!**/*.svg",
+      "!**/*.md",
+      "!**/*.yaml",
+      "!**/*.yml"
     ]
   },
   "assist": { "actions": { "source": { "organizeImports": "on" } } },
   "linter": {
     "enabled": true,
-    "rules": { "preset": "recommended" }
+    "rules": {
+      "preset": "recommended",
+      "correctness": {
+        "noComponentHookFactories": "off",
+        "usePlaywrightValidDescribeCallback": "off"
+      }
+    }
   },
   "formatter": {
     "enabled": true,

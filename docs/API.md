@@ -1,6 +1,6 @@
 # API Reference
 
-This reference covers v2.1.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+This reference covers v2.2.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
 Except for [MCP](#mcp), all endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Personal API tokens are recommended for scripts; bearer sessions
@@ -79,8 +79,11 @@ Offset-paginated routes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
+| GET | `/api/v1/docs` | No | Interactive API reference rendered from the OpenAPI document |
+| GET | `/api/v1/docs/redoc.standalone.js` | No | Script the API reference loads; served from the same origin |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document covering every route operation |
+
+Open `/api/v1/docs` in a browser for a searchable reference rendered from the OpenAPI document (the [Redoc](https://github.com/Redocly/redoc) standalone bundle, served from your own instance). It has the same public access as `openapi.json`, loads nothing from a third party, and needs JavaScript. Its search runs in a blob worker, so that page has its own Content Security Policy that allows `worker-src blob:`; every other page keeps the app policy. It does not send requests: call the API with your own client.
 
 The OpenAPI document lists every route operation in this reference, with path and query parameters, authentication (`sessionCookie` + `csrfHeader` for cookie mutations, `bearerToken`, cookie-only token management, personal-token-only MCP), problem+json error responses, and "Admin only." on admin operations. Request bodies come from the same Zod validators the routes use. Response schemas are detailed for auth, recommendations, artist blocks, jobs, library reconciliation, and settings probes; most other responses are loose objects, so this Markdown reference stays the detailed contract for response shapes. `bun run check:api-docs` verifies both this reference and the OpenAPI document against the server's route declarations, and checks admin markers against detectable admin guards.
 
@@ -774,7 +777,7 @@ Create and update accept an optional positive integer `userId` to assign the tar
 
 A linked `slskd` target requires an enabled Lidarr target assigned to the same user. To move a linked pair, clear `lidarrTargetId` first, reassign both targets, then restore the link. Active jobs for the previous owner stop instead of using the reassigned connections.
 
-Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lidarr URL, API key, TLS setting and default profiles from Settings > Connections, resolved when the target is used; per-target `tags` (optional positive integer array) are also stored, and any `url`/`apiKey` sent with it is dropped. A separate instance stores its own `url`, `apiKey`, optional `skipTlsVerify`, and optional positive `qualityProfileId`, `metadataProfileId` and `rootFolderId` from that instance (null clears one). Both shapes accept `tags: number[]`, defaulting to no tags. Changing its `url` or `apiKey` clears those IDs and tags, since they belong to the old instance. Unset IDs use the instance's first profile or root folder at add time; server-connection defaults are never applied to a separate instance.
+Lidarr target config has two shapes. `{"useServerConnection":true}` uses the Lidarr URL, API key, TLS setting and default profiles from Settings > Connections, resolved when the target is used; per-target `tags` (optional positive integer array) are also stored, and any `url`/`apiKey` sent with it is dropped. A separate instance stores its own `url`, `apiKey`, optional `skipTlsVerify`, and optional positive `qualityProfileId`, `metadataProfileId` and `rootFolderId` from that instance (null clears one). Both shapes accept `tags: number[]`, defaulting to no tags, and `monitorNewItems`: `all`, `new` or `none`, Lidarr's setting for which albums a later artist refresh finds get monitored. It is sent with every artist this target adds, including the unmonitored artist an album approval adds. Unset sends `all`, which is also what Lidarr uses when the field is missing; `new` monitors only albums newer than the artist's latest one, and `none` monitors none. Other values are rejected with HTTP 400 and the setting survives `url`/`apiKey` changes. Changing its `url` or `apiKey` clears those IDs and tags, since they belong to the old instance. Unset IDs use the instance's first profile or root folder at add time; server-connection defaults are never applied to a separate instance.
 
 Example create bodies: `{"type":"lidarr","name":"Music","userId":2,"config":{"useServerConnection":true}}` and `{"type":"lidarr","name":"Other Lidarr","userId":2,"config":{"url":"http://lidarr2:8686","apiKey":"<key>","rootFolderId":3}}`.
 
@@ -1337,7 +1340,7 @@ Admins can promote other users. First-user admin creation is serialized in the d
 | GET | `/api/v1/lidarr/rootfolders` | Admin | Root folders |
 | GET | `/api/v1/lidarr/approve-options` | Yes | Non-admin picker data for the approve dialog: quality/metadata profile names, root-folder paths (no freeSpace/structure), existing tags as `{id,label}`, and the effective `defaults` IDs and `tags` array. Optional `?targetId=N` loads both from the Lidarr instance that target uses; it must be your own Lidarr target (admins: any), otherwise 404 |
 | POST | `/api/v1/lidarr/tags` | Yes | Create a tag with `{ "label": "digarr" }`; returns 201 `{id,label}`. Optional `?targetId=N` uses the same instance and owner checks as approve-options; without it, uses the server connection |
-| POST | `/api/v1/lidarr/add` | Admin | Add artist to the server Lidarr connection; accepts optional native `monitorOption` (all/new/missing/existing/latest/first/none) and `tags: number[]` alongside artist/profile/folder fields |
+| POST | `/api/v1/lidarr/add` | Admin | Add artist to the server Lidarr connection; accepts optional native `monitorOption` (all/new/missing/existing/latest/first/none), `monitorNewItems` (all/new/none, default `all`) and `tags: number[]` alongside artist/profile/folder fields |
 
 ---
 

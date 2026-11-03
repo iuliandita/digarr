@@ -53,12 +53,9 @@ import { ArtistImagesCard } from './artist-images-card'
 import { type ConnectionChoice, ConnectionPicker } from './connection-picker'
 import { LidarrPreferencesSection } from './lidarr-preferences'
 import { NotificationChannelsCard } from './notification-channels'
-import { isLocalAiProvider } from './shared'
+import { MediaServerCard, ServiceFormFooter } from './service-form'
+import { isLocalAiProvider, savedSecretPlaceholder, unmaskSecret } from './shared'
 import type { ServiceTestState, Settings } from './types'
-
-function unmaskSecret(value: string | null | undefined): string {
-  return value === '***' ? '' : (value ?? '')
-}
 
 export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
   const { t } = useI18n()
@@ -210,6 +207,9 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
   })
   const tidalConnected = tidalStatus?.connected ?? false
   const tidalAppConfigured = settings._tidalAppConfigured ?? false
+
+  const secretPlaceholder = (value: string | null | undefined, fallback: string) =>
+    savedSecretPlaceholder(value, fallback, t('settings.saved'))
 
   function setTest(key: string, val: ServiceTestState) {
     setTests((prev) => ({ ...prev, [key]: val }))
@@ -855,19 +855,12 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           {t('setup.skipTlsVerification')}
         </label>
         <p className="text-xs text-muted">{t('settings.audiomuseHelp')}</p>
-        <div className="flex justify-end gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={testAudiomuse}
-            disabled={tests.audiomuse === 'testing'}
-          >
-            {tests.audiomuse === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-          </Button>
-          <Button size="sm" onClick={saveAudiomuse} disabled={saving.audiomuse}>
-            {saving.audiomuse ? t('settings.saving') : t('settings.save')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testAudiomuse}
+          testing={tests.audiomuse === 'testing'}
+          onSave={saveAudiomuse}
+          saving={saving.audiomuse}
+        />
       </ServiceCard>
     ),
     lidarr: (
@@ -905,11 +898,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="lidarr-apikey"
               type="password"
-              placeholder={
-                settings.lidarrApiKey === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldApiKey')
-              }
+              placeholder={secretPlaceholder(settings.lidarrApiKey, t('settings.fieldApiKey'))}
               value={lidarrApiKey}
               onChange={(e) => setLidarrApiKey(e.target.value)}
             />
@@ -939,23 +928,13 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <p className="text-xs text-muted mt-1">{t('settings.lidarrPublicUrlHelp')}</p>
           </Field>
         </Disclosure>
-        <div className="flex justify-end gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={testLidarr}
-            disabled={tests.lidarr === 'testing'}
-          >
-            {tests.lidarr === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-          </Button>
-          <Button size="sm" onClick={saveLidarr} disabled={saving.lidarr}>
-            {saving.lidarr
-              ? t('settings.saving')
-              : isLidarrConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testLidarr}
+          testing={tests.lidarr === 'testing'}
+          onSave={saveLidarr}
+          saving={saving.lidarr}
+          configured={isLidarrConfigured}
+        />
         {settings.lidarrUrl && (
           // Saved separately; keep its picks from marking the connection form unsaved.
           <div onChange={(e) => e.stopPropagation()}>
@@ -1065,9 +1044,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="ai-apikey"
               type="password"
-              placeholder={
-                settings.aiApiKey === '***' ? `(${t('settings.saved')})` : t('settings.fieldApiKey')
-              }
+              placeholder={secretPlaceholder(settings.aiApiKey, t('settings.fieldApiKey'))}
               value={aiApiKey}
               onChange={(e) => setAiApiKey(e.target.value)}
             />
@@ -1104,18 +1081,13 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             </div>
           )
         })()}
-        <div className="flex justify-end gap-2 pt-1">
-          <Button size="sm" variant="outline" onClick={testAi} disabled={tests.ai === 'testing'}>
-            {tests.ai === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-          </Button>
-          <Button size="sm" onClick={saveAi} disabled={saving.ai}>
-            {saving.ai
-              ? t('settings.saving')
-              : isAiConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testAi}
+          testing={tests.ai === 'testing'}
+          onSave={saveAi}
+          saving={saving.ai}
+          configured={isAiConfigured}
+        />
       </ServiceCard>
     ),
     tidal: (
@@ -1144,33 +1116,22 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="tidal-client-secret"
               type="password"
-              placeholder={
-                settings.tidalClientSecret === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldClientSecret')
-              }
+              placeholder={secretPlaceholder(
+                settings.tidalClientSecret,
+                t('settings.fieldClientSecret'),
+              )}
               value={tidalClientSecret}
               onChange={(e) => setTidalClientSecret(e.target.value)}
             />
           </Field>
         </div>
-        <div className="flex justify-end gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={testTidal}
-            disabled={tests.tidal === 'testing'}
-          >
-            {tests.tidal === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-          </Button>
-          <Button size="sm" onClick={saveTidal} disabled={saving.tidal}>
-            {saving.tidal
-              ? t('settings.saving')
-              : isTidalConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testTidal}
+          testing={tests.tidal === 'testing'}
+          onSave={saveTidal}
+          saving={saving.tidal}
+          configured={isTidalConfigured}
+        />
       </ServiceCard>
     ),
     listenbrainz: (
@@ -1212,37 +1173,23 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="lb-token"
               type="password"
-              placeholder={
-                settings.listenbrainzToken === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldUserToken')
-              }
+              placeholder={secretPlaceholder(
+                settings.listenbrainzToken,
+                t('settings.fieldUserToken'),
+              )}
               value={lbToken}
               onChange={(e) => setLbToken(e.target.value)}
             />
           </Field>
         </div>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testListenbrainz}
-              disabled={tests.listenbrainz === 'testing'}
-            >
-              {tests.listenbrainz === 'testing'
-                ? t('settings.testing')
-                : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveListenbrainz} disabled={saving.listenbrainz}>
-            {saving.listenbrainz
-              ? t('settings.saving')
-              : isLbConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testListenbrainz}
+          testing={tests.listenbrainz === 'testing'}
+          onSave={saveListenbrainz}
+          saving={saving.listenbrainz}
+          configured={isLbConfigured}
+          showTest={canTestUserConnections}
+        />
         <ListenBrainzWriteBack />
       </ServiceCard>
     ),
@@ -1285,35 +1232,20 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="lfm-apikey"
               type="password"
-              placeholder={
-                settings.lastfmApiKey === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldApiKey')
-              }
+              placeholder={secretPlaceholder(settings.lastfmApiKey, t('settings.fieldApiKey'))}
               value={lfApiKey}
               onChange={(e) => setLfApiKey(e.target.value)}
             />
           </Field>
         </div>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testLastfm}
-              disabled={tests.lastfm === 'testing'}
-            >
-              {tests.lastfm === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveLastfm} disabled={saving.lastfm}>
-            {saving.lastfm
-              ? t('settings.saving')
-              : isLfConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testLastfm}
+          testing={tests.lastfm === 'testing'}
+          onSave={saveLastfm}
+          saving={saving.lastfm}
+          configured={isLfConfigured}
+          showTest={canTestUserConnections}
+        />
         <LastfmWriteBack />
       </ServiceCard>
     ),
@@ -1624,9 +1556,7 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="plex-token"
               type="password"
-              placeholder={
-                settings.plexToken === '***' ? `(${t('settings.saved')})` : t('settings.plexToken')
-              }
+              placeholder={secretPlaceholder(settings.plexToken, t('settings.plexToken'))}
               value={plexToken}
               onChange={(e) => {
                 setPlexToken(e.target.value)
@@ -1676,194 +1606,84 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
           </Select>
           <p className="text-xs text-muted mt-1">{t('settings.plexAccountHint')}</p>
         </Field>
-        <div className="flex justify-end gap-2 pt-1">
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={testPlex}
-            disabled={tests.plex === 'testing'}
-          >
-            {tests.plex === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-          </Button>
-          <Button size="sm" onClick={savePlex} disabled={saving.plex}>
-            {saving.plex
-              ? t('settings.saving')
-              : isPlexConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testPlex}
+          testing={tests.plex === 'testing'}
+          onSave={savePlex}
+          saving={saving.plex}
+          configured={isPlexConfigured}
+        />
       </ServiceCard>
     ),
     jellyfin: (
-      <ServiceCard
-        defaultOpen={selected === 'jellyfin'}
-        onRemove={isSaved('jellyfin') ? () => removeConnection('jellyfin') : undefined}
-        removing={saving.jellyfin}
+      <MediaServerCard
+        id="jellyfin"
         name="Jellyfin"
+        icon={<JellyfinIcon />}
         description={t('settings.jellyfinDescription')}
+        defaultOpen={selected === 'jellyfin'}
         status={serviceStatus('jellyfin')}
         onEdit={() => markEdited('jellyfin')}
-        icon={<JellyfinIcon />}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label={t('settings.fieldServerUrl')} id="jellyfin-url">
-            <Input
-              id="jellyfin-url"
-              type="url"
-              placeholder="http://localhost:8096"
-              value={jellyfinUrl}
-              onChange={(e) => setJellyfinUrl(e.target.value)}
-            />
-          </Field>
-          <Field label={t('settings.fieldApiKey')} id="jellyfin-apikey">
-            <Input
-              id="jellyfin-apikey"
-              type="password"
-              placeholder={
-                settings.jellyfinApiKey === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldApiKey')
-              }
-              value={jellyfinApiKey}
-              onChange={(e) => setJellyfinApiKey(e.target.value)}
-            />
-          </Field>
-        </div>
-        <Field label={t('settings.fieldUsernameOrUserId')} id="jellyfin-userid">
-          <Input
-            id="jellyfin-userid"
-            placeholder={t('settings.fieldUsernameOrUserId')}
-            value={jellyfinUserId}
-            onChange={(e) => setJellyfinUserId(e.target.value)}
+        onRemove={isSaved('jellyfin') ? () => removeConnection('jellyfin') : undefined}
+        removing={saving.jellyfin}
+        userIdLabel={t('settings.fieldUsernameOrUserId')}
+        userIdHelp={t('settings.jellyfinUserIdHelp')}
+        savedApiKey={settings.jellyfinApiKey}
+        url={jellyfinUrl}
+        onUrlChange={setJellyfinUrl}
+        apiKey={jellyfinApiKey}
+        onApiKeyChange={setJellyfinApiKey}
+        userId={jellyfinUserId}
+        onUserIdChange={setJellyfinUserId}
+        libraryId={jellyfinLibraryId}
+        onLibraryIdChange={setJellyfinLibraryId}
+        libraries={jellyfinLibraries}
+        footer={
+          <ServiceFormFooter
+            onTest={testJellyfin}
+            testing={tests.jellyfin === 'testing'}
+            onSave={saveJellyfin}
+            saving={saving.jellyfin}
+            configured={isJellyfinConfigured}
+            showTest={canTestUserConnections}
           />
-          <p className="text-xs text-muted mt-1">{t('settings.jellyfinUserIdHelp')}</p>
-        </Field>
-        <Field label={t('settings.musicLibrary')} id="jellyfin-library">
-          <Select
-            id="jellyfin-library"
-            value={jellyfinLibraryId}
-            onChange={(e) => setJellyfinLibraryId(e.target.value)}
-          >
-            <option value="">{t('settings.musicLibraryAll')}</option>
-            {jellyfinLibraries.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-            {jellyfinLibraryId && !jellyfinLibraries.some((l) => l.id === jellyfinLibraryId) && (
-              <option value={jellyfinLibraryId}>
-                {t('settings.musicLibraryId').replace('{0}', jellyfinLibraryId)}
-              </option>
-            )}
-          </Select>
-          <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
-        </Field>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testJellyfin}
-              disabled={tests.jellyfin === 'testing'}
-            >
-              {tests.jellyfin === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveJellyfin} disabled={saving.jellyfin}>
-            {saving.jellyfin
-              ? t('settings.saving')
-              : isJellyfinConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
-      </ServiceCard>
+        }
+      />
     ),
     emby: (
-      <ServiceCard
-        defaultOpen={selected === 'emby'}
-        onRemove={isSaved('emby') ? () => removeConnection('emby') : undefined}
-        removing={saving.emby}
+      <MediaServerCard
+        id="emby"
         name="Emby"
+        icon={<EmbyIcon />}
         description={t('settings.embyDescription')}
+        defaultOpen={selected === 'emby'}
         status={serviceStatus('emby')}
         onEdit={() => markEdited('emby')}
-        icon={<EmbyIcon />}
-      >
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <Field label={t('settings.fieldServerUrl')} id="emby-url">
-            <Input
-              id="emby-url"
-              type="url"
-              placeholder="http://localhost:8096"
-              value={embyUrl}
-              onChange={(e) => setEmbyUrl(e.target.value)}
-            />
-          </Field>
-          <Field label={t('settings.fieldApiKey')} id="emby-apikey">
-            <Input
-              id="emby-apikey"
-              type="password"
-              placeholder={
-                settings.embyApiKey === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldApiKey')
-              }
-              value={embyApiKey}
-              onChange={(e) => setEmbyApiKey(e.target.value)}
-            />
-          </Field>
-        </div>
-        <Field label={t('settings.fieldUserId')} id="emby-userid">
-          <Input
-            id="emby-userid"
-            placeholder={t('settings.fieldUserId')}
-            value={embyUserId}
-            onChange={(e) => setEmbyUserId(e.target.value)}
+        onRemove={isSaved('emby') ? () => removeConnection('emby') : undefined}
+        removing={saving.emby}
+        userIdLabel={t('settings.fieldUserId')}
+        userIdHelp={t('settings.embyUserIdHelp')}
+        savedApiKey={settings.embyApiKey}
+        url={embyUrl}
+        onUrlChange={setEmbyUrl}
+        apiKey={embyApiKey}
+        onApiKeyChange={setEmbyApiKey}
+        userId={embyUserId}
+        onUserIdChange={setEmbyUserId}
+        libraryId={embyLibraryId}
+        onLibraryIdChange={setEmbyLibraryId}
+        libraries={embyLibraries}
+        footer={
+          <ServiceFormFooter
+            onTest={testEmby}
+            testing={tests.emby === 'testing'}
+            onSave={saveEmby}
+            saving={saving.emby}
+            configured={isEmbyConfigured}
+            showTest={canTestUserConnections}
           />
-          <p className="text-xs text-muted mt-1">{t('settings.embyUserIdHelp')}</p>
-        </Field>
-        <Field label={t('settings.musicLibrary')} id="emby-library">
-          <Select
-            id="emby-library"
-            value={embyLibraryId}
-            onChange={(e) => setEmbyLibraryId(e.target.value)}
-          >
-            <option value="">{t('settings.musicLibraryAll')}</option>
-            {embyLibraries.map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.name}
-              </option>
-            ))}
-            {embyLibraryId && !embyLibraries.some((l) => l.id === embyLibraryId) && (
-              <option value={embyLibraryId}>
-                {t('settings.musicLibraryId').replace('{0}', embyLibraryId)}
-              </option>
-            )}
-          </Select>
-          <p className="text-xs text-muted mt-1">{t('settings.musicLibraryHint')}</p>
-        </Field>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testEmby}
-              disabled={tests.emby === 'testing'}
-            >
-              {tests.emby === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveEmby} disabled={saving.emby}>
-            {saving.emby
-              ? t('settings.saving')
-              : isEmbyConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
-      </ServiceCard>
+        }
+      />
     ),
     subsonic: (
       <ServiceCard
@@ -1901,34 +1721,19 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             id="subsonic-password"
             type="password"
             autoComplete="new-password"
-            placeholder={
-              settings.subsonicPassword === '***'
-                ? `(${t('settings.saved')})`
-                : t('settings.fieldPassword')
-            }
+            placeholder={secretPlaceholder(settings.subsonicPassword, t('settings.fieldPassword'))}
             value={subsonicPassword}
             onChange={(e) => setSubsonicPassword(e.target.value)}
           />
         </Field>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testSubsonic}
-              disabled={tests.subsonic === 'testing'}
-            >
-              {tests.subsonic === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveSubsonic} disabled={saving.subsonic}>
-            {saving.subsonic
-              ? t('settings.saving')
-              : isSubsonicConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testSubsonic}
+          testing={tests.subsonic === 'testing'}
+          onSave={saveSubsonic}
+          saving={saving.subsonic}
+          configured={isSubsonicConfigured}
+          showTest={canTestUserConnections}
+        />
       </ServiceCard>
     ),
     discogs: (
@@ -1967,35 +1772,23 @@ export function ConnectionsTab({ settings, onSaved }: { settings: Settings; onSa
             <Input
               id="discogs-token"
               type="password"
-              placeholder={
-                settings.discogsToken === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.fieldPersonalAccessToken')
-              }
+              placeholder={secretPlaceholder(
+                settings.discogsToken,
+                t('settings.fieldPersonalAccessToken'),
+              )}
               value={discogsToken}
               onChange={(e) => setDiscogsToken(e.target.value)}
             />
           </Field>
         </div>
-        <div className="flex justify-end gap-2 pt-1">
-          {canTestUserConnections && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={testDiscogs}
-              disabled={tests.discogs === 'testing'}
-            >
-              {tests.discogs === 'testing' ? t('settings.testing') : t('settings.testConnection')}
-            </Button>
-          )}
-          <Button size="sm" onClick={saveDiscogs} disabled={saving.discogs}>
-            {saving.discogs
-              ? t('settings.saving')
-              : isDiscogsConfigured
-                ? t('settings.save')
-                : t('settings.configure')}
-          </Button>
-        </div>
+        <ServiceFormFooter
+          onTest={testDiscogs}
+          testing={tests.discogs === 'testing'}
+          onSave={saveDiscogs}
+          saving={saving.discogs}
+          configured={isDiscogsConfigured}
+          showTest={canTestUserConnections}
+        />
       </ServiceCard>
     ),
     notifications: (

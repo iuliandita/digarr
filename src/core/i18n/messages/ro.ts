@@ -6,7 +6,7 @@ export const ro = {
   'settings.audiomuseDescription': 'Găsește artiști similari prin analiza audio AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (opțional)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 sau mai nou. Trimite numele artiștilor de referință către serverul tău. Omite verificarea TLS pentru certificate autosemnate doar pe servere în care ai încredere.',
+    'AudioMuse-AI v3.6.4 sau mai nou. Returnează doar artiști din propriul index, deci găsește artiști noi doar dacă indexul conține muzică din afara bibliotecii tale. Trimite numele artiștilor de referință către serverul tău. Omite verificarea TLS pentru certificate autosemnate doar pe servere în care ai încredere.',
   'audiomuse.unreachable': 'AudioMuse-AI nu poate fi accesat.',
   'audiomuse.not_indexed': 'Indexul de artiști AudioMuse-AI nu este pregătit.',
   'audiomuse.artist_unknown': 'Artist necunoscut sau fără artiști similari în index.',
@@ -1865,6 +1865,9 @@ export const ro = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL-ul sau cheia API s-a schimbat. Salvează, apoi editează din nou ținta ca să alegi profiluri și un dosar rădăcină din noua instanță.',
   'settings.targetLidarrDefaultsUnset': 'Primul disponibil',
+  'settings.targetLidarrMonitorNewItems': 'Monitorizează albumele noi',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Ce albume monitorizează Lidarr când găsește mai târziu altele noi pentru artiștii adăugați de această destinație.',
   'cardStack.counter': '{0} din {1}',
   'cardStack.swipeHint': 'Glisează dreapta pentru a aproba, stânga pentru a respinge',
   'serviceCard.testConnection': 'Testează conexiunea',

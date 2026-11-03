@@ -6,7 +6,7 @@ export const zhCN = {
   'settings.audiomuseDescription': '使用 AudioMuse-AI 音频分析查找相似艺人。',
   'settings.audiomuseToken': 'API 令牌（可选）',
   'settings.audiomuseHelp':
-    '需要 AudioMuse-AI v3.6.4 或更新版本。会向你的服务器发送种子艺人名称。仅在你信任的服务器使用自签名证书时跳过 TLS 验证。',
+    '需要 AudioMuse-AI v3.6.4 或更新版本。只会返回其自身索引中的艺人，因此仅当索引包含你的资料库之外的音乐时，才能发现新艺人。会向你的服务器发送种子艺人名称。仅在你信任的服务器使用自签名证书时跳过 TLS 验证。',
   'audiomuse.unreachable': '无法连接 AudioMuse-AI。',
   'audiomuse.not_indexed': 'AudioMuse-AI 的艺人索引尚未就绪。',
   'audiomuse.artist_unknown': '艺人未知或索引中没有相似艺人。',
@@ -1712,6 +1712,9 @@ export const zhCN = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL 或 API 密钥已更改。请先保存，然后再次编辑目标，以从新实例选择配置文件和根目录。',
   'settings.targetLidarrDefaultsUnset': '第一个可用项',
+  'settings.targetLidarrMonitorNewItems': '监控新专辑',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    '对于此目标添加的艺术家，Lidarr 之后发现新专辑时要监控哪些专辑。',
   'cardStack.counter': '第 {0} / 共 {1}',
   'cardStack.swipeHint': '向右滑动批准，向左滑动拒绝',
   'serviceCard.testConnection': '测试连接',

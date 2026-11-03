@@ -131,15 +131,29 @@ const download = (description: string): Ok => ({
 })
 const body = (schema: z.ZodType) => ({ body: zodBody(schema), validatedBody: true })
 
-export const routeCatalog: RouteSpec[] = [
+const routeCatalog: RouteSpec[] = [
   // API metadata
   {
     method: 'get',
     path: '/api/v1/docs',
     tag: 'API metadata',
     auth: 'public',
-    summary: 'HTML entry point for the API reference',
+    summary: 'Interactive API reference',
+    description: 'Self-hosted viewer that renders this OpenAPI document. Needs JavaScript.',
     ok: { status: '200', description: 'HTML page.', contentType: 'text/html', schema: str },
+  },
+  {
+    method: 'get',
+    path: '/api/v1/docs/redoc.standalone.js',
+    tag: 'API metadata',
+    auth: 'public',
+    summary: 'Script for the interactive API reference',
+    ok: {
+      status: '200',
+      description: 'JavaScript bundle.',
+      contentType: 'text/javascript',
+      schema: str,
+    },
   },
   {
     method: 'get',

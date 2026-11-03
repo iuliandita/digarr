@@ -159,6 +159,7 @@ export function lidarrRoutes(deps: AppDependencies) {
         rootFolderId,
         tags,
         monitorOption,
+        monitorNewItems,
       } = c.req.valid('json')
       const client = await getClient()
       const artist = await client.addArtist(
@@ -167,7 +168,7 @@ export function lidarrRoutes(deps: AppDependencies) {
         qualityProfileId ?? 1,
         metadataProfileId ?? 1,
         rootFolderId,
-        { tags, monitorOption },
+        { tags, monitorOption, monitorNewItems },
       )
       return c.json(artist)
     },

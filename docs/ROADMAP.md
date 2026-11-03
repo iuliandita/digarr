@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-10-23 | Current: v2.1.0
+> Updated: 2026-11-03 | Current: v2.2.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v2.1.0 adds personal API tokens and a built-in MCP endpoint, per-user approval policies, ListenBrainz recording identity and Weekly Exploration, skipping recently played recordings, per-target playlist export results, and a persistent MusicBrainz cache so scans are fast after a restart. Upgrades from v2.0.x apply migrations 0055-0063 automatically; read the [upgrade notes](../CHANGELOG.md#v210---2026-10-23) first, and the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) when coming from v1.19.0. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
+v2.2.0 adds a searchable in-app API reference at `/api/v1/docs`, a Monitor new albums setting for Lidarr targets, Claude Sonnet 5.5 and Opus 5.5 support for AI recommendations, a case-insensitive AudioMuse artist fallback, a new logo, and dark-theme fixes for the Spotify player. There are no migrations; read the [upgrade notes](../CHANGELOG.md#v220---2026-11-03) first. Coming from v2.0.x, apply the [v2.1.0 upgrade notes](../CHANGELOG.md#v210---2026-10-23) too, and the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) when coming from v1.19.0. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
 
 Known gaps and integration limitations are tracked in [OPERATIONS.md](OPERATIONS.md#known-limitations).
 

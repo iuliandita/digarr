@@ -262,6 +262,39 @@ describe('createLidarrClient', () => {
       },
     )
 
+    it.each(['all', 'none', 'new'] as const)(
+      'sends monitorNewItems %s as a top-level artist field',
+      async (monitorNewItems) => {
+        mockLidarrGets()
+        mockPost.mockResolvedValue(mockArtists[0])
+        const client = createLidarrClient(TEST_URL, TEST_KEY)
+        await client.addArtist('mbid', 'Artist', 1, 1, 1, {
+          monitorOption: 'new',
+          monitorNewItems,
+        })
+        expect(mockPost).toHaveBeenCalledWith(
+          '/api/v1/artist',
+          expect.objectContaining({
+            monitorNewItems,
+            addOptions: { monitor: 'future', searchForMissingAlbums: false },
+          }),
+        )
+      },
+    )
+
+    // Lidarr falls back to `all` (NewItemMonitorTypes default) when the field
+    // is missing, so an unset option keeps the request equivalent to before.
+    it('sends monitorNewItems all when the option is unset', async () => {
+      mockLidarrGets()
+      mockPost.mockResolvedValue(mockArtists[0])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('mbid', 'Artist', 1, 1, 1, { monitorOption: 'none' })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ monitorNewItems: 'all' }),
+      )
+    })
+
     it('loads and creates tags using the instance tag endpoint', async () => {
       const client = createLidarrClient(TEST_URL, TEST_KEY)
       mockGet.mockResolvedValue([{ id: 2, label: 'discovery' }])

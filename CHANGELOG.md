@@ -6,6 +6,34 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+## v2.2.0 - 2026-11-03
+
+### Upgrade notes
+
+Upgrade from v2.1.x directly. There are no database migrations and no new required settings. Take a normal backup first as usual. The in-app API reference needs nothing from you; it ships in the image. Container images move to Bun 1.4.4, with ports, volumes and configuration unchanged.
+
+### Added
+
+- `/api/v1/docs` now shows a searchable API reference rendered from the OpenAPI document, instead of a page that only linked to it. It is the Redoc standalone bundle (about 0.9 MB, 290 KB gzipped) served from your own instance: nothing loads from a third party, and it has the same public access as `openapi.json`. The page has its own Content Security Policy that allows a blob worker for search; the rest of the app keeps its policy. No configuration or migration.
+
+- Lidarr targets have a **Monitor new albums** setting (All albums, Future releases only, None) for the albums Lidarr finds later when it refreshes an artist. Digarr sends it as Lidarr's `monitorNewItems` with every artist the target adds, including artists an album approval adds unmonitored. Before, Digarr never sent it, so Lidarr fell back to All albums and monitored every album it found later, even for artists approved with no monitoring. All albums stays the default, so existing targets behave as before. `POST /api/v1/lidarr/add` accepts the same `monitorNewItems` field. No migration.
+
+### Changed
+
+- New logo and wordmark: a record inside a chip. The favicon, installed-app icons, README and Unraid icon use it, and the installed-app colors now match the default dark theme. Installing to an iPhone home screen now gets a real icon instead of a page screenshot. Logo files, usage rules, colors and the art style for release posters are in `docs/brand/` (#1171).
+
+- Container images and CI move to Bun 1.4.4 (Alpine and Debian runtimes, build stages, workflows). Container configuration, ports, volumes and database schema are unchanged. CI also moves to Node 24.22.2 and Helm 3.22.1, and refreshes pinned action revisions.
+
+- The bundled PostgreSQL 17 Alpine image pin moves to a newer digest in the Helm chart, the Compose file, the Synology guide, the contributor setup script and CI. The Dockerfile syntax frontend moves to 1.28. Ports, volumes and database schema are unchanged.
+
+### Fixed
+
+- AudioMuse-AI seeds whose name differs only in letter case from the indexed spelling (for example "gojira" vs "Gojira") are no longer skipped as unknown. When the first lookup finds nothing, Digarr checks the server's artist search for a case-insensitive exact match and retries once. The docs and the connection help now say plainly that results come only from artists the AudioMuse instance indexes, so it adds new artists only if it indexes music outside your library (#1049).
+
+- AI recommendations work with Claude Sonnet 5.5 and Opus 5.5. These models reject a forced tool call with HTTP 400, so every scan failed while the connection test, which sends no tools, still passed. The Anthropic provider now offers the recommendation tool with automatic tool choice and a strict schema, tells the model to call it, and asks once more if a reply has neither the tool call nor a JSON array. Older models such as the default Claude Haiku 4.5 use the same request.
+
+- The Spotify player no longer sits in a white box on dark themes; it now shows on the theme background, in the artist streaming links and in the preview player (#1177).
+
 ## v2.1.0 - 2026-10-23
 
 ### Upgrade notes

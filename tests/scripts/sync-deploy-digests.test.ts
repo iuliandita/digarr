@@ -72,7 +72,7 @@ describe('CI workflow reliability policy', () => {
     const workflow = readFileSync('.github/workflows/compatibility.yml', 'utf8')
     const macJob = workflow.split('  docker-macos:')[1] ?? ''
 
-    expect(macJob).toContain('runs-on: macos-15-intel')
+    expect(macJob).toContain('runs-on: macos-26-intel')
     expect(macJob.match(/continue-on-error: true/g)).toHaveLength(1)
     expect(macJob).toContain('brew install colima docker docker-buildx docker-compose')
     expect(macJob).toContain('~/.docker/cli-plugins/docker-buildx')

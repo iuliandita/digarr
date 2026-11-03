@@ -8,7 +8,7 @@ export const es = {
     'Encuentra artistas similares con el análisis de audio de AudioMuse-AI.',
   'settings.audiomuseToken': 'Token de API (opcional)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 o posterior. Envía nombres de artistas de referencia a tu servidor. Omite la verificación TLS con certificados autofirmados solo en servidores de confianza.',
+    'AudioMuse-AI v3.6.4 o posterior. Solo devuelve artistas de su propio índice, así que solo encuentra artistas nuevos si el índice incluye música fuera de tu biblioteca. Envía nombres de artistas de referencia a tu servidor. Omite la verificación TLS con certificados autofirmados solo en servidores de confianza.',
   'audiomuse.unreachable': 'No se puede conectar con AudioMuse-AI.',
   'audiomuse.not_indexed': 'El índice de artistas de AudioMuse-AI no está listo.',
   'audiomuse.artist_unknown': 'Artista desconocido o sin artistas similares en el índice.',
@@ -1876,6 +1876,9 @@ export const es = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'La URL o la clave API cambiaron. Guarda y luego vuelve a editar el destino para elegir perfiles y una carpeta raíz de la nueva instancia.',
   'settings.targetLidarrDefaultsUnset': 'Primera disponible',
+  'settings.targetLidarrMonitorNewItems': 'Supervisar álbumes nuevos',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'Qué álbumes supervisa Lidarr cuando más adelante encuentra nuevos para los artistas que añade este destino.',
   'cardStack.counter': '{0} de {1}',
   'cardStack.swipeHint': 'Desliza a la derecha para aprobar, a la izquierda para rechazar',
   'serviceCard.testConnection': 'Probar conexión',

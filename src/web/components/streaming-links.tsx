@@ -136,7 +136,7 @@ function SpotifyEmbed({ url, autoload }: SpotifyEmbedProps) {
         height="84"
         allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
         loading="lazy"
-        className="rounded border border-border"
+        className="rounded-xl"
         title={t('streaming.spotifyEmbedTitle')}
       />
       {autoload?.enabled && (

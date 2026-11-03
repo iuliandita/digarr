@@ -8,6 +8,22 @@ import { Select } from '../../components/ui/select'
 import { getLidarrApproveOptions, getUserPreferences, updateUserPreferences } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
 
+// Snap a selector to the first real Lidarr option when none is set or the
+// stored id no longer exists among the loaded options. Otherwise the browser
+// can visibly select the first option while React state still holds stale id 1.
+function useSnapToFirstOption(
+  options: Array<{ id: number }> | undefined,
+  selectedId: string,
+  setSelectedId: (id: string) => void,
+) {
+  useEffect(() => {
+    const first = options?.[0]
+    if (first && !options.some((o) => String(o.id) === selectedId)) {
+      setSelectedId(String(first.id))
+    }
+  }, [options, selectedId, setSelectedId])
+}
+
 export function LidarrPreferencesSection() {
   const { t } = useI18n()
   const queryClient = useQueryClient()
@@ -38,34 +54,9 @@ export function LidarrPreferencesSection() {
     setRootFolderId(p.rootFolderId != null ? String(p.rootFolderId) : '')
   }, [userPrefs])
 
-  // Snap selectors to the first real Lidarr option when none is set or the
-  // stored id no longer exists among the loaded options. Otherwise the browser
-  // can visibly select the first option while React state still holds stale id 1.
-  useEffect(() => {
-    if (!qualityProfiles || qualityProfiles.length === 0) return
-    const first = qualityProfiles[0]
-    if (first && !qualityProfiles.some((p) => String(p.id) === qualityProfileId)) {
-      setQualityProfileId(String(first.id))
-    }
-  }, [qualityProfiles, qualityProfileId])
-
-  useEffect(() => {
-    if (!metadataProfiles || metadataProfiles.length === 0) return
-    const first = metadataProfiles[0]
-    if (first && !metadataProfiles.some((p) => String(p.id) === metadataProfileId)) {
-      setMetadataProfileId(String(first.id))
-    }
-  }, [metadataProfiles, metadataProfileId])
-
-  // Snap root folder selector to the first real folder when none is set
-  // or the stored id no longer exists among the loaded folders.
-  useEffect(() => {
-    if (!rootFolders || rootFolders.length === 0) return
-    const first = rootFolders[0]
-    if (first && !rootFolders.some((f) => String(f.id) === rootFolderId)) {
-      setRootFolderId(String(first.id))
-    }
-  }, [rootFolders, rootFolderId])
+  useSnapToFirstOption(qualityProfiles, qualityProfileId, setQualityProfileId)
+  useSnapToFirstOption(metadataProfiles, metadataProfileId, setMetadataProfileId)
+  useSnapToFirstOption(rootFolders, rootFolderId, setRootFolderId)
 
   async function handleSave() {
     setSaving(true)

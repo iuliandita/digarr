@@ -1,8 +1,9 @@
-<p align="center">
-  <img src="docs/logo.png" alt="Digarr" width="120" />
-</p>
-
-<h1 align="center">Digarr</h1>
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/digarr-lockup-dark.svg" />
+    <img src="docs/brand/digarr-lockup.svg" alt="Digarr" width="360" />
+  </picture>
+</h1>
 
 [![CI](https://github.com/iuliandita/digarr/actions/workflows/ci.yml/badge.svg)](https://github.com/iuliandita/digarr/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
@@ -15,11 +16,9 @@
 **Self-hosted music discovery for your library.** Digarr finds artists and albums from your listening history or a mood. Review the suggestions, listen to previews, then send what you like to Lidarr, slskd, or a playlist. Bring your own AI provider or local model. Lidarr is optional.
 
 > [!NOTE]
-> **v2.1.0 is out.** It adds personal API tokens and an MCP endpoint for scripts and agents, per-user approval policies, ListenBrainz recommended tracks and Weekly Exploration, an option to skip recently played recordings, per-target playlist export results, and a persistent MusicBrainz cache so scans are fast after a restart. Upgrades from v2.0.x run migrations automatically after the pre-migration backup; read the [upgrade notes](CHANGELOG.md#v210---2026-10-23) first. Coming from v1.19.0, follow the [v2.0.x upgrade procedure](docs/OPERATIONS.md#upgrading-from-v1190-to-v200) first.
+> **v2.2.0 is out.** It adds a searchable in-app API reference at `/api/v1/docs`, a Monitor new albums setting for Lidarr targets, support for Claude Sonnet 5.5 and Opus 5.5 in AI recommendations, a case-insensitive AudioMuse artist fallback, a new logo, and a dark-theme fix for the Spotify player. There are no migrations; read the [upgrade notes](CHANGELOG.md#v220---2026-11-03) first. Coming from v2.0.x, apply the [v2.1.0 upgrade notes](CHANGELOG.md#v210---2026-10-23) as well, and from v1.19.0 follow the [v2.0.x upgrade procedure](docs/OPERATIONS.md#upgrading-from-v1190-to-v200) first.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
-
-This dashboard capture predates v1.19.0; see [current behavior and screenshots](docs/SCREENSHOTS.md).
 
 [More screenshots](docs/SCREENSHOTS.md) | [Quick start](#quick-start) | [Configuration](#configuration) | [Documentation](#documentation)
 
@@ -79,7 +78,7 @@ Open `http://localhost:3000` and complete setup. Create the first account or sig
 
 For unattended first boot, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before starting. The configured admin must be created before HTTP opens; partial credentials or a password shorter than 12 characters stop startup. Leave both unset for manual registration. These settings never reset an existing account. Restrict access until you verify the intended admin. See [first-boot access](docs/AUTHENTICATION.md#users-and-targets).
 
-Use `:latest` for the newest release, a minor tag like `:2.1` for patch updates, or a specific patch like `:2.1.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
+Use `:latest` for the newest release, a minor tag like `:2.2` for patch updates, or a specific patch like `:2.2.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
 For Compose, backend selection, and updates, follow the [Docker guide](deploy/docker/README.md). Keep one app instance per database, verify its backend at `/health`, and [back up before upgrading](deploy/docker/README.md#back-up-and-update).
 
@@ -134,7 +133,7 @@ Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-ima
 
 - [Configuration and operations](docs/OPERATIONS.md)
 - [Authentication, SSO, and user management](docs/AUTHENTICATION.md)
-- [API reference](docs/API.md), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
+- [API reference](docs/API.md) (also browsable at `/api/v1/docs` on your instance), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
 - [Connect an MCP client](docs/MCP.md) for recommendations, approvals, and scans
 - [Recommendation quality evaluation](docs/RECOMMENDATION-QUALITY.md)
 - [Discovery recipes](docs/guides/discovery-recipes.md) for discovery-only and existing-library setups, seasonal and decade tags, and familiar versus adventurous tuning
@@ -153,3 +152,13 @@ Most code and tests are AI-generated, with a human setting direction and reviewi
 MIT. See [LICENSE](LICENSE).
 
 Made by [Iulian Dita](https://iuliandita.com). [Other projects](https://iuliandita.com/projects/).
+
+## Star History
+
+<a href="https://www.star-history.com/?repos=iuliandita%2Fdigarr&type=timeline&logscale=&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&theme=dark&legend=top-left" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
+   <img alt="Star History Chart" src="https://api.star-history.com/image?repos=iuliandita/digarr&type=timeline&legend=top-left" />
+ </picture>
+</a>

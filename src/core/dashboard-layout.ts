@@ -1,14 +1,8 @@
 import * as z from 'zod'
 
-export const DASHBOARD_CARD_IDS = [
-  'pick',
-  'decisions',
-  'listening',
-  'genres',
-  'subscriptions',
-] as const
+const DASHBOARD_CARD_IDS = ['pick', 'decisions', 'listening', 'genres', 'subscriptions'] as const
 export type DashboardCardId = (typeof DASHBOARD_CARD_IDS)[number]
-export const DASHBOARD_CARD_SIZES = ['small', 'medium', 'large'] as const
+const DASHBOARD_CARD_SIZES = ['small', 'medium', 'large'] as const
 export type DashboardCardSize = (typeof DASHBOARD_CARD_SIZES)[number]
 export type DashboardCard = { id: DashboardCardId; visible: boolean; size: DashboardCardSize }
 export const DECISIONS_GRID_COLUMNS = [2, 3, 4, 5, 6] as const

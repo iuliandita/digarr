@@ -6,7 +6,7 @@ export const ja = {
   'settings.audiomuseDescription': 'AudioMuse-AIの音声解析で似たアーティストを探します。',
   'settings.audiomuseToken': 'APIトークン（任意）',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4以降が必要です。基準となるアーティスト名をサーバーに送信します。自己署名証明書のTLS検証をスキップする場合は、信頼できるサーバーでのみ有効にしてください。',
+    'AudioMuse-AI v3.6.4以降が必要です。返されるのはAudioMuse-AI自身のインデックスにあるアーティストのみで、インデックスにライブラリ外の音楽が含まれている場合にのみ新しいアーティストが見つかります。基準となるアーティスト名をサーバーに送信します。自己署名証明書のTLS検証をスキップする場合は、信頼できるサーバーでのみ有効にしてください。',
   'audiomuse.unreachable': 'AudioMuse-AIに接続できません。',
   'audiomuse.not_indexed': 'AudioMuse-AIのアーティストインデックスが準備できていません。',
   'audiomuse.artist_unknown': 'アーティストが不明か、インデックスに似たアーティストがありません。',
@@ -1839,6 +1839,9 @@ export const ja = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
   'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
+  'settings.targetLidarrMonitorNewItems': '新しいアルバムを監視',
+  'settings.targetLidarrMonitorNewItemsHelp':
+    'このターゲットが追加したアーティストについて、Lidarr が後から新しいアルバムを見つけたときに監視するアルバム。',
   'cardStack.counter': '{1} 件中 {0} 件目',
   'cardStack.swipeHint': '右にスワイプで承認、左にスワイプで拒否',
   'serviceCard.testConnection': '接続テスト',
