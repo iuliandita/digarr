@@ -59,7 +59,7 @@ spec:
               drop:
                 - ALL
           # Pin the digest after publishing each release image. The digest comes from the published registry artifact.
-          image: ghcr.io/iuliandita/digarr@sha256:47fea1fe6589923333d97899aa18357f28e432ef83cb2d087a52fedb34801237
+          image: ghcr.io/iuliandita/digarr@sha256:bec268f0441b441b3f919af3c921d4dfa95ec4c79ac585eebb2387829a2a4fb4
           imagePullPolicy: Always
           ports:
             - name: http
