@@ -833,7 +833,7 @@
         ".github/workflows/backmerge-develop.yml": "8d643aabfbfe87a6424bee6524b73d32469e6d2473d27ae36e7cf316af5291b6",
         ".github/workflows/ci.yml": "262bd025a3d7b38d18d860ed91190980866eae4a2d68ecaa77d2b0a02cf5f906",
         ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
-        ".github/workflows/docs-companions.yml": "1834108a2dd4ae9971a3c18af70732c626a00c72c1f308eda6d52eb867c43a88",
+        ".github/workflows/docs-companions.yml": "6d8402032068cdf6e54fe03997b7b43735a33838d9dff6d80c5e878d4d8dd68e",
         ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
         ".github/workflows/labeler.yml": "6c75156590df3e60b3020f26cc8b26569de2600466c4e4d2aa78b37c2086516c",
         ".github/workflows/nightly.yml": "c47510e9cf6097a6d32468ba03474401434e51aa6f17e6d8c4f6f2446857a5e5",
@@ -846,14 +846,14 @@
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "e0968e565785f483fa84df05e073e1eb14b9b3c10e4d32c858042133351446fa",
+      "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "The weekly release-readiness report now finds its boundary from the release PR's merge base with develop, so it stops re-listing changes that already shipped; tags, channels, image names, signing and promotion flow are unchanged.",
+        "note": "The Companion templates workflow now opens or refreshes one tracking issue when a published Unraid template differs and closes it when aligned, and also runs on develop pushes touching deploy/unraid. It does not touch release tags, channels, image names, signing or promotion; MAINTENANCE.md documents the new behavior.",
         "breaking": "none",
         "migration": "",
-        "digest": "e0968e565785f483fa84df05e073e1eb14b9b3c10e4d32c858042133351446fa"
+        "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323"
       }
     },
     "maintenance": {
