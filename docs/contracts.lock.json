@@ -830,30 +830,30 @@
     },
     "release": {
       "files": {
-        ".github/workflows/backmerge-develop.yml": "1a05e83e619424a285f68c3a68b6deda928cd2f2847e8c40c8512a60bc384f00",
-        ".github/workflows/ci.yml": "951e3a3954a3ed0c72905339d2cbcfab41af319d2ec4b5aad98483dc143f52d1",
-        ".github/workflows/compatibility.yml": "804f4736614852dc773f77990f26a32fa9897fefbc12b39e89904b43a01b0fc4",
-        ".github/workflows/docs-companions.yml": "64cb2594f3dfdc5a16855757cc072e698d0ac26e23501421c656a7b9afebc36d",
-        ".github/workflows/evals.yml": "82c3bf42b4067af59eba9bb4173e88345d234d91b5a085634ceea1b063e2c1ac",
-        ".github/workflows/labeler.yml": "7f12eb9cad5ac417625ebea198c3e007849b13cadd854a9cce72802fa5105f79",
-        ".github/workflows/nightly.yml": "2fd42a0786838da5a8cebf31c5671ede0b17a9901b631a328a7940c390eee590",
-        ".github/workflows/promote-stable.yml": "1a4edcb95aa107aa3586638ce59f48fb6b766ddd8423121914ecbc37330fa0e8",
-        ".github/workflows/prune-nightly.yml": "88b14306a97f8c7e97fbcb03cb5671e537984418bcc8ff3d1c59d9544923b2e8",
-        ".github/workflows/release-readiness.yml": "8bf50801b00ba60589db3358f969b1eeb77cd2b98a743d8a2f0fc45af51017d0",
-        ".github/workflows/release.yml": "29fc3b2c22e65a0cb7f316f4debebabbe38b212fb1ae81de4927d472d04f82a2",
-        ".github/workflows/security.yml": "39a63d97ea0c8de6b7fe9ba77993c9f0600144be06a80c47427c9437976a59ac",
-        ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
+        ".github/workflows/backmerge-develop.yml": "8d643aabfbfe87a6424bee6524b73d32469e6d2473d27ae36e7cf316af5291b6",
+        ".github/workflows/ci.yml": "262bd025a3d7b38d18d860ed91190980866eae4a2d68ecaa77d2b0a02cf5f906",
+        ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
+        ".github/workflows/docs-companions.yml": "1834108a2dd4ae9971a3c18af70732c626a00c72c1f308eda6d52eb867c43a88",
+        ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
+        ".github/workflows/labeler.yml": "6c75156590df3e60b3020f26cc8b26569de2600466c4e4d2aa78b37c2086516c",
+        ".github/workflows/nightly.yml": "c47510e9cf6097a6d32468ba03474401434e51aa6f17e6d8c4f6f2446857a5e5",
+        ".github/workflows/promote-stable.yml": "3c513dba307612279ed195dfbe714690e39d569eec772f16b4166c2ad2e07f61",
+        ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
+        ".github/workflows/release-readiness.yml": "54bd3af4c182039bced4d44a5f057ee7719ee6a0a8f4b1693cd42f3490b1b499",
+        ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
+        ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
+        ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "46737cdefabc12ce58914096d65c191e6759bea9de3692fe2513da037a4d6dc7",
+      "digest": "0ba13e6c67ae7484f38fb19aa10dbcd709b917fc91b0f5811bd77db501059462",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "Build copies the bundled API reference viewer into dist/api-docs, which the Docker image already includes via dist; no tags, channels, versions or release flow change.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "CI and release workflows move to checkout v7 and ubuntu-26.04 runners, Node 26 in test jobs and Helm v4 in the drift job; tags, channels, image names, signing and promotion flow are unchanged. The rootless Podman compatibility job stays on ubuntu-24.04.",
         "breaking": "none",
         "migration": "",
-        "digest": "46737cdefabc12ce58914096d65c191e6759bea9de3692fe2513da037a4d6dc7"
+        "digest": "0ba13e6c67ae7484f38fb19aa10dbcd709b917fc91b0f5811bd77db501059462"
       }
     },
     "maintenance": {
