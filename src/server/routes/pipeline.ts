@@ -1,6 +1,5 @@
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
-import { requiresApprovalRequest } from '@/core/approvals/policy'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
@@ -15,7 +14,7 @@ import { normalizeDiscoveryModeRequest } from '@/core/discovery-modes/request'
 import { buildDiscoveryModeJobMetadata } from '@/core/discovery-modes/run'
 import { detectPromptLocale } from '@/core/i18n/prompt-locale'
 import { recordFailureSafely } from '@/core/jobs/record-failure-safely'
-import type { AutoApproveDeps } from '@/core/pipeline/auto-approve'
+import { buildAutoApproveDeps } from '@/core/pipeline/auto-approve-deps'
 import { filter } from '@/core/pipeline/filter'
 import { createArtistImageClients } from '@/core/pipeline/image-clients'
 import type { PipelineDeps } from '@/core/pipeline/orchestrator'
@@ -81,42 +80,25 @@ export function pipelineRoutes(deps: AppDependencies) {
       userId,
     )
 
-    // Build auto-approve deps - closures capture userId for per-user target lookup
-    const autoApproveDeps: AutoApproveDeps = {
-      getRecommendationsByBatch: async (batchId) => {
-        const result = await deps.listRecommendations({ batchId, limit: 1000 })
-        return result.items.map((r) => ({
-          id: r.id,
-          score: r.score,
-          status: r.status,
-          kind: r.kind,
-          recommendedReleaseGroupId: r.recommendedReleaseGroupId,
-          artist: { mbid: r.artist.mbid, name: r.artist.name },
-        }))
-      },
+    // closures capture userId for per-user target lookup
+    const autoApproveDeps = buildAutoApproveDeps({
+      userId,
+      user,
+      listRecommendations: (filters) => deps.listRecommendations(filters),
       getEnabledTargets: () =>
         userId ? deps.getEnabledTargetsForUser(userId) : Promise.resolve([]),
-      userId,
-      jobRecorder: deps.jobRecorder,
-      ...(user && user.approvalPolicy !== 'direct'
-        ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
-        : {}),
       updateRecommendationStatus: (id, status, extra) =>
         deps.updateRecommendationStatus(id, status, extra),
-      warmArtist: deps.skyhookWarmer
-        ? (
-            (warmer) => (mbid: string) =>
-              warmer.warm(mbid)
-          )(deps.skyhookWarmer)
-        : undefined,
-    }
+      jobRecorder: deps.jobRecorder,
+      skyhookWarmer: deps.skyhookWarmer,
+    })
 
     // Start now, or queue behind the in-flight run (single-flight preserved).
     const enqueued = deps.orchestrator.enqueue({
       db: deps.storeDb,
       settings: {
         ...settings,
-        preferences: userPreferences,
+        preferences: mergePreferences(userPreferences),
         spotifyAccessToken,
         audiomuse: getAudioMuseConfig(settings.preferences),
       },

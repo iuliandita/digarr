@@ -2,7 +2,6 @@ import { serve } from '@hono/node-server'
 import { Cron } from 'croner'
 import { and, eq, inArray, isNotNull, isNull, or } from 'drizzle-orm'
 import { canAutoSetup, envConfig } from './config/env'
-import { requiresApprovalRequest } from './core/approvals/policy'
 import { OidcService } from './core/auth/oidc'
 import { createBandcampClient } from './core/clients/bandcamp'
 import { createDeezerClient } from './core/clients/deezer'
@@ -46,6 +45,7 @@ import { isMaintenance, setMaintenance } from './core/ops/maintenance'
 import { runPreFlightCheck } from './core/ops/upgrade'
 import { analyze } from './core/pipeline/analyze'
 import { waitForGenreWarmers } from './core/pipeline/genre-backfill'
+import { buildAutoApproveDeps } from './core/pipeline/auto-approve-deps'
 import { PipelineOrchestrator } from './core/pipeline/orchestrator'
 import { createScheduledPipelineRunner } from './core/pipeline/scheduled-run'
 import { type StoreDb, saveRecommendationChunk } from './core/pipeline/store'
@@ -685,39 +685,16 @@ async function buildDiscoveryModePipelineDeps(userId: number) {
     // Best-effort: discovery mode runs should still work without Spotify.
   }
 
-  const autoApproveDeps: import('./core/pipeline/auto-approve').AutoApproveDeps = {
-    getRecommendationsByBatch: async (batchId: number) => {
-      const result = await listRecommendations(db, { batchId, limit: 1000 })
-      return result.items.map((recommendation) => ({
-        id: recommendation.id,
-        score: recommendation.score,
-        status: recommendation.status,
-        kind: recommendation.kind,
-        recommendedReleaseGroupId: recommendation.recommendedReleaseGroupId,
-        artist: {
-          mbid: recommendation.artist.mbid,
-          name: recommendation.artist.name,
-        },
-      }))
-    },
-    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId, userPreferences),
+  const autoApproveDeps = buildAutoApproveDeps({
     userId,
+    user,
+    listRecommendations: (filters) => listRecommendations(db, filters),
+    getEnabledTargets: () => getEnabledTargetsForResolvedUser(userId, userPreferences),
+    updateRecommendationStatus: (id, status, extra) =>
+      updateRecommendationStatus(db, id, status, extra),
     jobRecorder,
-    ...(user && user.approvalPolicy !== 'direct'
-      ? { canApprove: async (score: number) => !requiresApprovalRequest(user, score) }
-      : {}),
-    updateRecommendationStatus: (
-      id: number,
-      status: string,
-      extra?: Parameters<typeof updateRecommendationStatus>[3],
-    ) => updateRecommendationStatus(db, id, status, extra),
-    warmArtist: skyhookWarmer
-      ? (
-          (warmer) => (mbid: string) =>
-            warmer.warm(mbid)
-        )(skyhookWarmer)
-      : undefined,
-  }
+    skyhookWarmer,
+  })
 
   return {
     settings,
