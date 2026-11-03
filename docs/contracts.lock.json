@@ -839,21 +839,21 @@
         ".github/workflows/nightly.yml": "c47510e9cf6097a6d32468ba03474401434e51aa6f17e6d8c4f6f2446857a5e5",
         ".github/workflows/promote-stable.yml": "3c513dba307612279ed195dfbe714690e39d569eec772f16b4166c2ad2e07f61",
         ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
-        ".github/workflows/release-readiness.yml": "54bd3af4c182039bced4d44a5f057ee7719ee6a0a8f4b1693cd42f3490b1b499",
+        ".github/workflows/release-readiness.yml": "1a536b7881b23b189eb62cac05d9ca52ae3325dc37a370880d08fe129969d457",
         ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
         ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "0ba13e6c67ae7484f38fb19aa10dbcd709b917fc91b0f5811bd77db501059462",
+      "digest": "e0968e565785f483fa84df05e073e1eb14b9b3c10e4d32c858042133351446fa",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "CI and release workflows move to checkout v7 and ubuntu-26.04 runners, Node 26 in test jobs and Helm v4 in the drift job; tags, channels, image names, signing and promotion flow are unchanged. The rootless Podman compatibility job stays on ubuntu-24.04.",
+        "note": "The weekly release-readiness report now finds its boundary from the release PR's merge base with develop, so it stops re-listing changes that already shipped; tags, channels, image names, signing and promotion flow are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "0ba13e6c67ae7484f38fb19aa10dbcd709b917fc91b0f5811bd77db501059462"
+        "digest": "e0968e565785f483fa84df05e073e1eb14b9b3c10e4d32c858042133351446fa"
       }
     },
     "maintenance": {
