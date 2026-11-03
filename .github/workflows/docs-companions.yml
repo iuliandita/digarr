@@ -65,12 +65,15 @@ jobs:
             fi
             exit 0
           fi
-          prs=$(gh pr list --repo selfhosters/unRAID-CA-templates --state open --search digarr \
-            --json number,title,url,updatedAt \
-            --jq '.[] | "- [#\(.number)](\(.url)) \(.title), updated \(.updatedAt[:10])"' || true)
+          if prs=$(gh api --paginate "repos/selfhosters/unRAID-CA-templates/pulls?state=open&per_page=100" \
+            --jq '.[] | select((.title + " " + .head.ref) | test("digarr"; "i")) | "- [#\(.number)](\(.html_url)) \(.title), updated \(.updated_at[:10])"'); then
+            prs=${prs:-- none found}
+          else
+            prs="- lookup failed; check https://github.com/selfhosters/unRAID-CA-templates/pulls manually"
+          fi
           {
             cat companion-report.md
-            printf '\nOpen store PRs mentioning Digarr:\n\n%s\n' "${prs:-- none found}"
+            printf '\nOpen store PRs mentioning Digarr:\n\n%s\n' "$prs"
             printf '\nUpdate the personal repo through a PR and the store template through its PR. A pending store PR keeps this open until it merges; this issue closes itself on the first run that finds both aligned. See `docs/MAINTENANCE.md`.\n'
             printf '\n<sub>Maintained by `docs-companions.yml`.</sub>\n'
           } > issue-body.md

@@ -833,7 +833,7 @@
         ".github/workflows/backmerge-develop.yml": "8d643aabfbfe87a6424bee6524b73d32469e6d2473d27ae36e7cf316af5291b6",
         ".github/workflows/ci.yml": "262bd025a3d7b38d18d860ed91190980866eae4a2d68ecaa77d2b0a02cf5f906",
         ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
-        ".github/workflows/docs-companions.yml": "6d8402032068cdf6e54fe03997b7b43735a33838d9dff6d80c5e878d4d8dd68e",
+        ".github/workflows/docs-companions.yml": "b80b20db460104105666b4b30766f17e4f540c7a6ee817401017e1be707c7e25",
         ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
         ".github/workflows/labeler.yml": "6c75156590df3e60b3020f26cc8b26569de2600466c4e4d2aa78b37c2086516c",
         ".github/workflows/nightly.yml": "c47510e9cf6097a6d32468ba03474401434e51aa6f17e6d8c4f6f2446857a5e5",
@@ -846,14 +846,14 @@
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323",
+      "digest": "6504a035f317e5481226348a04b5fb5c22299db374cd6e7971f7c8d102285a30",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "The Companion templates workflow now opens or refreshes one tracking issue when a published Unraid template differs and closes it when aligned, and also runs on develop pushes touching deploy/unraid. It does not touch release tags, channels, image names, signing or promotion; MAINTENANCE.md documents the new behavior.",
+        "note": "The Companion templates workflow now lists open store PRs through the REST pulls endpoint instead of a cross-repository search; it does not touch release tags, channels, image names, signing or promotion.",
         "breaking": "none",
         "migration": "",
-        "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323"
+        "digest": "6504a035f317e5481226348a04b5fb5c22299db374cd6e7971f7c8d102285a30"
       }
     },
     "maintenance": {
