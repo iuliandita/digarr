@@ -133,7 +133,7 @@ Check [image signatures and SBOM coverage](deploy/docker/README.md#verifying-ima
 
 - [Configuration and operations](docs/OPERATIONS.md)
 - [Authentication, SSO, and user management](docs/AUTHENTICATION.md)
-- [API reference](docs/API.md), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
+- [API reference](docs/API.md) (also browsable at `/api/v1/docs` on your instance), [architecture](docs/ARCHITECTURE.md), and [name normalization](docs/NORMALIZATION.md)
 - [Connect an MCP client](docs/MCP.md) for recommendations, approvals, and scans
 - [Recommendation quality evaluation](docs/RECOMMENDATION-QUALITY.md)
 - [Discovery recipes](docs/guides/discovery-recipes.md) for discovery-only and existing-library setups, seasonal and decade tags, and familiar versus adventurous tuning

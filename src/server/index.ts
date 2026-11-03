@@ -11,6 +11,7 @@ import { apiTokenQueries } from '@/db/queries/api-tokens'
 import { getUserCredentialsById, linkOidcIdentity } from '@/db/queries/users'
 import { effectiveIsAdmin } from '@/server/middleware/admin-guard'
 import { VERSION } from '@/version'
+import { API_DOCS_CSP, API_DOCS_PAGE, loadApiDocsBundle } from './helpers/api-docs'
 import { openapiDoc } from './helpers/openapi-doc'
 import { problem, statusTitle } from './helpers/problem'
 import { maintenanceMiddleware } from './maintenance'
@@ -68,7 +69,8 @@ export type { AppDependencies } from './deps'
 
 import type { AppDependencies } from './deps'
 
-const JSON_CONTENT_TYPE = /^\s*application\/(?:[\w.-]+\+)?json(?:[;\s]|$)/i
+const COMPRESSIBLE_CONTENT_TYPE =
+  /^\s*(?:application\/(?:[\w.-]+\+)?json|text\/javascript)(?:[;\s]|$)/i
 
 const SPOTIFY_BRIDGE_CSP = [
   "default-src 'none'",
@@ -118,8 +120,8 @@ export function createApp(deps: AppDependencies) {
 
   // Log all requests first - before auth/cors so we capture everything
   app.use('*', requestLogger())
-  // JSON only: SSE, the audio proxy and images pass through untouched.
-  app.use('/api/*', compress({ contentTypeFilter: JSON_CONTENT_TYPE }))
+  // JSON and the API viewer script only: SSE, the audio proxy and images pass through untouched.
+  app.use('/api/*', compress({ contentTypeFilter: COMPRESSIBLE_CONTENT_TYPE }))
   app.use('*', problemJsonErrors())
 
   if (!envConfig.allowedOrigin && process.env.NODE_ENV === 'production') {
@@ -162,6 +164,10 @@ export function createApp(deps: AppDependencies) {
       ],
     }),
   )
+  app.use('/api/v1/docs', async (c, next) => {
+    await next()
+    c.header('Content-Security-Policy', API_DOCS_CSP)
+  })
   app.use('/spotify-embed-bridge.html', async (c, next) => {
     await next()
     c.header('Content-Security-Policy', SPOTIFY_BRIDGE_CSP)
@@ -247,26 +253,19 @@ export function createApp(deps: AppDependencies) {
     })
   })
 
-  // OpenAPI 3.1 spec. Intentionally public so integrators can read the
-  // contract without credentials. `/api/v1/docs` returns a tiny
-  // no-external-JS landing page pointing at the spec.
+  // OpenAPI 3.1 spec and its self-hosted viewer. Intentionally public so
+  // integrators can read the contract without credentials. The viewer ships in
+  // the image and gets its own CSP (blob: workers for search); nothing loads
+  // from a third party.
   app.get('/api/v1/docs/openapi.json', (c) =>
     c.json(openapiDoc, 200, { 'cache-control': 'public, max-age=60' }),
   )
-  app.get(
-    '/api/v1/docs',
-    (_c) =>
-      new Response(
-        `<!doctype html><html><head><meta charset="utf-8"><title>digarr API</title>
-<style>body{font-family:system-ui,sans-serif;max-width:40rem;margin:2rem auto;padding:0 1rem;line-height:1.5}code{background:#f4f4f4;padding:.1rem .3rem;border-radius:.2rem}</style>
-</head><body>
-<h1>digarr API</h1>
-<p>The machine-readable OpenAPI 3.1 specification is served at
-<a href="/api/v1/docs/openapi.json"><code>/api/v1/docs/openapi.json</code></a>.</p>
-<p>Paste the URL into your favourite viewer (Scalar, Swagger UI, Redoc, Insomnia, Bruno, Postman) to browse it interactively.</p>
-</body></html>`,
-        { headers: { 'content-type': 'text/html; charset=utf-8' } },
-      ),
+  app.get('/api/v1/docs', (c) => c.html(API_DOCS_PAGE, 200, { 'cache-control': 'no-cache' }))
+  app.get('/api/v1/docs/redoc.standalone.js', (c) =>
+    c.body(loadApiDocsBundle(), 200, {
+      'content-type': 'text/javascript; charset=utf-8',
+      'cache-control': 'public, max-age=3600',
+    }),
   )
 
   // Bound unauthenticated OIDC login traffic so a client cannot exhaust the
