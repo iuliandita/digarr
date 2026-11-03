@@ -7,7 +7,7 @@ import type { CompleteJobParams, JobRecorder, StartJobParams } from './types'
 // drizzle error text embeds the full SQL and every bound param; never persist or show it.
 const DB_ERROR_MESSAGE = 'Database error - see server logs for details'
 
-export function sanitizeJobError(error: string): string {
+function sanitizeJobError(error: string): string {
   return /^Failed query:/i.test(error.trimStart()) ? DB_ERROR_MESSAGE : error
 }
 

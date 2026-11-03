@@ -12,7 +12,7 @@ export type ViewMode = 'grid' | 'list' | 'stack'
 export type TasteOrdering = 'priority' | 'primary' | 'secondary' | 'score'
 export type Decade = '60s' | '70s' | '80s' | '90s' | '00s' | '10s' | '20s+'
 
-export const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s+']
+const DECADES: Decade[] = ['60s', '70s', '80s', '90s', '00s', '10s', '20s+']
 const APPROVE_THRESHOLD_OPTIONS = [50, 60, 70, 80, 90]
 
 const TRIGGER_CLASS =

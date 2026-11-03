@@ -186,7 +186,7 @@
         "src/db/queries/dashboard.ts": "5c93c4c55114c1799ffb65b2bb14b32ad4109bbf803c096117a4407b2765b041",
         "src/db/queries/gap-fill.ts": "2e5aae971156d2c14842552496b76541184489140ae51b7854208bfaaf9abf6a",
         "src/db/queries/genres.ts": "623e351944c65a8b03ac3361cbe49f073a424f791fd4170719db6f78afa8c934",
-        "src/db/queries/jobs.ts": "88b3d71b463afec4a24e4f5476fc5ccf6606863c6a0b2211ec392e057be5cdff",
+        "src/db/queries/jobs.ts": "61e50909a2acdb5465c395b43255c3872cb9c5ba75b053bfd540020eea2d3e13",
         "src/db/queries/library-albums.ts": "64e2581dc7fa3465acd12c1fc996b16eaf897353ff5c1ee17a086488cdbf8116",
         "src/db/queries/library-health.ts": "0e6e71f30c0649fe848df896997f7961ad0b7708322be644687deb39d53b646d",
         "src/db/queries/musicbrainz-cache.ts": "c26a5c1bc7cae5463fcca0d70913171925236fcfea33a9b4961f9a0afc5098c4",
@@ -206,35 +206,35 @@
         "src/db/schema.ts": "d9e5d38ece5fe753966acce954115d2360479ad37d9cff829376dd9c573aa071",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "eb911575549db38f1b70638883d40e4046beb041e3148c78a63bf8ee576ab9cc",
+      "digest": "bf72ab5056aeee5257d03456a1d8ed554a5fd8de73ad57547aff5ff1187d4552",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md", "docs/guides/switching-backends.md"],
-        "note": "Migration 0063 adds the rebuildable musicbrainz_cache table and expires_at index with IF NOT EXISTS; reads now also return expires_at so memory refills never outlive the row. JSON backups and backend copies exclude the table and it is safe to truncate. Validated on isolated in-memory PGlite (re-run, restart hit, expiry); no live PostgreSQL run.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Dropped the export keyword from the job-health window constant used only inside src/db/queries/jobs.ts; queries and recovery behavior are unchanged.",
         "breaking": "none",
-        "migration": "Additive table: take a normal backup before upgrading; the previous image ignores the table on rollback, leaving it unused and harmless.",
-        "digest": "eb911575549db38f1b70638883d40e4046beb041e3148c78a63bf8ee576ab9cc"
+        "migration": "Dropped the export keyword from the job-health window constant used only inside src/db/queries/jobs.ts; queries and recovery behavior are unchanged.",
+        "digest": "bf72ab5056aeee5257d03456a1d8ed554a5fd8de73ad57547aff5ff1187d4552"
       }
     },
     "configuration": {
       "files": {
         ".env.example": "7e5e3f9b6e50ad8c0a77eae509abd7f618163e1fda4870af848df2befe98eddc",
-        "src/config/env.ts": "183f5eff26d61e13d1689f2759eceb14b235b11b2f9e72f39f001bd8c799c8f4"
+        "src/config/env.ts": "32a5911f38b737bc7c809900a396b512d8a48374d9aa57d185d1e54951616da3"
       },
-      "digest": "6d324c1a126a2e536366e54c95c363d375111cb3b180d57b2081a71074dd7ba8",
+      "digest": "cbaaf64bc7e288f13bf4b16e90c608661d7f5f5c91aef9c8b5bd2abf76aa83e5",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only errMsg/sleep helper swaps and removal of an unused query; no behaviour, config or API change",
+        "note": "PROXY_AUTH_TRUSTED_PROXIES validation now calls the shared parseCidrList helper; accepted values, rejection rules and startup errors are identical.",
         "breaking": "none",
         "migration": "",
-        "digest": "6d324c1a126a2e536366e54c95c363d375111cb3b180d57b2081a71074dd7ba8"
+        "digest": "cbaaf64bc7e288f13bf4b16e90c608661d7f5f5c91aef9c8b5bd2abf76aa83e5"
       }
     },
     "authentication": {
       "files": {
         "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
-        "src/core/auth/cidr.ts": "25a85c78dfa32964b5d45f82c23d008bb4293c7bc4802adafde53e1f47a70608",
+        "src/core/auth/cidr.ts": "37369afbd185498e1f20403e44fc877c2bf6e1af38948c1702d67b695c89c50b",
         "src/core/auth/oidc.ts": "824a37cb005c3d9094a5a00e4dcec2f5da9c5af9b8d614215d94a8784c9c2a68",
         "src/core/crypto.ts": "ee435124132851a3a20065c8125429687fd8b24ab66f7ab50ec183425a6d68f4",
         "src/core/oauth.ts": "23c54d509bf27770574221d6d3b5d8ea68e9a030aaa74b1a3ace37c55abd2385",
@@ -269,29 +269,29 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "93ded88a5cdee2841dc71317db18c2a8f882f2008d8c793453970488c85c0a65",
+      "digest": "25e4e32bb10419762756b91c8b35f4e1d0af48dedcd0383408bb370a09ae03fa",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Only adds excludeRecentlyPlayed to the per-user preferences allowlist; session, CSRF and admin checks on the preferences routes are unchanged.",
+        "note": "Added parseCidrList, the comma-split-and-trim step the trusted proxy code already did inline; no trust decision or CIDR matching changed.",
         "breaking": "none",
         "migration": "",
-        "digest": "93ded88a5cdee2841dc71317db18c2a8f882f2008d8c793453970488c85c0a65"
+        "digest": "25e4e32bb10419762756b91c8b35f4e1d0af48dedcd0383408bb370a09ae03fa"
       }
     },
     "api": {
       "files": {
         "src/server/deps.ts": "4c1d190afdb922d6af349b48acfea57094dfb733fe73be048e5923f00c459acb",
-        "src/server/helpers/client-ip.ts": "b70857eba04e8a0b75137b98ba21c3f9edbeba2a6d9a7a7c2162224b5b44c2a5",
+        "src/server/helpers/client-ip.ts": "051bd043791f24906eb5b2923c7211be37a3c05e003f86e1ef1e58599e71b12b",
         "src/server/helpers/openapi-doc.ts": "43abc92350f0ad9bb6299ba24c2850336737cc2e7f64685a80d007efe9f09aed",
-        "src/server/helpers/openapi-routes.ts": "6aed05bb39f49a9a9eb224617b746f7c02b4d7f6e49db2584d5baf08d3e9775c",
+        "src/server/helpers/openapi-routes.ts": "4ad52498252ea3cae4cbb97299566ed14f10833287e1c2b6501c626e6af16da2",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "a643bb8ba7b9a38e36997c89ff1e282da30b8757af61263efd5f56459d3e2c66",
+        "src/server/index.ts": "4a8ce757d16cb471ebaf9ed7bb6a44e229b1207fe0484c5aecf66cc7c96bb749",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -313,7 +313,7 @@
         "src/server/routes/mcp.ts": "70a7adf523f6fb5ad2aef55c61545d3f91826480fcfa18432acda9b6a670fc0b",
         "src/server/routes/media.ts": "900304a477a47ea0433eed2b4cd846c1fe0fe458484eed680eecd30a4f50284e",
         "src/server/routes/mood.ts": "dc8a0dd1c576b56210b8e5d0e877f84d65ff6607d7fe160eab0927143466732c",
-        "src/server/routes/pipeline.ts": "53961349786a641e0578c92d9b985b0ca28921e1896bc467be6f2adf20071179",
+        "src/server/routes/pipeline.ts": "e79c1d80f4e5b4987f99e38e5c60144857db72a26dd227d8a2cd35d94f53862b",
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
         "src/server/routes/recommendations.ts": "7959fe01eb1d9d32d43bcc7b23f372343acfe956583457cbff91b3d935cc2d60",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
@@ -341,14 +341,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "7e6ed32c0f7e58dc0d265768254021f17191277b8e0618136b89737bd5b6bcf8",
+      "digest": "06ed75fd889615c3be0205a2e683437605bea86a6efd1d3724a5101224fa47b4",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/API.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document the optional monitorNewItems field (all, new or none) in Lidarr target config and on POST /api/v1/lidarr/add, its all default, and the 400 for other values.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Manual pipeline run builds auto-approve deps through the shared builder and merges preferences with defaults, which the orchestrator already did; routes, payloads and status codes are unchanged. Client IP and proxy auth parse trusted proxies through the shared helper with the same result.",
         "breaking": "none",
         "migration": "",
-        "digest": "7e6ed32c0f7e58dc0d265768254021f17191277b8e0618136b89737bd5b6bcf8"
+        "digest": "06ed75fd889615c3be0205a2e683437605bea86a6efd1d3724a5101224fa47b4"
       }
     },
     "interface": {
@@ -402,7 +402,7 @@
         "src/web/components/dashboard-card-toggle.tsx": "942a1102a39680daa17ffa421b0e72e0d56570348543aec283ec0e767070c56a",
         "src/web/components/dashboard-customize.tsx": "adda1d8624fdcf04d34f4e8e3f3d5d785fdca1d767b1c9a802cbdfa3780515c2",
         "src/web/components/discover-tabs.tsx": "87e40802ee861172e82c747002f33b660de28a2eead2ff9ff0fa4e76fea24c19",
-        "src/web/components/discover-toolbar.tsx": "f94ce0055d78b3a1f6feaba6e0e80b137d9c2b9d4322d4322befa69cd0954e7d",
+        "src/web/components/discover-toolbar.tsx": "df91c7c97c1eae5a6f164e96bf0da738cd3e01922e0738234e5f98d9a0d9bdf4",
         "src/web/components/discovery-mode-form.tsx": "b95983f72eaad20ace5ef53fb41411f006c5640bfa5ca46ef3860c148b221fae",
         "src/web/components/discovery-modes-redirect.tsx": "dfc760ce1423ed980ddad2d5d257dbf22143c2d7256c778b2dd5912ef38305f8",
         "src/web/components/discovery-modes-section.tsx": "80153d85fecaec67a6ff9a866409b8066dc6f5fd454f0f35d04fd1b378bcdffc",
@@ -483,7 +483,7 @@
         "src/web/lib/api.ts": "1092447cc0018cf87763f8546825d14db8f13922e73e0bffcd9cef5f4e96468f",
         "src/web/lib/approval.ts": "0c9308835f714b2815ccde73e6a0286037b6d0ea65dfd3778738e81736f04f14",
         "src/web/lib/constants.ts": "caf03680f9edcca8f43ae1c6201e34a73c4a7a9f4a8a74f3c291eb043d7ef928",
-        "src/web/lib/discover-cache.ts": "33b98aaeed8fdd7f9e53fbfe9ee5b23779920483bcf10481048c11a2ad7f4a2e",
+        "src/web/lib/discover-cache.ts": "e48189ccbed22ea5037185abb5d87517f973c60a3e99aa50d28a8b78e55ef69e",
         "src/web/lib/discovery-i18n.ts": "dd9e8cdf2eb28241b94a7b9d0c259f03c29a9c6681b03a5ae4ba74a7ec62d717",
         "src/web/lib/discovery-run-feedback.ts": "ee388d3fffef7a95a2b9456200e51f391a8c4c7608d2bbb91addef8e465acc3e",
         "src/web/lib/format-time.ts": "24a4efbcbc7a44f9374e74659fb7a4125c843792e11c053f017f99f1861f7a4d",
@@ -517,17 +517,18 @@
         "src/web/pages/playlists.tsx": "c0307556923a04379f4a4abdd385ef324f45715ec6a8e5bd3fee2ac2246616d2",
         "src/web/pages/search.tsx": "acc6f09b8c4d79d8167ace54404a4e46db01c06c95123ef9e902ef0d16f8f2e7",
         "src/web/pages/settings/account-tab.tsx": "9c07dbbfe8456feabb1ad1e70935e08afe64f92dd1376a6fc4862aa3c004fc0f",
-        "src/web/pages/settings/artist-images-card.tsx": "b7ecf89daa643e133a1630b236efa5d43ff60b365d8307f7bab8f46e86d6ff61",
-        "src/web/pages/settings/auth-tab.tsx": "caf4880f7b56b0581acf27c5403688f4ba7f7c5ab8ae74148011db2631c5227b",
+        "src/web/pages/settings/artist-images-card.tsx": "78d64e3e7c14ac2aeb6d2295a5bcdd949d812b202184bca5bf884bfbfe35a2e9",
+        "src/web/pages/settings/auth-tab.tsx": "c5766aadaa9c18ecb02b1c3dac541641db95fa7ca7d9d7168fda7ff340e14b88",
         "src/web/pages/settings/connection-picker.tsx": "49360515b4df1d7ffb5b9b6c0affd640727cdcddcf4c364098b6a8f01a782e4e",
-        "src/web/pages/settings/connections-tab.tsx": "f2143a0186b6ee2ef566c1faf075c11c847982db28f47b216de2174b1f0c2881",
+        "src/web/pages/settings/connections-tab.tsx": "dd04c3c5d366326a489ff6bdfe06a0b819719ba6e74d949e2040cc3b43f1998b",
         "src/web/pages/settings/index.tsx": "ce0a3ad9ef3243fbf446d2bf50021136362c66e8967e227cc91159c1d9ba01ae",
-        "src/web/pages/settings/lidarr-preferences.tsx": "ce87d62e21a80046d17fb361652eea7048d2fa5040de2d367b068af674f75a17",
+        "src/web/pages/settings/lidarr-preferences.tsx": "8c776858bacdabafae751522e5b4571a951a47029d90fc26e07686fa722850e3",
         "src/web/pages/settings/notification-channels.tsx": "d386e4a9170830bb9bee123a22bcf8269192728799ce7011a9a96b8b4bc46634",
         "src/web/pages/settings/recommendations-tab.tsx": "799ffb0442e263d59a2f9290dbcbe9e504eb41ddc332a0ee5a4fdd7633e05d67",
         "src/web/pages/settings/schedule-tab.tsx": "ceb67ec3a81b9aaf52a4d6fddbff345134b8f38fe1b9150d9360d5ff603b90dd",
+        "src/web/pages/settings/service-form.tsx": "aabdb5f46e725eb6f2af04923b9077f6b0f8ba983c534f1da1f161033dcc077b",
         "src/web/pages/settings/settings-nav.tsx": "0c74f6177c004092f0e819001b99072b58718cc30e404e06e03be064bb0bddee",
-        "src/web/pages/settings/shared.tsx": "2e46e129d883e06872dbc84c2fbbbab6b4a1ff3efce2780832c7bacfa1f88524",
+        "src/web/pages/settings/shared.tsx": "3af98284c5fdb72dd677ea660d3a196385b4556711babd0f4bee77b8e1545058",
         "src/web/pages/settings/system-tab.tsx": "998b35bb655c2115b906999d5209a41dd54807532fd10b2e93cb5838e76d878e",
         "src/web/pages/settings/tabs.ts": "bea4ef7cb8d997b8d8cdc739cae8174d50ca6ebcf742dcb007d0b79eba723c71",
         "src/web/pages/settings/targets-tab.tsx": "f44b10313d95bd02c963d14035a890c7fdceaf3f70959d9b83787ec901505064",
@@ -538,14 +539,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "fa6b6f8561a00a0e5d575f516cd0dc265c2a3298a01c187817c5aba13dd52ba9",
+      "digest": "2f5fe9a885d902f9870de255df96d3c96b5d3a663796ce0285ce28ce2116c0af",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Connection help for AudioMuse-AI now states results come only from its own index, in all 14 locales.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Settings service cards share a footer, a media server card and secret placeholder helpers; rendered markup, ids, labels and translations are unchanged. Also dropped unused exports in discover helpers.",
         "breaking": "none",
         "migration": "",
-        "digest": "fa6b6f8561a00a0e5d575f516cd0dc265c2a3298a01c187817c5aba13dd52ba9"
+        "digest": "2f5fe9a885d902f9870de255df96d3c96b5d3a663796ce0285ce28ce2116c0af"
       }
     },
     "features": {
@@ -569,7 +570,7 @@
         "src/core/clients/listenbrainz.ts": "9f6ff6f4435d74b920428e912a5a5dcd0d8c2416f20e94faaed94709b14de094",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
-        "src/core/clients/musicbrainz-cache.ts": "a0addb7bbee88ac44add1b45ca69a8cc3c18d273dcce4d96a19a0e9dc290e6bf",
+        "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
         "src/core/clients/musicbrainz.ts": "ef0e3945c7e6a4e7b0408daa4ef90f640b49de4ea15fdd2d277dd6f38b484ca5",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
@@ -586,7 +587,7 @@
         "src/core/clients/tidal.ts": "9c8d8fd48eb212eb6914302c3882dd1e7751b26e9192e1a14d9e2bea56e758f4",
         "src/core/clients/wikidata.ts": "7d558154a6690fbaedd521e35bba78ef811c7f414df02c3c5a64c8c3b7c825ec",
         "src/core/csv/cell-safe.ts": "b34c618e51e5101fec2c3789e2178c85c893eef177a29571230750a87e416570",
-        "src/core/dashboard-layout.ts": "16b997318942b9230051b62ae7a9cb7eeb15544769c1af562156dc4d51de1967",
+        "src/core/dashboard-layout.ts": "e73ed9cf913a0cda8dcfd80610605fbe232026d9d1f04f82a8a09bfa024c6dd1",
         "src/core/db-errors.ts": "07b0d025afc00f8f39ab14ed46e133d49299eb6039016107cad01abbd61f1acc",
         "src/core/discovery-modes/availability.ts": "7e78cee14367ae43dad6abc82cf9a7f977159144a0db2bb49d90bae8f6074ac1",
         "src/core/discovery-modes/candidates.ts": "c34f1f654fe8fc5ee655a427d01d5ed8a70454b1b2c766616d52dcc895d07dd9",
@@ -615,7 +616,7 @@
         "src/core/jobs/digest-notifier.ts": "3bd795c63490de42430e979b9e1bda682eb14d3ad03fb99dc9649a6725fcc129",
         "src/core/jobs/failure-scope.ts": "f327aa8a1c4024b9cbe222aaa87e193cbd9caae3f7ac7372c80475b7aaae0a4e",
         "src/core/jobs/record-failure-safely.ts": "c990c18f0b969001a691ea8daf8643463d9a153eeb89db5620332eb1e99111be",
-        "src/core/jobs/recorder.ts": "b7ceb98d50d91caa38a0e9dc23b1789f55adcbf3302f63499ec2ababda86226b",
+        "src/core/jobs/recorder.ts": "2f3b7d5447f6a9bc639633f31386551b7d3d44e3bd68ed3cb64d062a5faec163",
         "src/core/jobs/stuck-detector.ts": "d6aa66ee6fc07f76aeb0b36daa4d99e4e9de7479838712fd51cea7e92f64c9d2",
         "src/core/jobs/types.ts": "cc8125e8f1a705b7cb6db315c5969589210dec0daccf678f64955f0921e7f961",
         "src/core/library/album-coverage.ts": "30ebf67e0b30bb1093bd3999da9209c8deb2d54b8ef0dae1da9d9402e8f26556",
@@ -649,6 +650,7 @@
         "src/core/notifications/types.ts": "c69da910904e133c5df709974abd5f5718f5872ff21b9ab44455cdd8648928f3",
         "src/core/pipeline/album-profile-filter.ts": "2eb6c8e8bb2a4826b9ffddf2723e5c21718122762ec950529f551eae0d7d9921",
         "src/core/pipeline/analyze.ts": "4105aa7d0824325c71b9c51b2f401eff15f628db2e4b5dfe0a1c0dc5c1b96ce6",
+        "src/core/pipeline/auto-approve-deps.ts": "2732cc75e8a3ca8a0b9bdf10f4bda29c6f3a3c30cb9cb509f3097517091454c7",
         "src/core/pipeline/auto-approve.ts": "38f1afa9a16b2d2a5ac3ac9e527bf23de59f7901b884fb519b79b26a3b340a70",
         "src/core/pipeline/cancel.ts": "6d28ad56bac72093e4558b8269cab606ba2dff0f058dc0ffdddba040666cffe1",
         "src/core/pipeline/discover.ts": "1a26a7e67eb80aa0dadcafa50c43b9fde04b18cdeda67e59730eedbbcc33eac0",
@@ -657,14 +659,14 @@
         "src/core/pipeline/genre-backfill.ts": "aa1dee05dfe3588e304070f80db1d31afc36cc851247f703732967b70e431230",
         "src/core/pipeline/image-clients.ts": "e7f8a7d63d094520b716cadb97082a37ab55097847fcca8ba91c9df8986432ea",
         "src/core/pipeline/orchestrator.ts": "74a28553567efaeeea5c4f7ca8f35e5b327c2854c7a1689df39d800ab5d27a29",
-        "src/core/pipeline/recently-played.ts": "33f929141b31657945490f78417fc1d8067a77263c5c301bbc8790b31b2e5eca",
+        "src/core/pipeline/recently-played.ts": "1470f3b9f79ddb0539388c2f6670993f36c70e3eb169d9c6c649068e216ef6e5",
         "src/core/pipeline/resolve.ts": "02cbcb86b4375980a5cded31117ac77b41b45a995668abe901414fa97407cd8b",
         "src/core/pipeline/scheduled-run.ts": "8a6c933e8f86261184e0fdd656997f6f0e2e176165f14ed3991bfd485abd8f81",
         "src/core/pipeline/score.ts": "53ff3e1f2d247b2cfc4ad0609e0e631642032432ac009abf9863810527cf34f1",
         "src/core/pipeline/store.ts": "5a83859bfe3ebd8b8128aecab11f167aaef885457d6ec82bb0f5301f5b45d535",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
-        "src/core/playlist-import.ts": "c186227b47548b5e49ba365c70724483086c0ef366815786a49921ae433b7eab",
+        "src/core/playlist-import.ts": "23fefb3505d5d240380abd4b92718824288461be5873fab2f1f6029c2c67be44",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "207784caca52f432caa9df415e8dd71c11d41c6572db59ce0b222239e9e6e783",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
@@ -718,7 +720,7 @@
         "src/core/slskd/audio.ts": "a5599fb9d1bff4969571b494ced6763eb6b32a3b3f0f29b85499c095a8649957",
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
-        "src/core/slskd/orchestrator.ts": "c60f7cae03f5a956dda10793b395e7f2ab6f05465f96e3b6056a4bfe3139667e",
+        "src/core/slskd/orchestrator.ts": "09f9048979411ddc26e0d1f5a553641fc4a7bdd83e8013451284757bba4f4c6c",
         "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
@@ -746,7 +748,7 @@
         "src/core/targets/export-xspf.ts": "4d99d929eca55e8c80d38ef765e8ff54be5623cb33bf1056044f2753c4e5493e",
         "src/core/targets/jellyfin-family-playlist.ts": "d83a7e675b8a10f92ab4a8e8de40df0a834cdd42087088d9887a301065bcfd02",
         "src/core/targets/jellyfin-playlist.ts": "868d57801694792e8cc0c0260ebe85d39d57a9665429e38134d06be85dbb9c5f",
-        "src/core/targets/lidarr-connection.ts": "f82e62d489ecaa0db1694895cebc6b90451ad6be85370d4138febfeb063fca5e",
+        "src/core/targets/lidarr-connection.ts": "5317e411ba8eae9210a15fa74b93b3b5fec3f2cf5dd138d51cf0aa2bfc67a001",
         "src/core/targets/lidarr-metadata-profile.ts": "29ad747d5a4e47e36ebc7820478d8dc3f46ce5bcf91d34cce910a74cce06910e",
         "src/core/targets/lidarr-retry-worker.ts": "2ac3c0e6a964425b66e245c2c386313dee5f97c41b6f6a42cff7d6b9be5f05f1",
         "src/core/targets/lidarr-retry.ts": "ef0ee66e79d450e24752108b9d66182a20e2b2be82c5778172ea31958403b4a1",
@@ -765,17 +767,17 @@
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
-        "src/index.ts": "4d1255e909d526bef9463c6cb980955292b61663a1173ba120feae8e5210dc28",
+        "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "ee354f895531e3659a6ecc088106b03b453b05ca00d1434381816c8c1ca4e78f",
+      "digest": "30138f3ceecd61577073859409406119d7c3b98dab8a01cc2820772eb6e57142",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document the case-insensitive search_artists fallback and that results are limited to artists the AudioMuse instance indexes.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Scheduled and manual pipeline runs build auto-approve deps in one helper, and internal sleep calls and exports were tidied; auto-approve, scheduling and slskd behavior are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "ee354f895531e3659a6ecc088106b03b453b05ca00d1434381816c8c1ca4e78f"
+        "digest": "30138f3ceecd61577073859409406119d7c3b98dab8a01cc2820772eb6e57142"
       }
     },
     "deployment": {

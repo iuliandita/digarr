@@ -27,7 +27,7 @@ export const MUSICBRAINZ_CACHE_TTL_MS: Record<MusicBrainzCacheKind, number> = {
 
 export const MUSICBRAINZ_NOT_FOUND_TTL_MS = DAY_MS
 
-export const noopMusicBrainzCacheStore: MusicBrainzCacheStore = {
+const noopMusicBrainzCacheStore: MusicBrainzCacheStore = {
   get: async () => null,
   set: async () => {},
 }

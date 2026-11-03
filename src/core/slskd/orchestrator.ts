@@ -7,6 +7,7 @@ import type {
   SlskdSearchResult,
   SlskdTransferFile,
 } from '@/core/clients/slskd'
+import { sleep } from '@/core/sleep'
 import { buildLidarrManualImport } from '@/core/slskd/importer'
 import { selectBestSlskdCandidate } from '@/core/slskd/match-engine'
 import { buildSlskdWorkKey } from '@/core/slskd/runner'
@@ -399,7 +400,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
       const gapSeconds = Number(config.searchIntervalSeconds ?? 3)
       const gapMs = (Number.isFinite(gapSeconds) ? Math.min(60, Math.max(1, gapSeconds)) : 3) * 1000
       const waitMs = pacing.nextAt - Date.now()
-      if (waitMs > 0) await new Promise((resolve) => setTimeout(resolve, waitMs))
+      if (waitMs > 0) await sleep(waitMs)
       await deps.updateJobState(job.id, 'searching', {
         attempts: job.attempts + 1,
         lastError: null,
@@ -635,7 +636,7 @@ export function createSlskdOrchestrator<TJob extends SlskdPendingJobBase = Slskd
             `Lidarr ManualImport command ${commandId} was started but its checkpoint could not be saved: ${reason}`,
           )
         }
-        await new Promise((resolve) => setTimeout(resolve, CHECKPOINT_RETRY_MS * attempt))
+        await sleep(CHECKPOINT_RETRY_MS * attempt)
       }
     }
     await updateRecommendationAction(job.recommendationId, job.targetId, 'import_pending')

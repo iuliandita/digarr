@@ -9,6 +9,7 @@ import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { getUserPreferences, updateSettings, updateUserPreferences } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
+import { savedSecretPlaceholder, unmaskSecret } from './shared'
 import type { Settings } from './types'
 
 export function ArtistImagesCard({
@@ -47,9 +48,7 @@ function ArtistImagesForm({
   const [metadataFallbackUrl, setMetadataFallbackUrl] = useState(
     String(prefs.metadataFallbackUrl ?? ''),
   )
-  const [audiodbApiKey, setAudiodbApiKey] = useState(
-    settings.audiodbApiKey === '***' ? '' : (settings.audiodbApiKey ?? ''),
-  )
+  const [audiodbApiKey, setAudiodbApiKey] = useState(unmaskSecret(settings.audiodbApiKey))
   const [audiodbProxyImages, setAudiodbProxyImages] = useState(Boolean(settings.audiodbProxyImages))
   const [wikidataEnabled, setWikidataEnabled] = useState(settings.wikidataEnabled !== false)
   const [saving, setSaving] = useState(false)
@@ -100,11 +99,11 @@ function ArtistImagesForm({
               type="password"
               value={audiodbApiKey}
               onChange={(e) => setAudiodbApiKey(e.target.value)}
-              placeholder={
-                settings.audiodbApiKey === '***'
-                  ? `(${t('settings.saved')})`
-                  : t('settings.audiodb.apiKeyPlaceholder')
-              }
+              placeholder={savedSecretPlaceholder(
+                settings.audiodbApiKey,
+                t('settings.audiodb.apiKeyPlaceholder'),
+                t('settings.saved'),
+              )}
             />
           </Field>
           <label className="flex items-start gap-2">

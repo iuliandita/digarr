@@ -84,7 +84,7 @@ const TRACK_NUMBER_TITLE = /^\d{1,3} - .+$/
 
 // Only unambiguous layouts: Artist/Album/NN - Title.ext, or a flat Artist - Title.ext
 // with exactly one separator. Anything else is left unread rather than guessed.
-export function artistFromPath(entry: string): string | null {
+function artistFromPath(entry: string): string | null {
   if (/^[a-z][a-z0-9+.-]*:\/\//i.test(entry)) return null
   const parts = entry.split(/[\\/]+/).filter((p) => p && p !== '.' && p !== '..')
   const last = parts.at(-1)

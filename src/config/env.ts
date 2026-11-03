@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { isIP } from 'node:net'
-import { assertCidr } from '@/core/auth/cidr'
+import { assertCidr, parseCidrList } from '@/core/auth/cidr'
 import { errMsg } from '@/core/validation'
 
 function env(key: string): string | undefined {
@@ -175,13 +175,7 @@ export type EnvConfig = typeof envConfig
  * are rejected because they disable the proxy-auth trust boundary entirely.
  */
 function validateTrustedProxies(): void {
-  const raw = envConfig.proxyAuthTrustedProxies
-  if (!raw) return
-  const entries = raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean)
-  for (const cidr of entries) {
+  for (const cidr of parseCidrList(envConfig.proxyAuthTrustedProxies)) {
     try {
       assertCidr(cidr)
     } catch (err) {

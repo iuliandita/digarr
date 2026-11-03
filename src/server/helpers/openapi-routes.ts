@@ -131,7 +131,7 @@ const download = (description: string): Ok => ({
 })
 const body = (schema: z.ZodType) => ({ body: zodBody(schema), validatedBody: true })
 
-export const routeCatalog: RouteSpec[] = [
+const routeCatalog: RouteSpec[] = [
   // API metadata
   {
     method: 'get',
