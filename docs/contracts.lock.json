@@ -848,9 +848,9 @@
       },
       "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "The Companion templates workflow now opens or refreshes one tracking issue when a published Unraid template differs and closes it when aligned; it also runs on develop pushes touching deploy/unraid. Tags, channels, image names, signing and promotion flow are unchanged.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "The Companion templates workflow now opens or refreshes one tracking issue when a published Unraid template differs and closes it when aligned, and also runs on develop pushes touching deploy/unraid. It does not touch release tags, channels, image names, signing or promotion; MAINTENANCE.md documents the new behavior.",
         "breaking": "none",
         "migration": "",
         "digest": "b54005c01e32430dd041e4faced7f98b9bc5f8c0947fcd82e6ed49e6c874b323"
@@ -864,7 +864,7 @@
         "scripts/check-docs-content.ts": "b5199485d5fecf2da290979df6dee6b2353c5c891587364d0b8e31ff63976bcc",
         "scripts/check-docs-impact.ts": "630e9a5f475e4b1d8a301f3b8a9db61ced4d32b83f79e7415fe1227776e74c36",
         "scripts/check-release-identity.ts": "00fb342ce3f44204688d57a328a414079210ee9caf41447c7a356c359d88c1ac",
-        "scripts/check-unraid-companions.py": "ff0b661c30edbae3878b87c65d1b5c46ae7d1330fb9e5cf4e005f074ef85346b",
+        "scripts/check-unraid-companions.py": "4f1e106e256c111847958b6e04c4d3959c46f35f90628d7f5cba38812d06c7af",
         "scripts/check-version-drift.ts": "9e292e28b4de1b574353486349f603cb38cf19272e84d218889a1d725e61ae86",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
@@ -884,14 +884,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "56c8e896ad579aa8965881894ba08658faed0eac7d434ffa82d68e2d58e67ae8",
+      "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "CONTRIBUTING.md"],
-        "note": "The companion check's report text now says a difference opens a tracking issue; comparison logic and exit codes are unchanged, and MAINTENANCE.md documents the workflow.",
+        "note": "Dev setup script pins the same current postgres:17-alpine digest as CI, Compose and the Helm chart; syntax checked, behavior and flags unchanged. Contributor guide shows the same digest and the changelog records the pin move.",
         "breaking": "none",
         "migration": "",
-        "digest": "56c8e896ad579aa8965881894ba08658faed0eac7d434ffa82d68e2d58e67ae8"
+        "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a"
       }
     }
   }
