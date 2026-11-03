@@ -52,7 +52,13 @@ jobs:
           tag_sha=$(git rev-list -n1 "$last_tag")
           base=$(gh api "repos/$REPO/commits/$tag_sha/pulls" \
             --jq '[.[] | select(.base.ref == "main" and .head.ref != "main")][0].head.sha // ""')
-          if [ -z "$base" ] || ! git merge-base --is-ancestor "$base" origin/develop; then
+          # A release branch head is not an ancestor of develop; its merge base is
+          # the cut point. Ask the API, since the head sha may not be fetched here.
+          if [ -n "$base" ] && ! git merge-base --is-ancestor "$base" origin/develop; then
+            base=$(gh api "repos/$REPO/compare/$base...$(git rev-parse origin/develop)" \
+              --jq '.merge_base_commit.sha // ""' || true)
+          fi
+          if [ -z "$base" ]; then
             base=$(git log --first-parent origin/develop --grep '^chore(release): v' -1 --format='%H')
           fi
           if [ -z "$base" ]; then
