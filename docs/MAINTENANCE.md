@@ -81,7 +81,7 @@ Those PRs illustrate the record format; verify their current state and use the P
 bun run check:companions
 ```
 
-This fetches both published templates and compares configuration fields and operator help with the bundled template. Image repository identity is compared, allowing the Digarr Docker Hub and GHCR aliases. Moving `latest` tags, release pins, and digest comments are intentionally excluded. Templates must use UTF-8 XML without DTD or entity declarations. Exit 0 means aligned, 1 means differences, and 2 means the comparison was unavailable or invalid. Python 3 and network access are required. The weekly and manually triggered Companion templates workflow produces an advisory report; network outages and pending external PRs do not block normal CI. Check existing PRs before opening duplicate work.
+This fetches both published templates and compares configuration fields and operator help with the bundled template. Image repository identity is compared, allowing the Digarr Docker Hub and GHCR aliases. Moving `latest` tags, release pins, and digest comments are intentionally excluded. Templates must use UTF-8 XML without DTD or entity declarations. Exit 0 means aligned, 1 means differences, and 2 means the comparison was unavailable or invalid. Python 3 and network access are required. The Companion templates workflow runs weekly, on manual dispatch, and on pushes to `develop` that touch `deploy/unraid/`. A difference opens or refreshes one "Companion templates out of date" issue, listing the open store PRs, and the first aligned run closes it; a retrieval failure only warns. The issue does not block CI, and a pending store PR keeps it open until that PR merges. Check existing PRs before opening duplicate work.
 
 ## Dependency security checks
 

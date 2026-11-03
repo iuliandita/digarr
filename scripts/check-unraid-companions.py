@@ -99,7 +99,7 @@ def main() -> int:
                           "companions": reports}, indent=2))
     else:
         print("## Unraid companion templates\n")
-        print("Release tags and digest comments are intentionally excluded. This is an advisory check.\n")
+        print("Release tags and digest comments are intentionally excluded. A difference opens a tracking issue.\n")
         for report in reports:
             repo = report["repo"]
             print(f"- [{repo}](https://github.com/{repo}): {report['status']}")
