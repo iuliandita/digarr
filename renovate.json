@@ -85,6 +85,11 @@
     {
       "matchManagers": ["github-actions"],
       "groupName": "GitHub Actions"
+    },
+    {
+      "matchFileNames": [".github/workflows/compatibility.yml"],
+      "matchDepNames": ["ubuntu"],
+      "enabled": false
     }
   ]
 }
