@@ -19,10 +19,10 @@ concurrency:
 jobs:
   podman:
     name: Podman (rootless)
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # Pinned so the next silent podman-compose release is distinguishable from
       # a real regression.
@@ -132,10 +132,10 @@ jobs:
 
   docker-debian:
     name: Debian image build
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 25
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       # Same base as the debian entry in release.yml's matrix; keep the two in step.
       - name: Build Debian image
@@ -148,13 +148,13 @@ jobs:
     name: Docker via Colima (macOS Intel)
     # Slow and advisory: weekly schedule and manual dispatch only, never pull requests (#878).
     if: github.event_name != 'pull_request'
-    runs-on: macos-15-intel
+    runs-on: macos-26-intel
     timeout-minutes: 45
     # Keep the macOS signal visible without blocking unrelated pull requests
     # while the hosted Intel path proves stable.
     continue-on-error: true
     steps:
-      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
 
       - name: Install Colima and Docker clients
         timeout-minutes: 10
