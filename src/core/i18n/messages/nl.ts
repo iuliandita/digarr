@@ -7,7 +7,7 @@ export const nl = {
     'Vind vergelijkbare artiesten met de audioanalyse van AudioMuse-AI.',
   'settings.audiomuseToken': 'API-token (optioneel)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 of nieuwer. Stuurt namen van uitgangsartiesten naar je server. Sla TLS-verificatie voor zelfondertekende certificaten alleen over bij servers die je vertrouwt.',
+    'AudioMuse-AI v3.6.4 of nieuwer. Geeft alleen artiesten uit de eigen index terug, dus vindt alleen nieuwe artiesten als die index muziek buiten je bibliotheek bevat. Stuurt namen van uitgangsartiesten naar je server. Sla TLS-verificatie voor zelfondertekende certificaten alleen over bij servers die je vertrouwt.',
   'audiomuse.unreachable': 'AudioMuse-AI is niet bereikbaar.',
   'audiomuse.not_indexed': 'De artiestenindex van AudioMuse-AI is nog niet klaar.',
   'audiomuse.artist_unknown': 'Artiest onbekend of geen vergelijkbare artiesten in de index.',

@@ -7,7 +7,7 @@ export const pl = {
     'Znajdź podobnych wykonawców dzięki analizie dźwięku AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (opcjonalny)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 lub nowszy. Wysyła nazwy wykonawców początkowych do twojego serwera. Pomijaj weryfikację TLS dla certyfikatów z podpisem własnym tylko na zaufanych serwerach.',
+    'AudioMuse-AI v3.6.4 lub nowszy. Zwraca tylko wykonawców z własnego indeksu, więc znajdzie nowych wykonawców tylko wtedy, gdy indeks zawiera muzykę spoza twojej biblioteki. Wysyła nazwy wykonawców początkowych do twojego serwera. Pomijaj weryfikację TLS dla certyfikatów z podpisem własnym tylko na zaufanych serwerach.',
   'audiomuse.unreachable': 'Nie można połączyć się z AudioMuse-AI.',
   'audiomuse.not_indexed': 'Indeks wykonawców AudioMuse-AI nie jest gotowy.',
   'audiomuse.artist_unknown': 'Nieznany wykonawca lub brak podobnych wykonawców w indeksie.',

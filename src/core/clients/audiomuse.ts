@@ -99,6 +99,23 @@ export function createAudioMuseClient(config: AudioMuseConfig) {
         throw mapError(error)
       }
     },
+    async searchArtistNames(query: string) {
+      const params = new URLSearchParams({ query, start: '0', end: '100' })
+      try {
+        const body = await http.get<unknown>(`/api/search_artists?${params}`)
+        if (!Array.isArray(body)) throw new AudioMuseError('invalid_response')
+        return body.flatMap((row: unknown) =>
+          row !== null &&
+          typeof row === 'object' &&
+          'artist' in row &&
+          typeof row.artist === 'string'
+            ? [row.artist]
+            : [],
+        )
+      } catch (error) {
+        throw mapError(error)
+      }
+    },
     async testConnection(): Promise<ServiceTestResult> {
       try {
         const body = await http.get<{ app_version?: unknown }>('/api/version')

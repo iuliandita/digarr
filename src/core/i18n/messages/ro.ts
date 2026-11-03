@@ -6,7 +6,7 @@ export const ro = {
   'settings.audiomuseDescription': 'Găsește artiști similari prin analiza audio AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (opțional)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 sau mai nou. Trimite numele artiștilor de referință către serverul tău. Omite verificarea TLS pentru certificate autosemnate doar pe servere în care ai încredere.',
+    'AudioMuse-AI v3.6.4 sau mai nou. Returnează doar artiști din propriul index, deci găsește artiști noi doar dacă indexul conține muzică din afara bibliotecii tale. Trimite numele artiștilor de referință către serverul tău. Omite verificarea TLS pentru certificate autosemnate doar pe servere în care ai încredere.',
   'audiomuse.unreachable': 'AudioMuse-AI nu poate fi accesat.',
   'audiomuse.not_indexed': 'Indexul de artiști AudioMuse-AI nu este pregătit.',
   'audiomuse.artist_unknown': 'Artist necunoscut sau fără artiști similari în index.',
