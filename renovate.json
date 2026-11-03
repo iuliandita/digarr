@@ -74,7 +74,7 @@
       "groupName": "frontend"
     },
     {
-      "matchPackageNames": ["postgres"],
+      "matchPackageNames": ["postgres", "redoc"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     },
