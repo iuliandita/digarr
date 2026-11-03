@@ -8,8 +8,8 @@ image:
   # the digest (image.digest: null in a values file, or --set image.digest=null; an empty
   # string fails schema validation) - :stable is promoted only after a release has been live
   # >= 7 days without a follow-up patch.
-  tag: "2.1.0"
-  digest: "sha256:47fea1fe6589923333d97899aa18357f28e432ef83cb2d087a52fedb34801237"
+  tag: "2.2.0"
+  digest: "sha256:bec268f0441b441b3f919af3c921d4dfa95ec4c79ac585eebb2387829a2a4fb4"
   pullPolicy: Always
 
 # uid 10001 deliberately differs from the image's bundled `bun` user (uid 1000):
