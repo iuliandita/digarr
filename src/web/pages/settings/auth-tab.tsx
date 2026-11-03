@@ -8,6 +8,7 @@ import { Disclosure } from '../../components/ui/disclosure'
 import { Input } from '../../components/ui/input'
 import { getAuthMeta, testService, updateSettings } from '../../lib/api'
 import { useI18n } from '../../lib/i18n'
+import { savedSecretPlaceholder, unmaskSecret } from './shared'
 import type { Settings } from './types'
 
 export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: () => void }) {
@@ -15,9 +16,7 @@ export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: ()
   const queryClient = useQueryClient()
   const [oidcIssuerUrl, setOidcIssuerUrl] = useState(settings.oidcIssuerUrl ?? '')
   const [oidcClientId, setOidcClientId] = useState(settings.oidcClientId ?? '')
-  const [oidcClientSecret, setOidcClientSecret] = useState(
-    settings.oidcClientSecret === '***' ? '' : (settings.oidcClientSecret ?? ''),
-  )
+  const [oidcClientSecret, setOidcClientSecret] = useState(unmaskSecret(settings.oidcClientSecret))
   const [secretDirty, setSecretDirty] = useState(false)
   const [oidcScopes, setOidcScopes] = useState(settings.oidcScopes ?? '')
   const [saving, setSaving] = useState(false)
@@ -100,11 +99,11 @@ export function AuthTab({ settings, onSaved }: { settings: Settings; onSaved: ()
           <Input
             id="oidc-client-secret"
             type="password"
-            placeholder={
-              settings.oidcClientSecret === '***'
-                ? `(${t('settings.saved')})`
-                : t('settings.fieldClientSecret')
-            }
+            placeholder={savedSecretPlaceholder(
+              settings.oidcClientSecret,
+              t('settings.fieldClientSecret'),
+              t('settings.saved'),
+            )}
             value={oidcClientSecret}
             onChange={(e) => {
               setOidcClientSecret(e.target.value)
