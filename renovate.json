@@ -90,6 +90,10 @@
       "matchFileNames": [".github/workflows/compatibility.yml"],
       "matchDepNames": ["ubuntu"],
       "enabled": false
+    },
+    {
+      "matchPackageNames": ["ghcr.io/iuliandita/digarr", "docker.io/iuliandita/digarr"],
+      "enabled": false
     }
   ]
 }
