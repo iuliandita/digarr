@@ -107,9 +107,9 @@ describe('MusicBrainz shared queue timing (real p-queue)', () => {
     ]
     await vi.advanceTimersByTimeAsync(10_000)
     await Promise.all(requests)
-    // bg-2 takes the slot that frees up during scan-1's backoff; the retry then
-    // re-enters at interactive priority and goes ahead of the older bg-3.
-    expect(order).toEqual(['bg-1', 'scan-1', 'scan-2', 'bg-2', 'scan-1', 'bg-3'])
+    // The retry re-enters at interactive priority and goes ahead of every older
+    // background request (p-queue 10 no longer lets bg-2 take the slot first).
+    expect(order).toEqual(['bg-1', 'scan-1', 'scan-2', 'scan-1', 'bg-2', 'bg-3'])
   })
 
   it('a retrying request does not block other queued traffic for its full backoff', async () => {
