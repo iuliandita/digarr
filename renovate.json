@@ -74,6 +74,11 @@
       "groupName": "frontend"
     },
     {
+      "matchPackageNames": ["postgres"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    },
+    {
       "matchManagers": ["dockerfile", "docker-compose"],
       "groupName": "Docker images"
     },
