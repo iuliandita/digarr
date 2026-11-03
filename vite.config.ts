@@ -1,10 +1,27 @@
+import { copyFileSync, mkdirSync } from 'node:fs'
 import path from 'node:path'
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
+
+// The server serves this from dist/api-docs, outside the emptied web output.
+function copyApiDocsViewer(): Plugin {
+  return {
+    name: 'copy-api-docs-viewer',
+    apply: 'build',
+    closeBundle() {
+      const outDir = path.resolve(__dirname, 'dist/api-docs')
+      mkdirSync(outDir, { recursive: true })
+      copyFileSync(
+        path.resolve(__dirname, 'node_modules/redoc/bundles/redoc.standalone.js'),
+        path.join(outDir, 'redoc.standalone.js'),
+      )
+    },
+  }
+}
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react(), tailwindcss(), copyApiDocsViewer()],
   // Fallbacks ('dev'/'local') must stay in sync with src/version.ts.
   define: {
     'process.env.DIGARR_GIT_SHA': JSON.stringify(process.env.DIGARR_GIT_SHA ?? 'dev'),

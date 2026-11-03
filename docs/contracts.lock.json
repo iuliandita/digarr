@@ -246,7 +246,7 @@
         "src/server/helpers/oidc-transaction-cookie.ts": "190d3b607282965f4c5cf4aa69fa7eeda5ec791aa353b16722e4a193f98912ff",
         "src/server/helpers/session-auth.ts": "d7ce109a9f7d7bcd610a21395d06faaae4f7686ed44c7f34fcc4cf6101e0e56a",
         "src/server/middleware/admin-guard.ts": "eb66a95d878c1ddf8757391452d578fb5cd3ecaa4c163ab35807b5569fc46264",
-        "src/server/middleware/auth.ts": "458f5c99af6918d5336fc7660c39b754595b9ddd0455058d7fde29510bd336bb",
+        "src/server/middleware/auth.ts": "756ef1cc32f2476d9dd80087af9089591bc08d936b20a1fb5e466f36f045e8cf",
         "src/server/middleware/csrf.ts": "402682d30c11ca379fe0b9713bd5121215af67ebe96d10511637eb66d4688232",
         "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
         "src/server/middleware/logger.ts": "370c52c638ba0e5ca89baa7fa8058eccc6024349b835a36bb2b64499334ab9e0",
@@ -269,29 +269,30 @@
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "25e4e32bb10419762756b91c8b35f4e1d0af48dedcd0383408bb370a09ae03fa",
+      "digest": "ad6853f3a17a5e447133233aa8021668cabaca0a88acd72df755bd947898f3a0",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Added parseCidrList, the comma-split-and-trim step the trusted proxy code already did inline; no trust decision or CIDR matching changed.",
+        "note": "Adds one public path for the viewer script, which is the same static content class and public access as the already public OpenAPI document; no auth, cookie, token or session behavior changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "25e4e32bb10419762756b91c8b35f4e1d0af48dedcd0383408bb370a09ae03fa"
+        "digest": "ad6853f3a17a5e447133233aa8021668cabaca0a88acd72df755bd947898f3a0"
       }
     },
     "api": {
       "files": {
         "src/server/deps.ts": "4c1d190afdb922d6af349b48acfea57094dfb733fe73be048e5923f00c459acb",
+        "src/server/helpers/api-docs.ts": "c946d0b0ac18e6b6b211491be3ede9c8121c960414d3e2464167d343e8d71290",
         "src/server/helpers/client-ip.ts": "051bd043791f24906eb5b2923c7211be37a3c05e003f86e1ef1e58599e71b12b",
         "src/server/helpers/openapi-doc.ts": "43abc92350f0ad9bb6299ba24c2850336737cc2e7f64685a80d007efe9f09aed",
-        "src/server/helpers/openapi-routes.ts": "4ad52498252ea3cae4cbb97299566ed14f10833287e1c2b6501c626e6af16da2",
+        "src/server/helpers/openapi-routes.ts": "bdbe0b47affe52d39425938c8b0749ed6011d935248fd13772deddcd3dfba09d",
         "src/server/helpers/pagination-cursor.ts": "83f85dcbd7c6baf5a061ad93c58ac73167f16875034400a3ae2f28915ff62303",
         "src/server/helpers/pagination.ts": "a9be92e3d8e4ff8d3b276c0a4b495e343235c5f2ee63667411b558104bc25be7",
         "src/server/helpers/parse-int-clamp.ts": "99e1a4aa67d533a8c52afc68ab77712e0283efe3f505265eeb4a2dab8ef9884e",
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "4a8ce757d16cb471ebaf9ed7bb6a44e229b1207fe0484c5aecf66cc7c96bb749",
+        "src/server/index.ts": "202187faf11be507565d654c06acc4f23f9953c9f25d9619e779356a054c1a4b",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
@@ -341,14 +342,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "06ed75fd889615c3be0205a2e683437605bea86a6efd1d3724a5101224fa47b4",
+      "digest": "e8f76727f7d7889ce132124d44f2de19a7d7e325962185753d5f5e01d9364877",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Manual pipeline run builds auto-approve deps through the shared builder and merges preferences with defaults, which the orchestrator already did; routes, payloads and status codes are unchanged. Client IP and proxy auth parse trusted proxies through the shared helper with the same result.",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Document the self-hosted API reference at /api/v1/docs, its viewer script route, and its page-specific CSP.",
         "breaking": "none",
         "migration": "",
-        "digest": "06ed75fd889615c3be0205a2e683437605bea86a6efd1d3724a5101224fa47b4"
+        "digest": "e8f76727f7d7889ce132124d44f2de19a7d7e325962185753d5f5e01d9364877"
       }
     },
     "interface": {
@@ -843,16 +844,16 @@
         ".github/workflows/security.yml": "39a63d97ea0c8de6b7fe9ba77993c9f0600144be06a80c47427c9437976a59ac",
         ".github/workflows/stale.yml": "56d7610f63e1121b4ee30697f8948c698c2586d59c02f5239a174cafc8bddedc",
         "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
-        "vite.config.ts": "b3276e48eb370c0e23a25b7d09f1848d12a4861933804f8330653b8e73df12e8"
+        "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "b216792ee6d6acf869794bdcaba9d35d03a5db4cba36734f848372c663ce901f",
+      "digest": "46737cdefabc12ce58914096d65c191e6759bea9de3692fe2513da037a4d6dc7",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Workflows move to Bun 1.4.4, Node 24.22.2, Helm 3.22.1, a refreshed postgres service digest and newer pinned action revisions; release and digest-sync runtime-image pins match the Dockerfile. Release flow, tags, channels and gates are unchanged; changelog updated.",
+        "note": "Build copies the bundled API reference viewer into dist/api-docs, which the Docker image already includes via dist; no tags, channels, versions or release flow change.",
         "breaking": "none",
         "migration": "",
-        "digest": "b216792ee6d6acf869794bdcaba9d35d03a5db4cba36734f848372c663ce901f"
+        "digest": "46737cdefabc12ce58914096d65c191e6759bea9de3692fe2513da037a4d6dc7"
       }
     },
     "maintenance": {

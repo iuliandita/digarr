@@ -79,8 +79,11 @@ Offset-paginated routes:
 
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
-| GET | `/api/v1/docs` | No | Minimal HTML entry point for API documentation |
+| GET | `/api/v1/docs` | No | Interactive API reference rendered from the OpenAPI document |
+| GET | `/api/v1/docs/redoc.standalone.js` | No | Script the API reference loads; served from the same origin |
 | GET | `/api/v1/docs/openapi.json` | No | OpenAPI 3.1 document covering every route operation |
+
+Open `/api/v1/docs` in a browser for a searchable reference rendered from the OpenAPI document (the [Redoc](https://github.com/Redocly/redoc) standalone bundle, served from your own instance). It has the same public access as `openapi.json`, loads nothing from a third party, and needs JavaScript. Its search runs in a blob worker, so that page has its own Content Security Policy that allows `worker-src blob:`; every other page keeps the app policy. It does not send requests: call the API with your own client.
 
 The OpenAPI document lists every route operation in this reference, with path and query parameters, authentication (`sessionCookie` + `csrfHeader` for cookie mutations, `bearerToken`, cookie-only token management, personal-token-only MCP), problem+json error responses, and "Admin only." on admin operations. Request bodies come from the same Zod validators the routes use. Response schemas are detailed for auth, recommendations, artist blocks, jobs, library reconciliation, and settings probes; most other responses are loose objects, so this Markdown reference stays the detailed contract for response shapes. `bun run check:api-docs` verifies both this reference and the OpenAPI document against the server's route declarations, and checks admin markers against detectable admin guards.
 

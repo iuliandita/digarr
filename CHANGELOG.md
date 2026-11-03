@@ -8,6 +8,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- `/api/v1/docs` now shows a searchable API reference rendered from the OpenAPI document, instead of a page that only linked to it. It is the Redoc standalone bundle (about 0.9 MB, 290 KB gzipped) served from your own instance: nothing loads from a third party, and it has the same public access as `openapi.json`. The page has its own Content Security Policy that allows a blob worker for search; the rest of the app keeps its policy. No configuration or migration.
+
 - Lidarr targets have a **Monitor new albums** setting (All albums, Future releases only, None) for the albums Lidarr finds later when it refreshes an artist. Digarr sends it as Lidarr's `monitorNewItems` with every artist the target adds, including artists an album approval adds unmonitored. Before, Digarr never sent it, so Lidarr fell back to All albums and monitored every album it found later, even for artists approved with no monitoring. All albums stays the default, so existing targets behave as before. `POST /api/v1/lidarr/add` accepts the same `monitorNewItems` field. No migration.
 
 ### Changed
