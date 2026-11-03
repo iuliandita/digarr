@@ -6,7 +6,7 @@ export const ko = {
   'settings.audiomuseDescription': 'AudioMuse-AI 오디오 분석으로 비슷한 아티스트를 찾습니다.',
   'settings.audiomuseToken': 'API 토큰 (선택 사항)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 이상이 필요합니다. 기준 아티스트 이름을 서버로 전송합니다. 자체 서명 인증서의 TLS 검증은 신뢰하는 서버에서만 건너뛰세요.',
+    'AudioMuse-AI v3.6.4 이상이 필요합니다. 자체 인덱스에 있는 아티스트만 반환하므로, 인덱스에 내 라이브러리 밖의 음악이 있어야 새로운 아티스트를 찾을 수 있습니다. 기준 아티스트 이름을 서버로 전송합니다. 자체 서명 인증서의 TLS 검증은 신뢰하는 서버에서만 건너뛰세요.',
   'audiomuse.unreachable': 'AudioMuse-AI에 연결할 수 없습니다.',
   'audiomuse.not_indexed': 'AudioMuse-AI 아티스트 색인이 준비되지 않았습니다.',
   'audiomuse.artist_unknown': '알 수 없는 아티스트이거나 색인에 비슷한 아티스트가 없습니다.',

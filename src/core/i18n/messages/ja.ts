@@ -6,7 +6,7 @@ export const ja = {
   'settings.audiomuseDescription': 'AudioMuse-AIの音声解析で似たアーティストを探します。',
   'settings.audiomuseToken': 'APIトークン（任意）',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4以降が必要です。基準となるアーティスト名をサーバーに送信します。自己署名証明書のTLS検証をスキップする場合は、信頼できるサーバーでのみ有効にしてください。',
+    'AudioMuse-AI v3.6.4以降が必要です。返されるのはAudioMuse-AI自身のインデックスにあるアーティストのみで、インデックスにライブラリ外の音楽が含まれている場合にのみ新しいアーティストが見つかります。基準となるアーティスト名をサーバーに送信します。自己署名証明書のTLS検証をスキップする場合は、信頼できるサーバーでのみ有効にしてください。',
   'audiomuse.unreachable': 'AudioMuse-AIに接続できません。',
   'audiomuse.not_indexed': 'AudioMuse-AIのアーティストインデックスが準備できていません。',
   'audiomuse.artist_unknown': 'アーティストが不明か、インデックスに似たアーティストがありません。',

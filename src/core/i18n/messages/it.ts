@@ -6,7 +6,7 @@ export const it = {
   'settings.audiomuseDescription': 'Trova artisti simili con l’analisi audio di AudioMuse-AI.',
   'settings.audiomuseToken': 'Token API (facoltativo)',
   'settings.audiomuseHelp':
-    'AudioMuse-AI v3.6.4 o successivo. Invia i nomi degli artisti di partenza al tuo server. Disattiva la verifica TLS per certificati autofirmati solo per server di cui ti fidi.',
+    "AudioMuse-AI v3.6.4 o successivo. Restituisce solo artisti del proprio indice, quindi trova nuovi artisti solo se quell'indice include musica non presente nella tua libreria. Invia i nomi degli artisti di partenza al tuo server. Disattiva la verifica TLS per certificati autofirmati solo per server di cui ti fidi.",
   'audiomuse.unreachable': 'AudioMuse-AI non è raggiungibile.',
   'audiomuse.not_indexed': 'L’indice degli artisti di AudioMuse-AI non è pronto.',
   'audiomuse.artist_unknown': 'Artista sconosciuto o nessun artista simile nell’indice.',
