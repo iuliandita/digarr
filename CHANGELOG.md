@@ -6,6 +6,12 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+## v2.2.0 - 2026-11-03
+
+### Upgrade notes
+
+Upgrade from v2.1.x directly. There are no database migrations and no new required settings. Take a normal backup first as usual. The in-app API reference needs nothing from you; it ships in the image. Container images move to Bun 1.4.4, with ports, volumes and configuration unchanged.
+
 ### Added
 
 - `/api/v1/docs` now shows a searchable API reference rendered from the OpenAPI document, instead of a page that only linked to it. It is the Redoc standalone bundle (about 0.9 MB, 290 KB gzipped) served from your own instance: nothing loads from a third party, and it has the same public access as `openapi.json`. The page has its own Content Security Policy that allows a blob worker for search; the rest of the app keeps its policy. No configuration or migration.
