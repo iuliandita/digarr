@@ -814,18 +814,18 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "9bfaedadf5d21fef0d9729a97695e47482493defd292f4ecfa513445b01c148c",
+        "deploy/k8s/rendered.yaml": "1b736a28d8e65f7d4997befcd9a56c48757e082a71f30cbfc883d2886b0cb718",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "3eb4668e5d604f5adc877f721d48c80bcea825c843856d4f637d3b89af5abfcb",
+      "digest": "f45ca1c20138cf8c0872bca2c3cf6e928767389e9f2d40367ae39bc7d34288ba",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/guides/synology.md"],
-        "note": "PostgreSQL 17 Alpine pin moves to the current registry digest in the Helm chart default, rendered snapshot, Compose file, Synology guide, setup script and CI; Dockerfile syntax frontend moves 1.7 to 1.28 (lint-checked with no warnings). Ports, volumes, user, entrypoint and schema are unchanged; changelog and Synology guide updated.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Version-only release bump: chart version and appVersion, rendered manifest labels, and the copyable compose image examples move to 2.2.0. No chart template, default, port, volume, permission or image change; the published image pin in values.yaml and the Unraid template stays on 2.1.0 until the post-release digest sync.",
         "breaking": "none",
         "migration": "",
-        "digest": "3eb4668e5d604f5adc877f721d48c80bcea825c843856d4f637d3b89af5abfcb"
+        "digest": "f45ca1c20138cf8c0872bca2c3cf6e928767389e9f2d40367ae39bc7d34288ba"
       }
     },
     "release": {
@@ -843,17 +843,17 @@
         ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
         ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
-        "package.json": "30949a7a664e14258d35bab11629cf75401b72dd363b23b2e33cdb4871d1e88e",
+        "package.json": "b432134432bcef0c5bfe5056ef4dac8cf05971afc1be35935fd1b06feb96060d",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "6504a035f317e5481226348a04b5fb5c22299db374cd6e7971f7c8d102285a30",
+      "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "The Companion templates workflow now lists open store PRs through the REST pulls endpoint instead of a cross-repository search; it does not touch release tags, channels, image names, signing or promotion.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
+        "note": "v2.2.0 changelog section with upgrade notes (no migrations), README banner and tag examples, and the roadmap current-release paragraph and header are bumped together with package.json, API.md and the chart; tags, channels, signing and promotion flow are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "6504a035f317e5481226348a04b5fb5c22299db374cd6e7971f7c8d102285a30"
+        "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42"
       }
     },
     "maintenance": {
