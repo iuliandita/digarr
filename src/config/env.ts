@@ -110,6 +110,8 @@ export const envConfig = {
   port: envInt('PORT') ?? 3000,
   allowedOrigin: env('ALLOWED_ORIGIN'),
   allowInsecureCookies: envBool('DIGARR_ALLOW_INSECURE_COOKIES', false),
+  // Media-server URLs are user-supplied: LAN only unless the operator opts in to loopback/tailnet.
+  mediaServerAllowLocal: envBool('DIGARR_MEDIA_SERVER_ALLOW_LOCAL', false),
 
   // Lidarr
   lidarrUrl: env('LIDARR_URL'),

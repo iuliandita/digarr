@@ -1,4 +1,9 @@
-import { BlockedTargetError, type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
+import {
+  BlockedTargetError,
+  type GuardedInit,
+  guardedFetch,
+  type TargetPolicy,
+} from '@/core/net/guarded-fetch'
 import { sleep } from '@/core/sleep'
 
 const REDACTED_QUERY_VALUE = '[REDACTED]'
@@ -29,6 +34,8 @@ type HttpClientConfig = {
   retries?: number
   skipTlsVerify?: boolean
   publicIpOnly?: boolean
+  /** Resolve, check and pin every hop against this policy; publicIpOnly implies 'public'. */
+  targetPolicy?: TargetPolicy
   followRedirects?: boolean
   onRequest?: (method: string, url: string) => void
 }
@@ -48,6 +55,7 @@ export function createHttpClient(config: HttpClientConfig) {
     followRedirects = false,
     onRequest,
   } = config
+  const targetPolicy = config.targetPolicy ?? (publicIpOnly ? 'public' : undefined)
   const baseUrl = config.baseUrl.replace(/\/+$/, '')
 
   async function send(
@@ -86,10 +94,13 @@ export function createHttpClient(config: HttpClientConfig) {
           signal: controller.signal,
           ...(skipTlsVerify ? { tls: { rejectUnauthorized: false } } : {}),
         }
-        // Private-network services (Lidarr, media servers on the LAN) are reached unguarded;
-        // publicIpOnly clients get the resolve-and-pin guard on every hop.
-        const res = publicIpOnly
-          ? await guardedFetch(url, init, { maxRedirects: followRedirects ? MAX_REDIRECTS : 0 })
+        // Admin-configured services (Lidarr, slskd) are reached unguarded; clients with a
+        // target policy get the resolve-and-pin guard on every hop.
+        const res = targetPolicy
+          ? await guardedFetch(url, init, {
+              policy: targetPolicy,
+              maxRedirects: followRedirects ? MAX_REDIRECTS : 0,
+            })
           : await fetch(url, {
               ...init,
               redirect: followRedirects ? 'follow' : 'manual',

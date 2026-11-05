@@ -3,6 +3,7 @@ import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
 import { collectLibraryPages } from './library-paging'
+import { mediaServerTargetPolicy } from './media-server-policy'
 
 export type PlexTopArtist = {
   name: string
@@ -185,6 +186,7 @@ export function createPlexClient(
       'X-Plex-Token': token,
       Accept: 'application/json',
     },
+    targetPolicy: mediaServerTargetPolicy(),
   })
   const queue = new PQueue({ concurrency: 3, interval: 1000, intervalCap: 10 })
 
@@ -657,7 +659,8 @@ export function createPlexClient(
         },
       }
     } catch (error: unknown) {
-      return { success: false, message: errMsg(error) }
+      // details.error lets callers decide how much of the upstream failure to show.
+      return { success: false, message: errMsg(error), details: { error } }
     }
   }
 

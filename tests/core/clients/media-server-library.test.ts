@@ -4,6 +4,11 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmbyClient } from '@/core/clients/emby'
 import { createJellyfinClient } from '@/core/clients/jellyfin'
 
+// Media-server clients resolve and pin targets; offline, hostnames resolve to themselves.
+vi.mock('node:dns/promises', () => ({
+  lookup: vi.fn(async (host: string) => ({ address: host, family: 4 })),
+}))
+
 // Emby and Jellyfin share the MediaBrowser API, so library scoping must produce the
 // same requests for both. Protocol-specific behavior stays in emby.test.ts and
 // jellyfin.test.ts.

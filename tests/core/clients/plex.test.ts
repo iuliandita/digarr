@@ -613,6 +613,7 @@ describe('plex client.searchTracks()', () => {
     expect(createHttpClient).toHaveBeenLastCalledWith({
       baseUrl: TEST_URL,
       headers: { 'X-Plex-Token': options.token, Accept: 'application/json' },
+      targetPolicy: 'lan',
     })
     expect(mockGet.mock.calls[0]?.[0]).toBe('/library/sections')
     const request = new URL(String(mockGet.mock.calls[1]?.[0]), TEST_URL)

@@ -103,7 +103,7 @@ The checked source files are `app_artist_similarity.py`, `tasks/artist_gmm_manag
 
 ## Boolean environment settings
 
-`DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `PROXY_AUTH_ENABLED`, and `SKIP_TLS_VERIFY` accept `true`, `false`, `1`, or `0`, in any letter case. Any other value stops startup with an error naming the variable. Earlier releases read every unrecognized value, including `TRUE`, as `false`; check these variables before upgrading. An empty value keeps the default.
+`DIGARR_DISABLE_REGISTRATION`, `DIGARR_ALLOW_INSECURE_COOKIES`, `DIGARR_MEDIA_SERVER_ALLOW_LOCAL`, `PROXY_AUTH_ENABLED`, and `SKIP_TLS_VERIFY` accept `true`, `false`, `1`, or `0`, in any letter case. Any other value stops startup with an error naming the variable. Earlier releases read every unrecognized value, including `TRUE`, as `false`; check these variables before upgrading. An empty value keeps the default.
 
 ## Scrobbler write-access environment
 
@@ -246,6 +246,12 @@ The default remains `https://musicbrainz.org/ws/2` with one request per second. 
 ## Local and OpenAI-compatible AI
 
 For Open WebUI, choose **OpenAI-Compatible** and use a base URL ending in `/api`, such as `http://<open-webui-host>:<port>/api`. Digarr sends requests to Open WebUI's documented `/api/chat/completions` route. Other compatible servers can use their server root or a base ending in `/v1`. If a local model needs longer to load or generate, set `DIGARR_AI_TIMEOUT_SECONDS` to a suitable value, such as `180`, and restart Digarr; the override applies to both connection tests and recommendation requests.
+
+## Media server addresses
+
+Any user can save their own Plex, Jellyfin, Emby or Subsonic URL, so Digarr checks where those requests go. Public addresses and private LAN ranges (10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16) work by default. Loopback (`localhost`, `127.0.0.1`, `::1`), tailnet/CGNAT (100.64.0.0/10) and IPv6 ULA addresses are refused when you save or test the connection, and requests to them fail. Hostnames are resolved before each request and the connection is pinned to the checked address, including redirects.
+
+If your media server runs on the same host as Digarr or is only reachable over Tailscale, set `DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true` and restart. Cloud metadata and other link-local addresses stay blocked either way. Lidarr and slskd are admin-only settings and are not affected.
 
 ## Connecting Plex listeners
 

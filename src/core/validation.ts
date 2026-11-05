@@ -257,6 +257,25 @@ export function isRfc1918(address: string): boolean {
   return false
 }
 
+/**
+ * Addresses an operator may run a self-hosted service on: RFC 1918, loopback, CGNAT
+ * (Tailscale) and IPv6 ULA. Link-local/cloud metadata is deliberately excluded.
+ */
+export function isLocalServiceIp(address: string): boolean {
+  const normalized = normalizeIp(address)
+  const ipv4 = parseIpv4(normalized)
+  if (ipv4 !== null) {
+    const o1 = (ipv4 >>> 24) & 0xff
+    const o2 = (ipv4 >>> 16) & 0xff
+    return isRfc1918(normalized) || o1 === 127 || (o1 === 100 && o2 >= 64 && o2 <= 127)
+  }
+  const ipv6 = parseIpv6(normalized)
+  if (ipv6 === null) return false
+  const isLoopback = ipv6.slice(0, 7).every((group) => group === 0) && ipv6[7] === 1
+  const first = ipv6[0] ?? 0
+  return isLoopback || (first >= 0xfc00 && first <= 0xfdff)
+}
+
 export function isPrivateUrl(urlString: string): boolean {
   try {
     const hostname = getLookupHostname(urlString)

@@ -3,6 +3,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createEmbyClient } from '@/core/clients/emby'
 
+// Media-server clients resolve and pin targets; offline, hostnames resolve to themselves.
+vi.mock('node:dns/promises', () => ({
+  lookup: vi.fn(async (host: string) => ({ address: host, family: 4 })),
+}))
+
 const queueMocks = vi.hoisted(() => {
   const add = vi.fn((task: () => unknown) => task())
   return { add, create: vi.fn(() => ({ add })) }

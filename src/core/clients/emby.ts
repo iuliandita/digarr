@@ -17,6 +17,7 @@ import {
   trackSearchLimit,
   trackSearchPath,
 } from './media-browser'
+import { mediaServerTargetPolicy } from './media-server-policy'
 import { createMediaServerQueue } from './media-server-queue'
 
 export type EmbyMusicLibrary = MediaBrowserLibrary
@@ -37,6 +38,7 @@ export function createEmbyClient(
       'X-Emby-Token': apiKey,
     },
     skipTlsVerify: options?.skipTlsVerify,
+    targetPolicy: mediaServerTargetPolicy(),
   })
 
   const queue = createMediaServerQueue()
