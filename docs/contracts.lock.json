@@ -832,21 +832,21 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "1b736a28d8e65f7d4997befcd9a56c48757e082a71f30cbfc883d2886b0cb718",
+        "deploy/k8s/rendered.yaml": "1c4579b270734f45fdae210e0a70bbcb65daf5302399475f8a0195e86bb938dc",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "9623277af4f0217928b9452609a804af84eef3ffd65d159176319fc568b72c4c",
+      "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009",
       "review": {
         "outcome": "docs-updated",
         "docs": [
           "docs/OPERATIONS.md",
           "CHANGELOG.md"
         ],
-        "note": "Docker env example lists the new optional DIGARR_MEDIA_SERVER_ALLOW_LOCAL setting documented in OPERATIONS; no port, volume or image change.",
+        "note": "Chart and rendered manifest move to 2.2.1; Docker env example lists the optional DIGARR_MEDIA_SERVER_ALLOW_LOCAL setting documented in OPERATIONS; no port, volume or image layout change.",
         "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
-        "digest": "9623277af4f0217928b9452609a804af84eef3ffd65d159176319fc568b72c4c"
+        "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009"
       }
     },
     "release": {
@@ -864,10 +864,10 @@
         ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
         ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
-        "package.json": "b432134432bcef0c5bfe5056ef4dac8cf05971afc1be35935fd1b06feb96060d",
+        "package.json": "16501720bd7d014f59915d6a37974b23199dfb854dc731e2dec15f803a9be105",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42",
+      "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975",
       "review": {
         "outcome": "docs-updated",
         "docs": [
@@ -875,10 +875,10 @@
           "README.md",
           "docs/ROADMAP.md"
         ],
-        "note": "v2.2.0 changelog section with upgrade notes (no migrations), README banner and tag examples, and the roadmap current-release paragraph and header are bumped together with package.json, API.md and the chart; tags, channels, signing and promotion flow are unchanged.",
-        "breaking": "none",
+        "note": "v2.2.1 security release: version surfaces, changelog section, README banner and roadmap header updated.",
+        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
-        "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42"
+        "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975"
       }
     },
     "maintenance": {

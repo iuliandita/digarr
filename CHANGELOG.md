@@ -6,6 +6,8 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+## v2.2.1 - 2026-11-06
+
 ### Upgrade notes
 
 Plex, Jellyfin, Emby and Subsonic connections no longer reach loopback (`localhost`, `127.0.0.1`, `::1`), tailnet/CGNAT (100.64.0.0/10) or IPv6 ULA addresses by default. Public addresses and private LAN ranges (10/8, 172.16/12, 192.168/16) keep working, which covers Docker service names and Kubernetes services. If your media server runs on the same host as Digarr or is only reachable over Tailscale, set `DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true` and restart; otherwise saving or testing those connections fails and library sync and listening sources stop reaching them. Rollback to v2.2.0 restores the old behavior with no data changes. No database migrations.

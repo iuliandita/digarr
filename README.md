@@ -16,7 +16,7 @@
 **Self-hosted music discovery for your library.** Digarr finds artists and albums from your listening history or a mood. Review the suggestions, listen to previews, then send what you like to Lidarr, slskd, or a playlist. Bring your own AI provider or local model. Lidarr is optional.
 
 > [!NOTE]
-> **v2.2.0 is out.** It adds a searchable in-app API reference at `/api/v1/docs`, a Monitor new albums setting for Lidarr targets, support for Claude Sonnet 5.5 and Opus 5.5 in AI recommendations, a case-insensitive AudioMuse artist fallback, a new logo, and a dark-theme fix for the Spotify player. There are no migrations; read the [upgrade notes](CHANGELOG.md#v220---2026-11-03) first. Coming from v2.0.x, apply the [v2.1.0 upgrade notes](CHANGELOG.md#v210---2026-10-23) as well, and from v1.19.0 follow the [v2.0.x upgrade procedure](docs/OPERATIONS.md#upgrading-from-v1190-to-v200) first.
+> **v2.2.1 is out.** It is a security release: media server connections are limited to public and private LAN addresses unless `DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true` is set, setup completion needs an admin once an account exists, and several ways to stall the server are closed. There are no migrations; read the [upgrade notes](CHANGELOG.md#v221---2026-11-06) first if your media server is on localhost or Tailscale. Coming from v2.1.x, apply the [v2.2.0 upgrade notes](CHANGELOG.md#v220---2026-11-03) as well, and from v1.19.0 follow the [v2.0.x upgrade procedure](docs/OPERATIONS.md#upgrading-from-v1190-to-v200) first.
 
 ![Dashboard](docs/screenshots/dashboard-dark.png)
 
@@ -78,7 +78,7 @@ Open `http://localhost:3000` and complete setup. Create the first account or sig
 
 For unattended first boot, set both `DIGARR_INITIAL_USERNAME` and `DIGARR_INITIAL_PASSWORD` before starting. The configured admin must be created before HTTP opens; partial credentials or a password shorter than 12 characters stop startup. Leave both unset for manual registration. These settings never reset an existing account. Restrict access until you verify the intended admin. See [first-boot access](docs/AUTHENTICATION.md#users-and-targets).
 
-Use `:latest` for the newest release, a minor tag like `:2.2` for patch updates, or a specific patch like `:2.2.0` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
+Use `:latest` for the newest release, a minor tag like `:2.2` for patch updates, or a specific patch like `:2.2.1` to pin a release. Only the newest release receives security fixes. See [image channels](deploy/docker/README.md#image-channels).
 
 For Compose, backend selection, and updates, follow the [Docker guide](deploy/docker/README.md). Keep one app instance per database, verify its backend at `/health`, and [back up before upgrading](deploy/docker/README.md#back-up-and-update).
 
