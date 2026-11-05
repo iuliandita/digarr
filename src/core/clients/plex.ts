@@ -2,6 +2,7 @@ import PQueue from 'p-queue'
 import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import { collectLibraryPages } from './library-paging'
 
 export type PlexTopArtist = {
   name: string
@@ -532,72 +533,67 @@ export function createPlexClient(
   async function getAllArtists(options?: { pageSize?: number }): Promise<PlexLibraryArtist[]> {
     const sectionId = await getMusicSectionId()
     const pageSize = options?.pageSize ?? 200
-    const all: PlexLibraryArtist[] = []
-    let start = 0
-    let total = Number.POSITIVE_INFINITY
-
-    while (start < total) {
-      const params = new URLSearchParams({
-        type: '8',
-        sort: 'titleSort',
-        'X-Plex-Container-Start': String(start),
-        'X-Plex-Container-Size': String(pageSize),
-      })
-      const res = await get<PlexAllArtistsResponse>(`/library/sections/${sectionId}/all?${params}`)
-      const metadata = res.MediaContainer.Metadata ?? []
-      total = res.MediaContainer.totalSize ?? metadata.length
-      for (const item of metadata) {
-        all.push({
-          ratingKey: item.ratingKey,
-          name: item.title,
-          genres: (item.Genre ?? []).map((genre) => genre.tag),
+    return collectLibraryPages(
+      { server: 'Plex', kind: 'artist', totalField: 'totalSize' },
+      pageSize,
+      async (start) => {
+        const params = new URLSearchParams({
+          type: '8',
+          sort: 'titleSort',
+          'X-Plex-Container-Start': String(start),
+          'X-Plex-Container-Size': String(pageSize),
         })
-      }
-      if (metadata.length === 0) break
-      start += metadata.length
-    }
-    return all
+        const res = await get<PlexAllArtistsResponse>(
+          `/library/sections/${sectionId}/all?${params}`,
+        )
+        return {
+          total: res.MediaContainer.totalSize,
+          items: (res.MediaContainer.Metadata ?? []).map((item) => ({
+            ratingKey: item.ratingKey,
+            name: item.title,
+            genres: (item.Genre ?? []).map((genre) => genre.tag),
+          })),
+        }
+      },
+    )
   }
 
   async function getAlbumsForArtist(artistRatingKey: string): Promise<PlexLibraryAlbum[]> {
     const pageSize = 200
-    const all: PlexLibraryAlbum[] = []
-    let start = 0
-    let total: number | undefined
-
-    while (start < (total ?? Number.POSITIVE_INFINITY)) {
-      const params = new URLSearchParams({
-        type: '9',
-        'X-Plex-Container-Start': String(start),
-        'X-Plex-Container-Size': String(pageSize),
-      })
-      const res = await get<{
-        MediaContainer: {
-          totalSize?: number
-          Metadata?: Array<{
-            ratingKey: string
-            parentRatingKey: string
-            title: string
-            year?: number
-          }>
-        }
-      }>(`/library/metadata/${artistRatingKey}/children?${params}`)
-      const metadata = res.MediaContainer.Metadata ?? []
-      if (res.MediaContainer.totalSize != null) total = res.MediaContainer.totalSize
-      for (const item of metadata) {
-        all.push({
-          ratingKey: item.ratingKey,
-          artistRatingKey: item.parentRatingKey,
-          title: item.title,
-          releaseYear: item.year,
-          primaryType: 'Album',
+    return collectLibraryPages(
+      { server: 'Plex', kind: 'album', totalField: 'totalSize' },
+      pageSize,
+      async (start) => {
+        const params = new URLSearchParams({
+          type: '9',
+          'X-Plex-Container-Start': String(start),
+          'X-Plex-Container-Size': String(pageSize),
         })
-      }
-      if (metadata.length === 0) break
-      start += metadata.length
-      if (total == null && metadata.length < pageSize) break
-    }
-    return all
+        const res = await get<{
+          MediaContainer: {
+            totalSize?: number
+            Metadata?: Array<{
+              ratingKey: string
+              parentRatingKey: string
+              title: string
+              year?: number
+            }>
+          }
+        }>(`/library/metadata/${artistRatingKey}/children?${params}`)
+        return {
+          total: res.MediaContainer.totalSize,
+          items: (res.MediaContainer.Metadata ?? []).map(
+            (item): PlexLibraryAlbum => ({
+              ratingKey: item.ratingKey,
+              artistRatingKey: item.parentRatingKey,
+              title: item.title,
+              releaseYear: item.year,
+              primaryType: 'Album',
+            }),
+          ),
+        }
+      },
+    )
   }
 
   async function testConnection(): Promise<ServiceTestResult> {
