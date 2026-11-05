@@ -1,9 +1,15 @@
 import { Hono } from 'hono'
+import { envConfig } from '@/config/env'
 import type { SetupConfig } from '@/db/queries/settings'
-import { SetupAlreadyCompleteError, SetupOwnerRequiredError } from '@/db/queries/setup'
+import {
+  SetupAdminRequiredError,
+  SetupAlreadyCompleteError,
+  SetupOwnerRequiredError,
+} from '@/db/queries/setup'
 import type { AppDependencies } from '@/server'
-import { notAuthenticated } from '@/server/helpers/auth-problems'
+import { adminRequired, notAuthenticated } from '@/server/helpers/auth-problems'
 import { problem } from '@/server/helpers/problem'
+import { resolveAdmin } from '@/server/middleware/admin-guard'
 import { setupCompleteSchema } from '@/server/schemas/setup'
 import { zJson } from '@/server/schemas/validator'
 import type { HonoEnv } from '@/server/types'
@@ -66,6 +72,11 @@ export function setupRoutes(deps: AppDependencies) {
     }
 
     const userId = c.get('userId')
+    const firstRun = !envConfig.authToken && (await deps.getUserCount()) === 0
+    if (!firstRun && !userId) return notAuthenticated(c)
+    // Admin only when signed in or past first run; anonymous first-run bootstrap stays open.
+    const isAdmin = userId ? await resolveAdmin(c, deps.getUserById) : false
+    if (userId && !isAdmin) return adminRequired(c)
     // Public bootstrap stays AI-only; anything else needs the signed-in owner
     if ((sanitized.lidarrUrl || body.embyUrl || !hasValue(sanitized.aiProvider)) && !userId) {
       return notAuthenticated(c)
@@ -86,6 +97,7 @@ export function setupRoutes(deps: AppDependencies) {
       })
     } catch (error) {
       if (error instanceof SetupOwnerRequiredError) return notAuthenticated(c)
+      if (error instanceof SetupAdminRequiredError) return adminRequired(c)
       if (error instanceof SetupAlreadyCompleteError) {
         return c.json({ error: 'Setup already complete' }, 409)
       }
