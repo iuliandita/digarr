@@ -306,6 +306,7 @@ export function createApp(deps: AppDependencies) {
     '/api/v1/pipeline/quick-discover',
     rateLimiter({ windowMs: 60_000, max: 5, keyPrefix: 'qdsc' }),
   )
+  app.use('/api/v1/albums/*', rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'albums' }))
   app.use('/api/v1/pipeline/rescan', rateLimiter({ windowMs: 60_000, max: 2, keyPrefix: 'rscn' }))
   // Bound OAuth initiate: it writes pending state and, for TIDAL, drives traffic
   // against the instance-wide app any authenticated user can reach.
