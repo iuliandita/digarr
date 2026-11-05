@@ -35,8 +35,8 @@ describe('initial admin bootstrap', () => {
     expect(created[0]).toMatchObject({ username: credentials.initialUsername, isAdmin: true })
     const passwordHash = created[0]?.passwordHash ?? ''
     expect(passwordHash).not.toBe(credentials.initialPassword)
-    expect(auth.verifyPassword(credentials.initialPassword, passwordHash)).toBe(true)
-    expect(auth.verifyPassword(credentials.initialPassword.trim(), passwordHash)).toBe(false)
+    expect(await auth.verifyPassword(credentials.initialPassword, passwordHash)).toBe(true)
+    expect(await auth.verifyPassword(credentials.initialPassword.trim(), passwordHash)).toBe(false)
   })
 
   it.each([
@@ -73,7 +73,7 @@ describe('initial admin bootstrap', () => {
     'fails closed when bootstrap encounters %s',
     async (failure) => {
       const count = vi.spyOn(userQueries, 'getUserCount').mockResolvedValue(0)
-      const hash = vi.spyOn(auth, 'hashPassword').mockReturnValue('test-hash')
+      const hash = vi.spyOn(auth, 'hashPassword').mockResolvedValue('test-hash')
       const insert = vi.spyOn(userQueries, 'createUser').mockResolvedValue({
         username: config.initialUsername,
         isAdmin: true,

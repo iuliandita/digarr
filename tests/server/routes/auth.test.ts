@@ -398,7 +398,7 @@ describe('POST /api/v1/auth/register', () => {
 
 describe('POST /api/v1/auth/login', () => {
   it('returns token on successful login', async () => {
-    const storedHash = hashPassword('correctpassword')
+    const storedHash = await hashPassword('correctpassword')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -421,7 +421,7 @@ describe('POST /api/v1/auth/login', () => {
   })
 
   it('issues a cookie-only session and replaces only the presented browser cookie', async () => {
-    const storedHash = hashPassword('correctpassword')
+    const storedHash = await hashPassword('correctpassword')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -456,7 +456,7 @@ describe('POST /api/v1/auth/login', () => {
   })
 
   it('returns 401 for wrong password', async () => {
-    const storedHash = hashPassword('correctpassword')
+    const storedHash = await hashPassword('correctpassword')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -485,7 +485,7 @@ describe('POST /api/v1/auth/login', () => {
     const createForPassword = vi.fn(async () => {
       throw new PasswordCredentialConflictError()
     })
-    const storedHash = hashPassword('correct-password')
+    const storedHash = await hashPassword('correct-password')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -585,7 +585,7 @@ describe('GET /api/v1/auth/oidc/login rate limiting', () => {
 
 describe('session token authentication', () => {
   it('session token from login grants access to protected routes', async () => {
-    const storedHash = hashPassword('password1234')
+    const storedHash = await hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -737,7 +737,7 @@ describe('POST /api/v1/auth/session/migrate', () => {
 
 describe('POST /api/v1/auth/logout', () => {
   it('invalidates the session token', async () => {
-    const storedHash = hashPassword('password1234')
+    const storedHash = await hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -769,7 +769,7 @@ describe('POST /api/v1/auth/logout', () => {
   })
 
   it('clears the session cookie on logout', async () => {
-    const storedHash = hashPassword('password1234')
+    const storedHash = await hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -799,7 +799,7 @@ describe('POST /api/v1/auth/logout', () => {
   })
 
   it('deletes session from cookie when no Bearer header is present', async () => {
-    const storedHash = hashPassword('password1234')
+    const storedHash = await hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -875,7 +875,7 @@ describe('POST /api/v1/auth/logout', () => {
 
 describe('GET /api/v1/auth/me', () => {
   it('returns current user when authenticated via session', async () => {
-    const storedHash = hashPassword('password1234')
+    const storedHash = await hashPassword('password1234')
     const app = createApp(
       makeDeps({
         getUserByUsername: vi.fn(async () => makeCredentials(storedHash)),
@@ -1035,7 +1035,7 @@ describe('PATCH /api/v1/auth/me/locale', () => {
 
 describe('POST /api/v1/auth/change-password', () => {
   it('changes the password for a session-authenticated user', async () => {
-    const storedHash = hashPassword('oldpassword123')
+    const storedHash = await hashPassword('oldpassword123')
     const changePasswordAndReset = vi.fn(
       async (userId: number, _e: string, _n: string, token: string) => {
         await clearUserSessions(userId)
@@ -1086,7 +1086,7 @@ describe('POST /api/v1/auth/change-password', () => {
   }, 10_000)
 
   it('returns only a fresh cookie for a cookie-authenticated password change', async () => {
-    const storedHash = hashPassword('oldpassword123')
+    const storedHash = await hashPassword('oldpassword123')
     const app = createApp(
       makeDeps({
         getUserCount: vi.fn(async () => 1),
@@ -1121,7 +1121,7 @@ describe('POST /api/v1/auth/change-password', () => {
   })
 
   it('returns only a fresh cookie for a proxy-authenticated password change', async () => {
-    const storedHash = hashPassword('oldpassword123')
+    const storedHash = await hashPassword('oldpassword123')
     const app = new Hono<HonoEnv>()
     app.use('*', async (c, next) => {
       c.set('userId', 1)
@@ -1188,7 +1188,7 @@ describe('POST /api/v1/auth/change-password', () => {
 
   it('rejects a cookie-mode password change with an invalid Origin before reaching the store', async () => {
     const changePasswordAndReset = vi.fn(async () => {})
-    const storedHash = hashPassword('oldpassword123')
+    const storedHash = await hashPassword('oldpassword123')
     const app = createApp(
       makeDeps({
         passwordSessions: { createForPassword: vi.fn(), changePasswordAndReset },
@@ -1259,7 +1259,7 @@ describe('POST /api/v1/auth/change-password', () => {
   })
 
   it('changes neither password nor sessions when password CAS loses', async () => {
-    const storedHash = hashPassword('oldpassword123')
+    const storedHash = await hashPassword('oldpassword123')
     const changePasswordAndReset = vi.fn(async () => {
       throw new PasswordCredentialConflictError()
     })
@@ -1505,7 +1505,7 @@ describe('user response projection', () => {
     const row = {
       id: 1,
       username: 'testuser',
-      passwordHash: hashPassword('password1234'),
+      passwordHash: await hashPassword('password1234'),
       isAdmin: false,
       preferredLocale: null,
       plexUrl: 'http://plex.local:32400',

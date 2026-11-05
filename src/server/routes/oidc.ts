@@ -117,7 +117,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
     }
 
     const { currentPassword } = c.req.valid('json')
-    if (!verifyPassword(currentPassword, user.passwordHash)) {
+    if (!(await verifyPassword(currentPassword, user.passwordHash))) {
       return problem(
         c,
         'auth-password-incorrect',
@@ -233,7 +233,7 @@ export function oidcRoutes(deps: OidcRouteDeps) {
         user = await deps.createUser(
           {
             username,
-            passwordHash: hashPassword(crypto.randomUUID()),
+            passwordHash: await hashPassword(crypto.randomUUID()),
             email,
             oidcSubject: result.claims.sub,
             oidcIssuer: result.claims.iss,

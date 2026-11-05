@@ -180,7 +180,7 @@ export function authRoutes(deps: AppDependencies) {
     const cookie = cookieModeRequested(c)
     const preparedCookie = cookie ? prepareSessionCookie(c) : false
 
-    const passwordHash = hashPassword(password)
+    const passwordHash = await hashPassword(password)
     let user: Awaited<ReturnType<typeof deps.createUser>>
     try {
       user = await deps.createUser(
@@ -240,11 +240,11 @@ export function authRoutes(deps: AppDependencies) {
     }
 
     const user = await deps.getUserByUsername(username)
-    // Always run scrypt once to equalize response time between "user missing"
+    // Always run scrypt to equalize response time between "user missing"
     // and "user exists but password wrong". Without this, a username enumeration
     // oracle exists via timing.
-    const hashToVerify = user?.passwordHash ?? DUMMY_PASSWORD_HASH
-    const passwordOk = verifyPassword(password, hashToVerify)
+    const hashToVerify = user?.passwordHash ?? (await DUMMY_PASSWORD_HASH)
+    const passwordOk = await verifyPassword(password, hashToVerify)
     if (!user || !passwordOk) {
       return problem(
         c,
@@ -467,7 +467,7 @@ export function authRoutes(deps: AppDependencies) {
 
     // Need the full row with passwordHash for verification
     const fullUser = await deps.getUserByUsername(user.username)
-    if (!fullUser || !verifyPassword(currentPassword, fullUser.passwordHash)) {
+    if (!fullUser || !(await verifyPassword(currentPassword, fullUser.passwordHash))) {
       return problem(
         c,
         'auth-password-incorrect',
@@ -482,7 +482,7 @@ export function authRoutes(deps: AppDependencies) {
     const cookieRequested =
       c.get('authMethod') === 'session-cookie' || c.get('authMethod') === 'proxy'
     const preparedCookie = cookieRequested ? prepareSessionCookie(c) : false
-    const newHash = hashPassword(newPassword)
+    const newHash = await hashPassword(newPassword)
     try {
       const newToken = await changePasswordSession(
         c,

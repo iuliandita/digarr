@@ -17,7 +17,7 @@ vi.mock('@/core/sessions', () => ({
 }))
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'test-token-123'),
-  hashPassword: vi.fn(() => 'dummy-hash'),
+  hashPassword: vi.fn(async () => 'dummy-hash'),
 }))
 
 describe('proxyAuthMiddleware', () => {

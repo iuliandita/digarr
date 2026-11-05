@@ -23,8 +23,8 @@ vi.mock('@/config/env', async (importOriginal) => {
 
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'race-test-token'),
-  hashPassword: vi.fn(() => 'mocked-hash'),
-  verifyPassword: vi.fn(() => false),
+  hashPassword: vi.fn(async () => 'mocked-hash'),
+  verifyPassword: vi.fn(async () => false),
 }))
 
 vi.mock('@/core/sessions', async (importOriginal) => {
