@@ -40,6 +40,19 @@ describe('parsePlaylistFile', () => {
       unreadable: 0,
     },
     {
+      name: 'XSPF attributes, tag whitespace, case sensitivity and first creator',
+      format: 'xspf' as const,
+      text:
+        '<playlist version="1" ><trackList>' +
+        '<track id="1" ><CREATOR>Ignored</CREATOR><creator role="artist" >Bj&#246;rk</creator \n>' +
+        '<creator>Second creator</creator></track \t>' +
+        '<track><Creator>Ignored</Creator></track>' +
+        '<TRACK><creator>Ignored</creator></TRACK>' +
+        '</trackList></playlist >',
+      artists: ['Björk'],
+      unreadable: 1,
+    },
+    {
       name: 'XSPF creator elements with entities and CDATA',
       format: 'xspf' as const,
       text:
@@ -58,6 +71,25 @@ describe('parsePlaylistFile', () => {
   it('caps artists at maxArtists and dedupes before capping', () => {
     const text = `#EXTM3U\n${['A', 'A', 'B', 'C'].map((a) => `#EXTINF:1,${a} - t\nx.mp3`).join('\n')}`
     expect(parsePlaylistFile(text, 'm3u', 2).artists).toEqual(['A', 'B'])
+  })
+
+  it.each([
+    {
+      name: 'unterminated track openers after closers',
+      text: `<playlist></playlist>${'</track>'.repeat(69_866)}${'<track '.repeat(69_866)}`,
+      unreadable: 0,
+    },
+    {
+      name: 'unterminated creator openers',
+      text: `<playlist><track>${'<creator '.repeat(116_000)}</track></playlist>`,
+      unreadable: 1,
+    },
+  ])('parses near-1 MiB XSPF with $name in under a second', ({ text, unreadable }) => {
+    const start = performance.now()
+    const result = parsePlaylistFile(text, 'xspf', 500)
+    const elapsed = performance.now() - start
+    expect(result).toEqual({ artists: [], unreadable })
+    expect(elapsed).toBeLessThan(1000)
   })
 
   it.each([
