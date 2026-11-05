@@ -1068,13 +1068,13 @@ describe('POST /api/v1/settings/test/:service', () => {
   it('allows admins to test private HTTP service URLs', async () => {
     const app = createApp(makeDeps())
     const res = await authedJson(app, '/api/v1/settings/test/emby', 'POST', {
-      url: 'http://127.0.0.1:8096',
+      url: 'http://192.168.1.20:8096',
       apiKey: 'key',
       userId: 'user-1',
     })
 
     expect(res.status).toBe(200)
-    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://127.0.0.1:8096', 'key', 'user-1', {
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://192.168.1.20:8096', 'key', 'user-1', {
       skipTlsVerify: false,
       libraryId: null,
     })
