@@ -8,10 +8,7 @@
       "digest": "75c82ad67f55084ff5d00187cc6db596bd581962cb6976fff80460a69831158d",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/guides/unraid.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/guides/unraid.md", "CHANGELOG.md"],
         "note": "Added a Backups path mapping for /app/backups to the bundled template because the image declares that volume and container updates orphaned pre-migration backups. The Unraid guide says the bundled template maps both paths and how to add the backups path to store templates that lack it. Community copy needs the same path after its open PR lands.",
         "breaking": "none",
         "migration": "",
@@ -227,11 +224,7 @@
       "digest": "b09c7b286f57ee5832d67a3cc033a964e6105a0538ced10470a4db37f3a20e1e",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          ".env.example",
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Document DIGARR_MEDIA_SERVER_ALLOW_LOCAL, its default and the restart requirement.",
         "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses stop working until DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true is set; no data changes, rollback restores the old behavior.",
         "migration": "",
@@ -279,10 +272,7 @@
       "digest": "9d23266c71db37b79275d14882c7d4e13c86040be1af362423422a6c937b4c40",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Setup completion now requires an admin once a user exists; password hashing moved off the event loop with the same hash format.",
         "breaking": "none",
         "migration": "",
@@ -355,10 +345,7 @@
       "digest": "2771e3bfe5c2004d343be7d29d15d036c43ea921696de394ceacb27241fc30b8",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/API.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/API.md", "CHANGELOG.md"],
         "note": "Albums rate limit, setup/complete admin requirement and the media server URL 400 on save are documented.",
         "breaking": "none",
         "migration": "",
@@ -789,10 +776,7 @@
       "digest": "7d5a47f51329445ce8deacd405a42900058c404904a7156fc85b5a88fd95b325",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Media-server destination policy documented in OPERATIONS; paging ceiling, linear XSPF parsing and MusicBrainz cancellation noted in the changelog.",
         "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
@@ -839,10 +823,7 @@
       "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "docs/OPERATIONS.md",
-          "CHANGELOG.md"
-        ],
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
         "note": "Chart and rendered manifest move to 2.2.1; Docker env example lists the optional DIGARR_MEDIA_SERVER_ALLOW_LOCAL setting documented in OPERATIONS; no port, volume or image layout change.",
         "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
@@ -870,11 +851,7 @@
       "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "README.md",
-          "docs/ROADMAP.md"
-        ],
+        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
         "note": "v2.2.1 security release: version surfaces, changelog section, README banner and roadmap header updated.",
         "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
@@ -912,10 +889,7 @@
       "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a",
       "review": {
         "outcome": "docs-updated",
-        "docs": [
-          "CHANGELOG.md",
-          "CONTRIBUTING.md"
-        ],
+        "docs": ["CHANGELOG.md", "CONTRIBUTING.md"],
         "note": "Dev setup script pins the same current postgres:17-alpine digest as CI, Compose and the Helm chart; syntax checked, behavior and flags unchanged. Contributor guide shows the same digest and the changelog records the pin move.",
         "breaking": "none",
         "migration": "",
