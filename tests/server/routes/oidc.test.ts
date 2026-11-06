@@ -22,8 +22,8 @@ vi.mock('@/config/env', () => ({ envConfig }))
 
 vi.mock('@/core/auth', () => ({
   generateSessionToken: vi.fn(() => 'mock-session-token-123'),
-  hashPassword: vi.fn(() => 'mocked-hash'),
-  verifyPassword: vi.fn(() => true),
+  hashPassword: vi.fn(async () => 'mocked-hash'),
+  verifyPassword: vi.fn(async () => true),
 }))
 
 function makeMockOidcService() {
@@ -214,7 +214,7 @@ describe('POST /api/v1/auth/oidc/link', () => {
   })
 
   it('rejects a wrong current password without allocating OIDC state', async () => {
-    vi.mocked(verifyPassword).mockReturnValueOnce(false)
+    vi.mocked(verifyPassword).mockResolvedValueOnce(false)
     const deps = makeDeps()
     const app = createTestApp(deps)
 

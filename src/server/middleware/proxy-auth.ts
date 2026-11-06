@@ -81,7 +81,7 @@ export function proxyAuthMiddleware(deps: ProxyAuthDeps) {
     if (!user) {
       preparedCookie = prepareSessionCookie(c)
       // Generate random password hash - proxy users authenticate via headers, not passwords
-      const randomHash = hashPassword(crypto.randomUUID())
+      const randomHash = await hashPassword(crypto.randomUUID())
       try {
         user = await deps.createUser(
           {

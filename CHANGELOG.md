@@ -6,6 +6,21 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+## v2.2.1 - 2026-11-06
+
+### Upgrade notes
+
+Plex, Jellyfin, Emby and Subsonic connections no longer reach loopback (`localhost`, `127.0.0.1`, `::1`), tailnet/CGNAT (100.64.0.0/10) or IPv6 ULA addresses by default. Public addresses and private LAN ranges (10/8, 172.16/12, 192.168/16) keep working, which covers Docker service names and Kubernetes services. If your media server runs on the same host as Digarr or is only reachable over Tailscale, set `DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true` and restart; otherwise saving or testing those connections fails and library sync and listening sources stop reaching them. Rollback to v2.2.0 restores the old behavior with no data changes. No database migrations.
+
+### Security
+
+- Media server URLs can be set by any user, so requests to them now go through the same resolve-check-and-pin guard as notifications, on every redirect hop. Cloud metadata and link-local addresses are always blocked. Saving a blocked URL returns `400`, and the Plex connection test no longer shows the remote response body to non-admin users. See [Media server addresses](docs/OPERATIONS.md#media-server-addresses).
+- Password checks run off the event loop and one at a time, so failed logins no longer stall other requests and health checks.
+- XSPF playlist import parses in linear time; a crafted file could previously tie up the server for tens of seconds.
+- Plex and Jellyfin library sync stop at the same 1,000-page / 200,000-item ceiling Emby already used, and reject an invalid or oversized reported total.
+- `GET /api/v1/albums/:mbid` is limited to 30 requests per minute, and MusicBrainz work for a request that disconnects is cancelled instead of staying queued ahead of other users.
+- Anonymous `POST /api/v1/setup/complete` is accepted only on a true first run (no users, no `DIGARR_AUTH_TOKEN`). Once an account exists, completing setup needs a signed-in admin.
+
 ## v2.2.0 - 2026-11-03
 
 ### Upgrade notes

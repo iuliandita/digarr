@@ -48,7 +48,7 @@ export function userRoutes(deps: AppDependencies) {
       return c.json({ error: 'Username already taken' }, 409)
     }
 
-    const passwordHash = hashPassword(password)
+    const passwordHash = await hashPassword(password)
     const user = await deps.createUser({
       username,
       passwordHash,

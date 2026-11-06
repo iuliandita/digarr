@@ -114,11 +114,38 @@ function parseXspfEntries(text: string): (string | null)[] {
     throw new PlaylistFormatError('Invalid XSPF file')
   }
 
-  return [...body.matchAll(/<track\b[^>]*>([\s\S]*?)<\/track\s*>/g)].map((track) => {
-    const creator = /<creator\b[^>]*>([\s\S]*?)<\/creator\s*>/.exec(track[1] ?? '')
-    if (!creator) return null
-    return xmlText(creator[1] ?? '').trim() || null
+  return [...tagBodies(body, 'track')].map((track) => {
+    const creator = tagBodies(track, 'creator').next()
+    if (creator.done) return null
+    return xmlText(creator.value).trim() || null
   })
+}
+
+function* tagBodies(text: string, tag: string): Generator<string> {
+  const open = `<${tag}`
+  const close = `</${tag}`
+  let cursor = 0
+  while (cursor < text.length) {
+    const start = text.indexOf(open, cursor)
+    if (start === -1) return
+    cursor = start + open.length
+    if (/\w/.test(text.charAt(cursor))) continue
+    const gt = text.indexOf('>', cursor)
+    if (gt === -1) return
+
+    let end = text.indexOf(close, gt + 1)
+    while (end !== -1) {
+      let endGt = end + close.length
+      while (/\s/.test(text.charAt(endGt))) endGt++
+      if (text.charAt(endGt) === '>') {
+        yield text.slice(gt + 1, end)
+        cursor = endGt + 1
+        break
+      }
+      end = text.indexOf(close, endGt)
+    }
+    if (end === -1) return
+  }
 }
 
 function xmlText(raw: string): string {

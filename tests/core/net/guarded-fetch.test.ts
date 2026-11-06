@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { BlockedTargetError, type GuardedInit, guardedFetch } from '@/core/net/guarded-fetch'
+import {
+  BlockedTargetError,
+  checkTargetUrl,
+  type GuardedInit,
+  guardedFetch,
+} from '@/core/net/guarded-fetch'
 
 const lookupMock = vi.hoisted(() => vi.fn())
 vi.mock('node:dns/promises', () => ({ lookup: lookupMock }))
@@ -146,5 +151,52 @@ describe('guardedFetch', () => {
         expect(fetchMock).not.toHaveBeenCalled()
       },
     )
+  })
+
+  describe("'local' policy", () => {
+    it.each([['127.0.0.1'], ['100.100.1.2'], ['fd12::5'], ['10.0.0.5']])(
+      'allows %s',
+      async (address) => {
+        lookupMock.mockResolvedValue({ address, family: 4 })
+        await guardedFetch('http://media.example/', {}, { policy: 'local' })
+        await guardedFetch('http://localhost:32400/', {}, { policy: 'local' })
+        expect(fetchMock).toHaveBeenCalledTimes(2)
+      },
+    )
+
+    it.each([['169.254.169.254'], ['fe80::1'], ['0.0.0.0']])('still blocks %s', async (address) => {
+      lookupMock.mockResolvedValue({ address, family: 4 })
+      expect(await reasonOf(guardedFetch('http://x.example/', {}, { policy: 'local' }))).toBe(
+        'blocked_ip',
+      )
+      expect(fetchMock).not.toHaveBeenCalled()
+    })
+  })
+})
+
+describe('checkTargetUrl', () => {
+  it.each([
+    ['http://127.0.0.1:32400', 'lan', 'blocked_host'],
+    ['http://localhost:32400', 'lan', 'blocked_host'],
+    ['http://169.254.169.254/', 'local', 'blocked_host'],
+    ['ftp://plex.example', 'local', 'unsupported_protocol'],
+    ['not a url', 'lan', 'unsupported_protocol'],
+  ] as const)('rejects %s under %s', (url, policy, reason) => {
+    expect(() => checkTargetUrl(url, policy)).toThrow(BlockedTargetError)
+    try {
+      checkTargetUrl(url, policy)
+    } catch (err) {
+      expect((err as BlockedTargetError).reason).toBe(reason)
+    }
+    expect(lookupMock).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['http://192.168.1.10:32400', 'lan'],
+    ['http://plex.home.example', 'lan'],
+    ['http://localhost:32400', 'local'],
+    ['http://100.64.0.9:8096', 'local'],
+  ] as const)('accepts %s under %s', (url, policy) => {
+    expect(checkTargetUrl(url, policy).href).toContain(new URL(url).host)
   })
 })

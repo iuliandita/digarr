@@ -14,7 +14,7 @@ const user = { id: 9001, username: 'oidc-browser' }
 const localUser = {
   id: 9002,
   username: 'local-browser',
-  passwordHash: hashPassword('local-password-123'),
+  passwordHash: await hashPassword('local-password-123'),
   authProvider: 'local',
   oidcSubject: null,
   oidcIssuer: null,

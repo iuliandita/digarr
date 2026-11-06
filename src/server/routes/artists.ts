@@ -76,7 +76,7 @@ export function artistRoutes(deps: AppDependencies) {
     // Fallback: MusicBrainz recordings (titles only, no preview)
     if (tracks.length === 0) {
       try {
-        const recordings = await mb.getRecordings(artist.mbid, 5)
+        const recordings = await mb.getRecordings(artist.mbid, 5, c.req.raw.signal)
         tracks = recordings.map((r) => ({ name: r.title }))
       } catch {
         // MB fallback failed, return empty
@@ -221,7 +221,7 @@ export function artistRoutes(deps: AppDependencies) {
     if (!isValidMbid(mbid)) {
       return c.json({ error: 'Invalid MBID format' }, 400)
     }
-    const releaseGroups = await mb.getReleaseGroups(mbid)
+    const releaseGroups = await mb.getReleaseGroups(mbid, undefined, { signal: c.req.raw.signal })
     return c.json(releaseGroups)
   })
 

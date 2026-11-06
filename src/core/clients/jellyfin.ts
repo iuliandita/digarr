@@ -1,6 +1,7 @@
 import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import { collectLibraryPages } from './library-paging'
 import {
   artistListPath,
   type MediaBrowserArtist,
@@ -18,6 +19,7 @@ import {
   trackSearchLimit,
   trackSearchPath,
 } from './media-browser'
+import { mediaServerTargetPolicy } from './media-server-policy'
 import { createMediaServerQueue } from './media-server-queue'
 
 export type JellyfinArtist = MediaBrowserArtist
@@ -58,6 +60,7 @@ export function createJellyfinClient(
       Authorization: `MediaBrowser Token="${apiKey}"`,
     },
     skipTlsVerify: options?.skipTlsVerify,
+    targetPolicy: mediaServerTargetPolicy(),
   })
 
   const queue = createMediaServerQueue()
@@ -165,80 +168,70 @@ export function createJellyfinClient(
     const userId = await getUserId()
     const pageSize = options?.pageSize ?? 200
 
-    const all: JellyfinLibraryArtist[] = []
-    let startIndex = 0
-    let total = Number.POSITIVE_INFINITY
-
-    while (startIndex < total) {
-      let path: string
-      if (configuredLibraryId) {
-        // SortName paging: /Artists needs an explicit sort for stable pages.
-        path = scopedArtistsPath(userId, configuredLibraryId, {
-          SortBy: 'SortName',
-          SortOrder: 'Ascending',
-          Fields: 'Genres,ProviderIds',
-          StartIndex: String(startIndex),
-          Limit: String(pageSize),
-        })
-      } else {
-        const params = new URLSearchParams({
-          IncludeItemTypes: 'MusicArtist',
-          Recursive: 'true',
-          SortBy: 'SortName',
-          SortOrder: 'Ascending',
-          Fields: 'Genres,ProviderIds',
-          StartIndex: String(startIndex),
-          Limit: String(pageSize),
-        })
-        path = `/Users/${userId}/Items?${params}`
-      }
-      const res = await get<{
-        TotalRecordCount: number
-        Items: Array<Record<string, unknown>>
-      }>(path)
-
-      total = res.TotalRecordCount ?? res.Items.length
-      for (const item of res.Items) {
-        all.push(mapLibraryArtist(item, true))
-      }
-      if (res.Items.length === 0) break
-      startIndex += res.Items.length
-    }
-
-    return all
+    return collectLibraryPages(
+      { server: 'Jellyfin', kind: 'artist', totalField: 'TotalRecordCount' },
+      pageSize,
+      async (startIndex) => {
+        let path: string
+        if (configuredLibraryId) {
+          // SortName paging: /Artists needs an explicit sort for stable pages.
+          path = scopedArtistsPath(userId, configuredLibraryId, {
+            SortBy: 'SortName',
+            SortOrder: 'Ascending',
+            Fields: 'Genres,ProviderIds',
+            StartIndex: String(startIndex),
+            Limit: String(pageSize),
+          })
+        } else {
+          const params = new URLSearchParams({
+            IncludeItemTypes: 'MusicArtist',
+            Recursive: 'true',
+            SortBy: 'SortName',
+            SortOrder: 'Ascending',
+            Fields: 'Genres,ProviderIds',
+            StartIndex: String(startIndex),
+            Limit: String(pageSize),
+          })
+          path = `/Users/${userId}/Items?${params}`
+        }
+        const res = await get<{
+          TotalRecordCount?: unknown
+          Items?: Array<Record<string, unknown>>
+        }>(path)
+        return {
+          total: res.TotalRecordCount,
+          items: (res.Items ?? []).map((item) => mapLibraryArtist(item, true)),
+        }
+      },
+    )
   }
 
   async function getAlbumsForArtist(artistId: string): Promise<JellyfinLibraryAlbum[]> {
     const userId = await getUserId()
     const pageSize = 200
-    const all: JellyfinLibraryAlbum[] = []
-    let startIndex = 0
-    let total = Number.POSITIVE_INFINITY
 
-    while (startIndex < total) {
-      const params = new URLSearchParams({
-        ParentId: artistId,
-        IncludeItemTypes: 'MusicAlbum',
-        Recursive: 'true',
-        Fields: 'ProviderIds,ProductionYear',
-        StartIndex: String(startIndex),
-        Limit: String(pageSize),
-      })
-
-      const res = await get<{
-        TotalRecordCount: number
-        Items: Array<Record<string, unknown>>
-      }>(`/Users/${userId}/Items?${params}`)
-
-      total = res.TotalRecordCount ?? res.Items.length
-      for (const item of res.Items) {
-        all.push(mapAlbum(item, artistId, true))
-      }
-      if (res.Items.length === 0) break
-      startIndex += res.Items.length
-    }
-
-    return all
+    return collectLibraryPages(
+      { server: 'Jellyfin', kind: 'album', totalField: 'TotalRecordCount' },
+      pageSize,
+      async (startIndex) => {
+        const params = new URLSearchParams({
+          ParentId: artistId,
+          IncludeItemTypes: 'MusicAlbum',
+          Recursive: 'true',
+          Fields: 'ProviderIds,ProductionYear',
+          StartIndex: String(startIndex),
+          Limit: String(pageSize),
+        })
+        const res = await get<{
+          TotalRecordCount?: unknown
+          Items?: Array<Record<string, unknown>>
+        }>(`/Users/${userId}/Items?${params}`)
+        return {
+          total: res.TotalRecordCount,
+          items: (res.Items ?? []).map((item) => mapAlbum(item, artistId, true)),
+        }
+      },
+    )
   }
 
   async function testConnection(): Promise<ServiceTestResult> {

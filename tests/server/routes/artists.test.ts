@@ -511,3 +511,51 @@ describe('preview audio proxy redirects', () => {
     fetchMock.mockRestore()
   })
 })
+
+describe('GET /api/v1/albums/:mbid', () => {
+  it('passes the HTTP cancellation signal into the catalog lookup', async () => {
+    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
+    const getReleaseGroups = vi.fn<ReturnType<typeof createMusicBrainzClient>['getReleaseGroups']>(
+      async () => [],
+    )
+    vi.mocked(createMusicBrainzClient).mockReturnValueOnce({
+      getReleaseGroups,
+    } as unknown as ReturnType<typeof createMusicBrainzClient>)
+    const app = createApp(makeDeps())
+    const controller = new AbortController()
+    const res = await authedRequest(app, `/api/v1/albums/${MOCK_ARTIST.mbid}`, {
+      signal: controller.signal,
+    })
+    expect(res.status).toBe(200)
+    expect(getReleaseGroups).toHaveBeenCalledWith(MOCK_ARTIST.mbid, undefined, {
+      signal: expect.any(AbortSignal),
+    })
+    const signal = getReleaseGroups.mock.calls[0]?.[2]?.signal
+    controller.abort()
+    expect(signal?.aborted).toBe(true)
+  })
+
+  it('limits album lookups to 30/min per authenticated user', async () => {
+    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
+    const getReleaseGroups = vi.fn<ReturnType<typeof createMusicBrainzClient>['getReleaseGroups']>(
+      async () => [],
+    )
+    vi.mocked(createMusicBrainzClient).mockReturnValue({
+      getReleaseGroups,
+    } as unknown as ReturnType<typeof createMusicBrainzClient>)
+    const app = createApp(makeDeps())
+    const path = `/api/v1/albums/${MOCK_ARTIST.mbid}`
+    for (let i = 0; i < 30; i += 1) {
+      expect((await authedRequest(app, path)).status).toBe(200)
+    }
+    const limited = await authedRequest(app, path)
+    expect(limited.status).toBe(429)
+    expect(limited.headers.get('Retry-After')).toBeTruthy()
+    expect(getReleaseGroups).toHaveBeenCalledTimes(30)
+    await createSession(2, 'other-albums-session')
+    expect(
+      (await app.request(path, { headers: { Authorization: 'Bearer other-albums-session' } }))
+        .status,
+    ).toBe(200)
+  })
+})

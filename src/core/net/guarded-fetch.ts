@@ -4,6 +4,7 @@ import {
   errMsg,
   formatUrlHostname,
   getLookupHostname,
+  isLocalServiceIp,
   isPrivateIp,
   isPrivateUrl,
   isRfc1918,
@@ -13,8 +14,16 @@ import {
  * `public` blocks every private, loopback, link-local/metadata, CGNAT and reserved range.
  * `lan` additionally allows RFC 1918 hosts (self-hosted notification targets); loopback,
  * link-local/metadata and CGNAT stay blocked.
+ * `local` additionally allows loopback, CGNAT and IPv6 ULA (operator opt-in for media
+ * servers on the same host or a tailnet); link-local/metadata stays blocked.
  */
-export type TargetPolicy = 'public' | 'lan'
+export type TargetPolicy = 'public' | 'lan' | 'local'
+
+function isAllowedPrivate(address: string, policy: TargetPolicy): boolean {
+  if (policy === 'lan') return isRfc1918(address)
+  if (policy === 'local') return isLocalServiceIp(address)
+  return false
+}
 
 export type BlockReason =
   | 'unsupported_protocol'
@@ -40,7 +49,30 @@ export type GuardedInit = RequestInit & {
 
 function isBlocked(address: string, policy: TargetPolicy): boolean {
   if (!isPrivateIp(address)) return false
-  return !(policy === 'lan' && isRfc1918(address))
+  return !isAllowedPrivate(address, policy)
+}
+
+/**
+ * Syntax and literal-host check without DNS: rejects non-HTTP(S) URLs and hosts that are a
+ * blocked IP literal or `localhost`. Use for save-time validation; fetches still pin.
+ */
+export function checkTargetUrl(url: string, policy: TargetPolicy = 'public'): URL {
+  let parsed: URL
+  try {
+    parsed = new URL(url)
+  } catch (err) {
+    throw new BlockedTargetError('unsupported_protocol', 'URL is not valid', { cause: err })
+  }
+  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+    throw new BlockedTargetError('unsupported_protocol', 'URL must use http:// or https://')
+  }
+  const hostname = getLookupHostname(parsed)
+  // isPrivateUrl also rejects `localhost`; only `local` lets it through to the resolved-IP check.
+  const localhostAllowed = policy === 'local' && hostname === 'localhost'
+  if (isPrivateUrl(url) && !localhostAllowed && !isAllowedPrivate(hostname, policy)) {
+    throw new BlockedTargetError('blocked_host', 'URL points to a private/internal address')
+  }
+  return parsed
 }
 
 /**
@@ -53,15 +85,8 @@ export async function pinRequest(
   init: GuardedInit = {},
   policy: TargetPolicy = 'public',
 ): Promise<{ url: string; init: GuardedInit }> {
-  const parsed = new URL(url)
-  if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new BlockedTargetError('unsupported_protocol', 'URL must use http:// or https://')
-  }
+  const parsed = checkTargetUrl(url, policy)
   const hostname = getLookupHostname(parsed)
-  // isPrivateUrl also rejects `localhost`, which `lan` never allows.
-  if (isPrivateUrl(url) && !(policy === 'lan' && isRfc1918(hostname))) {
-    throw new BlockedTargetError('blocked_host', 'URL points to a private/internal address')
-  }
 
   let address: string
   try {
@@ -135,8 +160,9 @@ export async function guardedFetch(
   for (let hop = 0; ; hop++) {
     const pinned = await pinRequest(target, current, policy)
     const res = await fetch(pinned.url, pinned.init as RequestInit)
+    if (maxRedirects === 0 || !REDIRECT_STATUSES.has(res.status)) return res
     const location = res.headers.get('location')
-    if (maxRedirects === 0 || !REDIRECT_STATUSES.has(res.status) || !location) return res
+    if (!location) return res
     await res.body?.cancel()
     if (hop >= maxRedirects) {
       throw new BlockedTargetError('too_many_redirects', `Too many redirects (max ${maxRedirects})`)

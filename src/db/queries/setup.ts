@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { Database } from '@/db'
 import { settings, users } from '@/db/schema'
 import { completeSetup, type SetupConfig } from './settings'
@@ -24,23 +24,21 @@ export class SetupAlreadyCompleteError extends Error {
   }
 }
 
+export class SetupAdminRequiredError extends Error {
+  constructor() {
+    super('Setup requires an admin')
+    this.name = 'SetupAdminRequiredError'
+  }
+}
+
 export async function completeSetupWithServices(
   db: Database,
   config: SetupConfig,
   services: SetupServices = {},
 ) {
   return db.transaction(async (tx) => {
-    const needsOwner = Boolean(config.lidarrUrl || config.lidarrApiKey || services.emby)
-    if (needsOwner) {
-      if (!services.userId) throw new SetupOwnerRequiredError()
-      const [owner] = await tx
-        .select({ id: users.id })
-        .from(users)
-        .where(eq(users.id, services.userId))
-        .for('update')
-      if (!owner) throw new SetupOwnerRequiredError()
-    }
-
+    // Serialize the anonymous bootstrap decision with user registration and role changes.
+    await tx.execute(sql`LOCK TABLE users IN SHARE ROW EXCLUSIVE MODE`)
     await tx.insert(settings).values({ id: 1, setupComplete: false }).onConflictDoNothing()
     const [current] = await tx
       .select({ setupComplete: settings.setupComplete })
@@ -49,6 +47,27 @@ export async function completeSetupWithServices(
       .for('update')
     if (!current) throw new Error('Setup settings unavailable')
     if (current.setupComplete) throw new SetupAlreadyCompleteError()
+
+    if (services.userId) {
+      const [owner] = await tx
+        .select({ isAdmin: users.isAdmin })
+        .from(users)
+        .where(eq(users.id, services.userId))
+        .for('update')
+      if (!owner) throw new SetupOwnerRequiredError()
+      if (!owner.isAdmin) throw new SetupAdminRequiredError()
+    } else {
+      const [existing] = await tx.select({ id: users.id }).from(users).limit(1)
+      if (
+        existing ||
+        config.lidarrUrl ||
+        config.lidarrApiKey ||
+        services.emby ||
+        !config.aiProvider?.trim()
+      ) {
+        throw new SetupOwnerRequiredError()
+      }
+    }
 
     if (config.lidarrUrl && config.lidarrApiKey) {
       await createTarget(tx, {

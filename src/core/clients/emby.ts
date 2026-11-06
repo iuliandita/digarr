@@ -1,6 +1,7 @@
 import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import { collectLibraryPages } from './library-paging'
 import {
   artistListPath,
   type MediaBrowserLibrary,
@@ -16,28 +17,12 @@ import {
   trackSearchLimit,
   trackSearchPath,
 } from './media-browser'
+import { mediaServerTargetPolicy } from './media-server-policy'
 import { createMediaServerQueue } from './media-server-queue'
 
 export type EmbyMusicLibrary = MediaBrowserLibrary
 
 const LIBRARY_PAGE_SIZE = 200
-const MAX_LIBRARY_PAGES = 1000
-const MAX_LIBRARY_ITEMS = LIBRARY_PAGE_SIZE * MAX_LIBRARY_PAGES
-
-function getTotalRecordCount(totalRecordCount: unknown, fallback: number): number {
-  if (totalRecordCount === undefined) return fallback
-  if (
-    typeof totalRecordCount !== 'number' ||
-    !Number.isSafeInteger(totalRecordCount) ||
-    totalRecordCount < 0
-  ) {
-    throw new Error('Emby returned an invalid TotalRecordCount')
-  }
-  if (totalRecordCount > MAX_LIBRARY_ITEMS) {
-    throw new Error(`Emby TotalRecordCount exceeds the ${MAX_LIBRARY_ITEMS} item limit`)
-  }
-  return totalRecordCount
-}
 
 export function createEmbyClient(
   url: string,
@@ -53,6 +38,7 @@ export function createEmbyClient(
       'X-Emby-Token': apiKey,
     },
     skipTlsVerify: options?.skipTlsVerify,
+    targetPolicy: mediaServerTargetPolicy(),
   })
 
   const queue = createMediaServerQueue()
@@ -61,37 +47,22 @@ export function createEmbyClient(
     return queue.add(() => http.get<T>(path)) as Promise<T>
   }
 
-  async function getLibraryItems<T>(
+  function getLibraryItems<T>(
     kind: 'artist' | 'album',
     pathForPage: (startIndex: number) => string,
     mapItem: (item: Record<string, unknown>) => T,
   ): Promise<T[]> {
-    const all: T[] = []
-    let startIndex = 0
-    let total = Number.POSITIVE_INFINITY
-    let pageCount = 0
-
-    while (startIndex < total) {
-      if (pageCount >= MAX_LIBRARY_PAGES) {
-        throw new Error(`Emby ${kind} pagination exceeded ${MAX_LIBRARY_PAGES} pages`)
-      }
-      pageCount += 1
-      const res = await get<{
-        Items: Array<Record<string, unknown>>
-        TotalRecordCount?: unknown
-      }>(pathForPage(startIndex))
-      const items = res.Items ?? []
-      // Without a count, a full page means there may be more; only a short page ends paging.
-      total = getTotalRecordCount(
-        res.TotalRecordCount,
-        startIndex + items.length + (items.length >= LIBRARY_PAGE_SIZE ? 1 : 0),
-      )
-      all.push(...items.map(mapItem))
-      if (items.length === 0) break
-      startIndex += items.length
-    }
-
-    return all
+    return collectLibraryPages(
+      { server: 'Emby', kind, totalField: 'TotalRecordCount' },
+      LIBRARY_PAGE_SIZE,
+      async (startIndex) => {
+        const res = await get<{
+          Items?: Array<Record<string, unknown>>
+          TotalRecordCount?: unknown
+        }>(pathForPage(startIndex))
+        return { total: res.TotalRecordCount, items: (res.Items ?? []).map(mapItem) }
+      },
+    )
   }
 
   /** Music libraries visible to the user (CollectionType 'music' views). */

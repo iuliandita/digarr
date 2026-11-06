@@ -1,9 +1,11 @@
 import { Hono } from 'hono'
 import { envConfig } from '@/config/env'
 import { createAudioMuseClient } from '@/core/clients/audiomuse'
+import { HttpError } from '@/core/clients/http'
 import { createLastFmClient } from '@/core/clients/lastfm'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createListenBrainzClient } from '@/core/clients/listenbrainz'
+import { mediaServerTargetPolicy } from '@/core/clients/media-server-policy'
 import { createTidalClient } from '@/core/clients/tidal'
 import {
   decryptChannelSecrets,
@@ -14,6 +16,7 @@ import {
   restoreMaskedChannelSecrets,
   SENSITIVE_PREFERENCES,
 } from '@/core/crypto'
+import { BlockedTargetError, checkTargetUrl } from '@/core/net/guarded-fetch'
 import { dispatch } from '@/core/notifications'
 import type { NotificationChannel, NotificationEvent } from '@/core/notifications/types'
 import { isConnectedToken } from '@/core/provider-auth'
@@ -130,6 +133,18 @@ function probeResult(
       .trim()
       .slice(0, 300) || fallbackMessage
   return problem(c, 'probe-failed', 'Probe failed', 502, detail, undefined, 'common.unknownError')
+}
+
+// The non-admin Plex probe must not turn into a read-back channel for whatever the
+// URL points at, so upstream bodies and network errors collapse to fixed messages.
+function withoutUpstreamDetail(result: ProbeTestResult): ProbeTestResult {
+  const error = result.details?.error
+  if (result.success || error === undefined) return result
+  if (error instanceof BlockedTargetError) return { success: false, message: error.message }
+  if (error instanceof HttpError && error.status === 401) {
+    return { success: false, message: 'Plex rejected the token (HTTP 401)' }
+  }
+  return { success: false, message: 'Could not connect to a Plex server at this URL' }
 }
 
 async function runProbe(
@@ -339,6 +354,8 @@ export function settingsRoutes(deps: AppDependencies) {
     'subsonicPassword',
   ])
 
+  const MEDIA_SERVER_URL_FIELDS = ['plexUrl', 'jellyfinUrl', 'embyUrl', 'subsonicUrl'] as const
+
   const ALL_MUTABLE_FIELDS = new Set([...GLOBAL_MUTABLE_FIELDS, ...USER_CONNECTION_FIELDS])
 
   router.patch('/api/v1/settings', zJson(updateSettingsSchema), async (c) => {
@@ -399,6 +416,22 @@ export function settingsRoutes(deps: AppDependencies) {
 
     if (!isAdmin && Object.keys(globalFields).length > 0) {
       return c.json({ error: 'Admin access required to modify global settings' }, 403)
+    }
+
+    for (const field of MEDIA_SERVER_URL_FIELDS) {
+      const url = userUpdate[field]
+      if (typeof url !== 'string' || url.length === 0) continue
+      try {
+        checkTargetUrl(url, mediaServerTargetPolicy())
+      } catch (err) {
+        return problem(
+          c,
+          'invalid-media-server-url',
+          'Invalid media server URL',
+          400,
+          `${field}: ${errMsg(err)}. Loopback and tailnet (100.64.0.0/10) addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true on the server.`,
+        )
+      }
     }
 
     if (incomingPrefs?.audiomuseUrl) {
@@ -750,7 +783,14 @@ export function settingsRoutes(deps: AppDependencies) {
         }
         const { createPlexClient } = await import('@/core/clients/plex')
         const client = createPlexClient(url, token, { sectionId, accountId })
-        return runProbe(c, () => client.testConnection(), messages['common.unknownError'])
+        return runProbe(
+          c,
+          async () => {
+            const result = await client.testConnection()
+            return isAdmin ? result : withoutUpstreamDetail(result)
+          },
+          messages['common.unknownError'],
+        )
       }
       case 'jellyfin': {
         const url = body.url || userConns?.jellyfinUrl || ''

@@ -6,6 +6,7 @@ import type { Database } from '@/db'
 import { getSettings, isSetupComplete } from '@/db/queries/settings'
 import {
   completeSetupWithServices,
+  SetupAdminRequiredError,
   SetupAlreadyCompleteError,
   SetupOwnerRequiredError,
 } from '@/db/queries/setup'
@@ -142,10 +143,11 @@ describe('atomic setup persistence', () => {
   )
 
   it('allows only one concurrent completion and rejects repeated completion without duplicate targets', async () => {
+    await db.update(users).set({ isAdmin: true }).where(eq(users.id, otherId))
     await db.delete(settings)
     const results = await Promise.allSettled([
-      completeSetupWithServices(db, config, { userId: ownerId, emby }),
       completeSetupWithServices(db, config, { userId: otherId, emby }),
+      completeSetupWithServices(db, config, { userId: ownerId, emby }),
     ])
     expect(results.filter((result) => result.status === 'fulfilled')).toHaveLength(1)
     const rejected = results.find((result) => result.status === 'rejected')
@@ -158,5 +160,29 @@ describe('atomic setup persistence', () => {
     expect(await db.select().from(targets)).toHaveLength(2)
     const owners = new Set((await db.select().from(targets)).map((target) => target.userId))
     expect(owners.size).toBe(1)
+  })
+
+  it.each([
+    { caller: 'anonymous', error: SetupOwnerRequiredError },
+    { caller: 'non-admin', error: SetupAdminRequiredError },
+  ])('rejects $caller AI-only completion when users exist', async ({ caller, error }) => {
+    await expect(
+      completeSetupWithServices(
+        db,
+        { aiProvider: 'ollama', aiModel: 'replacement-model', skipTlsVerify: true },
+        caller === 'anonymous' ? {} : { userId: otherId },
+      ),
+    ).rejects.toBeInstanceOf(error)
+    expect(await isSetupComplete(db)).toBe(false)
+    expect((await getSettings(db))?.aiModel).toBe('previous-model')
+    expect(await db.select().from(targets)).toEqual([])
+  })
+
+  it('allows anonymous AI-only completion before registration', async () => {
+    await db.delete(users)
+    await completeSetupWithServices(db, { aiProvider: 'ollama', aiModel: 'llama3' })
+    expect(await isSetupComplete(db)).toBe(true)
+    expect((await getSettings(db))?.aiModel).toBe('llama3')
+    expect(await db.select().from(targets)).toEqual([])
   })
 })
