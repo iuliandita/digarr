@@ -870,22 +870,21 @@ describe('PATCH /api/v1/settings', () => {
         Authorization: 'Bearer user-session-token',
       },
       body: JSON.stringify({
-        embyUrl: 'http://127.0.0.1:8096',
+        embyUrl: 'http://192.168.1.20:8096',
         embyApiKey: 'secret',
         embyUserId: 'user-1',
         embyLibraryId: null,
       }),
     })
 
-    // Self-hosted media servers are the user's own box. Private IPs and
-    // split-horizon-DNS hostnames that resolve to LAN addresses must be
-    // accepted - that's the default deployment, not an SSRF target.
+    // Self-hosted media servers usually sit on the LAN, so RFC 1918 addresses are
+    // accepted; loopback and tailnet addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL.
     expect(res.status).toBe(200)
     expect(mockUpdateUserConnections).toHaveBeenCalledWith(
       expect.anything(),
       7,
       expect.objectContaining({
-        embyUrl: 'http://127.0.0.1:8096',
+        embyUrl: 'http://192.168.1.20:8096',
         embyApiKey: 'secret',
         embyUserId: 'user-1',
         embyLibraryId: null,
@@ -1069,13 +1068,13 @@ describe('POST /api/v1/settings/test/:service', () => {
   it('allows admins to test private HTTP service URLs', async () => {
     const app = createApp(makeDeps())
     const res = await authedJson(app, '/api/v1/settings/test/emby', 'POST', {
-      url: 'http://127.0.0.1:8096',
+      url: 'http://192.168.1.20:8096',
       apiKey: 'key',
       userId: 'user-1',
     })
 
     expect(res.status).toBe(200)
-    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://127.0.0.1:8096', 'key', 'user-1', {
+    expect(mockCreateEmbyClient).toHaveBeenCalledWith('http://192.168.1.20:8096', 'key', 'user-1', {
       skipTlsVerify: false,
       libraryId: null,
     })

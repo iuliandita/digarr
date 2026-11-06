@@ -24,7 +24,7 @@ export async function bootstrapInitialAdmin(
 
   const user = await createUser(
     db,
-    { username: initialUsername, passwordHash: hashPassword(initialPassword) },
+    { username: initialUsername, passwordHash: await hashPassword(initialPassword) },
     { bootstrap: 'first-user-only' },
   )
   if (user.username !== initialUsername || !user.isAdmin) {

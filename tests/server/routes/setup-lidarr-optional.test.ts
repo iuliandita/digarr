@@ -6,6 +6,8 @@ import type { HonoEnv } from '@/server/types'
 
 const mockDeps = {
   isSetupComplete: vi.fn().mockResolvedValue(false),
+  getUserCount: vi.fn().mockResolvedValue(1),
+  getUserById: vi.fn().mockResolvedValue({ id: 1, isAdmin: true }),
   completeSetup: vi.fn().mockResolvedValue(undefined),
   targetQueries: {
     createTarget: vi.fn().mockResolvedValue({ id: 1 }),

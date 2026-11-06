@@ -5,6 +5,11 @@ import { testTargetConnection } from '@/core/targets/test-connection'
 import { targetRoutes } from '@/server/routes/targets'
 import type { HonoEnv } from '@/server/types'
 
+// Media-server clients resolve and pin targets; offline, hostnames resolve to themselves.
+vi.mock('node:dns/promises', () => ({
+  lookup: vi.fn(async (host: string) => ({ address: host, family: 4 })),
+}))
+
 const fetchMock = vi.fn()
 vi.stubGlobal('fetch', fetchMock)
 

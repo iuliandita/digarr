@@ -613,6 +613,7 @@ describe('plex client.searchTracks()', () => {
     expect(createHttpClient).toHaveBeenLastCalledWith({
       baseUrl: TEST_URL,
       headers: { 'X-Plex-Token': options.token, Accept: 'application/json' },
+      targetPolicy: 'lan',
     })
     expect(mockGet.mock.calls[0]?.[0]).toBe('/library/sections')
     const request = new URL(String(mockGet.mock.calls[1]?.[0]), TEST_URL)
@@ -714,5 +715,22 @@ describe('plex edge cases (#926)', () => {
     const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
     await expect(client.getRecentlyPlayed()).rejects.toThrow('plex down')
     await expect(client.getRecentlyPlayed()).resolves.toEqual([])
+  })
+})
+
+describe('plex library paging bounds', () => {
+  it.each([
+    ['getAllArtists', (c: ReturnType<typeof createPlexClient>) => c.getAllArtists()],
+    ['getAlbumsForArtist', (c: ReturnType<typeof createPlexClient>) => c.getAlbumsForArtist('1')],
+  ])('%s rejects a server-reported total above the item limit', async (_name, call) => {
+    mockGet.mockResolvedValue({
+      MediaContainer: {
+        totalSize: 1e12,
+        Metadata: [{ ratingKey: '1', parentRatingKey: '1', title: 'A' }],
+      },
+    })
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, { sectionId: '1' })
+    await expect(call(client)).rejects.toThrow('totalSize exceeds the 200000 item limit')
+    expect(mockGet).toHaveBeenCalledTimes(1)
   })
 })

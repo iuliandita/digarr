@@ -82,6 +82,31 @@ describe('shared release-group catalog cache', () => {
     expect(upstream).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps a shared lookup alive when only one caller aborts', async () => {
+    const client = createMusicBrainzClient({ releaseGroupCache: createReleaseGroupCache() })
+    let finish: (res: Response) => void = () => {
+      throw new Error('Fetch did not start')
+    }
+    upstream.mockImplementationOnce(
+      () =>
+        new Promise<Response>((resolve) => {
+          finish = resolve
+        }),
+    )
+    const controller = new AbortController()
+    const cancelled = client.getReleaseGroups('shared', undefined, { signal: controller.signal })
+    const survivor = client.getReleaseGroups('shared')
+    const rejected = expect(cancelled).rejects.toMatchObject({ name: 'AbortError' })
+    await vi.waitFor(() => expect(upstream).toHaveBeenCalledTimes(1))
+    controller.abort()
+    await rejected
+    expect(upstream.mock.calls[0]?.[1].signal.aborted).toBe(false)
+    finish(response())
+    expect(await survivor).toHaveLength(3)
+    expect(await client.getReleaseGroups('shared')).toHaveLength(3)
+    expect(upstream).toHaveBeenCalledTimes(1)
+  })
+
   it.each([
     '404',
     '503',

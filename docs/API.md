@@ -1,6 +1,6 @@
 # API Reference
 
-This reference covers v2.2.0; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
+This reference covers v2.2.1; consult the [changelog](../CHANGELOG.md) for release changes. Unversioned `/api/*` routes have been removed; use `/api/v1/*`.
 
 Except for [MCP](#mcp), all endpoints require either a `digarr_session` cookie or an
 `Authorization: Bearer <token>` header unless marked as public. Personal API tokens are recommended for scripts; bearer sessions
@@ -288,14 +288,14 @@ Treat these as untrusted when rendering: the pass-through case is provider-contr
 | Method | Path | Auth | Description |
 |--------|------|------|-------------|
 | GET | `/api/v1/setup/status` | No | Check if setup is complete |
-| POST | `/api/v1/setup/complete` | Conditional | Complete initial setup; requested Lidarr/Emby services require an authenticated owner |
+| POST | `/api/v1/setup/complete` | Conditional | Complete initial setup; requires an admin after registration or when a legacy token is configured |
 
 Setup validation rules:
-- AI is optional: omit both `aiProvider` and `aiModel`, or send them together; one without the other returns `400`. Setup without an AI provider requires a signed-in user (`401` otherwise), and discovery then relies on the listening sources connected later
+- AI is optional: omit both `aiProvider` and `aiModel`, or send them together; one without the other returns `400`. Setup without an AI provider requires a signed-in admin (`401` without authentication, `403` without admin access), and discovery then relies on the listening sources connected later
 - Lidarr is optional, but `lidarrUrl` and `lidarrApiKey` must be provided together when used
 - In v2.0.0, Emby is optional, but any nonblank `embyUrl`, `embyApiKey`, or `embyUserId` requires the complete trio. Incomplete Lidarr/Emby groups return `400` before persistence.
-- Requested Lidarr/Emby services require an authenticated owner who still exists; otherwise setup returns `401` without saving configuration. The browser creates or signs into an account before opening the wizard. Public AI-only API bootstrap remains available only while the existing authentication guard permits it.
-- In v2.0.0, global setup settings, the requested Emby connection, and requested Lidarr/Emby targets commit in one database transaction. `204` means all requested writes succeeded. A persistence failure returns generic `500` problem details with `code: setup.failed`, rolls back the writes, and leaves setup retryable. Completion is rechecked under a settings-row lock; concurrent/repeated completion returns `409` rather than creating duplicate targets. External service reachability is not verified by this commit.
+- Anonymous AI-only API bootstrap is allowed only when no users exist and `DIGARR_AUTH_TOKEN` is unset. Once a user exists or a legacy token is configured, setup requires an authenticated admin (`401` without authentication, `403` without admin access). Requested Lidarr/Emby services and setup without AI always require an authenticated admin who still exists. The browser creates or signs into an account before opening the wizard.
+- In v2.0.0, global setup settings, the requested Emby connection, and requested Lidarr/Emby targets commit in one database transaction. `204` means all requested writes succeeded. A persistence failure returns generic `500` problem details with `code: setup.failed`, rolls back the writes, and leaves setup retryable. Completion and caller authorization are rechecked under database locks that serialize user registration and setup completion; concurrent/repeated completion returns `409` rather than creating duplicate targets. External service reachability is not verified by this commit.
 - v1.19.0 can discard incomplete Emby fields and return `204` despite failed connection/target writes; register and sign in first, then verify saved connections and targets ([#783](https://github.com/iuliandita/digarr/issues/783)). Environment-based bootstrap is unchanged by this fix.
 - Completing setup does not create a user account. API clients using AI-only bootstrap before registration must still register or sign in before accessing protected routes.
 
@@ -656,6 +656,8 @@ Path params:
 **PATCH /api/v1/subscriptions/:id** accepts only these optional fields: `name`, `enabled`, `sourceConfig`, `maxArtistsPerRun`, `listenerRange`, `cron`, `scoreThreshold` (0 to 1), `scoringWeightPreset`, and `scoringWeightOverrides`. The body is strict: any other key, including `sourceType`, `sourceProvider`, `action`, and a `null` `scoreThreshold`, returns `400` validation failure, so send only the fields you are changing. Success returns `204`; a subscription that does not exist or belongs to another user returns `404` problem+json. Changing `enabled` or `cron` reschedules the job.
 
 In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog and adds optional `secondaryTypes` metadata when MusicBrainz provides a valid string array. It also returns an optional `aliases` string array with the release group's MusicBrainz alias names and sort names, omitted when there are none. This list is not restricted to studio albums; the coverage-only rule below does not change album picking, Release Radar or release matching.
+
+**GET /api/v1/albums/:mbid** is rate limited to 30 requests per minute per client IP and authenticated user. A disconnected caller stops waiting; shared MusicBrainz catalog work is cancelled when no callers remain.
 
 **GET /api/v1/preview/audio** is rate limited to 30 requests per minute. Query params:
 - `url` - Deezer CDN preview URL (must match `*.dzcdn.net`)

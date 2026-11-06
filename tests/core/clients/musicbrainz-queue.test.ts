@@ -153,3 +153,63 @@ describe('MusicBrainz shared queue timing (real p-queue)', () => {
     expect(b?.t).toBeLessThan(aRetry?.t ?? Number.POSITIVE_INFINITY)
   })
 })
+
+describe('MusicBrainz caller cancellation', () => {
+  it.each([0, 1])('drops an aborted catalog queue entry after %i pages', async (pages) => {
+    vi.resetModules()
+    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
+    const client = createMusicBrainzClient()
+    const fetches: Array<{ path: string; t: number }> = []
+    mockFetch.mockImplementation(async (url: string) => {
+      const path = new URL(url).pathname
+      fetches.push({ path, t: Date.now() })
+      return jsonOk(
+        path.endsWith('/release-group')
+          ? {
+              'release-group-count': 2,
+              'release-groups': [
+                { id: 'first', title: 'First', 'primary-type': 'Album', 'secondary-types': [] },
+              ],
+            }
+          : { artists: [] },
+      )
+    })
+    await client.searchArtist('prime')
+    const controller = new AbortController()
+    const catalog = client.getReleaseGroups('cancelled', undefined, { signal: controller.signal })
+    const rejected = expect(catalog).rejects.toMatchObject({ name: 'AbortError' })
+    await vi.advanceTimersByTimeAsync(pages * 1000)
+    controller.abort()
+    await rejected
+    const victim = client.searchArtist('victim')
+    await vi.advanceTimersByTimeAsync(5000)
+    await victim
+    expect(fetches.filter(({ path }) => path.endsWith('/release-group'))).toHaveLength(pages)
+    expect(fetches.at(-1)).toEqual({ path: '/ws/2/artist/', t: (pages + 1) * 1000 })
+  })
+
+  it('aborts an active fetch without retrying or fetching subsequent pages', async () => {
+    vi.resetModules()
+    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
+    let fetchSignal: AbortSignal | undefined
+    mockFetch.mockImplementation(
+      (_url: string, init: RequestInit) =>
+        new Promise((_resolve, reject) => {
+          fetchSignal = init.signal ?? undefined
+          fetchSignal?.addEventListener('abort', () => reject(fetchSignal?.reason), { once: true })
+        }),
+    )
+    const controller = new AbortController()
+    const catalog = createMusicBrainzClient().getReleaseGroups('active', undefined, {
+      signal: controller.signal,
+    })
+    const rejected = expect(catalog).rejects.toMatchObject({ name: 'AbortError' })
+    await vi.advanceTimersByTimeAsync(0)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    controller.abort()
+    await rejected
+    expect(fetchSignal?.aborted).toBe(true)
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+  })
+})

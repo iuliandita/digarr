@@ -1,10 +1,20 @@
 // @vitest-environment node
 
 import { describe, expect, it, vi } from 'vitest'
-import { SetupAlreadyCompleteError, SetupOwnerRequiredError } from '@/db/queries/setup'
+import { envConfig } from '@/config/env'
+import {
+  SetupAdminRequiredError,
+  SetupAlreadyCompleteError,
+  SetupOwnerRequiredError,
+} from '@/db/queries/setup'
 import type { AppDependencies } from '@/server'
 import { createApp } from '@/server'
 import { makeDeps as makeSharedDeps } from '../../helpers/test-app'
+
+vi.mock('@/config/env', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/config/env')>()
+  return { ...actual, envConfig: { ...actual.envConfig, authToken: null } }
+})
 
 vi.mock('node:dns/promises', () => ({
   lookup: vi.fn(async () => ({ address: '93.184.216.34', family: 4 })),
@@ -28,8 +38,7 @@ function makeDeps(overrides: Partial<AppDependencies> = {}): AppDependencies {
     isSetupComplete: vi.fn(async () => false),
     getSettings: vi.fn(async () => null),
     completeSetup: vi.fn(async () => ({ id: 1, setupComplete: true })),
-    getUserById: vi.fn(async () => null),
-    getUserCount: vi.fn(async () => 0),
+    getUserCount: vi.fn(async () => 1),
     ...overrides,
   })
 }
@@ -60,7 +69,7 @@ describe('POST /api/v1/setup/complete', () => {
     aiModel: 'llama3',
   }
 
-  it('accepts valid config and returns 204', async () => {
+  it('accepts authenticated admin setup with Lidarr and returns 204', async () => {
     const app = createApp(makeDeps())
     const res = await app.request('/api/v1/setup/complete', {
       method: 'POST',
@@ -125,8 +134,8 @@ describe('POST /api/v1/setup/complete', () => {
     expect(res.status).toBe(400)
   })
 
-  it('accepts AI-only setup in discovery mode', async () => {
-    const app = createApp(makeDeps())
+  it('accepts anonymous AI-only setup with no users or legacy token', async () => {
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 0) }))
     const body = {
       aiProvider: 'ollama',
       aiModel: 'llama3',
@@ -137,6 +146,43 @@ describe('POST /api/v1/setup/complete', () => {
       body: JSON.stringify(body),
     })
     expect(res.status).toBe(204)
+  })
+
+  it.each([
+    { authenticated: false, status: 401 },
+    { authenticated: true, status: 403 },
+  ])('rejects AI-only setup after registration with $status', async ({ authenticated, status }) => {
+    const deps = makeDeps()
+    const admin = await deps.getUserById(42)
+    if (!admin) throw new Error('Test admin unavailable')
+    vi.mocked(deps.getUserById).mockResolvedValue({ ...admin, id: 42, isAdmin: false })
+    const res = await createApp(deps).request('/api/v1/setup/complete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(authenticated ? { Authorization: 'Bearer test-session-token' } : {}),
+      },
+      body: JSON.stringify({ aiProvider: 'ollama', aiModel: 'llama3', skipTlsVerify: true }),
+    })
+    expect(res.status).toBe(status)
+    expect(res.headers.get('content-type')).toContain('application/problem+json')
+    expect(deps.completeSetup).not.toHaveBeenCalled()
+  })
+
+  it('rejects anonymous AI-only bootstrap when a legacy token is configured', async () => {
+    Object.defineProperty(envConfig, 'authToken', { value: 'legacy-secret' })
+    try {
+      const deps = makeDeps({ getUserCount: vi.fn(async () => 0) })
+      const res = await createApp(deps).request('/api/v1/setup/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ aiProvider: 'ollama', aiModel: 'llama3' }),
+      })
+      expect(res.status).toBe(401)
+      expect(deps.completeSetup).not.toHaveBeenCalled()
+    } finally {
+      Object.defineProperty(envConfig, 'authToken', { value: null })
+    }
   })
 
   it('accepts setup without an AI provider (#887)', async () => {
@@ -242,6 +288,7 @@ describe('POST /api/v1/setup/complete', () => {
   it.each([
     { error: new Error('private-api-key'), status: 500 },
     { error: new SetupOwnerRequiredError(), status: 401 },
+    { error: new SetupAdminRequiredError(), status: 403 },
     { error: new SetupAlreadyCompleteError(), status: 409 },
   ])('reports persistence failures safely with status $status', async ({ error, status }) => {
     const secret = 'private-api-key'

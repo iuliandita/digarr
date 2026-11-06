@@ -113,3 +113,60 @@ describe('settings connection probe input', () => {
     expect(mockCreateLidarrClient).not.toHaveBeenCalled()
   })
 })
+
+describe('media server destination policy', () => {
+  const nonAdmin = () =>
+    createTestApp({ getUserById: vi.fn(async () => ({ id: 1, isAdmin: false })) as never })
+
+  it.each(['http://127.0.0.1:32400/private?q=', 'http://169.254.169.254/latest?q='])(
+    'rejects a non-admin Plex probe to %s without any request',
+    async (url) => {
+      const fetchMock = vi.fn()
+      vi.stubGlobal('fetch', fetchMock)
+      const { app } = nonAdmin()
+      const res = await app.request('/api/v1/settings/test/plex', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ url, token: 't' }),
+      })
+      vi.unstubAllGlobals()
+      expect(res.status).toBe(502)
+      expect((await res.json()).detail).toBe('URL points to a private/internal address')
+      expect(fetchMock).not.toHaveBeenCalled()
+    },
+  )
+
+  it('does not reflect upstream bodies to a non-admin Plex probe', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response('INTERNAL-MARKER', { status: 200 })),
+    )
+    const { app } = nonAdmin()
+    const res = await app.request('/api/v1/settings/test/plex', {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ url: 'http://10.0.0.5:32400/status?q=', token: 't' }),
+    })
+    vi.unstubAllGlobals()
+    expect(res.status).toBe(502)
+    const body = await res.json()
+    expect(body.detail).toBe('Could not connect to a Plex server at this URL')
+    expect(JSON.stringify(body)).not.toContain('INTERNAL-MARKER')
+  })
+
+  it.each([
+    ['plexUrl', 'http://169.254.169.254/'],
+    ['jellyfinUrl', 'http://localhost:8096'],
+    ['embyUrl', 'file:///etc/passwd'],
+    ['subsonicUrl', 'http://[::1]:4533'],
+  ])('rejects a blocked %s on save', async (field, url) => {
+    const { app } = nonAdmin()
+    const res = await app.request('/api/v1/settings', {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify({ [field]: url }),
+    })
+    expect(res.status).toBe(400)
+    expect(await res.json()).toMatchObject({ type: '/problems/invalid-media-server-url' })
+  })
+})

@@ -467,3 +467,22 @@ describe('jellyfin unscoped artist paging', () => {
     expect(path).toContain('SortOrder=Ascending')
   })
 })
+
+describe('jellyfin library paging bounds', () => {
+  it.each([
+    ['getAllArtists', (c: ReturnType<typeof createJellyfinClient>) => c.getAllArtists()],
+    [
+      'getAlbumsForArtist',
+      (c: ReturnType<typeof createJellyfinClient>) => c.getAlbumsForArtist('a'),
+    ],
+  ])('%s rejects a server-reported total above the item limit', async (_name, call) => {
+    mockGet.mockResolvedValue({ TotalRecordCount: 1e12, Items: [{ Id: 'a', Name: 'A' }] })
+    const client = createJellyfinClient(
+      'http://jf:8096',
+      'key',
+      '00000000-0000-0000-0000-000000000001',
+    )
+    await expect(call(client)).rejects.toThrow('TotalRecordCount exceeds the 200000 item limit')
+    expect(mockGet).toHaveBeenCalledTimes(1)
+  })
+})

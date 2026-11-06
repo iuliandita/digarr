@@ -2,6 +2,7 @@ import { randomBytes } from 'node:crypto'
 import type { LibraryTrack, ServiceTestResult } from '@/core/types'
 import { errMsg } from '@/core/validation'
 import { createHttpClient } from './http'
+import { mediaServerTargetPolicy } from './media-server-policy'
 import { createMediaServerQueue } from './media-server-queue'
 import {
   buildSubsonicAuthParams,
@@ -56,6 +57,7 @@ export function createSubsonicClient(
   const http = createHttpClient({
     baseUrl,
     skipTlsVerify: options?.skipTlsVerify,
+    targetPolicy: mediaServerTargetPolicy(),
   })
 
   const queue = createMediaServerQueue()

@@ -164,7 +164,7 @@
         "src/core/ops/encrypt-legacy.ts": "52f10ac41cc3fe2e9a86d163c4ac43168bf8c6d730edfe8bb1a25d735bb461e0",
         "src/core/ops/encryption-sites.ts": "7ac3926596fd13bc8d5e82d4900235b420166936bb98f2091efe056c96b04c19",
         "src/core/ops/hygiene.ts": "dbfd1fbbb9db88ceb9c044d0fc37b678025a81855b1bfd618bc5bc95cb90e1f2",
-        "src/core/ops/initial-admin.ts": "7f8b81e3e103c8e7f103afae6ba61ae5116c06cb26d4ede30c19b21d439018f7",
+        "src/core/ops/initial-admin.ts": "f9e930634acdc8f062cbe5e38ec830ccaacf4947195c8fd7f2b067efc736c722",
         "src/core/ops/legacy-listening-connections.ts": "0556c226322ec7e5fe543f2760a7452cbeca263ee5b5ac4d1cf7a2f0a1dd6b01",
         "src/core/ops/maintenance.ts": "63514a654f08d9caddcbdc8547504d9e188467887b32e913d4b3d125cb39ce20",
         "src/core/ops/migrate-backend.ts": "024368e3da8aaa6aff92bd05025e49f9b4297a654050f85663bc0190987e57fe",
@@ -198,7 +198,7 @@
         "src/db/queries/recording-artist-cache.ts": "30f8ccf38d6084704bc809d6cd4c38821fcbaaeae11c95906fa057cef94aec31",
         "src/db/queries/sessions.ts": "ae5de14afbd4fe5a8d7315cb1232a785e59a3c0a569c27fc8ccc1de8b4b74ebd",
         "src/db/queries/settings.ts": "86660c18b1c95247e4c16141c77f631c82face72b6e40c31e36655fe7cd1eb26",
-        "src/db/queries/setup.ts": "25ad4caa8da652ae83f6dcdd845630a8ec801261cd753816e6908abaf6345401",
+        "src/db/queries/setup.ts": "3dfd9376b0020674c222e481d0546aa5d38cb77ca37a7ad46ab57e3a221785a5",
         "src/db/queries/slskd-jobs.ts": "fab637cf124846376531e53c6f399eb234f4f6bc71fa0f46861a9ab2a81f4f84",
         "src/db/queries/subscriptions.ts": "64f3bb457240921a82ba1de0ed12059a15bb65649e312686a3275ac53a1333f4",
         "src/db/queries/targets.ts": "9cdc79b2dc51f9ff3ce481f0f4b18ae33c3c356475b18f9b39b4b3639e1760dd",
@@ -206,34 +206,34 @@
         "src/db/schema.ts": "d9e5d38ece5fe753966acce954115d2360479ad37d9cff829376dd9c573aa071",
         "src/db/wait.ts": "f4fccab8242a627d2be30ce263e7190860d2789f80ae52d602e7e734e253561b"
       },
-      "digest": "bf72ab5056aeee5257d03456a1d8ed554a5fd8de73ad57547aff5ff1187d4552",
+      "digest": "7f92b8a4e331c0a842bcc10647a435024f72a8fad474929541b8e9853911c5e2",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "Dropped the export keyword from the job-health window constant used only inside src/db/queries/jobs.ts; queries and recovery behavior are unchanged.",
+        "note": "Setup persistence adds an authorization recheck inside the existing transaction and initial-admin awaits the async hash; no schema, migration, backup or restore change.",
         "breaking": "none",
-        "migration": "Dropped the export keyword from the job-health window constant used only inside src/db/queries/jobs.ts; queries and recovery behavior are unchanged.",
-        "digest": "bf72ab5056aeee5257d03456a1d8ed554a5fd8de73ad57547aff5ff1187d4552"
+        "migration": "No migration: upgrade needs no action, rollback to v2.2.0 reads the same data and hash format, and backups are unaffected.",
+        "digest": "7f92b8a4e331c0a842bcc10647a435024f72a8fad474929541b8e9853911c5e2"
       }
     },
     "configuration": {
       "files": {
-        ".env.example": "7e5e3f9b6e50ad8c0a77eae509abd7f618163e1fda4870af848df2befe98eddc",
-        "src/config/env.ts": "32a5911f38b737bc7c809900a396b512d8a48374d9aa57d185d1e54951616da3"
+        ".env.example": "168aeff9d68259bfef0700194135837ff63cad04563377b363f261aa02e930ed",
+        "src/config/env.ts": "60d6392d801d4b3dd5bc9555f7e657526bebb9f687d9e41decd674fac041f583"
       },
-      "digest": "cbaaf64bc7e288f13bf4b16e90c608661d7f5f5c91aef9c8b5bd2abf76aa83e5",
+      "digest": "b09c7b286f57ee5832d67a3cc033a964e6105a0538ced10470a4db37f3a20e1e",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "PROXY_AUTH_TRUSTED_PROXIES validation now calls the shared parseCidrList helper; accepted values, rejection rules and startup errors are identical.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Document DIGARR_MEDIA_SERVER_ALLOW_LOCAL, its default and the restart requirement.",
+        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses stop working until DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true is set; no data changes, rollback restores the old behavior.",
         "migration": "",
-        "digest": "cbaaf64bc7e288f13bf4b16e90c608661d7f5f5c91aef9c8b5bd2abf76aa83e5"
+        "digest": "b09c7b286f57ee5832d67a3cc033a964e6105a0538ced10470a4db37f3a20e1e"
       }
     },
     "authentication": {
       "files": {
-        "src/core/auth.ts": "9a86b6f8e72370489ad960141dd39f181fe0536f515b539c93ff565201d08461",
+        "src/core/auth.ts": "483e0d8de413de2e5a91ae4daa99130279785adc090dd2e66b106595b65f2b54",
         "src/core/auth/cidr.ts": "37369afbd185498e1f20403e44fc877c2bf6e1af38948c1702d67b695c89c50b",
         "src/core/auth/oidc.ts": "824a37cb005c3d9094a5a00e4dcec2f5da9c5af9b8d614215d94a8784c9c2a68",
         "src/core/crypto.ts": "ee435124132851a3a20065c8125429687fd8b24ab66f7ab50ec183425a6d68f4",
@@ -251,32 +251,32 @@
         "src/server/middleware/idempotency.ts": "198d828dddad26a017753b331f5cfc2e17483146a498be8da81527292de5db5a",
         "src/server/middleware/logger.ts": "370c52c638ba0e5ca89baa7fa8058eccc6024349b835a36bb2b64499334ab9e0",
         "src/server/middleware/problem-json.ts": "b1b07dc5522735858efe4a8157d064d29c1440b0a4cca881139a4d0bab919085",
-        "src/server/middleware/proxy-auth.ts": "e60100d8db285fb83192b51992f2b99bc7a9bca91ffc3ffecda918c256e84337",
+        "src/server/middleware/proxy-auth.ts": "567d9b23a5d2a4caa6ffc5fa2542dd3b4b0127c40a7b33ce3213629292715a82",
         "src/server/middleware/rate-limit.ts": "29d8570e78fb502d52315a647014534cad937508030ddc3b36ebe83f8583235a",
         "src/server/middleware/session-cookie.ts": "19903a25c48e88c78296ffd63da7463f27ef57011dc69090ab3eaf50c13b6eca",
         "src/server/middleware/setup-guard.ts": "01f0bada266b354aecbac172986940affee6d92d8769de03db20eec02bd9b4ba",
         "src/server/routes/admin.ts": "5d3e55ca4d5c1cf7e849aef4c7d50788490095a090b189c869f223dd6626954d",
-        "src/server/routes/auth.ts": "a08d0d5245421e9ca71a6603e5ac558cc3042bd6fba4f5cf6cb598868da18fe4",
+        "src/server/routes/auth.ts": "b649b0972091acca902568674e29b6006fdbe934815af3c5e7248285de01df84",
         "src/server/routes/oauth-callbacks.ts": "9afe6d6d34017118f84c679dfa82e2ce2ad529bd04a17833ab01aa0ba83ba4e9",
         "src/server/routes/oauth-providers.ts": "55bdeb1d732c21a7d2cf5dd5b53f843f697424ff5e6e058f8ee2d0c2b55157fa",
         "src/server/routes/oauth.ts": "f368f95cb02d511985dc274c7b67b01de6ecd45e049e93fd02484ed9ec8df0fd",
-        "src/server/routes/oidc.ts": "94e28540a2bbfa25f737983726e5b00fc5a617eb7cddba3f8aa293bac308ab91",
-        "src/server/routes/setup.ts": "485b8a7f6ec27c0625aa35ab988872372e8f5cc7ca086bd37aa75323d71aaf01",
-        "src/server/routes/users.ts": "9c0e727093be51816ff5e5fc9794cc2e798000cb2d4d3a864e90deee4ea28759",
+        "src/server/routes/oidc.ts": "56574e482436139451590cbfe493e9af901ccde4f171d30836893be580ccdb92",
+        "src/server/routes/setup.ts": "f616a984ec22ace42ed0fd80f926458b4e9d19107815d6a9bfdab269e273cdca",
+        "src/server/routes/users.ts": "25dafafeb0d2efeba34b0f6a527f2e8ae9958301caa1a3985ac269b1ca78d317",
         "src/server/schemas/admin.ts": "87088ce00c35ef1f6376a29c1d1bdd03b1ebcc938c977b1e54cb411b4d6614b6",
         "src/server/schemas/auth.ts": "ac312d2668266296baef3026aebecf52c7ef3105a71fcf0388adecf9ce883161",
         "src/server/schemas/oauth.ts": "c7d41cd8b3a78b2e5b4f93662e0aadc02820f92903ba2df008f8ca8834e236e5",
         "src/server/schemas/setup.ts": "60311d40cae6dc876dcc0a5c3478988308ef149ee4e73293bdfe13c290641570",
         "src/server/schemas/users.ts": "d82cd50bd89da86076d5b1ccf2f23b77a576a265eafd2515b7d727e9a7f3d068"
       },
-      "digest": "ad6853f3a17a5e447133233aa8021668cabaca0a88acd72df755bd947898f3a0",
+      "digest": "9d23266c71db37b79275d14882c7d4e13c86040be1af362423422a6c937b4c40",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Adds one public path for the viewer script, which is the same static content class and public access as the already public OpenAPI document; no auth, cookie, token or session behavior changes.",
+        "outcome": "docs-updated",
+        "docs": ["docs/API.md", "CHANGELOG.md"],
+        "note": "Setup completion now requires an admin once a user exists; password hashing moved off the event loop with the same hash format.",
         "breaking": "none",
         "migration": "",
-        "digest": "ad6853f3a17a5e447133233aa8021668cabaca0a88acd72df755bd947898f3a0"
+        "digest": "9d23266c71db37b79275d14882c7d4e13c86040be1af362423422a6c937b4c40"
       }
     },
     "api": {
@@ -292,14 +292,14 @@
         "src/server/helpers/preferences.ts": "2e693995349198c8a7d223105d63c78c281c08a163526957881e93bbd2b74510",
         "src/server/helpers/problem.ts": "850d10b3ead7cfcb6a9dd8b0169bc0c7a6f754b52eb7a953d74d28e43d04e61c",
         "src/server/helpers/require-user.ts": "d70b0dabfe1b55c745a00cbb977a7d90662c6d5e56e22ec8d84823d377ed8583",
-        "src/server/index.ts": "202187faf11be507565d654c06acc4f23f9953c9f25d9619e779356a054c1a4b",
+        "src/server/index.ts": "50fd20a81c3b7ccf2d861b4945b70a38049045df2d4a627ec7782e86529168a8",
         "src/server/locale.ts": "2e52932685cf6fc9d626849248ae7eb3364d10566f7c969e20e0edd8a51a755c",
         "src/server/maintenance.ts": "3dcac7c46cd99416ad477206550eb4a04f9f12e9bd7958412f38d4376148fb20",
         "src/server/routes/album-blocks.ts": "7d94918c9afa52da9a861f622332d7f1212931931126d8b8f021ba56023f9839",
         "src/server/routes/analytics.ts": "d140cb662f4663fe763968f1376561a5415ef6a626e204a6b834f40b7be0a0cb",
         "src/server/routes/approval-requests.ts": "1aadd4a8d41d49c363ddf4e1066b5dd3d50b668c40570ed57465c781139ba6e4",
         "src/server/routes/artist-blocks.ts": "1123ac482bbf96ae5226a8f568233d6193ed3e4260b12cbaddc47dff4d5b54c0",
-        "src/server/routes/artists.ts": "1f6258d3654546a5ea5ea7c4a07f04a80223a9c273ba918816a3c0269e155820",
+        "src/server/routes/artists.ts": "a8eaf75bb35fb000c9c6929a4ee1d8b2b453efcef75bd84841f448a171bfe8ce",
         "src/server/routes/batches.ts": "083c7b475b11e1afa34adfffa357bf398098faaa6ea4ca7a6f5c9df470f4fe7d",
         "src/server/routes/dashboard.ts": "ed7401ae574d24d0a68ee80e46ace07f625ed379f25bd27e6a3a745714f8f8d8",
         "src/server/routes/discovery-modes.ts": "f84e434fd2bdf8b9a3c92ba5d983d3acd76abe8bec15c440bd67b5b8e491c7d4",
@@ -318,7 +318,7 @@
         "src/server/routes/playlists.ts": "ec42d35f636cbc59ce550452306047fe79b9fd300cde47abd5693dfb0bea7025",
         "src/server/routes/recommendations.ts": "7959fe01eb1d9d32d43bcc7b23f372343acfe956583457cbff91b3d935cc2d60",
         "src/server/routes/search.ts": "b4bfb05b2ad246ee6ba17d6c1d28f8185b68188fa667c5d39fa998bec5d1203c",
-        "src/server/routes/settings.ts": "ebfb1674533dc76cd4b97018ada9923676ad5504c3f8e094ae61f13a441c5233",
+        "src/server/routes/settings.ts": "7300bc32503db72eca8bea7a05c71021028277579938d86640fdade66eac84bb",
         "src/server/routes/slskd.ts": "16b9650783850962225799dd25cf312f6e0fe36cf2880e80149bf5be9aa05e88",
         "src/server/routes/subscriptions.ts": "77fb5edc614cceed10db76e8cd3a19deed7f6267d6ccd906bcc8780fd112a674",
         "src/server/routes/targets.ts": "b3682f7c1d2166ee234af764b65537100d1be73c66364cdec4b63c6ac4824c0d",
@@ -342,14 +342,14 @@
         "src/server/static.ts": "ab110ffa2d513ffe36fa6fb7bd0f34b213c05fcd5723fc02c5dbc50b5b08a5df",
         "src/server/types.ts": "83a039a9b33b0ab57bf718066a2837816eac788a3418a1b2924dd127659627c6"
       },
-      "digest": "e8f76727f7d7889ce132124d44f2de19a7d7e325962185753d5f5e01d9364877",
+      "digest": "2771e3bfe5c2004d343be7d29d15d036c43ea921696de394ceacb27241fc30b8",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/API.md", "CHANGELOG.md"],
-        "note": "Document the self-hosted API reference at /api/v1/docs, its viewer script route, and its page-specific CSP.",
+        "note": "Albums rate limit, setup/complete admin requirement and the media server URL 400 on save are documented.",
         "breaking": "none",
         "migration": "",
-        "digest": "e8f76727f7d7889ce132124d44f2de19a7d7e325962185753d5f5e01d9364877"
+        "digest": "2771e3bfe5c2004d343be7d29d15d036c43ea921696de394ceacb27241fc30b8"
       }
     },
     "interface": {
@@ -561,28 +561,30 @@
         "src/core/clients/deezer-user.ts": "cb4c0abf9263b2bed6b6bf8e5a9867ea49f62759bee3fb269971b182d5652f01",
         "src/core/clients/deezer.ts": "42d430f2c268c810cf5d2a08dc04bc41860bfbe7ad2c8cd2bb66441530ed2a55",
         "src/core/clients/discogs.ts": "7f7a7631fcc0be4847f8f3134099ff6006d0f233c794b1c153861f95f9561abe",
-        "src/core/clients/emby.ts": "f550c15da83f7d8148ab24167d40da8fe68e174714b95bc1885eb93eafcc2135",
+        "src/core/clients/emby.ts": "af5c6a9acea411ad7c0127b769f9099e224b59fb42e01dfd2c31db2227769872",
         "src/core/clients/fanart.ts": "d01e3b7138cdcc7b29c19e6f670678fbdca818c3b7eb63f75300da6849c5d1c1",
-        "src/core/clients/http.ts": "faa040881c59be5928dfc644bb223bea325221a08645cb5860730d6f660c3207",
+        "src/core/clients/http.ts": "620b9072cc310a99a5878cefbc2a6cccb173deea4bb99ed32afa5fa404ed74c4",
         "src/core/clients/image-utils.ts": "a9642430c70a7df1a693f5f542dbd1e22e8891303a0ff5434469bc28a5a65278",
-        "src/core/clients/jellyfin.ts": "4d718b3ffa61c06001ad901fc7a4dfad294fe5198a1fc7a7c3e43786b19696ba",
+        "src/core/clients/jellyfin.ts": "b8c90b18b4f234abf34586bd334d89798fb991057123defe3e3adcdfda74d473",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
+        "src/core/clients/library-paging.ts": "e04e71d5c409f29027b51436246ac91787e63d8e395f8725865fe9c10f06f9ec",
         "src/core/clients/lidarr.ts": "47c57af3744a435182725474976091060da19e3655f0d7ff9fbcaf3afa1acad3",
         "src/core/clients/listenbrainz.ts": "9f6ff6f4435d74b920428e912a5a5dcd0d8c2416f20e94faaed94709b14de094",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
+        "src/core/clients/media-server-policy.ts": "9427a10634e92cb28fc40203cc1fbef444079bf5328fe8cfe89e394ae3f74831",
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "ef0e3945c7e6a4e7b0408daa4ef90f640b49de4ea15fdd2d277dd6f38b484ca5",
+        "src/core/clients/musicbrainz.ts": "80649339e028e161e108f12f6629cc95c3934cfda3d53cfa5aa2e775e7dcf7c4",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "52ac9a3dfc06e1d38a10e238dad8d3ffa6ea80bb8c01092c8780c6768367e2f1",
+        "src/core/clients/plex.ts": "c9a0fc3d56583ecaa80a90006bfe005fabe993a887d047ea6a3e93194c9568b5",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
-        "src/core/clients/release-group-cache.ts": "5c8fc1cc9b64dbea272bab41a355838f02289ba1ed50b30861f2a533a1d1b47c",
+        "src/core/clients/release-group-cache.ts": "6c9837351bd2ac08366bccc3319f343b7db6505a0c491176cf110729031ec358",
         "src/core/clients/scrobbler-write-back.ts": "7ef373927545b67ca1eec769314168ed770560238296251f5bf5c860e074cb84",
         "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
-        "src/core/clients/subsonic.ts": "fd3a22c4274bba4ebad45b175a2f92f1689e1bc20379f3cfa4850860eb290d7e",
+        "src/core/clients/subsonic.ts": "4c2207bc0fe340e4ddca995b5e2353e6923a69de71b5c77c393940a4f4bd97c7",
         "src/core/clients/tag-radio-resolver.ts": "09bcaded570d0e05e1e60d34fbff8402af9a3f3823dfb73932c8b90f2fac80af",
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "9c8d8fd48eb212eb6914302c3882dd1e7751b26e9192e1a14d9e2bea56e758f4",
@@ -639,7 +641,7 @@
         "src/core/library/sync.ts": "3f3c9040f9fcb92a457ef4cdfe8ac48ac13da7bad13bcefd3966649f36db967a",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
-        "src/core/net/guarded-fetch.ts": "517d7075fc57ed03c0173c10b6ba68c7253721c9d514e6ab90df9704540d6611",
+        "src/core/net/guarded-fetch.ts": "68e085a701a6e3dda36e65e8d0a835e3f7fd60555346c2a1931de968d4bee38b",
         "src/core/notifications/channels/apprise.ts": "e7e4f6a6f17c8b4b712c520c5382ea17196ebb27cae60f32c55be471c96255d9",
         "src/core/notifications/channels/ntfy.ts": "5c5b7747a209a1f7f557a2e2f956d908f480372269a8185223eedf91ac77a0bb",
         "src/core/notifications/channels/telegram.ts": "fa3cdab2724e026fa5528924bf7638aea01ee188232b3cad0d3cd0b9a8660221",
@@ -667,7 +669,7 @@
         "src/core/pipeline/store.ts": "5a83859bfe3ebd8b8128aecab11f167aaef885457d6ec82bb0f5301f5b45d535",
         "src/core/pipeline/subscription-scheduler.ts": "514568507b29df6401645387e80e0fdb63aa22f45a67c5b32939ef0f3d63ff8e",
         "src/core/pipeline/weight-presets.ts": "64bbcec6f9c37b11d5db6bb62193a5a6b687e79df897459986392b368f2a01ff",
-        "src/core/playlist-import.ts": "23fefb3505d5d240380abd4b92718824288461be5873fab2f1f6029c2c67be44",
+        "src/core/playlist-import.ts": "a4cdb8cc57435c2166f3489a9823d8a3ad5d1a3d1391774159257bb5c688599c",
         "src/core/playlists/config.ts": "ce892ef0a9d90b6d0e9c4d512161b82e0f3cd5602d3d1328ca26edadafbbd8e6",
         "src/core/playlists/export.ts": "207784caca52f432caa9df415e8dd71c11d41c6572db59ce0b222239e9e6e783",
         "src/core/playlists/generation-lock.ts": "f4a0055d39391aec7d95e23d6a6ffa940de60c4f5bdf46f5ce2554ce93218540",
@@ -767,23 +769,23 @@
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
-        "src/core/validation.ts": "d8d4ab1eaef3258a80b64a72b7d0f26d66dfcfbada07eb0aacfa012a7028224a",
+        "src/core/validation.ts": "9c48d81d4bf6ac7a8fb9108d3f775a33f69346412c13af0fa3176cb8cc65a48a",
         "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "30138f3ceecd61577073859409406119d7c3b98dab8a01cc2820772eb6e57142",
+      "digest": "7d5a47f51329445ce8deacd405a42900058c404904a7156fc85b5a88fd95b325",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Scheduled and manual pipeline runs build auto-approve deps in one helper, and internal sleep calls and exports were tidied; auto-approve, scheduling and slskd behavior are unchanged.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Media-server destination policy documented in OPERATIONS; paging ceiling, linear XSPF parsing and MusicBrainz cancellation noted in the changelog.",
+        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
-        "digest": "30138f3ceecd61577073859409406119d7c3b98dab8a01cc2820772eb6e57142"
+        "digest": "7d5a47f51329445ce8deacd405a42900058c404904a7156fc85b5a88fd95b325"
       }
     },
     "deployment": {
       "files": {
-        "deploy/docker/.env.example": "6505d50f20bfe47d4865d5a8f16d5b9fe7ed1af3614f40f1f5fc1e725da93153",
+        "deploy/docker/.env.example": "4fc6987e5404690e64bd1290e307f1706bb0c9a5731b31e8c79aad43771c0c63",
         "deploy/docker/Dockerfile": "a2805af008748b929e470c3c435557509d5ff7528f0f38cc870eb97e6cd0c83c",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
@@ -814,18 +816,18 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "1b736a28d8e65f7d4997befcd9a56c48757e082a71f30cbfc883d2886b0cb718",
+        "deploy/k8s/rendered.yaml": "1c4579b270734f45fdae210e0a70bbcb65daf5302399475f8a0195e86bb938dc",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "f45ca1c20138cf8c0872bca2c3cf6e928767389e9f2d40367ae39bc7d34288ba",
+      "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Version-only release bump: chart version and appVersion, rendered manifest labels, and the copyable compose image examples move to 2.2.0. No chart template, default, port, volume, permission or image change; the published image pin in values.yaml and the Unraid template stays on 2.1.0 until the post-release digest sync.",
-        "breaking": "none",
+        "outcome": "docs-updated",
+        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
+        "note": "Chart and rendered manifest move to 2.2.1; Docker env example lists the optional DIGARR_MEDIA_SERVER_ALLOW_LOCAL setting documented in OPERATIONS; no port, volume or image layout change.",
+        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
-        "digest": "f45ca1c20138cf8c0872bca2c3cf6e928767389e9f2d40367ae39bc7d34288ba"
+        "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009"
       }
     },
     "release": {
@@ -843,17 +845,17 @@
         ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
         ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
-        "package.json": "b432134432bcef0c5bfe5056ef4dac8cf05971afc1be35935fd1b06feb96060d",
+        "package.json": "16501720bd7d014f59915d6a37974b23199dfb854dc731e2dec15f803a9be105",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42",
+      "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
-        "note": "v2.2.0 changelog section with upgrade notes (no migrations), README banner and tag examples, and the roadmap current-release paragraph and header are bumped together with package.json, API.md and the chart; tags, channels, signing and promotion flow are unchanged.",
-        "breaking": "none",
+        "note": "v2.2.1 security release: version surfaces, changelog section, README banner and roadmap header updated.",
+        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
         "migration": "",
-        "digest": "3a2182936902c7c589ec3d13388269ad7ea4703bf5467f2189d7965b2dc9eb42"
+        "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975"
       }
     },
     "maintenance": {
