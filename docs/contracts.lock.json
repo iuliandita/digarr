@@ -832,13 +832,13 @@
     },
     "release": {
       "files": {
-        ".github/workflows/backmerge-develop.yml": "8d643aabfbfe87a6424bee6524b73d32469e6d2473d27ae36e7cf316af5291b6",
+        ".github/workflows/backmerge-develop.yml": "dbeadfb762d4809374ee416b401bd9bcbb10dc0837da28d3e870753be5facbc4",
         ".github/workflows/ci.yml": "262bd025a3d7b38d18d860ed91190980866eae4a2d68ecaa77d2b0a02cf5f906",
         ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
         ".github/workflows/docs-companions.yml": "b80b20db460104105666b4b30766f17e4f540c7a6ee817401017e1be707c7e25",
         ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
         ".github/workflows/labeler.yml": "6c75156590df3e60b3020f26cc8b26569de2600466c4e4d2aa78b37c2086516c",
-        ".github/workflows/nightly.yml": "c47510e9cf6097a6d32468ba03474401434e51aa6f17e6d8c4f6f2446857a5e5",
+        ".github/workflows/nightly.yml": "3624d149898c4c000603dbe823bb4a0543e41df720f3fdf3b2204eb8a338cdf9",
         ".github/workflows/promote-stable.yml": "3c513dba307612279ed195dfbe714690e39d569eec772f16b4166c2ad2e07f61",
         ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
         ".github/workflows/release-readiness.yml": "1a536b7881b23b189eb62cac05d9ca52ae3325dc37a370880d08fe129969d457",
@@ -848,14 +848,14 @@
         "package.json": "16501720bd7d014f59915d6a37974b23199dfb854dc731e2dec15f803a9be105",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975",
+      "digest": "95634462c66f022284218ed2f2e3c2bc890dac13d3bc5663deb84d637665ace2",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
-        "note": "v2.2.1 security release: version surfaces, changelog section, README banner and roadmap header updated.",
-        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "CI-only: the backmerge now dispatches the nightly build; no user-facing release docs change. The process note lives in docs/MAINTENANCE.md",
+        "breaking": "none",
         "migration": "",
-        "digest": "c8265bc29144c1b3ed9b60b849ffc6f0f49dbadcb4d8735b7c34c5337312c975"
+        "digest": "95634462c66f022284218ed2f2e3c2bc890dac13d3bc5663deb84d637665ace2"
       }
     },
     "maintenance": {
