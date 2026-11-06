@@ -11,6 +11,8 @@ on:
   push:
     branches:
       - develop
+  # The back-merge pushes with GITHUB_TOKEN, which does not fire push workflows, so it dispatches this.
+  workflow_dispatch:
 
 # A newer push to develop cancels an in-flight build: the moving :nightly always
 # converges on the latest commit, but a superseded commit's :nightly-<sha> tag
