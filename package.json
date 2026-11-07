@@ -71,15 +71,15 @@
     "vitest": "^5.1.0"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^1.4.0",
+    "@anthropic-ai/sdk": "^1.6.0",
     "@electric-sql/pglite": "0.5.15",
     "@hono/node-server": "^2.1.6",
     "@hono/zod-validator": "^0.9.1",
     "@modelcontextprotocol/sdk": "1.32.2",
     "croner": "^11.0.0",
     "drizzle-orm": "^0.45.4",
-    "hono": "^4.13.16",
-    "openai": "^7.47.0",
+    "hono": "^4.13.17",
+    "openai": "^7.53.0",
     "openid-client": "^6.8.9",
     "p-queue": "^10.0.0",
     "p-retry": "^9.0.0",
