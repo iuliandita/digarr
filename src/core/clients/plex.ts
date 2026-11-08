@@ -386,12 +386,20 @@ export function createPlexClient(
   async function collectTopArtists(since?: number): Promise<PlexTopArtist[]> {
     const binding = requireListeningBinding()
     await verifyListeningBinding()
+    // History arrives newest-first, so when it is larger than the retrieval bound we rank
+    // artists from the most recent MAX_HISTORY_ITEMS plays instead of failing the whole
+    // source. Long-time Plexamp users pass 5,000 plays quickly, and a hard failure here
+    // left the pipeline with no Plex signal at all.
     const history = await getHistory({
       accountId: binding.accountId,
       librarySectionId: binding.librarySectionId,
       since,
-      requireComplete: true,
     })
+    if (history.length >= MAX_HISTORY_ITEMS) {
+      console.warn(
+        `[plex] Listening history exceeds ${MAX_HISTORY_ITEMS} plays; top artists use the most recent ${MAX_HISTORY_ITEMS}`,
+      )
+    }
     const byArtist = new Map<string, PlexTopArtist>()
     for (const item of history) {
       const key = item.artistName.toLocaleLowerCase()
