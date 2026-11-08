@@ -577,7 +577,7 @@
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
         "src/core/clients/musicbrainz.ts": "80649339e028e161e108f12f6629cc95c3934cfda3d53cfa5aa2e775e7dcf7c4",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "a1b989b5c51d8ff358a7f959ccd0e96ab31e98211416569f82786b81b671d366",
+        "src/core/clients/plex.ts": "e2ef738274f680cd55f5db64e5583b7ce7259a55321227b026f138cab8abb78b",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
         "src/core/clients/release-group-cache.ts": "6c9837351bd2ac08366bccc3319f343b7db6505a0c491176cf110729031ec358",
         "src/core/clients/scrobbler-write-back.ts": "7ef373927545b67ca1eec769314168ed770560238296251f5bf5c860e074cb84",
@@ -773,14 +773,14 @@
         "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "6bc070b9baf6e98e8622e716c7c06fbac2e31ef3560020844d74db3ec0c098d1",
+      "digest": "ca8d72eb519b3259ce817aee3071296417fe9aaa439f6c125610207f54d0a3eb",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Plex top-artist analysis now ranks the most recent 5,000 plays instead of failing when history exceeds the retrieval bound; updated the Known limitations and API notes that described the failure, and added a changelog entry.",
+        "note": "Plex top-artist analysis now ranks the most recent plays instead of failing when history exceeds the retrieval bound, warning via a new getHistory onTruncated hook; updated the Known limitations and API notes that described the failure, and added a changelog entry.",
         "breaking": "none",
         "migration": "",
-        "digest": "6bc070b9baf6e98e8622e716c7c06fbac2e31ef3560020844d74db3ec0c098d1"
+        "digest": "ca8d72eb519b3259ce817aee3071296417fe9aaa439f6c125610207f54d0a3eb"
       }
     },
     "deployment": {

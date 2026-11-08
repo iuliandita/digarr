@@ -49,6 +49,8 @@ export type PlexHistoryOptions = {
   maxItems?: number
   maxPages?: number
   requireComplete?: boolean
+  /** Called when the item or page bound stops retrieval before the history is exhausted. */
+  onTruncated?: (bounds: { maxItems: number; maxPages: number }) => void
 }
 
 type PlexSectionsResponse = {
@@ -375,10 +377,13 @@ export function createPlexClient(
           : metadata.length < requestSize
       if (exhausted || metadata.length === 0) break
     }
-    if (options.requireComplete && !exhausted) {
-      throw new Error(
-        `Plex history exceeds the bounded retrieval limit (${maxItems} items or ${maxPages} pages)`,
-      )
+    if (!exhausted) {
+      if (options.requireComplete) {
+        throw new Error(
+          `Plex history exceeds the bounded retrieval limit (${maxItems} items or ${maxPages} pages)`,
+        )
+      }
+      options.onTruncated?.({ maxItems, maxPages })
     }
     return items
   }
@@ -387,19 +392,18 @@ export function createPlexClient(
     const binding = requireListeningBinding()
     await verifyListeningBinding()
     // History arrives newest-first, so when it is larger than the retrieval bound we rank
-    // artists from the most recent MAX_HISTORY_ITEMS plays instead of failing the whole
-    // source. Long-time Plexamp users pass 5,000 plays quickly, and a hard failure here
-    // left the pipeline with no Plex signal at all.
+    // artists from the most recent plays instead of failing the whole source. Long-time
+    // Plexamp users pass the bound quickly, and a hard failure here left the pipeline with
+    // no Plex signal at all.
     const history = await getHistory({
       accountId: binding.accountId,
       librarySectionId: binding.librarySectionId,
       since,
+      onTruncated: ({ maxItems, maxPages }) =>
+        console.warn(
+          `[plex] Listening history exceeds the retrieval bound (${maxItems} items or ${maxPages} pages); top artists use the most recent plays`,
+        ),
     })
-    if (history.length >= MAX_HISTORY_ITEMS) {
-      console.warn(
-        `[plex] Listening history exceeds ${MAX_HISTORY_ITEMS} plays; top artists use the most recent ${MAX_HISTORY_ITEMS}`,
-      )
-    }
     const byArtist = new Map<string, PlexTopArtist>()
     for (const item of history) {
       const key = item.artistName.toLocaleLowerCase()
