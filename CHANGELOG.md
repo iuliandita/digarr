@@ -8,7 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
-- Plex listening sources with more than 5,000 plays no longer fail during scans. Top-artist analysis ranks artists from the most recent 5,000 plays and logs a warning, instead of reporting `Plex history exceeds the bounded retrieval limit` and leaving the scan without Plex listening data.
+- Plex listening sources with more than 5,000 plays no longer fail during scans. Scans rank artists from the most recent 5,000 plays and log a warning, instead of reporting `Plex history exceeds the bounded retrieval limit` and leaving the scan without Plex listening data. The dashboard's paged listing still requires complete history for its period.
 
 ## v2.2.1 - 2026-11-06
 

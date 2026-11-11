@@ -263,7 +263,7 @@ A listener selection is required for listening-based discovery. Existing Plex co
 
 Digarr verifies the server identity and rejects history belonging to a different account instead of mixing profiles. A server or token that cannot expose the account list or playback history can still be used for library sync; Plex similarity data depends on the library's metadata agent.
 
-History analysis reads at most 5,000 entries (25 pages) per requested period, newest first. If a period holds more, top-artist analysis ranks artists from the most recent 5,000 plays and logs a warning instead of failing. Scans read all-time history, so long-time Plex listeners are ranked from their latest 5,000 plays; for counts over a longer span, add ListenBrainz or Last.fm as a listening source.
+History analysis allows at most 5,000 entries (25 pages) per requested period. Scans read all-time history newest first, so long-time Plex listeners are ranked from their latest 5,000 plays and a warning is logged instead of failing. The dashboard listing needs complete totals: if its period cannot be read within the limit it reports a failure; choose a shorter period or another listening source, such as ListenBrainz or Last.fm.
 
 Plex history IDs can arrive as bare rating keys or `/library/metadata/<id>` paths. Entries without usable artist and track IDs are skipped, including plays of removed media. If a page contains in-range tracks but none are usable, Digarr logs a count-only warning. Dashboard listening requests do not create Job History entries; inspect the container logs when Plex has plays but the dashboard is empty.
 

@@ -388,21 +388,24 @@ export function createPlexClient(
     return items
   }
 
-  async function collectTopArtists(since?: number): Promise<PlexTopArtist[]> {
+  async function collectTopArtists(
+    since?: number,
+    allowTruncated = false,
+  ): Promise<PlexTopArtist[]> {
     const binding = requireListeningBinding()
     await verifyListeningBinding()
-    // History arrives newest-first, so when it is larger than the retrieval bound we rank
-    // artists from the most recent plays instead of failing the whole source. Long-time
-    // Plexamp users pass the bound quickly, and a hard failure here left the pipeline with
-    // no Plex signal at all.
     const history = await getHistory({
       accountId: binding.accountId,
       librarySectionId: binding.librarySectionId,
       since,
-      onTruncated: ({ maxItems, maxPages }) =>
-        console.warn(
-          `[plex] Listening history exceeds the retrieval bound (${maxItems} items or ${maxPages} pages); top artists use the most recent plays`,
-        ),
+      ...(allowTruncated
+        ? {
+            onTruncated: ({ maxItems, maxPages }: { maxItems: number; maxPages: number }) =>
+              console.warn(
+                `[plex] Listening history exceeds the retrieval bound (${maxItems} items or ${maxPages} pages); top artists use the most recent plays`,
+              ),
+          }
+        : { requireComplete: true }),
     })
     const byArtist = new Map<string, PlexTopArtist>()
     for (const item of history) {
@@ -424,7 +427,9 @@ export function createPlexClient(
   }
 
   async function getTopArtists(limit = 50, options?: { since?: number }): Promise<PlexTopArtist[]> {
-    return (await collectTopArtists(options?.since)).slice(0, Math.max(0, Math.trunc(limit)))
+    // Newest-first history lets scans rank the latest plays when it exceeds the bound; the
+    // paged dashboard path stays strict because its totals would be wrong.
+    return (await collectTopArtists(options?.since, true)).slice(0, Math.max(0, Math.trunc(limit)))
   }
 
   async function getTopArtistsPaged(options: {

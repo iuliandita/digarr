@@ -270,6 +270,19 @@ describe('plex client.getTopArtists()', () => {
     warn.mockRestore()
   })
 
+  it('keeps the paged dashboard path strict when history exceeds the retrieval bound', async () => {
+    const page = Array.from({ length: 200 }, (_, i) => ({
+      ...historyRow(7, `Track ${i}`),
+      ratingKey: String(1000 + i),
+    }))
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValue(historyResponse(page, 6000))
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+    await expect(client.getTopArtistsPaged({ limit: 10, offset: 0 })).rejects.toThrow(
+      'bounded retrieval limit',
+    )
+  })
+
   it('warns when the page bound truncates history before the item bound is reached', async () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     // Rows without a rating key are skipped, so 25 full pages yield fewer than 5,000 items.
