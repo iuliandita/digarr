@@ -153,6 +153,8 @@ export type LidarrClientOptions = {
 }
 
 const WANTED_PAGE_SIZE = 250
+// Listing a large downloads folder on a slow share can exceed the 10s default.
+const FILESYSTEM_LISTING_TIMEOUT_MS = 30_000
 const WANTED_MAX_PAGES = 100
 
 export function createLidarrClient(
@@ -461,6 +463,7 @@ export function createLidarrClient(
     const params = new URLSearchParams({ path: directory, includeFiles: 'false' })
     const listing = await http.get<{ directories?: unknown }>(`/api/v1/filesystem?${params}`, {
       retries: 0,
+      timeout: FILESYSTEM_LISTING_TIMEOUT_MS,
     })
     if (!Array.isArray(listing.directories)) return false
     // Lidarr returns an empty list for missing folders too; verify the parent entry.
@@ -471,7 +474,7 @@ export function createLidarrClient(
     const parentParams = new URLSearchParams({ path: parent, includeFiles: 'false' })
     const result = await http.get<{ directories?: Array<{ path?: string }> }>(
       `/api/v1/filesystem?${parentParams}`,
-      { retries: 0 },
+      { retries: 0, timeout: FILESYSTEM_LISTING_TIMEOUT_MS },
     )
     return (
       Array.isArray(result.directories) &&

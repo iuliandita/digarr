@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- The slskd target test no longer reports every Lidarr failure as "Lidarr cannot find or list the download path". A timeout, authentication failure, server error or unreachable Lidarr now shows its real cause, and the Lidarr folder listing waits up to 30 seconds instead of 10 so large downloads folders on slow shares can pass.
+
 ## v2.2.1 - 2026-11-06
 
 ### Upgrade notes
