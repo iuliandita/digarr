@@ -44,6 +44,8 @@ export const zhCN = {
   'tokens.mcpCopyFailed': '无法复制。请选择配置并手动复制。',
   'settings.slskdSearchInterval': '搜索最小间隔，秒 (1-60，默认 3)',
   'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
+  'settings.slskdLinkedLidarrUnavailable':
+    '无法使用已链接的 Lidarr 目标，因此未检查下载路径。请确认它已启用并已连接，然后重新测试。',
   'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
   'settings.slskdPathOk':
     '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',

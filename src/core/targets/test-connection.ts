@@ -97,7 +97,8 @@ export async function testTargetConnection(
       }
       try {
         const lidarr = linkedLidarrClient(linkedLidarrConfig)
-        if (!lidarr || !(await lidarr.canListPath(path)))
+        if (!lidarr) return pathResult(false, 'settings.slskdLinkedLidarrUnavailable')
+        if (!(await lidarr.canListPath(path)))
           return pathResult(false, 'settings.slskdPathUnavailable')
         return pathResult(true, 'settings.slskdPathOk')
       } catch (error) {

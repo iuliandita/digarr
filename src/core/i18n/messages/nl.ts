@@ -51,6 +51,8 @@ export const nl = {
     'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
   'settings.slskdPathUnavailable':
     'Lidarr kan het downloadpad niet vinden of weergeven. Controleer je koppeling en leesrechten.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Het gekoppelde Lidarr-doel kan niet worden gebruikt, dus het downloadpad is niet gecontroleerd. Controleer of het is ingeschakeld en verbonden en test dan opnieuw.',
   'settings.slskdPathIncomplete':
     'Het downloadpad lijkt een map voor onvoltooide downloads. Gebruik je map voor voltooide downloads.',
   'settings.slskdPathOk':

@@ -50,6 +50,8 @@ export const pl = {
     'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
   'settings.slskdPathUnavailable':
     'Lidarr nie może znaleźć ani wyświetlić ścieżki pobierania. Sprawdź montowanie i uprawnienia odczytu.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Nie można użyć połączonego celu Lidarr, więc ścieżka pobierania nie została sprawdzona. Sprawdź, czy jest włączony i połączony, a potem przetestuj ponownie.',
   'settings.slskdPathIncomplete':
     'Ścieżka wygląda na folder nieukończonych pobrań. Użyj folderu ukończonych pobrań.',
   'settings.slskdPathOk':

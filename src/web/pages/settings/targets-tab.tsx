@@ -749,6 +749,7 @@ export function TargetsTab() {
       const message =
         key === 'settings.slskdPathIncomplete' ||
         key === 'settings.slskdPathUnavailable' ||
+        key === 'settings.slskdLinkedLidarrUnavailable' ||
         key === 'settings.slskdPathOk'
           ? t(key)
           : result.message

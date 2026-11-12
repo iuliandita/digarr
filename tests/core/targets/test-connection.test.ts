@@ -254,7 +254,7 @@ describe('linked slskd path probe', () => {
     fetchMock.mockResolvedValueOnce(json({ version: '1' }))
     expect(await testTargetConnection('slskd', config)).toMatchObject({
       success: false,
-      details: { messageKey: 'settings.slskdPathUnavailable' },
+      details: { messageKey: 'settings.slskdLinkedLidarrUnavailable' },
     })
     expect(fetchMock).toHaveBeenCalledTimes(1)
   })

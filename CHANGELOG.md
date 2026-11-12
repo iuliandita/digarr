@@ -9,6 +9,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 ### Fixed
 
 - The slskd target test with a linked Lidarr target always reported "Lidarr cannot find or list the download path" without asking Lidarr, because the linked Lidarr connection was dropped before the path check ran. The test now checks the folder through the linked Lidarr, including targets that use the server Lidarr connection.
+- The slskd target test no longer blames your mount when the linked Lidarr target cannot be used (disabled, removed, owned by another user, or set to the server connection while none is configured). It now says the linked Lidarr target cannot be used and that the download path was not checked (#1247).
 - Plex listening sources with more than 5,000 plays no longer fail during scans. Scans rank artists from the most recent 5,000 plays and log a warning, instead of reporting `Plex history exceeds the bounded retrieval limit` and leaving the scan without Plex listening data. The dashboard's paged listing still requires complete history for its period.
 - The slskd target test no longer reports every Lidarr failure as "Lidarr cannot find or list the download path". A timeout, authentication failure, server error or unreachable Lidarr now shows its real cause, and the Lidarr folder listing waits up to 30 seconds instead of 10 so large downloads folders on slow shares can pass.
 

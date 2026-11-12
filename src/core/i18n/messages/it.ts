@@ -49,6 +49,8 @@ export const it = {
   'settings.slskdSearchInterval': 'Intervallo minimo tra ricerche in secondi (1-60, predefinito 3)',
   'settings.slskdPathUnavailable':
     'Lidarr non riesce a trovare o elencare il percorso di download. Controlla il tuo montaggio e i permessi di lettura.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Il target Lidarr collegato non può essere usato, quindi il percorso di download non è stato verificato. Controlla che sia attivo e connesso, poi riprova il test.',
   'settings.slskdPathIncomplete':
     'Il percorso sembra una cartella di download incompleti. Usa la tua cartella dei download completati.',
   'settings.slskdPathOk':

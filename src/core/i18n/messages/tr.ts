@@ -49,6 +49,8 @@ export const tr = {
   'settings.slskdSearchInterval': 'Aramalar arasındaki en kısa süre, saniye (1-60, varsayılan 3)',
   'settings.slskdPathUnavailable':
     'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Bağlı Lidarr hedefi kullanılamıyor, bu yüzden indirme yolu kontrol edilmedi. Etkin ve bağlı olduğunu kontrol et, sonra tekrar test et.',
   'settings.slskdPathIncomplete':
     'İndirme yolu tamamlanmamış indirmeler klasörüne benziyor. Tamamlanmış indirmeler klasörünü kullan.',
   'settings.slskdPathOk':

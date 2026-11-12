@@ -49,6 +49,8 @@ export const uk = {
   'settings.slskdSearchInterval': 'Мінімальний інтервал між пошуками в секундах (1-60, типово 3)',
   'settings.slskdPathUnavailable':
     'Lidarr не може знайти або прочитати теку завантажень. Перевір монтування та права на читання.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Пов’язану ціль Lidarr не можна використати, тому шлях завантаження не перевірено. Перевір, що вона увімкнена й підключена, і запусти тест знову.',
   'settings.slskdPathIncomplete':
     'Шлях схожий на теку незавершених завантажень. Використовуй теку завершених завантажень.',
   'settings.slskdPathOk':
