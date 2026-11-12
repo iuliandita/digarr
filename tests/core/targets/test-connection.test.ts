@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { Hono } from 'hono'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { testTargetConnection } from '@/core/targets/test-connection'
+import { createTargetConnectionTester, testTargetConnection } from '@/core/targets/test-connection'
 import { targetRoutes } from '@/server/routes/targets'
 import type { HonoEnv } from '@/server/types'
 
@@ -296,3 +296,49 @@ it.each([
     else expect(probe).toHaveBeenCalledWith('slskd', config)
   },
 )
+
+it('probes a linked Lidarr that uses the server connection (#1244)', async () => {
+  const config = {
+    url: 'http://slskd.test',
+    apiKey: 'slskd-key',
+    lidarrTargetId: 12,
+    lidarrDownloadPath: '/downloads',
+  }
+  fetchMock
+    .mockResolvedValueOnce(json({ version: '1' }))
+    .mockResolvedValueOnce(json({ directories: [] }))
+    .mockResolvedValueOnce(json({ directories: [{ path: '/downloads/' }] }))
+  const app = new Hono<HonoEnv>()
+  app.use('*', async (c, next) => {
+    c.set('userId', 1)
+    await next()
+  })
+  const getSettings = async () => ({ lidarrUrl: 'http://lidarr.test', lidarrApiKey: 'server-key' })
+  app.route(
+    '/',
+    targetRoutes({
+      getUserById: async () => ({ isAdmin: false }),
+      getSettings,
+      targetQueries: {
+        getTarget: async (id: number) =>
+          id === 1
+            ? { id: 1, type: 'slskd', userId: 1, enabled: true, config }
+            : {
+                id: 12,
+                type: 'lidarr',
+                userId: 1,
+                enabled: true,
+                config: { useServerConnection: true },
+              },
+      },
+      testTargetConnection: createTargetConnectionTester(getSettings),
+    } as never),
+  )
+  const response = await app.request('/api/v1/targets/1/test', { method: 'POST' })
+  expect(await response.json()).toMatchObject({
+    success: true,
+    details: { messageKey: 'settings.slskdPathOk' },
+  })
+  expect(new URL(fetchMock.mock.calls[1]?.[0]).origin).toBe('http://lidarr.test')
+  expect(new Headers(fetchMock.mock.calls[1]?.[1].headers).get('X-Api-Key')).toBe('server-key')
+})
