@@ -49,6 +49,8 @@ export type PlexHistoryOptions = {
   maxItems?: number
   maxPages?: number
   requireComplete?: boolean
+  /** Called when the item or page bound stops retrieval before the history is exhausted. */
+  onTruncated?: (bounds: { maxItems: number; maxPages: number }) => void
 }
 
 type PlexSectionsResponse = {
@@ -375,22 +377,35 @@ export function createPlexClient(
           : metadata.length < requestSize
       if (exhausted || metadata.length === 0) break
     }
-    if (options.requireComplete && !exhausted) {
-      throw new Error(
-        `Plex history exceeds the bounded retrieval limit (${maxItems} items or ${maxPages} pages)`,
-      )
+    if (!exhausted) {
+      if (options.requireComplete) {
+        throw new Error(
+          `Plex history exceeds the bounded retrieval limit (${maxItems} items or ${maxPages} pages)`,
+        )
+      }
+      options.onTruncated?.({ maxItems, maxPages })
     }
     return items
   }
 
-  async function collectTopArtists(since?: number): Promise<PlexTopArtist[]> {
+  async function collectTopArtists(
+    since?: number,
+    allowTruncated = false,
+  ): Promise<PlexTopArtist[]> {
     const binding = requireListeningBinding()
     await verifyListeningBinding()
     const history = await getHistory({
       accountId: binding.accountId,
       librarySectionId: binding.librarySectionId,
       since,
-      requireComplete: true,
+      ...(allowTruncated
+        ? {
+            onTruncated: ({ maxItems, maxPages }: { maxItems: number; maxPages: number }) =>
+              console.warn(
+                `[plex] Listening history exceeds the retrieval bound (${maxItems} items or ${maxPages} pages); top artists use the most recent plays`,
+              ),
+          }
+        : { requireComplete: true }),
     })
     const byArtist = new Map<string, PlexTopArtist>()
     for (const item of history) {
@@ -412,7 +427,9 @@ export function createPlexClient(
   }
 
   async function getTopArtists(limit = 50, options?: { since?: number }): Promise<PlexTopArtist[]> {
-    return (await collectTopArtists(options?.since)).slice(0, Math.max(0, Math.trunc(limit)))
+    // Newest-first history lets scans rank the latest plays when it exceeds the bound; the
+    // paged dashboard path stays strict because its totals would be wrong.
+    return (await collectTopArtists(options?.since, true)).slice(0, Math.max(0, Math.trunc(limit)))
   }
 
   async function getTopArtistsPaged(options: {

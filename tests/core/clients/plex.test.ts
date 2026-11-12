@@ -245,6 +245,75 @@ describe('plex client.getTopArtists()', () => {
     expect(mockGet.mock.calls[1]?.[0]).toContain('accountID=7')
     expect(mockGet.mock.calls[1]?.[0]).toContain('librarySectionID=1')
   })
+
+  it('ranks the most recent plays instead of failing when history exceeds the retrieval bound', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const page = Array.from({ length: 200 }, (_, i) => ({
+      ...historyRow(7, `Track ${i}`),
+      grandparentRatingKey: i % 4 === 0 ? '201' : '101',
+      grandparentTitle: i % 4 === 0 ? 'Massive Attack' : 'Portishead',
+      ratingKey: String(1000 + i),
+    }))
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValue(historyResponse(page, 6000))
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+    const artists = await client.getTopArtists(10)
+
+    expect(artists).toEqual([
+      { ratingKey: '101', name: 'Portishead', viewCount: 3750, genres: [] },
+      { ratingKey: '201', name: 'Massive Attack', viewCount: 1250, genres: [] },
+    ])
+    expect(mockGet.mock.calls[1]?.[0]).toContain('sort=viewedAt%3Adesc')
+    expect(warn).toHaveBeenCalledWith(
+      expect.stringContaining('top artists use the most recent plays'),
+    )
+    warn.mockRestore()
+  })
+
+  it('keeps the paged dashboard path strict when history exceeds the retrieval bound', async () => {
+    const page = Array.from({ length: 200 }, (_, i) => ({
+      ...historyRow(7, `Track ${i}`),
+      ratingKey: String(1000 + i),
+    }))
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValue(historyResponse(page, 6000))
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+    await expect(client.getTopArtistsPaged({ limit: 10, offset: 0 })).rejects.toThrow(
+      'bounded retrieval limit',
+    )
+  })
+
+  it('warns when the page bound truncates history before the item bound is reached', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Rows without a rating key are skipped, so 25 full pages yield fewer than 5,000 items.
+    const page = Array.from({ length: 200 }, (_, i) => ({
+      ...historyRow(7, `Track ${i}`),
+      grandparentRatingKey: '101',
+      grandparentTitle: 'Portishead',
+      ratingKey: i % 10 === 0 ? undefined : String(1000 + i),
+    }))
+    mockGet.mockResolvedValueOnce(IDENTITY_RESPONSE).mockResolvedValue(historyResponse(page, 8000))
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+    const artists = await client.getTopArtists(10)
+
+    expect(artists).toEqual([{ ratingKey: '101', name: 'Portishead', viewCount: 4500, genres: [] }])
+    expect(warn).toHaveBeenCalledWith(expect.stringContaining('5000 items or 25 pages'))
+    warn.mockRestore()
+  })
+
+  it('does not warn when the whole history fits within the bound', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    mockGet
+      .mockResolvedValueOnce(IDENTITY_RESPONSE)
+      .mockResolvedValueOnce(historyResponse([historyRow(7, 'Roads')], 1))
+    const client = createPlexClient(TEST_URL, TEST_TOKEN, LISTENING_OPTIONS)
+
+    await client.getTopArtists(10)
+
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
 })
 
 describe('plex client history isolation', () => {

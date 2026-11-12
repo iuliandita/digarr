@@ -577,7 +577,7 @@
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
         "src/core/clients/musicbrainz.ts": "80649339e028e161e108f12f6629cc95c3934cfda3d53cfa5aa2e775e7dcf7c4",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
-        "src/core/clients/plex.ts": "c9a0fc3d56583ecaa80a90006bfe005fabe993a887d047ea6a3e93194c9568b5",
+        "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
         "src/core/clients/release-group-cache.ts": "6c9837351bd2ac08366bccc3319f343b7db6505a0c491176cf110729031ec358",
         "src/core/clients/scrobbler-write-back.ts": "7ef373927545b67ca1eec769314168ed770560238296251f5bf5c860e074cb84",
@@ -773,14 +773,14 @@
         "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "42cb67925137bca703b10c50a431aa1d2eab589178d952a6cff34a4518cc0367",
+      "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "slskd target path probe reports Lidarr timeouts, auth failures, server errors and connection failures with their cause instead of the generic path message, and the Lidarr folder listing allows 30 seconds. Updated the slskd path-probe notes in OPERATIONS and API and added a changelog entry.",
+        "note": "Plex scan top-artist analysis ranks the most recent plays and warns via a getHistory onTruncated hook when history exceeds the retrieval bound, while the paged dashboard listing stays strict; the slskd path probe reports Lidarr timeouts, auth failures, server errors and connection failures with their cause. Docs and changelog cover both.",
         "breaking": "none",
         "migration": "",
-        "digest": "42cb67925137bca703b10c50a431aa1d2eab589178d952a6cff34a4518cc0367"
+        "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f"
       }
     },
     "deployment": {
