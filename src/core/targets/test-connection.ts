@@ -9,6 +9,7 @@ import { errMsg, redactSecrets } from '@/core/validation'
 import { createEmbyPlaylistTarget } from './emby-playlist'
 import { createJellyfinPlaylistTarget } from './jellyfin-playlist'
 import { createLidarrTarget } from './lidarr'
+import { type LidarrServerSettings, withResolvedLidarrConnection } from './lidarr-connection'
 import { createNavidromePlaylistTarget } from './navidrome-playlist'
 import { createPlexPlaylistTarget } from './plex-playlist'
 
@@ -110,6 +111,21 @@ export async function testTargetConnection(
     return { success: false, message: `Unknown target type: ${type}` }
   } catch (error) {
     return { success: false, message: redactSecrets(errMsg(error)) }
+  }
+}
+
+// The route resolves the linked Lidarr itself; dropping that argument here made every linked
+// slskd test report a path problem without ever asking Lidarr (#1244).
+export function createTargetConnectionTester(
+  getSettings: () => Promise<LidarrServerSettings | null | undefined>,
+) {
+  return async (
+    type: string,
+    config: TargetConnectionConfig,
+    linkedLidarrConfig?: TargetConnectionConfig,
+  ): Promise<ServiceTestResult> => {
+    const resolved = withResolvedLidarrConnection({ type, config }, await getSettings())
+    return testTargetConnection(type, resolved.config as TargetConnectionConfig, linkedLidarrConfig)
   }
 }
 

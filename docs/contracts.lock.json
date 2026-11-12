@@ -764,23 +764,23 @@
         "src/core/targets/slskd-recommendation.ts": "dde9e2ed0a59fc3a749a475eb0d0624da25c0060470771bddf1d9aff72be2598",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "e06e528ed1284642ac79cee57551a02b5fd07208ee0b55248ead3b5e42f3527e",
-        "src/core/targets/test-connection.ts": "7d0321ebae3c753753bada8c8842449b7e942ba0a8642dbfeb8ae9dc934d5909",
+        "src/core/targets/test-connection.ts": "21b25820c46b86b1dbea9ef955255ee94a077cf03cb523aad16357cbfde52bde",
         "src/core/targets/types.ts": "aa30ac0f2a8472ed620c951ffb5f6d519c048d11d05f9fab35eb1609141615ac",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "9c48d81d4bf6ac7a8fb9108d3f775a33f69346412c13af0fa3176cb8cc65a48a",
-        "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
+        "src/index.ts": "96538dbaa61ac627bca0afe38c9d149c643716ecc611f93349bddd4d7cc6087e",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f",
+      "digest": "5344af1df6b61a779c00b1218789b5783c682eb9d5e027c9bcbd598d82a25f95",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Plex scan top-artist analysis ranks the most recent plays and warns via a getHistory onTruncated hook when history exceeds the retrieval bound, while the paged dashboard listing stays strict; the slskd path probe reports Lidarr timeouts, auth failures, server errors and connection failures with their cause. Docs and changelog cover both.",
+        "docs": ["CHANGELOG.md"],
+        "note": "The slskd target test now passes the route's resolved linked Lidarr connection to the path probe; the boot wiring had dropped it, so every linked test reported a path problem without calling Lidarr. The documented probe behavior in OPERATIONS and API was already correct; changelog entry added.",
         "breaking": "none",
         "migration": "",
-        "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f"
+        "digest": "5344af1df6b61a779c00b1218789b5783c682eb9d5e027c9bcbd598d82a25f95"
       }
     },
     "deployment": {
