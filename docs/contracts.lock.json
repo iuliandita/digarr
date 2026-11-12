@@ -568,7 +568,7 @@
         "src/core/clients/jellyfin.ts": "b8c90b18b4f234abf34586bd334d89798fb991057123defe3e3adcdfda74d473",
         "src/core/clients/lastfm.ts": "acd83e0dd5719b905c096dd7eadbbc1ca12d599b5a9270e49d04da0f5f0fa31b",
         "src/core/clients/library-paging.ts": "e04e71d5c409f29027b51436246ac91787e63d8e395f8725865fe9c10f06f9ec",
-        "src/core/clients/lidarr.ts": "47c57af3744a435182725474976091060da19e3655f0d7ff9fbcaf3afa1acad3",
+        "src/core/clients/lidarr.ts": "621aaa4fefe056ca852ab961cf84c748f49f55a0b1964c805d28ccc9557e54ef",
         "src/core/clients/listenbrainz.ts": "9f6ff6f4435d74b920428e912a5a5dcd0d8c2416f20e94faaed94709b14de094",
         "src/core/clients/media-browser.ts": "556e6aa096a51e2921536f218cac57496930dda20a1400a495f1ae47d8772bff",
         "src/core/clients/media-server-policy.ts": "9427a10634e92cb28fc40203cc1fbef444079bf5328fe8cfe89e394ae3f74831",
@@ -764,7 +764,7 @@
         "src/core/targets/slskd-recommendation.ts": "dde9e2ed0a59fc3a749a475eb0d0624da25c0060470771bddf1d9aff72be2598",
         "src/core/targets/slskd.ts": "f94139fb1512be10ff4fcae5ef86b32f439172c9bd2f2b4dab6a62d9298783ee",
         "src/core/targets/spotify-playlist.ts": "e06e528ed1284642ac79cee57551a02b5fd07208ee0b55248ead3b5e42f3527e",
-        "src/core/targets/test-connection.ts": "3c8e4c99eeafc03a7298358541389a6c7e4c2c7b719965a9d9df8b55935ebf8c",
+        "src/core/targets/test-connection.ts": "7d0321ebae3c753753bada8c8842449b7e942ba0a8642dbfeb8ae9dc934d5909",
         "src/core/targets/types.ts": "aa30ac0f2a8472ed620c951ffb5f6d519c048d11d05f9fab35eb1609141615ac",
         "src/core/text/strip-control-chars.ts": "5d8ac1fa99a60c972c95346163f53335b80a517dd29a4e21066bc1460f3cc2f8",
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
@@ -773,14 +773,14 @@
         "src/index.ts": "397c666dc8d44911ecc77e8d5f359bae28ce638709b1cae72d6548c705b0b391",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "20f16f0dc039614ceca794c7a854edfb0a532bd0228535c1d3048847c6d14bbc",
+      "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "docs/API.md", "CHANGELOG.md"],
-        "note": "Plex scan top-artist analysis ranks the most recent plays and warns via a getHistory onTruncated hook when history exceeds the retrieval bound; the paged dashboard listing stays strict. Updated the Plex limitation notes in OPERATIONS and API and added a changelog entry.",
+        "note": "Plex scan top-artist analysis ranks the most recent plays and warns via a getHistory onTruncated hook when history exceeds the retrieval bound, while the paged dashboard listing stays strict; the slskd path probe reports Lidarr timeouts, auth failures, server errors and connection failures with their cause. Docs and changelog cover both.",
         "breaking": "none",
         "migration": "",
-        "digest": "20f16f0dc039614ceca794c7a854edfb0a532bd0228535c1d3048847c6d14bbc"
+        "digest": "70a6f52a691fc8283169a62d778c442aa8ed185cbd540240ac453cfe44063c6f"
       }
     },
     "deployment": {

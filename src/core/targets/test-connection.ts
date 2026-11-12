@@ -1,3 +1,4 @@
+import { HttpError, HttpTimeoutError } from '@/core/clients/http'
 import { createJellyfinClient } from '@/core/clients/jellyfin'
 import { createLidarrClient } from '@/core/clients/lidarr'
 import { createSlskdClient } from '@/core/clients/slskd'
@@ -98,8 +99,11 @@ export async function testTargetConnection(
         if (!lidarr || !(await lidarr.canListPath(path)))
           return pathResult(false, 'settings.slskdPathUnavailable')
         return pathResult(true, 'settings.slskdPathOk')
-      } catch {
-        return pathResult(false, 'settings.slskdPathUnavailable')
+      } catch (error) {
+        if (error instanceof HttpError && (error.status === 403 || error.status === 404)) {
+          return pathResult(false, 'settings.slskdPathUnavailable')
+        }
+        return { success: false, message: pathProbeFailure(error) }
       }
     }
 
@@ -112,6 +116,18 @@ export async function testTargetConnection(
 function linkedLidarrClient(config?: TargetConnectionConfig) {
   if (typeof config?.url !== 'string' || typeof config.apiKey !== 'string') return null
   return createLidarrClient(config.url, config.apiKey, skipTlsVerify(config))
+}
+
+// A timeout, auth failure or 5xx says nothing about the path itself, so report what happened
+// instead of the generic mount advice. The upstream body is left out; it can echo credentials.
+function pathProbeFailure(error: unknown): string {
+  if (error instanceof HttpTimeoutError) {
+    return `Lidarr did not answer the download folder listing within ${Math.round(error.timeoutMs / 1000)}s. Check the load on Lidarr and the speed of the share.`
+  }
+  if (error instanceof HttpError) {
+    return `Lidarr returned HTTP ${error.status} while listing the download folder.`
+  }
+  return `Could not check the download folder through Lidarr: ${redactSecrets(errMsg(error))}`
 }
 
 function pathResult(success: boolean, messageKey: MessageKey): ServiceTestResult {

@@ -201,6 +201,55 @@ describe('linked slskd path probe', () => {
     expect(result.message).not.toContain('lidarr-secret')
   })
 
+  it.each([401, 500])('reports HTTP %s as a Lidarr failure, not a path problem', async (status) => {
+    fetchMock
+      .mockResolvedValueOnce(json({ version: '1' }))
+      .mockResolvedValueOnce(new Response('lidarr-secret', { status }))
+    const result = await testTargetConnection('slskd', config, linked)
+    expect(result).toMatchObject({
+      success: false,
+      message: expect.stringContaining(`HTTP ${status}`),
+    })
+    expect(result.details).toBeUndefined()
+    expect(result.message).not.toContain('lidarr-secret')
+  })
+
+  it('reports a network failure with the real cause', async () => {
+    fetchMock
+      .mockResolvedValueOnce(json({ version: '1' }))
+      .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+    const result = await testTargetConnection('slskd', config, linked)
+    expect(result).toMatchObject({
+      success: false,
+      message: expect.stringContaining('ECONNREFUSED'),
+    })
+    expect(result.details).toBeUndefined()
+  })
+
+  it('gives the folder listing 30s and reports a timeout', async () => {
+    vi.useFakeTimers()
+    try {
+      fetchMock
+        .mockResolvedValueOnce(json({ version: '1' }))
+        .mockImplementationOnce(
+          (_url: string, init: RequestInit) =>
+            new Promise((_resolve, reject) =>
+              init.signal?.addEventListener('abort', () => reject(new Error('aborted'))),
+            ),
+        )
+      const pending = testTargetConnection('slskd', config, linked)
+      await vi.advanceTimersByTimeAsync(30_000)
+      const result = await pending
+      expect(result).toMatchObject({
+        success: false,
+        message: expect.stringContaining('within 30s'),
+      })
+      expect(result.details).toBeUndefined()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('fails closed if the linked connection is unavailable', async () => {
     fetchMock.mockResolvedValueOnce(json({ version: '1' }))
     expect(await testTargetConnection('slskd', config)).toMatchObject({
