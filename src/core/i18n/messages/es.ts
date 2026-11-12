@@ -52,6 +52,8 @@ export const es = {
     'Intervalo mínimo entre búsquedas en segundos (1-60, predeterminado 3)',
   'settings.slskdPathUnavailable':
     'Lidarr no puede encontrar o listar la ruta de descarga. Revisa tu montaje y los permisos de lectura.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'No se puede usar el destino Lidarr vinculado, así que no se comprobó la ruta de descarga. Comprueba que esté activado y conectado, y vuelve a probar.',
   'settings.slskdPathIncomplete':
     'La ruta parece una carpeta de descargas incompletas. Usa tu carpeta de descargas completadas.',
   'settings.slskdPathOk':

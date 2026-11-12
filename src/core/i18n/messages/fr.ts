@@ -51,6 +51,8 @@ export const fr = {
     'Intervalle minimal entre recherches en secondes (1-60, défaut 3)',
   'settings.slskdPathUnavailable':
     'Lidarr ne peut pas trouver ou lister le chemin de téléchargement. Vérifie ton montage et les droits de lecture.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'La cible Lidarr liée ne peut pas être utilisée, donc le chemin de téléchargement n’a pas été vérifié. Vérifie qu’elle est activée et connectée, puis relance le test.',
   'settings.slskdPathIncomplete':
     'Le chemin ressemble à un dossier de téléchargements incomplets. Utilise ton dossier de téléchargements terminés.',
   'settings.slskdPathOk':

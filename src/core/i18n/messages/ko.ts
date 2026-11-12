@@ -47,6 +47,8 @@ export const ko = {
   'settings.slskdSearchInterval': '검색 사이 최소 간격, 초 (1-60, 기본값 3)',
   'settings.slskdPathUnavailable':
     'Lidarr가 다운로드 경로를 찾거나 목록을 읽을 수 없습니다. 마운트와 읽기 권한을 확인해 주세요.',
+  'settings.slskdLinkedLidarrUnavailable':
+    '연결된 Lidarr 대상을 사용할 수 없어 다운로드 경로를 확인하지 않았습니다. 활성화되어 있고 연결되어 있는지 확인한 후 다시 테스트하세요.',
   'settings.slskdPathIncomplete':
     '다운로드 경로가 미완료 폴더로 보입니다. 완료된 다운로드 폴더를 사용해 주세요.',
   'settings.slskdPathOk':

@@ -49,6 +49,8 @@ export const en = {
   'settings.slskdSearchInterval': 'Minimum search gap in seconds (1-60, default 3)',
   'settings.slskdPathUnavailable':
     'Lidarr cannot find or list the download path. Check your mount and read permissions.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'The linked Lidarr target cannot be used, so the download path was not checked. Check that it is enabled and connected, then test again.',
   'settings.slskdPathIncomplete':
     'The download path looks like an incomplete folder. Use your completed-downloads folder.',
   'settings.slskdPathOk':

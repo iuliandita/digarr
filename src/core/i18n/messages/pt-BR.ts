@@ -49,6 +49,8 @@ export const ptBR = {
   'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
   'settings.slskdPathUnavailable':
     'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Não é possível usar o destino Lidarr vinculado, então o caminho de download não foi verificado. Verifique se ele está ativado e conectado e teste de novo.',
   'settings.slskdPathIncomplete':
     'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
   'settings.slskdPathOk':

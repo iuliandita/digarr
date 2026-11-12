@@ -47,6 +47,8 @@ export const ja = {
   'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
   'settings.slskdPathUnavailable':
     'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
+  'settings.slskdLinkedLidarrUnavailable':
+    '連携した Lidarr ターゲットを使用できないため、ダウンロード先は確認されていません。有効で接続されていることを確認してから、もう一度テストしてください。',
   'settings.slskdPathIncomplete':
     'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
   'settings.slskdPathOk':

@@ -48,6 +48,8 @@ export const ro = {
   'settings.slskdSearchInterval': 'Interval minim între căutări în secunde (1-60, implicit 3)',
   'settings.slskdPathUnavailable':
     'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Destinația Lidarr conectată nu poate fi folosită, așa că calea de descărcare nu a fost verificată. Verifică dacă este activată și conectată, apoi testează din nou.',
   'settings.slskdPathIncomplete':
     'Calea pare un dosar cu descărcări incomplete. Folosește dosarul tău cu descărcări finalizate.',
   'settings.slskdPathOk':
