@@ -1841,6 +1841,9 @@ export const ja = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
   'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
+  'settings.targetLidarrSearchOnAdd': '追加時にアルバムを検索',
+  'settings.targetLidarrSearchOnAddHelp':
+    '承認で監視するアルバムを Lidarr がすぐに検索します。別のツールでダウンロードを管理している場合はオフにしてください。アルバムの監視は続きます。',
   'settings.targetLidarrMonitorNewItems': '新しいアルバムを監視',
   'settings.targetLidarrMonitorNewItemsHelp':
     'このターゲットが追加したアーティストについて、Lidarr が後から新しいアルバムを見つけたときに監視するアルバム。',

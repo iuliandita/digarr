@@ -1714,6 +1714,9 @@ export const zhCN = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL 或 API 密钥已更改。请先保存，然后再次编辑目标，以从新实例选择配置文件和根目录。',
   'settings.targetLidarrDefaultsUnset': '第一个可用项',
+  'settings.targetLidarrSearchOnAdd': '添加时搜索专辑',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr 会立即搜索批准时监控的专辑。如果由其他工具处理下载，请关闭此项，专辑仍会被监控。',
   'settings.targetLidarrMonitorNewItems': '监控新专辑',
   'settings.targetLidarrMonitorNewItemsHelp':
     '对于此目标添加的艺术家，Lidarr 之后发现新专辑时要监控哪些专辑。',

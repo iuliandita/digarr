@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- Lidarr targets have a **Search for albums when adding** switch (on by default). Turn it off to add and monitor artists and albums without Lidarr searching for them, when another tool such as Soularr handles downloads (#1249).
+
 ### Fixed
 
 - The slskd target test with a linked Lidarr target always reported "Lidarr cannot find or list the download path" without asking Lidarr, because the linked Lidarr connection was dropped before the path check ran. The test now checks the folder through the linked Lidarr, including targets that use the server Lidarr connection.

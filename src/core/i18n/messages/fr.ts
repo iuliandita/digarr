@@ -1879,6 +1879,9 @@ export const fr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL ou la clé API a changé. Enregistre, puis modifie à nouveau la cible pour choisir les profils et un dossier racine de la nouvelle instance.",
   'settings.targetLidarrDefaultsUnset': 'Premier disponible',
+  'settings.targetLidarrSearchOnAdd': "Rechercher les albums à l'ajout",
+  'settings.targetLidarrSearchOnAddHelp':
+    "Lidarr recherche tout de suite les albums qu'une approbation surveille. Désactive cette option si un autre outil gère les téléchargements - les albums restent surveillés.",
   'settings.targetLidarrMonitorNewItems': 'Surveiller les nouveaux albums',
   'settings.targetLidarrMonitorNewItemsHelp':
     "Les albums que Lidarr surveille lorsqu'il en trouve de nouveaux plus tard pour les artistes ajoutés par cette destination.",

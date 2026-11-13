@@ -119,6 +119,8 @@ export type AddArtistOptions = {
   // Lidarr's NewItemMonitorTypes: which albums a later refresh finds get
   // monitored. Unlike monitorOption these names go to Lidarr unchanged.
   monitorNewItems?: 'all' | 'none' | 'new'
+  // false leaves acquisition to another tool; the monitor option still applies.
+  searchOnAdd?: boolean
 }
 
 // digarr's monitor vocabulary is not Lidarr's. MonitorTypes has no `new`
@@ -320,7 +322,8 @@ export function createLidarrClient(
         monitor: LIDARR_MONITOR_TYPES[monitorOption],
         // Options that monitor existing albums search for them right away;
         // `new` and `none` only wait for future releases.
-        searchForMissingAlbums: SEARCHING_MONITOR_OPTIONS.has(monitorOption),
+        searchForMissingAlbums:
+          options?.searchOnAdd !== false && SEARCHING_MONITOR_OPTIONS.has(monitorOption),
       },
     })
   }
