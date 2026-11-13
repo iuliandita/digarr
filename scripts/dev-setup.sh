@@ -44,7 +44,7 @@ ensure_postgres_container() {
     -e POSTGRES_PASSWORD="$DB_PASS" \
     -e POSTGRES_DB="$DB_NAME" \
     -p "${DB_PORT}:5432" \
-    postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b
+    postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065
 }
 
 wait_for_postgres() {

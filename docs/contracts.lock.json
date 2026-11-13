@@ -786,12 +786,12 @@
     "deployment": {
       "files": {
         "deploy/docker/.env.example": "4fc6987e5404690e64bd1290e307f1706bb0c9a5731b31e8c79aad43771c0c63",
-        "deploy/docker/Dockerfile": "a2805af008748b929e470c3c435557509d5ff7528f0f38cc870eb97e6cd0c83c",
+        "deploy/docker/Dockerfile": "4f1e64a758798e17295cbd40fe2f83ae822db9794f87c145288a206fa458b930",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
         "deploy/docker/docker-compose.pgport.yml": "e6d731113776f1bfdffa5b5c42e9b2f55447798948c6d19d89fbeb2f17dc3930",
-        "deploy/docker/docker-compose.yml": "d298daf704bf6d3b7fe78fce8f72fdfcfb8434ae02e892863096153ed185c4d5",
+        "deploy/docker/docker-compose.yml": "5e9edb2463d9470e02ce87ef3785ca735ca3c2164f40aedd0062027a3d1b196f",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "3c56eebb9f2f6a1da5ecaed21d6bf1cc5ed1dfae0e2048a2c0883ac389e8fb64",
@@ -810,30 +810,30 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "c12ee464acc5e99ace2ce59051265ff1146e5d3b82282dcb3a8568759d0b1ee1",
-        "deploy/helm/digarr/values.yaml": "651847222b498b1f9a0ba29db3d6243271eebda1cdf75be467e88ed831b40dad",
+        "deploy/helm/digarr/values.yaml": "57403fe07bb93a4c7f2732de99684b5d37e1280f8671d71cfe3b6d5c09c46745",
         "deploy/k8s/deployment.yaml": "e5c5c0fc36a8c19dbde13a95d067ea365c6ab7992c540fc4e83779ad9b4c402c",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "1c4579b270734f45fdae210e0a70bbcb65daf5302399475f8a0195e86bb938dc",
+        "deploy/k8s/rendered.yaml": "002418f75e530015c521ee22183cf48ac553a240114e5c7f9b97808aa8cc4cec",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009",
+      "digest": "fe81751d04a7fe1f3f664e3d35b835a2026e2c08d9330d725386a9c903599340",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Chart and rendered manifest move to 2.2.1; Docker env example lists the optional DIGARR_MEDIA_SERVER_ALLOW_LOCAL setting documented in OPERATIONS; no port, volume or image layout change.",
-        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses need DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true after upgrade; rollback restores the old behavior.",
+        "docs": ["docs/guides/synology.md"],
+        "note": "postgres 17-alpine digest refresh and dockerfile frontend 1.29; synology guide pin updated, no setup or config change",
+        "breaking": "none",
         "migration": "",
-        "digest": "38f4a3fd0ad4c058e81f450a24e86975f3a006b85279522780371069c47cc009"
+        "digest": "fe81751d04a7fe1f3f664e3d35b835a2026e2c08d9330d725386a9c903599340"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "dbeadfb762d4809374ee416b401bd9bcbb10dc0837da28d3e870753be5facbc4",
-        ".github/workflows/ci.yml": "262bd025a3d7b38d18d860ed91190980866eae4a2d68ecaa77d2b0a02cf5f906",
+        ".github/workflows/ci.yml": "59ebbefe5204ee10abfce9fe9e78b345f1c6ae08ce1296c853027d2cfa3d8407",
         ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
         ".github/workflows/docs-companions.yml": "b80b20db460104105666b4b30766f17e4f540c7a6ee817401017e1be707c7e25",
         ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
@@ -842,20 +842,20 @@
         ".github/workflows/promote-stable.yml": "3c513dba307612279ed195dfbe714690e39d569eec772f16b4166c2ad2e07f61",
         ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
         ".github/workflows/release-readiness.yml": "1a536b7881b23b189eb62cac05d9ca52ae3325dc37a370880d08fe129969d457",
-        ".github/workflows/release.yml": "d2dafb6de696e0596bdde738033a71f1f929981a4e9d8aec820f9689465ceecd",
-        ".github/workflows/security.yml": "62c5aa02da1083e271ce7fe50afa515befc76dc5e9ef1a882023fd6f2962d2e2",
+        ".github/workflows/release.yml": "9ee6102801d86dff508972e829d9fc7b4db7c41382c362ef617973bb89f8db15",
+        ".github/workflows/security.yml": "1fb818fdd3d18e83d89869c386d5f3928ca0384c8c26930a4bd04037440e7c4c",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
         "package.json": "16501720bd7d014f59915d6a37974b23199dfb854dc731e2dec15f803a9be105",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "95634462c66f022284218ed2f2e3c2bc890dac13d3bc5663deb84d637665ace2",
+      "digest": "6b15b2e3d5a1c8f61027ed4bdd86e2f712e94170a18d36863068c56e29d7a719",
       "review": {
         "outcome": "no-impact",
         "docs": [],
-        "note": "CI-only: the backmerge now dispatches the nightly build; no user-facing release docs change. The process note lives in docs/MAINTENANCE.md",
+        "note": "ci action and tool pin bumps (node 26.13.1, chart linter 4.3.2, trivy, codeql, cosign installer, login-action); no release process change",
         "breaking": "none",
         "migration": "",
-        "digest": "95634462c66f022284218ed2f2e3c2bc890dac13d3bc5663deb84d637665ace2"
+        "digest": "6b15b2e3d5a1c8f61027ed4bdd86e2f712e94170a18d36863068c56e29d7a719"
       }
     },
     "maintenance": {
@@ -870,7 +870,7 @@
         "scripts/check-version-drift.ts": "9e292e28b4de1b574353486349f603cb38cf19272e84d218889a1d725e61ae86",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
-        "scripts/dev-setup.sh": "11ce77e9bfee670bdcad8ea82e85550b9d60abc2229ee728f0e0229795fcc23e",
+        "scripts/dev-setup.sh": "deac66da387860d3c6a386ac25a3b9d811794595524c68ade5ac72eb44c39e73",
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
@@ -886,14 +886,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a",
+      "digest": "70cc26c5b264f42a0aa296facf0cb9f1b10f43dfc69683fa838772ac0bb1ad51",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "CONTRIBUTING.md"],
-        "note": "Dev setup script pins the same current postgres:17-alpine digest as CI, Compose and the Helm chart; syntax checked, behavior and flags unchanged. Contributor guide shows the same digest and the changelog records the pin move.",
+        "docs": ["CONTRIBUTING.md"],
+        "note": "dev postgres digest refresh, contributing pin updated to match",
         "breaking": "none",
         "migration": "",
-        "digest": "ee64831f53bbe5a771d04d8dd16ed5c21a71920419fbd307857b66a27e92af0a"
+        "digest": "70cc26c5b264f42a0aa296facf0cb9f1b10f43dfc69683fa838772ac0bb1ad51"
       }
     }
   }
