@@ -1815,6 +1815,9 @@ export const ko = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL 또는 API 키가 변경되었습니다. 저장한 다음 대상을 다시 편집하면 새 인스턴스의 프로필과 루트 폴더를 선택할 수 있습니다.',
   'settings.targetLidarrDefaultsUnset': '첫 번째 사용 가능 항목',
+  'settings.targetLidarrSearchOnAdd': '추가할 때 앨범 검색',
+  'settings.targetLidarrSearchOnAddHelp':
+    '승인으로 모니터링하는 앨범을 Lidarr가 바로 검색합니다. 다른 도구가 다운로드를 처리한다면 끄세요. 앨범은 계속 모니터링됩니다.',
   'settings.targetLidarrMonitorNewItems': '새 앨범 모니터링',
   'settings.targetLidarrMonitorNewItemsHelp':
     '이 대상이 추가한 아티스트에 대해 Lidarr가 나중에 새 앨범을 찾았을 때 모니터링할 앨범입니다.',

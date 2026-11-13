@@ -1883,6 +1883,9 @@ export const de = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL oder API-Schlüssel wurden geändert. Speichere und bearbeite das Ziel dann erneut, um Profile und einen Stammordner aus der neuen Instanz auszuwählen.',
   'settings.targetLidarrDefaultsUnset': 'Erste verfügbare',
+  'settings.targetLidarrSearchOnAdd': 'Beim Hinzufügen nach Alben suchen',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr sucht sofort nach den Alben, die eine Freigabe überwacht. Schalte das aus, wenn ein anderes Tool die Downloads übernimmt - die Alben werden trotzdem überwacht.',
   'settings.targetLidarrMonitorNewItems': 'Neue Alben überwachen',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Welche Alben Lidarr überwacht, wenn es später neue für Künstler findet, die dieses Ziel hinzufügt.',

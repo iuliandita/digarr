@@ -1845,6 +1845,9 @@ export const tr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
   'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
+  'settings.targetLidarrSearchOnAdd': 'Eklerken albümleri ara',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr, bir onayın izlediği albümleri hemen aramaya başlar. İndirmeleri başka bir araç yönetiyorsa bunu kapat - albümler yine izlenir.',
   'settings.targetLidarrMonitorNewItems': 'Yeni albümleri izle',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Bu hedefin eklediği sanatçılar için Lidarr daha sonra yeni albüm bulduğunda hangi albümleri izleyeceği.',

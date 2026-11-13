@@ -1869,6 +1869,9 @@ export const ptBR = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'A URL ou a chave de API mudou. Salve e depois edite o destino de novo para escolher perfis e uma pasta raiz da nova instância.',
   'settings.targetLidarrDefaultsUnset': 'Primeiro disponível',
+  'settings.targetLidarrSearchOnAdd': 'Buscar álbuns ao adicionar',
+  'settings.targetLidarrSearchOnAddHelp':
+    'O Lidarr começa a buscar na hora os álbuns que uma aprovação monitora. Desative se outra ferramenta cuida dos downloads - os álbuns continuam monitorados.',
   'settings.targetLidarrMonitorNewItems': 'Monitorar novos álbuns',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Quais álbuns o Lidarr monitora quando encontra novos depois para os artistas que este destino adiciona.',

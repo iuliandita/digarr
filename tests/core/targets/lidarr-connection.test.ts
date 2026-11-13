@@ -110,6 +110,16 @@ describe('normalizeLidarrTargetConfig', () => {
       normalizeLidarrTargetConfig({ url: 'http://x', apiKey: 'k', monitorNewItems: null }),
     ).toEqual({ url: 'http://x', apiKey: 'k' })
   })
+
+  it('keeps a boolean searchOnAdd on both shapes and drops anything else', () => {
+    expect(normalizeLidarrTargetConfig({ useServerConnection: true, searchOnAdd: false })).toEqual({
+      useServerConnection: true,
+      searchOnAdd: false,
+    })
+    expect(
+      normalizeLidarrTargetConfig({ url: 'http://x', apiKey: 'k', searchOnAdd: 'false' }),
+    ).toEqual({ url: 'http://x', apiKey: 'k' })
+  })
 })
 
 describe('withResolvedLidarrConnection', () => {

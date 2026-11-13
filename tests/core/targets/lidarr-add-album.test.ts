@@ -80,6 +80,20 @@ describe('createLidarrTarget().addAlbum', () => {
     })
   })
 
+  it('monitors the album without searching when searchOnAdd is false (#1249)', async () => {
+    const client = mockLidarrClient()
+    client.getAlbums.mockResolvedValue([{ id: 7, foreignAlbumId: 'rg-1' }])
+    const target = createLidarrTarget(1, { url: 'http://lidarr', apiKey: 'k', searchOnAdd: false })
+    const result = await target.addAlbum?.({
+      artistMbid: 'a1',
+      artistName: 'Artist',
+      releaseGroupMbid: 'rg-1',
+    })
+    expect(result?.success).toBe(true)
+    expect(client.setAlbumsMonitored).toHaveBeenCalledWith([7], true)
+    expect(client.triggerCommand).not.toHaveBeenCalled()
+  })
+
   it('capabilities includes addAlbum', () => {
     mockLidarrClient()
     const target = createLidarrTarget(1, { url: 'http://lidarr:8686', apiKey: 'abc' })

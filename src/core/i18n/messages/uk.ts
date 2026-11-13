@@ -1861,6 +1861,9 @@ export const uk = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Перший доступний',
+  'settings.targetLidarrSearchOnAdd': 'Шукати альбоми під час додавання',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr одразу шукає альбоми, які відстежує схвалення. Вимкни це, якщо завантаженнями займається інший інструмент - альбоми все одно відстежуються.',
   'settings.targetLidarrMonitorNewItems': 'Відстежувати нові альбоми',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Які альбоми Lidarr відстежує, коли пізніше знаходить нові для виконавців, доданих цією ціллю.',

@@ -15,6 +15,7 @@ export const lidarrAddSchema = z
       .enum(['all', 'new', 'missing', 'existing', 'latest', 'first', 'none'])
       .optional(),
     monitorNewItems: z.enum(LIDARR_NEW_ITEM_MONITOR_TYPES).optional(),
+    searchOnAdd: z.boolean().optional(),
   })
   .strict()
 

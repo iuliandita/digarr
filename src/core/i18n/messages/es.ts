@@ -1878,6 +1878,9 @@ export const es = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'La URL o la clave API cambiaron. Guarda y luego vuelve a editar el destino para elegir perfiles y una carpeta raíz de la nueva instancia.',
   'settings.targetLidarrDefaultsUnset': 'Primera disponible',
+  'settings.targetLidarrSearchOnAdd': 'Buscar álbumes al añadir',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr empieza a buscar al momento los álbumes que supervisa una aprobación. Desactívalo si otra herramienta se encarga de las descargas - los álbumes se siguen supervisando.',
   'settings.targetLidarrMonitorNewItems': 'Supervisar álbumes nuevos',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Qué álbumes supervisa Lidarr cuando más adelante encuentra nuevos para los artistas que añade este destino.',

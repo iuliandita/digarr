@@ -1377,6 +1377,25 @@ describe('SettingsPage', () => {
     )
   })
 
+  it('creates a Lidarr target that monitors without searching (#1249)', async () => {
+    setupMocks()
+    mockListTargets.mockResolvedValue([])
+    renderPage(<SettingsPage />)
+    await openAddTarget('lidarr')
+    const search = screen.getByLabelText('Search for albums when adding')
+    expect(search).toBeChecked()
+    fireEvent.click(search)
+    fireEvent.click(screen.getByRole('button', { name: 'Add Target' }))
+    await waitFor(() =>
+      expect(mockCreateTargetApi).toHaveBeenCalledWith({
+        type: 'lidarr',
+        userId: 1,
+        name: 'Lidarr',
+        config: { useServerConnection: true, tags: [], searchOnAdd: false },
+      }),
+    )
+  })
+
   it('keeps a stored new-album monitoring choice when editing a separate instance', async () => {
     setupMocks()
     mockListTargets.mockResolvedValue([

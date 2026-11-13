@@ -20,6 +20,7 @@ export type LidarrDefaults = {
   metadataProfileId?: number
   rootFolderId?: number
   monitorNewItems?: LidarrNewItemMonitor
+  searchOnAdd?: boolean
 }
 
 const CONNECTION_KEYS = ['url', 'apiKey', 'skipTlsVerify'] as const
@@ -79,26 +80,30 @@ export function resolveLidarrTargetDefaults(
     metadataProfileId: positiveInt(source.metadataProfileId),
     rootFolderId: positiveInt(source.rootFolderId),
     monitorNewItems: newItemMonitor(config.monitorNewItems),
+    searchOnAdd: typeof config.searchOnAdd === 'boolean' ? config.searchOnAdd : undefined,
   }
 }
 
-// Canonical stored shape. A reference keeps its flag, tags and new-album
-// monitoring; a separate instance drops the flag and keeps connection fields,
-// valid default IDs and new-album monitoring.
+// Canonical stored shape. A reference keeps its flag, tags, new-album
+// monitoring and search-on-add; a separate instance drops the flag and keeps
+// connection fields, valid default IDs, new-album monitoring and search-on-add.
 export function normalizeLidarrTargetConfig(
   config: Record<string, unknown>,
 ): Record<string, unknown> {
   const monitorNewItems = newItemMonitor(config.monitorNewItems)
+  const searchOnAdd = typeof config.searchOnAdd === 'boolean' ? config.searchOnAdd : undefined
   if (usesServerConnection(config))
     return {
       useServerConnection: true,
       ...(Array.isArray(config.tags) ? { tags: config.tags } : {}),
       ...(monitorNewItems ? { monitorNewItems } : {}),
+      ...(searchOnAdd !== undefined ? { searchOnAdd } : {}),
     }
   const normalized: Record<string, unknown> = { ...config }
   delete normalized.useServerConnection
   if (monitorNewItems) normalized.monitorNewItems = monitorNewItems
   else delete normalized.monitorNewItems
+  if (searchOnAdd === undefined) delete normalized.searchOnAdd
   for (const key of DEFAULT_KEYS) {
     if (!(key in normalized)) continue
     const id = positiveInt(normalized[key])

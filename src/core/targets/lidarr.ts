@@ -33,6 +33,8 @@ export type LidarrTargetConfig = {
   tags?: number[]
   rootFolderId?: number
   monitorNewItems?: LidarrNewItemMonitor
+  // Unset keeps the old behavior: Lidarr searches for what an add monitors.
+  searchOnAdd?: boolean
 }
 
 export function createLidarrTarget(
@@ -47,6 +49,7 @@ export function createLidarrTarget(
   // Applies to every artist this target adds, including the unmonitored
   // artist an album approval creates; unset leaves Lidarr's default.
   const newItemMonitor = config.monitorNewItems ? { monitorNewItems: config.monitorNewItems } : {}
+  const searchOnAdd = config.searchOnAdd !== false
 
   // Explicit picks scoped to another Lidarr target were loaded from that
   // instance, so their IDs mean nothing here; use this target's own defaults.
@@ -130,6 +133,7 @@ export function createLidarrTarget(
             {
               monitorOption: effectiveMonitor,
               ...newItemMonitor,
+              ...(searchOnAdd ? {} : { searchOnAdd: false }),
               ...(ids.tags ? { tags: ids.tags } : {}),
             },
           ))
@@ -151,7 +155,7 @@ export function createLidarrTarget(
             try {
               const albumIds = matched.map((a) => a.id)
               await client.setAlbumsMonitored(albumIds, true)
-              await client.triggerCommand('AlbumSearch', { albumIds })
+              if (searchOnAdd) await client.triggerCommand('AlbumSearch', { albumIds })
               if (matched.length < wanted.length) {
                 warning = `artist added; ${matched.length} of ${wanted.length} selected albums monitored, the rest were not found in Lidarr`
               }
@@ -228,7 +232,7 @@ export function createLidarrTarget(
         }
 
         await client.setAlbumsMonitored([match.id], true)
-        await client.triggerCommand('AlbumSearch', { albumIds: [match.id] })
+        if (searchOnAdd) await client.triggerCommand('AlbumSearch', { albumIds: [match.id] })
 
         return {
           success: true,
