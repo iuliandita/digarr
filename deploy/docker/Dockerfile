@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1.28
+# syntax=docker/dockerfile:1.29
 
 # Global ARG -- must be before any FROM. Alpine default: fewer OS-package CVEs
 # than slim. Override to the slim digest for the -debian variant.
