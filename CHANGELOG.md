@@ -6,7 +6,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
-## v2.3.0 - 2026-11-13
+## v2.3.0 - 2026-11-14
 
 ### Upgrade notes
 

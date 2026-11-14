@@ -1,12 +1,12 @@
 # Roadmap
 
-> Updated: 2026-11-13 | Current: v2.3.0
+> Updated: 2026-11-14 | Current: v2.3.0
 >
 > Priorities change with feedback. This is current intent, not a promise.
 
 ## Current release
 
-v2.3.0 adds a **Search for albums when adding** switch to Lidarr targets, so Digarr can add and monitor artists and albums while another tool such as Soularr handles downloads. It also fixes the slskd target path test with a linked Lidarr target, which always blamed the mount, and stops Plex listening sources with more than 5,000 plays from failing scans. There are no migrations; read the [upgrade notes](../CHANGELOG.md#v230---2026-11-13) first. Coming from v2.2.0, apply the [v2.2.1 upgrade notes](../CHANGELOG.md#v221---2026-11-06) too, and from v2.1.x the [v2.2.0 upgrade notes](../CHANGELOG.md#v220---2026-11-03). From v1.19.0, follow the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) first. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
+v2.3.0 adds a **Search for albums when adding** switch to Lidarr targets, so Digarr can add and monitor artists and albums while another tool such as Soularr handles downloads. It also fixes the slskd target path test with a linked Lidarr target, which always blamed the mount, and stops Plex listening sources with more than 5,000 plays from failing scans. There are no migrations; read the [upgrade notes](../CHANGELOG.md#v230---2026-11-14) first. Coming from v2.2.0, apply the [v2.2.1 upgrade notes](../CHANGELOG.md#v221---2026-11-06) too, and from v2.1.x the [v2.2.0 upgrade notes](../CHANGELOG.md#v220---2026-11-03). From v1.19.0, follow the [upgrade procedure](OPERATIONS.md#upgrading-from-v1190-to-v200) first. Changes on `develop` that are not released yet are listed in the [CHANGELOG](../CHANGELOG.md#unreleased) and ship in the `:nightly` image.
 
 Known gaps and integration limitations are tracked in [OPERATIONS.md](OPERATIONS.md#known-limitations).
 
