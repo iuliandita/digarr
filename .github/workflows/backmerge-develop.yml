@@ -23,6 +23,7 @@ jobs:
   backmerge:
     runs-on: ubuntu-26.04
     permissions:
+      actions: write # dispatch nightly.yml after a clean back-merge
       contents: write
       pull-requests: write
     steps:
@@ -48,6 +49,7 @@ jobs:
 
           if git merge --no-edit origin/main; then
             git push origin develop
+            gh workflow run nightly.yml --ref develop
             echo "main merged into develop and pushed" >> "$GITHUB_STEP_SUMMARY"
             exit 0
           fi

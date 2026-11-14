@@ -109,7 +109,7 @@ import { createSavedPlaylistExportTarget } from './core/targets/saved-playlist-t
 import { createSlskdTarget } from './core/targets/slskd'
 import { updateSlskdRecommendationAction } from './core/targets/slskd-recommendation'
 import { createSpotifyPlaylistTarget } from './core/targets/spotify-playlist'
-import { testTargetConnection } from './core/targets/test-connection'
+import { createTargetConnectionTester } from './core/targets/test-connection'
 import type { DestinationTarget } from './core/targets/types'
 import { errMsg } from './core/validation'
 import { closeDb, db, pool } from './db'
@@ -1354,10 +1354,7 @@ const app = createApp({
       updateTarget(db, id, data),
     deleteTarget: (id: number) => deleteTarget(db, id),
   },
-  testTargetConnection: async (type, config) => {
-    const resolved = withResolvedLidarrConnection({ type, config }, await getSettings(db))
-    return testTargetConnection(type, resolved.config)
-  },
+  testTargetConnection: createTargetConnectionTester(() => getSettings(db)),
   getFeedbackHistory: (userId) => getGenreFeedbackHistory(db, userId),
   dashboardQueries: {
     getTopGenresForUser: (userId) => getTopGenresForUser(db, userId),

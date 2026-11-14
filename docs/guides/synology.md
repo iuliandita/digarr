@@ -235,7 +235,7 @@ network lets them reach each other by container name.
 1. **Docker** > **Registry** > search for `postgres`
 2. Download `postgres:17-alpine`
 3. **Image** > select
-   `postgres:17-alpine@sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b`
+   `postgres:17-alpine@sha256:d3244e8ce3f165ee3c93d9c4a4b1d0fe48b3a89e2287b717fdcbbde92d405065`
    if your DSM build supports digest references; otherwise select
    `postgres:17-alpine` > **Launch**
 4. **Network**: select `digarr-net` (deselect `bridge`)

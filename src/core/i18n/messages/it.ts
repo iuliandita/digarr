@@ -49,6 +49,8 @@ export const it = {
   'settings.slskdSearchInterval': 'Intervallo minimo tra ricerche in secondi (1-60, predefinito 3)',
   'settings.slskdPathUnavailable':
     'Lidarr non riesce a trovare o elencare il percorso di download. Controlla il tuo montaggio e i permessi di lettura.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Il target Lidarr collegato non può essere usato, quindi il percorso di download non è stato verificato. Controlla che sia attivo e connesso, poi riprova il test.',
   'settings.slskdPathIncomplete':
     'Il percorso sembra una cartella di download incompleti. Usa la tua cartella dei download completati.',
   'settings.slskdPathOk':
@@ -1872,6 +1874,9 @@ export const it = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL o la chiave API sono cambiati. Salva, poi modifica di nuovo la destinazione per scegliere profili e una cartella radice dalla nuova istanza.",
   'settings.targetLidarrDefaultsUnset': 'Primo disponibile',
+  'settings.targetLidarrSearchOnAdd': "Cerca gli album all'aggiunta",
+  'settings.targetLidarrSearchOnAddHelp':
+    "Lidarr cerca subito gli album che un'approvazione monitora. Disattivalo se i download li gestisce un altro strumento - gli album restano monitorati.",
   'settings.targetLidarrMonitorNewItems': 'Monitora i nuovi album',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Quali album Lidarr monitora quando in seguito ne trova di nuovi per gli artisti aggiunti da questa destinazione.',

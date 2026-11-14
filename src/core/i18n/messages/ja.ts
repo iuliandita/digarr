@@ -47,6 +47,8 @@ export const ja = {
   'settings.slskdSearchInterval': '検索の最小間隔、秒 (1-60、既定値 3)',
   'settings.slskdPathUnavailable':
     'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
+  'settings.slskdLinkedLidarrUnavailable':
+    '連携した Lidarr ターゲットを使用できないため、ダウンロード先は確認されていません。有効で接続されていることを確認してから、もう一度テストしてください。',
   'settings.slskdPathIncomplete':
     'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
   'settings.slskdPathOk':
@@ -1839,6 +1841,9 @@ export const ja = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL または API キーが変更されました。保存してから再度ターゲットを編集すると、新しいインスタンスのプロファイルとルートフォルダを選択できます。',
   'settings.targetLidarrDefaultsUnset': '最初に利用可能なもの',
+  'settings.targetLidarrSearchOnAdd': '追加時にアルバムを検索',
+  'settings.targetLidarrSearchOnAddHelp':
+    '承認で監視するアルバムを Lidarr がすぐに検索します。別のツールでダウンロードを管理している場合はオフにしてください。アルバムの監視は続きます。',
   'settings.targetLidarrMonitorNewItems': '新しいアルバムを監視',
   'settings.targetLidarrMonitorNewItemsHelp':
     'このターゲットが追加したアーティストについて、Lidarr が後から新しいアルバムを見つけたときに監視するアルバム。',

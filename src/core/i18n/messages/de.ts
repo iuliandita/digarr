@@ -50,6 +50,8 @@ export const de = {
   'settings.slskdSearchInterval': 'Mindestabstand zwischen Suchen in Sekunden (1-60, Standard 3)',
   'settings.slskdPathUnavailable':
     'Lidarr kann den Downloadpfad nicht finden oder auflisten. Prüfe deine Einbindung und Leserechte.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Das verknüpfte Lidarr-Ziel kann nicht verwendet werden, daher wurde der Downloadpfad nicht geprüft. Prüfe, ob es aktiviert und verbunden ist, und teste dann erneut.',
   'settings.slskdPathIncomplete':
     'Der Downloadpfad sieht nach einem Ordner für unvollständige Downloads aus. Nutze deinen Ordner für abgeschlossene Downloads.',
   'settings.slskdPathOk':
@@ -1881,6 +1883,9 @@ export const de = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL oder API-Schlüssel wurden geändert. Speichere und bearbeite das Ziel dann erneut, um Profile und einen Stammordner aus der neuen Instanz auszuwählen.',
   'settings.targetLidarrDefaultsUnset': 'Erste verfügbare',
+  'settings.targetLidarrSearchOnAdd': 'Beim Hinzufügen nach Alben suchen',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr sucht sofort nach den Alben, die eine Freigabe überwacht. Schalte das aus, wenn ein anderes Tool die Downloads übernimmt - die Alben werden trotzdem überwacht.',
   'settings.targetLidarrMonitorNewItems': 'Neue Alben überwachen',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Welche Alben Lidarr überwacht, wenn es später neue für Künstler findet, die dieses Ziel hinzufügt.',

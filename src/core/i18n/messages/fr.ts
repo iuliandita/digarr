@@ -51,6 +51,8 @@ export const fr = {
     'Intervalle minimal entre recherches en secondes (1-60, défaut 3)',
   'settings.slskdPathUnavailable':
     'Lidarr ne peut pas trouver ou lister le chemin de téléchargement. Vérifie ton montage et les droits de lecture.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'La cible Lidarr liée ne peut pas être utilisée, donc le chemin de téléchargement n’a pas été vérifié. Vérifie qu’elle est activée et connectée, puis relance le test.',
   'settings.slskdPathIncomplete':
     'Le chemin ressemble à un dossier de téléchargements incomplets. Utilise ton dossier de téléchargements terminés.',
   'settings.slskdPathOk':
@@ -1877,6 +1879,9 @@ export const fr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     "L'URL ou la clé API a changé. Enregistre, puis modifie à nouveau la cible pour choisir les profils et un dossier racine de la nouvelle instance.",
   'settings.targetLidarrDefaultsUnset': 'Premier disponible',
+  'settings.targetLidarrSearchOnAdd': "Rechercher les albums à l'ajout",
+  'settings.targetLidarrSearchOnAddHelp':
+    "Lidarr recherche tout de suite les albums qu'une approbation surveille. Désactive cette option si un autre outil gère les téléchargements - les albums restent surveillés.",
   'settings.targetLidarrMonitorNewItems': 'Surveiller les nouveaux albums',
   'settings.targetLidarrMonitorNewItemsHelp':
     "Les albums que Lidarr surveille lorsqu'il en trouve de nouveaux plus tard pour les artistes ajoutés par cette destination.",

@@ -51,6 +51,8 @@ export const nl = {
     'Minimale tijd tussen zoekopdrachten in seconden (1-60, standaard 3)',
   'settings.slskdPathUnavailable':
     'Lidarr kan het downloadpad niet vinden of weergeven. Controleer je koppeling en leesrechten.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Het gekoppelde Lidarr-doel kan niet worden gebruikt, dus het downloadpad is niet gecontroleerd. Controleer of het is ingeschakeld en verbonden en test dan opnieuw.',
   'settings.slskdPathIncomplete':
     'Het downloadpad lijkt een map voor onvoltooide downloads. Gebruik je map voor voltooide downloads.',
   'settings.slskdPathOk':
@@ -1867,6 +1869,9 @@ export const nl = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'De URL of API-sleutel is gewijzigd. Sla op en bewerk het doel daarna opnieuw om profielen en een hoofdmap van de nieuwe instantie te kiezen.',
   'settings.targetLidarrDefaultsUnset': 'Eerste beschikbare',
+  'settings.targetLidarrSearchOnAdd': 'Albums zoeken bij toevoegen',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr zoekt meteen naar de albums die een goedkeuring volgt. Zet dit uit als een andere tool de downloads doet - de albums worden nog steeds gevolgd.',
   'settings.targetLidarrMonitorNewItems': 'Nieuwe albums volgen',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Welke albums Lidarr volgt wanneer het later nieuwe vindt voor artiesten die dit doel toevoegt.',

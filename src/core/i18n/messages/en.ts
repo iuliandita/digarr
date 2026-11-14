@@ -49,6 +49,8 @@ export const en = {
   'settings.slskdSearchInterval': 'Minimum search gap in seconds (1-60, default 3)',
   'settings.slskdPathUnavailable':
     'Lidarr cannot find or list the download path. Check your mount and read permissions.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'The linked Lidarr target cannot be used, so the download path was not checked. Check that it is enabled and connected, then test again.',
   'settings.slskdPathIncomplete':
     'The download path looks like an incomplete folder. Use your completed-downloads folder.',
   'settings.slskdPathOk':
@@ -1882,6 +1884,9 @@ export const en = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'The URL or API key changed. Save, then edit the target again to pick profiles and a root folder from the new instance.',
   'settings.targetLidarrDefaultsUnset': 'First available',
+  'settings.targetLidarrSearchOnAdd': 'Search for albums when adding',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr starts searching right away for the albums an approval monitors. Turn this off if another tool handles downloads - albums still get monitored.',
   'settings.targetLidarrMonitorNewItems': 'Monitor new albums',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Which albums Lidarr monitors when it later finds new ones for artists this target adds.',

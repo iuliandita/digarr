@@ -49,6 +49,8 @@ export const ptBR = {
   'settings.slskdSearchInterval': 'Intervalo mínimo entre buscas em segundos (1-60, padrão 3)',
   'settings.slskdPathUnavailable':
     'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Não é possível usar o destino Lidarr vinculado, então o caminho de download não foi verificado. Verifique se ele está ativado e conectado e teste de novo.',
   'settings.slskdPathIncomplete':
     'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
   'settings.slskdPathOk':
@@ -1867,6 +1869,9 @@ export const ptBR = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'A URL ou a chave de API mudou. Salve e depois edite o destino de novo para escolher perfis e uma pasta raiz da nova instância.',
   'settings.targetLidarrDefaultsUnset': 'Primeiro disponível',
+  'settings.targetLidarrSearchOnAdd': 'Buscar álbuns ao adicionar',
+  'settings.targetLidarrSearchOnAddHelp':
+    'O Lidarr começa a buscar na hora os álbuns que uma aprovação monitora. Desative se outra ferramenta cuida dos downloads - os álbuns continuam monitorados.',
   'settings.targetLidarrMonitorNewItems': 'Monitorar novos álbuns',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Quais álbuns o Lidarr monitora quando encontra novos depois para os artistas que este destino adiciona.',

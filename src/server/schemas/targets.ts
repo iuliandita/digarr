@@ -20,6 +20,8 @@ export const targetConfigSchema = z
     tags: z.array(z.number().int().positive()).max(100).optional(),
     // Lidarr only: which albums a later refresh finds get monitored.
     monitorNewItems: z.enum(LIDARR_NEW_ITEM_MONITOR_TYPES).optional(),
+    // Lidarr only: false adds and monitors without asking Lidarr to search.
+    searchOnAdd: z.boolean().optional(),
   })
   .catchall(z.unknown())
 

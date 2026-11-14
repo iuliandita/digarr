@@ -262,6 +262,20 @@ describe('createLidarrClient', () => {
       },
     )
 
+    it('monitors without searching when searchOnAdd is false (#1249)', async () => {
+      mockLidarrGets()
+      mockPost.mockResolvedValue(mockArtists[0])
+      const client = createLidarrClient(TEST_URL, TEST_KEY)
+      await client.addArtist('mbid', 'Artist', 1, 1, 1, {
+        monitorOption: 'all',
+        searchOnAdd: false,
+      })
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/v1/artist',
+        expect.objectContaining({ addOptions: { monitor: 'all', searchForMissingAlbums: false } }),
+      )
+    })
+
     it.each(['all', 'none', 'new'] as const)(
       'sends monitorNewItems %s as a top-level artist field',
       async (monitorNewItems) => {

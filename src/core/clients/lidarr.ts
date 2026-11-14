@@ -119,6 +119,8 @@ export type AddArtistOptions = {
   // Lidarr's NewItemMonitorTypes: which albums a later refresh finds get
   // monitored. Unlike monitorOption these names go to Lidarr unchanged.
   monitorNewItems?: 'all' | 'none' | 'new'
+  // false leaves acquisition to another tool; the monitor option still applies.
+  searchOnAdd?: boolean
 }
 
 // digarr's monitor vocabulary is not Lidarr's. MonitorTypes has no `new`
@@ -153,6 +155,8 @@ export type LidarrClientOptions = {
 }
 
 const WANTED_PAGE_SIZE = 250
+// Listing a large downloads folder on a slow share can exceed the 10s default.
+const FILESYSTEM_LISTING_TIMEOUT_MS = 30_000
 const WANTED_MAX_PAGES = 100
 
 export function createLidarrClient(
@@ -318,7 +322,8 @@ export function createLidarrClient(
         monitor: LIDARR_MONITOR_TYPES[monitorOption],
         // Options that monitor existing albums search for them right away;
         // `new` and `none` only wait for future releases.
-        searchForMissingAlbums: SEARCHING_MONITOR_OPTIONS.has(monitorOption),
+        searchForMissingAlbums:
+          options?.searchOnAdd !== false && SEARCHING_MONITOR_OPTIONS.has(monitorOption),
       },
     })
   }
@@ -461,6 +466,7 @@ export function createLidarrClient(
     const params = new URLSearchParams({ path: directory, includeFiles: 'false' })
     const listing = await http.get<{ directories?: unknown }>(`/api/v1/filesystem?${params}`, {
       retries: 0,
+      timeout: FILESYSTEM_LISTING_TIMEOUT_MS,
     })
     if (!Array.isArray(listing.directories)) return false
     // Lidarr returns an empty list for missing folders too; verify the parent entry.
@@ -471,7 +477,7 @@ export function createLidarrClient(
     const parentParams = new URLSearchParams({ path: parent, includeFiles: 'false' })
     const result = await http.get<{ directories?: Array<{ path?: string }> }>(
       `/api/v1/filesystem?${parentParams}`,
-      { retries: 0 },
+      { retries: 0, timeout: FILESYSTEM_LISTING_TIMEOUT_MS },
     )
     return (
       Array.isArray(result.directories) &&

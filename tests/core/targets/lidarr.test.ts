@@ -161,6 +161,23 @@ describe('createLidarrTarget()', () => {
     expect(client.triggerCommand).toHaveBeenCalledWith('AlbumSearch', { albumIds: [10] })
   })
 
+  it('adds and monitors without any Lidarr search when searchOnAdd is false (#1249)', async () => {
+    const client = mockLidarrClient()
+    client.getAlbums.mockResolvedValue([{ id: 10, foreignAlbumId: 'album-1', monitored: false }])
+    const target = createLidarrTarget(1, { url: 'http://lidarr', apiKey: 'k', searchOnAdd: false })
+    await target.addArtist?.({ mbid: 'm', name: 'A' }, { monitorOption: 'all' })
+    expect(client.addArtist).toHaveBeenLastCalledWith('m', 'A', undefined, undefined, undefined, {
+      monitorOption: 'all',
+      searchOnAdd: false,
+    })
+    await target.addArtist?.(
+      { mbid: 'm', name: 'A' },
+      { monitorOption: 'selected', selectedAlbumIds: ['album-1'] },
+    )
+    expect(client.setAlbumsMonitored).toHaveBeenCalledWith([10], true)
+    expect(client.triggerCommand).not.toHaveBeenCalled()
+  })
+
   it('addArtist retries getAlbums until Lidarr populates the selected album', async () => {
     vi.useFakeTimers()
     try {

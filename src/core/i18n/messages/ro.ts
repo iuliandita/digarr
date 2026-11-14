@@ -48,6 +48,8 @@ export const ro = {
   'settings.slskdSearchInterval': 'Interval minim între căutări în secunde (1-60, implicit 3)',
   'settings.slskdPathUnavailable':
     'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Destinația Lidarr conectată nu poate fi folosită, așa că calea de descărcare nu a fost verificată. Verifică dacă este activată și conectată, apoi testează din nou.',
   'settings.slskdPathIncomplete':
     'Calea pare un dosar cu descărcări incomplete. Folosește dosarul tău cu descărcări finalizate.',
   'settings.slskdPathOk':
@@ -1865,6 +1867,9 @@ export const ro = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL-ul sau cheia API s-a schimbat. Salvează, apoi editează din nou ținta ca să alegi profiluri și un dosar rădăcină din noua instanță.',
   'settings.targetLidarrDefaultsUnset': 'Primul disponibil',
+  'settings.targetLidarrSearchOnAdd': 'Caută albumele la adăugare',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr caută imediat albumele pe care le monitorizează o aprobare. Dezactivează opțiunea dacă alt instrument se ocupă de descărcări - albumele rămân monitorizate.',
   'settings.targetLidarrMonitorNewItems': 'Monitorizează albumele noi',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Ce albume monitorizează Lidarr când găsește mai târziu altele noi pentru artiștii adăugați de această destinație.',

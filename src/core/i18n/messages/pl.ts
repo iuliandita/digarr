@@ -50,6 +50,8 @@ export const pl = {
     'Minimalny odstęp między wyszukiwaniami w sekundach (1-60, domyślnie 3)',
   'settings.slskdPathUnavailable':
     'Lidarr nie może znaleźć ani wyświetlić ścieżki pobierania. Sprawdź montowanie i uprawnienia odczytu.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Nie można użyć połączonego celu Lidarr, więc ścieżka pobierania nie została sprawdzona. Sprawdź, czy jest włączony i połączony, a potem przetestuj ponownie.',
   'settings.slskdPathIncomplete':
     'Ścieżka wygląda na folder nieukończonych pobrań. Użyj folderu ukończonych pobrań.',
   'settings.slskdPathOk':
@@ -1857,6 +1859,9 @@ export const pl = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'Adres URL lub klucz API się zmienił. Zapisz, a potem ponownie edytuj cel, żeby wybrać profile i folder główny z nowej instancji.',
   'settings.targetLidarrDefaultsUnset': 'Pierwszy dostępny',
+  'settings.targetLidarrSearchOnAdd': 'Szukaj albumów przy dodawaniu',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr od razu szuka albumów, które monitoruje zatwierdzenie. Wyłącz to, jeśli pobieraniem zajmuje się inne narzędzie - albumy nadal są monitorowane.',
   'settings.targetLidarrMonitorNewItems': 'Monitoruj nowe albumy',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Które albumy Lidarr monitoruje, gdy później znajdzie nowe dla artystów dodanych przez ten cel.',

@@ -49,6 +49,8 @@ export const uk = {
   'settings.slskdSearchInterval': 'Мінімальний інтервал між пошуками в секундах (1-60, типово 3)',
   'settings.slskdPathUnavailable':
     'Lidarr не може знайти або прочитати теку завантажень. Перевір монтування та права на читання.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Пов’язану ціль Lidarr не можна використати, тому шлях завантаження не перевірено. Перевір, що вона увімкнена й підключена, і запусти тест знову.',
   'settings.slskdPathIncomplete':
     'Шлях схожий на теку незавершених завантажень. Використовуй теку завершених завантажень.',
   'settings.slskdPathOk':
@@ -1859,6 +1861,9 @@ export const uk = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL або API-ключ змінилися. Збережи, потім знову відредагуй ціль, щоб вибрати профілі й кореневу папку нового екземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Перший доступний',
+  'settings.targetLidarrSearchOnAdd': 'Шукати альбоми під час додавання',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr одразу шукає альбоми, які відстежує схвалення. Вимкни це, якщо завантаженнями займається інший інструмент - альбоми все одно відстежуються.',
   'settings.targetLidarrMonitorNewItems': 'Відстежувати нові альбоми',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Які альбоми Lidarr відстежує, коли пізніше знаходить нові для виконавців, доданих цією ціллю.',

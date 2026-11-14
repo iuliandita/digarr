@@ -49,6 +49,8 @@ export const tr = {
   'settings.slskdSearchInterval': 'Aramalar arasındaki en kısa süre, saniye (1-60, varsayılan 3)',
   'settings.slskdPathUnavailable':
     'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Bağlı Lidarr hedefi kullanılamıyor, bu yüzden indirme yolu kontrol edilmedi. Etkin ve bağlı olduğunu kontrol et, sonra tekrar test et.',
   'settings.slskdPathIncomplete':
     'İndirme yolu tamamlanmamış indirmeler klasörüne benziyor. Tamamlanmış indirmeler klasörünü kullan.',
   'settings.slskdPathOk':
@@ -1843,6 +1845,9 @@ export const tr = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL veya API anahtarı değişti. Kaydet, ardından yeni örnekten profil ve kök klasör seçmek için hedefi yeniden düzenle.',
   'settings.targetLidarrDefaultsUnset': 'İlk kullanılabilir',
+  'settings.targetLidarrSearchOnAdd': 'Eklerken albümleri ara',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr, bir onayın izlediği albümleri hemen aramaya başlar. İndirmeleri başka bir araç yönetiyorsa bunu kapat - albümler yine izlenir.',
   'settings.targetLidarrMonitorNewItems': 'Yeni albümleri izle',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Bu hedefin eklediği sanatçılar için Lidarr daha sonra yeni albüm bulduğunda hangi albümleri izleyeceği.',

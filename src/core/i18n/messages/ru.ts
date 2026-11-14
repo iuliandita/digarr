@@ -50,6 +50,8 @@ export const ru = {
     'Минимальный интервал между поисками в секундах (1-60, по умолчанию 3)',
   'settings.slskdPathUnavailable':
     'Lidarr не может найти или прочитать папку загрузки. Проверь монтирование и права на чтение.',
+  'settings.slskdLinkedLidarrUnavailable':
+    'Связанную цель Lidarr нельзя использовать, поэтому путь загрузки не проверен. Проверь, что она включена и подключена, и запусти тест снова.',
   'settings.slskdPathIncomplete':
     'Путь похож на папку незавершённых загрузок. Используй папку завершённых загрузок.',
   'settings.slskdPathOk':
@@ -1869,6 +1871,9 @@ export const ru = {
   'settings.targetLidarrDefaultsInstanceChanged':
     'URL или API-ключ изменились. Сохрани, затем снова отредактируй цель, чтобы выбрать профили и корневую папку нового экземпляра.',
   'settings.targetLidarrDefaultsUnset': 'Первый доступный',
+  'settings.targetLidarrSearchOnAdd': 'Искать альбомы при добавлении',
+  'settings.targetLidarrSearchOnAddHelp':
+    'Lidarr сразу ищет альбомы, которые отслеживает одобрение. Выключи, если загрузками занимается другой инструмент - альбомы всё равно отслеживаются.',
   'settings.targetLidarrMonitorNewItems': 'Отслеживать новые альбомы',
   'settings.targetLidarrMonitorNewItemsHelp':
     'Какие альбомы Lidarr отслеживает, когда позже находит новые для исполнителей, добавленных этим назначением.',
