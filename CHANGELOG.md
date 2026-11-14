@@ -6,6 +6,12 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+## v2.3.0 - 2026-11-14
+
+### Upgrade notes
+
+There are no migrations and no new environment variables. Existing Lidarr targets keep searching for albums when they add them; the new **Search for albums when adding** switch is on by default. Rollback to v2.2.1 is safe: it ignores the new target setting and searches on add again.
+
 ### Added
 
 - Lidarr targets have a **Search for albums when adding** switch (on by default). Turn it off to add and monitor artists and albums without Lidarr searching for them, when another tool such as Soularr handles downloads (#1249).
