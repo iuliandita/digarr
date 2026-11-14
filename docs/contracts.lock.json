@@ -816,18 +816,18 @@
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "002418f75e530015c521ee22183cf48ac553a240114e5c7f9b97808aa8cc4cec",
+        "deploy/k8s/rendered.yaml": "80db78cd2a6c9b1b00c1f60ca3feb4f1180c0149c7417fea633fc0c741376a5a",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "fe81751d04a7fe1f3f664e3d35b835a2026e2c08d9330d725386a9c903599340",
+      "digest": "f36d02f3a178c1931c871235f77017d946b4280c539df5190caac02f3b23190c",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/synology.md"],
-        "note": "postgres 17-alpine digest refresh and dockerfile frontend 1.29; synology guide pin updated, no setup or config change",
+        "docs": ["CHANGELOG.md"],
+        "note": "chart 2.3.0 re-render and compose minor and patch example pins for v2.3.0; image digests follow in the post-release sync",
         "breaking": "none",
         "migration": "",
-        "digest": "fe81751d04a7fe1f3f664e3d35b835a2026e2c08d9330d725386a9c903599340"
+        "digest": "f36d02f3a178c1931c871235f77017d946b4280c539df5190caac02f3b23190c"
       }
     },
     "release": {
@@ -845,17 +845,17 @@
         ".github/workflows/release.yml": "9ee6102801d86dff508972e829d9fc7b4db7c41382c362ef617973bb89f8db15",
         ".github/workflows/security.yml": "1fb818fdd3d18e83d89869c386d5f3928ca0384c8c26930a4bd04037440e7c4c",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
-        "package.json": "16501720bd7d014f59915d6a37974b23199dfb854dc731e2dec15f803a9be105",
+        "package.json": "8d030d0ed8a0230a01bc7de5e23814c71027b3b1d1b2978c096ca44afb81c758",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "6b15b2e3d5a1c8f61027ed4bdd86e2f712e94170a18d36863068c56e29d7a719",
+      "digest": "a8b907702772603dfaf0d99c428d5fa6b7393d14ac1cedcd79a3eefdd16ef3d8",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "ci action and tool pin bumps (node 26.13.1, chart linter 4.3.2, trivy, codeql, cosign installer, login-action); no release process change",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
+        "note": "v2.3.0 release bump: changelog section with upgrade notes, readme banner and minor pins, roadmap current release",
         "breaking": "none",
         "migration": "",
-        "digest": "6b15b2e3d5a1c8f61027ed4bdd86e2f712e94170a18d36863068c56e29d7a719"
+        "digest": "a8b907702772603dfaf0d99c428d5fa6b7393d14ac1cedcd79a3eefdd16ef3d8"
       }
     },
     "maintenance": {
