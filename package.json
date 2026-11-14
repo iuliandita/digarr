@@ -37,7 +37,7 @@
     "esbuild": "^0.28.2",
     "nanoid": "^6.0.2",
     "picomatch": "^4.0.7",
-    "postcss": "^8.5.32"
+    "postcss": "^8.5.33"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
