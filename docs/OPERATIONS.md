@@ -273,6 +273,8 @@ Release Radar currently requires ListenBrainz, Spotify, or Last.fm for artist se
 
 ## Importing slskd downloads into Lidarr
 
+Artist approvals to slskd search only MusicBrainz release groups with primary type Album or EP and an explicitly empty secondary-type list (studio releases). Singles, compilations, live releases and releases with unknown type metadata are skipped. Titles are normalized for case, accents, whitespace and edition suffixes before queueing; matching titles produce one search, preferring Album over EP. This applies to standalone and linked slskd artist approvals. Explicit album approvals still queue the chosen release group, and the linked Lidarr wanted list still follows Lidarr's monitoring and metadata profile. Existing queued jobs are unchanged; no new setting or migration is required.
+
 When a Lidarr target is linked, **Download root as seen by Lidarr** (`lidarrDownloadPath`) is required. Creating or updating a linked target without it returns HTTP 400. Existing saved targets still load, but their jobs fail before searching or queueing with an error in Job History. Open Settings > Targets, set the path, then retry the failed job. No migration is needed; rolling back removes this early check.
 
 For a linked slskd target, set **Download root as seen by Lidarr** to the completed-downloads folder that Lidarr can read, such as `/downloads`. Mount the same completed files into Lidarr or configure its path mapping. slskd stores each remote directory under its final folder name; multi-disc folders must be complete and unambiguous before import.

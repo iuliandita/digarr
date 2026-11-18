@@ -724,7 +724,7 @@
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
         "src/core/slskd/orchestrator.ts": "09f9048979411ddc26e0d1f5a553641fc4a7bdd83e8013451284757bba4f4c6c",
-        "src/core/slskd/runner.ts": "492f0394e52e4c5c391ba3513c7c8ae9295eccfb29a019b576530a8dac58827d",
+        "src/core/slskd/runner.ts": "f4a9528d226a0b8ca312240d0d475d08338c0db3401efebe06f63c7fb539f5cc",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
         "src/core/subscriptions/adapters/csv-import.ts": "583acc8858a428122c462646374a945b0d2e9b0712650faee76bcc1eba3e9ec3",
@@ -770,17 +770,17 @@
         "src/core/types.ts": "2199cb41bce4cf7253461dcc3a62df288e6eda26f9618186722ba71c4ae91730",
         "src/core/url-safety.ts": "b7e00702468a04821fe62905eef32e23ac228337e31c3a7e6527ee4dc73cffaf",
         "src/core/validation.ts": "9c48d81d4bf6ac7a8fb9108d3f775a33f69346412c13af0fa3176cb8cc65a48a",
-        "src/index.ts": "96538dbaa61ac627bca0afe38c9d149c643716ecc611f93349bddd4d7cc6087e",
+        "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "23b4601c1e775b7198921838c3e8b2b1e77c439396506af3b678589b837ef937",
+      "digest": "a6d4b1be3200c375dec897fc0a23aaef99059c0637b5cd518b7c7fef506933ca",
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Per-target search-on-add switch skips every Lidarr search on add; OPERATIONS Lidarr target section and changelog updated.",
+        "note": "Document studio Album/EP selection and normalized-title deduplication for slskd artist approvals; explicit release approvals and Lidarr wanted selection retain their rules. No configuration, API, migration, import verification or companion changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "23b4601c1e775b7198921838c3e8b2b1e77c439396506af3b678589b837ef937"
+        "digest": "a6d4b1be3200c375dec897fc0a23aaef99059c0637b5cd518b7c7fef506933ca"
       }
     },
     "deployment": {

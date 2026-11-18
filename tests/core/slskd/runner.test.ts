@@ -3,6 +3,73 @@ import { describe, expect, it, vi } from 'vitest'
 import { createSlskdRunner } from '@/core/slskd/runner'
 
 describe('createSlskdRunner', () => {
+  it.each(['standalone_approval', 'combined_approval'] as const)(
+    'queues studio albums and EPs once per normalized title for %s',
+    async (sourceType) => {
+      const createJob = vi.fn().mockResolvedValue({ id: 9, state: 'pending' })
+      const release = (releaseGroupMbid: string, releaseTitle: string, type: string) => ({
+        releaseGroupMbid,
+        releaseTitle,
+        type,
+        secondaryTypes: [],
+      })
+      const runner = createSlskdRunner({
+        createJob,
+        findActiveJob: vi.fn().mockResolvedValue(null),
+        resolveReleaseGroups: vi
+          .fn()
+          .mockResolvedValue([
+            release('single', 'Fimbulvinter', 'Single'),
+            release('same-title-ep', ' FIMBULVINTER ', 'EP'),
+            release('album', 'Fimbulvinter', 'Album'),
+            release('duplicate-album', 'Fimbulvinter (Deluxe Edition)', 'Album'),
+            release('later-ep', 'fimbulvinter', 'EP'),
+            release('ep', 'Rival Dealer', 'EP'),
+            { ...release('compilation', 'Collected', 'Album'), secondaryTypes: ['Compilation'] },
+            { ...release('live', 'On Stage', 'Album'), secondaryTypes: ['Live'] },
+            { ...release('live-ep', 'Live EP', 'EP'), secondaryTypes: ['Live'] },
+            release('other', 'Other Release', 'Other'),
+          ]),
+      })
+
+      expect(
+        await runner.queueArtist({
+          sourceType,
+          userId: 1,
+          targetId: 4,
+          ...(sourceType === 'combined_approval' ? { lidarrArtistId: 99 } : {}),
+          artist: { mbid: 'artist-mbid', name: 'Artist' },
+        }),
+      ).toEqual({ success: true })
+      expect(createJob.mock.calls.map(([job]) => job.releaseGroupMbid)).toEqual(['album', 'ep'])
+    },
+  )
+
+  it('queues nothing when no release has known studio album or EP types and a usable title', async () => {
+    const createJob = vi.fn()
+    const findActiveJob = vi.fn()
+    const runner = createSlskdRunner({
+      createJob,
+      findActiveJob,
+      resolveReleaseGroups: vi.fn().mockResolvedValue([
+        { releaseGroupMbid: 'single', releaseTitle: 'Single', type: 'Single', secondaryTypes: [] },
+        { releaseGroupMbid: 'unknown', releaseTitle: 'Unknown', type: 'Album' },
+        { releaseGroupMbid: 'blank', releaseTitle: ' ', type: 'EP', secondaryTypes: [] },
+      ]),
+    })
+
+    expect(
+      await runner.queueArtist({
+        sourceType: 'standalone_approval',
+        userId: 1,
+        targetId: 4,
+        artist: { mbid: 'artist-mbid', name: 'Artist' },
+      }),
+    ).toEqual({ success: false })
+    expect(findActiveJob).not.toHaveBeenCalled()
+    expect(createJob).not.toHaveBeenCalled()
+  })
+
   it('creates pending slskd jobs for standalone approval releases without duplicates', async () => {
     const createJob = vi.fn().mockResolvedValue({ id: 9, state: 'pending' })
     const findActiveJob = vi.fn().mockResolvedValueOnce(null).mockResolvedValueOnce({ id: 5 })
@@ -10,8 +77,8 @@ describe('createSlskdRunner', () => {
       createJob,
       findActiveJob,
       resolveReleaseGroups: vi.fn().mockResolvedValue([
-        { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' },
-        { releaseGroupMbid: 'rg-2', releaseTitle: 'Rival Dealer' },
+        { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        { releaseGroupMbid: 'rg-2', releaseTitle: 'Rival Dealer', type: 'EP', secondaryTypes: [] },
       ]),
     })
 
@@ -43,7 +110,9 @@ describe('createSlskdRunner', () => {
       findActiveJob: vi.fn().mockResolvedValue(null),
       resolveReleaseGroups: vi
         .fn()
-        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+        .mockResolvedValue([
+          { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        ]),
     })
 
     await runner.queueArtist({
@@ -69,7 +138,9 @@ describe('createSlskdRunner', () => {
       findActiveJob: vi.fn().mockResolvedValue(null),
       resolveReleaseGroups: vi
         .fn()
-        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+        .mockResolvedValue([
+          { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        ]),
     })
 
     const result = await runner.queueArtist({
@@ -90,8 +161,8 @@ describe('createSlskdRunner().queueAlbum', () => {
       createJob,
       findActiveJob: vi.fn().mockResolvedValue(null),
       resolveReleaseGroups: vi.fn().mockResolvedValue([
-        { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' },
-        { releaseGroupMbid: 'rg-2', releaseTitle: 'Rival Dealer' },
+        { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        { releaseGroupMbid: 'rg-2', releaseTitle: 'Rival Dealer', type: 'EP', secondaryTypes: [] },
       ]),
     })
 
@@ -120,7 +191,9 @@ describe('createSlskdRunner().queueAlbum', () => {
       findActiveJob: vi.fn().mockResolvedValue(null),
       resolveReleaseGroups: vi
         .fn()
-        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+        .mockResolvedValue([
+          { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        ]),
     })
 
     const result = await runner.queueAlbum({
@@ -141,7 +214,9 @@ describe('createSlskdRunner().queueAlbum', () => {
       findActiveJob: vi.fn().mockResolvedValue(null),
       resolveReleaseGroups: vi
         .fn()
-        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+        .mockResolvedValue([
+          { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        ]),
     })
 
     const result = await runner.queueAlbum({
@@ -162,7 +237,9 @@ describe('createSlskdRunner().queueAlbum', () => {
       findActiveJob: vi.fn().mockResolvedValue({ id: 7 }),
       resolveReleaseGroups: vi
         .fn()
-        .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+        .mockResolvedValue([
+          { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        ]),
     })
 
     const result = await runner.queueAlbum({
@@ -185,7 +262,9 @@ describe('createSlskdRunner().queueAlbum', () => {
         findActiveJob: vi.fn().mockResolvedValue(null),
         resolveReleaseGroups: vi
           .fn()
-          .mockResolvedValue([{ releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue' }]),
+          .mockResolvedValue([
+            { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+          ]),
       })
 
     await makeRunner().queueAlbum({

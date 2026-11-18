@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
+import type { MBReleaseGroup } from '@/core/clients/musicbrainz'
+import { normalizeAlbumTitle } from '@/core/library/normalize'
 
-export type SlskdRunnerReleaseGroup = {
+export type SlskdRunnerReleaseGroup = Pick<MBReleaseGroup, 'type' | 'secondaryTypes'> & {
   releaseGroupMbid: string
   releaseTitle: string
 }
@@ -60,7 +62,20 @@ export function buildSlskdWorkKey(
 
 export function createSlskdRunner(deps: SlskdRunnerDeps) {
   async function queueArtist(input: SlskdRunnerQueueInput): Promise<{ success: boolean }> {
-    const releaseGroups = await deps.resolveReleaseGroups(input.artist.mbid)
+    const candidates = await deps.resolveReleaseGroups(input.artist.mbid)
+    const releasesByTitle = new Map<string, SlskdRunnerReleaseGroup>()
+    for (const release of candidates) {
+      const type = release.type.toLowerCase()
+      if ((type !== 'album' && type !== 'ep') || release.secondaryTypes?.length !== 0) continue
+
+      const title = normalizeAlbumTitle(release.releaseTitle)
+      if (!title) continue
+      const existing = releasesByTitle.get(title)
+      if (!existing || (type === 'album' && existing.type.toLowerCase() !== 'album')) {
+        releasesByTitle.set(title, release)
+      }
+    }
+    const releaseGroups = [...releasesByTitle.values()]
 
     if (releaseGroups.length === 0) {
       return { success: false }

@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- slskd artist approvals now search only studio albums and EPs, skipping singles, compilations and live releases. Same-title releases are queued once after title normalization, preferring the album, so a same-named single cannot trigger a duplicate album download (#1252).
+
 ## v2.3.0 - 2026-11-14
 
 ### Upgrade notes
