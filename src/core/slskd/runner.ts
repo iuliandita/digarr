@@ -63,19 +63,25 @@ export function buildSlskdWorkKey(
 export function createSlskdRunner(deps: SlskdRunnerDeps) {
   async function queueArtist(input: SlskdRunnerQueueInput): Promise<{ success: boolean }> {
     const candidates = await deps.resolveReleaseGroups(input.artist.mbid)
-    const releasesByTitle = new Map<string, SlskdRunnerReleaseGroup>()
-    for (const release of candidates) {
-      const type = release.type.toLowerCase()
-      if ((type !== 'album' && type !== 'ep') || release.secondaryTypes?.length !== 0) continue
-
+    const isAlbum = (release: SlskdRunnerReleaseGroup) => release.type.toLowerCase() === 'album'
+    const studio = candidates.filter(
+      (release) =>
+        (isAlbum(release) || release.type.toLowerCase() === 'ep') &&
+        release.secondaryTypes?.length === 0 &&
+        normalizeAlbumTitle(release.releaseTitle),
+    )
+    // distinct albums can share a title (self-titled records), so only EPs collapse
+    const albumTitles = new Set(
+      studio.filter(isAlbum).map((release) => normalizeAlbumTitle(release.releaseTitle)),
+    )
+    const epTitles = new Set<string>()
+    const releaseGroups = studio.filter((release) => {
+      if (isAlbum(release)) return true
       const title = normalizeAlbumTitle(release.releaseTitle)
-      if (!title) continue
-      const existing = releasesByTitle.get(title)
-      if (!existing || (type === 'album' && existing.type.toLowerCase() !== 'album')) {
-        releasesByTitle.set(title, release)
-      }
-    }
-    const releaseGroups = [...releasesByTitle.values()]
+      if (albumTitles.has(title) || epTitles.has(title)) return false
+      epTitles.add(title)
+      return true
+    })
 
     if (releaseGroups.length === 0) {
       return { success: false }

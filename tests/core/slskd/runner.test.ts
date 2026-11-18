@@ -4,7 +4,7 @@ import { createSlskdRunner } from '@/core/slskd/runner'
 
 describe('createSlskdRunner', () => {
   it.each(['standalone_approval', 'combined_approval'] as const)(
-    'queues studio albums and EPs once per normalized title for %s',
+    'queues every studio album and only EPs without a same-titled album for %s',
     async (sourceType) => {
       const createJob = vi.fn().mockResolvedValue({ id: 9, state: 'pending' })
       const release = (releaseGroupMbid: string, releaseTitle: string, type: string) => ({
@@ -22,9 +22,11 @@ describe('createSlskdRunner', () => {
             release('single', 'Fimbulvinter', 'Single'),
             release('same-title-ep', ' FIMBULVINTER ', 'EP'),
             release('album', 'Fimbulvinter', 'Album'),
-            release('duplicate-album', 'Fimbulvinter (Deluxe Edition)', 'Album'),
             release('later-ep', 'fimbulvinter', 'EP'),
+            release('self-titled-1', 'Weezer', 'Album'),
+            release('self-titled-2', 'Weezer', 'Album'),
             release('ep', 'Rival Dealer', 'EP'),
+            release('repeat-ep', 'rival dealer', 'EP'),
             { ...release('compilation', 'Collected', 'Album'), secondaryTypes: ['Compilation'] },
             { ...release('live', 'On Stage', 'Album'), secondaryTypes: ['Live'] },
             { ...release('live-ep', 'Live EP', 'EP'), secondaryTypes: ['Live'] },
@@ -41,7 +43,12 @@ describe('createSlskdRunner', () => {
           artist: { mbid: 'artist-mbid', name: 'Artist' },
         }),
       ).toEqual({ success: true })
-      expect(createJob.mock.calls.map(([job]) => job.releaseGroupMbid)).toEqual(['album', 'ep'])
+      expect(createJob.mock.calls.map(([job]) => job.releaseGroupMbid)).toEqual([
+        'album',
+        'self-titled-1',
+        'self-titled-2',
+        'ep',
+      ])
     },
   )
 
@@ -182,6 +189,29 @@ describe('createSlskdRunner().queueAlbum', () => {
         releaseTitle: 'Rival Dealer',
       }),
     )
+  })
+
+  it('still queues an explicitly approved single', async () => {
+    const createJob = vi.fn().mockResolvedValue({ id: 9, state: 'pending' })
+    const runner = createSlskdRunner({
+      createJob,
+      findActiveJob: vi.fn().mockResolvedValue(null),
+      resolveReleaseGroups: vi.fn().mockResolvedValue([
+        { releaseGroupMbid: 'rg-1', releaseTitle: 'Untrue', type: 'Album', secondaryTypes: [] },
+        { releaseGroupMbid: 'rg-s', releaseTitle: 'Untrue', type: 'Single', secondaryTypes: [] },
+      ]),
+    })
+
+    const result = await runner.queueAlbum({
+      sourceType: 'standalone_approval',
+      userId: 1,
+      targetId: 4,
+      artist: { mbid: '11111111-1111-1111-1111-111111111111', name: 'Burial' },
+      releaseGroupMbid: 'rg-s',
+    })
+
+    expect(result.success).toBe(true)
+    expect(createJob).toHaveBeenCalledWith(expect.objectContaining({ releaseGroupMbid: 'rg-s' }))
   })
 
   it('returns failure and skips createJob when the release group is unknown', async () => {

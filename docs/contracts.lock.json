@@ -724,7 +724,7 @@
         "src/core/slskd/importer.ts": "6e1cd009d311c68bde333b25ac7ec8a0f317670ee18c199d32be12b83dc4a826",
         "src/core/slskd/match-engine.ts": "6dc52049a68f81a7cbdcd66130d337309f49e88fc4fbb32e7e2cc1cc181afa22",
         "src/core/slskd/orchestrator.ts": "09f9048979411ddc26e0d1f5a553641fc4a7bdd83e8013451284757bba4f4c6c",
-        "src/core/slskd/runner.ts": "f4a9528d226a0b8ca312240d0d475d08338c0db3401efebe06f63c7fb539f5cc",
+        "src/core/slskd/runner.ts": "c93f43be643150891e52b878667d765de30aa0284181a71f0ec6bbcede242393",
         "src/core/slskd/shared.ts": "528734462b56b92939f53f4e9a1cbd94ede30da6c609ede6c1540749cd8cc7bd",
         "src/core/slskd/types.ts": "2443dfb5b2abdfe567eec8e82dac04cc0b6becb6e2a9a40331ffb0d139007b9c",
         "src/core/subscriptions/adapters/csv-import.ts": "583acc8858a428122c462646374a945b0d2e9b0712650faee76bcc1eba3e9ec3",
@@ -773,14 +773,14 @@
         "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "a6d4b1be3200c375dec897fc0a23aaef99059c0637b5cd518b7c7fef506933ca",
+      "digest": "6201429e86ac9bc405d3b494181d1392ca0547d7770d9d585c3399b48ba23c22",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document studio Album/EP selection and normalized-title deduplication for slskd artist approvals; explicit release approvals and Lidarr wanted selection retain their rules. No configuration, API, migration, import verification or companion changes.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "slskd artist approvals keep every studio album, including same-titled albums, and skip EPs that share a title with an album or an earlier EP.",
         "breaking": "none",
         "migration": "",
-        "digest": "a6d4b1be3200c375dec897fc0a23aaef99059c0637b5cd518b7c7fef506933ca"
+        "digest": "6201429e86ac9bc405d3b494181d1392ca0547d7770d9d585c3399b48ba23c22"
       }
     },
     "deployment": {
