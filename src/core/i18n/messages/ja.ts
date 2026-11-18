@@ -49,6 +49,11 @@ export const ja = {
     'Lidarr がダウンロード先を見つけられないか、一覧を取得できません。マウントと読み取り権限を確認してください。',
   'settings.slskdLinkedLidarrUnavailable':
     '連携した Lidarr ターゲットを使用できないため、ダウンロード先は確認されていません。有効で接続されていることを確認してから、もう一度テストしてください。',
+  'settings.slskdPathTimeout':
+    'Lidarr が {0} 秒以内にダウンロードフォルダーの一覧取得に応答しませんでした。Lidarr の負荷と共有フォルダーの速度を確認してください。',
+  'settings.slskdPathHttpError':
+    'ダウンロードフォルダーの一覧取得中に Lidarr が HTTP {0} を返しました。',
+  'settings.slskdPathUnreachable': 'Lidarr 経由でダウンロードフォルダーを確認できませんでした: {0}',
   'settings.slskdPathIncomplete':
     'ダウンロード先が未完了フォルダーのようです。完了済みダウンロードのフォルダーを使ってください。',
   'settings.slskdPathOk':
