@@ -2,13 +2,13 @@ import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { errMsg, isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
-import { normalizeArtistName } from './normalize'
+import { normalizeAlbumTitle, normalizeArtistName } from './normalize'
 import type { LibraryArtist } from './sources/types'
 import type { UnreconciledReason } from './types'
 
 type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
-  'searchArtist' | 'getReleaseGroups'
+  'searchArtist' | 'getReleaseGroups' | 'searchReleaseGroups'
 >
 
 function bumpMbFailed(counts: LibrarySyncCounts): void {
@@ -138,10 +138,78 @@ function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: strin
   )
 }
 
+async function albumFallback(
+  artist: LibraryArtist,
+  nameNormalized: string,
+  sourceId: string,
+  ctx: ReconcilerContext,
+  reason: 'no_candidate' | 'ambiguous',
+): Promise<ReconciledArtist> {
+  if (sourceId === 'subsonic' && nameNormalized) {
+    const titles = new Map<string, string>()
+    for (const title of artist.knownAlbumTitles ?? []) {
+      const normalized = normalizeAlbumTitle(title)
+      if (normalized && !titles.has(normalized)) titles.set(normalized, title)
+    }
+    const artistNames = [...new Set([artist.name, ...artist.name.split(/\s*&\s*|,\s*/)])].filter(
+      (name) => normalizeArtistName(name) !== '',
+    )
+    const names = new Set(artistNames.map(normalizeArtistName))
+    let agreedMbid: string | undefined
+    for (const [normalizedTitle, title] of [...titles].slice(0, 2)) {
+      ctx.counts.mbApiCalls += 1
+      try {
+        const result = await ctx.mbClient.searchReleaseGroups(title, artistNames)
+        const groups = result['release-groups']
+        // A truncated search cannot establish that the credit is unique.
+        if (
+          (result.count !== undefined && result.count > groups.length) ||
+          (result.count === undefined && groups.length >= 100)
+        ) {
+          agreedMbid = undefined
+          break
+        }
+        const mbids = new Set<string>()
+        for (const group of groups) {
+          if (normalizeAlbumTitle(group.title) !== normalizedTitle) continue
+          for (const credit of group['artist-credit']) {
+            if (
+              isValidMbid(credit.artist.id) &&
+              !isSpecialPurposeArtist(credit.artist.id) &&
+              (names.has(normalizeArtistName(credit.artist.name)) ||
+                (credit.name !== undefined && names.has(normalizeArtistName(credit.name))))
+            )
+              mbids.add(credit.artist.id)
+          }
+        }
+        const [mbid] = mbids
+        if (mbids.size !== 1 || !mbid || (agreedMbid && agreedMbid !== mbid)) {
+          agreedMbid = undefined
+          break
+        }
+        agreedMbid = mbid
+      } catch (err) {
+        bumpMbFailed(ctx.counts)
+        console.warn(
+          `[library-reconcile] MB release-group search failed for "${artist.name}": ${errMsg(err)}`,
+        )
+        return lookupFailedRow(artist, nameNormalized, ctx)
+      }
+    }
+    if (agreedMbid) {
+      ctx.counts.matchedDisambiguated += 1
+      return matchedRow(artist, nameNormalized, agreedMbid, 'name_disambiguated', 0.5)
+    }
+  }
+  if (reason === 'no_candidate') ctx.counts.unreconciledNoCandidate += 1
+  else ctx.counts.unreconciledAmbiguous += 1
+  return unreconciledRow(artist, nameNormalized, reason)
+}
+
 /**
  * Reconcile a single source artist to a MusicBrainz MBID.
  *
- * 6 ordered steps. Each has a clear terminal state.
+ * Ordered steps. Each has a clear terminal state.
  *  0. Override (user assertion beats everything)
  *  1. Source-provided MBID (trust the source)
  *  2. Cache short-circuit + MB API lookup with strict normalize-equal filter
@@ -149,6 +217,7 @@ function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: strin
  *  3. Anchor against already-known MBIDs (Task 9)
  *  4. Exact normalized name match (Task 9)
  *  5. Album-overlap disambiguation (Task 10)
+ *  6. Subsonic album/artist release-group search
  */
 export async function reconcileArtist(
   artist: LibraryArtist,
@@ -207,8 +276,7 @@ export async function reconcileArtist(
       : searchArtists.filter((c) => matchesAliasOrSortName(c, nameNormalized))
 
   if (candidates.length === 0) {
-    ctx.counts.unreconciledNoCandidate += 1
-    return unreconciledRow(artist, nameNormalized, 'no_candidate')
+    return albumFallback(artist, nameNormalized, sourceId, ctx, 'no_candidate')
   }
 
   // Step 3: anchor against already-known MBIDs from earlier sources
@@ -258,7 +326,7 @@ export async function reconcileArtist(
     const runnerUp = scored[1]
     if (
       winner &&
-      winner.overlap >= 2 &&
+      winner.overlap >= (runnerUp === undefined || runnerUp.overlap === 0 ? 1 : 2) &&
       (runnerUp === undefined || runnerUp.overlap === 0 || winner.overlap >= 2 * runnerUp.overlap)
     ) {
       ctx.counts.matchedDisambiguated += 1
@@ -267,6 +335,5 @@ export async function reconcileArtist(
   }
 
   // Fall through to ambiguous when disambiguation can't decide
-  ctx.counts.unreconciledAmbiguous += 1
-  return unreconciledRow(artist, nameNormalized, 'ambiguous')
+  return albumFallback(artist, nameNormalized, sourceId, ctx, 'ambiguous')
 }

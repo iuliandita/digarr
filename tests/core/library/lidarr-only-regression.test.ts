@@ -12,6 +12,7 @@ function makeCtx(overrides: Partial<ReconcilerContext> = {}): ReconcilerContext 
     knownMbids: new Set(),
     mbClient: {
       searchArtist: vi.fn().mockResolvedValue({ artists: [] }),
+      searchReleaseGroups: vi.fn().mockResolvedValue({ 'release-groups': [] }),
       getReleaseGroups: vi.fn().mockResolvedValue([]),
     },
     cacheLookup: vi.fn().mockResolvedValue([]),

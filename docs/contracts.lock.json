@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "80649339e028e161e108f12f6629cc95c3934cfda3d53cfa5aa2e775e7dcf7c4",
+        "src/core/clients/musicbrainz.ts": "8ec98e023bbfe0c0da13fc505d7cf179a9e9e0e9aeea24c333a7d75f51bf2ca0",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -584,7 +584,7 @@
         "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
-        "src/core/clients/subsonic.ts": "4c2207bc0fe340e4ddca995b5e2353e6923a69de71b5c77c393940a4f4bd97c7",
+        "src/core/clients/subsonic.ts": "a5b803a6d763635f4eb2f8c8a3c328980610cb3ecabc4c05c14d65e16e1efb25",
         "src/core/clients/tag-radio-resolver.ts": "09bcaded570d0e05e1e60d34fbff8402af9a3f3823dfb73932c8b90f2fac80af",
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "9c8d8fd48eb212eb6914302c3882dd1e7751b26e9192e1a14d9e2bea56e758f4",
@@ -627,7 +627,7 @@
         "src/core/library/health-scheduler.ts": "af286aae6e92bc4e712b15d1b2c2081fb7d7d4e2bb6680eaf766354d793cc410",
         "src/core/library/health.ts": "e67c96dc032158f1ffaeb6b009124d0c9ca9f9008284770ef8744eb233f59296",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "6b4eca941ec5b5200ea6e3c7ef7da0752bde982efc95557459f5ebc0f54a252d",
+        "src/core/library/reconciler.ts": "23bedf573f82893e910cdc619f19dea5646b05dae18c26df27af8bf5fb3a5abe",
         "src/core/library/scheduler.ts": "e74bb48ccecbdcb97e117edcb479d967300f89f2a120a11156d681b0807e5dea",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -635,10 +635,10 @@
         "src/core/library/sources/jellyfin.ts": "3b4cc00e211f7eee7db5e7ac85783377e0b8f00da61b988cc1288064d8835b0e",
         "src/core/library/sources/lidarr.ts": "f7651bd31f150e1b9ad8ad66cd0b049c8aa874a3419ec14a1338a12e091dbd5c",
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
-        "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
+        "src/core/library/sources/subsonic.ts": "2925b16a2bef5cd8adeb207a6883f106991abc9bb01aa572ccbc64121dc5d2da",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "cdaa1921a8e72b0c57420a03ca019b87b5b1adcc3ffcae05a1cbf3833e41abfc",
-        "src/core/library/sync.ts": "3f3c9040f9fcb92a457ef4cdfe8ac48ac13da7bad13bcefd3966649f36db967a",
+        "src/core/library/sync.ts": "3d82b0e68495746b4f2270ec6759c68bae82207683473461868a1249971b9e8a",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
         "src/core/net/guarded-fetch.ts": "68e085a701a6e3dda36e65e8d0a835e3f7fd60555346c2a1931de968d4bee38b",
@@ -773,14 +773,14 @@
         "src/index.ts": "96538dbaa61ac627bca0afe38c9d149c643716ecc611f93349bddd4d7cc6087e",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "23b4601c1e775b7198921838c3e8b2b1e77c439396506af3b678589b837ef937",
+      "digest": "990699e2acc62532870d4bba3efe1344a5609a708d7a0b513a3361d04be5cf73",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Per-target search-on-add switch skips every Lidarr search on add; OPERATIONS Lidarr target section and changelog updated.",
+        "docs": ["docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "README.md", "CHANGELOG.md"],
+        "note": "Document tagged Subsonic MBIDs, paged album hints, exact album/artist fallback with combined-name alternatives, snapshot failure safety, and rollback behavior.",
         "breaking": "none",
         "migration": "",
-        "digest": "23b4601c1e775b7198921838c3e8b2b1e77c439396506af3b678589b837ef937"
+        "digest": "990699e2acc62532870d4bba3efe1344a5609a708d7a0b513a3361d04be5cf73"
       }
     },
     "deployment": {

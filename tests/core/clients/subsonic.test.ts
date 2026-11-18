@@ -343,3 +343,85 @@ describe('subsonic client.searchTracks()', () => {
     ).toBe('25')
   })
 })
+
+describe('Subsonic album hints and artist MBIDs', () => {
+  it.each([0, 500, 501, 1000])('pages the full album listing for %i albums', async (count) => {
+    const albums = Array.from({ length: count }, (_, i) => ({
+      id: i,
+      artistId: i % 2,
+      name: `Album ${i}`,
+      year: 2000,
+    }))
+    mockGet.mockImplementation(async (path: string) => {
+      const params = new URL(path, 'http://nav').searchParams
+      expect(params.get('type')).toBe('alphabeticalByArtist')
+      expect(params.get('size')).toBe('500')
+      const offset = Number(params.get('offset'))
+      return {
+        'subsonic-response': {
+          status: 'ok',
+          albumList2: { album: albums.slice(offset, offset + 500) },
+        },
+      }
+    })
+    const result = await createSubsonicClient('http://nav:4533', 'u', 'p').getAllAlbums()
+    expect(result).toEqual(
+      albums.map((a) => ({
+        id: String(a.id),
+        artistId: String(a.artistId),
+        title: a.name,
+        releaseYear: 2000,
+      })),
+    )
+    expect(
+      mockGet.mock.calls.map(([path]) =>
+        new URL(String(path), 'http://nav').searchParams.get('offset'),
+      ),
+    ).toEqual(Array.from({ length: Math.floor(count / 500) + 1 }, (_, i) => String(i * 500)))
+  })
+
+  it.each(['failed page', 'stalled page', 'malformed page'])(
+    'rejects an incomplete listing: %s',
+    async (failure) => {
+      const page = {
+        'subsonic-response': {
+          status: 'ok',
+          albumList2: {
+            album: Array.from({ length: 500 }, (_, id) => ({
+              id,
+              artistId: '1',
+              name: `Album ${id}`,
+            })),
+          },
+        },
+      }
+      mockGet.mockResolvedValueOnce(page)
+      if (failure === 'failed page') mockGet.mockRejectedValueOnce(new Error('page failed'))
+      else
+        mockGet.mockResolvedValueOnce(
+          failure === 'stalled page' ? page : { 'subsonic-response': { status: 'ok' } },
+        )
+      await expect(
+        createSubsonicClient('http://nav:4533', 'u', 'p').getAllAlbums(),
+      ).rejects.toThrow()
+    },
+  )
+
+  it.each([
+    ['a74b1b7f-71a5-4011-9441-d0b5e4122711', true],
+    ['invalid', false],
+    ['', false],
+    [null, false],
+    [123, false],
+  ])('passes only valid artist MBIDs: %j', async (musicBrainzId, valid) => {
+    mockGet.mockResolvedValueOnce({
+      'subsonic-response': {
+        status: 'ok',
+        artists: { index: [{ artist: [{ id: '1', name: 'Bush', musicBrainzId }] }] },
+      },
+    })
+    expect(await createSubsonicClient('http://nav:4533', 'u', 'p').getAllArtists()).toEqual([
+      { id: '1', name: 'Bush', ...(valid ? { mbid: musicBrainzId } : {}) },
+    ])
+  })
+})

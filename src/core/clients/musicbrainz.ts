@@ -1,4 +1,5 @@
 import PQueue from 'p-queue'
+import { z } from 'zod'
 import { envConfig } from '@/config/env'
 import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
@@ -141,6 +142,23 @@ const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504])
 const MAX_RETRIES = 3
 const BASE_BACKOFF_MS = 1000
 const MAX_RETRY_AFTER_MS = 30_000
+
+const releaseGroupSearchSchema = z.object({
+  count: z.number().int().nonnegative().optional(),
+  'release-groups': z.array(
+    z.object({
+      title: z.string(),
+      'artist-credit': z
+        .array(
+          z.object({
+            name: z.string().optional(),
+            artist: z.object({ id: z.string(), name: z.string() }),
+          }),
+        )
+        .default([]),
+    }),
+  ),
+})
 
 function parseRetryAfterMs(header: string | null): number | null {
   if (!header) return null
@@ -324,6 +342,17 @@ export function createMusicBrainzClient(
   ): Promise<MBSearchResult> {
     const params = new URLSearchParams({ query, fmt: 'json' })
     return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`, options)
+  }
+
+  async function searchReleaseGroups(albumTitle: string, artistNames: readonly string[]) {
+    const quote = (value: string) => `"${value.replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, '\\$1')}"`
+    const artists = artistNames.map((name) => `artist:${quote(name)}`).join(' OR ')
+    const params = new URLSearchParams({
+      query: `releasegroup:${quote(albumTitle)} AND (${artists})`,
+      fmt: 'json',
+      limit: '100',
+    })
+    return releaseGroupSearchSchema.parse(await request<unknown>(`/release-group/?${params}`))
   }
 
   async function getReleaseGroups(
@@ -572,6 +601,7 @@ export function createMusicBrainzClient(
     lookupArtist,
     lookupArtistRelations,
     searchArtist,
+    searchReleaseGroups,
     getReleaseGroups,
     getRecordings,
     lookupRecording,

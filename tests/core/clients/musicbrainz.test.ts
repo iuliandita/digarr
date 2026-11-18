@@ -703,3 +703,29 @@ describe('lookupRecording not-found detection', () => {
     else await expect(call).rejects.toThrow(/HTTP 400/)
   })
 })
+
+describe('release-group artist fallback search', () => {
+  it('escapes query literals and uses the shared background queue', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeJsonResponse({
+        count: 1,
+        'release-groups': [
+          { title: 'One', 'artist-credit': [{ artist: { id: MOCK_ARTIST_MBID, name: 'Bush' } }] },
+        ],
+      }),
+    )
+    const client = createClient({ priority: 'background' })
+    const result = await client.searchReleaseGroups('One" OR *', ['A & Bush', 'A', 'Bush'])
+    const url = new URL(mockFetch.mock.calls[0]?.[0])
+    expect(url.pathname).toBe('/ws/2/release-group/')
+    expect(url.searchParams.get('query')).toBe(
+      'releasegroup:"One\\" OR \\*" AND (artist:"A \\& Bush" OR artist:"A" OR artist:"Bush")',
+    )
+    expect(url.searchParams.get('limit')).toBe('100')
+    expect(result['release-groups'][0]?.['artist-credit'][0]?.artist.id).toBe(MOCK_ARTIST_MBID)
+    expect(sharedAdd).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ priority: 0 }),
+    )
+  })
+})

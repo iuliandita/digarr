@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- Navidrome/Subsonic library sync now uses tagged artist MusicBrainz IDs and album titles to resolve more artists. A single album can break an otherwise empty tie; unresolved names get up to two exact album-and-artist searches, including combined artist credits. Conflicting matches remain unresolved, and failed source album reads preserve the previous snapshot (#1255).
+
 ## v2.3.0 - 2026-11-14
 
 ### Upgrade notes

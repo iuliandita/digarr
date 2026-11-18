@@ -17,6 +17,7 @@ describe('createSubsonicSource()', () => {
         { id: '3', name: 'Portishead' },
       ]),
       getAllArtists: vi.fn().mockResolvedValue([]),
+      getAllAlbums: vi.fn().mockResolvedValue([]),
       getAlbumsForArtist: vi.fn().mockResolvedValue([]),
       searchTracks: vi.fn().mockResolvedValue([]),
       testConnection: vi.fn().mockResolvedValue({ success: true, message: 'Connected' }),
