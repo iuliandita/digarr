@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "c5999d44ba6faccffe869ddca396825b3d33b665fc2a163aeb472017cedba907",
+        "src/core/clients/musicbrainz.ts": "5d1c8b932e41dffaa5845267adc3769315c3a535ba6f207d5658ba40cfd20ec8",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -627,7 +627,7 @@
         "src/core/library/health-scheduler.ts": "af286aae6e92bc4e712b15d1b2c2081fb7d7d4e2bb6680eaf766354d793cc410",
         "src/core/library/health.ts": "e67c96dc032158f1ffaeb6b009124d0c9ca9f9008284770ef8744eb233f59296",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "09f21886f1ecaf7a203609d6b0cdca6eec62ab306f846806ecfda1f71817e27a",
+        "src/core/library/reconciler.ts": "81f0a1900fa6e3404ddeb787e357c683587e3897047d0fe81c4d56848b325598",
         "src/core/library/scheduler.ts": "e74bb48ccecbdcb97e117edcb479d967300f89f2a120a11156d681b0807e5dea",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -638,7 +638,7 @@
         "src/core/library/sources/subsonic.ts": "1e3ef0d094185f7aa9048f4196753897ad8663eb2dd0906ab7b20c3aa183da10",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "cdaa1921a8e72b0c57420a03ca019b87b5b1adcc3ffcae05a1cbf3833e41abfc",
-        "src/core/library/sync.ts": "3d82b0e68495746b4f2270ec6759c68bae82207683473461868a1249971b9e8a",
+        "src/core/library/sync.ts": "3028820e309d88601dcd3893ce85d7c0f520bd78aa880cbdd6db1c6bd8f78ac2",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
         "src/core/net/guarded-fetch.ts": "68e085a701a6e3dda36e65e8d0a835e3f7fd60555346c2a1931de968d4bee38b",
@@ -773,14 +773,14 @@
         "src/index.ts": "96538dbaa61ac627bca0afe38c9d149c643716ecc611f93349bddd4d7cc6087e",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "e996cdb230dfe8c68347abf91603119e4a11e903d8d40b8f843c468674a0a256",
+      "digest": "0511d8e2a49757e03833275b5a763b2f5867310b50d763c1ec88252dc2ff4deb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/ARCHITECTURE.md", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document strict single-album evidence, two-album part-name matches, the three-candidate and paginated request budgets, three-day complete-search caching, optional hint degradation, and tag overrides. No settings or migrations; backup and rollback procedures are unchanged.",
+        "docs": ["docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
+        "note": "Overlap scoring runs only for two or three name candidates; more go to the candidate-restricted fallback. Forced sync bypasses the fallback search cache.",
         "breaking": "none",
         "migration": "",
-        "digest": "e996cdb230dfe8c68347abf91603119e4a11e903d8d40b8f843c468674a0a256"
+        "digest": "0511d8e2a49757e03833275b5a763b2f5867310b50d763c1ec88252dc2ff4deb"
       }
     },
     "deployment": {

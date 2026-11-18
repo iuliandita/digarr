@@ -692,29 +692,21 @@ describe('reconcileArtist - single album and Subsonic fallback', () => {
     ).toBe(VALID_MBID)
   })
 
-  it.each([2, 3, 5])('fetches only the first three of %i candidates', async (count) => {
+  it.each([2, 3])('scores album overlap across all %i candidates', async (count) => {
     const ctx = makeCtx()
-    const ids = [
-      VALID_MBID,
-      OTHER_MBID,
-      '11111111-1111-4111-8111-111111111111',
-      '22222222-2222-4222-8222-222222222222',
-      '33333333-3333-4333-8333-333333333333',
-    ].slice(0, count)
+    const ids = [VALID_MBID, OTHER_MBID, '11111111-1111-4111-8111-111111111111'].slice(0, count)
     vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
       artists: ids.map((id, i) => ({ id, name: 'Bush', score: 100 - i })),
     })
     vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
-      id === ids[Math.min(count, 3) - 1] ? [{ id: 'rg1', title: 'Only One', type: 'Album' }] : [],
+      id === ids[count - 1] ? [{ id: 'rg1', title: 'Only One', type: 'Album' }] : [],
     )
-    expect((await reconcileArtist(artist, 'subsonic', ctx)).mbid).toBe(ids[Math.min(count, 3) - 1])
-    expect(vi.mocked(ctx.mbClient.getReleaseGroups).mock.calls.map(([id]) => id)).toEqual(
-      ids.slice(0, 3),
-    )
+    expect((await reconcileArtist(artist, 'subsonic', ctx)).mbid).toBe(ids[count - 1])
+    expect(vi.mocked(ctx.mbClient.getReleaseGroups).mock.calls.map(([id]) => id)).toEqual(ids)
     expect(ctx.mbClient.searchReleaseGroups).not.toHaveBeenCalled()
   })
 
-  it('does not fetch a lower-ranked candidate catalog even if it would match', async () => {
+  it('skips overlap scoring with more than three candidates and uses the fallback', async () => {
     const ctx = makeCtx()
     const ids = [
       VALID_MBID,
@@ -725,13 +717,12 @@ describe('reconcileArtist - single album and Subsonic fallback', () => {
     vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
       artists: ids.map((id, i) => ({ id, name: 'Bush', score: 100 - i })),
     })
-    vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
-      id === ids[3] ? [{ id: 'rg1', title: 'Only One', type: 'Album' }] : [],
-    )
+    vi.mocked(ctx.mbClient.getReleaseGroups).mockResolvedValue([
+      { id: 'rg1', title: 'Only One', type: 'Album' },
+    ])
     expect((await reconcileArtist(artist, 'subsonic', ctx)).unreconciledReason).toBe('ambiguous')
-    expect(vi.mocked(ctx.mbClient.getReleaseGroups).mock.calls.map(([id]) => id)).toEqual(
-      ids.slice(0, 3),
-    )
+    expect(ctx.mbClient.getReleaseGroups).not.toHaveBeenCalled()
+    expect(ctx.mbClient.searchReleaseGroups).toHaveBeenCalled()
   })
 
   it.each([

@@ -756,6 +756,20 @@ describe('release-group artist fallback search', () => {
     },
   )
 
+  it('re-fetches a cached fallback search when bypassCache is set', async () => {
+    const entries = new Map<string, MusicBrainzCacheHit>()
+    const cacheStore: MusicBrainzCacheStore = {
+      get: vi.fn(async (key) => entries.get(key) ?? null),
+      set: vi.fn(async (key: string, kind: MusicBrainzCacheKind, entry: MusicBrainzCacheEntry) => {
+        entries.set(key, { ...entry, expiresAt: Date.now() + MUSICBRAINZ_CACHE_TTL_MS[kind] })
+      }),
+    }
+    mockFetch.mockImplementation(async () => makeJsonResponse({ count: 0, 'release-groups': [] }))
+    await createClient({ cacheStore }).searchReleaseGroups('One', ['Bush'])
+    await createClient({ cacheStore }).searchReleaseGroups('One', ['Bush'], { bypassCache: true })
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
   it('escapes query literals and uses the shared background queue', async () => {
     mockFetch.mockResolvedValueOnce(
       makeJsonResponse({

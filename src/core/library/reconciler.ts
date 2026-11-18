@@ -319,7 +319,9 @@ export async function reconcileArtist(
 
   // Step 5: album-overlap disambiguation
   const sourceAlbumTitles = artist.knownAlbumTitles ?? []
-  if (sourceAlbumTitles.length > 0 && candidates.length >= 2) {
+  // more than three candidates skips overlap scoring: an unfetched candidate could tie, so the
+  // candidate-restricted release-group fallback decides instead
+  if (sourceAlbumTitles.length > 0 && candidates.length >= 2 && candidates.length <= 3) {
     const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
     const specificSourceTitles = new Set(
       sourceAlbumTitles
@@ -328,7 +330,7 @@ export async function reconcileArtist(
         .filter((title) => title !== '' && !GENERIC_ALBUM_TITLES.has(title)),
     )
     const scored = await Promise.all(
-      candidates.slice(0, 3).map(async (c) => {
+      candidates.map(async (c) => {
         if (isSpecialPurposeArtist(c.id)) {
           return { candidate: c, overlap: 0, specificOverlap: 0, lookupFailed: false }
         }

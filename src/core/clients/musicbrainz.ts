@@ -352,7 +352,11 @@ export function createMusicBrainzClient(
     return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`, options)
   }
 
-  async function searchReleaseGroups(albumTitle: string, artistNames: readonly string[]) {
+  async function searchReleaseGroups(
+    albumTitle: string,
+    artistNames: readonly string[],
+    options: { bypassCache?: boolean } = {},
+  ) {
     const quote = (value: string) => `"${value.replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, '\\$1')}"`
     const artists = artistNames.map((name) => `artist:${quote(name)}`).join(' OR ')
     const params = new URLSearchParams({
@@ -362,6 +366,7 @@ export function createMusicBrainzClient(
     })
     return releaseGroupSearchSchema.parse(
       await cachedRequest<unknown>('artist-search', `/release-group/?${params}`, {
+        bypassCache: options.bypassCache,
         shouldCache: (body) => {
           const result = releaseGroupSearchSchema.parse(body)
           const length = result['release-groups'].length

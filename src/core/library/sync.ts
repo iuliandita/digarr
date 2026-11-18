@@ -156,7 +156,8 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       const counts = emptyLibrarySyncCounts()
       const mbClient: MBClient = options?.force
         ? {
-            searchReleaseGroups: (title, name) => deps.mbClient.searchReleaseGroups(title, name),
+            searchReleaseGroups: (title, names) =>
+              deps.mbClient.searchReleaseGroups(title, names, { bypassCache: true }),
             searchArtist: (query) => deps.mbClient.searchArtist(query, { bypassCache: true }),
             getReleaseGroups: (mbid, types) =>
               deps.mbClient.getReleaseGroups(mbid, types, { bypassCache: true }),
