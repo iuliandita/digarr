@@ -1,6 +1,8 @@
 import { createHash } from 'node:crypto'
+import type { MBReleaseGroup } from '@/core/clients/musicbrainz'
+import { normalizeAlbumTitle } from '@/core/library/normalize'
 
-export type SlskdRunnerReleaseGroup = {
+export type SlskdRunnerReleaseGroup = Pick<MBReleaseGroup, 'type' | 'secondaryTypes'> & {
   releaseGroupMbid: string
   releaseTitle: string
 }
@@ -60,7 +62,26 @@ export function buildSlskdWorkKey(
 
 export function createSlskdRunner(deps: SlskdRunnerDeps) {
   async function queueArtist(input: SlskdRunnerQueueInput): Promise<{ success: boolean }> {
-    const releaseGroups = await deps.resolveReleaseGroups(input.artist.mbid)
+    const candidates = await deps.resolveReleaseGroups(input.artist.mbid)
+    const isAlbum = (release: SlskdRunnerReleaseGroup) => release.type.toLowerCase() === 'album'
+    const studio = candidates.filter(
+      (release) =>
+        (isAlbum(release) || release.type.toLowerCase() === 'ep') &&
+        release.secondaryTypes?.length === 0 &&
+        normalizeAlbumTitle(release.releaseTitle),
+    )
+    // distinct albums can share a title (self-titled records), so only EPs collapse
+    const albumTitles = new Set(
+      studio.filter(isAlbum).map((release) => normalizeAlbumTitle(release.releaseTitle)),
+    )
+    const epTitles = new Set<string>()
+    const releaseGroups = studio.filter((release) => {
+      if (isAlbum(release)) return true
+      const title = normalizeAlbumTitle(release.releaseTitle)
+      if (albumTitles.has(title) || epTitles.has(title)) return false
+      epTitles.add(title)
+      return true
+    })
 
     if (releaseGroups.length === 0) {
       return { success: false }
