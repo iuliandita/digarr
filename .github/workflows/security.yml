@@ -29,7 +29,8 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Dependency audit
-        run: bun audit --audit-level=high
+        # picomatch has no patched release yet (#1259); drop the ignore once it does
+        run: bun audit --audit-level=high --ignore=GHSA-fc5q-39xc-vjpf
 
   trivy-fs:
     name: Trivy filesystem scan
