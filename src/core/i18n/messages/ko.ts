@@ -51,7 +51,8 @@ export const ko = {
     '연결된 Lidarr 대상을 사용할 수 없어 다운로드 경로를 확인하지 않았습니다. 활성화되어 있고 연결되어 있는지 확인한 후 다시 테스트하세요.',
   'settings.slskdPathTimeout':
     'Lidarr가 {0}초 이내에 다운로드 폴더 목록 요청에 응답하지 않았어요. Lidarr의 부하와 공유 폴더의 속도를 확인해 주세요.',
-  'settings.slskdPathHttpError': '다운로드 폴더 목록을 가져오는 중 Lidarr가 HTTP {0}을 반환했어요.',
+  'settings.slskdPathHttpError':
+    '다운로드 폴더 목록을 가져오는 중 Lidarr가 HTTP {0} 응답을 반환했어요.',
   'settings.slskdPathUnreachable': 'Lidarr를 통해 다운로드 폴더를 확인할 수 없었어요: {0}',
   'settings.slskdPathIncomplete':
     '다운로드 경로가 미완료 폴더로 보입니다. 완료된 다운로드 폴더를 사용해 주세요.',

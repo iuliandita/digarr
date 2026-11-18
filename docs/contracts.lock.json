@@ -367,7 +367,7 @@
         "src/core/i18n/messages/index.ts": "5695f25bdf4e5ffeb5a37d37667a36a0b5517a9f721322856efd950738e6615f",
         "src/core/i18n/messages/it.ts": "09cc8d4b11b87018787ebc13c475020f91f3b0fdf286b3ef6f3aa8763bcf52b3",
         "src/core/i18n/messages/ja.ts": "9b87ee7030a6e5141db0a02a16e613a6bb74b1b7862094f9fa6210b146d048d1",
-        "src/core/i18n/messages/ko.ts": "3a3844d6092eace7ece4d2995ebcd6ec2531114279a20277ecbc3b1799aa268e",
+        "src/core/i18n/messages/ko.ts": "ab3a4b1b75a6e954b9e60e955d1c1c78bd3a6afc96e9789a8d199fbfe0b50e04",
         "src/core/i18n/messages/nl.ts": "eb13bc487dcfaa4a09bda361f933da709366a0129b3ac9e5b002e2dd7389b62d",
         "src/core/i18n/messages/pl.ts": "d9b8c1c7bde27ce64bfb44aa77edc509d313401a7f866954afd4ba65752fff85",
         "src/core/i18n/messages/pt-BR.ts": "71eba36a162ea033e5fcfc81d24d1d284a0dc6d4466b7f72aa75876784c75fbb",
@@ -540,14 +540,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "401530836f95aed3a5bf78f0fca371ffff37de8e85f21ce201885b82fe5e0ed7",
+      "digest": "5c95ef74c60a7fbcc3ba49157d349dd3b3bd416fcc0d88c6355283f9c62567a3",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["docs/OPERATIONS.md"],
-        "note": "Document localized slskd path test messages and the redacted upstream error wording; target setup and layout stay the same.",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Reword the Korean HTTP error string to avoid a particle that is wrong for vowel-final status numbers; behavior is unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "401530836f95aed3a5bf78f0fca371ffff37de8e85f21ce201885b82fe5e0ed7"
+        "digest": "5c95ef74c60a7fbcc3ba49157d349dd3b3bd416fcc0d88c6355283f9c62567a3"
       }
     },
     "features": {
