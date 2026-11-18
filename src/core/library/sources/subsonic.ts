@@ -1,11 +1,12 @@
 import type { createSubsonicClient } from '@/core/clients/subsonic'
+import { errMsg } from '@/core/validation'
 import type { LibraryAlbum, LibraryArtist, LibrarySource } from './types'
 
 type SubsonicClient = ReturnType<typeof createSubsonicClient>
 
 /**
  * Wraps the existing Subsonic client as a LibrarySource. Subsonic ID3
- * artists/albums do not carry MBIDs, so mbidQuality is 'low' - the
+ * artists may carry OpenSubsonic MBIDs, but mbidQuality stays 'low' - the
  * reconciler will name-match against MusicBrainz and anchor against
  * Lidarr/Jellyfin rows when possible.
  *
@@ -18,14 +19,28 @@ export function createSubsonicLibrarySource(client: SubsonicClient, userId: numb
     name: 'Subsonic',
     capabilities: ['listArtists', 'listAlbums'],
     userId,
-    mbidQuality: 'low', // Subsonic ID3 artists carry no MBIDs; reconciler name-matches
+    mbidQuality: 'low',
 
     async listArtists(): Promise<LibraryArtist[]> {
       const artists = await client.getAllArtists()
+      let albums: Awaited<ReturnType<SubsonicClient['getAllAlbums']>> = []
+      try {
+        albums = await client.getAllAlbums()
+      } catch (err) {
+        console.warn(`[library-subsonic] Album hints unavailable: ${errMsg(err)}`)
+      }
+      const titlesByArtist = new Map<string, Set<string>>()
+      for (const album of albums) {
+        if (!album.title.trim()) continue
+        const titles = titlesByArtist.get(album.artistId) ?? new Set<string>()
+        titles.add(album.title)
+        titlesByArtist.set(album.artistId, titles)
+      }
       return artists.map((a) => ({
         sourceArtistId: a.id,
         name: a.name,
-        mbid: undefined,
+        mbid: a.mbid,
+        knownAlbumTitles: [...(titlesByArtist.get(a.id) ?? [])],
       }))
     },
 

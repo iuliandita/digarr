@@ -2,13 +2,13 @@ import type { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { isSpecialPurposeArtist } from '@/core/clients/musicbrainz-special-purpose'
 import { errMsg, isValidMbid } from '@/core/validation'
 import type { LibrarySyncCounts } from '@/db/schema'
-import { normalizeArtistName } from './normalize'
+import { normalizeAlbumTitle, normalizeArtistName } from './normalize'
 import type { LibraryArtist } from './sources/types'
 import type { UnreconciledReason } from './types'
 
 type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
-  'searchArtist' | 'getReleaseGroups'
+  'searchArtist' | 'getReleaseGroups' | 'searchReleaseGroups'
 >
 
 function bumpMbFailed(counts: LibrarySyncCounts): void {
@@ -121,6 +121,17 @@ function unreconciledRow(
   }
 }
 
+const GENERIC_ALBUM_TITLES = new Set([
+  'greatest hits',
+  'best of',
+  'live',
+  'demo',
+  'demos',
+  'the singles',
+  'hits',
+  'unplugged',
+])
+
 type MBSearchArtist = Awaited<ReturnType<MBClient['searchArtist']>>['artists'][number]
 
 function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: string): boolean {
@@ -138,10 +149,92 @@ function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: strin
   )
 }
 
+async function albumFallback(
+  artist: LibraryArtist,
+  nameNormalized: string,
+  sourceId: string,
+  ctx: ReconcilerContext,
+  reason: 'no_candidate' | 'ambiguous',
+  candidateMbids?: Set<string>,
+): Promise<ReconciledArtist> {
+  if (sourceId === 'subsonic' && nameNormalized) {
+    const titles = new Map<string, string>()
+    for (const title of artist.knownAlbumTitles ?? []) {
+      const normalized = normalizeAlbumTitle(title)
+      if (normalized && !titles.has(normalized)) titles.set(normalized, title)
+    }
+    const artistNames = [...new Set([artist.name, ...artist.name.split(/\s*&\s*|,\s*/)])].filter(
+      (name) => normalizeArtistName(name) !== '',
+    )
+    const names = new Set(artistNames.map(normalizeArtistName))
+    let agreedMbid: string | undefined
+    let agreeingAlbums = 0
+    let requiresTwoAlbums = false
+    for (const [normalizedTitle, title] of [...titles].slice(0, 2)) {
+      ctx.counts.mbApiCalls += 1
+      try {
+        const result = await ctx.mbClient.searchReleaseGroups(title, artistNames)
+        const groups = result['release-groups']
+        // A truncated search cannot establish that the credit is unique.
+        if (
+          (result.count !== undefined && result.count > groups.length) ||
+          (result.count === undefined && groups.length >= 100)
+        ) {
+          agreedMbid = undefined
+          break
+        }
+        const mbids = new Set<string>()
+        const wholeNameMbids = new Set<string>()
+        for (const group of groups) {
+          if (normalizeAlbumTitle(group.title) !== normalizedTitle) continue
+          for (const credit of group['artist-credit']) {
+            const creditNames = [credit.artist.name, credit.name]
+              .filter((name): name is string => typeof name === 'string')
+              .map(normalizeArtistName)
+            if (
+              isValidMbid(credit.artist.id) &&
+              !isSpecialPurposeArtist(credit.artist.id) &&
+              creditNames.some((name) => names.has(name))
+            ) {
+              mbids.add(credit.artist.id)
+              if (creditNames.includes(nameNormalized)) wholeNameMbids.add(credit.artist.id)
+            }
+          }
+        }
+        const [mbid] = mbids
+        if (mbids.size !== 1 || !mbid || (agreedMbid && agreedMbid !== mbid)) {
+          agreedMbid = undefined
+          break
+        }
+        agreedMbid = mbid
+        agreeingAlbums += 1
+        requiresTwoAlbums ||= !wholeNameMbids.has(mbid)
+      } catch (err) {
+        bumpMbFailed(ctx.counts)
+        console.warn(
+          `[library-reconcile] MB release-group search failed for "${artist.name}": ${errMsg(err)}`,
+        )
+        return lookupFailedRow(artist, nameNormalized, ctx)
+      }
+    }
+    if (
+      agreedMbid &&
+      (!requiresTwoAlbums || agreeingAlbums >= 2) &&
+      (reason !== 'ambiguous' || candidateMbids?.has(agreedMbid))
+    ) {
+      ctx.counts.matchedDisambiguated += 1
+      return matchedRow(artist, nameNormalized, agreedMbid, 'name_disambiguated', 0.5)
+    }
+  }
+  if (reason === 'no_candidate') ctx.counts.unreconciledNoCandidate += 1
+  else ctx.counts.unreconciledAmbiguous += 1
+  return unreconciledRow(artist, nameNormalized, reason)
+}
+
 /**
  * Reconcile a single source artist to a MusicBrainz MBID.
  *
- * 6 ordered steps. Each has a clear terminal state.
+ * Ordered steps. Each has a clear terminal state.
  *  0. Override (user assertion beats everything)
  *  1. Source-provided MBID (trust the source)
  *  2. Cache short-circuit + MB API lookup with strict normalize-equal filter
@@ -149,6 +242,7 @@ function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: strin
  *  3. Anchor against already-known MBIDs (Task 9)
  *  4. Exact normalized name match (Task 9)
  *  5. Album-overlap disambiguation (Task 10)
+ *  6. Subsonic album/artist release-group search
  */
 export async function reconcileArtist(
   artist: LibraryArtist,
@@ -207,8 +301,7 @@ export async function reconcileArtist(
       : searchArtists.filter((c) => matchesAliasOrSortName(c, nameNormalized))
 
   if (candidates.length === 0) {
-    ctx.counts.unreconciledNoCandidate += 1
-    return unreconciledRow(artist, nameNormalized, 'no_candidate')
+    return albumFallback(artist, nameNormalized, sourceId, ctx, 'no_candidate')
   }
 
   // Step 3: anchor against already-known MBIDs from earlier sources
@@ -226,12 +319,20 @@ export async function reconcileArtist(
 
   // Step 5: album-overlap disambiguation
   const sourceAlbumTitles = artist.knownAlbumTitles ?? []
-  if (sourceAlbumTitles.length > 0 && candidates.length >= 2) {
+  // more than three candidates skips overlap scoring: an unfetched candidate could tie, so the
+  // candidate-restricted release-group fallback decides instead
+  if (sourceAlbumTitles.length > 0 && candidates.length >= 2 && candidates.length <= 3) {
     const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
+    const specificSourceTitles = new Set(
+      sourceAlbumTitles
+        .filter((title) => normalizeArtistName(title) !== nameNormalized)
+        .map(normalizeAlbumTitle)
+        .filter((title) => title !== '' && !GENERIC_ALBUM_TITLES.has(title)),
+    )
     const scored = await Promise.all(
       candidates.map(async (c) => {
         if (isSpecialPurposeArtist(c.id)) {
-          return { candidate: c, overlap: 0, lookupFailed: false }
+          return { candidate: c, overlap: 0, specificOverlap: 0, lookupFailed: false }
         }
         try {
           const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
@@ -240,13 +341,21 @@ export async function reconcileArtist(
           for (const t of normalizedSourceTitles) {
             if (mbTitles.has(t)) overlap += 1
           }
-          return { candidate: c, overlap, lookupFailed: false }
+          const specificMbTitles = new Set(
+            releaseGroups
+              .filter((rg) => ['album', 'ep'].includes(rg.type?.toLowerCase()))
+              .map((rg) => normalizeAlbumTitle(rg.title)),
+          )
+          const specificOverlap = [...specificSourceTitles].filter((title) =>
+            specificMbTitles.has(title),
+          ).length
+          return { candidate: c, overlap, specificOverlap, lookupFailed: false }
         } catch (err) {
           bumpMbFailed(ctx.counts)
           console.warn(
             `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}": ${errMsg(err)}`,
           )
-          return { candidate: c, overlap: 0, lookupFailed: true }
+          return { candidate: c, overlap: 0, specificOverlap: 0, lookupFailed: true }
         }
       }),
     )
@@ -264,9 +373,29 @@ export async function reconcileArtist(
       ctx.counts.matchedDisambiguated += 1
       return matchedRow(artist, nameNormalized, winner.candidate.id, 'name_disambiguated', 0.5)
     }
+    if (winner && winner.overlap < 2) {
+      scored.sort((a, b) => b.specificOverlap - a.specificOverlap)
+      const singleWinner = scored[0]
+      if (singleWinner?.specificOverlap === 1 && scored[1]?.specificOverlap === 0) {
+        ctx.counts.matchedDisambiguated += 1
+        return matchedRow(
+          artist,
+          nameNormalized,
+          singleWinner.candidate.id,
+          'name_disambiguated',
+          0.5,
+        )
+      }
+    }
   }
 
   // Fall through to ambiguous when disambiguation can't decide
-  ctx.counts.unreconciledAmbiguous += 1
-  return unreconciledRow(artist, nameNormalized, 'ambiguous')
+  return albumFallback(
+    artist,
+    nameNormalized,
+    sourceId,
+    ctx,
+    'ambiguous',
+    new Set(candidates.map((candidate) => candidate.id)),
+  )
 }

@@ -1,4 +1,5 @@
 import PQueue from 'p-queue'
+import { z } from 'zod'
 import { envConfig } from '@/config/env'
 import { sleep } from '@/core/sleep'
 import { errMsg } from '@/core/validation'
@@ -142,6 +143,23 @@ const MAX_RETRIES = 3
 const BASE_BACKOFF_MS = 1000
 const MAX_RETRY_AFTER_MS = 30_000
 
+const releaseGroupSearchSchema = z.object({
+  count: z.number().int().nonnegative().optional(),
+  'release-groups': z.array(
+    z.object({
+      title: z.string(),
+      'artist-credit': z
+        .array(
+          z.object({
+            name: z.string().optional(),
+            artist: z.object({ id: z.string(), name: z.string() }),
+          }),
+        )
+        .default([]),
+    }),
+  ),
+})
+
 function parseRetryAfterMs(header: string | null): number | null {
   if (!header) return null
   const seconds = Number(header)
@@ -210,7 +228,15 @@ export function createMusicBrainzClient(
   async function cachedRequest<T>(
     kind: MusicBrainzCacheKind,
     path: string,
-    { bypassCache = false, signal }: { bypassCache?: boolean; signal?: AbortSignal } = {},
+    {
+      bypassCache = false,
+      signal,
+      shouldCache = () => true,
+    }: {
+      bypassCache?: boolean
+      signal?: AbortSignal
+      shouldCache?: (body: T) => boolean
+    } = {},
   ): Promise<T> {
     signal?.throwIfAborted()
     const hit = bypassCache ? null : await readCache(path)
@@ -219,7 +245,7 @@ export function createMusicBrainzClient(
     if (hit) return hit.body as T
     try {
       const body = await request<T>(path, signal)
-      await writeCache(path, kind, { status: 200, body })
+      if (shouldCache(body)) await writeCache(path, kind, { status: 200, body })
       return body
     } catch (err) {
       if (err instanceof MusicBrainzHttpError && err.status === 404) {
@@ -324,6 +350,30 @@ export function createMusicBrainzClient(
   ): Promise<MBSearchResult> {
     const params = new URLSearchParams({ query, fmt: 'json' })
     return cachedRequest<MBSearchResult>('artist-search', `/artist/?${params}`, options)
+  }
+
+  async function searchReleaseGroups(
+    albumTitle: string,
+    artistNames: readonly string[],
+    options: { bypassCache?: boolean } = {},
+  ) {
+    const quote = (value: string) => `"${value.replace(/([+\-!(){}[\]^"~*?:\\/&|])/g, '\\$1')}"`
+    const artists = artistNames.map((name) => `artist:${quote(name)}`).join(' OR ')
+    const params = new URLSearchParams({
+      query: `releasegroup:${quote(albumTitle)} AND (${artists})`,
+      fmt: 'json',
+      limit: '100',
+    })
+    return releaseGroupSearchSchema.parse(
+      await cachedRequest<unknown>('artist-search', `/release-group/?${params}`, {
+        bypassCache: options.bypassCache,
+        shouldCache: (body) => {
+          const result = releaseGroupSearchSchema.parse(body)
+          const length = result['release-groups'].length
+          return result.count !== undefined ? result.count <= length : length < 100
+        },
+      }),
+    )
   }
 
   async function getReleaseGroups(
@@ -572,6 +622,7 @@ export function createMusicBrainzClient(
     lookupArtist,
     lookupArtistRelations,
     searchArtist,
+    searchReleaseGroups,
     getReleaseGroups,
     getRecordings,
     lookupRecording,

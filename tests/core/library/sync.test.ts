@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createReleaseGroupCache } from '@/core/clients/release-group-cache'
+import { createSubsonicLibrarySource } from '@/core/library/sources/subsonic'
 import type { LibraryAlbum, LibrarySource } from '@/core/library/sources/types'
 import type { LibrarySyncStore } from '@/core/library/store'
 import { createSyncOrchestrator } from '@/core/library/sync'
@@ -72,6 +73,7 @@ function makeJobRecorder() {
 
 const mbClient = {
   searchArtist: vi.fn(async () => ({ artists: [] })),
+  searchReleaseGroups: vi.fn().mockResolvedValue({ 'release-groups': [] }),
   getReleaseGroups: vi.fn(async () => []),
 }
 
@@ -604,4 +606,100 @@ it('uses the catalog cache for scheduled sync and bypasses it for force sync', a
   } finally {
     upstream.mockRestore()
   }
+})
+
+describe('Subsonic album hint snapshot safety', () => {
+  it('keeps the snapshot when real album fetching fails despite an optional hint failure', async () => {
+    const subsonic = createSubsonicLibrarySource(
+      {
+        getAllArtists: vi
+          .fn()
+          .mockResolvedValue([
+            { id: '1', name: 'Bush', mbid: 'a74b1b7f-71a5-4011-9441-d0b5e4122711' },
+          ]),
+        getAllAlbums: vi.fn().mockRejectedValue(new Error('hint page failed')),
+        getAlbumsForArtist: vi.fn().mockRejectedValue(new Error('album page failed')),
+      } as never,
+      1,
+    )
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [subsonic],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+    expect((await sync.syncForUser(1, { force: true })).results[0]).toMatchObject({
+      status: 'failed',
+      error: 'album page failed',
+    })
+    expect(store.replaceLibrarySnapshot).not.toHaveBeenCalled()
+    expect(store.replaceLibraryArtists).not.toHaveBeenCalled()
+  })
+
+  it('syncs the complete artist and album snapshot when optional hints fail', async () => {
+    const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const subsonic = createSubsonicLibrarySource(
+      {
+        getAllArtists: vi.fn().mockResolvedValue([{ id: '1', name: 'Bush', mbid }]),
+        getAllAlbums: vi.fn().mockRejectedValue(new Error('hint page failed')),
+        getAlbumsForArtist: vi
+          .fn()
+          .mockResolvedValue([{ id: 'album-1', artistId: '1', title: 'One' }]),
+      } as never,
+      1,
+    )
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient,
+      buildPerUserSources: async () => [subsonic],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+    expect((await sync.syncForUser(1, { force: true })).results[0]?.status).toBe('completed')
+    expect(store.replaceLibrarySnapshot).toHaveBeenCalledWith(
+      1,
+      'subsonic',
+      [expect.objectContaining({ mbid, matchMethod: 'mbid' })],
+      [expect.objectContaining({ sourceAlbumId: 'album-1', artistMbid: mbid, title: 'One' })],
+    )
+    expect(store.replaceLibraryArtists).not.toHaveBeenCalled()
+    expect(recorder.fail).not.toHaveBeenCalled()
+  })
+
+  it('passes tagged Subsonic MBIDs directly through reconciliation', async () => {
+    const mbid = 'a74b1b7f-71a5-4011-9441-d0b5e4122711'
+    const subsonic = createSubsonicLibrarySource(
+      {
+        getAllArtists: vi.fn().mockResolvedValue([{ id: '1', name: 'Bush', mbid }]),
+        getAllAlbums: vi.fn().mockResolvedValue([]),
+        getAlbumsForArtist: vi.fn().mockResolvedValue([]),
+      } as never,
+      1,
+    )
+    const client = {
+      searchArtist: vi.fn(),
+      searchReleaseGroups: vi.fn(),
+      getReleaseGroups: vi.fn().mockResolvedValue([]),
+    }
+    const sync = createSyncOrchestrator({
+      store,
+      recorder,
+      mbClient: client,
+      buildPerUserSources: async () => [subsonic],
+      buildGlobalSources: async () => [],
+      staleHours: 6,
+    })
+    expect((await sync.syncForUser(1, { force: true })).results[0]?.status).toBe('completed')
+    expect(store.replaceLibrarySnapshot).toHaveBeenCalledWith(
+      1,
+      'subsonic',
+      [expect.objectContaining({ mbid, matchMethod: 'mbid' })],
+      [],
+    )
+    expect(client.searchArtist).not.toHaveBeenCalled()
+    expect(client.searchReleaseGroups).not.toHaveBeenCalled()
+  })
 })

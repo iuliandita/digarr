@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "80649339e028e161e108f12f6629cc95c3934cfda3d53cfa5aa2e775e7dcf7c4",
+        "src/core/clients/musicbrainz.ts": "5d1c8b932e41dffaa5845267adc3769315c3a535ba6f207d5658ba40cfd20ec8",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -584,7 +584,7 @@
         "src/core/clients/slskd.ts": "aa09ef7caf876b354f77c5f99dc8ea689f7ce4dc6e7e4f5427a82f4068bd67b7",
         "src/core/clients/spotify.ts": "a1e8d6983aeea2bf0b36fac82ca75b7720d1b55790802ecb9ea9b8b2da2eedb5",
         "src/core/clients/subsonic-auth.ts": "b1454552f41910541fff4c2a5514ac23a7c6b6a090a8e734e13ca982144f311f",
-        "src/core/clients/subsonic.ts": "4c2207bc0fe340e4ddca995b5e2353e6923a69de71b5c77c393940a4f4bd97c7",
+        "src/core/clients/subsonic.ts": "8fdc6167007367f6f5699be51a0a1d4ef81673283417727418ffd56dda3001cf",
         "src/core/clients/tag-radio-resolver.ts": "09bcaded570d0e05e1e60d34fbff8402af9a3f3823dfb73932c8b90f2fac80af",
         "src/core/clients/tidal-user.ts": "c05e0fddbd09c65f5ec728ee727be9f95632ff7ab310cc5c4a6b1068a32b2f31",
         "src/core/clients/tidal.ts": "9c8d8fd48eb212eb6914302c3882dd1e7751b26e9192e1a14d9e2bea56e758f4",
@@ -627,7 +627,7 @@
         "src/core/library/health-scheduler.ts": "af286aae6e92bc4e712b15d1b2c2081fb7d7d4e2bb6680eaf766354d793cc410",
         "src/core/library/health.ts": "e67c96dc032158f1ffaeb6b009124d0c9ca9f9008284770ef8744eb233f59296",
         "src/core/library/normalize.ts": "32ad9c8cc8c59aa5ccf3930a20820fcaf4723173c4bbc1ea5fdf9501b3fd8953",
-        "src/core/library/reconciler.ts": "6b4eca941ec5b5200ea6e3c7ef7da0752bde982efc95557459f5ebc0f54a252d",
+        "src/core/library/reconciler.ts": "81f0a1900fa6e3404ddeb787e357c683587e3897047d0fe81c4d56848b325598",
         "src/core/library/scheduler.ts": "e74bb48ccecbdcb97e117edcb479d967300f89f2a120a11156d681b0807e5dea",
         "src/core/library/skyhook-warmer.ts": "839278ce83d2f1a1afc50dad4a2bb7905dd01b34b29f4f3f91370c128a8f480a",
         "src/core/library/sources/emby.ts": "0a032788829279d8c145118fee550c9d11ec706cc5804c9079c287912a4de73b",
@@ -635,10 +635,10 @@
         "src/core/library/sources/jellyfin.ts": "3b4cc00e211f7eee7db5e7ac85783377e0b8f00da61b988cc1288064d8835b0e",
         "src/core/library/sources/lidarr.ts": "f7651bd31f150e1b9ad8ad66cd0b049c8aa874a3419ec14a1338a12e091dbd5c",
         "src/core/library/sources/plex.ts": "fbd3444be5e492c2242328743cd254e4935e2e09a9fc2d870e8cd2b2136828c5",
-        "src/core/library/sources/subsonic.ts": "33cb85e764e3fff1a5235e92a6f1acd4afaadaabab4af1848254a3ff7c945896",
+        "src/core/library/sources/subsonic.ts": "1e3ef0d094185f7aa9048f4196753897ad8663eb2dd0906ab7b20c3aa183da10",
         "src/core/library/sources/types.ts": "f1b86f927fc378a7d6b3b1dabc2e230080defbc2ed1550f582b19d3748b3eccb",
         "src/core/library/store.ts": "cdaa1921a8e72b0c57420a03ca019b87b5b1adcc3ffcae05a1cbf3833e41abfc",
-        "src/core/library/sync.ts": "3f3c9040f9fcb92a457ef4cdfe8ac48ac13da7bad13bcefd3966649f36db967a",
+        "src/core/library/sync.ts": "3028820e309d88601dcd3893ce85d7c0f520bd78aa880cbdd6db1c6bd8f78ac2",
         "src/core/library/types.ts": "ebee38068d7f89f38469fc852051a98d4b9d2fbc0275160f53ea860c551290b0",
         "src/core/lifecycle.ts": "ebff2573fe7b8faf00e868d1c58c5fa26e10c4f32b0c179e2d8638bcab61067b",
         "src/core/net/guarded-fetch.ts": "68e085a701a6e3dda36e65e8d0a835e3f7fd60555346c2a1931de968d4bee38b",
@@ -773,14 +773,14 @@
         "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "16ddceef199f437cb83a068c2532a86a1e8c9afb00428c08202af0ad5100feb6",
+      "digest": "bdbfbec7a8a7a65c0f7c4c15409c3b44fa245d9ff801b1fed2e5e3651a1f0d7b",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "slskd artist approvals search only studio albums and EPs, keep every same-titled album, and skip EPs that share a title with an album or an earlier EP.",
+        "docs": ["CHANGELOG.md", "README.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
+        "note": "Subsonic sync passes tagged artist MBIDs, uses album-title hints for two or three candidates, and falls back to bounded candidate-restricted release-group searches; hint failures degrade to no hints.",
         "breaking": "none",
         "migration": "",
-        "digest": "16ddceef199f437cb83a068c2532a86a1e8c9afb00428c08202af0ad5100feb6"
+        "digest": "bdbfbec7a8a7a65c0f7c4c15409c3b44fa245d9ff801b1fed2e5e3651a1f0d7b"
       }
     },
     "deployment": {

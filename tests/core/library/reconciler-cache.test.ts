@@ -58,6 +58,7 @@ describe.skipIf(!SHOULD_RUN)('reconciler cache short-circuit performance', () =>
       knownMbids: await store.getKnownMbidsForUser(userId),
       mbClient: {
         searchArtist: mbSearch,
+        searchReleaseGroups: vi.fn().mockResolvedValue({ 'release-groups': [] }),
         getReleaseGroups: vi.fn(async () => []),
       },
       cacheLookup: (nameNormalized) => store.findReconciledByNormalizedName(userId, nameNormalized),

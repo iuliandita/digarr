@@ -7,6 +7,13 @@ import {
   type MBSearchResult,
   parseYear,
 } from '@/core/clients/musicbrainz'
+import {
+  MUSICBRAINZ_CACHE_TTL_MS,
+  type MusicBrainzCacheEntry,
+  type MusicBrainzCacheHit,
+  type MusicBrainzCacheKind,
+  type MusicBrainzCacheStore,
+} from '@/core/clients/musicbrainz-cache'
 import { createReleaseGroupCache } from '@/core/clients/release-group-cache'
 import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fill'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
@@ -701,5 +708,89 @@ describe('lookupRecording not-found detection', () => {
     const call = client.lookupRecording(MBID_WITH_404)
     if (result === null) await expect(call).resolves.toBeNull()
     else await expect(call).rejects.toThrow(/HTTP 400/)
+  })
+})
+
+describe('release-group artist fallback search', () => {
+  it.each([
+    { count: 1, length: 1, cached: true },
+    { count: 0, length: 0, cached: true },
+    { count: undefined, length: 1, cached: true },
+    { count: 101, length: 1, cached: false },
+    { count: undefined, length: 100, cached: false },
+  ])(
+    'caches only complete fallback searches: $count / $length',
+    async ({ count, length, cached }) => {
+      const entries = new Map<string, MusicBrainzCacheHit>()
+      const cacheStore: MusicBrainzCacheStore = {
+        get: vi.fn(async (key) => entries.get(key) ?? null),
+        set: vi.fn(
+          async (key: string, kind: MusicBrainzCacheKind, entry: MusicBrainzCacheEntry) => {
+            entries.set(key, { ...entry, expiresAt: Date.now() + MUSICBRAINZ_CACHE_TTL_MS[kind] })
+          },
+        ),
+      }
+      const body = {
+        count,
+        'release-groups': Array.from({ length }, () => ({
+          title: 'One',
+          'artist-credit': [{ artist: { id: MOCK_ARTIST_MBID, name: 'Bush' } }],
+        })),
+      }
+      mockFetch.mockImplementation(async () => makeJsonResponse(body))
+      const a = createClient({ cacheStore })
+      const b = createClient({ cacheStore })
+      expect(await a.searchReleaseGroups('One', ['Bush'])).toEqual(
+        await b.searchReleaseGroups('One', ['Bush']),
+      )
+      expect(mockFetch).toHaveBeenCalledTimes(cached ? 1 : 2)
+      expect(cacheStore.set).toHaveBeenCalledTimes(cached ? 1 : 0)
+      if (cached) {
+        expect(cacheStore.set).toHaveBeenCalledWith(
+          expect.stringContaining('/release-group/?'),
+          'artist-search',
+          { status: 200, body: expect.any(Object) },
+        )
+        expect(MUSICBRAINZ_CACHE_TTL_MS['artist-search']).toBe(3 * 24 * 60 * 60 * 1000)
+      }
+    },
+  )
+
+  it('re-fetches a cached fallback search when bypassCache is set', async () => {
+    const entries = new Map<string, MusicBrainzCacheHit>()
+    const cacheStore: MusicBrainzCacheStore = {
+      get: vi.fn(async (key) => entries.get(key) ?? null),
+      set: vi.fn(async (key: string, kind: MusicBrainzCacheKind, entry: MusicBrainzCacheEntry) => {
+        entries.set(key, { ...entry, expiresAt: Date.now() + MUSICBRAINZ_CACHE_TTL_MS[kind] })
+      }),
+    }
+    mockFetch.mockImplementation(async () => makeJsonResponse({ count: 0, 'release-groups': [] }))
+    await createClient({ cacheStore }).searchReleaseGroups('One', ['Bush'])
+    await createClient({ cacheStore }).searchReleaseGroups('One', ['Bush'], { bypassCache: true })
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+  })
+
+  it('escapes query literals and uses the shared background queue', async () => {
+    mockFetch.mockResolvedValueOnce(
+      makeJsonResponse({
+        count: 1,
+        'release-groups': [
+          { title: 'One', 'artist-credit': [{ artist: { id: MOCK_ARTIST_MBID, name: 'Bush' } }] },
+        ],
+      }),
+    )
+    const client = createClient({ priority: 'background' })
+    const result = await client.searchReleaseGroups('One" OR *', ['A & Bush', 'A', 'Bush'])
+    const url = new URL(mockFetch.mock.calls[0]?.[0])
+    expect(url.pathname).toBe('/ws/2/release-group/')
+    expect(url.searchParams.get('query')).toBe(
+      'releasegroup:"One\\" OR \\*" AND (artist:"A \\& Bush" OR artist:"A" OR artist:"Bush")',
+    )
+    expect(url.searchParams.get('limit')).toBe('100')
+    expect(result['release-groups'][0]?.['artist-credit'][0]?.artist.id).toBe(MOCK_ARTIST_MBID)
+    expect(sharedAdd).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.objectContaining({ priority: 0 }),
+    )
   })
 })

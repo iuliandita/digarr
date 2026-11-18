@@ -35,6 +35,7 @@ const mbClient = {
     }
     return { artists: [] }
   }),
+  searchReleaseGroups: vi.fn().mockResolvedValue({ 'release-groups': [] }),
   getReleaseGroups: vi.fn(async () => []),
 }
 

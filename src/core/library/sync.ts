@@ -17,7 +17,7 @@ export const SOURCE_NOT_CONFIGURED_ERROR = 'not configured'
 
 type MBClient = Pick<
   ReturnType<typeof createMusicBrainzClient>,
-  'searchArtist' | 'getReleaseGroups'
+  'searchArtist' | 'getReleaseGroups' | 'searchReleaseGroups'
 >
 
 export type SourceSyncResult =
@@ -156,6 +156,8 @@ export function createSyncOrchestrator(deps: SyncOrchestratorDeps) {
       const counts = emptyLibrarySyncCounts()
       const mbClient: MBClient = options?.force
         ? {
+            searchReleaseGroups: (title, names) =>
+              deps.mbClient.searchReleaseGroups(title, names, { bypassCache: true }),
             searchArtist: (query) => deps.mbClient.searchArtist(query, { bypassCache: true }),
             getReleaseGroups: (mbid, types) =>
               deps.mbClient.getReleaseGroups(mbid, types, { bypassCache: true }),
