@@ -791,7 +791,7 @@
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
         "deploy/docker/docker-compose.pglite.yml": "83e76e3512f45394aa3d292836be823320a45b36a2ed2ee89636e5b0c8534813",
         "deploy/docker/docker-compose.pgport.yml": "e6d731113776f1bfdffa5b5c42e9b2f55447798948c6d19d89fbeb2f17dc3930",
-        "deploy/docker/docker-compose.yml": "5e9edb2463d9470e02ce87ef3785ca735ca3c2164f40aedd0062027a3d1b196f",
+        "deploy/docker/docker-compose.yml": "8f87aea789da47db2a5abc6734bffc205cc71afa9380fae7df495fb8c1b1c25e",
         "deploy/docker/healthcheck.sh": "1db32d2d089d637d2f33c9e34154da9882abb695abc23be4fee4b98a6e28fbf1",
         "deploy/helm/digarr/Chart.yaml": "ddc59d8186e486a85242433188a06e201d264e54e0742c624fd269f7867bf9e4",
         "deploy/helm/digarr/templates/NOTES.txt": "3c56eebb9f2f6a1da5ecaed21d6bf1cc5ed1dfae0e2048a2c0883ac389e8fb64",
@@ -810,30 +810,30 @@
         "deploy/helm/digarr/templates/service.yaml": "6e443668326d0ad95e9b098a28970de21d54fed4d01f9460a5dbd7ca54c75675",
         "deploy/helm/digarr/templates/serviceaccount.yaml": "2da6cb32f516130c575864b8845378d8c9a3dd267bafeaec7fdfc39223cb8734",
         "deploy/helm/digarr/values.schema.json": "c12ee464acc5e99ace2ce59051265ff1146e5d3b82282dcb3a8568759d0b1ee1",
-        "deploy/helm/digarr/values.yaml": "57403fe07bb93a4c7f2732de99684b5d37e1280f8671d71cfe3b6d5c09c46745",
+        "deploy/helm/digarr/values.yaml": "2c895d22040516a7363d3c6a7c04491b752add85504466fe1e1f543e6239eb70",
         "deploy/k8s/deployment.yaml": "e5c5c0fc36a8c19dbde13a95d067ea365c6ab7992c540fc4e83779ad9b4c402c",
         "deploy/k8s/ingress.yaml": "691ef307cb376ec1b3c1c45f1589389d0d1864fe1df19eeaa9e2d7ba17b4dc05",
         "deploy/k8s/namespace.yaml": "2fd1e21e38de3c11c972b51400af1000fa473949f36124444e1edccea17b98d7",
         "deploy/k8s/networkpolicy.yaml": "0f214331c3e2d941351f974a106f3b1f1983b04683ec1974e0ec77777fc12cc8",
         "deploy/k8s/poddisruptionbudget.yaml": "8aac8eca6bf9c96d743bb0f1e1f5eacbafa6da1ab899a187d581e4da8404019d",
-        "deploy/k8s/rendered.yaml": "80db78cd2a6c9b1b00c1f60ca3feb4f1180c0149c7417fea633fc0c741376a5a",
+        "deploy/k8s/rendered.yaml": "30249b56712e618c8d3edc8d17875a2e91b0bdfc2db9479cc456a0081b1581b5",
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "f36d02f3a178c1931c871235f77017d946b4280c539df5190caac02f3b23190c",
+      "digest": "865273b45dd29c7805a3c7f283f1081c00d0b356c7a4c6f18952175ed15b57b1",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md"],
-        "note": "chart 2.3.0 re-render and compose minor and patch example pins for v2.3.0; image digests follow in the post-release sync",
+        "docs": ["docs/guides/synology.md"],
+        "note": "postgres image digest refresh; synology guide pin updated, deployment behavior unchanged",
         "breaking": "none",
         "migration": "",
-        "digest": "f36d02f3a178c1931c871235f77017d946b4280c539df5190caac02f3b23190c"
+        "digest": "865273b45dd29c7805a3c7f283f1081c00d0b356c7a4c6f18952175ed15b57b1"
       }
     },
     "release": {
       "files": {
         ".github/workflows/backmerge-develop.yml": "dbeadfb762d4809374ee416b401bd9bcbb10dc0837da28d3e870753be5facbc4",
-        ".github/workflows/ci.yml": "59ebbefe5204ee10abfce9fe9e78b345f1c6ae08ce1296c853027d2cfa3d8407",
+        ".github/workflows/ci.yml": "e0688a944598575f6f13a81814294c504242a49daca4b9547eecc6f2695799a0",
         ".github/workflows/compatibility.yml": "12a265e62252b23aedf93a30d2f62cb28e886167ae7cf28b67986aa9670ccd18",
         ".github/workflows/docs-companions.yml": "b80b20db460104105666b4b30766f17e4f540c7a6ee817401017e1be707c7e25",
         ".github/workflows/evals.yml": "73e85d8caf90e0905c5137d8274f2094e72c085dd924b8dcf79df4d7c66fb02a",
@@ -843,19 +843,19 @@
         ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
         ".github/workflows/release-readiness.yml": "1a536b7881b23b189eb62cac05d9ca52ae3325dc37a370880d08fe129969d457",
         ".github/workflows/release.yml": "9ee6102801d86dff508972e829d9fc7b4db7c41382c362ef617973bb89f8db15",
-        ".github/workflows/security.yml": "1fb818fdd3d18e83d89869c386d5f3928ca0384c8c26930a4bd04037440e7c4c",
+        ".github/workflows/security.yml": "c43e7cdf55d252df3dceeb13ed909a0e258fb7ff9fbd7f7d1e1cfa4f3e5d9ccb",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
         "package.json": "8d030d0ed8a0230a01bc7de5e23814c71027b3b1d1b2978c096ca44afb81c758",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "a8b907702772603dfaf0d99c428d5fa6b7393d14ac1cedcd79a3eefdd16ef3d8",
+      "digest": "0eb6e8dcf62ff9d39d81aebda9d8159ad68a56c85c8bda83f0a145a6fafe8732",
       "review": {
-        "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "README.md", "docs/ROADMAP.md"],
-        "note": "v2.3.0 release bump: changelog section with upgrade notes, readme banner and minor pins, roadmap current release",
+        "outcome": "no-impact",
+        "docs": [],
+        "note": "Ignore one dev-tooling advisory with no patched release in the audit step; release artifacts, versions and publishing are unchanged.",
         "breaking": "none",
         "migration": "",
-        "digest": "a8b907702772603dfaf0d99c428d5fa6b7393d14ac1cedcd79a3eefdd16ef3d8"
+        "digest": "0eb6e8dcf62ff9d39d81aebda9d8159ad68a56c85c8bda83f0a145a6fafe8732"
       }
     },
     "maintenance": {
@@ -870,7 +870,7 @@
         "scripts/check-version-drift.ts": "9e292e28b4de1b574353486349f603cb38cf19272e84d218889a1d725e61ae86",
         "scripts/ci/compose-up-retry.sh": "3e14eef80e6506f9cf131a249c15ef3b23fab18e3bace10b49b53630bb3b1f20",
         "scripts/ci/wait-for-compose-health.sh": "a238f49a6c2b3e60c8a5dbeb326431523a1b45bb660a5029082c21e220e55857",
-        "scripts/dev-setup.sh": "deac66da387860d3c6a386ac25a3b9d811794595524c68ade5ac72eb44c39e73",
+        "scripts/dev-setup.sh": "ce4d767b1e9fb72e3682f595f746bc032ad4b715e604e45caf2d62b7c1b834a3",
         "scripts/dev-teardown.sh": "fccd737572ab5cfd4564bf12402148a04cd5b867abcb84bfb7e919b54e991b44",
         "scripts/evals/assert-recommendations.ts": "4f83d638e1cd88601efd3e600cec703b5a47aed68606658e004888d2b9f3cd94",
         "scripts/evals/recommendation-quality.ts": "060eb060317709ef7dedbb24b62c0cb69df06c0bf9d2924da112e172fdaf4cdd",
@@ -886,14 +886,14 @@
         "scripts/recover-oidc-binding.ts": "f71b07c52a0c0d463d81a815e49cec7d19b88fe8bb6c7e5c13ca9d34280aca8f",
         "scripts/sync-deploy-digests.ts": "c6cf0b81715fc6f1c275b39584aeb9f4ed11ff8b9fcddd53be0963c54cd4c57e"
       },
-      "digest": "70cc26c5b264f42a0aa296facf0cb9f1b10f43dfc69683fa838772ac0bb1ad51",
+      "digest": "58bbf3f9e70b8a610ebcd6fe888c60737f464a7fd638f2c82e3871c255c625ba",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CONTRIBUTING.md"],
-        "note": "dev postgres digest refresh, contributing pin updated to match",
+        "note": "development postgres image digest refreshed and contributor guide updated to match",
         "breaking": "none",
         "migration": "",
-        "digest": "70cc26c5b264f42a0aa296facf0cb9f1b10f43dfc69683fa838772ac0bb1ad51"
+        "digest": "58bbf3f9e70b8a610ebcd6fe888c60737f464a7fd638f2c82e3871c255c625ba"
       }
     }
   }
