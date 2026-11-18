@@ -51,6 +51,10 @@ export const tr = {
     'Lidarr indirme yolunu bulamıyor veya listeleyemiyor. Bağlamanı ve okuma izinlerini kontrol et.',
   'settings.slskdLinkedLidarrUnavailable':
     'Bağlı Lidarr hedefi kullanılamıyor, bu yüzden indirme yolu kontrol edilmedi. Etkin ve bağlı olduğunu kontrol et, sonra tekrar test et.',
+  'settings.slskdPathTimeout':
+    'Lidarr indirme klasörünü listeleme isteğine {0} saniye içinde yanıt vermedi. Lidarr üzerindeki yükü ve paylaşımın hızını kontrol et.',
+  'settings.slskdPathHttpError': 'Lidarr indirme klasörünü listelerken HTTP {0} döndürdü.',
+  'settings.slskdPathUnreachable': 'İndirme klasörü Lidarr üzerinden kontrol edilemedi: {0}',
   'settings.slskdPathIncomplete':
     'İndirme yolu tamamlanmamış indirmeler klasörüne benziyor. Tamamlanmış indirmeler klasörünü kullan.',
   'settings.slskdPathOk':

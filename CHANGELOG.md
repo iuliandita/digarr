@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Fixed
+
+- The slskd target test now translates Lidarr timeout, HTTP error, and connection failure details into your selected language, while keeping upstream errors secret-redacted (#1254).
+
 ## v2.3.0 - 2026-11-14
 
 ### Upgrade notes

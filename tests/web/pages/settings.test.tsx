@@ -218,6 +218,7 @@ import {
   listUsers,
   testNotificationChannel,
   testService,
+  testTargetApi,
   updatePreferredLocale,
   updateSettings,
   updateTargetApi,
@@ -1240,6 +1241,46 @@ describe('SettingsPage', () => {
     fireEvent.change(screen.getByLabelText('Catégorie'), { target: { value: 'slskd' } })
 
     expect(screen.getByPlaceholderText('Clé API (optionnelle)')).toBeInTheDocument()
+  })
+
+  it.each([
+    {
+      key: 'settings.slskdPathTimeout',
+      params: ['30'],
+      message:
+        "Lidarr n'a pas répondu à la demande de liste du dossier de téléchargement dans les 30 secondes. Vérifie la charge de Lidarr et la vitesse du partage.",
+    },
+    {
+      key: 'settings.slskdPathHttpError',
+      params: ['500'],
+      message: 'Lidarr a renvoyé HTTP 500 lors de la lecture du dossier de téléchargement.',
+    },
+    {
+      key: 'settings.slskdPathUnreachable',
+      params: ['connect ECONNREFUSED apiKey=[redacted] $&'],
+      message:
+        'Impossible de vérifier le dossier de téléchargement via Lidarr : connect ECONNREFUSED apiKey=[redacted] $&',
+    },
+  ])('translates slskd path failures with parameters: $key', async ({ key, params, message }) => {
+    setupMocks()
+    mockGetStoredLocale.mockReturnValue('fr')
+    mockGetCurrentUser.mockResolvedValue({ ...ADMIN, preferredLocale: 'fr' })
+    mockListTargets.mockResolvedValue([
+      { id: 7, userId: 1, type: 'slskd', name: 'Soulseek', enabled: true, owned: true, config: {} },
+    ])
+    vi.mocked(testTargetApi).mockResolvedValueOnce({
+      success: false,
+      message: 'English fallback',
+      details: { messageKey: key, params },
+    })
+
+    renderPage(<SettingsPage />)
+    fireEvent.click(await screen.findByRole('button', { name: 'Destinations' }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Tester' }))
+
+    expect(await screen.findByText(message)).toBeInTheDocument()
+    expect(toast.error).toHaveBeenCalledWith(message)
+    expect(screen.queryByText('English fallback')).not.toBeInTheDocument()
   })
 
   it('keeps the download path optional when editing an unlinked slskd target', async () => {

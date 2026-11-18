@@ -51,6 +51,10 @@ export const en = {
     'Lidarr cannot find or list the download path. Check your mount and read permissions.',
   'settings.slskdLinkedLidarrUnavailable':
     'The linked Lidarr target cannot be used, so the download path was not checked. Check that it is enabled and connected, then test again.',
+  'settings.slskdPathTimeout':
+    'Lidarr did not answer the download folder listing within {0}s. Check the load on Lidarr and the speed of the share.',
+  'settings.slskdPathHttpError': 'Lidarr returned HTTP {0} while listing the download folder.',
+  'settings.slskdPathUnreachable': 'Could not check the download folder through Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'The download path looks like an incomplete folder. Use your completed-downloads folder.',
   'settings.slskdPathOk':

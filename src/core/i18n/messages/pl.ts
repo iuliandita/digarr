@@ -52,6 +52,10 @@ export const pl = {
     'Lidarr nie może znaleźć ani wyświetlić ścieżki pobierania. Sprawdź montowanie i uprawnienia odczytu.',
   'settings.slskdLinkedLidarrUnavailable':
     'Nie można użyć połączonego celu Lidarr, więc ścieżka pobierania nie została sprawdzona. Sprawdź, czy jest włączony i połączony, a potem przetestuj ponownie.',
+  'settings.slskdPathTimeout':
+    'Lidarr nie odpowiedział na żądanie wyświetlenia folderu pobierania w ciągu {0} sekund. Sprawdź obciążenie Lidarr i szybkość udziału sieciowego.',
+  'settings.slskdPathHttpError': 'Lidarr zwrócił HTTP {0} podczas wyświetlania folderu pobierania.',
+  'settings.slskdPathUnreachable': 'Nie udało się sprawdzić folderu pobierania przez Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'Ścieżka wygląda na folder nieukończonych pobrań. Użyj folderu ukończonych pobrań.',
   'settings.slskdPathOk':

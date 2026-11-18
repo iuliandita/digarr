@@ -209,21 +209,25 @@ describe('linked slskd path probe', () => {
     expect(result).toMatchObject({
       success: false,
       message: expect.stringContaining(`HTTP ${status}`),
+      details: { messageKey: 'settings.slskdPathHttpError', params: [String(status)] },
     })
-    expect(result.details).toBeUndefined()
-    expect(result.message).not.toContain('lidarr-secret')
+    expect(JSON.stringify(result)).not.toContain('lidarr-secret')
   })
 
   it('reports a network failure with the real cause', async () => {
     fetchMock
       .mockResolvedValueOnce(json({ version: '1' }))
-      .mockRejectedValueOnce(new Error('connect ECONNREFUSED'))
+      .mockRejectedValueOnce(new Error('connect ECONNREFUSED apiKey=lidarr-secret'))
     const result = await testTargetConnection('slskd', config, linked)
     expect(result).toMatchObject({
       success: false,
       message: expect.stringContaining('ECONNREFUSED'),
+      details: {
+        messageKey: 'settings.slskdPathUnreachable',
+        params: ['connect ECONNREFUSED apiKey=[redacted]'],
+      },
     })
-    expect(result.details).toBeUndefined()
+    expect(JSON.stringify(result)).not.toContain('lidarr-secret')
   })
 
   it('gives the folder listing 30s and reports a timeout', async () => {
@@ -243,8 +247,8 @@ describe('linked slskd path probe', () => {
       expect(result).toMatchObject({
         success: false,
         message: expect.stringContaining('within 30s'),
+        details: { messageKey: 'settings.slskdPathTimeout', params: ['30'] },
       })
-      expect(result.details).toBeUndefined()
     } finally {
       vi.useRealTimers()
     }

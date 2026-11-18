@@ -53,6 +53,10 @@ export const nl = {
     'Lidarr kan het downloadpad niet vinden of weergeven. Controleer je koppeling en leesrechten.',
   'settings.slskdLinkedLidarrUnavailable':
     'Het gekoppelde Lidarr-doel kan niet worden gebruikt, dus het downloadpad is niet gecontroleerd. Controleer of het is ingeschakeld en verbonden en test dan opnieuw.',
+  'settings.slskdPathTimeout':
+    'Lidarr heeft niet binnen {0} seconden gereageerd op het opvragen van de downloadmap. Controleer de belasting van Lidarr en de snelheid van de gedeelde map.',
+  'settings.slskdPathHttpError': 'Lidarr gaf HTTP {0} terug bij het opvragen van de downloadmap.',
+  'settings.slskdPathUnreachable': 'De downloadmap kon niet via Lidarr worden gecontroleerd: {0}',
   'settings.slskdPathIncomplete':
     'Het downloadpad lijkt een map voor onvoltooide downloads. Gebruik je map voor voltooide downloads.',
   'settings.slskdPathOk':
