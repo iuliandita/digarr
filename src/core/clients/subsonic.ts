@@ -85,43 +85,46 @@ export function createSubsonicClient(
     return {
       id: String(a.id),
       name: a.name ?? '',
-      ...(isValidMbid(a.musicBrainzId) ? { mbid: a.musicBrainzId } : {}),
+      ...(isValidMbid(a.musicBrainzId) ? { mbid: a.musicBrainzId.toLowerCase() } : {}),
     }
   }
 
   async function getAllAlbums(): Promise<SubsonicAlbum[]> {
+    const rowSchema = z.object({
+      id: z.union([z.string(), z.number()]),
+      artistId: z.union([z.string(), z.number()]).nullish(),
+      name: z.string(),
+      year: z.number().nullish(),
+    })
     const pageSchema = z.object({
-      albumList2: z.object({
-        album: z
-          .array(
-            z.object({
-              id: z.union([z.string(), z.number()]),
-              artistId: z.union([z.string(), z.number()]).nullish(),
-              name: z.string(),
-              year: z.number().optional(),
-            }),
-          )
-          .default([]),
-      }),
+      albumList2: z.object({ album: z.array(z.unknown()).default([]) }),
     })
     const albums: SubsonicAlbum[] = []
     const seen = new Set<string>()
     const size = 500
+    let pageSize = size
+    let offset = 0
     for (let page = 0; page < 400; page += 1) {
       const body = unwrapSubsonicResponse(
         await get<SubsonicEnvelope<unknown>>(
           restPath('getAlbumList2', {
             type: 'alphabeticalByArtist',
             size: String(size),
-            offset: String(page * size),
+            offset: String(offset),
           }),
         ),
         'Subsonic request failed',
       )
       const rows = pageSchema.parse(body).albumList2.album
       if (rows.length > size) throw new Error('Subsonic album page exceeds requested size')
+      if (page === 0) pageSize = rows.length
       const previousSize = seen.size
-      for (const album of rows) {
+      let validRows = 0
+      for (const row of rows) {
+        const parsed = rowSchema.safeParse(row)
+        if (!parsed.success) continue
+        validRows += 1
+        const album = parsed.data
         const id = String(album.id)
         if (seen.has(id)) continue
         seen.add(id)
@@ -130,13 +133,14 @@ export function createSubsonicClient(
             id,
             artistId: String(album.artistId),
             title: album.name,
-            releaseYear: album.year,
+            releaseYear: album.year ?? undefined,
           })
       }
-      if (rows.length > 0 && seen.size === previousSize) {
+      if (validRows > 0 && seen.size === previousSize) {
         throw new Error('Subsonic album pagination did not advance')
       }
-      if (rows.length < size) return albums
+      if (rows.length === 0 || rows.length < pageSize) return albums
+      offset += rows.length
     }
     throw new Error('Subsonic album pagination exceeded 200000 albums')
   }

@@ -121,6 +121,17 @@ function unreconciledRow(
   }
 }
 
+const GENERIC_ALBUM_TITLES = new Set([
+  'greatest hits',
+  'best of',
+  'live',
+  'demo',
+  'demos',
+  'the singles',
+  'hits',
+  'unplugged',
+])
+
 type MBSearchArtist = Awaited<ReturnType<MBClient['searchArtist']>>['artists'][number]
 
 function matchesAliasOrSortName(candidate: MBSearchArtist, nameNormalized: string): boolean {
@@ -144,6 +155,7 @@ async function albumFallback(
   sourceId: string,
   ctx: ReconcilerContext,
   reason: 'no_candidate' | 'ambiguous',
+  candidateMbids?: Set<string>,
 ): Promise<ReconciledArtist> {
   if (sourceId === 'subsonic' && nameNormalized) {
     const titles = new Map<string, string>()
@@ -156,6 +168,8 @@ async function albumFallback(
     )
     const names = new Set(artistNames.map(normalizeArtistName))
     let agreedMbid: string | undefined
+    let agreeingAlbums = 0
+    let requiresTwoAlbums = false
     for (const [normalizedTitle, title] of [...titles].slice(0, 2)) {
       ctx.counts.mbApiCalls += 1
       try {
@@ -170,16 +184,21 @@ async function albumFallback(
           break
         }
         const mbids = new Set<string>()
+        const wholeNameMbids = new Set<string>()
         for (const group of groups) {
           if (normalizeAlbumTitle(group.title) !== normalizedTitle) continue
           for (const credit of group['artist-credit']) {
+            const creditNames = [credit.artist.name, credit.name]
+              .filter((name): name is string => typeof name === 'string')
+              .map(normalizeArtistName)
             if (
               isValidMbid(credit.artist.id) &&
               !isSpecialPurposeArtist(credit.artist.id) &&
-              (names.has(normalizeArtistName(credit.artist.name)) ||
-                (credit.name !== undefined && names.has(normalizeArtistName(credit.name))))
-            )
+              creditNames.some((name) => names.has(name))
+            ) {
               mbids.add(credit.artist.id)
+              if (creditNames.includes(nameNormalized)) wholeNameMbids.add(credit.artist.id)
+            }
           }
         }
         const [mbid] = mbids
@@ -188,6 +207,8 @@ async function albumFallback(
           break
         }
         agreedMbid = mbid
+        agreeingAlbums += 1
+        requiresTwoAlbums ||= !wholeNameMbids.has(mbid)
       } catch (err) {
         bumpMbFailed(ctx.counts)
         console.warn(
@@ -196,7 +217,11 @@ async function albumFallback(
         return lookupFailedRow(artist, nameNormalized, ctx)
       }
     }
-    if (agreedMbid) {
+    if (
+      agreedMbid &&
+      (!requiresTwoAlbums || agreeingAlbums >= 2) &&
+      (reason !== 'ambiguous' || candidateMbids?.has(agreedMbid))
+    ) {
       ctx.counts.matchedDisambiguated += 1
       return matchedRow(artist, nameNormalized, agreedMbid, 'name_disambiguated', 0.5)
     }
@@ -296,10 +321,16 @@ export async function reconcileArtist(
   const sourceAlbumTitles = artist.knownAlbumTitles ?? []
   if (sourceAlbumTitles.length > 0 && candidates.length >= 2) {
     const normalizedSourceTitles = new Set(sourceAlbumTitles.map(normalizeArtistName))
+    const specificSourceTitles = new Set(
+      sourceAlbumTitles
+        .filter((title) => normalizeArtistName(title) !== nameNormalized)
+        .map(normalizeAlbumTitle)
+        .filter((title) => title !== '' && !GENERIC_ALBUM_TITLES.has(title)),
+    )
     const scored = await Promise.all(
-      candidates.map(async (c) => {
+      candidates.slice(0, 3).map(async (c) => {
         if (isSpecialPurposeArtist(c.id)) {
-          return { candidate: c, overlap: 0, lookupFailed: false }
+          return { candidate: c, overlap: 0, specificOverlap: 0, lookupFailed: false }
         }
         try {
           const releaseGroups = await ctx.mbClient.getReleaseGroups(c.id)
@@ -308,13 +339,21 @@ export async function reconcileArtist(
           for (const t of normalizedSourceTitles) {
             if (mbTitles.has(t)) overlap += 1
           }
-          return { candidate: c, overlap, lookupFailed: false }
+          const specificMbTitles = new Set(
+            releaseGroups
+              .filter((rg) => ['album', 'ep'].includes(rg.type?.toLowerCase()))
+              .map((rg) => normalizeAlbumTitle(rg.title)),
+          )
+          const specificOverlap = [...specificSourceTitles].filter((title) =>
+            specificMbTitles.has(title),
+          ).length
+          return { candidate: c, overlap, specificOverlap, lookupFailed: false }
         } catch (err) {
           bumpMbFailed(ctx.counts)
           console.warn(
             `[library-reconcile] MB getReleaseGroups failed for candidate ${c.id} of "${artist.name}": ${errMsg(err)}`,
           )
-          return { candidate: c, overlap: 0, lookupFailed: true }
+          return { candidate: c, overlap: 0, specificOverlap: 0, lookupFailed: true }
         }
       }),
     )
@@ -326,14 +365,35 @@ export async function reconcileArtist(
     const runnerUp = scored[1]
     if (
       winner &&
-      winner.overlap >= (runnerUp === undefined || runnerUp.overlap === 0 ? 1 : 2) &&
+      winner.overlap >= 2 &&
       (runnerUp === undefined || runnerUp.overlap === 0 || winner.overlap >= 2 * runnerUp.overlap)
     ) {
       ctx.counts.matchedDisambiguated += 1
       return matchedRow(artist, nameNormalized, winner.candidate.id, 'name_disambiguated', 0.5)
     }
+    if (winner && winner.overlap < 2) {
+      scored.sort((a, b) => b.specificOverlap - a.specificOverlap)
+      const singleWinner = scored[0]
+      if (singleWinner?.specificOverlap === 1 && scored[1]?.specificOverlap === 0) {
+        ctx.counts.matchedDisambiguated += 1
+        return matchedRow(
+          artist,
+          nameNormalized,
+          singleWinner.candidate.id,
+          'name_disambiguated',
+          0.5,
+        )
+      }
+    }
   }
 
   // Fall through to ambiguous when disambiguation can't decide
-  return albumFallback(artist, nameNormalized, sourceId, ctx, 'ambiguous')
+  return albumFallback(
+    artist,
+    nameNormalized,
+    sourceId,
+    ctx,
+    'ambiguous',
+    new Set(candidates.map((candidate) => candidate.id)),
+  )
 }

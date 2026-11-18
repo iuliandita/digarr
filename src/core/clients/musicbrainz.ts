@@ -228,7 +228,15 @@ export function createMusicBrainzClient(
   async function cachedRequest<T>(
     kind: MusicBrainzCacheKind,
     path: string,
-    { bypassCache = false, signal }: { bypassCache?: boolean; signal?: AbortSignal } = {},
+    {
+      bypassCache = false,
+      signal,
+      shouldCache = () => true,
+    }: {
+      bypassCache?: boolean
+      signal?: AbortSignal
+      shouldCache?: (body: T) => boolean
+    } = {},
   ): Promise<T> {
     signal?.throwIfAborted()
     const hit = bypassCache ? null : await readCache(path)
@@ -237,7 +245,7 @@ export function createMusicBrainzClient(
     if (hit) return hit.body as T
     try {
       const body = await request<T>(path, signal)
-      await writeCache(path, kind, { status: 200, body })
+      if (shouldCache(body)) await writeCache(path, kind, { status: 200, body })
       return body
     } catch (err) {
       if (err instanceof MusicBrainzHttpError && err.status === 404) {
@@ -352,7 +360,15 @@ export function createMusicBrainzClient(
       fmt: 'json',
       limit: '100',
     })
-    return releaseGroupSearchSchema.parse(await request<unknown>(`/release-group/?${params}`))
+    return releaseGroupSearchSchema.parse(
+      await cachedRequest<unknown>('artist-search', `/release-group/?${params}`, {
+        shouldCache: (body) => {
+          const result = releaseGroupSearchSchema.parse(body)
+          const length = result['release-groups'].length
+          return result.count !== undefined ? result.count <= length : length < 100
+        },
+      }),
+    )
   }
 
   async function getReleaseGroups(

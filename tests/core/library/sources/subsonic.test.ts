@@ -95,13 +95,48 @@ describe('Subsonic artist album hints', () => {
     ])
   })
 
-  it('propagates album hint fetch failures instead of returning a partial artist list', async () => {
-    const client = {
-      getAllArtists: vi.fn().mockResolvedValue([{ id: '1', name: 'Bush' }]),
-      getAllAlbums: vi.fn().mockRejectedValue(new Error('album page failed')),
+  it.each([
+    'network failure',
+    'Subsonic album pagination did not advance',
+    'Subsonic album pagination exceeded 200000 albums',
+  ])('continues artist and album sync without hints after %s', async (failure) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    try {
+      const client = {
+        getAllArtists: vi.fn().mockResolvedValue([{ id: '1', name: 'Bush' }]),
+        getAllAlbums: vi.fn().mockRejectedValue(new Error(failure)),
+        getAlbumsForArtist: vi.fn().mockResolvedValue([{ id: 'a', artistId: '1', title: 'One' }]),
+      }
+      const source = createSubsonicLibrarySource(client as never, 7)
+      expect(await source.listArtists()).toEqual([
+        { sourceArtistId: '1', name: 'Bush', mbid: undefined, knownAlbumTitles: [] },
+      ])
+      expect(await source.listAlbums?.('1')).toEqual([
+        {
+          sourceAlbumId: 'a',
+          sourceArtistId: '1',
+          title: 'One',
+          mbid: undefined,
+          releaseYear: undefined,
+          primaryType: 'Album',
+        },
+      ])
+      expect(warn).toHaveBeenCalledWith(`[library-subsonic] Album hints unavailable: ${failure}`)
+    } finally {
+      warn.mockRestore()
     }
-    await expect(createSubsonicLibrarySource(client as never, 7).listArtists()).rejects.toThrow(
-      'album page failed',
-    )
+  })
+
+  it.each(['artists', 'albums'])('still propagates real %s fetch failures', async (failure) => {
+    const client = {
+      getAllArtists: vi.fn().mockRejectedValue(new Error('artist fetch failed')),
+      getAllAlbums: vi.fn(),
+      getAlbumsForArtist: vi.fn().mockRejectedValue(new Error('album fetch failed')),
+    }
+    const source = createSubsonicLibrarySource(client as never, 7)
+    await expect(
+      failure === 'artists' ? source.listArtists() : source.listAlbums?.('1'),
+    ).rejects.toThrow(failure === 'artists' ? 'artist fetch failed' : 'album fetch failed')
+    expect(client.getAllAlbums).not.toHaveBeenCalled()
   })
 })

@@ -603,6 +603,138 @@ describe('reconcileArtist - single album and Subsonic fallback', () => {
   })
 
   it.each([
+    { source: 'Only One', catalog: 'Only One', type: 'Album', expected: VALID_MBID },
+    { source: 'Only One', catalog: 'Only One', type: 'EP', expected: VALID_MBID },
+    {
+      source: 'Only One (Deluxe Edition)',
+      catalog: 'Only One',
+      type: 'Album',
+      expected: VALID_MBID,
+    },
+    { source: 'Only One', catalog: 'Only One', type: 'Single', expected: null },
+    { source: 'Only One (Acoustic)', catalog: 'Only One', type: 'Album', expected: null },
+    { source: 'The Only One', catalog: 'Only One', type: 'Album', expected: null },
+    ...[
+      'Greatest Hits',
+      'Best Of',
+      'Live',
+      'Demo',
+      'Demos',
+      'The Singles',
+      'Hits',
+      'Unplugged',
+      'Büsh',
+    ].map((title) => ({ source: title, catalog: title, type: 'Album', expected: null })),
+  ])(
+    'requires specific Album/EP evidence for $source against $catalog ($type)',
+    async ({ source, catalog, type, expected }) => {
+      const ctx = makeCtx()
+      vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+        artists: [
+          { id: VALID_MBID, name: 'Bush', score: 100 },
+          { id: OTHER_MBID, name: 'Bush', score: 90 },
+        ],
+      })
+      vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
+        id === VALID_MBID ? [{ id: 'rg1', title: catalog, type }] : [],
+      )
+      const result = await reconcileArtist({ ...artist, knownAlbumTitles: [source] }, 'plex', ctx)
+      expect(result.mbid).toBe(expected)
+      expect(result.unreconciledReason).toBe(expected ? undefined : 'ambiguous')
+    },
+  )
+
+  it.each([
+    { competitorType: 'Single', expected: VALID_MBID },
+    { competitorType: 'Album', expected: null },
+    { competitorType: 'EP', expected: null },
+  ])(
+    'counts only Album/EP evidence for the single-overlap runner-up ($competitorType)',
+    async ({ competitorType, expected }) => {
+      const ctx = makeCtx()
+      vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+        artists: [
+          { id: VALID_MBID, name: 'Bush', score: 100 },
+          { id: OTHER_MBID, name: 'Bush', score: 90 },
+        ],
+      })
+      vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) => [
+        { id: 'rg1', title: 'Only One', type: id === VALID_MBID ? 'Album' : competitorType },
+      ])
+      expect((await reconcileArtist(artist, 'plex', ctx)).mbid).toBe(expected)
+    },
+  )
+
+  it('preserves the existing two-overlap rule for singles and broad normalization', async () => {
+    const ctx = makeCtx()
+    vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+      artists: [
+        { id: VALID_MBID, name: 'Bush', score: 100 },
+        { id: OTHER_MBID, name: 'Bush', score: 90 },
+      ],
+    })
+    vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
+      id === VALID_MBID
+        ? [
+            { id: 'rg1', title: 'Live', type: 'Single' },
+            { id: 'rg2', title: 'Only One', type: 'Single' },
+          ]
+        : [],
+    )
+    expect(
+      (
+        await reconcileArtist(
+          { ...artist, knownAlbumTitles: ['Live', 'The Only One (Acoustic)'] },
+          'plex',
+          ctx,
+        )
+      ).mbid,
+    ).toBe(VALID_MBID)
+  })
+
+  it.each([2, 3, 5])('fetches only the first three of %i candidates', async (count) => {
+    const ctx = makeCtx()
+    const ids = [
+      VALID_MBID,
+      OTHER_MBID,
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+      '33333333-3333-4333-8333-333333333333',
+    ].slice(0, count)
+    vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+      artists: ids.map((id, i) => ({ id, name: 'Bush', score: 100 - i })),
+    })
+    vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
+      id === ids[Math.min(count, 3) - 1] ? [{ id: 'rg1', title: 'Only One', type: 'Album' }] : [],
+    )
+    expect((await reconcileArtist(artist, 'subsonic', ctx)).mbid).toBe(ids[Math.min(count, 3) - 1])
+    expect(vi.mocked(ctx.mbClient.getReleaseGroups).mock.calls.map(([id]) => id)).toEqual(
+      ids.slice(0, 3),
+    )
+    expect(ctx.mbClient.searchReleaseGroups).not.toHaveBeenCalled()
+  })
+
+  it('does not fetch a lower-ranked candidate catalog even if it would match', async () => {
+    const ctx = makeCtx()
+    const ids = [
+      VALID_MBID,
+      OTHER_MBID,
+      '11111111-1111-4111-8111-111111111111',
+      '22222222-2222-4222-8222-222222222222',
+    ]
+    vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+      artists: ids.map((id, i) => ({ id, name: 'Bush', score: 100 - i })),
+    })
+    vi.mocked(ctx.mbClient.getReleaseGroups).mockImplementation(async (id) =>
+      id === ids[3] ? [{ id: 'rg1', title: 'Only One', type: 'Album' }] : [],
+    )
+    expect((await reconcileArtist(artist, 'subsonic', ctx)).unreconciledReason).toBe('ambiguous')
+    expect(vi.mocked(ctx.mbClient.getReleaseGroups).mock.calls.map(([id]) => id)).toEqual(
+      ids.slice(0, 3),
+    )
+  })
+
+  it.each([
     { label: 'one exact album', results: [[group()]], expected: VALID_MBID },
     { label: 'two agreeing albums', results: [[group()], [group('Second')]], expected: VALID_MBID },
     {
@@ -644,12 +776,56 @@ describe('reconcileArtist - single album and Subsonic fallback', () => {
     'matches a combined credit only in fallback: %s',
     async (name) => {
       const ctx = makeCtx()
-      vi.mocked(ctx.mbClient.searchReleaseGroups).mockResolvedValue({ 'release-groups': [group()] })
-      expect((await reconcileArtist({ ...artist, name }, 'subsonic', ctx)).mbid).toBe(VALID_MBID)
+      vi.mocked(ctx.mbClient.searchReleaseGroups)
+        .mockResolvedValueOnce({ 'release-groups': [group()] })
+        .mockResolvedValueOnce({ 'release-groups': [group('Second')] })
+      expect(
+        (
+          await reconcileArtist(
+            { ...artist, name, knownAlbumTitles: ['Only One', 'Second'] },
+            'subsonic',
+            ctx,
+          )
+        ).mbid,
+      ).toBe(VALID_MBID)
       expect(ctx.mbClient.searchArtist).toHaveBeenCalledWith(
         name === 'A & Bush' ? 'a and bush' : 'a, bush',
       )
       expect(ctx.mbClient.searchReleaseGroups).toHaveBeenCalledWith('Only One', [name, 'A', 'Bush'])
+    },
+  )
+
+  it.each([
+    { titles: ['Only One'], credits: ['Bush'], expected: null },
+    { titles: ['Only One', 'Second'], credits: ['Bush', 'Other'], expected: null },
+    { titles: ['Only One', 'Second'], credits: ['Bush', 'Bush'], expected: VALID_MBID },
+    { titles: ['Only One'], credits: ['A & Bush'], expected: VALID_MBID },
+    { titles: ['Only One'], credits: ['Harry'], name: 'Tom, Dick & Harry', expected: null },
+    {
+      titles: ['Only One', 'Second'],
+      credits: ['Harry', 'Harry'],
+      name: 'Tom, Dick & Harry',
+      expected: VALID_MBID,
+    },
+  ])(
+    'requires two agreeing albums for part credits: $titles / $credits',
+    async ({ titles, credits, name, expected }) => {
+      const ctx = makeCtx()
+      for (const [index, title] of titles.entries()) {
+        vi.mocked(ctx.mbClient.searchReleaseGroups).mockResolvedValueOnce({
+          'release-groups': [group(title, VALID_MBID, credits[index])],
+        })
+      }
+      expect(
+        (
+          await reconcileArtist(
+            { ...artist, name: name ?? 'A & Bush', knownAlbumTitles: titles },
+            'subsonic',
+            ctx,
+          )
+        ).mbid,
+      ).toBe(expected)
+      expect(ctx.mbClient.searchReleaseGroups).toHaveBeenCalledTimes(titles.length)
     },
   )
 
@@ -707,6 +883,26 @@ describe('reconcileArtist - single album and Subsonic fallback', () => {
     expect((await reconcileArtist(artist, 'subsonic', ctx)).mbid).toBe(VALID_MBID)
     expect(ctx.counts.unreconciledAmbiguous).toBe(0)
   })
+
+  it.each([VALID_MBID, '11111111-1111-4111-8111-111111111111'])(
+    'requires an ambiguous fallback identity to belong to the candidate set: %s',
+    async (mbid) => {
+      const ctx = makeCtx()
+      vi.mocked(ctx.mbClient.searchArtist).mockResolvedValue({
+        artists: [
+          { id: VALID_MBID, name: 'Bush', score: 100 },
+          { id: OTHER_MBID, name: 'Bush', score: 90 },
+        ],
+      })
+      vi.mocked(ctx.mbClient.searchReleaseGroups).mockResolvedValue({
+        'release-groups': [group('Only One', mbid)],
+      })
+      const result = await reconcileArtist(artist, 'subsonic', ctx)
+      expect(result.mbid).toBe(mbid === VALID_MBID ? mbid : null)
+      expect(result.unreconciledReason).toBe(mbid === VALID_MBID ? undefined : 'ambiguous')
+      expect(ctx.counts.matchedDisambiguated).toBe(mbid === VALID_MBID ? 1 : 0)
+    },
+  )
 
   it('rejects a truncated later search despite an earlier match', async () => {
     const ctx = makeCtx()

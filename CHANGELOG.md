@@ -8,7 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
-- Navidrome/Subsonic library sync now uses tagged artist MusicBrainz IDs and album titles to resolve more artists. A single album can break an otherwise empty tie; unresolved names get up to two exact album-and-artist searches, including combined artist credits. Conflicting matches remain unresolved, and failed source album reads preserve the previous snapshot (#1255).
+- Navidrome/Subsonic library sync now uses tagged artist MusicBrainz IDs and album titles to resolve more artists. A specific Album/EP can break an otherwise empty tie among the first three name candidates; unresolved names get up to two cached exact album-and-artist searches. Part-name matches in combined credits need two agreeing albums. Conflicting matches remain unresolved; failed optional hint reads sync without hints, while real artist/album fetch failures preserve the previous snapshot (#1255).
 
 ## v2.3.0 - 2026-11-14
 

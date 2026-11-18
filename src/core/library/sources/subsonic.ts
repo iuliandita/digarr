@@ -1,4 +1,5 @@
 import type { createSubsonicClient } from '@/core/clients/subsonic'
+import { errMsg } from '@/core/validation'
 import type { LibraryAlbum, LibraryArtist, LibrarySource } from './types'
 
 type SubsonicClient = ReturnType<typeof createSubsonicClient>
@@ -22,7 +23,12 @@ export function createSubsonicLibrarySource(client: SubsonicClient, userId: numb
 
     async listArtists(): Promise<LibraryArtist[]> {
       const artists = await client.getAllArtists()
-      const albums = await client.getAllAlbums()
+      let albums: Awaited<ReturnType<SubsonicClient['getAllAlbums']>> = []
+      try {
+        albums = await client.getAllAlbums()
+      } catch (err) {
+        console.warn(`[library-subsonic] Album hints unavailable: ${errMsg(err)}`)
+      }
       const titlesByArtist = new Map<string, Set<string>>()
       for (const album of albums) {
         if (!album.title.trim()) continue

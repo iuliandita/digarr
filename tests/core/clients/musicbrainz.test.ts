@@ -7,6 +7,13 @@ import {
   type MBSearchResult,
   parseYear,
 } from '@/core/clients/musicbrainz'
+import {
+  MUSICBRAINZ_CACHE_TTL_MS,
+  type MusicBrainzCacheEntry,
+  type MusicBrainzCacheHit,
+  type MusicBrainzCacheKind,
+  type MusicBrainzCacheStore,
+} from '@/core/clients/musicbrainz-cache'
 import { createReleaseGroupCache } from '@/core/clients/release-group-cache'
 import { coverageToReleaseCandidates } from '@/core/discovery-modes/modes/gap-fill'
 import { createAlbumCoverageService } from '@/core/library/album-coverage'
@@ -705,6 +712,50 @@ describe('lookupRecording not-found detection', () => {
 })
 
 describe('release-group artist fallback search', () => {
+  it.each([
+    { count: 1, length: 1, cached: true },
+    { count: 0, length: 0, cached: true },
+    { count: undefined, length: 1, cached: true },
+    { count: 101, length: 1, cached: false },
+    { count: undefined, length: 100, cached: false },
+  ])(
+    'caches only complete fallback searches: $count / $length',
+    async ({ count, length, cached }) => {
+      const entries = new Map<string, MusicBrainzCacheHit>()
+      const cacheStore: MusicBrainzCacheStore = {
+        get: vi.fn(async (key) => entries.get(key) ?? null),
+        set: vi.fn(
+          async (key: string, kind: MusicBrainzCacheKind, entry: MusicBrainzCacheEntry) => {
+            entries.set(key, { ...entry, expiresAt: Date.now() + MUSICBRAINZ_CACHE_TTL_MS[kind] })
+          },
+        ),
+      }
+      const body = {
+        count,
+        'release-groups': Array.from({ length }, () => ({
+          title: 'One',
+          'artist-credit': [{ artist: { id: MOCK_ARTIST_MBID, name: 'Bush' } }],
+        })),
+      }
+      mockFetch.mockImplementation(async () => makeJsonResponse(body))
+      const a = createClient({ cacheStore })
+      const b = createClient({ cacheStore })
+      expect(await a.searchReleaseGroups('One', ['Bush'])).toEqual(
+        await b.searchReleaseGroups('One', ['Bush']),
+      )
+      expect(mockFetch).toHaveBeenCalledTimes(cached ? 1 : 2)
+      expect(cacheStore.set).toHaveBeenCalledTimes(cached ? 1 : 0)
+      if (cached) {
+        expect(cacheStore.set).toHaveBeenCalledWith(
+          expect.stringContaining('/release-group/?'),
+          'artist-search',
+          { status: 200, body: expect.any(Object) },
+        )
+        expect(MUSICBRAINZ_CACHE_TTL_MS['artist-search']).toBe(3 * 24 * 60 * 60 * 1000)
+      }
+    },
+  )
+
   it('escapes query literals and uses the shared background queue', async () => {
     mockFetch.mockResolvedValueOnce(
       makeJsonResponse({
