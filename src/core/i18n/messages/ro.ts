@@ -50,6 +50,10 @@ export const ro = {
     'Lidarr nu poate găsi sau lista calea de descărcare. Verifică montarea și permisiunile de citire.',
   'settings.slskdLinkedLidarrUnavailable':
     'Destinația Lidarr conectată nu poate fi folosită, așa că calea de descărcare nu a fost verificată. Verifică dacă este activată și conectată, apoi testează din nou.',
+  'settings.slskdPathTimeout':
+    'Lidarr nu a răspuns la cererea de listare a dosarului de descărcare în {0} secunde. Verifică încărcarea Lidarr și viteza partajării.',
+  'settings.slskdPathHttpError': 'Lidarr a returnat HTTP {0} la listarea dosarului de descărcare.',
+  'settings.slskdPathUnreachable': 'Dosarul de descărcare nu a putut fi verificat prin Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'Calea pare un dosar cu descărcări incomplete. Folosește dosarul tău cu descărcări finalizate.',
   'settings.slskdPathOk':

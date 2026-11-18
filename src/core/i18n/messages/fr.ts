@@ -53,6 +53,12 @@ export const fr = {
     'Lidarr ne peut pas trouver ou lister le chemin de téléchargement. Vérifie ton montage et les droits de lecture.',
   'settings.slskdLinkedLidarrUnavailable':
     'La cible Lidarr liée ne peut pas être utilisée, donc le chemin de téléchargement n’a pas été vérifié. Vérifie qu’elle est activée et connectée, puis relance le test.',
+  'settings.slskdPathTimeout':
+    "Lidarr n'a pas répondu à la demande de liste du dossier de téléchargement dans les {0} secondes. Vérifie la charge de Lidarr et la vitesse du partage.",
+  'settings.slskdPathHttpError':
+    'Lidarr a renvoyé HTTP {0} lors de la lecture du dossier de téléchargement.',
+  'settings.slskdPathUnreachable':
+    'Impossible de vérifier le dossier de téléchargement via Lidarr : {0}',
   'settings.slskdPathIncomplete':
     'Le chemin ressemble à un dossier de téléchargements incomplets. Utilise ton dossier de téléchargements terminés.',
   'settings.slskdPathOk':

@@ -797,8 +797,14 @@ export function TargetsTab() {
         key === 'settings.slskdPathIncomplete' ||
         key === 'settings.slskdPathUnavailable' ||
         key === 'settings.slskdLinkedLidarrUnavailable' ||
+        key === 'settings.slskdPathTimeout' ||
+        key === 'settings.slskdPathHttpError' ||
+        key === 'settings.slskdPathUnreachable' ||
         key === 'settings.slskdPathOk'
-          ? t(key)
+          ? t(key).replace(
+              /\{(\d+)\}/g,
+              (_, index) => result.details?.params?.[Number(index)] ?? '',
+            )
           : result.message
       setTestResults((prev) => ({
         ...prev,

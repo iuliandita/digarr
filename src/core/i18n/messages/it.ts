@@ -51,6 +51,12 @@ export const it = {
     'Lidarr non riesce a trovare o elencare il percorso di download. Controlla il tuo montaggio e i permessi di lettura.',
   'settings.slskdLinkedLidarrUnavailable':
     'Il target Lidarr collegato non può essere usato, quindi il percorso di download non è stato verificato. Controlla che sia attivo e connesso, poi riprova il test.',
+  'settings.slskdPathTimeout':
+    'Lidarr non ha risposto alla richiesta di elencare la cartella dei download entro {0} secondi. Controlla il carico di Lidarr e la velocità della condivisione.',
+  'settings.slskdPathHttpError':
+    'Lidarr ha restituito HTTP {0} durante la lettura del contenuto della cartella dei download.',
+  'settings.slskdPathUnreachable':
+    'Impossibile verificare la cartella dei download tramite Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'Il percorso sembra una cartella di download incompleti. Usa la tua cartella dei download completati.',
   'settings.slskdPathOk':

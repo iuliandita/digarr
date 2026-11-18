@@ -52,6 +52,12 @@ export const de = {
     'Lidarr kann den Downloadpfad nicht finden oder auflisten. Prüfe deine Einbindung und Leserechte.',
   'settings.slskdLinkedLidarrUnavailable':
     'Das verknüpfte Lidarr-Ziel kann nicht verwendet werden, daher wurde der Downloadpfad nicht geprüft. Prüfe, ob es aktiviert und verbunden ist, und teste dann erneut.',
+  'settings.slskdPathTimeout':
+    'Lidarr hat die Auflistung des Downloadordners nicht innerhalb von {0} Sekunden beantwortet. Prüfe die Auslastung von Lidarr und die Geschwindigkeit der Freigabe.',
+  'settings.slskdPathHttpError':
+    'Lidarr hat beim Auflisten des Downloadordners HTTP {0} zurückgegeben.',
+  'settings.slskdPathUnreachable':
+    'Der Downloadordner konnte über Lidarr nicht geprüft werden: {0}',
   'settings.slskdPathIncomplete':
     'Der Downloadpfad sieht nach einem Ordner für unvollständige Downloads aus. Nutze deinen Ordner für abgeschlossene Downloads.',
   'settings.slskdPathOk':

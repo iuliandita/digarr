@@ -46,6 +46,10 @@ export const zhCN = {
   'settings.slskdPathUnavailable': 'Lidarr 无法找到或列出下载路径。请检查你的挂载和读取权限。',
   'settings.slskdLinkedLidarrUnavailable':
     '无法使用已链接的 Lidarr 目标，因此未检查下载路径。请确认它已启用并已连接，然后重新测试。',
+  'settings.slskdPathTimeout':
+    'Lidarr 未在 {0} 秒内响应下载文件夹列表请求。请检查 Lidarr 的负载和共享文件夹的速度。',
+  'settings.slskdPathHttpError': 'Lidarr 在列出下载文件夹时返回了 HTTP {0}。',
+  'settings.slskdPathUnreachable': '无法通过 Lidarr 检查下载文件夹: {0}',
   'settings.slskdPathIncomplete': '下载路径看起来是未完成文件夹。请使用你的已完成下载文件夹。',
   'settings.slskdPathOk':
     '已连接 slskd - Lidarr 可以看到下载文件夹。请确认其中包含你的已完成下载。',
