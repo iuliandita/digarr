@@ -51,6 +51,11 @@ export const ptBR = {
     'O Lidarr não consegue encontrar ou listar o caminho de download. Confira sua montagem e as permissões de leitura.',
   'settings.slskdLinkedLidarrUnavailable':
     'Não é possível usar o destino Lidarr vinculado, então o caminho de download não foi verificado. Verifique se ele está ativado e conectado e teste de novo.',
+  'settings.slskdPathTimeout':
+    'O Lidarr não respondeu à solicitação de listar a pasta de downloads em {0} segundos. Confira a carga do Lidarr e a velocidade do compartilhamento.',
+  'settings.slskdPathHttpError': 'O Lidarr retornou HTTP {0} ao listar a pasta de downloads.',
+  'settings.slskdPathUnreachable':
+    'Não foi possível verificar a pasta de downloads pelo Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'O caminho parece uma pasta de downloads incompletos. Use sua pasta de downloads concluídos.',
   'settings.slskdPathOk':

@@ -54,6 +54,11 @@ export const es = {
     'Lidarr no puede encontrar o listar la ruta de descarga. Revisa tu montaje y los permisos de lectura.',
   'settings.slskdLinkedLidarrUnavailable':
     'No se puede usar el destino Lidarr vinculado, así que no se comprobó la ruta de descarga. Comprueba que esté activado y conectado, y vuelve a probar.',
+  'settings.slskdPathTimeout':
+    'Lidarr no respondió a la solicitud de listar la carpeta de descargas en {0} segundos. Revisa la carga de Lidarr y la velocidad del recurso compartido.',
+  'settings.slskdPathHttpError': 'Lidarr devolvió HTTP {0} al listar la carpeta de descargas.',
+  'settings.slskdPathUnreachable':
+    'No se pudo comprobar la carpeta de descargas a través de Lidarr: {0}',
   'settings.slskdPathIncomplete':
     'La ruta parece una carpeta de descargas incompletas. Usa tu carpeta de descargas completadas.',
   'settings.slskdPathOk':

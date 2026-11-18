@@ -770,6 +770,8 @@ async function getEnabledTargetsForResolvedUser(
           return releaseGroups.map((releaseGroup) => ({
             releaseGroupMbid: releaseGroup.id,
             releaseTitle: releaseGroup.title,
+            type: releaseGroup.type,
+            secondaryTypes: releaseGroup.secondaryTypes,
           }))
         },
         findActiveJob: (workKey) => findActiveSlskdJobByWorkKey(db, workKey),

@@ -105,7 +105,7 @@ export async function testTargetConnection(
         if (error instanceof HttpError && (error.status === 403 || error.status === 404)) {
           return pathResult(false, 'settings.slskdPathUnavailable')
         }
-        return { success: false, message: pathProbeFailure(error) }
+        return pathProbeFailure(error)
       }
     }
 
@@ -137,16 +137,26 @@ function linkedLidarrClient(config?: TargetConnectionConfig) {
 
 // A timeout, auth failure or 5xx says nothing about the path itself, so report what happened
 // instead of the generic mount advice. The upstream body is left out; it can echo credentials.
-function pathProbeFailure(error: unknown): string {
+function pathProbeFailure(error: unknown): ServiceTestResult {
   if (error instanceof HttpTimeoutError) {
-    return `Lidarr did not answer the download folder listing within ${Math.round(error.timeoutMs / 1000)}s. Check the load on Lidarr and the speed of the share.`
+    return pathResult(false, 'settings.slskdPathTimeout', [
+      String(Math.round(error.timeoutMs / 1000)),
+    ])
   }
   if (error instanceof HttpError) {
-    return `Lidarr returned HTTP ${error.status} while listing the download folder.`
+    return pathResult(false, 'settings.slskdPathHttpError', [String(error.status)])
   }
-  return `Could not check the download folder through Lidarr: ${redactSecrets(errMsg(error))}`
+  return pathResult(false, 'settings.slskdPathUnreachable', [redactSecrets(errMsg(error))])
 }
 
-function pathResult(success: boolean, messageKey: MessageKey): ServiceTestResult {
-  return { success, message: createTranslator('en')(messageKey), details: { messageKey } }
+function pathResult(
+  success: boolean,
+  messageKey: MessageKey,
+  params: string[] = [],
+): ServiceTestResult {
+  return {
+    success,
+    message: createTranslator('en')(messageKey, ...params),
+    details: { messageKey, params },
+  }
 }
