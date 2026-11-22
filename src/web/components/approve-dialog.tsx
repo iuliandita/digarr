@@ -33,12 +33,45 @@ function pick(options: { id: number }[], preferred: number | null | undefined): 
   return options[0] ? String(options[0].id) : ''
 }
 
+const MONITOR_STORAGE_KEY = 'digarr:approve-monitor'
+// Popular depends on the configured sources and Selected needs the album picker,
+// so neither is a safe default for the next dialog.
+const REMEMBERED_MONITOR_OPTIONS: MonitorOption[] = [
+  'none',
+  'new',
+  'all',
+  'missing',
+  'existing',
+  'latest',
+  'first',
+]
+
+function readRememberedMonitor(): MonitorOption {
+  try {
+    const stored = localStorage.getItem(MONITOR_STORAGE_KEY)
+    return REMEMBERED_MONITOR_OPTIONS.find((o) => o === stored) ?? 'none'
+  } catch {
+    return 'none'
+  }
+}
+
+function rememberMonitor(option: MonitorOption) {
+  if (!REMEMBERED_MONITOR_OPTIONS.includes(option)) return
+  try {
+    localStorage.setItem(MONITOR_STORAGE_KEY, option)
+  } catch {
+    /* Browser storage may be disabled. */
+  }
+}
+
 export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCancel }: Props) {
   const { t } = useI18n()
   const [profiles, setProfiles] = useState<Profile[]>([])
   const [metadataProfiles, setMetadataProfiles] = useState<Profile[]>([])
   const [rootFolders, setRootFolders] = useState<RootFolder[]>([])
-  const [monitor, setMonitor] = useState<MonitorOption>(monitorOption)
+  const [monitor, setMonitor] = useState<MonitorOption>(() =>
+    monitorOption === 'none' ? readRememberedMonitor() : monitorOption,
+  )
   const [tags, setTags] = useState<number[]>([])
   const [availableTags, setAvailableTags] = useState<Array<{ id: number; label: string }>>([])
   const [qp, setQp] = useState('')
@@ -215,7 +248,8 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
                 metadataProfiles.length === 0 ||
                 rootFolders.length === 0
               }
-              onClick={() =>
+              onClick={() => {
+                rememberMonitor(monitor)
                 onConfirm({
                   tags,
                   monitorOption: monitor,
@@ -223,7 +257,7 @@ export function ApproveDialog({ lidarrTargetId, monitorOption, onConfirm, onCanc
                   metadataProfileId: parseInt(mp, 10),
                   rootFolderId: parseInt(rf, 10),
                 })
-              }
+              }}
             >
               {t('target.action.addToLidarr')}
             </Button>
