@@ -35,11 +35,12 @@ function renderWithProviders(ui: ReactElement) {
   )
 }
 
-describe('ApproveDialog', () => {
-  beforeEach(() => {
-    vi.clearAllMocks()
-  })
+beforeEach(() => {
+  vi.clearAllMocks()
+  localStorage.clear()
+})
 
+describe('ApproveDialog', () => {
   it('snaps to first available Lidarr options when defaults are not in the loaded lists', async () => {
     vi.mocked(getLidarrApproveOptions).mockResolvedValue({
       qualityProfiles: [{ id: 2, name: 'Standard' }],
@@ -177,4 +178,48 @@ describe('ApproveDialog monitor option', () => {
     fireEvent.click(screen.getByRole('button', { name: /add to lidarr/i }))
     expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ monitorOption: 'popular' }))
   })
+
+  it.each([
+    { opened: 'none', saved: 'missing', expected: 'missing' },
+    { opened: 'all', saved: 'missing', expected: 'all' },
+    { opened: 'none', saved: 'popular', expected: 'none' },
+    { opened: 'none', saved: 'garbage', expected: 'none' },
+  ] as const)(
+    'opened with $opened after $saved was remembered submits $expected',
+    async ({ opened, saved, expected }) => {
+      vi.mocked(getLidarrApproveOptions).mockResolvedValue({
+        qualityProfiles: [{ id: 2, name: 'Standard' }],
+        metadataProfiles: [{ id: 3, name: 'Standard' }],
+        rootFolders: [{ id: 5, path: '/music' }],
+      })
+      const first = vi.fn()
+      const view = renderWithProviders(
+        <ApproveDialog
+          monitorOption={saved === 'popular' ? 'popular' : 'none'}
+          onConfirm={first}
+          onCancel={vi.fn()}
+        />,
+      )
+      const addButton = await screen.findByRole('button', { name: /add to lidarr/i })
+      await waitFor(() => expect(addButton).not.toBeDisabled())
+      if (saved === 'garbage') localStorage.setItem('digarr:approve-monitor', saved)
+      else if (saved !== 'popular') {
+        fireEvent.change(screen.getByDisplayValue('None'), {
+          target: { value: saved },
+        })
+      }
+      if (saved !== 'garbage') fireEvent.click(addButton)
+      view.unmount()
+
+      const onConfirm = vi.fn()
+      renderWithProviders(
+        <ApproveDialog monitorOption={opened} onConfirm={onConfirm} onCancel={vi.fn()} />,
+      )
+      await waitFor(() => {
+        expect(screen.getByRole('button', { name: /add to lidarr/i })).not.toBeDisabled()
+      })
+      fireEvent.click(screen.getByRole('button', { name: /add to lidarr/i }))
+      expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({ monitorOption: expected }))
+    },
+  )
 })

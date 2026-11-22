@@ -390,7 +390,7 @@
         "src/web/components/album-picker.tsx": "162bc78c37789dc36d952816ea930ad54a37c9b2afb1ae2f5ae2b71595d86edd",
         "src/web/components/api-tokens-section.tsx": "d1932d4a1fcdd6d45f7d10cbefa7529c8645bbd97d60c61234213ec9280f8d97",
         "src/web/components/approval-requests.tsx": "1d9cd3344284a58603ce5f76dc0de40cee14179882ed2a1b0d626812d5f6d4f8",
-        "src/web/components/approve-dialog.tsx": "6ed99631ddb300113876292dd984751dea1fc18d4b6bbd7acb4d38009ecb9522",
+        "src/web/components/approve-dialog.tsx": "f643a98792fbe1069ae46a9ba1608667ac9824a964f13643491afb2d9bce50c1",
         "src/web/components/artist-enrichment-panel.tsx": "6bb679742243d5e8990ea02bbb638534845a9e02d116481ef62fca79be304a10",
         "src/web/components/artist-thumb.tsx": "47092c0eb81a911eed655d701af1ff8eb3e29c8442975e5489d2e4d942f63a8a",
         "src/web/components/auth-gate.tsx": "4629a97c0e27c1491cb1172254c1ea844170f65faff949099800701459274f69",
@@ -540,14 +540,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "5c95ef74c60a7fbcc3ba49157d349dd3b3bd416fcc0d88c6355283f9c62567a3",
+      "digest": "a4a85f94b586153dc419370f4748f5925f41e0ac86fe07548cc5c5362fb7f678",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "Reword the Korean HTTP error string to avoid a particle that is wrong for vowel-final status numbers; behavior is unchanged.",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "Approve dialog remembers the last confirmed monitoring option per browser; documented in OPERATIONS and the changelog.",
         "breaking": "none",
         "migration": "",
-        "digest": "5c95ef74c60a7fbcc3ba49157d349dd3b3bd416fcc0d88c6355283f9c62567a3"
+        "digest": "a4a85f94b586153dc419370f4748f5925f41e0ac86fe07548cc5c5362fb7f678"
       }
     },
     "features": {

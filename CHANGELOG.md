@@ -6,6 +6,10 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ## Unreleased
 
+### Added
+
+- The Lidarr approve dialog remembers the last monitoring option you confirmed in this browser, so the plain Approve button no longer resets it to None each time. An option picked from the Approve menu still wins, Popular and Selected albums are never remembered, and None stays the default until you change it (#1264).
+
 ### Fixed
 
 - slskd artist approvals now search only studio albums and EPs, skipping singles, compilations and live releases. An EP sharing a normalized title with an album or another EP is skipped, so a same-named single or EP cannot trigger a duplicate album download; distinct albums with the same title, such as self-titled records, are all kept (#1252).
