@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "5d1c8b932e41dffaa5845267adc3769315c3a535ba6f207d5658ba40cfd20ec8",
+        "src/core/clients/musicbrainz.ts": "b116bcfca3122a03f87e72957f4d3ac98390def4168115b80988ff2cf975f033",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -773,14 +773,14 @@
         "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "bdbfbec7a8a7a65c0f7c4c15409c3b44fa245d9ff801b1fed2e5e3651a1f0d7b",
+      "digest": "243ae793c2c846dbdd38632bd5d00967dc93a582f5812308a79daf6b1f0cc33d",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "README.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
-        "note": "Subsonic sync passes tagged artist MBIDs, uses album-title hints for two or three candidates, and falls back to bounded candidate-restricted release-group searches; hint failures degrade to no hints.",
+        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
+        "note": "MusicBrainz requests follow redirects that stay under the configured API base (merged-artist MBIDs) and refuse the rest without retrying; document the mirror redirect rule and the fix.",
         "breaking": "none",
         "migration": "",
-        "digest": "bdbfbec7a8a7a65c0f7c4c15409c3b44fa245d9ff801b1fed2e5e3651a1f0d7b"
+        "digest": "243ae793c2c846dbdd38632bd5d00967dc93a582f5812308a79daf6b1f0cc33d"
       }
     },
     "deployment": {
