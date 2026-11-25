@@ -8,6 +8,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Added
 
+- The Docker guide has a section on choosing between the Alpine and Debian images, with current scan results. The weekly security scan now covers the Debian image as well as Alpine (#1270).
 - The Lidarr approve dialog remembers the last monitoring option you confirmed in this browser, so the plain Approve button no longer resets it to None each time. An option picked from the Approve menu still wins, Popular and Selected albums are never remembered, and None stays the default until you change it (#1264).
 
 ### Fixed

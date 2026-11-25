@@ -299,13 +299,29 @@ A nonempty direct `DATABASE_URL` or `DB_PASS` takes precedence over its correspo
 
 For an environment-only deployment on a platform without Compose secrets, copy the Postgres base into a standalone Compose file. Set `DATABASE_URL` for `app` and `POSTGRES_PASSWORD` for `postgres`, using the same password and an appropriately URL-encoded DSN. Remove `app.environment.DB_PASS_FILE` and `postgres.environment.POSTGRES_PASSWORD_FILE`, both services' `secrets` attachments, and the top-level `secrets.postgres_password` definition. Remove any other `_FILE` settings inherited from `.env`. Validate the resulting standalone file with `docker compose -f <file> config` before starting it. Setting plain environment values alone leaves the original secret-file dependency in place.
 
+## Choosing an image variant
+
+Use the default Alpine image unless you need glibc. Both variants are built from the same application code and configuration; only the runtime base image differs.
+
+| | Alpine (default) | Debian |
+| --- | --- | --- |
+| Tags | `:latest`, `:2.3`, `:2.3.0` | `:debian`, `:stable-debian`, or any version tag with a `-debian` suffix |
+| C library | musl | glibc |
+| Trivy HIGH/CRITICAL findings on 2.3.0 (Trivy 0.76.2, 2026-11-25) | 0 | 53 findings across 14 unique CVEs; 1 has a fix, the rest have none yet |
+
+- Pick Debian only if the Alpine image does not work in your environment.
+- The Debian findings are in OS packages (util-linux, systemd, acl, ncurses, perl, OpenSSL, SQLite and zstd). The Bun runtime in the image links only glibc (`libc`, `libm`, `libpthread`, `libdl`), the app runs as uid 1000, and the image has no setuid or setgid binaries. That shows no path from the app to these packages, but it is not a proof that none of the findings can be reached.
+- The Debian image runs `apt-get upgrade` at build time, so a rebuild picks up fixes as Debian ships them. Track the open items in [#863](https://github.com/iuliandita/digarr/issues/863).
+- If your policy fails images on HIGH findings, use Alpine. A Debian image will not pass that scan today.
+- The weekly and `main` security workflow scans both variants and reports advisory results in the repository security tab.
+
 ## Image channels
 
 `docker.io/iuliandita/digarr:latest` is the newest tagged release and the recommended channel for first-time home installs. `:stable` tracks only releases that have been live for at least seven days with no follow-up patch. Only the latest release receives security fixes; `:stable` and pinned versions can lag behind. Use `:MAJOR.MINOR` for patch updates on a release line, or `:MAJOR.MINOR.PATCH` to pin one release. See the [README](../../README.md#quick-start) for current examples. For bleeding-edge testing, `:nightly` (GHCR only) is rebuilt on each push to `develop` with an immutable `:nightly-<sha>` alongside it; the web footer and `GET /health` report the running `gitSha` so a nightly bug report can be pinned to a commit. Images are Alpine-based by default; a Debian/glibc variant ships alongside every release as `:debian`, `-debian`-suffixed version tags, and `:stable-debian`.
 
 The v2.0.0 source archive contains stale 1.19 pin comments in both Compose files. The active image remains `:latest`; to pin v2.0.0, use `docker.io/iuliandita/digarr:2.0.0` or `:2.0.0-debian`, or `:2.0` for its patch line. Check `/health` for the running version and follow the [v2.0.0 upgrade procedure](../../docs/OPERATIONS.md#upgrading-from-v1190-to-v200) before updating an existing installation. The published tag remains unchanged; corrected examples are on the current branches.
 
-The Debian/glibc fallback retains 43 HIGH findings across eight unique upstream vulnerabilities without an available fix in the pre-release audit ([#863](https://github.com/iuliandita/digarr/issues/863)). Alpine remains the default. Variant availability and a successful signature verification do not establish a clean vulnerability scan.
+The Debian/glibc variant carries HIGH findings with no upstream fix yet; see [choosing an image variant](#choosing-an-image-variant) and [#863](https://github.com/iuliandita/digarr/issues/863). Alpine remains the default. Variant availability and a successful signature verification do not establish a clean vulnerability scan.
 
 ## Verifying image signatures
 

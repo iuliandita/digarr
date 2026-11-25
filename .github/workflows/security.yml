@@ -56,8 +56,12 @@ jobs:
           sarif_file: trivy-fs.sarif
 
   trivy-image:
-    name: Trivy container scan
+    name: Trivy container scan (${{ matrix.variant }})
     runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [alpine, debian]
     # Heavy (builds the image): main-only + weekly schedule, so develop PRs stay
     # cheap. Also skip when DOCKERHUB secrets are unavailable (fork PRs, dependabot).
     if: >-
@@ -82,20 +86,29 @@ jobs:
           restore-keys: bun-${{ runner.os }}-
       - run: bun install --frozen-lockfile
       - name: Build image
-        run: docker build -t digarr:scan -f deploy/docker/Dockerfile .
+        run: |
+          build_args=()
+          if [ "${{ matrix.variant }}" = "debian" ]; then
+            # Same slim pin the release matrix uses, read from there so it lives in one place.
+            slim="$(grep -oE 'oven/bun:[0-9.]+-slim@sha256:[0-9a-f]{64}' .github/workflows/release.yml | head -1)"
+            test -n "$slim" || { echo "no slim runtime pin found in release.yml" >&2; exit 1; }
+            build_args=(--build-arg "RUNTIME_IMAGE=$slim")
+          fi
+          docker build "${build_args[@]}" -t digarr:scan -f deploy/docker/Dockerfile .
       # advisory-only: base image CVEs are upstream, patched via dependabot
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: digarr:scan
           severity: HIGH,CRITICAL
           format: sarif
-          output: trivy-image.sarif
+          output: trivy-image-${{ matrix.variant }}.sarif
           # Pin binary version; v0.69.4-v0.69.6 contained credential-stealing malware (CVE-2026-33634)
           version: "v0.76.2"
       - uses: github/codeql-action/upload-sarif@915412ff23e8b7659517e607487dbeae018f2934 # v4
         if: always()
         with:
-          sarif_file: trivy-image.sarif
+          sarif_file: trivy-image-${{ matrix.variant }}.sarif
+          category: trivy-image-${{ matrix.variant }}
 
   codeql:
     runs-on: ubuntu-26.04
