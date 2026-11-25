@@ -85,7 +85,7 @@ This fetches both published templates and compares configuration fields and oper
 
 ## Dependency security checks
 
-The required dependency audit runs `bun audit --audit-level=high`. High and critical advisories fail the job; lower severities do not. No advisory is ignored. Bun handles its audit response and command failures directly, and error output stays visible. Trivy filesystem reporting remains advisory-only. This gate does not certify that every dependency is free of vulnerabilities.
+The required dependency audit runs `bun audit --audit-level=high`. High and critical advisories fail the job; lower severities do not. No advisory is ignored. Bun handles its audit response and command failures directly, and error output stays visible. Trivy filesystem reporting remains advisory-only. The weekly and `main` Trivy container scan covers both the Alpine and Debian images: it reports every HIGH and CRITICAL finding to the security tab as advisory, and fails only when a finding already has a fix, so unfixed upstream CVEs such as [#863](https://github.com/iuliandita/digarr/issues/863) do not fail it. This gate does not certify that every dependency is free of vulnerabilities.
 
 ## Limits and release checks
 

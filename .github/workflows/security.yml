@@ -95,7 +95,7 @@ jobs:
             build_args=(--build-arg "RUNTIME_IMAGE=$slim")
           fi
           docker build "${build_args[@]}" -t digarr:scan -f deploy/docker/Dockerfile .
-      # advisory-only: base image CVEs are upstream, patched via dependabot
+      # full report stays advisory: unfixed base image CVEs are upstream (#863)
       - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: digarr:scan
@@ -109,6 +109,15 @@ jobs:
         with:
           sarif_file: trivy-image-${{ matrix.variant }}.sarif
           category: trivy-image-${{ matrix.variant }}
+      # gate on fixable findings only, so a rebuild or bump is the action; unfixed CVEs never fail it
+      - uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: digarr:scan
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          format: table
+          version: "v0.76.2"
 
   codeql:
     runs-on: ubuntu-26.04
