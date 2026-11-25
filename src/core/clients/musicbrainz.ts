@@ -161,10 +161,7 @@ const releaseGroupSearchSchema = z.object({
   ),
 })
 
-// MusicBrainz answers a lookup by a merged entity's old MBID with a 301 to the
-// surviving MBID. Returns the path to follow only when the target stays under
-// the configured API base, so a fast mirror cannot send requests on to the
-// public rate-limited service.
+// A merged MBID 301s to the surviving one; follow it only under the configured base.
 function sameServiceRedirectPath(res: Response, path: string): string | null {
   if (!REDIRECT_STATUSES.has(res.status)) return null
   const location = res.headers.get('location')
