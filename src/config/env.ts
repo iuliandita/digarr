@@ -72,7 +72,8 @@ function musicbrainzConfig(): { musicbrainzUrl: string; musicbrainzIntervalMs: n
     )
   }
 
-  const rawInterval = env('DIGARR_MUSICBRAINZ_INTERVAL_MS') ?? '1000'
+  // 1100 leaves headroom under MusicBrainz's 1 req/s limit.
+  const rawInterval = env('DIGARR_MUSICBRAINZ_INTERVAL_MS') ?? '1100'
   const interval = Number(rawInterval)
   if (!/^\d+$/.test(rawInterval) || !Number.isSafeInteger(interval) || interval > 2_147_483_647) {
     throw new Error('DIGARR_MUSICBRAINZ_INTERVAL_MS must be an integer between 0 and 2147483647')

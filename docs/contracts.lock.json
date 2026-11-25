@@ -218,17 +218,17 @@
     },
     "configuration": {
       "files": {
-        ".env.example": "168aeff9d68259bfef0700194135837ff63cad04563377b363f261aa02e930ed",
-        "src/config/env.ts": "60d6392d801d4b3dd5bc9555f7e657526bebb9f687d9e41decd674fac041f583"
+        ".env.example": "609dd23e144ad259b0d7167235cb02c205e7c5699a613ef2526cf94eaf90421f",
+        "src/config/env.ts": "8854eb31c5893f6ce5945e92a90390d569e7a870dd291b176131b35fe6a63678"
       },
-      "digest": "b09c7b286f57ee5832d67a3cc033a964e6105a0538ced10470a4db37f3a20e1e",
+      "digest": "d20bc5a90bd95f440f7c2766ea8e221fca2f3223fb88d9e4ee16d5dd7771de96",
       "review": {
         "outcome": "docs-updated",
         "docs": [".env.example", "docs/OPERATIONS.md", "CHANGELOG.md"],
-        "note": "Document DIGARR_MEDIA_SERVER_ALLOW_LOCAL, its default and the restart requirement.",
-        "breaking": "Media servers on loopback, CGNAT/tailnet or IPv6 ULA addresses stop working until DIGARR_MEDIA_SERVER_ALLOW_LOCAL=true is set; no data changes, rollback restores the old behavior.",
+        "note": "Document the new 1100 ms default for DIGARR_MUSICBRAINZ_INTERVAL_MS; explicit values and the 1000 ms public floor are unchanged.",
+        "breaking": "none",
         "migration": "",
-        "digest": "b09c7b286f57ee5832d67a3cc033a964e6105a0538ced10470a4db37f3a20e1e"
+        "digest": "d20bc5a90bd95f440f7c2766ea8e221fca2f3223fb88d9e4ee16d5dd7771de96"
       }
     },
     "authentication": {
@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "5f600bd66ce6b1354c40469a92172a0fc276376dbb06da8943377346414f6836",
+        "src/core/clients/musicbrainz.ts": "bdf2e179f03038acc1c60ef72b14da9bf73011c86805f69170ff6155fac219d1",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -773,19 +773,19 @@
         "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "d9444b3910241e5cea7329de6ebb02612bf89256d8dd564ac7fe080d9b90d325",
+      "digest": "0990754c8e2b97b88ae25503382b0b47db5b7f85c5ab92c69839b692ae9a36cb",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/OPERATIONS.md"],
-        "note": "MusicBrainz requests follow redirects that stay under the configured API base (merged-artist MBIDs) and refuse the rest without retrying; document the mirror redirect rule and the fix.",
+        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
+        "note": "Describe the strict sliding-window MusicBrainz queue and the new 1100 ms default interval.",
         "breaking": "none",
         "migration": "",
-        "digest": "d9444b3910241e5cea7329de6ebb02612bf89256d8dd564ac7fe080d9b90d325"
+        "digest": "0990754c8e2b97b88ae25503382b0b47db5b7f85c5ab92c69839b692ae9a36cb"
       }
     },
     "deployment": {
       "files": {
-        "deploy/docker/.env.example": "4fc6987e5404690e64bd1290e307f1706bb0c9a5731b31e8c79aad43771c0c63",
+        "deploy/docker/.env.example": "de2d22844cdcaaa0c3fe310a1336ffe44e4b45568055761c786c476af4293642",
         "deploy/docker/Dockerfile": "d142ff6b773117269d159abb37dc297328ac90b29980739de66310523878f0c0",
         "deploy/docker/docker-compose.compat.yml": "06b099db7f06429695028ddf1562104fe6c5964c735d42eccaf9dd7222bc368f",
         "deploy/docker/docker-compose.dev.yml": "a9beba5c81b5d2e5602063645780785e8569c9da66d7a7cc90ce2da5a892da3a",
@@ -820,14 +820,14 @@
         "deploy/k8s/service.yaml": "c249f4a6056f586b7c34d9ade0dc1472078db8dd9a11a5c9c395ba981694d99c",
         "deploy/k8s/serviceaccount.yaml": "8a28cec502a939570c9b339f6c05a7027e6a209f38885d2ffeca2c7eac348809"
       },
-      "digest": "86e23fb99f10df66e00c8d226023a223d7f1b972d7e33e83f42fc646ef0ba28b",
+      "digest": "1f1a1a1ecaefe9ecbeab6cf5c05a207000e72694415bee8fe16c7ef2a1cee764",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["docs/guides/synology.md"],
-        "note": "postgres 17-alpine digest and oven/bun 1.4.5 pins updated; the synology guide carries the new postgres digest, no behavior change",
+        "docs": ["CHANGELOG.md"],
+        "note": "The Docker env example shows the new 1100 ms MusicBrainz interval default; no deployment setting, port, path or image changes.",
         "breaking": "none",
         "migration": "",
-        "digest": "86e23fb99f10df66e00c8d226023a223d7f1b972d7e33e83f42fc646ef0ba28b"
+        "digest": "1f1a1a1ecaefe9ecbeab6cf5c05a207000e72694415bee8fe16c7ef2a1cee764"
       }
     },
     "release": {

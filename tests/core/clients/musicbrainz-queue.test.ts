@@ -31,7 +31,7 @@ afterEach(() => {
 
 describe('MusicBrainz shared queue timing (real p-queue)', () => {
   it.each([
-    [undefined, undefined, 1000],
+    [undefined, undefined, 1100],
     ['http://mirror.example/ws/2', '25', 25],
   ])('shares the configured interval across clients (%s, %s)', async (url, interval, expected) => {
     vi.setSystemTime(1)
@@ -51,6 +51,25 @@ describe('MusicBrainz shared queue timing (real p-queue)', () => {
     await vi.advanceTimersByTimeAsync(expected * 2)
     await Promise.all(requests)
     expect(times).toEqual([1, expected + 1])
+  })
+
+  it('never starts a call less than one interval after a late-starting one', async () => {
+    vi.resetModules()
+    const { createMusicBrainzClient } = await import('@/core/clients/musicbrainz')
+    const times: number[] = []
+    mockFetch.mockImplementation(async (url: string) => {
+      times.push(Date.now())
+      const query = new URL(url).searchParams.get('query')
+      // A is slow, so B starts late in the second 1100 ms window.
+      if (query === 'A') await new Promise((resolve) => setTimeout(resolve, 1900))
+      return jsonOk({ artists: [] })
+    })
+    const client = createMusicBrainzClient()
+    const requests = ['A', 'B', 'C'].map((query) => client.searchArtist(query))
+    await vi.advanceTimersByTimeAsync(10_000)
+    await Promise.all(requests)
+    // A fixed window started C at 2200, 300 ms after B.
+    expect(times).toEqual([0, 1900, 3000])
   })
 
   it('keeps one in-flight request across clients when the mirror interval is zero', async () => {
@@ -178,14 +197,14 @@ describe('MusicBrainz caller cancellation', () => {
     const controller = new AbortController()
     const catalog = client.getReleaseGroups('cancelled', undefined, { signal: controller.signal })
     const rejected = expect(catalog).rejects.toMatchObject({ name: 'AbortError' })
-    await vi.advanceTimersByTimeAsync(pages * 1000)
+    await vi.advanceTimersByTimeAsync(pages * 1100)
     controller.abort()
     await rejected
     const victim = client.searchArtist('victim')
     await vi.advanceTimersByTimeAsync(5000)
     await victim
     expect(fetches.filter(({ path }) => path.endsWith('/release-group'))).toHaveLength(pages)
-    expect(fetches.at(-1)).toEqual({ path: '/ws/2/artist/', t: (pages + 1) * 1000 })
+    expect(fetches.at(-1)).toEqual({ path: '/ws/2/artist/', t: (pages + 1) * 1100 })
   })
 
   it('aborts an active fetch without retrying or fetching subsequent pages', async () => {
