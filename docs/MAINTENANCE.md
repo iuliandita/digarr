@@ -85,7 +85,7 @@ This fetches both published templates and compares configuration fields and oper
 
 ## Dependency security checks
 
-The required dependency audit runs `bun audit --audit-level=high`. High and critical advisories fail the job; lower severities do not. The only ignored advisory is GHSA-fc5q-39xc-vjpf (picomatch, dev and build tooling only, no patched release); issue #1259 tracks removing the ignore once a fix ships. Bun handles its audit response and command failures directly, and error output stays visible. Trivy filesystem reporting remains advisory-only. This gate does not certify that every dependency is free of vulnerabilities.
+The required dependency audit runs `bun audit --audit-level=high`. High and critical advisories fail the job; lower severities do not. No advisory is ignored. Bun handles its audit response and command failures directly, and error output stays visible. Trivy filesystem reporting remains advisory-only. This gate does not certify that every dependency is free of vulnerabilities.
 
 ## Limits and release checks
 
