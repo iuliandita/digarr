@@ -843,19 +843,19 @@
         ".github/workflows/prune-nightly.yml": "45356050bb6f8e31b798be6334a9957f2647caf723292220f1b0baa4b5edbe7d",
         ".github/workflows/release-readiness.yml": "1a536b7881b23b189eb62cac05d9ca52ae3325dc37a370880d08fe129969d457",
         ".github/workflows/release.yml": "81482f7ac1ce1af6b92678b7676671e9c814cc992c69409a8a2ff1c8c3608174",
-        ".github/workflows/security.yml": "133ed6cc0c7f8680aa00cd033ac94c4ba6d7ed06a7745da1811b3ea0efaa8c24",
+        ".github/workflows/security.yml": "0cd6b7c148d043d995048105aa32d4f47bde54b0c23f6beb94643048b80baa90",
         ".github/workflows/stale.yml": "bc0a50e08f4f55ebe963eda2084335765639d03fc5d52292eea09ef0e9368297",
         "package.json": "8d030d0ed8a0230a01bc7de5e23814c71027b3b1d1b2978c096ca44afb81c758",
         "vite.config.ts": "df0470de29389d7a098dedc1e75fdb5b44c79bb452ca750471f1ec1c9eab36b2"
       },
-      "digest": "b830a02d49c35871586e7c569242e9da854ccbd607c97c364ae433c97f558604",
+      "digest": "13656d88800b3410c4fdc53499e15efcb3c37ec78fdb8880a2d2474f747e8f2d",
       "review": {
-        "outcome": "no-impact",
-        "docs": [],
-        "note": "github actions and bun runtime image pins bumped, and the withdrawn picomatch advisory ignore dropped from the audit step; no workflow behavior change",
+        "outcome": "docs-updated",
+        "docs": ["CHANGELOG.md", "README.md"],
+        "note": "the weekly security scan covers the debian image too and fails only on fixable findings; README and CHANGELOG point at the new image variant guidance",
         "breaking": "none",
         "migration": "",
-        "digest": "b830a02d49c35871586e7c569242e9da854ccbd607c97c364ae433c97f558604"
+        "digest": "13656d88800b3410c4fdc53499e15efcb3c37ec78fdb8880a2d2474f747e8f2d"
       }
     },
     "maintenance": {
