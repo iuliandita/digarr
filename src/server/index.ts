@@ -179,7 +179,10 @@ export function createApp(deps: AppDependencies) {
       xFrameOptions: 'DENY',
       xContentTypeOptions: 'nosniff',
       referrerPolicy: 'strict-origin-when-cross-origin',
-      crossOriginOpenerPolicy: 'same-origin',
+      // Not 'same-origin': that forces noopener on pop-ups opened from a
+      // cross-origin frame, so the Apple Music player's sign-in window could
+      // never hand the session back to the embedded player.
+      crossOriginOpenerPolicy: 'same-origin-allow-popups',
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],
@@ -188,7 +191,7 @@ export function createApp(deps: AppDependencies) {
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
         fontSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://open.spotify.com'],
+        frameSrc: ["'self'", 'https://open.spotify.com', 'https://embed.music.apple.com'],
       },
     }),
   )

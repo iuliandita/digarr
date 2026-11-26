@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { toast } from 'sonner'
+import { APPLE_PREVIEW_HOST, lookupAppleSongs, normalizeArtistName } from '../lib/apple-music'
 import { useI18n } from '../lib/i18n'
 import { clampVolume, readStoredVolume, writeStoredVolume } from '../lib/preview-volume'
 import type { SpotifyPlaybackCommand } from './use-spotify-embed'
 
 export type PreviewSource = {
-  type: 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
+  type: 'apple-audio' | 'spotify-embed' | 'deezer-audio' | 'youtube-embed'
   url: string
   embedUrl: string
   track?: { artistName: string; trackName: string; recordingMbid?: string }
@@ -29,6 +30,10 @@ export type PreviewFailureReason =
   | 'controller-unavailable'
 export type PreviewFailure = { sequence: number; artistMbid: string; reason: PreviewFailureReason }
 type PreviewResolution = { source: PreviewSource | null; reason?: PreviewFailureReason }
+export type PreviewOptions = {
+  /** The user's `applePreviews` preference: Apple clips, and never the Spotify player. */
+  applePreviews?: boolean
+}
 
 type PreviewState = {
   playing: boolean
@@ -49,6 +54,37 @@ const INITIAL_STATE: PreviewState = {
 }
 
 // Source resolvers
+
+export function isAudioSource(source: PreviewSource): boolean {
+  return source.type === 'apple-audio' || source.type === 'deezer-audio'
+}
+
+/**
+ * 30-second preview of the artist's most popular song with a clip. The audio
+ * plays through the preview proxy, because the page's CSP allows media from
+ * this origin only.
+ */
+async function resolveApplePreview(
+  appleMusicUrl: string | undefined,
+  artistName: string,
+): Promise<PreviewResolution> {
+  const lookup = await lookupAppleSongs(appleMusicUrl, artistName)
+  if (!lookup.songs) return { source: null, reason: lookup.reason }
+  const track = lookup.songs.find(
+    (r) => typeof r.previewUrl === 'string' && r.previewUrl.startsWith(APPLE_PREVIEW_HOST),
+  )
+  if (!track?.previewUrl) return { source: null, reason: 'no-audio' }
+  return {
+    source: {
+      type: 'apple-audio',
+      url: track.previewUrl,
+      embedUrl: `/api/v1/preview/audio?${new URLSearchParams({ url: track.previewUrl }).toString()}`,
+      ...(typeof track.trackName === 'string' && track.trackName.trim()
+        ? { track: { artistName: track.artistName ?? artistName, trackName: track.trackName } }
+        : {}),
+    },
+  }
+}
 
 function resolveSpotifyEmbed(spotifyUrl: string): PreviewSource | null {
   let parsed: URL
@@ -71,8 +107,7 @@ function resolveSpotifyEmbed(spotifyUrl: string): PreviewSource | null {
 
 async function resolveDeezerPreview(artistName: string): Promise<PreviewResolution> {
   try {
-    const normalize = (name: string) =>
-      name.normalize('NFC').trim().replace(/\s+/g, ' ').toLowerCase()
+    const normalize = normalizeArtistName
     // Deezer no longer answers artist:"..." queries; search plainly and keep only the
     // exact artist, since a bare name also matches covers and tributes.
     const encoded = encodeURIComponent(artistName)
@@ -121,11 +156,16 @@ function resolveYouTubeEmbed(youtubeUrl: string): PreviewSource | null {
 async function resolvePreview(
   streamingUrls: Record<string, string> | null,
   artistName: string,
+  options: PreviewOptions = {},
 ): Promise<PreviewResolution> {
   if (!streamingUrls || !Object.values(streamingUrls).some(Boolean))
     return { source: null, reason: 'missing-links' }
 
-  if (streamingUrls.spotify) {
+  let apple: PreviewResolution | null = null
+  if (options.applePreviews) {
+    apple = await resolveApplePreview(streamingUrls.appleMusic, artistName)
+    if (apple.source) return apple
+  } else if (streamingUrls.spotify) {
     const source = resolveSpotifyEmbed(streamingUrls.spotify)
     if (source) return { source }
   }
@@ -138,14 +178,16 @@ async function resolvePreview(
     if (source) return { source }
   }
 
-  return deezer
+  // Apple's reason says more than the Deezer lookup's when both found nothing.
+  return apple ?? deezer
 }
 
 export async function resolvePreviewSource(
   streamingUrls: Record<string, string> | null,
   artistName: string,
+  options: PreviewOptions = {},
 ): Promise<PreviewSource | null> {
-  return (await resolvePreview(streamingUrls, artistName)).source
+  return (await resolvePreview(streamingUrls, artistName, options)).source
 }
 
 // Hook
@@ -154,11 +196,16 @@ export async function resolvePreviewSource(
  * Manages music preview playback state.
  *
  * Resolves the best available source in priority order: Spotify embed ->
- * Deezer 30-sec audio preview -> YouTube embed. Deezer audio is managed here,
+ * Deezer 30-sec audio preview -> YouTube embed. With the `applePreviews`
+ * preference an Apple 30-sec audio preview takes Spotify's place, and the
+ * Spotify player is never loaded. Apple and Deezer audio is managed here,
  * Spotify commands and events are bridged to the persistent iframe controller,
  * and the consumer renders YouTube from `state.source.embedUrl`.
  */
-export function usePreview() {
+export function usePreview(options: PreviewOptions = {}) {
+  const applePreviewsRef = useRef(options.applePreviews === true)
+  applePreviewsRef.current = options.applePreviews === true
+
   const { t } = useI18n()
   const [state, setState] = useState<PreviewState>(INITIAL_STATE)
   const stateRef = useRef<PreviewState>(INITIAL_STATE)
@@ -286,7 +333,7 @@ export function usePreview() {
 
       // Resume if same artist is paused
       if (currentMbidRef.current === mbid && !stateRef.current.playing && stateRef.current.source) {
-        if (stateRef.current.source.type === 'deezer-audio' && audioRef.current) {
+        if (isAudioSource(stateRef.current.source) && audioRef.current) {
           const audio = audioRef.current
           const requestId = requestIdRef.current
           try {
@@ -324,9 +371,9 @@ export function usePreview() {
       }
 
       currentMbidRef.current = mbid
-      const spotifySource = streamingUrls?.spotify
-        ? resolveSpotifyEmbed(streamingUrls.spotify)
-        : null
+      const applePreviews = applePreviewsRef.current
+      const spotifySource =
+        !applePreviews && streamingUrls?.spotify ? resolveSpotifyEmbed(streamingUrls.spotify) : null
 
       if (spotifySource) {
         setStateAndRef(() => ({
@@ -350,7 +397,9 @@ export function usePreview() {
         error: null,
       }))
 
-      const { source, reason } = await resolvePreview(streamingUrls, artistName)
+      const { source, reason } = await resolvePreview(streamingUrls, artistName, {
+        applePreviews,
+      })
 
       // Guard: user started a different preview while we were resolving
       if (requestIdRef.current !== requestId) return 'superseded'
@@ -362,8 +411,8 @@ export function usePreview() {
         return 'no-source'
       }
 
-      if (source.type === 'deezer-audio') {
-        const audio = new Audio(source.url)
+      if (isAudioSource(source)) {
+        const audio = new Audio(source.embedUrl)
         audio.volume = volumeRef.current
         audioRef.current = audio
         const isCurrent = () => requestIdRef.current === requestId && audioRef.current === audio
@@ -415,7 +464,11 @@ export function usePreview() {
 
   const hasPreview = useCallback((streamingUrls: Record<string, string> | null): boolean => {
     if (!streamingUrls) return false
-    return Boolean(streamingUrls.spotify || streamingUrls.deezer || streamingUrls.youtube)
+    return Boolean(
+      (applePreviewsRef.current ? streamingUrls.appleMusic : streamingUrls.spotify) ||
+        streamingUrls.deezer ||
+        streamingUrls.youtube,
+    )
   }, [])
 
   return {

@@ -717,7 +717,7 @@ const routeCatalog: RouteSpec[] = [
     path: '/api/v1/preview/audio',
     tag: 'Artists',
     auth: 'user',
-    summary: 'Proxy Deezer preview audio',
+    summary: 'Proxy Deezer or Apple preview audio',
     queryToken: true,
     rateLimit: '30/min',
     query: [{ ...q('url', str), required: true }],

@@ -710,6 +710,7 @@ export type Preferences = {
   listenbrainzPlaylistEnabled?: boolean
   lastfmLoveEnabled?: boolean
   spotifyAutoloadDashboard?: boolean
+  applePreviews?: boolean
   excludeRecentlyPlayed?: ExcludeRecentlyPlayed
 }
 
@@ -749,6 +750,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   listenbrainzPlaylistEnabled: false,
   lastfmLoveEnabled: false,
   spotifyAutoloadDashboard: false,
+  applePreviews: false,
   showExperimentalIntegrations: false,
   excludeRecentlyPlayed: DEFAULT_EXCLUDE_RECENTLY_PLAYED,
 }

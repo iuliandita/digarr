@@ -130,6 +130,160 @@ describe('resolvePreviewSource', () => {
     )
   })
 
+  describe('Apple previews', () => {
+    const APPLE_PREVIEW = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+    const artistRow = { wrapperType: 'artist', artistName: 'Radiohead' }
+    const song = (artistName: string, trackName: unknown, previewUrl?: string) => ({
+      wrapperType: 'track',
+      kind: 'song',
+      artistName,
+      trackName,
+      ...(previewUrl ? { previewUrl } : {}),
+    })
+    const stubApple = (results: unknown) =>
+      vi.stubGlobal(
+        'fetch',
+        vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) }),
+      )
+    const stubAppleByUrl = (byUrl: { search: unknown[]; lookup: unknown[] }) => {
+      const fetchMock = vi.fn(async (url: string) => ({
+        ok: true,
+        json: async () =>
+          url.startsWith('https://itunes.apple.com/search')
+            ? { results: byUrl.search }
+            : url.startsWith('https://itunes.apple.com/lookup')
+              ? { results: byUrl.lookup }
+              : { data: [] },
+      }))
+      vi.stubGlobal('fetch', fetchMock)
+      return fetchMock
+    }
+    const appleSource = (track?: { artistName: string; trackName: string }) => ({
+      type: 'apple-audio',
+      url: APPLE_PREVIEW,
+      embedUrl: `/api/v1/preview/audio?url=${encodeURIComponent(APPLE_PREVIEW)}`,
+      ...(track ? { track } : {}),
+    })
+
+    it.each([
+      'https://music.apple.com/gb/artist/radiohead/657515',
+      'https://music.apple.com/us/artist/657515',
+      'https://music.apple.com/artist/657515',
+      'https://itunes.apple.com/us/artist/id657515',
+    ])('looks the artist up by the ID in %s instead of using Spotify', async (appleMusic) => {
+      stubApple([artistRow, song('Radiohead & Friends', 'Creep', APPLE_PREVIEW)])
+      expect(
+        await resolvePreviewSource(
+          { appleMusic, spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
+          'Radiohead',
+          { applePreviews: true },
+        ),
+      ).toEqual(appleSource({ artistName: 'Radiohead & Friends', trackName: 'Creep' }))
+      expect(fetch).toHaveBeenCalledExactlyOnceWith(
+        'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
+        { signal: expect.any(AbortSignal) },
+      )
+    })
+
+    it.each([
+      [undefined],
+      ['https://music.apple.com/search?term=Radiohead'],
+      ['https://example.com/us/artist/657515'],
+      ['http://music.apple.com/us/artist/657515'],
+    ])('searches artists by exact name when the link is %j, then looks up songs', async (link) => {
+      const fetchMock = stubAppleByUrl({
+        search: [
+          { wrapperType: 'artist', artistName: 'Radiohead Tribute', artistId: 1 },
+          { wrapperType: 'artist', artistName: '  RADIOHEAD ', artistId: 657515 },
+        ],
+        lookup: [artistRow, song('Radiohead', '   ', APPLE_PREVIEW)],
+      })
+      expect(
+        await resolvePreviewSource(
+          { ...(link ? { appleMusic: link } : {}), deezer: 'url' },
+          'Radiohead',
+          { applePreviews: true },
+        ),
+      ).toEqual(appleSource())
+      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
+        'https://itunes.apple.com/search?term=Radiohead&media=music&entity=musicArtist&attribute=artistTerm&limit=10',
+        'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
+      ])
+    })
+
+    it('finds an artist listed in its own script whose songs are credited romanized', async () => {
+      const fetchMock = stubAppleByUrl({
+        search: [
+          { wrapperType: 'artist', artistName: '花冷え。', artistId: 1437484631 },
+          { wrapperType: 'artist', artistName: 'HANABIE.', artistId: 1616591251 },
+        ],
+        lookup: [song('hanabie', 'We Love Sweets', APPLE_PREVIEW)],
+      })
+      expect(
+        await resolvePreviewSource({ deezer: 'url' }, '花冷え。', { applePreviews: true }),
+      ).toEqual(appleSource({ artistName: 'hanabie', trackName: 'We Love Sweets' }))
+      expect(fetchMock.mock.calls[1]?.[0]).toBe(
+        'https://itunes.apple.com/lookup?id=1437484631&entity=song&limit=10',
+      )
+    })
+
+    it('does not guess when no artist has exactly that name', async () => {
+      const fetchMock = stubAppleByUrl({
+        search: [{ wrapperType: 'artist', artistName: 'Yorushika', artistId: 2 }],
+        lookup: [song('Yorushika', 'Song', APPLE_PREVIEW)],
+      })
+      expect(
+        await resolvePreviewSource({ deezer: 'url' }, 'ヨルシカ', { applePreviews: true }),
+      ).toBeNull()
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/lookup'))).toBe(false)
+    })
+
+    it.each([
+      ['no song matches', [artistRow, song('Radiohead Tribute', 'Creep', APPLE_PREVIEW)]],
+      ['the match has no preview', [song('Radiohead', 'Creep')]],
+      [
+        'the preview is on an unexpected host',
+        [song('Radiohead', 'Creep', 'https://evil.example/preview.m4a')],
+      ],
+      ['the response has no results', undefined],
+    ])('never falls back to Spotify when %s', async (_case, results) => {
+      stubApple(results)
+      expect(
+        await resolvePreviewSource(
+          { spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
+          'Radiohead',
+          { applePreviews: true },
+        ),
+      ).toBeNull()
+    })
+
+    it('still falls back to YouTube', async () => {
+      stubApple([])
+      const result = await resolvePreviewSource(
+        {
+          spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+          youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        },
+        'Radiohead',
+        { applePreviews: true },
+      )
+      expect(result?.type).toBe('youtube-embed')
+    })
+
+    it('does not contact Apple unless the preference is on', async () => {
+      stubApple([song('Radiohead', 'Creep', APPLE_PREVIEW)])
+      const result = await resolvePreviewSource(
+        {
+          appleMusic: 'https://music.apple.com/us/artist/657515',
+          spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+        },
+        'Radiohead',
+      )
+      expect(result?.type).toBe('spotify-embed')
+      expect(fetch).not.toHaveBeenCalled()
+    })
+  })
+
   it('returns null for invalid Spotify URL with no fallbacks', async () => {
     const result = await resolvePreviewSource(
       { spotify: 'https://open.spotify.com/invalid' },
@@ -303,6 +457,56 @@ describe('usePreview play outcomes', () => {
 
     await act(async () => {
       outcome = await result.current.play('m1', 'Radiohead', { deezer: 'url' })
+    })
+    expect(outcome).toBe('resumed')
+    expect(result.current.state.playing).toBe(true)
+  })
+
+  it('plays an Apple preview through the audio proxy, with pause and resume', async () => {
+    const previewUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({
+          results: [
+            {
+              wrapperType: 'track',
+              kind: 'song',
+              artistName: 'Radiohead',
+              trackName: 'Creep',
+              previewUrl,
+            },
+          ],
+        }),
+      }),
+    )
+    const urls = {
+      appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515',
+      spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+    }
+    const { result } = renderHook(() => usePreview({ applePreviews: true }), { wrapper })
+    expect(result.current.hasPreview({ spotify: urls.spotify })).toBe(false)
+    expect(result.current.hasPreview({ appleMusic: urls.appleMusic })).toBe(true)
+
+    let outcome: string | undefined
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Radiohead', urls)
+    })
+    expect(outcome).toBe('started')
+    expect(result.current.state.source?.type).toBe('apple-audio')
+    expect(result.current.state.playing).toBe(true)
+    expect(result.current.spotifyCommand.action).not.toBe('play')
+    expect(FakeAudio.instances.at(-1)?.src).toBe(
+      `/api/v1/preview/audio?url=${encodeURIComponent(previewUrl)}`,
+    )
+
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Radiohead', urls)
+    })
+    expect(outcome).toBe('paused')
+    await act(async () => {
+      outcome = await result.current.play('m1', 'Radiohead', urls)
     })
     expect(outcome).toBe('resumed')
     expect(result.current.state.playing).toBe(true)

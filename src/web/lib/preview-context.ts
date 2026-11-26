@@ -13,6 +13,8 @@ type PreviewContextValue = {
   volume: number
   setVolume: (value: number) => void
   audition: AuditionQueue
+  /** The user's `applePreviews` preference: inline players come from Apple, never Spotify. */
+  applePreviews?: boolean
 }
 
 export const PreviewContext = createContext<PreviewContextValue | null>(null)

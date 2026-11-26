@@ -23,6 +23,7 @@ import { ErrorBoundary } from './components/error-boundary'
 import { KeyboardShortcuts } from './components/keyboard-shortcuts'
 import { LanguageSwitcher } from './components/language-switcher'
 import { PreviewPlayer } from './components/preview-player'
+import { useApplePreviews } from './hooks/use-apple-previews'
 import { useAuditionQueue } from './hooks/use-audition-queue'
 import { useKeyboardShortcuts } from './hooks/use-keyboard-shortcuts'
 import { useMenu } from './hooks/use-menu'
@@ -396,7 +397,8 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [mode, setModeState] = useState<Mode>(getStoredMode)
   const [colorTheme, setColorThemeState] = useState<ColorTheme>(getStoredColorTheme)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
-  const preview = usePreview()
+  const applePreviews = useApplePreviews()
+  const preview = usePreview({ applePreviews: applePreviews.enabled })
   const audition = useAuditionQueue(preview)
   const latestRequestedLocaleRef = useRef<SupportedLocale | null>(null)
   const submittedPendingLocaleRef = useRef<SupportedLocale | null>(null)
@@ -507,6 +509,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       volume: preview.volume,
       setVolume: preview.setVolume,
       audition,
+      applePreviews: applePreviews.enabled,
     }),
     [
       preview.play,
@@ -519,6 +522,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       preview.volume,
       preview.setVolume,
       audition,
+      applePreviews.enabled,
     ],
   )
 

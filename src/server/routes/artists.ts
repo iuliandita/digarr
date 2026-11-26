@@ -13,7 +13,9 @@ import { rateLimiter } from '@/server/middleware/rate-limit'
 const ENRICHMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const ENRICHMENT_NEG_TTL_MS = 24 * 60 * 60 * 1000
 const MAX_PREVIEW_REDIRECTS = 3
-const PREVIEW_URL_PATTERN = /^https:\/\/cdn[st]-?preview[a-z0-9-]*\.dzcdn\.net\//
+// Deezer's preview CDN and Apple's iTunes preview host.
+const PREVIEW_URL_PATTERN =
+  /^https:\/\/(?:cdn[st]-?preview[a-z0-9-]*\.dzcdn\.net|audio-ssl\.itunes\.apple\.com)\//
 
 export function artistRoutes(deps: AppDependencies) {
   const router = new Hono()
@@ -91,7 +93,7 @@ export function artistRoutes(deps: AppDependencies) {
     return c.json({ tracks })
   })
 
-  // Proxy Deezer preview audio to avoid CORS issues in browsers
+  // Proxy Deezer and Apple preview audio: the CSP allows media from this origin only
   router.get(
     '/api/v1/preview/audio',
     rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview' }),

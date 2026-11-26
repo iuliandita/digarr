@@ -2,7 +2,7 @@
 
 import { fireEvent, render, screen } from '@testing-library/react'
 import type { ContextType } from 'react'
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { StreamingLinks } from '@/web/components/streaming-links'
 import { I18nProvider } from '@/web/lib/i18n'
 import { PreviewContext } from '@/web/lib/preview-context'
@@ -92,5 +92,88 @@ describe('StreamingLinks Spotify autoload', () => {
     renderAuto(true, false)
     expect(document.querySelector('iframe')).toBeNull()
     expect(screen.queryByRole('checkbox')).toBeNull()
+  })
+})
+
+describe('StreamingLinks with the applePreviews preference', () => {
+  const urls = {
+    spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+    appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515',
+  }
+  const song = { wrapperType: 'track', kind: 'song', trackId: 1097862062, artistName: 'Radiohead' }
+
+  function renderApple(
+    results: unknown[],
+    props: Partial<Parameters<typeof StreamingLinks>[0]> = {},
+  ) {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) })
+    vi.stubGlobal('fetch', fetchMock)
+    const stop = vi.fn()
+    const preview = { stop, applePreviews: true } as unknown as NonNullable<
+      ContextType<typeof PreviewContext>
+    >
+    const view = render(
+      <I18nProvider>
+        <PreviewContext.Provider value={preview}>
+          <StreamingLinks streamingUrls={urls} artistName="Radiohead" {...props} />
+        </PreviewContext.Provider>
+      </I18nProvider>,
+    )
+    return { fetchMock, stop, ...view }
+  }
+
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('offers the Apple player instead of the Spotify one and requests nothing until clicked', async () => {
+    const { fetchMock, stop, container } = renderApple([song])
+    expect(screen.queryByRole('button', { name: 'Load Spotify player' })).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(container.querySelector('iframe')).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Load Apple Music player' }))
+    expect(stop).toHaveBeenCalledOnce()
+    const frame = await screen.findByTitle('Apple Music preview')
+    expect(frame.getAttribute('src')).toBe('https://embed.music.apple.com/song/1097862062')
+    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
+      'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
+      { signal: expect.any(AbortSignal) },
+    )
+    expect(container.querySelector('iframe[src*="spotify"]')).toBeNull()
+  })
+
+  it('offers the top three songs and swaps the player to the one clicked', async () => {
+    const songs = [1, 2, 3, 4].map((n) => ({ ...song, trackId: n, trackName: `Song ${n}` }))
+    renderApple(songs)
+    fireEvent.click(screen.getByRole('button', { name: 'Load Apple Music player' }))
+    const frame = () => screen.getByTitle('Apple Music preview').getAttribute('src')
+    await screen.findByTitle('Apple Music preview')
+    expect(frame()).toBe('https://embed.music.apple.com/song/1')
+    expect(screen.getByRole('button', { name: 'Song 1' }).getAttribute('aria-pressed')).toBe('true')
+    expect(screen.queryByRole('button', { name: 'Song 4' })).toBeNull()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Song 3' }))
+    expect(frame()).toBe('https://embed.music.apple.com/song/3')
+    expect(screen.getByRole('button', { name: 'Song 3' }).getAttribute('aria-pressed')).toBe('true')
+  })
+
+  it('says so when Apple has no song for the artist', async () => {
+    const { container } = renderApple([])
+    fireEvent.click(screen.getByRole('button', { name: 'Load Apple Music player' }))
+    expect(await screen.findByText('No preview available for this artist')).toBeTruthy()
+    expect(container.querySelector('iframe')).toBeNull()
+  })
+
+  it('loads without a click when dashboard autoload is on, and can turn it off', async () => {
+    const onChange = vi.fn()
+    renderApple([song], { spotifyAutoload: { enabled: true, onChange } })
+    expect(await screen.findByTitle('Apple Music preview')).toBeTruthy()
+    fireEvent.click(screen.getByRole('button', { name: "Don't load automatically" }))
+    expect(onChange).toHaveBeenCalledExactlyOnceWith(false)
+  })
+
+  it('shows no inline player in compact mode', () => {
+    const { fetchMock } = renderApple([song], { compact: true })
+    expect(screen.queryByRole('button', { name: 'Load Apple Music player' })).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
   })
 })

@@ -87,6 +87,7 @@ const ALLOWED_PREF_KEYS = new Set([
   'listenbrainzPlaylistEnabled',
   'lastfmLoveEnabled',
   'spotifyAutoloadDashboard',
+  'applePreviews',
 ])
 
 export function authRoutes(deps: AppDependencies) {

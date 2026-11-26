@@ -502,6 +502,32 @@ describe('preview audio proxy redirects', () => {
     fetchMock.mockRestore()
   })
 
+  it('proxies an Apple preview', async () => {
+    const apple = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('abc', { headers: { 'Content-Type': 'audio/x-m4p' } }))
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(apple)}`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toBe('audio/x-m4p')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(apple)
+    fetchMock.mockRestore()
+  })
+
+  it.each([
+    'https://audio-ssl.itunes.apple.com.evil.example/preview.m4a',
+    'https://itunes.apple.com/lookup?id=1',
+    'http://audio-ssl.itunes.apple.com/preview.m4a',
+  ])('rejects %s without fetching it', async (url) => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(url)}`)
+    expect(res.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+    fetchMock.mockRestore()
+  })
+
   it('stops after too many redirects', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => redirect(GOOD))
     const app = createApp(makeDeps())

@@ -1,10 +1,11 @@
 import { Music, SkipBack, SkipForward, Volume2, X } from 'lucide-react'
 import { useEffect, useRef } from 'react'
-import type { PreviewSource } from '@/web/hooks/use-preview'
+import { isAudioSource, type PreviewSource } from '@/web/hooks/use-preview'
 import { type SpotifyPlaybackCommand, useSpotifyEmbed } from '@/web/hooks/use-spotify-embed'
 import { useI18n } from '../lib/i18n'
 
 const SOURCE_LABELS: Record<PreviewSource['type'], string> = {
+  'apple-audio': 'Apple Music',
   'spotify-embed': 'Spotify',
   'deezer-audio': 'Deezer',
   'youtube-embed': 'YouTube',
@@ -99,7 +100,7 @@ export function PreviewPlayer({
       : null
   // Volume is only controllable for the HTML5 Deezer audio element; the
   // Spotify/YouTube embeds run in cross-origin iframes with their own controls.
-  const showVolume = source?.type === 'deezer-audio'
+  const showVolume = source != null && isAudioSource(source)
 
   return (
     <section
