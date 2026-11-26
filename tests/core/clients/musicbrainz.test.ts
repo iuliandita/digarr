@@ -246,10 +246,48 @@ describe('createMusicBrainzClient', () => {
       ['soundcloud', 'free streaming', 'https://soundcloud.com/radiohead'],
       ['bandcamp', 'free streaming', 'https://radiohead.bandcamp.com'],
       ['youtube', 'streaming music', 'https://music.youtube.com/channel/UC123'],
+      ['appleMusic', 'streaming', 'https://music.apple.com/de/artist/1705431963'],
+      ['tidal', 'streaming', 'https://tidal.com/artist/13858'],
     ])('extracts the %s URL from a %s relation (%s)', (key, type, resource) => {
       const client = createMusicBrainzClient()
       const urls = client.extractStreamingUrls([{ type, url: { resource } }] as MBRelation[])
       expect(urls[key as keyof typeof urls]).toBe(resource)
+    })
+
+    it.each([
+      'https://itunes.apple.com/us/artist/id925697353',
+      'https://itunes.apple.com/artist/id925697353',
+      'https://itunes.apple.com/gb/artist/some-band/id925697353?uo=4',
+    ])('builds an Apple Music link from the iTunes artist link %s', (resource) => {
+      const client = createMusicBrainzClient()
+      const urls = client.extractStreamingUrls([
+        { type: 'purchase for download', url: { resource } },
+      ] as MBRelation[])
+      expect(urls).toEqual({ appleMusic: 'https://music.apple.com/artist/925697353' })
+    })
+
+    it('keeps the Apple Music streaming link over an iTunes artist link', () => {
+      const client = createMusicBrainzClient()
+      const urls = client.extractStreamingUrls([
+        {
+          type: 'purchase for download',
+          url: { resource: 'https://itunes.apple.com/us/artist/id111' },
+        },
+        { type: 'streaming', url: { resource: 'https://music.apple.com/us/artist/222' } },
+      ] as MBRelation[])
+      expect(urls.appleMusic).toBe('https://music.apple.com/us/artist/222')
+    })
+
+    it('ignores purchase links that are not iTunes artist pages', () => {
+      const client = createMusicBrainzClient()
+      const urls = client.extractStreamingUrls([
+        {
+          type: 'purchase for download',
+          url: { resource: 'https://itunes.apple.com/us/album/id123' },
+        },
+        { type: 'purchase for download', url: { resource: 'https://radiohead.bandcamp.com' } },
+      ] as MBRelation[])
+      expect(urls).toEqual({})
     })
 
     it('ignores non-streaming relations', () => {

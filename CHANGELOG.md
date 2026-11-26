@@ -13,6 +13,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 
 ### Fixed
 
+- Apple Music and Tidal links from MusicBrainz are read again. MusicBrainz names that relationship `streaming`, and Digarr accepted only its former name, so the Apple Music button always opened a search. An artist with only an iTunes Store link now gets an Apple Music link as well. Artists already in the database pick the links up the next time they are resolved.
 - slskd artist approvals now search only studio albums and EPs, skipping singles, compilations and live releases. An EP sharing a normalized title with an album or another EP is skipped, so a same-named single or EP cannot trigger a duplicate album download; distinct albums with the same title, such as self-titled records, are all kept (#1252).
 - The slskd target test now translates Lidarr timeout, HTTP error, and connection failure details into your selected language, while keeping upstream errors secret-redacted (#1254).
 - Navidrome/Subsonic library sync now uses tagged artist MusicBrainz IDs and album titles to resolve more artists. A specific Album/EP can break an otherwise empty tie among the first three name candidates; unresolved names get up to two cached exact album-and-artist searches. Part-name matches in combined credits need two agreeing albums. Conflicting matches remain unresolved; failed optional hint reads sync without hints, while real artist/album fetch failures preserve the previous snapshot (#1255).
