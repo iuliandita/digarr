@@ -149,6 +149,7 @@ const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504])
 const MAX_RETRIES = 3
 const BASE_BACKOFF_MS = 1000
 const MAX_RETRY_AFTER_MS = 30_000
+const REDIRECT_STATUSES = new Set([301, 302, 303, 307, 308])
 
 const releaseGroupSearchSchema = z.object({
   count: z.number().int().nonnegative().optional(),
@@ -166,6 +167,20 @@ const releaseGroupSearchSchema = z.object({
     }),
   ),
 })
+
+// A merged MBID 301s to the surviving one; follow it only under the configured base.
+function sameServiceRedirectPath(res: Response, path: string): string | null {
+  if (!REDIRECT_STATUSES.has(res.status)) return null
+  const location = res.headers.get('location')
+  if (!location) return null
+  let target: URL
+  try {
+    target = new URL(location, `${BASE_URL}${path}`)
+  } catch {
+    return null
+  }
+  return target.href.startsWith(`${BASE_URL}/`) ? target.href.slice(BASE_URL.length) : null
+}
 
 function parseRetryAfterMs(header: string | null): number | null {
   if (!header) return null
@@ -269,8 +284,8 @@ export function createMusicBrainzClient(
       return await fetch(`${BASE_URL}${path}`, {
         headers: { 'User-Agent': USER_AGENT },
         signal: signal ? AbortSignal.any([signal, controller.signal]) : controller.signal,
-        // A fast mirror must not redirect requests onto the public rate-limited service.
-        redirect: 'error',
+        // request() follows only redirects that stay on the configured service.
+        redirect: 'manual',
       })
     } finally {
       clearTimeout(timer)
@@ -294,6 +309,15 @@ export function createMusicBrainzClient(
 
         if (res.ok) {
           return (await res.json()) as T
+        }
+
+        // The next hop takes its own queue slot and counts as an attempt, so a
+        // redirect loop ends like any other failure.
+        const redirectPath = sameServiceRedirectPath(res, path)
+        if (redirectPath !== null && attempt < MAX_RETRIES) {
+          await res.body?.cancel()
+          path = redirectPath
+          continue
         }
 
         // Non-retryable HTTP status: surface immediately.

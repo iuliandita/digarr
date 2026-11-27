@@ -139,7 +139,7 @@ describe('parseYear', () => {
 
 describe('createMusicBrainzClient', () => {
   describe('p-queue rate limiter configuration', () => {
-    it('uses the configured mirror base and disables redirects', async () => {
+    it('uses the configured mirror base and handles redirects itself', async () => {
       vi.stubEnv('DIGARR_MUSICBRAINZ_URL', 'http://mirror.example:5000/custom/ws/2/')
       vi.stubEnv('DIGARR_MUSICBRAINZ_INTERVAL_MS', '50')
       vi.resetModules()
@@ -152,7 +152,7 @@ describe('createMusicBrainzClient', () => {
         expect(mockFetch).toHaveBeenCalledWith(
           'http://mirror.example:5000/custom/ws/2/artist/?query=AC%2FDC&fmt=json',
           expect.objectContaining({
-            redirect: 'error',
+            redirect: 'manual',
             headers: { 'User-Agent': USER_AGENT },
             signal: expect.any(AbortSignal),
           }),
@@ -230,7 +230,7 @@ describe('createMusicBrainzClient', () => {
       expect(mockFetch).toHaveBeenCalledExactlyOnceWith(`${MB_BASE}${path}`, {
         headers: { 'User-Agent': USER_AGENT },
         signal: expect.any(AbortSignal),
-        redirect: 'error',
+        redirect: 'manual',
       })
       expect(sharedAdd).toHaveBeenCalledOnce()
     })
@@ -731,6 +731,104 @@ describe('createMusicBrainzClient', () => {
       await expect(client.searchArtist('bad-query')).rejects.toThrow(/MusicBrainz HTTP 400/)
       expect(mockFetch).toHaveBeenCalledTimes(1)
     })
+  })
+})
+
+describe('redirects', () => {
+  // MusicBrainz answers a merged artist's old MBID with a 301 to the surviving one.
+  const OLD_MBID = '2ac199a1-a971-4158-b025-b8808d0b56e7'
+  const NEW_MBID = '932df08c-fe75-45e7-9d09-2f5949972981'
+  const OLD_PATH = `/artist/${OLD_MBID}?inc=tags%2Burl-rels%2Baliases&fmt=json`
+  const NEW_PATH = `/artist/${NEW_MBID}?fmt=json&inc=tags%2Burl-rels%2Baliases`
+  const MERGED_ARTIST = { id: NEW_MBID, name: 'Merged Artist' }
+  const redirectTo = (location?: string) =>
+    new Response(null, { status: 301, headers: location ? { location } : {} })
+
+  afterEach(() => {
+    mockFetch.mockReset()
+  })
+
+  it.each([
+    { name: 'absolute URL', location: `${MB_BASE}${NEW_PATH}` },
+    { name: 'relative path', location: `/ws/2${NEW_PATH}` },
+  ])('follows a same-service redirect ($name) through the shared queue', async ({ location }) => {
+    mockFetch
+      .mockResolvedValueOnce(redirectTo(location))
+      .mockResolvedValueOnce(makeJsonResponse(MERGED_ARTIST))
+
+    expect(await createMusicBrainzClient().lookupArtist(OLD_MBID)).toEqual(MERGED_ARTIST)
+    expect(mockFetch.mock.calls.map(([url]) => url)).toEqual([
+      `${MB_BASE}${OLD_PATH}`,
+      `${MB_BASE}${NEW_PATH}`,
+    ])
+    expect(sharedAdd).toHaveBeenCalledTimes(2)
+  })
+
+  it('caches the surviving artist under the MBID that was asked for', async () => {
+    const entries = new Map<string, MusicBrainzCacheHit>()
+    const cacheStore: MusicBrainzCacheStore = {
+      get: vi.fn(async (key) => entries.get(key) ?? null),
+      set: vi.fn(async (key: string, kind: MusicBrainzCacheKind, entry: MusicBrainzCacheEntry) => {
+        entries.set(key, { ...entry, expiresAt: Date.now() + MUSICBRAINZ_CACHE_TTL_MS[kind] })
+      }),
+    }
+    mockFetch
+      .mockResolvedValueOnce(redirectTo(`${MB_BASE}${NEW_PATH}`))
+      .mockResolvedValueOnce(makeJsonResponse(MERGED_ARTIST))
+    const client = createClient({ cacheStore })
+
+    await client.lookupArtist(OLD_MBID)
+    expect(await client.lookupArtist(OLD_MBID)).toEqual(MERGED_ARTIST)
+    expect(mockFetch).toHaveBeenCalledTimes(2)
+    expect(cacheStore.set).toHaveBeenCalledExactlyOnceWith(OLD_PATH, 'artist', {
+      status: 200,
+      body: MERGED_ARTIST,
+    })
+  })
+
+  it.each([
+    { name: 'another host', location: `https://mirror.example/ws/2${NEW_PATH}` },
+    { name: 'plain HTTP', location: `http://musicbrainz.org/ws/2${NEW_PATH}` },
+    { name: 'a path outside the API base', location: `https://musicbrainz.org/artist/${NEW_MBID}` },
+    { name: 'nowhere (no Location)', location: undefined },
+  ])('does not follow a redirect to $name or retry it', async ({ location }) => {
+    mockFetch.mockResolvedValueOnce(redirectTo(location))
+
+    await expect(createMusicBrainzClient().lookupArtist(OLD_MBID)).rejects.toThrow(
+      /MusicBrainz HTTP 301/,
+    )
+    expect(mockFetch).toHaveBeenCalledOnce()
+  })
+
+  it('does not follow a mirror redirect onto public MusicBrainz', async () => {
+    vi.stubEnv('DIGARR_MUSICBRAINZ_URL', 'http://mirror.example:5000/ws/2')
+    vi.resetModules()
+    try {
+      const { createMusicBrainzClient: createMirrorClient } = await import(
+        '@/core/clients/musicbrainz'
+      )
+      mockFetch.mockResolvedValueOnce(redirectTo(`${MB_BASE}${NEW_PATH}`))
+
+      await expect(createMirrorClient().lookupArtist(OLD_MBID)).rejects.toThrow(
+        /MusicBrainz HTTP 301/,
+      )
+      expect(mockFetch).toHaveBeenCalledExactlyOnceWith(
+        `http://mirror.example:5000/ws/2${OLD_PATH}`,
+        expect.objectContaining({ redirect: 'manual' }),
+      )
+    } finally {
+      vi.unstubAllEnvs()
+      vi.resetModules()
+    }
+  })
+
+  it('gives up on a redirect loop after the usual attempts', async () => {
+    mockFetch.mockImplementation(async () => redirectTo(`${MB_BASE}${OLD_PATH}`))
+
+    await expect(createMusicBrainzClient().lookupArtist(OLD_MBID)).rejects.toThrow(
+      /MusicBrainz HTTP 301/,
+    )
+    expect(mockFetch).toHaveBeenCalledTimes(4)
   })
 })
 
