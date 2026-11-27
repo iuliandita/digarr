@@ -398,7 +398,10 @@ function AppShell({ children }: { children: React.ReactNode }) {
   const [colorTheme, setColorThemeState] = useState<ColorTheme>(getStoredColorTheme)
   const [shortcutsOpen, setShortcutsOpen] = useState(false)
   const applePreviews = useApplePreviews()
-  const preview = usePreview({ applePreviews: applePreviews.enabled })
+  const preview = usePreview({
+    applePreviews: applePreviews.preference,
+    applePreviewsPending: applePreviews.pending,
+  })
   const audition = useAuditionQueue(preview)
   const latestRequestedLocaleRef = useRef<SupportedLocale | null>(null)
   const submittedPendingLocaleRef = useRef<SupportedLocale | null>(null)
@@ -509,7 +512,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       volume: preview.volume,
       setVolume: preview.setVolume,
       audition,
-      applePreviews: applePreviews.enabled,
+      applePreviews: applePreviews.preference,
     }),
     [
       preview.play,
@@ -522,7 +525,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
       preview.volume,
       preview.setVolume,
       audition,
-      applePreviews.enabled,
+      applePreviews.preference,
     ],
   )
 

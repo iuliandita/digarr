@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { APPLE_PREVIEW_HOST, lookupAppleSongs, normalizeArtistName } from '../lib/apple-music'
 import { useI18n } from '../lib/i18n'
 import { clampVolume, readStoredVolume, writeStoredVolume } from '../lib/preview-volume'
+import type { ApplePreviewsPreference } from './use-apple-previews'
 import type { SpotifyPlaybackCommand } from './use-spotify-embed'
 
 export type PreviewSource = {
@@ -31,9 +32,18 @@ export type PreviewFailureReason =
 export type PreviewFailure = { sequence: number; artistMbid: string; reason: PreviewFailureReason }
 type PreviewResolution = { source: PreviewSource | null; reason?: PreviewFailureReason }
 export type PreviewOptions = {
-  /** The user's `applePreviews` preference: Apple clips, and never the Spotify player. */
-  applePreviews?: boolean
+  /**
+   * The user's `applePreviews` preference: 'on' plays Apple clips and never the
+   * Spotify player; 'unknown' uses neither Apple nor Spotify. Defaults to 'off'.
+   */
+  applePreviews?: ApplePreviewsPreference
+  /** True while an 'unknown' preference may still arrive; play() then waits for it briefly. */
+  applePreviewsPending?: boolean
 }
+
+// How long play() waits for a preference that is still loading. Short, so that
+// playback still follows from the user's click.
+const PREFERENCE_WAIT_MS = 2000
 
 type PreviewState = {
   playing: boolean
@@ -161,11 +171,12 @@ async function resolvePreview(
   if (!streamingUrls || !Object.values(streamingUrls).some(Boolean))
     return { source: null, reason: 'missing-links' }
 
+  const preference = options.applePreviews ?? 'off'
   let apple: PreviewResolution | null = null
-  if (options.applePreviews) {
+  if (preference === 'on') {
     apple = await resolveApplePreview(streamingUrls.appleMusic, artistName)
     if (apple.source) return apple
-  } else if (streamingUrls.spotify) {
+  } else if (preference === 'off' && streamingUrls.spotify) {
     const source = resolveSpotifyEmbed(streamingUrls.spotify)
     if (source) return { source }
   }
@@ -198,13 +209,41 @@ export async function resolvePreviewSource(
  * Resolves the best available source in priority order: Spotify embed ->
  * Deezer 30-sec audio preview -> YouTube embed. With the `applePreviews`
  * preference an Apple 30-sec audio preview takes Spotify's place, and the
- * Spotify player is never loaded. Apple and Deezer audio is managed here,
- * Spotify commands and events are bridged to the persistent iframe controller,
- * and the consumer renders YouTube from `state.source.embedUrl`.
+ * Spotify player is never loaded. While the preference is unknown neither
+ * Apple nor Spotify is used, and play() first waits briefly for it to load.
+ * Apple and Deezer audio is managed here, Spotify commands and events are
+ * bridged to the persistent iframe controller, and the consumer renders
+ * YouTube from `state.source.embedUrl`.
  */
 export function usePreview(options: PreviewOptions = {}) {
-  const applePreviewsRef = useRef(options.applePreviews === true)
-  applePreviewsRef.current = options.applePreviews === true
+  const applePreviewsRef = useRef<ApplePreviewsPreference>('off')
+  applePreviewsRef.current = options.applePreviews ?? 'off'
+  const preferencePending =
+    applePreviewsRef.current === 'unknown' && options.applePreviewsPending === true
+  const applePreviewsPendingRef = useRef(preferencePending)
+  applePreviewsPendingRef.current = preferencePending
+  const preferenceWaitersRef = useRef(new Set<() => void>())
+
+  // Release play() calls waiting for the preference once it is known or failed.
+  useEffect(() => {
+    if (preferencePending) return
+    for (const release of [...preferenceWaitersRef.current]) release()
+  }, [preferencePending])
+
+  const waitForPreference = useCallback(
+    () =>
+      new Promise<void>((resolve) => {
+        if (!applePreviewsPendingRef.current) return resolve()
+        const release = () => {
+          clearTimeout(timer)
+          preferenceWaitersRef.current.delete(release)
+          resolve()
+        }
+        const timer = setTimeout(release, PREFERENCE_WAIT_MS)
+        preferenceWaitersRef.current.add(release)
+      }),
+    [],
+  )
 
   const { t } = useI18n()
   const [state, setState] = useState<PreviewState>(INITIAL_STATE)
@@ -259,6 +298,7 @@ export function usePreview(options: PreviewOptions = {}) {
 
   const stop = useCallback(() => {
     requestIdRef.current += 1
+    for (const release of [...preferenceWaitersRef.current]) release()
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.src = ''
@@ -278,6 +318,7 @@ export function usePreview(options: PreviewOptions = {}) {
         audio.src = ''
         audioRef.current = null
       }
+      for (const release of [...preferenceWaitersRef.current]) release()
     },
     [],
   )
@@ -371,11 +412,11 @@ export function usePreview(options: PreviewOptions = {}) {
       }
 
       currentMbidRef.current = mbid
-      const applePreviews = applePreviewsRef.current
-      const spotifySource =
-        !applePreviews && streamingUrls?.spotify ? resolveSpotifyEmbed(streamingUrls.spotify) : null
-
-      if (spotifySource) {
+      // Spotify only once the preference is known to be off.
+      const startSpotify = (): boolean => {
+        if (applePreviewsRef.current !== 'off' || !streamingUrls?.spotify) return false
+        const spotifySource = resolveSpotifyEmbed(streamingUrls.spotify)
+        if (!spotifySource) return false
         setStateAndRef(() => ({
           playing: false,
           artistMbid: mbid,
@@ -385,8 +426,10 @@ export function usePreview(options: PreviewOptions = {}) {
           error: null,
         }))
         issueSpotifyCommand('play')
-        return 'started'
+        return true
       }
+
+      if (startSpotify()) return 'started'
 
       setStateAndRef(() => ({
         playing: false,
@@ -397,8 +440,14 @@ export function usePreview(options: PreviewOptions = {}) {
         error: null,
       }))
 
+      if (applePreviewsPendingRef.current) {
+        await waitForPreference()
+        if (requestIdRef.current !== requestId) return 'superseded'
+        if (startSpotify()) return 'started'
+      }
+
       const { source, reason } = await resolvePreview(streamingUrls, artistName, {
-        applePreviews,
+        applePreviews: applePreviewsRef.current,
       })
 
       // Guard: user started a different preview while we were resolving
@@ -459,16 +508,16 @@ export function usePreview(options: PreviewOptions = {}) {
       setStateAndRef((s) => ({ ...s, source, loading: false, playing: true }))
       return 'started'
     },
-    [clearFailure, emitFailure, issueSpotifyCommand, setStateAndRef, t],
+    [clearFailure, emitFailure, issueSpotifyCommand, setStateAndRef, t, waitForPreference],
   )
 
+  // Unless the preference is known to be off, any streaming link qualifies, as
+  // it does for resolvePreview: the Apple and Deezer lookups can go by artist
+  // name, and a preference still loading may yet allow Spotify.
   const hasPreview = useCallback((streamingUrls: Record<string, string> | null): boolean => {
     if (!streamingUrls) return false
-    return Boolean(
-      (applePreviewsRef.current ? streamingUrls.appleMusic : streamingUrls.spotify) ||
-        streamingUrls.deezer ||
-        streamingUrls.youtube,
-    )
+    if (applePreviewsRef.current !== 'off') return Object.values(streamingUrls).some(Boolean)
+    return Boolean(streamingUrls.spotify || streamingUrls.deezer || streamingUrls.youtube)
   }, [])
 
   return {

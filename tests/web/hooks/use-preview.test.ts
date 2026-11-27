@@ -176,7 +176,7 @@ describe('resolvePreviewSource', () => {
         await resolvePreviewSource(
           { appleMusic, spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
           'Radiohead',
-          { applePreviews: true },
+          { applePreviews: 'on' },
         ),
       ).toEqual(appleSource({ artistName: 'Radiohead & Friends', trackName: 'Creep' }))
       expect(fetch).toHaveBeenCalledExactlyOnceWith(
@@ -202,7 +202,7 @@ describe('resolvePreviewSource', () => {
         await resolvePreviewSource(
           { ...(link ? { appleMusic: link } : {}), deezer: 'url' },
           'Radiohead',
-          { applePreviews: true },
+          { applePreviews: 'on' },
         ),
       ).toEqual(appleSource())
       expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
@@ -220,7 +220,7 @@ describe('resolvePreviewSource', () => {
         lookup: [song('hanabie', 'We Love Sweets', APPLE_PREVIEW)],
       })
       expect(
-        await resolvePreviewSource({ deezer: 'url' }, '花冷え。', { applePreviews: true }),
+        await resolvePreviewSource({ deezer: 'url' }, '花冷え。', { applePreviews: 'on' }),
       ).toEqual(appleSource({ artistName: 'hanabie', trackName: 'We Love Sweets' }))
       expect(fetchMock.mock.calls[1]?.[0]).toBe(
         'https://itunes.apple.com/lookup?id=1437484631&entity=song&limit=10',
@@ -233,7 +233,7 @@ describe('resolvePreviewSource', () => {
         lookup: [song('Yorushika', 'Song', APPLE_PREVIEW)],
       })
       expect(
-        await resolvePreviewSource({ deezer: 'url' }, 'ヨルシカ', { applePreviews: true }),
+        await resolvePreviewSource({ deezer: 'url' }, 'ヨルシカ', { applePreviews: 'on' }),
       ).toBeNull()
       expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/lookup'))).toBe(false)
     })
@@ -252,7 +252,7 @@ describe('resolvePreviewSource', () => {
         await resolvePreviewSource(
           { spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
           'Radiohead',
-          { applePreviews: true },
+          { applePreviews: 'on' },
         ),
       ).toBeNull()
     })
@@ -265,7 +265,7 @@ describe('resolvePreviewSource', () => {
           youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         },
         'Radiohead',
-        { applePreviews: true },
+        { applePreviews: 'on' },
       )
       expect(result?.type).toBe('youtube-embed')
     })
@@ -338,6 +338,29 @@ function stubDeezerFetch() {
           ],
         }),
       }
+    }),
+  )
+}
+
+const APPLE_CLIP = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+
+// Apple answers the song lookup with one clip.
+function stubAppleSongs() {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        results: [
+          {
+            wrapperType: 'track',
+            kind: 'song',
+            artistName: 'Radiohead',
+            trackName: 'Creep',
+            previewUrl: APPLE_CLIP,
+          },
+        ],
+      }),
     }),
   )
 }
@@ -463,31 +486,12 @@ describe('usePreview play outcomes', () => {
   })
 
   it('plays an Apple preview through the audio proxy, with pause and resume', async () => {
-    const previewUrl = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
-    vi.stubGlobal(
-      'fetch',
-      vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => ({
-          results: [
-            {
-              wrapperType: 'track',
-              kind: 'song',
-              artistName: 'Radiohead',
-              trackName: 'Creep',
-              previewUrl,
-            },
-          ],
-        }),
-      }),
-    )
+    stubAppleSongs()
     const urls = {
       appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515',
       spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
     }
-    const { result } = renderHook(() => usePreview({ applePreviews: true }), { wrapper })
-    expect(result.current.hasPreview({ spotify: urls.spotify })).toBe(false)
-    expect(result.current.hasPreview({ appleMusic: urls.appleMusic })).toBe(true)
+    const { result } = renderHook(() => usePreview({ applePreviews: 'on' }), { wrapper })
 
     let outcome: string | undefined
     await act(async () => {
@@ -498,7 +502,7 @@ describe('usePreview play outcomes', () => {
     expect(result.current.state.playing).toBe(true)
     expect(result.current.spotifyCommand.action).not.toBe('play')
     expect(FakeAudio.instances.at(-1)?.src).toBe(
-      `/api/v1/preview/audio?url=${encodeURIComponent(previewUrl)}`,
+      `/api/v1/preview/audio?url=${encodeURIComponent(APPLE_CLIP)}`,
     )
 
     await act(async () => {
@@ -510,6 +514,151 @@ describe('usePreview play outcomes', () => {
     })
     expect(outcome).toBe('resumed')
     expect(result.current.state.playing).toBe(true)
+  })
+
+  describe('hasPreview', () => {
+    const spotifyOnly = { spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' }
+    const appleOnly = { appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515' }
+
+    it('keeps the play button for a Spotify-only artist with the Apple preference on', () => {
+      const { result } = renderHook(() => usePreview({ applePreviews: 'on' }), { wrapper })
+      expect(result.current.hasPreview(spotifyOnly)).toBe(true)
+      expect(result.current.hasPreview(appleOnly)).toBe(true)
+      expect(result.current.hasPreview({ spotify: '' })).toBe(false)
+      expect(result.current.hasPreview(null)).toBe(false)
+    })
+
+    it('is unchanged with the Apple preference off', () => {
+      const { result } = renderHook(() => usePreview({ applePreviews: 'off' }), { wrapper })
+      expect(result.current.hasPreview(spotifyOnly)).toBe(true)
+      expect(result.current.hasPreview(appleOnly)).toBe(false)
+    })
+
+    it('counts any streaming link while the preference is unknown', () => {
+      const { result } = renderHook(
+        () => usePreview({ applePreviews: 'unknown', applePreviewsPending: true }),
+        { wrapper },
+      )
+      expect(result.current.hasPreview(spotifyOnly)).toBe(true)
+      expect(result.current.hasPreview(appleOnly)).toBe(true)
+      expect(result.current.hasPreview({})).toBe(false)
+    })
+  })
+
+  describe('while the Apple preference is still loading', () => {
+    const urls = {
+      appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515',
+      spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
+    }
+    type Props = { applePreviews: 'on' | 'off' | 'unknown'; applePreviewsPending?: boolean }
+    const renderLoading = () =>
+      renderHook((props: Props) => usePreview(props), {
+        wrapper,
+        initialProps: { applePreviews: 'unknown', applePreviewsPending: true },
+      })
+
+    it('waits without touching Spotify, then plays the Apple clip once the preference is on', async () => {
+      stubAppleSongs()
+      const { result, rerender } = renderLoading()
+      let pending: Promise<string> | undefined
+      act(() => {
+        pending = result.current.play('m1', 'Radiohead', urls)
+      })
+      expect(result.current.state.loading).toBe(true)
+      expect(result.current.state.source).toBeNull()
+      expect(result.current.spotifyCommand.action).toBe('pause')
+      expect(fetch).not.toHaveBeenCalled()
+
+      let outcome: string | undefined
+      act(() => rerender({ applePreviews: 'on' }))
+      await act(async () => {
+        outcome = await pending
+      })
+      expect(outcome).toBe('started')
+      expect(result.current.state.source?.type).toBe('apple-audio')
+      expect(result.current.spotifyCommand.action).toBe('pause')
+    })
+
+    it('starts Spotify only once the preference arrives as off', async () => {
+      const { result, rerender } = renderLoading()
+      let pending: Promise<string> | undefined
+      act(() => {
+        pending = result.current.play('m1', 'Radiohead', urls)
+      })
+      expect(result.current.spotifyCommand.action).toBe('pause')
+
+      let outcome: string | undefined
+      act(() => rerender({ applePreviews: 'off' }))
+      await act(async () => {
+        outcome = await pending
+      })
+      expect(outcome).toBe('started')
+      expect(result.current.state.source?.type).toBe('spotify-embed')
+      expect(result.current.spotifyCommand.action).toBe('play')
+      expect(fetch).not.toHaveBeenCalled()
+    })
+
+    it('uses neither Spotify nor Apple when the preference cannot be loaded', async () => {
+      stubDeezerFetch()
+      const { result, rerender } = renderLoading()
+      let pending: Promise<string> | undefined
+      act(() => {
+        pending = result.current.play('m1', 'Radiohead', urls)
+      })
+
+      let outcome: string | undefined
+      act(() => rerender({ applePreviews: 'unknown', applePreviewsPending: false }))
+      await act(async () => {
+        outcome = await pending
+      })
+      expect(outcome).toBe('started')
+      expect(result.current.state.source?.type).toBe('deezer-audio')
+      expect(result.current.spotifyCommand.action).toBe('pause')
+      expect(vi.mocked(fetch).mock.calls.map(([url]) => new URL(String(url)).host)).toEqual([
+        'api.deezer.com',
+      ])
+    })
+
+    it('stops waiting after a short bound and resolves without Spotify', async () => {
+      vi.useFakeTimers()
+      try {
+        const { result } = renderLoading()
+        let pending: Promise<string> | undefined
+        act(() => {
+          pending = result.current.play('m1', 'Radiohead', urls)
+        })
+        let outcome: string | undefined
+        await act(async () => {
+          await vi.advanceTimersByTimeAsync(2000)
+          outcome = await pending
+        })
+        expect(outcome).toBe('no-source')
+        expect(result.current.spotifyCommand.action).toBe('pause')
+      } finally {
+        vi.useRealTimers()
+      }
+    })
+
+    it('lets a newer play supersede one still waiting', async () => {
+      stubDeezerFetch()
+      const { result, rerender } = renderLoading()
+      let first: Promise<string> | undefined
+      act(() => {
+        first = result.current.play('m1', 'Radiohead', urls)
+      })
+      let second: Promise<string> | undefined
+      act(() => {
+        second = result.current.play('m2', 'Portishead', { deezer: 'url' })
+      })
+      act(() => rerender({ applePreviews: 'off' }))
+      await act(async () => {
+        await Promise.all([first, second])
+      })
+      expect(await first).toBe('superseded')
+      expect(await second).toBe('started')
+      expect(result.current.state.artistMbid).toBe('m2')
+      expect(result.current.spotifyCommand.action).toBe('pause')
+    })
   })
 
   it("returns 'no-source' and toasts when nothing resolves", async () => {

@@ -22,8 +22,7 @@ describe('content security policy', () => {
       "frame-src 'self' https://open.spotify.com https://embed.music.apple.com",
     )
     expect(response.headers.get('x-frame-options')).toBe('DENY')
-    // 'same-origin' would cut the embedded Apple Music player off from its sign-in window.
-    expect(response.headers.get('cross-origin-opener-policy')).toBe('same-origin-allow-popups')
+    expect(response.headers.get('cross-origin-opener-policy')).toBe('same-origin')
   })
 
   it('scopes Spotify controller access to the same-origin bridge page', async () => {

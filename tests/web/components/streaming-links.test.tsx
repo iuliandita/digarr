@@ -95,6 +95,35 @@ describe('StreamingLinks Spotify autoload', () => {
   })
 })
 
+describe('StreamingLinks while the applePreviews preference is unknown', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('offers neither inline player, even with dashboard autoload on', () => {
+    const fetchMock = vi.fn()
+    vi.stubGlobal('fetch', fetchMock)
+    const preview = { stop: vi.fn(), applePreviews: 'unknown' } as unknown as NonNullable<
+      ContextType<typeof PreviewContext>
+    >
+    const { container } = render(
+      <I18nProvider>
+        <PreviewContext.Provider value={preview}>
+          <StreamingLinks
+            streamingUrls={{ ...urls, appleMusic: 'https://music.apple.com/gb/artist/x/657515' }}
+            artistName="Radiohead"
+            spotifyAutoload={{ enabled: true, onChange: vi.fn() }}
+          />
+        </PreviewContext.Provider>
+      </I18nProvider>,
+    )
+    expect(container.querySelector('iframe')).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Load Spotify player' })).toBeNull()
+    expect(screen.queryByRole('button', { name: 'Load Apple Music player' })).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    // The service links themselves stay.
+    expect(screen.getByTitle('Spotify')).toBeTruthy()
+  })
+})
+
 describe('StreamingLinks with the applePreviews preference', () => {
   const urls = {
     spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
@@ -109,7 +138,7 @@ describe('StreamingLinks with the applePreviews preference', () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) })
     vi.stubGlobal('fetch', fetchMock)
     const stop = vi.fn()
-    const preview = { stop, applePreviews: true } as unknown as NonNullable<
+    const preview = { stop, applePreviews: 'on' } as unknown as NonNullable<
       ContextType<typeof PreviewContext>
     >
     const view = render(

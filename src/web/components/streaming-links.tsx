@@ -167,7 +167,10 @@ type AppleEmbedProps = {
  * with the `applePreviews` preference. Like the Spotify embed it stays a local
  * placeholder until clicked, unless the dashboard autoload preference is on.
  * Apple's artist embed has no song list, so the artist's top songs are offered
- * as buttons that swap the song in the player.
+ * as buttons that swap the song in the player. It plays Apple's 30-second
+ * clips only: signing in inside the embed is not supported, because Apple's
+ * sign-in window cannot report back to the frame while pages are served with
+ * `Cross-Origin-Opener-Policy: same-origin`.
  */
 const APPLE_EMBED_SONGS = 3
 
@@ -292,7 +295,7 @@ export function StreamingLinks({
   isPlaying = false,
   spotifyAutoload,
 }: StreamingLinksProps) {
-  const applePreviews = useContext(PreviewContext)?.applePreviews === true
+  const applePreviews = useContext(PreviewContext)?.applePreviews ?? 'off'
   const { t } = useI18n()
   const urls = streamingUrls ?? {}
 
@@ -350,14 +353,15 @@ export function StreamingLinks({
           </a>
         ))}
       </div>
-      {!compact && applePreviews && (
+      {/* While the preference is unknown neither player is offered. */}
+      {!compact && applePreviews === 'on' && (
         <AppleEmbed
           appleMusicUrl={streamingUrls?.appleMusic}
           artistName={artistName}
           autoload={spotifyAutoload}
         />
       )}
-      {!compact && !applePreviews && spotifyUrl && (
+      {!compact && applePreviews === 'off' && spotifyUrl && (
         <SpotifyEmbed url={spotifyUrl} autoload={spotifyAutoload} />
       )}
     </div>

@@ -179,10 +179,7 @@ export function createApp(deps: AppDependencies) {
       xFrameOptions: 'DENY',
       xContentTypeOptions: 'nosniff',
       referrerPolicy: 'strict-origin-when-cross-origin',
-      // Not 'same-origin': that forces noopener on pop-ups opened from a
-      // cross-origin frame, so the Apple Music player's sign-in window could
-      // never hand the session back to the embedded player.
-      crossOriginOpenerPolicy: 'same-origin-allow-popups',
+      crossOriginOpenerPolicy: 'same-origin',
       strictTransportSecurity: 'max-age=31536000; includeSubDomains',
       contentSecurityPolicy: {
         defaultSrc: ["'self'"],

@@ -1,4 +1,5 @@
 import { createContext, useContext } from 'react'
+import type { ApplePreviewsPreference } from '../hooks/use-apple-previews'
 import type { AuditionQueue } from '../hooks/use-audition-queue'
 import type { PreviewSource } from '../hooks/use-preview'
 
@@ -13,8 +14,12 @@ type PreviewContextValue = {
   volume: number
   setVolume: (value: number) => void
   audition: AuditionQueue
-  /** The user's `applePreviews` preference: inline players come from Apple, never Spotify. */
-  applePreviews?: boolean
+  /**
+   * The user's `applePreviews` preference: 'on' takes inline players from
+   * Apple, never Spotify; 'unknown' (still loading or failed) shows neither.
+   * Treated as 'off' when absent.
+   */
+  applePreviews?: ApplePreviewsPreference
 }
 
 export const PreviewContext = createContext<PreviewContextValue | null>(null)
