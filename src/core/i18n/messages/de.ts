@@ -1464,7 +1464,7 @@ export const de = {
   'settings.previews': 'Vorschau',
   'settings.applePreviews': 'Apple-Music-Clips statt des Spotify-Players abspielen',
   'settings.applePreviewsHelp':
-    'Die Wiedergabetaste spielt dann einen 30-Sekunden-Clip von Apple Music und lädt den Spotify-Player nie. Dein Browser sucht den Clip bei Apple.',
+    'Die Wiedergabetaste spielt dann einen 30-Sekunden-Clip von Apple Music und lädt den Spotify-Player nie. Der Digarr-Server fragt Apple nach dem Künstler, per Apple-ID oder Name, und holt den Clip, sodass Apple den Server sieht, nicht deinen Browser. Dein Browser kontaktiert Apple nur, wenn du den eingebetteten Apple Music-Player lädst. Hat Apple keinen Clip, versucht dein Browser als Nächstes Deezer.',
   'settings.tips': 'Tipps',
   'settings.tipsDescription': 'Blende ausgeblendete Hilfetipps wieder ein.',
   'settings.showTipsAgain': 'Tipps wieder anzeigen',

@@ -1436,7 +1436,7 @@ export const en = {
   'settings.previews': 'Previews',
   'settings.applePreviews': 'Play Apple Music clips instead of the Spotify player',
   'settings.applePreviewsHelp':
-    'The play button then plays a 30-second Apple Music clip and never loads the Spotify player. Your browser looks the clip up at Apple.',
+    "The play button then plays a 30-second Apple Music clip and never loads the Spotify player. Digarr's server asks Apple for the artist, by Apple ID or by name, and fetches the clip, so Apple sees the server, not your browser. Your browser only contacts Apple if you load the inline Apple Music player. If Apple has no clip, your browser tries Deezer next.",
   'settings.tips': 'Tips',
   'settings.tipsDescription': 'Bring back the help tips you dismissed.',
   'settings.showTipsAgain': 'Show tips again',

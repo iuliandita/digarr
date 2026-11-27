@@ -1463,7 +1463,7 @@ export const es = {
   'settings.previews': 'Vistas previas',
   'settings.applePreviews': 'Reproducir clips de Apple Music en lugar del reproductor de Spotify',
   'settings.applePreviewsHelp':
-    'El botón de reproducción reproduce entonces un clip de 30 segundos de Apple Music y nunca carga el reproductor de Spotify. Tu navegador busca el clip en Apple.',
+    'El botón de reproducción reproduce entonces un clip de 30 segundos de Apple Music y nunca carga el reproductor de Spotify. El servidor de Digarr pide el artista a Apple, por ID de Apple o por nombre, y descarga el clip, así que Apple ve el servidor, no tu navegador. Tu navegador solo contacta con Apple si cargas el reproductor integrado de Apple Music. Si Apple no tiene clip, tu navegador prueba después con Deezer.',
   'settings.tips': 'Consejos',
   'settings.tipsDescription': 'Recupera los consejos de ayuda que descartaste.',
   'settings.showTipsAgain': 'Mostrar consejos de nuevo',

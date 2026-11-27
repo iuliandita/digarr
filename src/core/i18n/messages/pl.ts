@@ -1447,7 +1447,7 @@ export const pl = {
   'settings.previews': 'Podgląd utworów',
   'settings.applePreviews': 'Odtwarzaj fragmenty z Apple Music zamiast odtwarzacza Spotify',
   'settings.applePreviewsHelp':
-    'Przycisk odtwarzania odtwarza wtedy 30-sekundowy fragment z Apple Music i nigdy nie ładuje odtwarzacza Spotify. Twoja przeglądarka wyszukuje fragment w Apple.',
+    'Przycisk odtwarzania odtwarza wtedy 30-sekundowy fragment z Apple Music i nigdy nie ładuje odtwarzacza Spotify. Serwer Digarr pyta Apple o wykonawcę, po identyfikatorze Apple lub po nazwie, i pobiera fragment, więc Apple widzi serwer, a nie twoją przeglądarkę. Twoja przeglądarka łączy się z Apple tylko wtedy, gdy załadujesz wbudowany odtwarzacz Apple Music. Jeśli Apple nie ma fragmentu, przeglądarka próbuje następnie serwisu Deezer.',
   'settings.tips': 'Wskazówki',
   'settings.tipsDescription': 'Przywróć ukryte wskazówki.',
   'settings.showTipsAgain': 'Pokaż wskazówki ponownie',

@@ -1462,7 +1462,7 @@ export const fr = {
   'settings.previews': 'Aperçus',
   'settings.applePreviews': 'Lire des extraits Apple Music à la place du lecteur Spotify',
   'settings.applePreviewsHelp':
-    "Le bouton de lecture joue alors un extrait Apple Music de 30 secondes et ne charge jamais le lecteur Spotify. Ton navigateur cherche l'extrait chez Apple.",
+    "Le bouton de lecture joue alors un extrait Apple Music de 30 secondes et ne charge jamais le lecteur Spotify. Le serveur Digarr demande l'artiste à Apple, par identifiant Apple ou par nom, et récupère l'extrait : Apple voit donc le serveur, pas ton navigateur. Ton navigateur ne contacte Apple que si tu charges le lecteur Apple Music intégré. Si Apple n'a pas d'extrait, ton navigateur essaie ensuite Deezer.",
   'settings.tips': 'Astuces',
   'settings.tipsDescription': 'Réaffiche les astuces que tu as masquées.',
   'settings.showTipsAgain': 'Réafficher les astuces',

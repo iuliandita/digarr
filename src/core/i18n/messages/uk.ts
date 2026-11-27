@@ -1449,7 +1449,7 @@ export const uk = {
   'settings.previews': 'Попереднє прослуховування',
   'settings.applePreviews': 'Відтворювати фрагменти Apple Music замість плеєра Spotify',
   'settings.applePreviewsHelp':
-    'Кнопка відтворення вмикає 30-секундний фрагмент з Apple Music і ніколи не завантажує плеєр Spotify. Твій браузер шукає фрагмент в Apple.',
+    'Кнопка відтворення вмикає 30-секундний фрагмент з Apple Music і ніколи не завантажує плеєр Spotify. Сервер Digarr запитує виконавця в Apple за Apple ID або за назвою та завантажує фрагмент, тож Apple бачить сервер, а не твій браузер. Твій браузер звертається до Apple, лише якщо ти завантажиш вбудований плеєр Apple Music. Якщо в Apple немає фрагмента, твій браузер далі пробує Deezer.',
   'settings.tips': 'Підказки',
   'settings.tipsDescription': 'Поверни приховані підказки.',
   'settings.showTipsAgain': 'Показати підказки знову',

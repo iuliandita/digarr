@@ -1432,7 +1432,7 @@ export const ja = {
   'settings.previews': 'プレビュー',
   'settings.applePreviews': 'Spotifyプレーヤーの代わりにApple Musicのクリップを再生する',
   'settings.applePreviewsHelp':
-    '再生ボタンでApple Musicの30秒クリップを再生し、Spotifyプレーヤーは読み込みません。クリップはブラウザがAppleに問い合わせて取得します。',
+    '再生ボタンでApple Musicの30秒クリップを再生し、Spotifyプレーヤーは読み込みません。DigarrのサーバーがAppleのIDまたは名前でアーティストをAppleに問い合わせ、クリップも取得するため、Appleから見えるのはブラウザではなくサーバーです。ブラウザがAppleに接続するのは、埋め込みのApple Musicプレーヤーを読み込んだときだけです。Appleにクリップがない場合は、次にブラウザがDeezerを試します。',
   'settings.tips': 'ヒント',
   'settings.tipsDescription': '閉じたヘルプのヒントを再表示します。',
   'settings.showTipsAgain': 'ヒントを再表示',

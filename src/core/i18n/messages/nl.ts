@@ -1451,7 +1451,7 @@ export const nl = {
   'settings.previews': 'Voorbeeldfragmenten',
   'settings.applePreviews': 'Apple Music-fragmenten afspelen in plaats van de Spotify-speler',
   'settings.applePreviewsHelp':
-    'De afspeelknop speelt dan een fragment van 30 seconden van Apple Music af en laadt de Spotify-speler nooit. Je browser zoekt het fragment op bij Apple.',
+    'De afspeelknop speelt dan een fragment van 30 seconden van Apple Music af en laadt de Spotify-speler nooit. De Digarr-server vraagt Apple naar de artiest, via Apple-ID of naam, en haalt het fragment op, dus Apple ziet de server, niet je browser. Je browser maakt alleen contact met Apple als je de ingesloten Apple Music-speler laadt. Heeft Apple geen fragment, dan probeert je browser daarna Deezer.',
   'settings.tips': 'Tips',
   'settings.tipsDescription': 'Haal de hulptips terug die je hebt verborgen.',
   'settings.showTipsAgain': 'Tips weer tonen',

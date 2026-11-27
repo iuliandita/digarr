@@ -1455,7 +1455,7 @@ export const ro = {
   'settings.previews': 'Previzualizări',
   'settings.applePreviews': 'Redă clipuri Apple Music în locul playerului Spotify',
   'settings.applePreviewsHelp':
-    'Butonul de redare redă atunci un clip Apple Music de 30 de secunde și nu încarcă niciodată playerul Spotify. Browserul tău caută clipul la Apple.',
+    'Butonul de redare redă atunci un clip Apple Music de 30 de secunde și nu încarcă niciodată playerul Spotify. Serverul Digarr îi cere lui Apple artistul, după ID-ul Apple sau după nume, și descarcă clipul, așa că Apple vede serverul, nu browserul tău. Browserul tău contactează Apple doar dacă încarci playerul Apple Music integrat. Dacă Apple nu are un clip, browserul tău încearcă apoi Deezer.',
   'settings.tips': 'Sfaturi',
   'settings.tipsDescription': 'Readu sfaturile de ajutor pe care le-ai închis.',
   'settings.showTipsAgain': 'Afișează din nou sfaturile',

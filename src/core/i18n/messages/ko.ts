@@ -1412,7 +1412,7 @@ export const ko = {
   'settings.previews': '미리 듣기',
   'settings.applePreviews': 'Spotify 플레이어 대신 Apple Music 클립 재생',
   'settings.applePreviewsHelp':
-    '재생 버튼이 Apple Music의 30초 클립을 재생하며 Spotify 플레이어는 불러오지 않습니다. 클립은 브라우저가 Apple에서 찾습니다.',
+    '재생 버튼이 Apple Music의 30초 클립을 재생하며 Spotify 플레이어는 불러오지 않습니다. Digarr 서버가 Apple ID 또는 이름으로 Apple에 아티스트를 조회하고 클립을 가져오므로, Apple에는 브라우저가 아닌 서버가 보입니다. 브라우저는 내장된 Apple Music 플레이어를 불러올 때만 Apple에 연결합니다. Apple에 클립이 없으면 브라우저가 다음으로 Deezer를 시도합니다.',
   'settings.tips': '도움말',
   'settings.tipsDescription': '닫은 도움말을 다시 표시합니다.',
   'settings.showTipsAgain': '도움말 다시 보기',

@@ -1457,7 +1457,7 @@ export const ptBR = {
   'settings.previews': 'Prévias',
   'settings.applePreviews': 'Tocar trechos do Apple Music em vez do player do Spotify',
   'settings.applePreviewsHelp':
-    'O botão de reprodução toca então um trecho de 30 segundos do Apple Music e nunca carrega o player do Spotify. Seu navegador busca o trecho na Apple.',
+    'O botão de reprodução toca então um trecho de 30 segundos do Apple Music e nunca carrega o player do Spotify. O servidor do Digarr pede o artista à Apple, pelo ID da Apple ou pelo nome, e baixa o trecho, então a Apple vê o servidor, não o seu navegador. Seu navegador só contata a Apple se você carregar o player integrado do Apple Music. Se a Apple não tiver um trecho, seu navegador tenta o Deezer em seguida.',
   'settings.tips': 'Dicas',
   'settings.tipsDescription': 'Traga de volta as dicas de ajuda que você dispensou.',
   'settings.showTipsAgain': 'Mostrar dicas novamente',

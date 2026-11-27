@@ -1331,7 +1331,7 @@ export const zhCN = {
   'settings.previews': '试听',
   'settings.applePreviews': '播放 Apple Music 片段，而不是 Spotify 播放器',
   'settings.applePreviewsHelp':
-    '播放按钮将播放 Apple Music 的 30 秒片段，并且不会加载 Spotify 播放器。片段由你的浏览器向 Apple 查询。',
+    '播放按钮将播放 Apple Music 的 30 秒片段，并且不会加载 Spotify 播放器。Digarr 服务器会按 Apple ID 或名称向 Apple 查询艺术家并获取片段，因此 Apple 看到的是服务器，而不是你的浏览器。只有当你加载内嵌的 Apple Music 播放器时，你的浏览器才会连接 Apple。如果 Apple 没有片段，你的浏览器会接着尝试 Deezer。',
   'settings.tips': '提示',
   'settings.tipsDescription': '重新显示你已关闭的帮助提示。',
   'settings.showTipsAgain': '重新显示提示',

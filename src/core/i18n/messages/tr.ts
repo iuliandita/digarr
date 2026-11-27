@@ -1434,7 +1434,7 @@ export const tr = {
   'settings.previews': 'Önizlemeler',
   'settings.applePreviews': 'Spotify oynatıcısı yerine Apple Music kliplerini çal',
   'settings.applePreviewsHelp':
-    "Oynat düğmesi o zaman 30 saniyelik bir Apple Music klibi çalar ve Spotify oynatıcısını hiç yüklemez. Tarayıcın klibi Apple'da arar.",
+    "Oynat düğmesi o zaman 30 saniyelik bir Apple Music klibi çalar ve Spotify oynatıcısını hiç yüklemez. Digarr sunucusu sanatçıyı Apple kimliği ya da adıyla Apple'a sorar ve klibi indirir, yani Apple tarayıcını değil sunucuyu görür. Tarayıcın Apple'a yalnızca gömülü Apple Music oynatıcısını yüklersen bağlanır. Apple'da klip yoksa tarayıcın sırada Deezer'ı dener.",
   'settings.tips': 'İpuçları',
   'settings.tipsDescription': 'Kapattığın yardım ipuçlarını geri getir.',
   'settings.showTipsAgain': 'İpuçlarını yeniden göster',
