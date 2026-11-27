@@ -450,7 +450,7 @@
         "src/web/components/service-card.tsx": "3794ef7b29c4acc4521de23bd960af497d10aef280181182176e619c921156ad",
         "src/web/components/service-icons.tsx": "992cb94a89d6f75f346d346861f68330be2a69e2e26bc68a1e470273ba346aa4",
         "src/web/components/stat-card.tsx": "21ec088cabf923156445bea2f492714077d45e9231c57aa3a1c6e467355a201f",
-        "src/web/components/streaming-links.tsx": "2ab30093f2cd69052a5eb7d1ff15a5be56335190d711a1bb6c2e4912f53b32f8",
+        "src/web/components/streaming-links.tsx": "bc0ed5d0162d69d8c365de018775b8ec4f4eb7e314578dd85548989fd8ba145a",
         "src/web/components/subscription-form.tsx": "62165ec6e944a02ab6f43d775f774c6bd55a958424ab2257199580564bef01d9",
         "src/web/components/subscription-presets.tsx": "3a033e7ad150601a70937d8cb9bae9612e1b9c47f2accb032d060e2918b9c93f",
         "src/web/components/swipe-card.tsx": "1a781f8b890869b94e7d21cdf1bf565567fed7a5543780f8ed7bb24ab59be0a7",
@@ -545,14 +545,14 @@
         "src/web/spotify-embed-bridge.ts": "10e28d14cd6990afed56ac3fb5693546de6c0d4662fc338ff30ef356d37f3410",
         "src/web/vite-env.d.ts": "9c47195150631180578868a67de22d5f75a8373b8dbc89de0ce445d535b4de72"
       },
-      "digest": "b4f6ab4d50c9116d6ed36cbe203729bffd5d3f2248c1d14b248741e416a21997",
+      "digest": "6bb1d700a1bcad4808371976bf60da64560d228971a093da477cbd640ced014f",
       "review": {
         "outcome": "docs-updated",
         "docs": ["CHANGELOG.md"],
-        "note": "Settings > Account gains a Previews opt-in for Apple Music clips instead of Spotify. Cards and Today's Pick show Apple's clip-only song player with a top-three switcher behind its own load button and its own Today's Pick autoload consent; no inline player or Spotify playback until preferences load. Help text says the server asks Apple and Deezer is next. All locales.",
+        "note": "Settings > Account gains a Previews opt-in for Apple Music clips instead of Spotify. Cards and Today's Pick show Apple's song player (30-second clips unless it already has an Apple Music session; no sign-in inside it) with a top-three switcher behind its own load button and its own Today's Pick autoload consent; no inline player or Spotify playback until preferences load. Help text says the server asks Apple and Deezer is next. All locales.",
         "breaking": "none",
         "migration": "",
-        "digest": "b4f6ab4d50c9116d6ed36cbe203729bffd5d3f2248c1d14b248741e416a21997"
+        "digest": "6bb1d700a1bcad4808371976bf60da64560d228971a093da477cbd640ced014f"
       }
     },
     "features": {
@@ -783,7 +783,7 @@
       "review": {
         "outcome": "docs-updated",
         "docs": ["docs/ARCHITECTURE.md", "CHANGELOG.md"],
-        "note": "MusicBrainz 'streaming' and iTunes Store links yield Apple Music and Tidal links. A server-side iTunes client looks songs up by Apple artist ID or by a name search used only with exactly one exact match (four-second budget, no redirects, filtered fields, memory cache). ARCHITECTURE.md covers resolution order, the unknown-preference rule, the clip-only embed and its own autoload.",
+        "note": "MusicBrainz 'streaming' and iTunes Store links yield Apple Music and Tidal links. A server-side iTunes client looks songs up by Apple artist ID or by a name search used only with exactly one exact match (four-second budget, no redirects, filtered fields, memory cache). ARCHITECTURE.md covers resolution order, the unknown-preference rule, the embed (clips without an existing Apple Music session, no sign-in inside it) and its own autoload.",
         "breaking": "none",
         "migration": "",
         "digest": "a967bced976cdae99631e6259e0ccbb08344b8a98ce06099297a716701e25f95"

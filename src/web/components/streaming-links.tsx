@@ -171,9 +171,11 @@ type AppleEmbedProps = {
  * placeholder until clicked, unless its own dashboard autoload preference
  * (`appleAutoloadDashboard`, not Spotify's) is on.
  * Apple's artist embed has no song list, so the artist's top songs are offered
- * as buttons that swap the song in the player. It plays Apple's 30-second
- * clips only: signing in inside the embed is not supported, because Apple's
- * sign-in window cannot report back to the frame while pages are served with
+ * as buttons that swap the song in the player. Without an Apple Music session
+ * it plays 30-second clips; an embed that already has a session in this
+ * browser plays whole songs, which Digarr neither provides nor prevents.
+ * Signing in inside the embed is not supported, because Apple's sign-in window
+ * cannot report back to the frame while pages are served with
  * `Cross-Origin-Opener-Policy: same-origin`.
  */
 const APPLE_EMBED_SONGS = 3
