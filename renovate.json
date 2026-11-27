@@ -74,6 +74,11 @@
       "groupName": "frontend"
     },
     {
+      "description": "PGlite 0.6 is PostgreSQL 19 and cannot open data written by 0.5.x (PostgreSQL 18); needs a dump/restore upgrade path first (#1273)",
+      "matchPackageNames": ["@electric-sql/pglite"],
+      "allowedVersions": "<0.6.0"
+    },
+    {
       "matchPackageNames": ["postgres", "redoc"],
       "matchUpdateTypes": ["major"],
       "enabled": false
