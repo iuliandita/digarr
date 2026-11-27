@@ -16,6 +16,7 @@ Releases that have been promoted to the `:stable` Docker channel carry a `(stabl
 - slskd artist approvals now search only studio albums and EPs, skipping singles, compilations and live releases. An EP sharing a normalized title with an album or another EP is skipped, so a same-named single or EP cannot trigger a duplicate album download; distinct albums with the same title, such as self-titled records, are all kept (#1252).
 - The slskd target test now translates Lidarr timeout, HTTP error, and connection failure details into your selected language, while keeping upstream errors secret-redacted (#1254).
 - Navidrome/Subsonic library sync now uses tagged artist MusicBrainz IDs and album titles to resolve more artists. A specific Album/EP can break an otherwise empty tie among the first three name candidates; unresolved names get up to two cached exact album-and-artist searches. Part-name matches in combined credits need two agreeing albums. Conflicting matches remain unresolved; failed optional hint reads sync without hints, while real artist/album fetch failures preserve the previous snapshot (#1255).
+- MusicBrainz lookups of a merged artist's old MBID no longer fail. MusicBrainz redirects them to the surviving artist on the same server, and Digarr now follows that redirect instead of retrying the refused request three times and dropping the artist. Redirects that leave your configured MusicBrainz URL are still refused.
 
 ## v2.3.0 - 2026-11-14
 
