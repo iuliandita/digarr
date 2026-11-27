@@ -70,9 +70,10 @@ export function isAudioSource(source: PreviewSource): boolean {
 }
 
 /**
- * 30-second preview of the artist's most popular song with a clip. The audio
- * plays through the preview proxy, because the page's CSP allows media from
- * this origin only.
+ * 30-second preview of the artist's most popular song with a clip. Digarr's
+ * server looks the songs up at Apple, and the audio plays through the preview
+ * proxy, because the page's CSP allows media from this origin only; the
+ * browser does not contact Apple.
  */
 async function resolveApplePreview(
   appleMusicUrl: string | undefined,

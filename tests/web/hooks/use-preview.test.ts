@@ -132,32 +132,25 @@ describe('resolvePreviewSource', () => {
 
   describe('Apple previews', () => {
     const APPLE_PREVIEW = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
-    const artistRow = { wrapperType: 'artist', artistName: 'Radiohead' }
-    const song = (artistName: string, trackName: unknown, previewUrl?: string) => ({
-      wrapperType: 'track',
-      kind: 'song',
-      artistName,
-      trackName,
+    const song = (trackName?: string, previewUrl?: string) => ({
+      trackId: 1,
+      artistName: 'Radiohead',
+      ...(trackName !== undefined ? { trackName } : {}),
       ...(previewUrl ? { previewUrl } : {}),
     })
-    const stubApple = (results: unknown) =>
-      vi.stubGlobal(
-        'fetch',
-        vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) }),
-      )
-    const stubAppleByUrl = (byUrl: { search: unknown[]; lookup: unknown[] }) => {
-      const fetchMock = vi.fn(async (url: string) => ({
-        ok: true,
-        json: async () =>
-          url.startsWith('https://itunes.apple.com/search')
-            ? { results: byUrl.search }
-            : url.startsWith('https://itunes.apple.com/lookup')
-              ? { results: byUrl.lookup }
-              : { data: [] },
-      }))
+    // Digarr's /api/v1/preview/apple answers; nothing else is reachable.
+    const stubServer = (body: unknown) => {
+      const fetchMock = vi.fn(async (url: string) => {
+        if (!String(url).startsWith('/api/v1/preview/apple?')) throw new Error(`unexpected ${url}`)
+        return { ok: true, status: 200, json: async () => body }
+      })
       vi.stubGlobal('fetch', fetchMock)
       return fetchMock
     }
+    const requested = (fetchMock: ReturnType<typeof stubServer>) =>
+      fetchMock.mock.calls.map(([url]) =>
+        Object.fromEntries(new URL(String(url), 'http://digarr.test').searchParams),
+      )
     const appleSource = (track?: { artistName: string; trackName: string }) => ({
       type: 'apple-audio',
       url: APPLE_PREVIEW,
@@ -170,19 +163,16 @@ describe('resolvePreviewSource', () => {
       'https://music.apple.com/us/artist/657515',
       'https://music.apple.com/artist/657515',
       'https://itunes.apple.com/us/artist/id657515',
-    ])('looks the artist up by the ID in %s instead of using Spotify', async (appleMusic) => {
-      stubApple([artistRow, song('Radiohead & Friends', 'Creep', APPLE_PREVIEW)])
+    ])('asks the server by the artist ID in %s instead of using Spotify', async (appleMusic) => {
+      const fetchMock = stubServer({ songs: [song('Creep', APPLE_PREVIEW)] })
       expect(
         await resolvePreviewSource(
           { appleMusic, spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
           'Radiohead',
           { applePreviews: 'on' },
         ),
-      ).toEqual(appleSource({ artistName: 'Radiohead & Friends', trackName: 'Creep' }))
-      expect(fetch).toHaveBeenCalledExactlyOnceWith(
-        'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
-        { signal: expect.any(AbortSignal) },
-      )
+      ).toEqual(appleSource({ artistName: 'Radiohead', trackName: 'Creep' }))
+      expect(requested(fetchMock)).toEqual([{ name: 'Radiohead', id: '657515' }])
     })
 
     it.each([
@@ -190,64 +180,26 @@ describe('resolvePreviewSource', () => {
       ['https://music.apple.com/search?term=Radiohead'],
       ['https://example.com/us/artist/657515'],
       ['http://music.apple.com/us/artist/657515'],
-    ])('searches artists by exact name when the link is %j, then looks up songs', async (link) => {
-      const fetchMock = stubAppleByUrl({
-        search: [
-          { wrapperType: 'artist', artistName: 'Radiohead Tribute', artistId: 1 },
-          { wrapperType: 'artist', artistName: '  RADIOHEAD ', artistId: 657515 },
-        ],
-        lookup: [artistRow, song('Radiohead', '   ', APPLE_PREVIEW)],
-      })
+    ])('asks the server by name alone when the link is %j', async (link) => {
+      const fetchMock = stubServer({ songs: [song('   ', APPLE_PREVIEW)] })
       expect(
         await resolvePreviewSource(
           { ...(link ? { appleMusic: link } : {}), deezer: 'url' },
-          'Radiohead',
+          ' Radiohead ',
           { applePreviews: 'on' },
         ),
       ).toEqual(appleSource())
-      expect(fetchMock.mock.calls.map(([url]) => url)).toEqual([
-        'https://itunes.apple.com/search?term=Radiohead&media=music&entity=musicArtist&attribute=artistTerm&limit=10',
-        'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
-      ])
-    })
-
-    it('finds an artist listed in its own script whose songs are credited romanized', async () => {
-      const fetchMock = stubAppleByUrl({
-        search: [
-          { wrapperType: 'artist', artistName: '花冷え。', artistId: 1437484631 },
-          { wrapperType: 'artist', artistName: 'HANABIE.', artistId: 1616591251 },
-        ],
-        lookup: [song('hanabie', 'We Love Sweets', APPLE_PREVIEW)],
-      })
-      expect(
-        await resolvePreviewSource({ deezer: 'url' }, '花冷え。', { applePreviews: 'on' }),
-      ).toEqual(appleSource({ artistName: 'hanabie', trackName: 'We Love Sweets' }))
-      expect(fetchMock.mock.calls[1]?.[0]).toBe(
-        'https://itunes.apple.com/lookup?id=1437484631&entity=song&limit=10',
-      )
-    })
-
-    it('does not guess when no artist has exactly that name', async () => {
-      const fetchMock = stubAppleByUrl({
-        search: [{ wrapperType: 'artist', artistName: 'Yorushika', artistId: 2 }],
-        lookup: [song('Yorushika', 'Song', APPLE_PREVIEW)],
-      })
-      expect(
-        await resolvePreviewSource({ deezer: 'url' }, 'ヨルシカ', { applePreviews: 'on' }),
-      ).toBeNull()
-      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/lookup'))).toBe(false)
+      expect(requested(fetchMock)).toEqual([{ name: 'Radiohead' }])
     })
 
     it.each([
-      ['no song matches', [artistRow, song('Radiohead Tribute', 'Creep', APPLE_PREVIEW)]],
-      ['the match has no preview', [song('Radiohead', 'Creep')]],
-      [
-        'the preview is on an unexpected host',
-        [song('Radiohead', 'Creep', 'https://evil.example/preview.m4a')],
-      ],
-      ['the response has no results', undefined],
-    ])('never falls back to Spotify when %s', async (_case, results) => {
-      stubApple(results)
+      ['the server finds no match', { songs: null, reason: 'no-match' }],
+      ['the lookup failed', { songs: null, reason: 'lookup-failed' }],
+      ['the song has no clip', { songs: [song('Creep')] }],
+      ['the clip is on an unexpected host', { songs: [song('Creep', 'https://evil.example/a')] }],
+      ['the answer is malformed', { nope: true }],
+    ])('never falls back to Spotify when %s', async (_case, body) => {
+      stubServer(body)
       expect(
         await resolvePreviewSource(
           { spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb' },
@@ -257,8 +209,25 @@ describe('resolvePreviewSource', () => {
       ).toBeNull()
     })
 
+    it('treats a failed request as a failed lookup', async () => {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn(async () => ({
+          ok: false,
+          status: 429,
+          json: async () => ({}),
+          headers: new Headers(),
+        })),
+      )
+      expect(
+        await resolvePreviewSource({ appleMusic: 'https://music.apple.com/us/artist/1' }, 'X', {
+          applePreviews: 'on',
+        }),
+      ).toBeNull()
+    })
+
     it('still falls back to YouTube', async () => {
-      stubApple([])
+      stubServer({ songs: null, reason: 'no-match' })
       const result = await resolvePreviewSource(
         {
           spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
@@ -270,8 +239,37 @@ describe('resolvePreviewSource', () => {
       expect(result?.type).toBe('youtube-embed')
     })
 
-    it('does not contact Apple unless the preference is on', async () => {
-      stubApple([song('Radiohead', 'Creep', APPLE_PREVIEW)])
+    it('never contacts Apple from the browser', async () => {
+      const fetchMock = stubServer({ songs: [song('Creep', APPLE_PREVIEW)] })
+      await resolvePreviewSource(
+        { appleMusic: 'https://music.apple.com/us/artist/657515' },
+        'Radiohead',
+        { applePreviews: 'on' },
+      )
+      expect(fetchMock).toHaveBeenCalledOnce()
+      expect(fetchMock.mock.calls.every(([url]) => !String(url).includes('apple.com'))).toBe(true)
+    })
+
+    it('does not look Apple up unless the preference is on', async () => {
+      const fetchMock = stubServer({ songs: [song('Creep', APPLE_PREVIEW)] })
+      for (const applePreviews of ['off', 'unknown'] as const) {
+        const result = await resolvePreviewSource(
+          {
+            appleMusic: 'https://music.apple.com/us/artist/657515',
+            youtube: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+          },
+          'Radiohead',
+          { applePreviews },
+        )
+        expect(result?.type).toBe('youtube-embed')
+      }
+      expect(fetchMock.mock.calls.some(([url]) => String(url).includes('/preview/apple'))).toBe(
+        false,
+      )
+    })
+
+    it('resolves Spotify when the preference is off', async () => {
+      stubServer({ songs: [song('Creep', APPLE_PREVIEW)] })
       const result = await resolvePreviewSource(
         {
           appleMusic: 'https://music.apple.com/us/artist/657515',
@@ -344,21 +342,16 @@ function stubDeezerFetch() {
 
 const APPLE_CLIP = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
 
-// Apple answers the song lookup with one clip.
+// Digarr's Apple lookup route answers with one clip.
 function stubAppleSongs() {
   vi.stubGlobal(
     'fetch',
     vi.fn().mockResolvedValue({
       ok: true,
+      status: 200,
       json: async () => ({
-        results: [
-          {
-            wrapperType: 'track',
-            kind: 'song',
-            artistName: 'Radiohead',
-            trackName: 'Creep',
-            previewUrl: APPLE_CLIP,
-          },
+        songs: [
+          { trackId: 1, artistName: 'Radiohead', trackName: 'Creep', previewUrl: APPLE_CLIP },
         ],
       }),
     }),

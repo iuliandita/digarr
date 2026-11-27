@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { createDeezerClient } from '@/core/clients/deezer'
+import { createItunesClient } from '@/core/clients/itunes'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createWikidataClient } from '@/core/clients/wikidata'
 import { isValidMbid } from '@/core/validation'
@@ -9,6 +10,8 @@ import { artists } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { rateLimiter } from '@/server/middleware/rate-limit'
+import { applePreviewQuerySchema } from '@/server/schemas/preview'
+import { zQuery } from '@/server/schemas/validator'
 
 const ENRICHMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const ENRICHMENT_NEG_TTL_MS = 24 * 60 * 60 * 1000
@@ -22,6 +25,7 @@ export function artistRoutes(deps: AppDependencies) {
   const deezer = createDeezerClient()
   const mb = createMusicBrainzClient()
   const wikidata = createWikidataClient()
+  const itunes = createItunesClient()
 
   router.get('/api/v1/artists/:id', async (c) => {
     const id = parsePositiveIntParam(c.req.param('id'))
@@ -92,6 +96,19 @@ export function artistRoutes(deps: AppDependencies) {
 
     return c.json({ tracks })
   })
+
+  // Apple songs for the play button and the inline Apple Music player. The
+  // lookup runs here, so the browser never contacts Apple for it; only the
+  // fields the client needs are returned, never Apple's response itself.
+  router.get(
+    '/api/v1/preview/apple',
+    rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview-apple' }),
+    zQuery(applePreviewQuerySchema),
+    async (c) => {
+      const { name, id } = c.req.valid('query')
+      return c.json(await itunes.lookupSongs({ artistName: name, artistId: id }))
+    },
+  )
 
   // Proxy Deezer and Apple preview audio: the CSP allows media from this origin only
   router.get(

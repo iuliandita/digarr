@@ -129,13 +129,15 @@ describe('StreamingLinks with the applePreviews preference', () => {
     spotify: 'https://open.spotify.com/artist/4Z8W4fKeB5YxbusRsdQVPb',
     appleMusic: 'https://music.apple.com/gb/artist/radiohead/657515',
   }
-  const song = { wrapperType: 'track', kind: 'song', trackId: 1097862062, artistName: 'Radiohead' }
+  const song = { trackId: 1097862062, artistName: 'Radiohead' }
 
+  // Digarr's /api/v1/preview/apple answer: the songs, or a reason when there are none.
   function renderApple(
-    results: unknown[],
+    songs: unknown[],
     props: Partial<Parameters<typeof StreamingLinks>[0]> = {},
   ) {
-    const fetchMock = vi.fn().mockResolvedValue({ ok: true, json: async () => ({ results }) })
+    const body = songs.length > 0 ? { songs } : { songs: null, reason: 'no-match' }
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true, status: 200, json: async () => body })
     vi.stubGlobal('fetch', fetchMock)
     const stop = vi.fn()
     const preview = { stop, applePreviews: 'on' } as unknown as NonNullable<
@@ -163,10 +165,12 @@ describe('StreamingLinks with the applePreviews preference', () => {
     expect(stop).toHaveBeenCalledOnce()
     const frame = await screen.findByTitle('Apple Music preview')
     expect(frame.getAttribute('src')).toBe('https://embed.music.apple.com/song/1097862062')
-    expect(fetchMock).toHaveBeenCalledExactlyOnceWith(
-      'https://itunes.apple.com/lookup?id=657515&entity=song&limit=10',
-      { signal: expect.any(AbortSignal) },
-    )
+    expect(fetchMock).toHaveBeenCalledOnce()
+    expect(fetchMock.mock.calls[0]?.[0]).toBe('/api/v1/preview/apple?name=Radiohead&id=657515')
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({
+      credentials: 'same-origin',
+      signal: expect.any(AbortSignal),
+    })
     expect(container.querySelector('iframe[src*="spotify"]')).toBeNull()
   })
 

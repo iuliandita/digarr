@@ -33,6 +33,7 @@ import {
   resetPlaylistExportSchema,
   updatePlaylistSchema,
 } from '@/server/schemas/playlists'
+import { applePreviewQuerySchema } from '@/server/schemas/preview'
 import { bulkRecommendationSchema, missingAlbumsSchema } from '@/server/schemas/recommendations'
 import { notificationChannel, updateSettingsSchema } from '@/server/schemas/settings'
 import { setupCompleteSchema } from '@/server/schemas/setup'
@@ -711,6 +712,41 @@ const routeCatalog: RouteSpec[] = [
     auth: 'user',
     summary: 'Release groups for an artist MBID',
     params: { mbid: { type: 'string', format: 'uuid' } },
+  },
+  {
+    method: 'get',
+    path: '/api/v1/preview/apple',
+    tag: 'Artists',
+    auth: 'user',
+    summary: 'Look up Apple preview songs for an artist',
+    description:
+      'Asks the iTunes Search API from the server: by Apple artist ID, otherwise by a name search used only when exactly one artist has exactly that name. Returns up to ten songs, most popular first, or a reason.',
+    rateLimit: '30/min',
+    query: zodQuery(applePreviewQuerySchema),
+    ok: {
+      status: '200',
+      description: 'Songs, or why there are none.',
+      schema: {
+        type: 'object',
+        required: ['songs'],
+        properties: {
+          songs: {
+            type: ['array', 'null'],
+            items: {
+              type: 'object',
+              required: ['trackId'],
+              properties: {
+                trackId: { type: 'integer' },
+                trackName: str,
+                artistName: str,
+                previewUrl: { type: 'string', format: 'uri' },
+              },
+            },
+          },
+          reason: { type: 'string', enum: ['no-match', 'lookup-failed'] },
+        },
+      },
+    },
   },
   {
     method: 'get',

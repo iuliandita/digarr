@@ -648,6 +648,7 @@ returns `204` even when the row is already absent.
 | GET | `/api/v1/artists/:id/top-tracks` | Yes | Top 5 tracks (Deezer, MB fallback) |
 | GET | `/api/v1/artists/:id/enrichment` | Yes | Cached Wikidata description and external links |
 | GET | `/api/v1/albums/:mbid` | Yes | Release groups for an artist MBID |
+| GET | `/api/v1/preview/apple` | Yes | Apple preview songs for an artist, looked up by the server |
 | GET | `/api/v1/preview/audio` | Yes | Proxy Deezer or Apple preview audio (same-origin playback) |
 
 Path params:
@@ -658,6 +659,12 @@ Path params:
 In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog and adds optional `secondaryTypes` metadata when MusicBrainz provides a valid string array. It also returns an optional `aliases` string array with the release group's MusicBrainz alias names and sort names, omitted when there are none. This list is not restricted to studio albums; the coverage-only rule below does not change album picking, Release Radar or release matching.
 
 **GET /api/v1/albums/:mbid** is rate limited to 30 requests per minute per client IP and authenticated user. A disconnected caller stops waiting; shared MusicBrainz catalog work is cancelled when no callers remain.
+
+**GET /api/v1/preview/apple** is rate limited to 30 requests per minute per client IP and authenticated user. It serves the `applePreviews` play button and inline Apple Music player: the server asks Apple's iTunes Search API, so the browser does not. Query params:
+- `name` - the artist's name, 1 to 200 characters (required)
+- `id` - Apple artist ID, digits only (optional; the web app takes it from the artist's Apple Music link)
+
+With `id` the server looks the artist's songs up directly. Without it, it searches Apple's artists by name and uses the result only when exactly one artist has exactly that name (compared case-insensitively after Unicode and whitespace normalization); zero or several such artists give `no-match`. Apple has a combined four-second budget, no redirect is followed, and only `itunes.apple.com` is contacted. The response is `200` with `{ "songs": [...] }`, up to ten songs, most popular first, each with `trackId` and, when Apple provides them, `trackName`, `artistName` and `previewUrl` (kept only on `https://audio-ssl.itunes.apple.com/`); or `{ "songs": null, "reason": "no-match" | "lookup-failed" }`. Apple's response is never passed through. Answers are cached in memory for up to six hours (no-match for one hour); failures are not cached. Invalid parameters return `400` validation problem+json.
 
 **GET /api/v1/preview/audio** is rate limited to 30 requests per minute. Query params:
 - `url` - Deezer CDN preview URL (`*.dzcdn.net`) or Apple preview URL (`audio-ssl.itunes.apple.com`)
