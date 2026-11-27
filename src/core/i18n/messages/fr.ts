@@ -1857,6 +1857,9 @@ export const fr = {
   'streaming.appleLoadHint': "Rien n'est demandé à Apple avant que tu cliques.",
   'streaming.spotifyAutoloadOption': 'Charger automatiquement sur le tableau de bord',
   'streaming.spotifyAutoloadOff': 'Ne pas charger automatiquement',
+  'streaming.appleAutoloadOption':
+    'Charger le lecteur Apple Music automatiquement sur le tableau de bord',
+  'streaming.appleAutoloadOff': 'Ne pas charger le lecteur Apple Music automatiquement',
   'discover.moodAddedSuccess': "« {0} » ajouté, recherche d'artistes similaires en cours",
   'discover.moodAddFailed': "Impossible d'ajouter « {0} »",
   'discover.moodAddQueued': 'En file',

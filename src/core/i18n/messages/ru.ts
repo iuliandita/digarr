@@ -1848,6 +1848,8 @@ export const ru = {
   'streaming.appleLoadHint': 'Пока ты не нажмёшь, к Apple запросов нет.',
   'streaming.spotifyAutoloadOption': 'Загружать автоматически на панели',
   'streaming.spotifyAutoloadOff': 'Не загружать автоматически',
+  'streaming.appleAutoloadOption': 'Загружать плеер Apple Music автоматически на панели',
+  'streaming.appleAutoloadOff': 'Не загружать плеер Apple Music автоматически',
   'discover.moodAddedSuccess': '«{0}» добавлено; ищем похожих исполнителей',
   'discover.moodAddFailed': 'Не удалось добавить «{0}»',
   'discover.moodAddQueued': 'В очереди',

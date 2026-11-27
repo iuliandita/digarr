@@ -1693,6 +1693,8 @@ export const zhCN = {
   'streaming.appleLoadHint': '点击之前不会向 Apple 发送任何请求。',
   'streaming.spotifyAutoloadOption': '在仪表板上自动加载',
   'streaming.spotifyAutoloadOff': '不自动加载',
+  'streaming.appleAutoloadOption': '在仪表板上自动加载 Apple Music 播放器',
+  'streaming.appleAutoloadOff': '不自动加载 Apple Music 播放器',
   'discover.moodAddedSuccess': '已添加"{0}",正在寻找相似艺术家',
   'discover.moodAddFailed': '添加"{0}"失败',
   'discover.moodAddQueued': '排队中',

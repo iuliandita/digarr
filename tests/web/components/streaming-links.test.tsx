@@ -192,12 +192,49 @@ describe('StreamingLinks with the applePreviews preference', () => {
     expect(container.querySelector('iframe')).toBeNull()
   })
 
-  it('loads without a click when dashboard autoload is on, and can turn it off', async () => {
+  it('loads without a click when Apple dashboard autoload is on, and can turn it off', async () => {
     const onChange = vi.fn()
-    renderApple([song], { spotifyAutoload: { enabled: true, onChange } })
+    const spotifyChange = vi.fn()
+    renderApple([song], {
+      appleAutoload: { enabled: true, onChange },
+      spotifyAutoload: { enabled: false, onChange: spotifyChange },
+    })
     expect(await screen.findByTitle('Apple Music preview')).toBeTruthy()
-    fireEvent.click(screen.getByRole('button', { name: "Don't load automatically" }))
+    fireEvent.click(
+      screen.getByRole('button', { name: "Don't load the Apple Music player automatically" }),
+    )
     expect(onChange).toHaveBeenCalledExactlyOnceWith(false)
+    expect(spotifyChange).not.toHaveBeenCalled()
+  })
+
+  it('ignores Spotify autoload consent: stays click-to-load and requests nothing', () => {
+    const spotifyChange = vi.fn()
+    const { fetchMock, container } = renderApple([song], {
+      spotifyAutoload: { enabled: true, onChange: spotifyChange },
+      appleAutoload: { enabled: false, onChange: vi.fn() },
+    })
+    expect(screen.getByRole('button', { name: 'Load Apple Music player' })).toBeTruthy()
+    expect(container.querySelector('iframe')).toBeNull()
+    expect(fetchMock).not.toHaveBeenCalled()
+    expect(screen.queryByText('Load automatically on the dashboard')).toBeNull()
+    expect(screen.queryByRole('button', { name: "Don't load automatically" })).toBeNull()
+  })
+
+  it('ticking the Apple autoload box saves only the Apple preference', async () => {
+    const appleChange = vi.fn()
+    const spotifyChange = vi.fn()
+    renderApple([song], {
+      spotifyAutoload: { enabled: false, onChange: spotifyChange },
+      appleAutoload: { enabled: false, onChange: appleChange },
+    })
+    fireEvent.click(
+      screen.getByRole('checkbox', {
+        name: 'Load the Apple Music player automatically on the dashboard',
+      }),
+    )
+    expect(appleChange).toHaveBeenCalledExactlyOnceWith(true)
+    expect(spotifyChange).not.toHaveBeenCalled()
+    expect(await screen.findByTitle('Apple Music preview')).toBeTruthy()
   })
 
   it('shows no inline player in compact mode', () => {

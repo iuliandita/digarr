@@ -1856,6 +1856,8 @@ export const en = {
   'streaming.appleLoadHint': 'Nothing is requested from Apple until you click.',
   'streaming.spotifyAutoloadOption': 'Load automatically on the dashboard',
   'streaming.spotifyAutoloadOff': "Don't load automatically",
+  'streaming.appleAutoloadOption': 'Load the Apple Music player automatically on the dashboard',
+  'streaming.appleAutoloadOff': "Don't load the Apple Music player automatically",
 
   // Mood discover toasts
   'discover.moodAddedSuccess': 'Added "{0}" and discovering similar artists',

@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, Sparkles } from 'lucide-react'
 import { Fragment, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { useAppleAutoload } from '../hooks/use-apple-autoload'
 import { useClickOutside } from '../hooks/use-click-outside'
 import { usePopularAlbumsAvailability } from '../hooks/use-popular-albums-availability'
 import { useSpotifyAutoload } from '../hooks/use-spotify-autoload'
@@ -59,6 +60,7 @@ export function TodaysPick({
 }: TodaysPickProps) {
   const { t } = useI18n()
   const spotifyAutoload = useSpotifyAutoload()
+  const appleAutoload = useAppleAutoload()
   const [imgError, setImgError] = useState(false)
   const [coverError, setCoverError] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -238,6 +240,10 @@ export function TodaysPick({
             spotifyAutoload={{
               enabled: spotifyAutoload.enabled,
               onChange: spotifyAutoload.setEnabled,
+            }}
+            appleAutoload={{
+              enabled: appleAutoload.enabled,
+              onChange: appleAutoload.setEnabled,
             }}
           />
 

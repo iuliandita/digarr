@@ -11,7 +11,10 @@ type StreamingLinksProps = {
   compact?: boolean
   onPlay?: () => void
   isPlaying?: boolean
-  spotifyAutoload?: SpotifyAutoload
+  /** Dashboard autoload consent for the Spotify player. */
+  spotifyAutoload?: EmbedAutoload
+  /** Dashboard autoload consent for the Apple Music player, separate from Spotify's. */
+  appleAutoload?: EmbedAutoload
 }
 
 function safeUrl(url: string): string {
@@ -73,14 +76,14 @@ const SERVICE_INITIALS: Record<string, string> = {
   bandcamp: 'BC',
 }
 
-export type SpotifyAutoload = {
+export type EmbedAutoload = {
   enabled: boolean
   onChange: (enabled: boolean) => void
 }
 
 type SpotifyEmbedProps = {
   url: string
-  autoload?: SpotifyAutoload
+  autoload?: EmbedAutoload
 }
 
 function extractSpotifyId(url: string): { type: string; id: string } | null {
@@ -159,13 +162,14 @@ function SpotifyEmbed({ url, autoload }: SpotifyEmbedProps) {
 type AppleEmbedProps = {
   appleMusicUrl: string | undefined
   artistName: string
-  autoload?: SpotifyAutoload
+  autoload?: EmbedAutoload
 }
 
 /**
  * Apple's compact song player, shown in place of the Spotify embed for users
  * with the `applePreviews` preference. Like the Spotify embed it stays a local
- * placeholder until clicked, unless the dashboard autoload preference is on.
+ * placeholder until clicked, unless its own dashboard autoload preference
+ * (`appleAutoloadDashboard`, not Spotify's) is on.
  * Apple's artist embed has no song list, so the artist's top songs are offered
  * as buttons that swap the song in the player. It plays Apple's 30-second
  * clips only: signing in inside the embed is not supported, because Apple's
@@ -226,7 +230,7 @@ function AppleEmbed({ appleMusicUrl, artistName, autoload }: AppleEmbedProps) {
                 setActivated(true)
               }}
             />
-            {t('streaming.spotifyAutoloadOption')}
+            {t('streaming.appleAutoloadOption')}
           </label>
         )}
       </div>
@@ -280,7 +284,7 @@ function AppleEmbed({ appleMusicUrl, artistName, autoload }: AppleEmbedProps) {
             setActivated(false)
           }}
         >
-          {t('streaming.spotifyAutoloadOff')}
+          {t('streaming.appleAutoloadOff')}
         </button>
       )}
     </div>
@@ -294,6 +298,7 @@ export function StreamingLinks({
   onPlay,
   isPlaying = false,
   spotifyAutoload,
+  appleAutoload,
 }: StreamingLinksProps) {
   const applePreviews = useContext(PreviewContext)?.applePreviews ?? 'off'
   const { t } = useI18n()
@@ -358,7 +363,7 @@ export function StreamingLinks({
         <AppleEmbed
           appleMusicUrl={streamingUrls?.appleMusic}
           artistName={artistName}
-          autoload={spotifyAutoload}
+          autoload={appleAutoload}
         />
       )}
       {!compact && applePreviews === 'off' && spotifyUrl && (

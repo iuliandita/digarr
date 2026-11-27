@@ -1861,6 +1861,8 @@ export const de = {
   'streaming.appleLoadHint': 'Apple wird erst nach deinem Klick kontaktiert.',
   'streaming.spotifyAutoloadOption': 'Auf dem Dashboard automatisch laden',
   'streaming.spotifyAutoloadOff': 'Nicht automatisch laden',
+  'streaming.appleAutoloadOption': 'Apple Music-Player auf dem Dashboard automatisch laden',
+  'streaming.appleAutoloadOff': 'Apple Music-Player nicht automatisch laden',
   'discover.moodAddedSuccess': '„{0}" hinzugefügt, ähnliche Künstler werden entdeckt',
   'discover.moodAddFailed': '„{0}" konnte nicht hinzugefügt werden',
   'discover.moodAddQueued': 'In Warteschlange',

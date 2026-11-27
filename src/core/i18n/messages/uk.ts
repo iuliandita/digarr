@@ -1837,6 +1837,8 @@ export const uk = {
   'streaming.appleLoadHint': 'Доки ти не натиснеш, запитів до Apple немає.',
   'streaming.spotifyAutoloadOption': 'Завантажувати автоматично на панелі',
   'streaming.spotifyAutoloadOff': 'Не завантажувати автоматично',
+  'streaming.appleAutoloadOption': 'Завантажувати плеєр Apple Music автоматично на панелі',
+  'streaming.appleAutoloadOff': 'Не завантажувати плеєр Apple Music автоматично',
   'discover.moodAddedSuccess': '«{0}» додано; шукаємо схожих виконавців',
   'discover.moodAddFailed': 'Не вдалося додати «{0}»',
   'discover.moodAddQueued': 'У черзі',

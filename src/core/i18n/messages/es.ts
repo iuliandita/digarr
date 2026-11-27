@@ -1855,6 +1855,9 @@ export const es = {
   'streaming.appleLoadHint': 'No se solicita nada a Apple hasta que hagas clic.',
   'streaming.spotifyAutoloadOption': 'Cargar automáticamente en el panel',
   'streaming.spotifyAutoloadOff': 'No cargar automáticamente',
+  'streaming.appleAutoloadOption':
+    'Cargar el reproductor de Apple Music automáticamente en el panel',
+  'streaming.appleAutoloadOff': 'No cargar el reproductor de Apple Music automáticamente',
   'discover.moodAddedSuccess': 'Se añadió «{0}» y se están descubriendo artistas similares',
   'discover.moodAddFailed': 'No se pudo añadir «{0}»',
   'discover.moodAddQueued': 'En cola',

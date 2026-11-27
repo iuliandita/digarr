@@ -1846,6 +1846,8 @@ export const ptBR = {
   'streaming.appleLoadHint': 'Nada é solicitado ao Apple até você clicar.',
   'streaming.spotifyAutoloadOption': 'Carregar automaticamente no painel',
   'streaming.spotifyAutoloadOff': 'Não carregar automaticamente',
+  'streaming.appleAutoloadOption': 'Carregar o player do Apple Music automaticamente no painel',
+  'streaming.appleAutoloadOff': 'Não carregar o player do Apple Music automaticamente',
   'discover.moodAddedSuccess': '"{0}" adicionado; descobrindo artistas similares',
   'discover.moodAddFailed': 'Falha ao adicionar "{0}"',
   'discover.moodAddQueued': 'Na fila',

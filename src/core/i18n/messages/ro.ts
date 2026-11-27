@@ -1843,6 +1843,8 @@ export const ro = {
   'streaming.appleLoadHint': 'Nu se cere nimic de la Apple până nu dai clic.',
   'streaming.spotifyAutoloadOption': 'Încarcă automat în tabloul de bord',
   'streaming.spotifyAutoloadOff': 'Nu încărca automat',
+  'streaming.appleAutoloadOption': 'Încarcă automat playerul Apple Music în tabloul de bord',
+  'streaming.appleAutoloadOff': 'Nu încărca automat playerul Apple Music',
   'discover.moodAddedSuccess': '„{0}" a fost adăugat; căutăm artiști similari',
   'discover.moodAddFailed': 'Adăugarea „{0}" a eșuat',
   'discover.moodAddQueued': 'În coadă',

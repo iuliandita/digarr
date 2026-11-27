@@ -1836,6 +1836,8 @@ export const pl = {
   'streaming.appleLoadHint': 'Nic nie jest pobierane ze Apple, dopóki nie klikniesz.',
   'streaming.spotifyAutoloadOption': 'Wczytuj automatycznie na pulpicie',
   'streaming.spotifyAutoloadOff': 'Nie wczytuj automatycznie',
+  'streaming.appleAutoloadOption': 'Wczytuj odtwarzacz Apple Music automatycznie na pulpicie',
+  'streaming.appleAutoloadOff': 'Nie wczytuj odtwarzacza Apple Music automatycznie',
   'discover.moodAddedSuccess': 'Dodano „{0}" i wyszukiwane są podobni artyści',
   'discover.moodAddFailed': 'Nie udało się dodać „{0}"',
   'discover.moodAddQueued': 'W kolejce',

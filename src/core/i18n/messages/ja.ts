@@ -1818,6 +1818,8 @@ export const ja = {
   'streaming.appleLoadHint': 'クリックするまでAppleへのリクエストは送信されません。',
   'streaming.spotifyAutoloadOption': 'ダッシュボードで自動的に読み込む',
   'streaming.spotifyAutoloadOff': '自動的に読み込まない',
+  'streaming.appleAutoloadOption': 'ダッシュボードでApple Musicプレーヤーを自動的に読み込む',
+  'streaming.appleAutoloadOff': 'Apple Musicプレーヤーを自動的に読み込まない',
   'discover.moodAddedSuccess': '「{0}」を追加しました。類似アーティストを検索中です',
   'discover.moodAddFailed': '「{0}」の追加に失敗しました',
   'discover.moodAddQueued': '待機中',

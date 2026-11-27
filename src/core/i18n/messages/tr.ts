@@ -1822,6 +1822,8 @@ export const tr = {
   'streaming.appleLoadHint': "Sen tıklayana kadar Apple'dan hiçbir şey istenmez.",
   'streaming.spotifyAutoloadOption': 'Panoda otomatik yükle',
   'streaming.spotifyAutoloadOff': 'Otomatik yükleme',
+  'streaming.appleAutoloadOption': 'Apple Music oynatıcısını panoda otomatik yükle',
+  'streaming.appleAutoloadOff': 'Apple Music oynatıcısını otomatik yükleme',
   'discover.moodAddedSuccess': '"{0}" eklendi; benzer sanatçılar aranıyor',
   'discover.moodAddFailed': '"{0}" eklenemedi',
   'discover.moodAddQueued': 'Sırada',

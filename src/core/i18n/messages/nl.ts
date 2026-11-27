@@ -1845,6 +1845,8 @@ export const nl = {
   'streaming.appleLoadHint': 'Er wordt niets bij Apple opgevraagd tot je klikt.',
   'streaming.spotifyAutoloadOption': 'Automatisch laden op het dashboard',
   'streaming.spotifyAutoloadOff': 'Niet automatisch laden',
+  'streaming.appleAutoloadOption': 'Apple Music-speler automatisch laden op het dashboard',
+  'streaming.appleAutoloadOff': 'Apple Music-speler niet automatisch laden',
   'discover.moodAddedSuccess': '"{0}" toegevoegd; vergelijkbare artiesten worden gezocht',
   'discover.moodAddFailed': '"{0}" kon niet worden toegevoegd',
   'discover.moodAddQueued': 'In wachtrij',
