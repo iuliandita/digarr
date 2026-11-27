@@ -96,6 +96,64 @@ describe('album discovery preferences on migrated PGlite', () => {
     })
   })
 
+  it('persists the Apple previews opt-in per user, off by default', async () => {
+    const owner = await createUser(db, { username: 'preview-owner', passwordHash: 'test-hash' })
+    const other = await createUser(db, { username: 'preview-other', passwordHash: 'test-hash' })
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', owner.id)
+      await next()
+    })
+    app.route('/', authRoutes({ db, getUserById: (id) => getUserById(db, id) } as AppDependencies))
+    const patch = (body: unknown) =>
+      app.request('/api/v1/auth/me/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    const read = async () => (await app.request('/api/v1/auth/me/preferences')).json()
+
+    expect(await read()).toMatchObject({ applePreviews: false })
+    expect((await patch({ applePreviews: 'yes' })).status).toBe(400)
+    expect((await patch({ applePreviews: true })).status).toBe(204)
+    expect(await read()).toMatchObject({ applePreviews: true })
+    expect((await getUserById(db, other.id))?.preferences?.applePreviews).not.toBe(true)
+  })
+
+  it('persists Apple dashboard autoload apart from the Spotify one, off by default', async () => {
+    const owner = await createUser(db, { username: 'autoload-owner', passwordHash: 'test-hash' })
+    const app = new Hono<HonoEnv>()
+    app.use('*', async (c, next) => {
+      c.set('userId', owner.id)
+      await next()
+    })
+    app.route('/', authRoutes({ db, getUserById: (id) => getUserById(db, id) } as AppDependencies))
+    const patch = (body: unknown) =>
+      app.request('/api/v1/auth/me/preferences', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+    const read = async () => (await app.request('/api/v1/auth/me/preferences')).json()
+
+    expect(await read()).toMatchObject({
+      appleAutoloadDashboard: false,
+      spotifyAutoloadDashboard: false,
+    })
+    expect((await patch({ appleAutoloadDashboard: 1 })).status).toBe(400)
+    expect((await patch({ appleAutoloadDashboard: true })).status).toBe(204)
+    expect(await read()).toMatchObject({
+      appleAutoloadDashboard: true,
+      spotifyAutoloadDashboard: false,
+    })
+    expect((await patch({ spotifyAutoloadDashboard: true })).status).toBe(204)
+    expect((await patch({ appleAutoloadDashboard: false })).status).toBe(204)
+    expect(await read()).toMatchObject({
+      appleAutoloadDashboard: false,
+      spotifyAutoloadDashboard: true,
+    })
+  })
+
   it('resolves only the owner stored Audition track', async () => {
     const owner = await createUser(db, { username: 'audition-owner', passwordHash: 'test-hash' })
     const other = await createUser(db, { username: 'audition-other', passwordHash: 'test-hash' })

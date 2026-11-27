@@ -222,7 +222,7 @@ Preference updates merge top-level keys only. A supplied `scoringWeights` object
 
 ListenBrainz `configured` means the user has a saved token. Last.fm `configured` requires the user's API key, server `LASTFM_SHARED_SECRET`, and `DIGARR_ENCRYPTION_KEY`; `connected` additionally means a stored session matching those credentials; it does not verify whether Last.fm still accepts that session. Use Reconnect Last.fm in Account after revocation or authorization errors. No credentials or session keys are returned. `lastError` is the last recorded provider send error or `null`.
 
-`PATCH /api/v1/auth/me/preferences` accepts independent booleans `listenbrainzLoveEnabled`, `listenbrainzPlaylistEnabled`, and `lastfmLoveEnabled`, all false by default, plus `spotifyAutoloadDashboard` (false by default; loads the Spotify player on the dashboard's Today's Pick without a click). Omitted keys retain their values. Enabling Last.fm loves requires a current connected session; a callback never enables the preference automatically. Disabling stops future sends and does not undo remote writes. Exact-track approvals send a recording MBID to ListenBrainz or artist/title to Last.fm; artist-only approvals, rejects, and blocks remain local. Generated ListenBrainz playlists require their separate opt-in, are private, and are sent only on manual generation. Scheduled regenerations never send playlists. The send includes the playlist title, artist/track names, and known recording MBIDs; tracks without recording MBIDs are skipped, and no usable recordings produces a visible failure. See [setup and privacy](AUTHENTICATION.md#scrobbler-write-back).
+`PATCH /api/v1/auth/me/preferences` accepts independent booleans `listenbrainzLoveEnabled`, `listenbrainzPlaylistEnabled`, and `lastfmLoveEnabled`, all false by default, plus `spotifyAutoloadDashboard` (false by default; loads the inline Spotify player on the dashboard's Today's Pick without a click), `applePreviews` (false by default; the preview button plays Apple Music clips looked up through `GET /api/v1/preview/apple`, inline players come from Apple, and the Spotify player is never loaded), and `appleAutoloadDashboard` (false by default; with `applePreviews`, loads the inline Apple Music player on Today's Pick without a click; independent of `spotifyAutoloadDashboard`). Omitted keys retain their values. Enabling Last.fm loves requires a current connected session; a callback never enables the preference automatically. Disabling stops future sends and does not undo remote writes. Exact-track approvals send a recording MBID to ListenBrainz or artist/title to Last.fm; artist-only approvals, rejects, and blocks remain local. Generated ListenBrainz playlists require their separate opt-in, are private, and are sent only on manual generation. Scheduled regenerations never send playlists. The send includes the playlist title, artist/track names, and known recording MBIDs; tracks without recording MBIDs are skipped, and no usable recordings produces a visible failure. See [setup and privacy](AUTHENTICATION.md#scrobbler-write-back).
 
 ### OIDC / OAuth
 
@@ -648,7 +648,8 @@ returns `204` even when the row is already absent.
 | GET | `/api/v1/artists/:id/top-tracks` | Yes | Top 5 tracks (Deezer, MB fallback) |
 | GET | `/api/v1/artists/:id/enrichment` | Yes | Cached Wikidata description and external links |
 | GET | `/api/v1/albums/:mbid` | Yes | Release groups for an artist MBID |
-| GET | `/api/v1/preview/audio` | Yes | Proxy Deezer preview audio (CORS bypass) |
+| GET | `/api/v1/preview/apple` | Yes | Apple preview songs for an artist, looked up by the server |
+| GET | `/api/v1/preview/audio` | Yes | Proxy Deezer or Apple preview audio (same-origin playback) |
 
 Path params:
 - `:id` values are positive integers. Fractional, negative, zero, or unsafe integer values return `400`
@@ -659,8 +660,14 @@ In v2.0.0, `GET /api/v1/albums/:mbid` retains the broad Album/EP/Single catalog 
 
 **GET /api/v1/albums/:mbid** is rate limited to 30 requests per minute per client IP and authenticated user. A disconnected caller stops waiting; shared MusicBrainz catalog work is cancelled when no callers remain.
 
+**GET /api/v1/preview/apple** is rate limited to 30 requests per minute per client IP and authenticated user. It serves the `applePreviews` play button and inline Apple Music player: the server asks Apple's iTunes Search API, so the browser does not. Query params:
+- `name` - the artist's name, 1 to 200 characters (required)
+- `id` - Apple artist ID, digits only (optional; the web app takes it from the artist's Apple Music link)
+
+With `id` the server looks the artist's songs up directly. Without it, it searches Apple's artists by name and uses the result only when exactly one artist has exactly that name (compared case-insensitively after Unicode and whitespace normalization); zero or several such artists give `no-match`. Apple has a combined four-second budget, no redirect is followed, and only `itunes.apple.com` is contacted. The response is `200` with `{ "songs": [...] }`, up to ten songs, most popular first, each with `trackId` and, when Apple provides them, `trackName`, `artistName` and `previewUrl` (kept only on `https://audio-ssl.itunes.apple.com/`); or `{ "songs": null, "reason": "no-match" | "lookup-failed" }`. Apple's response is never passed through. Answers are cached in memory for up to six hours (no-match for one hour); failures are not cached. Invalid parameters return `400` validation problem+json.
+
 **GET /api/v1/preview/audio** is rate limited to 30 requests per minute. Query params:
-- `url` - Deezer CDN preview URL (must match `*.dzcdn.net`)
+- `url` - Deezer CDN preview URL (`*.dzcdn.net`) or Apple preview URL (`audio-ssl.itunes.apple.com`)
 - `token` - auth token (for `<audio>` elements that can't send headers)
 
 **GET /api/v1/artists/:id/enrichment** query params:

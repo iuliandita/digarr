@@ -474,6 +474,147 @@ describe('GET /api/v1/artists/:id/enrichment', () => {
   })
 })
 
+describe('GET /api/v1/preview/apple', () => {
+  const CLIP = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+  const itunes = (results: unknown[]) =>
+    new Response(JSON.stringify({ results }), {
+      headers: { 'Content-Type': 'text/javascript; charset=utf-8' },
+    })
+  const artist = (artistName: string, artistId: number) => ({
+    wrapperType: 'artist',
+    artistName,
+    artistId,
+  })
+  const song = {
+    wrapperType: 'track',
+    kind: 'song',
+    trackId: 1,
+    trackName: 'Smells Like Teen Spirit',
+    artistName: 'Nirvana',
+    previewUrl: CLIP,
+    artworkUrl100: 'https://is1-ssl.mzstatic.com/a.jpg',
+    collectionViewUrl: 'https://music.apple.com/us/album/x/1',
+  }
+  const calledUrls = (mock: { mock: { calls: unknown[][] } }) =>
+    mock.mock.calls.map(([url]) => String(url))
+  const get = (app: ReturnType<typeof createApp>, query: string) =>
+    authedRequest(app, `/api/v1/preview/apple?${query}`)
+
+  it('looks songs up by Apple artist ID and returns only the fields the client needs', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(itunes([artist('Nirvana', 112018), song]))
+    const res = await get(createApp(makeDeps()), 'name=Nirvana&id=112018')
+    expect(res.status).toBe(200)
+    expect(await res.json()).toEqual({
+      songs: [
+        {
+          trackId: 1,
+          trackName: 'Smells Like Teen Spirit',
+          artistName: 'Nirvana',
+          previewUrl: CLIP,
+        },
+      ],
+    })
+    expect(calledUrls(fetchMock)).toEqual([
+      'https://itunes.apple.com/lookup?id=112018&entity=song&limit=10',
+    ])
+    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ redirect: 'manual' })
+    fetchMock.mockRestore()
+  })
+
+  it('searches by name and uses the one artist with exactly that name', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(itunes([artist('Portishead', 7), artist('Portishead Tribute', 8)]))
+      .mockResolvedValueOnce(itunes([{ ...song, artistName: 'Portishead' }]))
+    const res = await get(createApp(makeDeps()), 'name=Portishead')
+    expect(res.status).toBe(200)
+    expect((await res.json()).songs).toHaveLength(1)
+    expect(calledUrls(fetchMock)).toEqual([
+      'https://itunes.apple.com/search?term=Portishead&media=music&entity=musicArtist&attribute=artistTerm&limit=25',
+      'https://itunes.apple.com/lookup?id=7&entity=song&limit=10',
+    ])
+    fetchMock.mockRestore()
+  })
+
+  it('refuses a name several artists share', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(
+        itunes([1, 2, 3, 4, 5].map((n) => artist(n % 2 ? 'Nirvana' : 'nirvana', n))),
+      )
+    const res = await get(createApp(makeDeps()), 'name=Nirvana')
+    expect(await res.json()).toEqual({ songs: null, reason: 'no-match' })
+    expect(fetchMock).toHaveBeenCalledOnce()
+    fetchMock.mockRestore()
+  })
+
+  it('reports no-match when no artist has that name', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(itunes([artist('Nirvana Tribute', 9)]))
+    const res = await get(createApp(makeDeps()), 'name=Nirvana')
+    expect(await res.json()).toEqual({ songs: null, reason: 'no-match' })
+    fetchMock.mockRestore()
+  })
+
+  it('reports lookup-failed when Apple fails, without forwarding its answer', async () => {
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('upstream secret', { status: 503 }))
+    const res = await get(createApp(makeDeps()), 'name=Nirvana&id=112018')
+    expect(res.status).toBe(200)
+    const text = await res.text()
+    expect(JSON.parse(text)).toEqual({ songs: null, reason: 'lookup-failed' })
+    expect(text).not.toContain('upstream secret')
+    fetchMock.mockRestore()
+  })
+
+  it('reports lookup-failed when the request to Apple throws', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockRejectedValueOnce(new Error('offline'))
+    const res = await get(createApp(makeDeps()), 'name=Nirvana&id=112018')
+    expect(await res.json()).toEqual({ songs: null, reason: 'lookup-failed' })
+    fetchMock.mockRestore()
+  })
+
+  it.each([
+    ['', 'no name'],
+    ['name=', 'an empty name'],
+    ['name=%20%20', 'a blank name'],
+    [`name=${'a'.repeat(201)}`, 'a name over 200 characters'],
+    ['name=Nirvana&id=abc', 'a non-numeric ID'],
+    ['name=Nirvana&id=1%2F..%2Fsearch', 'a path in the ID'],
+    ['name=Nirvana&id=https%3A%2F%2Fevil.example%2F1', 'a URL as the ID'],
+    [`name=Nirvana&id=${'1'.repeat(16)}`, 'an overlong ID'],
+  ])('rejects %j (%s) without contacting Apple', async (query) => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const res = await get(createApp(makeDeps()), query)
+    expect(res.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
+    fetchMock.mockRestore()
+  })
+
+  it('limits lookups to 30/min per authenticated user', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async () => itunes([]))
+    const app = createApp(makeDeps())
+    for (let i = 0; i < 30; i += 1) {
+      expect((await get(app, `name=Artist${i}`)).status).toBe(200)
+    }
+    expect((await get(app, 'name=Another')).status).toBe(429)
+    fetchMock.mockRestore()
+  })
+
+  it('requires authentication', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const app = createApp(makeDeps({ getUserCount: vi.fn(async () => 1) }))
+    const res = await app.request('/api/v1/preview/apple?name=Nirvana')
+    expect(res.status).toBe(401)
+    expect(fetchMock).not.toHaveBeenCalled()
+    fetchMock.mockRestore()
+  })
+})
+
 describe('preview audio proxy redirects', () => {
   const GOOD = 'https://cdns-preview-a.dzcdn.net/stream/a.mp3'
   const audio = () => new Response('abc', { headers: { 'Content-Type': 'audio/mpeg' } })
@@ -499,6 +640,32 @@ describe('preview audio proxy redirects', () => {
     const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(GOOD)}`)
     expect(res.status).toBe(502)
     expect(fetchMock).toHaveBeenCalledTimes(1)
+    fetchMock.mockRestore()
+  })
+
+  it('proxies an Apple preview', async () => {
+    const apple = 'https://audio-ssl.itunes.apple.com/itunes-assets/a/b/preview.m4a'
+    const fetchMock = vi
+      .spyOn(globalThis, 'fetch')
+      .mockResolvedValueOnce(new Response('abc', { headers: { 'Content-Type': 'audio/x-m4p' } }))
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(apple)}`)
+    expect(res.status).toBe(200)
+    expect(res.headers.get('Content-Type')).toBe('audio/x-m4p')
+    expect(fetchMock.mock.calls[0]?.[0]).toBe(apple)
+    fetchMock.mockRestore()
+  })
+
+  it.each([
+    'https://audio-ssl.itunes.apple.com.evil.example/preview.m4a',
+    'https://itunes.apple.com/lookup?id=1',
+    'http://audio-ssl.itunes.apple.com/preview.m4a',
+  ])('rejects %s without fetching it', async (url) => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch')
+    const app = createApp(makeDeps())
+    const res = await authedRequest(app, `/api/v1/preview/audio?url=${encodeURIComponent(url)}`)
+    expect(res.status).toBe(400)
+    expect(fetchMock).not.toHaveBeenCalled()
     fetchMock.mockRestore()
   })
 

@@ -188,7 +188,7 @@ export function createApp(deps: AppDependencies) {
         imgSrc: ["'self'", 'data:', 'https:'],
         connectSrc: ["'self'", 'https:'],
         fontSrc: ["'self'"],
-        frameSrc: ["'self'", 'https://open.spotify.com'],
+        frameSrc: ["'self'", 'https://open.spotify.com', 'https://embed.music.apple.com'],
       },
     }),
   )

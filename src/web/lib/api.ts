@@ -1,3 +1,4 @@
+import type { AppleSongLookup } from '../../core/clients/itunes'
 import type { DiscoveryAvailabilityResult } from '../../core/discovery-modes/availability'
 import type { DiscoveryConfigField } from '../../core/discovery-modes/types'
 import type { GenreInfo } from '../../core/genre/types'
@@ -1299,6 +1300,10 @@ export const getPlaylistScheduler = () =>
   fetchApi<{ nextRun: string | null; cron: string | null; enabled: boolean }>(
     '/playlists/scheduler',
   )
+
+// Apple preview songs, looked up by the server
+export const getApplePreviewSongs = (query: { name: string; id?: string }, signal?: AbortSignal) =>
+  fetchApi<AppleSongLookup>(`/preview/apple?${new URLSearchParams(query).toString()}`, { signal })
 
 // Artist top tracks
 export const getArtistTopTracks = (artistId: number) =>

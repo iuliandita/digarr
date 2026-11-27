@@ -1,5 +1,6 @@
-import { useContext, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { isHttpUrl } from '@/core/validation'
+import { type AppleSong, lookupAppleSongs } from '../lib/apple-music'
 import { useI18n } from '../lib/i18n'
 import { PreviewContext } from '../lib/preview-context'
 import { Button } from './ui/button'
@@ -10,7 +11,10 @@ type StreamingLinksProps = {
   compact?: boolean
   onPlay?: () => void
   isPlaying?: boolean
-  spotifyAutoload?: SpotifyAutoload
+  /** Dashboard autoload consent for the Spotify player. */
+  spotifyAutoload?: EmbedAutoload
+  /** Dashboard autoload consent for the Apple Music player, separate from Spotify's. */
+  appleAutoload?: EmbedAutoload
 }
 
 function safeUrl(url: string): string {
@@ -72,14 +76,14 @@ const SERVICE_INITIALS: Record<string, string> = {
   bandcamp: 'BC',
 }
 
-export type SpotifyAutoload = {
+export type EmbedAutoload = {
   enabled: boolean
   onChange: (enabled: boolean) => void
 }
 
 type SpotifyEmbedProps = {
   url: string
-  autoload?: SpotifyAutoload
+  autoload?: EmbedAutoload
 }
 
 function extractSpotifyId(url: string): { type: string; id: string } | null {
@@ -155,6 +159,140 @@ function SpotifyEmbed({ url, autoload }: SpotifyEmbedProps) {
   )
 }
 
+type AppleEmbedProps = {
+  appleMusicUrl: string | undefined
+  artistName: string
+  autoload?: EmbedAutoload
+}
+
+/**
+ * Apple's compact song player, shown in place of the Spotify embed for users
+ * with the `applePreviews` preference. Like the Spotify embed it stays a local
+ * placeholder until clicked, unless its own dashboard autoload preference
+ * (`appleAutoloadDashboard`, not Spotify's) is on.
+ * Apple's artist embed has no song list, so the artist's top songs are offered
+ * as buttons that swap the song in the player. Without an Apple Music session
+ * it plays 30-second clips; an embed that already has a session in this
+ * browser plays whole songs, which Digarr neither provides nor prevents.
+ * Signing in inside the embed is not supported, because Apple's sign-in window
+ * cannot report back to the frame while pages are served with
+ * `Cross-Origin-Opener-Policy: same-origin`.
+ */
+const APPLE_EMBED_SONGS = 3
+
+function AppleEmbed({ appleMusicUrl, artistName, autoload }: AppleEmbedProps) {
+  const { t } = useI18n()
+  const preview = useContext(PreviewContext)
+  const [activated, setActivated] = useState(false)
+  const [songs, setSongs] = useState<AppleSong[] | undefined>(undefined)
+  const [selected, setSelected] = useState(0)
+  const wanted = activated || autoload?.enabled === true
+
+  useEffect(() => {
+    if (!wanted) return
+    let current = true
+    setSongs(undefined)
+    setSelected(0)
+    void lookupAppleSongs(appleMusicUrl, artistName).then((lookup) => {
+      if (!current) return
+      setSongs(
+        (lookup.songs ?? [])
+          .filter((song) => Number.isInteger(song.trackId))
+          .slice(0, APPLE_EMBED_SONGS),
+      )
+    })
+    return () => {
+      current = false
+    }
+  }, [wanted, appleMusicUrl, artistName])
+
+  if (!wanted) {
+    return (
+      <div className="mt-2 flex flex-col items-start gap-1 rounded border border-border bg-surface/50 p-3">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            preview?.stop()
+            setActivated(true)
+          }}
+        >
+          {t('streaming.appleLoad')}
+        </Button>
+        <p className="text-caption text-muted">{t('streaming.appleLoadHint')}</p>
+        {autoload && (
+          <label className="flex items-center gap-2 text-caption text-muted">
+            <input
+              type="checkbox"
+              className="accent-accent"
+              checked={false}
+              onChange={() => {
+                autoload.onChange(true)
+                setActivated(true)
+              }}
+            />
+            {t('streaming.appleAutoloadOption')}
+          </label>
+        )}
+      </div>
+    )
+  }
+  if (songs === undefined) {
+    return <p className="mt-2 text-caption text-muted">{t('common.loading')}</p>
+  }
+  return (
+    <div className="mt-2 flex flex-col items-start gap-1">
+      {songs.length > 1 && (
+        <div className="flex flex-wrap gap-1">
+          {songs.map((song, index) => (
+            <button
+              key={song.trackId}
+              type="button"
+              aria-pressed={index === selected}
+              onClick={() => setSelected(index)}
+              className={`max-w-48 truncate rounded border px-2 py-0.5 text-caption transition-colors ${
+                index === selected
+                  ? 'border-accent text-text'
+                  : 'border-border text-muted hover:text-text'
+              }`}
+            >
+              {song.trackName ?? index + 1}
+            </button>
+          ))}
+        </div>
+      )}
+      {songs.length === 0 ? (
+        <p className="text-caption text-muted">{t('preview.noPreviewAvailable')}</p>
+      ) : (
+        <iframe
+          key={(songs[selected] ?? songs[0])?.trackId}
+          src={`https://embed.music.apple.com/song/${(songs[selected] ?? songs[0])?.trackId}`}
+          width="100%"
+          height="175"
+          allow="autoplay *; encrypted-media *; fullscreen *; clipboard-write"
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+          loading="lazy"
+          className="rounded-xl"
+          title={t('streaming.appleEmbedTitle')}
+        />
+      )}
+      {autoload?.enabled && (
+        <button
+          type="button"
+          className="text-caption text-muted underline hover:text-text"
+          onClick={() => {
+            autoload.onChange(false)
+            setActivated(false)
+          }}
+        >
+          {t('streaming.appleAutoloadOff')}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export function StreamingLinks({
   streamingUrls,
   artistName,
@@ -162,7 +300,9 @@ export function StreamingLinks({
   onPlay,
   isPlaying = false,
   spotifyAutoload,
+  appleAutoload,
 }: StreamingLinksProps) {
+  const applePreviews = useContext(PreviewContext)?.applePreviews ?? 'off'
   const { t } = useI18n()
   const urls = streamingUrls ?? {}
 
@@ -220,7 +360,17 @@ export function StreamingLinks({
           </a>
         ))}
       </div>
-      {!compact && spotifyUrl && <SpotifyEmbed url={spotifyUrl} autoload={spotifyAutoload} />}
+      {/* While the preference is unknown neither player is offered. */}
+      {!compact && applePreviews === 'on' && (
+        <AppleEmbed
+          appleMusicUrl={streamingUrls?.appleMusic}
+          artistName={artistName}
+          autoload={appleAutoload}
+        />
+      )}
+      {!compact && applePreviews === 'off' && spotifyUrl && (
+        <SpotifyEmbed url={spotifyUrl} autoload={spotifyAutoload} />
+      )}
     </div>
   )
 }

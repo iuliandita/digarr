@@ -18,8 +18,11 @@ describe('content security policy', () => {
     const policy = response.headers.get('content-security-policy') ?? ''
 
     expect(directive(policy, 'script-src')).toBe("script-src 'self'")
-    expect(policy).toContain("frame-src 'self' https://open.spotify.com")
+    expect(policy).toContain(
+      "frame-src 'self' https://open.spotify.com https://embed.music.apple.com",
+    )
     expect(response.headers.get('x-frame-options')).toBe('DENY')
+    expect(response.headers.get('cross-origin-opener-policy')).toBe('same-origin')
   })
 
   it('scopes Spotify controller access to the same-origin bridge page', async () => {

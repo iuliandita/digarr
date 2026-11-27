@@ -317,8 +317,27 @@ Register the implementation at its extension point and add settings/schema/UI wh
 ## Preview playback
 
 Recommendation-card tracks and the Discover audition queue share the global
-preview context, so starting one preview stops the other audio surface. Deezer
-clips advance from the native `ended` event. Spotify audition playback keeps one
+preview context, so starting one preview stops the other audio surface. The
+play button resolves its source in order: the Spotify embed, a Deezer clip,
+then a YouTube embed. The per-user `applePreviews` preference (off by default,
+Settings > Account > Previews) puts an Apple 30-second clip in Spotify's place
+and never loads the Spotify player. Until the preferences have loaded, the
+preference is unknown and neither Spotify nor Apple is used: the play button
+shows its loading state and waits up to two seconds for it, and if the
+preferences cannot be loaded it resolves with Deezer and YouTube only. Unless
+the preference is known to be off, every artist with a streaming link gets a
+play button, because the Apple and Deezer lookups can go by name. The Apple
+songs come from `GET /api/v1/preview/apple`: the server asks Apple's public
+iTunes Search API, by artist ID when MusicBrainz has an Apple Music or iTunes
+Store artist link, otherwise by an artist search whose result is used only when
+exactly one artist has exactly that name, followed by the song lookup for that
+artist. The lookup is limited to four seconds, follows no redirects, returns
+only the fields the client needs and is cached in memory. The clip plays
+through `/api/v1/preview/audio`, because the page's Content-Security-Policy
+allows media from Digarr's own origin only, so on play Apple sees the Digarr
+server, not the browser. If Apple has no clip, the browser searches Deezer as
+it does without the preference. Apple and Deezer clips advance from the native
+`ended` event. Spotify audition playback keeps one
 persistent local bridge iframe with `sandbox="allow-scripts"` and no
 same-origin capability. Spotify's controller script and embed run only inside
 that opaque-origin document; the authenticated SPA transfers a private
@@ -329,7 +348,7 @@ reuse, and queue advancement remain in the SPA. Bridge initialization is
 bounded and falls back to the standard Spotify iframe for standalone previews;
 an active audition queue skips the unavailable item. YouTube embeds have no
 equivalent completion signal in this integration and use a bounded 30-second
-fallback. The inline Spotify embed on expanded recommendation cards stays a local placeholder button until clicked, so no Spotify request happens on render. The one exception is the per-user `spotifyAutoloadDashboard` preference (off by default), which lets Today's Pick on the dashboard load the player without a click; it is set from the checkbox in that placeholder and turned off from the link under the player.
+fallback. The inline Spotify embed on expanded recommendation cards stays a local placeholder button until clicked, so no Spotify request happens on render. The one exception is the per-user `spotifyAutoloadDashboard` preference (off by default), which lets Today's Pick on the dashboard load the player without a click; it is set from the checkbox in that placeholder and turned off from the link under the player. With `applePreviews` on, the inline player is Apple's compact song embed (`embed.music.apple.com`, allowed in `frame-src`) for the artist's most popular song from the same server lookup, with buttons for the top three songs (Apple's artist embed lists none), behind its own placeholder button; the Spotify embed is not rendered. While the preference is unknown, neither embed is rendered. Loading the Apple embed is the only time a preview makes the browser contact Apple. Its dashboard autoload is the separate `appleAutoloadDashboard` preference (off by default), so consent to load the Spotify player never loads Apple's, and the reverse. Pages are served with `Cross-Origin-Opener-Policy: same-origin`, under which Apple's sign-in window cannot report back to the embed, so signing in to Apple Music inside it is not supported. Without an Apple Music session the embed plays 30-second clips; an embed that already has a session in that browser plays whole songs, which Digarr neither provides nor prevents.
 
 Audition retains per-item unavailable reasons after skipping or queue completion, independently of playback state. New runs reset the summary and retrying an item replaces its prior failure. Reasons describe observable lookup and playback outcomes; browser fetch rejection does not establish CORS or provider outage, and Spotify controller failure does not establish account access. Stale audio callbacks and superseded resolutions cannot advance a newer queue item. No approval writes occur during playback.
 

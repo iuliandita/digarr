@@ -1,6 +1,7 @@
 import { eq } from 'drizzle-orm'
 import { Hono } from 'hono'
 import { createDeezerClient } from '@/core/clients/deezer'
+import { createItunesClient } from '@/core/clients/itunes'
 import { createMusicBrainzClient } from '@/core/clients/musicbrainz'
 import { createWikidataClient } from '@/core/clients/wikidata'
 import { isValidMbid } from '@/core/validation'
@@ -9,17 +10,22 @@ import { artists } from '@/db/schema'
 import type { AppDependencies } from '@/server'
 import { parsePositiveIntParam } from '@/server/helpers/parse-int-clamp'
 import { rateLimiter } from '@/server/middleware/rate-limit'
+import { applePreviewQuerySchema } from '@/server/schemas/preview'
+import { zQuery } from '@/server/schemas/validator'
 
 const ENRICHMENT_TTL_MS = 30 * 24 * 60 * 60 * 1000
 const ENRICHMENT_NEG_TTL_MS = 24 * 60 * 60 * 1000
 const MAX_PREVIEW_REDIRECTS = 3
-const PREVIEW_URL_PATTERN = /^https:\/\/cdn[st]-?preview[a-z0-9-]*\.dzcdn\.net\//
+// Deezer's preview CDN and Apple's iTunes preview host.
+const PREVIEW_URL_PATTERN =
+  /^https:\/\/(?:cdn[st]-?preview[a-z0-9-]*\.dzcdn\.net|audio-ssl\.itunes\.apple\.com)\//
 
 export function artistRoutes(deps: AppDependencies) {
   const router = new Hono()
   const deezer = createDeezerClient()
   const mb = createMusicBrainzClient()
   const wikidata = createWikidataClient()
+  const itunes = createItunesClient()
 
   router.get('/api/v1/artists/:id', async (c) => {
     const id = parsePositiveIntParam(c.req.param('id'))
@@ -91,7 +97,20 @@ export function artistRoutes(deps: AppDependencies) {
     return c.json({ tracks })
   })
 
-  // Proxy Deezer preview audio to avoid CORS issues in browsers
+  // Apple songs for the play button and the inline Apple Music player. The
+  // lookup runs here, so the browser never contacts Apple for it; only the
+  // fields the client needs are returned, never Apple's response itself.
+  router.get(
+    '/api/v1/preview/apple',
+    rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview-apple' }),
+    zQuery(applePreviewQuerySchema),
+    async (c) => {
+      const { name, id } = c.req.valid('query')
+      return c.json(await itunes.lookupSongs({ artistName: name, artistId: id }))
+    },
+  )
+
+  // Proxy Deezer and Apple preview audio: the CSP allows media from this origin only
   router.get(
     '/api/v1/preview/audio',
     rateLimiter({ windowMs: 60_000, max: 30, keyPrefix: 'preview' }),

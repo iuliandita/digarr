@@ -93,6 +93,8 @@ export const preferencesSchema = z
       .optional(),
     listenbrainzLoveEnabled: z.boolean().optional(),
     spotifyAutoloadDashboard: z.boolean().optional(),
+    applePreviews: z.boolean().optional(),
+    appleAutoloadDashboard: z.boolean().optional(),
     listenbrainzPlaylistEnabled: z.boolean().optional(),
     lastfmLoveEnabled: z.boolean().optional(),
     showExperimentalIntegrations: z.boolean().optional(),
