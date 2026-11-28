@@ -192,10 +192,14 @@ function parseRetryAfterMs(header: string | null): number | null {
 // Single shared rate gate. MusicBrainz enforces ~1 req/s per consumer; every
 // subsystem (pipeline, library sync, discovery modes, routes) funnels through
 // this one queue so concurrent runs can't sum past the ceiling and trigger 503s.
+// The window slides (strict), so two calls never start less than one interval
+// apart. With a fixed window, a call that started late in its window (after a
+// slow response) could be followed as soon as the next window opened.
 const sharedQueue = new PQueue({
   concurrency: 1,
   interval: envConfig.musicbrainzIntervalMs,
   intervalCap: 1,
+  strict: envConfig.musicbrainzIntervalMs > 0,
 })
 
 const DEFAULT_RELEASE_TYPES = ['album', 'ep', 'single'] as const

@@ -157,21 +157,27 @@ describe('createMusicBrainzClient', () => {
             signal: expect.any(AbortSignal),
           }),
         )
-        expect(PQueue).toHaveBeenCalledWith({ concurrency: 1, interval: 50, intervalCap: 1 })
+        expect(PQueue).toHaveBeenCalledWith({
+          concurrency: 1,
+          interval: 50,
+          intervalCap: 1,
+          strict: true,
+        })
       } finally {
         vi.unstubAllEnvs()
         vi.resetModules()
       }
     })
 
-    it('creates a shared PQueue with concurrency:1, interval:1000, intervalCap:1', async () => {
+    it('creates a shared strict PQueue with concurrency:1, interval:1100, intervalCap:1', async () => {
       vi.resetModules()
       const { default: FreshPQueue } = await import('p-queue')
       await import('@/core/clients/musicbrainz')
       expect(FreshPQueue).toHaveBeenCalledWith({
         concurrency: 1,
-        interval: 1000,
+        interval: 1100,
         intervalCap: 1,
+        strict: true,
       })
     })
 

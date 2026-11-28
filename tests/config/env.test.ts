@@ -133,10 +133,10 @@ describe('MusicBrainz operator configuration', () => {
     vi.resetModules()
   })
 
-  it('defaults to the public API with a one-second interval', async () => {
+  it('defaults to the public API with headroom under the one-second limit', async () => {
     const { envConfig } = await import('@/config/env')
     expect(envConfig.musicbrainzUrl).toBe('https://musicbrainz.org/ws/2')
-    expect(envConfig.musicbrainzIntervalMs).toBe(1000)
+    expect(envConfig.musicbrainzIntervalMs).toBe(1100)
   })
 
   it.each(['http', 'https'])(
