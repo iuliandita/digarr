@@ -136,7 +136,14 @@ const STREAMING_PATTERNS: Array<[RegExp, keyof StreamingUrls]> = [
   [/bandcamp\.com/i, 'bandcamp'],
 ]
 
-const STREAMING_TYPES = new Set(['streaming music', 'free streaming'])
+// MusicBrainz names the paid-streaming relationship 'streaming' (Apple Music,
+// Tidal); 'streaming music' is its former name.
+const STREAMING_TYPES = new Set(['streaming', 'streaming music', 'free streaming'])
+
+// iTunes Store artist pages carry the same artist ID as Apple Music, and many
+// artists have only this older 'purchase for download' link.
+const ITUNES_ARTIST_PATTERN =
+  /^https?:\/\/itunes\.apple\.com\/(?:[a-z]{2}\/)?artist\/(?:[^/]+\/)?id(\d+)/i
 
 const TRANSIENT_STATUSES = new Set([429, 500, 502, 503, 504])
 const MAX_RETRIES = 3
@@ -629,8 +636,14 @@ export function createMusicBrainzClient(
   function extractStreamingUrls(relations: MBRelation[]): StreamingUrls {
     const result: StreamingUrls = {}
 
+    let itunesArtistId: string | undefined
+
     for (const rel of relations) {
       if (!rel.url?.resource) continue
+      if (rel.type === 'purchase for download') {
+        itunesArtistId ??= rel.url.resource.match(ITUNES_ARTIST_PATTERN)?.[1]
+        continue
+      }
       if (!STREAMING_TYPES.has(rel.type)) continue
 
       const resource = rel.url.resource
@@ -641,6 +654,11 @@ export function createMusicBrainzClient(
           break
         }
       }
+    }
+
+    // A streaming link wins; the store link only fills the gap.
+    if (result.appleMusic === undefined && itunesArtistId) {
+      result.appleMusic = `https://music.apple.com/artist/${itunesArtistId}`
     }
 
     return result
