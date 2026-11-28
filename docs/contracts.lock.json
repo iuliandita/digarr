@@ -575,7 +575,7 @@
         "src/core/clients/media-server-queue.ts": "2f7fd59f67d7f3debb2f811de9fa3d0bc81a720d4943cba177783f0265ad54af",
         "src/core/clients/musicbrainz-cache.ts": "f7a760a3bdcfb8a96901035c3a89c689dbceda5170c66f649de61f208d3adc2a",
         "src/core/clients/musicbrainz-special-purpose.ts": "eb55a4d4ceeef6fa754cf839e3cb170ca396be8d2e8a00eca4cfa31e1d3470eb",
-        "src/core/clients/musicbrainz.ts": "bdf2e179f03038acc1c60ef72b14da9bf73011c86805f69170ff6155fac219d1",
+        "src/core/clients/musicbrainz.ts": "5337607ff51f83c918b74adf3b651e5dc3dbcf7204093ba8d9c40d76ddf7785b",
         "src/core/clients/musicinfo.ts": "15df66753c13778af9a78d20e06bc4035aa48dc54f4bb39d6ed607fdef6d96ab",
         "src/core/clients/plex.ts": "b8a672bd25aefba4ededc3ae8008cde2bf1ef578ce93dfbdd378c31dd317f808",
         "src/core/clients/rate-limiter.ts": "8a70bc3ba24c839268550b29b6ac47d5444d99e32ba93eba0db55cf8abfc3df7",
@@ -773,14 +773,14 @@
         "src/index.ts": "8d73994a0486348af3986cee975772cacedd4477805ea85b32493da50d4b9c1d",
         "src/version.ts": "98cd5ddd0a4fe5557a0640df9cefbc1a4898cc6d70053edfa5eacf1822c1bc5e"
       },
-      "digest": "0990754c8e2b97b88ae25503382b0b47db5b7f85c5ab92c69839b692ae9a36cb",
+      "digest": "3a49cd091429b73ed94f3595745c5d5908547a4e8eed0309a99d4ebebb389ef4",
       "review": {
         "outcome": "docs-updated",
-        "docs": ["CHANGELOG.md", "docs/ARCHITECTURE.md", "docs/OPERATIONS.md"],
-        "note": "Describe the strict sliding-window MusicBrainz queue and the new 1100 ms default interval.",
+        "docs": ["CHANGELOG.md"],
+        "note": "MusicBrainz streaming links are read from the current 'streaming' relationship (Apple Music, Tidal) as well as 'streaming music' and 'free streaming', and an iTunes Store artist link fills a missing Apple Music link; document the fix.",
         "breaking": "none",
         "migration": "",
-        "digest": "0990754c8e2b97b88ae25503382b0b47db5b7f85c5ab92c69839b692ae9a36cb"
+        "digest": "3a49cd091429b73ed94f3595745c5d5908547a4e8eed0309a99d4ebebb389ef4"
       }
     },
     "deployment": {
